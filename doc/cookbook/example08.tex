@@ -93,3 +93,122 @@ u_m1=u
 If the source will introduce energy to the system over a period longer than one
 or two time steps (ie the initial conditions), $y$ can be updated during the
 iteration stage. 
+
+\section{Time variant source}
+
+\sslist{example08b.py}
+
+Until this point, all of the wave propagation examples in this cookbook have
+used impulsive sources which are smooth in space but not time. It is however,
+advantageous to have a time smoothed source as it can reduce the temporal
+frequency range and thus mitigate aliasing in the solution. 
+
+
+It is quite 
+simple to implement a source which is smooth in time. In addition to the
+original source function the only extra requirement is a time function. For
+this example it will be a decaying sinusoidal curve defined by;
+\begin{python}
+U0=0.1 # amplitude of point source
+ls=100   # length of the source
+source=np.zeros(ls,'float') # source array
+g=np.log(0.01)/ls
+for t in range(0,ls):
+    source[t]=np.exp(g*t)*U0*np.sin(2.*np.pi*t/(0.75*ls))
+\end{python}
+
+We then build the source and the first two time steps via;
+\begin{python}
+# set initial values for first two time steps with source terms
+y=source[0]
+*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
+src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
+y=y*src_dir
+mypde.setValue(y=y) #set the source as a function on the boundary
+# initial value of displacement at point source is constant (U0=0.01)
+# for first two time steps
+u=[0.0,0.0]*whereNegative(x)
+u_m1=u
+\end{python}
+
+Finally, for the length of the source, we are required to update each new
+solution in the itterative section of the solver. This is done via;
+\begin{python}
+# increment loop values
+t=t+h; n=n+1
+if (n < ls):
+	y=source[n]**(cos(length(x-xc)*3.1415/src_length)+1)*\
+                   whereNegative(length(x-xc)-src_length)
+        y=y*src_dir; mypde.setValue(y=y) #set the source as a function on the
+boundary
+\end{python}
+
+\section{Absorbing Boundary Conditions}
+To mitigate the effect of the boundary on the model, absorbing boundary
+conditions can be introduced. These conditions effectively dampen the wave
+energy as they approach the bounday and thus prevent that energy from being
+reflected. This type of approach is used typically when a model only represents
+a small portion of the entire model, which in reality may have infinite bounds.
+It is inpractical to calculate the solution for an infinite model and thus ABCs
+allow us the create an approximate solution with small to zero boundary effects
+on a model with a solvable size. 
+
+To dampen the waves, the method of Cerjan(1985)
+\footnote{\textit{A nonreflecting boundary condition for discrete acoustic and
+elastic wave equations}, 1985, Cerjan C, Geophysics 50, doi:10.1190/1.1441945}
+where the solution and the stress are multiplied by a damping function defined
+on $n$ nodes of the domain adjacent to the boundary, given by;
+\begin{equation}
+ y=
+\end{equation}
+This is applied to the bounding 20-50 pts of the model using the location
+specifiers of \esc;
+\begin{python}
+# Define where the boundary decay will be applied.
+bn=30.
+bleft=xstep*bn; bright=mx-(xstep*bn); bbot=my-(ystep*bn)
+# btop=ystep*bn # don't apply to force boundary!!!
+
+# locate these points in the domain
+left=x[0]-bleft; right=x[0]-bright; bottom=x[1]-bbot
+
+tgamma=0.98   # decay value for exponential function
+def calc_gamma(G,npts):
+    func=np.sqrt(abs(-1.*np.log(G)/(npts**2.)))
+    return func
+
+gleft  = calc_gamma(tgamma,bleft)
+gright = calc_gamma(tgamma,bleft)
+gbottom= calc_gamma(tgamma,ystep*bn)
+
+print 'gamma', gleft,gright,gbottom
+
+# calculate decay functions
+def abc_bfunc(gamma,loc,x,G):
+    func=exp(-1.*(gamma*abs(loc-x))**2.)
+    return func
+
+fleft=abc_bfunc(gleft,bleft,x[0],tgamma)
+fright=abc_bfunc(gright,bright,x[0],tgamma)
+fbottom=abc_bfunc(gbottom,bbot,x[1],tgamma)
+# apply these functions only where relevant
+abcleft=fleft*whereNegative(left)
+abcright=fright*wherePositive(right)
+abcbottom=fbottom*wherePositive(bottom)
+# make sure the inside of the abc is value 1
+abcleft=abcleft+whereZero(abcleft)
+abcright=abcright+whereZero(abcright)
+abcbottom=abcbottom+whereZero(abcbottom)
+# multiply the conditions together to get a smooth result
+abc=abcleft*abcright*abcbottom
+\end{python}
+Note that the boundary conditions are not applied to the surface, as this is
+effectively a free surface where normal reflections would be experienced. The
+resulting boundary damping function can be viewed in \ref{fig:abconds}
+
+%\begin{figure}{ht}
+ %\centering
+ %\includegraphics[width=5in]{figures/abconds.png}
+%\end{figure}
+
+
