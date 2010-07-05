@@ -213,6 +213,13 @@ then
     ESCRIPT_NUM_NODES=1
     ESCRIPT_NUM_PROCS=1
 else
+    # use the PBS_NODEFILE if not otherwise specified
+    if [[ ( ! -z $PBS_NODEFILE ) && ( -z $ESCRIPT_HOSTFILE ) ]]
+    then
+	ESCRIPT_HOSTFILE=$PBS_NODEFILE
+
+    fi
+
     if [ ! -z $ESCRIPT_HOSTFILE ] 
     then
         if [ -f $ESCRIPT_HOSTFILE ]
