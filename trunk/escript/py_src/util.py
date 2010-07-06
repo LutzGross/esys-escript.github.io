@@ -43,7 +43,7 @@ from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
-from esys.escript.escriptcpp import Data, _saveDataCSV
+from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
 
 #=========================================================
 #   some helpers:
@@ -6275,3 +6275,17 @@ def safeDiv(arg0, arg1):
     """
     m1=whereZero(arg1)
     return arg0/(arg1+m1)*(1-m1)
+
+def condEval(f, tval, fval):
+    """
+    Wrapper to allow non-data objects to be used.
+    """
+    if not isinstance(tval,Data) and not isinstance(fval,Data):
+	raise TypeError, "At least one of the alternatives must be a Data object."
+    if isinstance(tval,Data) and isinstance(fval, Data):
+	return _condEval(f,tval,fval)
+    if not isinstance(fval, Data):
+	return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
+    return _condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
+
+

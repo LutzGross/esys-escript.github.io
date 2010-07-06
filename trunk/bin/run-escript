@@ -322,7 +322,7 @@ then
     exit 1
   fi
 fi
-if [ -z $@ ]
+if [ -z "$@" ]
 then
    if [ ! -z $DOBINARY ]
    then
