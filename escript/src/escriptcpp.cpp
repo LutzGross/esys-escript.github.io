@@ -551,7 +551,7 @@ arg("in2"))
 );
 #endif
 
-  def("condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
+  def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
 
   //
   // Register esysExceptionTranslator
