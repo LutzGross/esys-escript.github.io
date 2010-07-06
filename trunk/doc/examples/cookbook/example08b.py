@@ -29,7 +29,6 @@ __url__="https://launchpad.net/escript-finley"
 #######################################################EXTERNAL MODULES
 from esys.escript import *
 from esys.finley import Rectangle
-import sys
 import os
 # smoothing operator 
 from esys.escript.pdetools import Projector, Locator
@@ -39,6 +38,12 @@ import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
 
+########################################################MPI WORLD CHECK
+if getMPISizeWorld() > 1:
+	import sys
+	print "This example will not run in an MPI world."
+	sys.exit(0)
+
 #################################################ESTABLISHING VARIABLES
 # where to save output data
 savepath = "data/example08b"
@@ -46,8 +51,8 @@ mkDir(savepath)
 #Geometric and material property related variables.
 mx = 1000. # model lenght
 my = 1000. # model width
-ndx = 1000 # steps in x direction 
-ndy = 1000 # steps in y direction
+ndx = 500 # steps in x direction 
+ndy = 500 # steps in y direction
 xstep=mx/ndx # calculate the size of delta x
 ystep=abs(my/ndy) # calculate the size of delta y
 lam=3.462e9 #lames constant
@@ -55,7 +60,7 @@ mu=3.462e9  #bulk modulus
 rho=1154.   #density
 # Time related variables.
 tend=0.5    # end time
-h=0.0001    # time step
+h=0.0005    # time step
 # data recording times
 rtime=0.0 # first time to record
 rtime_inc=tend/50.0 # time increment to record
@@ -74,7 +79,7 @@ dfeq=50 #Dominant Frequency
 a = 2.0 * (np.pi * dfeq)**2.0
 t0 = 5.0 / (2.0 * np.pi * dfeq)
 srclength = 5. * t0
-ls = srclength/h
+ls = int(srclength/h)
 print 'source length',ls
 source=np.zeros(ls,'float') # source array
 ampmax=0
@@ -122,7 +127,7 @@ bleft=xstep*bn; bright=mx-(xstep*bn); bbot=my-(ystep*bn)
 # locate these points in the domain
 left=x[0]-bleft; right=x[0]-bright; bottom=x[1]-bbot
 
-tgamma=0.99   # decay value for exponential function
+tgamma=0.85   # decay value for exponential function
 def calc_gamma(G,npts):
     func=np.sqrt(abs(-1.*np.log(G)/(npts**2.)))
     return func
@@ -178,7 +183,7 @@ t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
 	# get current stress
-    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))*abc
     mypde.setValue(X=-stress) # set PDE values
     accel = mypde.getSolution() #get PDE solution for accelleration
     u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement

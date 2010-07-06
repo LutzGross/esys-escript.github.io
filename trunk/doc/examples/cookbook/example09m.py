@@ -73,23 +73,10 @@ l56=Line(p5, p6)
 l67=Line(p6, p7)
 l74=Line(p7, p4)
 l45=Line(p4, p5)
-l05=Line(p0, p5)
-l16=Line(p1, p6)
-l27=Line(p2, p7)
-l34=Line(p3, p4)
 
 # Join line segments to create domain boundaries and then surfaces
 ctop=CurveLoop(l01, l12, l23, l30);     stop=PlaneSurface(ctop)
 cbot=CurveLoop(-l67, -l56, -l45, -l74); sbot=PlaneSurface(cbot)
-cx0 =CurveLoop(l05, l56, -l16, -l01);   sx0=PlaneSurface(cx0)
-cy0 =CurveLoop(-l30, l34, l45, -l05);   sy0=PlaneSurface(cy0)
-cxy =CurveLoop(-l34, -l23, l27, l74);   sxy=PlaneSurface(cxy)
-cyx =CurveLoop(-l12, l16, l67, -l27);   syx=PlaneSurface(cyx)
-
-# Create the volume.
-sloop=SurfaceLoop(stop,sbot,sx0,sy0,sxy,syx)
-model=Volume(sloop)
-
 
 #create interface
 sspl=51 #number of discrete points in spline
@@ -137,17 +124,23 @@ nsintf_ar=[]
 for i in range(0,sspl):
     #create all the points required
     point_ar=[Point(xs[i],ys[j],zs[i,j]) for j in range(0,sspl)]
+
+    if (i == 0):
+        ip0=point_ar[0]
+        ip3=point_ar[-1]
+    if (i == sspl-1):
+        ip1=point_ar[0]
+        ip2=point_ar[-1]
+
     #create the spline and store it
     spl_ar.append(Spline(*tuple(point_ar)))
     #create the lines along the x axis and x axis at ymax
-    if (i < sspl-1): 
+    if (i > 0): 
         #print i,xs[i],ys[0],zs[i,0]
-        tp0=Point(xs[i],ys[0],zs[i,0])
-        tp1=Point(xs[i+1],ys[0],zs[i+1,0])
-        tp2=Point(xs[i],ys[-1],zs[i,-1])
-        tp3=Point(xs[i+1],ys[-1],zs[i+1,-1])
-        tl0=Line(tp0,tp1); tl1=Line(tp2,tp3)
+        tp2=point_ar[0]; tp3=point_ar[-1]
+        tl0=Line(cp0,tp2); tl1=Line(cp1,tp3)
         linex0_ar.append(tl0); linexy_ar.append(tl1)
+    cp0=point_ar[0]; cp1=point_ar[-1]
         
 for i in range(0,sspl):
     #create the mini surfaces via curveloops and then ruledsurfaces
@@ -161,10 +154,10 @@ for i in range(0,sspl):
 sintf=SurfaceLoop(*tuple(sintf_ar))
 
 # for each side
-ip0=Point(xs[0],ys[0],zs[0,0])
-ip1=Point(xs[-1],ys[0],zs[-1,0])
-ip2=Point(xs[-1],ys[-1],zs[-1,-1])
-ip3=Point(xs[0],ys[-1],zs[0,-1])
+#ip0=Point(xs[0],ys[0],zs[0,0])
+#ip1=Point(xs[-1],ys[0],zs[-1,0])
+#ip2=Point(xs[-1],ys[-1],zs[-1,-1])
+#ip3=Point(xs[0],ys[-1],zs[0,-1])
 
 linte_ar=[]; #lines for vertical edges
 linhe_ar=[]; #lines for horizontal edges
@@ -183,32 +176,47 @@ linhe_ar.append(Line(ip2,ip3))
 linhe_ar.append(Line(ip3,ip0))
 
 cintfa_ar=[]; cintfb_ar=[] #curveloops for above and below interface on sides
-cintfa_ar.append(CurveLoop(linte_ar[0],linhe_ar[0],-linte_ar[2],-l01))
-cintfa_ar.append(CurveLoop(linte_ar[2],linhe_ar[1],-linte_ar[4],-l12))
-cintfa_ar.append(CurveLoop(linte_ar[4],linhe_ar[2],-linte_ar[6],-l23))
-cintfa_ar.append(CurveLoop(linte_ar[6],linhe_ar[3],-linte_ar[0],-l30))
+cintfa_ar.append(CurveLoop(-linte_ar[2],-l01,linte_ar[0],*tuple(linex0_ar)))
+cintfa_ar.append(CurveLoop(linte_ar[2],spl_ar[-1],-linte_ar[4],-l12))
+cintfa_ar.append(CurveLoop(-linte_ar[6],-l23,linte_ar[4],*tuple(linexy_ar)))
+cintfa_ar.append(CurveLoop(linte_ar[6],-spl_ar[0],-linte_ar[0],-l30))
 
-cintfb_ar.append(CurveLoop(linte_ar[1],l56,-linte_ar[3],-linhe_ar[0]))
-cintfb_ar.append(CurveLoop(linte_ar[3],l67,-linte_ar[5],-linhe_ar[1]))
-cintfb_ar.append(CurveLoop(linte_ar[5],l74,-linte_ar[7],-linhe_ar[2]))
-cintfb_ar.append(CurveLoop(linte_ar[7],l45,-linte_ar[1],-linhe_ar[3]))
+#cintfb_ar.append(CurveLoop(linte_ar[1],l56,-linte_ar[3],-linhe_ar[0]))
+#cintfb_ar.append(CurveLoop(linte_ar[3],l67,-linte_ar[5],-linhe_ar[1]))
+#cintfb_ar.append(CurveLoop(linte_ar[5],l74,-linte_ar[7],-linhe_ar[2]))
+#cintfb_ar.append(CurveLoop(linte_ar[7],l45,-linte_ar[1],-linhe_ar[3]))
+
+cintfb_ar.append(-CurveLoop(linte_ar[3],-l56,-linte_ar[1],*tuple(linex0_ar)))
+cintfb_ar.append(-CurveLoop(linte_ar[5],-l67,-linte_ar[3],-spl_ar[-1]))
+cintfb_ar.append(CurveLoop(linte_ar[5],l74,-linte_ar[7],*tuple(linexy_ar)))
+cintfb_ar.append(CurveLoop(linte_ar[7],l45,-linte_ar[1],spl_ar[0]))
+
+
 
 sintfa_ar=[PlaneSurface(cintfa_ar[i]) for i in range(0,4)]
 sintfb_ar=[PlaneSurface(cintfb_ar[i]) for i in range(0,4)]
 
-vintfa=Volume(SurfaceLoop(stop,*tuple(sintfa_ar+nsintf_ar)))
+vintfa=Volume(SurfaceLoop(stop,*tuple(sintfa_ar+sintf_ar)))
 vintfb=Volume(SurfaceLoop(sbot,*tuple(sintfb_ar+sintf_ar)))
+
+# Create the volume.
+#sloop=SurfaceLoop(stop,sbot,*tuple(sintfa_ar+sintfb_ar))
+#model=Volume(sloop)
 
 
 #############################################EXPORTING MESH FOR ESCRIPT
 # Create a Design which can make the mesh
 d=Design(dim=3, element_size=200.0*m)
 # Add the subdomains and flux boundaries.
-d.addItems(model,stop,sbot,sx0,sy0,sxy,syx)
+#d.addItems(stop,sbot)
 #d.addItems(PropertySet('intf',sintf))
 
-d.addItems(PropertySet('vintfa',vintfa),PropertySet('vintfb',vintfb))
-
+#d.addItems(PropertySet('vintfa',vintfa))
+#d.addItems(PropertySet('vintfb',vintfb))
+#d.addItems(PropertySet('l1',linte_ar[0]))
+d.addItems(*tuple(sintfb_ar))
+d.addItems(sbot)
+d.addItems(*tuple(sintf_ar))
 
 d.setScriptFileName(os.path.join(save_path,"example09m.geo"))
 
