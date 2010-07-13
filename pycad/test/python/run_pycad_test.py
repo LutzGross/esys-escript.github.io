@@ -4988,6 +4988,16 @@ Physical Volume(68) = {67};
 """
        self.failUnless(scrpt == ref )
 
+   def test_LayerCake(self):
+       fname='testlayercake'
+       LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.,fname)  
+       self.failUnless(os.path.exists(fname+".geo"))
+       self.failUnless(os.path.exists(fname+".msh"))
+       self.failUnless(os.path.exists(fname+".fly"))
+       os.remove(fname+".geo")
+       os.remove(fname+".msh")
+       os.remove(fname+".fly")f
+        
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_PyCAD_Transformations))
