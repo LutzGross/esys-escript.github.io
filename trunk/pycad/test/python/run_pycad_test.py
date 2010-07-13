@@ -28,6 +28,7 @@ import numpy
 from esys.pycad import *
 from esys.pycad.design import Design as Design0
 from esys.pycad.gmsh import Design as GMSHDesign
+from esys.pycad.layer_cake import LayerCake
 # from esys.pycad.Triangle import Design as TriangleDesign
 
 try:
@@ -4989,14 +4990,9 @@ Physical Volume(68) = {67};
        self.failUnless(scrpt == ref )
 
    def test_LayerCake(self):
-       fname='testlayercake'
-       LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.,fname)  
-       self.failUnless(os.path.exists(fname+".geo"))
-       self.failUnless(os.path.exists(fname+".msh"))
-       self.failUnless(os.path.exists(fname+".fly"))
-       os.remove(fname+".geo")
-       os.remove(fname+".msh")
-       os.remove(fname+".fly")f
+       dom=LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.)  
+       self.failUnless(isinstance(dom,GMSHDesign),\
+                         "LayerCake return is not a domain gmsh.Design.")
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()

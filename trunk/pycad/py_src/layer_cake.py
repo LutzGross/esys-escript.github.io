@@ -38,14 +38,6 @@ __author__="Antony Hallam antony.hallam@uqconnect.edu.au"
 
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
-from esys.finley import MakeDomain #Converter for escript
-from esys.escript.unitsSI import *
-import os
-from math import *
-import pylab as pl
-import numpy as np
-
-
 
 def buildFreeSurface(xwidth,ywidth):
     '''
@@ -120,7 +112,7 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
     return lay_vol,-lay_surf[1],hor_lines[4:8],corner_points[5:10]
 
 
-def LayerCake(xwidth,ywidth,depths,ele_size,fname,save_path=""):
+def LayerCake(xwidth,ywidth,depths,ele_size):
     '''
     Builds a horizontally layered box like model. All layers are 
     tagged as 'interface_i' where i is the python style integer denoting
@@ -134,7 +126,17 @@ def LayerCake(xwidth,ywidth,depths,ele_size,fname,save_path=""):
             ele_size :: the element meshing size.
             fname  :: the output file name.
         KW Arg:
-            save_path :: path to save outputs.            
+            save_path :: path to save outputs. 
+
+    One may save the domain using:
+        # Output settings.    
+        domain.setScriptFileName(os.path.join(save_path,fname+".geo"))
+        domain.setMeshFileName(os.path.join(save_path,fname+".msh"))
+        findomain=fin.MakeDomain(domain) #  make the finley domain:
+    
+        # Create a file that can be read back in to python with
+        # ReadMesh
+        findomain.write(os.path.join(save_path,fname+".fly"))             
     '''
     
     #get number of layers
@@ -159,15 +161,10 @@ def LayerCake(xwidth,ywidth,depths,ele_size,fname,save_path=""):
         domain.addItems(PropertySet('intface_%d'%(i+1),tsuf))        
         # Add the new volume/layer to the domain.
         domain.addItems(PropertySet('volume_%d'%i,tvol))
-
-    # Output settings.    
-    domain.setScriptFileName(os.path.join(save_path,fname+".geo"))
-    domain.setMeshFileName(os.path.join(save_path,fname+".msh"))
-    findomain=MakeDomain(domain) #  make the finley domain:
     
-    # Create a file that can be read back in to python with
-    # ReadMesh
-    findomain.write(os.path.join(save_path,fname+".fly"))    
+    return domain
+      
 
-#LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.,'testlc')
+x=LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.)
+print x
 
