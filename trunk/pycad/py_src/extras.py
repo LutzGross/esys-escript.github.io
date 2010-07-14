@@ -112,7 +112,7 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
     return lay_vol,-lay_surf[1],hor_lines[4:8],corner_points[5:10]
 
 
-def LayerCake(xwidth,ywidth,depths,ele_size):
+def layer_cake(xwidth,ywidth,depths,ele_size):
     '''
     Builds a horizontally layered box like model. All layers are 
     tagged as 'interface_i' where i is the python style integer denoting
@@ -163,8 +163,4 @@ def LayerCake(xwidth,ywidth,depths,ele_size):
         domain.addItems(PropertySet('volume_%d'%i,tvol))
     
     return domain
-      
-
-x=LayerCake(100.0,100.0,[10.,40.,80.,100.,150.],10.)
-print x
 
