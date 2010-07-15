@@ -33,11 +33,7 @@ from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
 from esys.escript import mkDir, getMPISizeWorld
-from esys.escript.unitsSI import *
 import os
-from math import *
-import pylab as pl
-import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
@@ -50,10 +46,10 @@ mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
-xwidth=2000.0*m   #x width of model
-ywidth=2000.0*m   #y width of model
-depth=500.0*m   #depth of model
-intf=depth/2.
+xwidth=2000.0   #x width of model
+ywidth=2000.0   #y width of model
+depth=500.0   #depth of model
+intf=depth/2.   #Depth of the interface.
 
 ####################################################DOMAIN CONSTRUCTION
 # Domain Corners
@@ -127,27 +123,21 @@ vintfb=Volume(SurfaceLoop(sbot,sintf,*tuple(sintfb_ar)))
 
 #############################################EXPORTING MESH FOR ESCRIPT
 # Create a Design which can make the mesh
-d=Design(dim=3, element_size=5.0*m)
-# Add the subdomains and flux boundaries.
-#d.addItems(stop,sbot)
-#d.addItems(PropertySet('intf',sintf))
+d=Design(dim=3, element_size=5.0)
 
 d.addItems(PropertySet('vintfa',vintfa))
 d.addItems(PropertySet('vintfb',vintfb))
-#d.addItems(PropertySet('l1',linte_ar[0]))
-#d.addItems(*tuple(sintfa_ar))
-#d.addItems(stop)
-#d.addItems(sintf)
+d.addItems(sintf)
 
 d.setScriptFileName(os.path.join(save_path,"example09m.geo"))
 
-#d.setMeshFileName(os.path.join(save_path,"example09m.msh"))
+d.setMeshFileName(os.path.join(save_path,"example09m.msh"))
 #
 #  make the finley domain:
 #
 domain=MakeDomain(d)
 # Create a file that can be read back in to python with
 # mesh=ReadMesh(fileName)
-#domain.write(os.path.join(save_path,"example09m.fly"))
+domain.write(os.path.join(save_path,"example09m.fly"))
 
 

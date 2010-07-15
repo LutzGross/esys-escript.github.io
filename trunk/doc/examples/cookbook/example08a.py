@@ -44,16 +44,16 @@ mkDir(savepath)
 #Geometric and material property related variables.
 mx = 1000. # model lenght
 my = -1000. # model width
-ndx = 200 # steps in x direction 
-ndy = 200 # steps in y direction
+ndx = 500 # steps in x direction 
+ndy = 500 # steps in y direction
 xstep=mx/ndx # calculate the size of delta x
 ystep=abs(my/ndy) # calculate the size of delta y
 lam=3.462e9 #lames constant
 mu=3.462e9  #bulk modulus
 rho=1154.   #density
 # Time related variables.
-tend=1.5    # end time
-h=0.001     # time step
+tend=0.5    # end time
+h=0.0005     # time step
 # data recording times
 rtime=0.0 # first time to record
 rtime_inc=tend/20.0 # time increment to record
@@ -62,7 +62,7 @@ print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
 U0=0.01 # amplitude of point source
 # will introduce a spherical source at middle left of bottom face
-xc=[ndx/2-ndx/4,0]
+xc=[mx/2,0]
 
 ####################################################DOMAIN CONSTRUCTION
 domain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy) # create the domain
