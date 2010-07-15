@@ -76,10 +76,10 @@ object, it is nesscary to calculate the trace also. This is the sum of the
 diagonal in \refeq{eqn:gradrank1}. 
 
 Thus when solving for equations containing the Laplacian one of two things must
-be completed. If the object \verb p   is less than rank 1 the gradient is
+be completed. If the object \verb!p! is less than rank 1 the gradient is
 calculated via;
 \begin{python}
- gradient=grad(p)
+gradient=grad(p)
 \end{python}
 and if the object is greater thank or equal to a rank 1 tensor, the trace of
 the gradient is calculated.
@@ -206,7 +206,7 @@ initial conditions of the model to VTK, which can be interpreted as a scalar
 suface in mayavi. The second is to take a cross section of the model.
 
 For the later, we will require the \textit{Locator} function. 
-First \verb Locator  must be imported;
+First \verb!Locator! must be imported;
 \begin{python}
  from esys.escript.pdetools import Locator
 \end{python}
@@ -222,8 +222,8 @@ for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
     cut_loc.append(xstep*i)
     src_cut.append([xstep*i,xc[1]])
 \end{python}
-We then submit the output to \verb Locator  and finally return the appropriate
-values using the \verb getValue  function.
+We then submit the output to \verb!Locator! and finally return the appropriate
+values using the \verb!getValue! function.
 \begin{python}
  src=Locator(mydomain,src_cut)
 src_cut=src.getValue(u)
@@ -236,8 +236,7 @@ pl.savefig(os.path.join(savepath,"source_line.png"))
 \end{python}
 \begin{figure}[h]
  \centering
-FIXME PLEASE!
-% \includegraphics[width=6in]{figures/sourceline.png}
+	\includegraphics[width=6in]{figures/sourceline.png}
  \caption{Cross section of the source function.}
  \label{fig:cxsource}
 \end{figure}
@@ -255,15 +254,15 @@ via;
 \begin{python}
  u_rec=rec.getValue(u)
 \end{python}
-For consecutive time steps one can record the values from \verb u_rec  in an
-array initialised as \verb u_rec0=[]  with;
+For consecutive time steps one can record the values from \verb!u_rec! in an
+array initialised as \verb!u_rec0=[]! with;
 \begin{python}
   u_rec0.append(rec.getValue(u))
 \end{python}
 
 It can be useful to monitor the value at a single or multiple individual points
 in the model during the modelling process. This is done using 
-the \verb Locator  function.
+the \verb!Locator! function.
 
 
 \section{Acceleration Solution}
