@@ -137,6 +137,23 @@ domain=MakeDomain(d)
 domain.write(os.path.join(save_path,"example09m.fly"))
 \end{python}
 
+\begin{figure}[htp]
+\begin{center}
+\begin{subfigure}[Gmesh view of geometry only.]
+{\label{fig:gmsh3dgeo}
+\includegraphics[width=3.5in]{figures/gmsh/example09m.png}}
+\end{subfigure}
+\begin{subfigure}[Gmesh view of a 200m 2D mesh on the domain surfaces.]
+{\label{fig:gmsh3dmsh}
+\includegraphics[width=3.5in]{figures/gmsh/example09msh2d.png}}
+\end{subfigure}
+\begin{subfigure}[Gmesh view of a 200m 3D mesh on the domain volumes.]
+{\label{fig:gmsh3dmsh}
+\includegraphics[width=3.5in]{figures/gmsh/example09msh3d.png}}
+\end{subfigure}
+\end{center}
+\end{figure}
+\clearpage
 
 \section{Layer Cake Models}
 Whilst this type of model seems simple enough to construct for two layers,
@@ -146,8 +163,27 @@ arguments and returns is available in the API and the function can be imported
 from pycad.
 \begin{python}
 from esys.pycad import layer_cake
+intfaces=[10,30,50,55,80,100,200,250,400,500]
+
+cmplx_domain=layer_cake.LayerCake(xwidth,ywidth,intfaces,200.0)
+cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
+cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+dcmplx=MakeDomain(cmplx_domain)
+dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 \end{python}
 
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=5in]{figures/gmsh/example09lc.png}
+\caption{Example geometry using layer cake function.}
+\label{fig:gmsh3dlc}
+\end{center}
+\end{figure}
+\clearpage
 \section{Troubleshooting Pycad}
-There are some techniques which can be useful when trying to trouble shoot
-problems with pycad.
+There are some techniques which can be useful when trying to troubleshoot
+problems with pycad. As mentioned earlier it is important to ensure the correct
+directionality of your primatives when constructing more complicated domains. If
+one cannot establist the tangent of a line or curveloop, or the normal of a
+surface. These values can be checked by importing the geometry to gmesh and
+applying the appropriate options.
