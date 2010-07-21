@@ -4990,7 +4990,7 @@ Physical Volume(68) = {67};
        self.failUnless(scrpt == ref )
 
    def test_layer_cake(self):
-       dom=layer_cake(100.0,100.0,[10.,40.,80.,100.,150.],10.)  
+       dom=layer_cake(GMSHDesign(dim=3, element_size=0.1),100.0,100.0,[10.,40.,80.,100.,150.])  
        self.failUnless(isinstance(dom,GMSHDesign),\
                          "LayerCake return is not a domain gmsh.Design.")
         

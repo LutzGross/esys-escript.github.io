@@ -20,73 +20,162 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE, TransportPDE
+from esys.escript.linearPDEs import LinearPDE, SingleTransportPDE
 from esys.escript.pdetools import Projector
 from esys import finley
 import math
 
-
-
-from esys.escript import *
-from esys.finley import finley
-from esys.escript.linearPDEs import LinearPDE
-from esys.escript.pdetools import Projector
-import sys
+USE_OLD_VERSION=False
+USE_OLD_VERSION_REINIT=False
 
 
 class LevelSet:
   """
   The level set method tracking an interface defined by the zero contour of the
-  level set function phi.
+  level set function phi which defines the signed distance of a point x from the
+  interface. The contour phi(x)=0 defines the interface.
 
-  It is assumed that phi(x)<0 defines the volume of interest.
-
+  It is assumed that phi(x)<0 defines the volume of interest,
+  phi(x)>0 the outside world. 
   """
-  def __init__(self,domain,phi,reinit_max=10,reinit_each=2,smooth=2.):
+  def __init__(self,phi,reinit_max=10,reinitialize_after=20,smooth=2., useReducedOrder=False):
     """
     Sets up the level set method.
 
     :param domain: the domain where the level set is used
     :param phi: the initial level set function
     :param reinit_max: maximum number of reinitialization steps
-    :param reinit_each: ``phi`` is reinitialized every ``reinit_each`` step
+    :param reinit_after: ``phi`` is reinitialized every ``reinit_after`` step
     :param smooth: smoothing width
     """
-    self.__domain = domain
+    self.__domain = phi.getDomain()
     self.__phi = phi
+
+    if USE_OLD_VERSION:
+       self.__PDE = LinearPDE(self.__domain)
+       if useReducedOrder: self.__PDE.setReducedOrderOn()
+       self.__PDE.setSolverMethod(solver=LinearPDE.PCG)
+       self.__PDE.setValue(D=1.0)
+    else:
+       self.__PDE=SingleTransportPDE(self.__domain)
+       if useReducedOrder: self.__PDE.setReducedOrderOn()
+       self.__PDE.setValue(M=1.0)
+
+    if USE_OLD_VERSION_REINIT:
+       self.__reinitPDE = LinearPDE(self.__domain, numEquations=1)
+       self.__reinitPDE.getSolverOption().setSolverMethod(solver=LinearPDE.LUMPING)
+       if useReducedOrder: self.__reinitPDE.setReducedOrderOn()
+       self.__reinitPDE.setValue(D=1.0)
+    else:
+       self.__reinitPDE=SingleTransportPDE(self.__domain)
+       if useReducedOrder: self.__reinitPDE.setReducedOrderOn()
+       self.__reinitPDE.setValue(M=1.0)
+
+    # revise:
     self.__reinit_max = reinit_max
-    self.__reinit_each = reinit_each
-    self.__PDE = LinearPDE(domain)
-    self.__PDE.setReducedOrderOn()
-    self.__PDE.setValue(D=1.0)
-    self.__PDE.setSolverMethod(solver=LinearPDE.PCG)
-    self.__reinitPDE = LinearPDE(domain, numEquations=1)
-    self.__reinitPDE.setReducedOrderOn()
-    self.__reinitPDE.setValue(D=1.0)
-    self.__reinitPDE.setSolverMethod(solver=LinearPDE.LUMPING)
-    self.__h = inf(domain.getSize())
+    self.__reinit_after = reinitialize_after
+    self.__h = inf(self.__domain.getSize())
     self.__smooth = smooth
     self.__n_step=0
 
-  def __advect(self, velocity, dt):
+  def getH(self):
+      """
+      Returns the mesh size.
+      """
+      return self.__h
+
+  def getDomain(self):
+      """
+      Returns the domain.
+      """
+      return self.__domain
+
+  def getAdvectionSolverOptions(self):
+      """
+      Returns the solver options for the interface advective.
+      """
+      return self.__PDE.getSolverOptions()
+
+  def getReinitializationSolverOptions(self):
+      """
+      Returns the options of the solver for the reinitialization
+      """
+      return self.__reinitPDE.getSolverOption()
+
+  def getLevelSetFunction(self):
+      """
+      Returns the level set function.
+      """
+      return self.__phi
+
+  def getTimeStepSize(self,velocity):
+       """
+       Returns a new ``dt`` for a given ``velocity`` using the Courant condition.
+
+       :param velocity: velocity field
+       """
+       if USE_OLD_VERSION:
+          self.__velocity=velocity
+          dt=0.5*self.__h/sup(length(velocity))
+       else:
+          self.__PDE.setValue(C=-velocity)
+          dt=self.__PDE.getSafeTimeStepSize()
+
+       return dt
+
+  def update(self,dt):
+      """
+      Sets a new velocity and updates the level set function.
+
+      :param dt: time step forward
+      """
+      self.__phi=self.__advect(dt)
+      self.__n_step+=1
+      if self.__n_step%self.__reinit_after ==0: self.__phi = self.__reinitialise()
+      return self.__phi
+
+  def update_phi(self, velocity, dt):
+      """
+      Updates ``phi`` under the presence of a velocity field.
+
+      If dt is small this call is equivalent to::
+
+          dt=LevelSet.getTimeStepSize(velocity)
+          phi=LevelSet.update(dt)
+
+      otherwise substepping is used.
+
+      :param velocity: velocity field
+      :param dt: time step forward
+      """
+      dt2=self.getTimeStepSize(velocity)
+      n=int(math.ceil(dt/dt2))
+      dt_new=dt/n
+      for i in range(n):
+           phi=self.update(dt_new)
+      return phi
+
+  def __advect(self,  dt):
     """
     Advects the level set function in the presence of a velocity field.
 
-    This implementation uses the 2-step Taylor-Galerkin method.
-
-    :param velocity: velocity field
     :param dt: time increment
     :return: the advected level set function
     """
-    Y = self.__phi-dt/2.*inner(velocity,grad(self.__phi))
-    self.__PDE.setValue(Y=Y)
-    phi_half = self.__PDE.getSolution()
-    Y = self.__phi-dt*inner(velocity,grad(phi_half))
-    self.__PDE.setValue(Y=Y)
-    phi = self.__PDE.getSolution()
+    if USE_OLD_VERSION:
+       velocity=self.__velocity
+       Y = self.__phi-dt/2.*inner(velocity,grad(self.__phi))
+       self.__PDE.setValue(Y=Y)
+       phi_half = self.__PDE.getSolution()
+       Y = self.__phi-dt*inner(velocity,grad(phi_half))
+       self.__PDE.setValue(Y=Y)
+       phi = self.__PDE.getSolution()
+    else:
+       phi = self.__PDE.getSolution(dt, self.__phi)
     print "LevelSet: Advection step done"
     return phi
 
+  #==============================================================================================
   def __reinitialise(self):
     """
     Reinitializes the level set.
@@ -117,49 +206,6 @@ class LevelSet:
       iter +=1
     return phi
 
-  def getTimeStepSize(self,velocity):
-       """
-       Returns a new ``dt`` for a given ``velocity`` using the Courant condition.
-
-       :param velocity: velocity field
-       """
-       self.__velocity=velocity
-       dt=0.5*self.__h/sup(length(velocity))
-       return dt
-
-  def update(self,dt):
-      """
-      Sets a new velocity and updates the level set function.
-
-      :param dt: time step forward
-      """
-      self.__phi=self.__advect(self.__velocity, dt)
-      self.__n_step+=1
-      if self.__n_step%self.__reinit_each ==0: self.__phi = self.__reinitialise()
-      return self.__phi
-
-  def update_phi(self, velocity, dt):
-      """
-      Updates ``phi`` under the presence of a velocity field.
-
-      If dt is small this call is equivalent to::
-
-          dt=LevelSet.getTimeStepSize(velocity)
-          phi=LevelSet.update(dt)
-
-      otherwise substepping is used.
-
-      :param velocity: velocity field
-      :param dt: time step forward
-      """
-      dt2=self.getTimeStepSize(velocity)
-      n=math.ceil(dt/dt2)
-      dt_new=dt/n
-      for i in range(n):
-           phi=self.update(dt_new)
-           t+=dt_new
-      return phi
-
 
   def getVolume(self):
       """
@@ -167,31 +213,6 @@ class LevelSet:
       """
       return integrate(whereNegative(self.__phi.interpolate(Function(self.__domain))))
 
-  def getSurface(self,rel_width_factor=0.5):
-      """
-      Returns a mask for the *phi(x)=1* region
-
-      :param rel_width_factor: relative width of region around zero contour
-      """
-      return whereNegative(abs(self.__phi)-rel_width_factor*self.__h)
-
-  def getH(self):
-      """
-      Returns the mesh size.
-      """
-      return self.__h
-
-  def getDomain(self):
-      """
-      Returns the domain.
-      """
-      return self.__domain
-
-  def getLevelSetFunction(self):
-      """
-      Returns the level set function.
-      """
-      return self.__phi
 
   def update_parameter_sharp(self, param_neg=-1, param_pos=1, phi=None):
       """
@@ -256,13 +277,9 @@ class LevelSet:
       else:
           return (1-s)/2
 
-  def setTolerance(self,tolerance=1e-3):
-    self.__PDE.setTolerance(tolerance)
-    self.__reinitPDE.setTolerance(tolerance)
-
 
 class LevelSet2(object):
-     def __init__(self,phi,reinit_max=10,reinit_each=2,smooth=2.):
+     def __init__(self,phi,reinit_max=10,reinit_after=2,smooth=2.):
          """
          Initializes the model.
          """
@@ -274,7 +291,7 @@ class LevelSet2(object):
              diam+=(inf(xi)-sup(xi))**2
          self.__diam=sqrt(diam)
          self.__h = sup(Function(self.__domain).getSize())
-         self.__reinit_each=reinit_each
+         self.__reinit_after=reinit_after
          self.__reinit_max = reinit_max
          self.__smooth = smooth
          self.__phi = phi
@@ -337,7 +354,7 @@ class LevelSet2(object):
             self.__fcpde.setValue(Y = self.__phi-dt*inner(self.velocity,grad(phi_half)))
             self.__phi= self.__fcpde.getSolution()
          self.__update_count += 1
-         if self.__update_count%self.__reinit_each == 0:
+         if self.__update_count%self.__reinit_after == 0:
             self.__phi=self.__reinitialise(self.__phi)
             if self.__FC:
                 self.__fc.setInitialSolution(self.__phi+self.__diam)
