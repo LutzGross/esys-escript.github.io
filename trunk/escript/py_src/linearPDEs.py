@@ -67,7 +67,7 @@ class SolverOptions(object):
     :cvar CR: The conjugate residual method
     :cvar CGS: The conjugate gradient square method
     :cvar BICGSTAB: The stabilized Bi-Conjugate Gradient method
-    :cvar TFQMR: Transport Free Quasi Minimal Residual method
+    :cvar TFQMR: Transpose Free Quasi Minimal Residual method
     :cvar MINRES: Minimum residual method
     :cvar SSOR: The symmetric over-relaxation method
     :cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
@@ -3100,6 +3100,7 @@ class LameEquation(LinearPDE):
      else:
         return super(LameEquation, self).getCoefficient(name)
 
+
 def LinearSinglePDE(domain,debug=False):
    """
    Defines a single linear PDE.
@@ -3274,7 +3275,7 @@ class TransportPDE(LinearProblem):
                           of solution components is extracted from the
                           coefficients.
      :param debug: if True debug information is printed
-     :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicholson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicholson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+     :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicolson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicolson scheme provides a higher accuracy but requires to limit the time step size to be stable.
      :type useBackwardEuler: ``bool``
      """
      if useBackwardEuler:
@@ -3536,7 +3537,7 @@ class TransportPDE(LinearProblem):
 	      if self.getNumSolutions() == 1:
 		if u0.getShape()!=():
 		    raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
-		else:
+	      else:
 		    if u0.getShape()!=(self.getNumSolutions(),):
 		      raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
 	  self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
@@ -3636,3 +3637,14 @@ class TransportPDE(LinearProblem):
      """
      super(TransportPDE,self).setDebugOff()
      
+def SingleTransportPDE(domain,useBackwardEuler=False, debug=False):
+   """
+   Defines a single transport problem
+
+   :param domain: domain of the PDE
+   :type domain: `Domain`
+   :param debug: if True debug information is printed
+   :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicolson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicolson scheme provides a higher accuracy but requires to limit the time step size to be stable.
+   :rtype: `TransportPDE`
+   """
+   return TransportPDE(domain,numEquations=1,numSolutions=1, useBackwardEuler=useBackwardEuler, debug=debug)

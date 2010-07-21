@@ -147,9 +147,6 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      Paso_Pattern_free(col_couple_pattern);
      Paso_Pattern_free(row_couple_pattern);
   }
-  #ifdef Finley_TRACE
-  printf("timing: mesh to matrix pattern: %.4e sec\n",Finley_timer()-time0);
-  #endif
   Paso_MPIInfo_noError(mesh->MPIInfo);
   return out;
 }

@@ -138,6 +138,7 @@ def layer_cake(domain,xwidth,ywidth,depths):
     '''
     
     #get number of layers
+    if not hasattr(depths,"__len__"): depths = [ depths, ]
     ndepths=len(depths)
 
     if domain.getDim() <> 3:

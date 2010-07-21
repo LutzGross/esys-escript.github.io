@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -24,7 +25,7 @@ import tempfile
       
 
 
-VERBOSE=False  # or True
+VERBOSE=False  and True
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
@@ -510,12 +511,14 @@ class Test_Darcy(unittest.TestCase):
         p=p_ref*mp
         u=u_ref*mv
         df=DarcyFlow(self.dom)
+        #df.getSolverOptionsPressure().setVerbosityOn()
         df.setValue(g=f,
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
+        
         self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
@@ -567,6 +570,8 @@ class Test_Darcy(unittest.TestCase):
                       permeability=Scalar(k,Function(self.dom)))
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100, verbose=VERBOSE)
+
+        
         self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
@@ -661,7 +666,7 @@ class Test_Darcy2D(Test_Darcy):
     WIDTH=1.
     def setUp(self):
         NE=40  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
-        self.dom = Rectangle(NE,NE)
+	self.dom = Rectangle(NE/2,NE)
         self.rescaleDomain()
     def tearDown(self):
         del self.dom
@@ -1741,8 +1746,9 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_Darcy3D))
    suite.addTest(unittest.makeSuite(Test_Darcy2D))
+   # suite.addTest(Test_Darcy2D("testVarioF_FixedBottom_smallK"))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
-   ## suite.addTest(Test_StokesProblemCartesian3D("test_PCG_P_large"))
+   suite.addTest(Test_StokesProblemCartesian3D("test_PCG_P_large"))
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
    suite.addTest(unittest.makeSuite(Test_Rheologies))

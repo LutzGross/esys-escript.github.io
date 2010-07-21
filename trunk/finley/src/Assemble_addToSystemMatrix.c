@@ -48,34 +48,82 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
 
   if (in->type & MATRIX_FORMAT_CSC) {
          /* MATRIX_FORMAT_CSC does not support MPI !!!!! */
-         mainBlock_ptr=in->mainBlock->pattern->ptr;
-         mainBlock_index=in->mainBlock->pattern->index;
-         mainBlock_val=in->mainBlock->val;
-         for (k_Sol=0;k_Sol<NN_Sol;k_Sol++) {
-            j_Sol=Nodes_Sol[k_Sol];
-            for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
-               i_col=j_Sol*num_subblocks_Sol+l_col;
-               for (k_Equa=0;k_Equa<NN_Equa;k_Equa++) {
-                 j_Equa=Nodes_Equa[k_Equa];
-                 for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
-                    i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
-	            for (k=mainBlock_ptr[i_col]-index_offset; k<mainBlock_ptr[i_col+1]-index_offset;++k) {
-	                if (mainBlock_index[k] == i_row) {
-                          for (ic=0;ic<col_block_size;++ic) {
-                                i_Sol=ic+col_block_size*l_col;
-                                for (ir=0;ir<row_block_size;++ir) {
-                                   i_Equa=ir+row_block_size*l_row;
-		                   mainBlock_val[k*block_size+ir+row_block_size*ic]+=
-                                           array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
-                                }
-                          }
-                          break;
-                        }
-                    }
-                 }
-               }
-            }
-         }
+	 mainBlock_ptr=in->mainBlock->pattern->ptr;
+	 mainBlock_index=in->mainBlock->pattern->index;
+	 mainBlock_val=in->mainBlock->val;
+	 col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
+	 col_coupleBlock_index=in->col_coupleBlock->pattern->index;
+	 col_coupleBlock_val=in->col_coupleBlock->val;
+	 row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
+	 row_coupleBlock_index=in->row_coupleBlock->pattern->index;
+	 row_coupleBlock_val=in->row_coupleBlock->val;
+
+	 for (k_Sol=0;k_Sol<NN_Sol;++k_Sol) { /* Down columns of array */
+	    j_Sol=Nodes_Sol[k_Sol];
+	       for (l_col=0;l_col<num_subblocks_Sol;++l_col) {
+		  i_col=j_Sol*num_subblocks_Sol+l_col;
+		  if (i_col < numMyCols) {
+		     for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Across cols of array */
+			j_Equa=Nodes_Equa[k_Equa];
+			for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
+			   i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
+			   if (i_row < numMyRows + index_offset ) {
+			      for (k=mainBlock_ptr[i_col]-index_offset;k<mainBlock_ptr[i_col+1]-index_offset;++k) {
+				 if (mainBlock_index[k]==i_row) {
+				    /* Entry array(k_Equa, j_Sol) is a block (col_block_size x col_block_size) */
+				    for (ic=0;ic<col_block_size;++ic) { 
+				       i_Sol=ic+col_block_size*l_col;;
+				       for (ir=0;ir<row_block_size;++ir) {
+					  i_Equa=ir+row_block_size*l_row;
+					     mainBlock_val[k*block_size+ir+row_block_size*ic]+=
+						array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
+				       }
+				    }
+				    break;
+				 }
+			      }
+			   } else {
+			      for (k=col_coupleBlock_ptr[i_col]-index_offset;k<col_coupleBlock_ptr[i_col+1]-index_offset;++k) {
+				 if (row_coupleBlock_index[k] == i_row-numMyRows) {
+				    for (ic=0;ic<col_block_size;++ic) { 
+				       i_Sol=ic+col_block_size*l_col;
+				       for (ir=0;ir<row_block_size;++ir) {
+					  i_Equa=ir+row_block_size*l_row;
+					  row_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
+					  array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];;
+				       }
+				    }
+				    break;
+				 }
+			      }
+			   }
+			}
+		     }
+		  } else {
+		     for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Across rows of array */
+			j_Equa=Nodes_Equa[k_Equa];
+			for (l_row=0;l_row<num_subblocks_Equa;++l_row) {
+			   i_row=j_Equa*num_subblocks_Equa+index_offset+l_row;
+			   if (i_row < numMyRows + index_offset ) {
+			      for (k=col_coupleBlock_ptr[i_col-numMyCols]-index_offset;k<col_coupleBlock_ptr[i_col-numMyCols+1]-index_offset;++k) {
+				 if (col_coupleBlock_index[k] == i_row) {
+				    for (ic=0;ic<col_block_size;++ic) { 
+				       i_Sol=ic+col_block_size*l_col;
+				       for (ir=0;ir<row_block_size;++ir) {
+					  i_Equa=ir+row_block_size*l_row;
+					  col_coupleBlock_val[k*block_size+ir+row_block_size*ic]+=
+					  array[INDEX4(i_Equa,i_Sol,k_Equa,k_Sol,num_Equa,num_Sol,NN_Equa)];
+				       }
+				    }
+				    break;
+				 }
+			      }
+			   }
+			}
+		     }
+		  }
+	       }
+	 }
    } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
        /* this needs to be modified */
        #ifdef TRILINOS
