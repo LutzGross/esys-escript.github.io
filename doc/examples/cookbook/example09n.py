@@ -26,7 +26,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 ############################################################FILE HEADER
 # example09m.py
-# Create a simple 3D model for use in example09.
+# Create a simple 3D model for use in example09. This is the low res
+# mesh for illustration purposes only.
 #
 #######################################################EXTERNAL MODULES
 from esys.pycad import * #domain constructor
@@ -123,21 +124,31 @@ vintfb=Volume(SurfaceLoop(sbot,sintf,*tuple(sintfb_ar)))
 
 #############################################EXPORTING MESH FOR ESCRIPT
 # Create a Design which can make the mesh
-d=Design(dim=3, element_size=5.0)
+d=Design(dim=3, element_size=200.0)
 
 d.addItems(PropertySet('vintfa',vintfa))
 d.addItems(PropertySet('vintfb',vintfb))
 d.addItems(sintf)
 
-d.setScriptFileName(os.path.join(save_path,"example09m.geo"))
-
-d.setMeshFileName(os.path.join(save_path,"example09m.msh"))
+d.setScriptFileName(os.path.join(save_path,"example09n.geo"))
+d.setMeshFileName(os.path.join(save_path,"example09n.msh"))
 #
 #  make the finley domain:
 #
 domain=MakeDomain(d)
 # Create a file that can be read back in to python with
 # mesh=ReadMesh(fileName)
-domain.write(os.path.join(save_path,"example09m.fly"))
+domain.write(os.path.join(save_path,"example09n.fly"))
+
+from esys.pycad import layer_cake
+intfaces=[10,30,50,55,80,100,200,250,400,500]
+
+cmplx_domain=layer_cake.LayerCake(xwidth,ywidth,intfaces,200.0)
+cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
+cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+dcmplx=MakeDomain(cmplx_domain)
+dcmplx.write(os.path.join(save_path,"example09lc.fly"))
+
+
 
 

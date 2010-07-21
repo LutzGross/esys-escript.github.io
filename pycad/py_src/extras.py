@@ -43,9 +43,10 @@ def buildFreeSurface(xwidth,ywidth):
     '''
     Build a free surface to start the layer cake model.
         This surface is planar.
-        Parameters:
-            xwidth :: width in x direction in meters.
-            ywidth :: width in y direction in meters.
+
+    Parameters:
+        xwidth :: width in x direction in meters.\
+        ywidth :: width in y direction in meters.\
     '''
 
     # Layer Corners
@@ -71,13 +72,14 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
     '''
     Builds a boxlike volume and returns primatives for layered model
     construction.
-        Parameters:
-            xwidth :: width in x direction in meters.
-            ywidth :: width in y direction in meters.
-            depth  :: depth to bottom of layer in meters.
-            lay_surf :: surface at top of layer (see buildFreeSurf)
-            hor_lines :: lines of lay_surf
-            corner_points :: points of hor_lines
+
+    Parameters:
+        xwidth :: width in x direction in meters.\
+        ywidth :: width in y direction in meters.\
+        depth  :: depth to bottom of layer in meters.\
+        lay_surf :: surface at top of layer (see buildFreeSurf)\
+        hor_lines :: lines of lay_surf\
+        corner_points :: points of hor_lines\
     '''
     # Layer Corners
     corner_points.append(Point(0.0,    0.0,    depth))
@@ -112,38 +114,34 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
     return lay_vol,-lay_surf[1],hor_lines[4:8],corner_points[5:10]
 
 
-def layer_cake(xwidth,ywidth,depths,ele_size):
+def layer_cake(domain,xwidth,ywidth,depths):
     '''
     Builds a horizontally layered box like model. All layers are 
     tagged as 'interface_i' where i is the python style integer denoting
     that layer. For example, the free surface is tagged 'interface_0'.
     Volumes are similarly tagged as 'volume_i'.
 
-        Parameters:
-            xwidth :: width in x direction in meters.
-            ywidth :: width in y direction in meters.
-            depth  :: depth to bottom of layer in meters.
-            ele_size :: the element meshing size.
-            fname  :: the output file name.
-        KW Arg:
-            save_path :: path to save outputs. 
+    Parameters:
+       domain :: output of Pycad.Design - It needs to be dim 3.\
+       xwidth :: width in x direction in meters.\
+       ywidth :: width in y direction in meters.\
+       depth  :: depth to bottom of layer in meters.\
 
     One may save the domain using:
-        # Output settings.    
-        domain.setScriptFileName(os.path.join(save_path,fname+".geo"))
-        domain.setMeshFileName(os.path.join(save_path,fname+".msh"))
-        findomain=fin.MakeDomain(domain) #  make the finley domain:
+        # Output settings.\    
+        domain.setScriptFileName(os.path.join(save_path,fname+".geo"))\
+        domain.setMeshFileName(os.path.join(save_path,fname+".msh"))\
+        findomain=fin.MakeDomain(domain) #  make the finley domain:\
     
-        # Create a file that can be read back in to python with
-        # ReadMesh
-        findomain.write(os.path.join(save_path,fname+".fly"))             
+        Create a file that can be read back in to python with ReadMesh.\
+        findomain.write(os.path.join(save_path,fname+".fly"))\             
     '''
     
     #get number of layers
     ndepths=len(depths)
 
-    # Specify the domain.
-    domain=Design(dim=3,element_size=ele_size)
+    if domain.getDim() <> 3:
+        raise TypeError("domain must be of dimension order 3.")        
 
     # Build the First Surface and add it to the domain
     fsuf,fsurl,fsurp=buildFreeSurface(xwidth,ywidth)
