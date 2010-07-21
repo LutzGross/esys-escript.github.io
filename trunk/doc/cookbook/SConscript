@@ -21,15 +21,9 @@ latexmode='-interaction=nonstopmode'
 
 tex_dir = local_env.Dir('.').srcnode().abspath
 dir_cmd = "cd "+tex_dir+" && "
-fig_dirs = ['figures','figures/gmsh']
-figs=[]
+tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ] + \
+     [ env.File('figures'+os.path.sep+x) for x in os.listdir(tex_dir+os.path.sep+'figures') if not x.startswith('.') ]
 
-tex= [ env.File(x) for x in os.listdir(tex_dir) if not x.startswith('.') and not os.path.isdir(tex_dir+os.path.sep+x) and os.path.splitext(x)[1] in ['.tex', '.bib', '.sty', '.cfg', '.cls'] ]
-
-for dir in fig_dirs:
-    figs.append([env.File(os.path.join(dir,x)) for x in os.listdir(os.path.join(tex_dir,dir)) if not os.path.isdir(os.path.join(tex_dir,dir,x)) and not x.startswith('.')])
-
-tex.append(figs)
 
 latexcmd=dir_cmd+"pdflatex %s \\\\newcommand{\\\\RepVersion}{`svnversion`\\\\xspace}\\\\input{cookbook.tex}"%latexmode
 
