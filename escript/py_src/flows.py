@@ -421,7 +421,7 @@ class DarcyFlow(object):
       Returns a suitable subtolerance
       :type: ``float``
       """
-      return max(util.EPSILON**(0.75),self.getTolerance()**2)
+      return max(util.EPSILON**(0.5),self.getTolerance()**2)
 
    def setSubProblemTolerance(self):
       """
