@@ -19,24 +19,30 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+"""
+Author: Antony Hallam antony.hallam@uqconnect.edu.au
+"""
+
 ############################################################FILE HEADER
-# example08b.py
-# Antony Hallam
-# Seismic Wave Equation Simulation using acceleration solution.
-# Extend the solution in example 08a to use absorbing boundary
-# conditions.
+# example08c.py
+# Create either a 2D syncline or anticline model using pycad meshing 
+# tools. Wave equation solution.
 
 #######################################################EXTERNAL MODULES
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+from esys.pycad import * #domain constructor
+from esys.pycad.gmsh import Design #Finite Element meshing package
+from esys.finley import MakeDomain #Converter for escript
+import os #file path tool
+from math import * # math package
 from esys.escript import *
-from esys.finley import Rectangle
-import os
-# smoothing operator 
-from esys.escript.pdetools import Projector, Locator
 from esys.escript.unitsSI import *
-import numpy as np
-import pylab as pl
-import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
+from esys.escript.pdetools import Projector
+from cblib import toRegGrid, subsample
+import pylab as pl #Plotting package
+import numpy as np
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -45,25 +51,43 @@ if getMPISizeWorld() > 1:
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
-# where to save output data
-savepath = "data/example08b"
-mkDir(savepath)
-#Geometric and material property related variables.
-mx = 1000. # model lenght
-my = 1000. # model width
-ndx = 500 # steps in x direction 
-ndy = 500 # steps in y direction
-xstep=mx/ndx # calculate the size of delta x
-ystep=abs(my/ndy) # calculate the size of delta y
-lam=3.462e9 #lames constant
-mu=3.462e9  #bulk modulus
-rho=1154.   #density
+#set modal to 1 for a syncline or -1 for an anticline structural 
+#configuration	
+modal=-1
+
+# the folder to put our outputs in, leave blank "" for script path - 
+# note this folder path must exist to work
+save_path= os.path.join("data","example08c") 
+mkDir(save_path)
+
+################################################ESTABLISHING PARAMETERS
+#Model Parameters
+width=1000.0*m   #width of model
+depth=1000.0*m  #depth of model
+dx=5
+xstep=dx # calculate the size of delta x
+ystep=dx # calculate the size of delta y
+
+sspl=51 #number of discrete points in spline
+dsp=width/(sspl-1) #dx of spline steps for width
+dep_sp=500.0*m #avg depth of spline
+h_sp=250.*m #heigh of spline
+orit=-1.0 #orientation of spline 1.0=>up -1.0=>down
+
+vel2=1800.;   vel1=3000.
+rho2=2300.;   rho1=3100. #density
+mu2=(vel2**2.)*rho2/8.;  mu1=(vel1**2.)*rho1/8.  #bulk modulus
+lam2=mu2*6.; lam1=mu1*6. #lames constant
+
+
 # Time related variables.
 tend=0.5    # end time
-h=0.0005    # time step
+h=0.0001    # time step
 # data recording times
 rtime=0.0 # first time to record
 rtime_inc=tend/50.0 # time increment to record
+# will introduce a spherical source at middle left of bottom face
+xc=[width/2,0]
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
@@ -95,33 +119,85 @@ for it in range(0,ls):
     #decay1[t]=np.exp(g*t)
     #decay2[t]=(np.exp(-.1*g*t)-1)
     time[t]=t*h
-#tdecay=decay1*decay2*U0
-#decay1=decay1*U0; decay2=decay2*U0
-pl.clf(); 
-pl.plot(source)
-#pl.plot(time,decay1);pl.plot(time,decay2); 
-#pl.plot(time,tdecay)
-pl.savefig(os.path.join(savepath,'source.png'))
-
-# will introduce a spherical source at middle left of bottom face
-xc=[mx/2,0]
 
 ####################################################DOMAIN CONSTRUCTION
-domain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy,order=2) # create the domain
-x=domain.getX() # get the locations of the nodes in the domani
+# Domain Corners
+p0=Point(0.0,      0.0, 0.0)
+p1=Point(0.0,    depth, 0.0)
+p2=Point(width, depth, 0.0)
+p3=Point(width,   0.0, 0.0)
+
+# Generate Material Boundary
+x=[ Point(i*dsp\
+    ,dep_sp+modal*orit*h_sp*cos(pi*i*dsp/dep_sp+pi))\
+     for i in range(0,sspl)\
+  ]
+mysp = Spline(*tuple(x))
+# Start and end of material boundary.
+x1=mysp.getStartPoint()
+x2=mysp.getEndPoint()
+	
+#  Create TOP BLOCK
+# lines
+tbl1=Line(p0,x1)
+tbl2=mysp
+tbl3=Line(x2,p3)
+l30=Line(p3, p0)
+# curve
+tblockloop = CurveLoop(tbl1,tbl2,tbl3,l30)
+# surface
+tblock = PlaneSurface(tblockloop)
+# Create BOTTOM BLOCK
+# lines
+bbl1=Line(x1,p1)
+bbl3=Line(p2,x2)
+bbl4=-mysp
+l12=Line(p1, p2)
+# curve
+bblockloop = CurveLoop(bbl1,l12,bbl3,bbl4)
+
+# surface
+bblock = PlaneSurface(bblockloop)
+
+#clockwise check as splines must be set as polygons in the point order
+#they were created. Otherwise get a line across plot.
+bblockloop2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
+
+################################################CREATE MESH FOR ESCRIPT
+# Create a Design which can make the mesh
+d=Design(dim=2, element_size=dx, order=2)
+# Add the subdomains and flux boundaries.
+d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
+                                     PropertySet("linetop",l30))
+# Create the geometry, mesh and Escript domain
+d.setScriptFileName(os.path.join(save_path,"example08c.geo"))
+d.setMeshFileName(os.path.join(save_path,"example08c.msh"))
+domain=MakeDomain(d, optimizeLabeling=True)
+x=domain.getX()
+print "Domain has been generated ..."
+
+lam=Scalar(0,Function(domain))
+lam.setTaggedValue("top",lam1)
+lam.setTaggedValue("bottom",lam2)
+mu=Scalar(0,Function(domain))
+mu.setTaggedValue("top",mu1)
+mu.setTaggedValue("bottom",mu2)
+rho=Scalar(0,Function(domain))
+rho.setTaggedValue("top",rho1)
+rho.setTaggedValue("bottom",rho2)
 
 ##########################################################ESTABLISH PDE
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
-mypde.setValue(D=kmat*rho) #set the general form value D
+mypde.setValue(D=rho*kmat) #set the general form value D
 
 ##########################################################ESTABLISH ABC
 # Define where the boundary decay will be applied.
 bn=50.
-bleft=xstep*bn; bright=mx-(xstep*bn); bbot=my-(ystep*bn)
+bleft=xstep*bn; bright=width-(xstep*bn); bbot=depth-(ystep*bn)
 # btop=ystep*bn # don't apply to force boundary!!!
 
 # locate these points in the domain
@@ -157,24 +233,18 @@ abcbottom=abcbottom+whereZero(abcbottom)
 # multiply the conditions together to get a smooth result
 abc=abcleft*abcright*abcbottom
 
-#visualise the boundary function
-#abcT=abc.toListOfTuples()
-#abcT=np.reshape(abcT,(ndx+1,ndy+1))
-#pl.clf(); pl.imshow(abcT); pl.colorbar(); 
-#pl.savefig(os.path.join(savepath,"abc.png"))
-
-
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
 src_length = 40; print "src_length = ",src_length
 # set initial values for first two time steps with source terms
-y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
-src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
+xb=FunctionOnBoundary(domain).getX()
+y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(xb-src_length))
+src_dir=numpy.array([0.,1.]) # defines direction of point source as down
 y=y*src_dir
 mypde.setValue(y=y) #set the source as a function on the boundary
 # initial value of displacement at point source is constant (U0=0.01)
 # for first two time steps
-u=[0.0,0.0]*whereNegative(x)
+u=[0.0,0.0]*wherePositive(x)
 u_m1=u
 
 ####################################################ITERATION VARIABLES
@@ -183,16 +253,18 @@ t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
 	# get current stress
-    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))*abc
-    mypde.setValue(X=-stress) # set PDE values
+    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+    mypde.setValue(X=-stress*abc) # set PDE values
     accel = mypde.getSolution() #get PDE solution for accelleration
     u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement
     u_p1=u_p1*abc  		# apply boundary conditions
     u_m1=u; u=u_p1 # shift values by 1
     # save current displacement, acceleration and pressure
     if (t >= rtime):
-        saveVTK(os.path.join(savepath,"ex08b.%05d.vtu"%n),displacement=length(u),\
-                                    acceleration=length(accel),tensor=stress)
+        saveVTK(os.path.join(save_path,"ex08c.%05d.vtu"%n),\
+                    vector_displacement=u,displacement=length(u),\
+                    vector_acceleration=accel,acceleration=length(accel),\
+                    tensor=stress)
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1
