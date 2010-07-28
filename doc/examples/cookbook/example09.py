@@ -128,7 +128,7 @@ rho.setTaggedValue("vintfb",rho2)
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=rho*kmat) #set the general form value D
 
