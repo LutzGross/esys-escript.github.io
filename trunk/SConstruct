@@ -191,7 +191,7 @@ if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default'] + env['tools_names'],
                         options = opts)
 else:
-    if os.uname()[4]=='ia64':
+   if os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
       if env['CXX'] == 'icpc':
          env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not)
