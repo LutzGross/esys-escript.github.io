@@ -18,6 +18,8 @@
 # other tools
 env_export=['INTEL_LICENSE_FILE']
 
+tools_names=['intelc']
+
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags		= '-ansi'
