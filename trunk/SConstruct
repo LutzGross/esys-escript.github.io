@@ -171,7 +171,7 @@ adder(
   ('lapack_libs', 'Lapack libraries to link with', []),
   ('lapack_type', '{clapack,mkl}','clapack'),
 # An option for specifying the compiler tools set (see windows branch).
-  ('tools_names', 'allow control over the tools in the env setup', ['intelc']),
+  ('tools_names', 'allow control over the tools in the env setup', ['default']),
 # finer control over library building, intel aggressive global optimisation
 # works with dynamic libraries on windows.
   ('share_esysUtils', 'control static or dynamic esysUtils lib', False),
@@ -180,8 +180,6 @@ adder(
 #To enable passing function pointers through python
   BoolVariable('iknowwhatimdoing','allow nonstandard C',False)
 )
-
-
 
 ############ Specify which compilers to use ####################
 
@@ -193,14 +191,17 @@ if IS_WINDOWS_PLATFORM:
       env = Environment(tools = ['default'] + env['tools_names'],
                         options = opts)
 else:
-   if effective_hostname == 'savanna':
-      env = Environment(tools = ['default', 'intelc'], options = opts)
-   elif os.uname()[4]=='ia64':
+    if os.uname()[4]=='ia64':
       env = Environment(tools = ['default', 'intelc'], options = opts)
       if env['CXX'] == 'icpc':
          env['LINK'] = env['CXX'] # version >=9 of intel c++ compiler requires use of icpc to link in C++ runtimes (icc does not)
    else:
       env = Environment(tools = ['default'], options = opts)
+      if env['tools_names']!='default':
+	env=Environment(tools = ['default'] +env['tools_names'], options=opts)
+
+
+
 
 # Override compiler choice if provided
 if env['cc'] != 'DEFAULT': env['CC']=env['cc']
