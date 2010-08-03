@@ -181,6 +181,26 @@ adder(
   BoolVariable('iknowwhatimdoing','allow nonstandard C',False)
 )
 
+
+###################
+
+# This is only to support old versions of scons which don't accept
+# the variant_dir parameter (older than 0.98 I think).
+# Once these are no longer an issue we can go back to a direct call
+# to obj.SConscript
+import SCons
+vs=SCons.__version__.split('.')
+cantusevariantdir=float(vs[0]+'.'+vs[1])<0.98
+
+
+def CallSConscript(obj, **kw):
+    if cantusevariantdir:
+	    if 'variant_dir' in kw:
+		kw['build_dir']=kw['variant_dir']
+		del kw['variant_dir'] 
+    obj.SConscript(**kw)
+
+
 ############ Specify which compilers to use ####################
 
 # intelc uses regular expressions improperly and emits a warning about
@@ -199,9 +219,6 @@ else:
       env = Environment(tools = ['default'], options = opts)
       if env['tools_names']!='default':
 	env=Environment(tools = ['default'] +env['tools_names'], options=opts)
-
-
-
 
 # Override compiler choice if provided
 if env['cc'] != 'DEFAULT': env['CC']=env['cc']
@@ -815,24 +832,26 @@ Export(
    "clone_env",
    "dodgy_env",
    "IS_WINDOWS_PLATFORM",
-   "TestGroups"
+   "TestGroups",
+   "CallSConscript",
+   "cantusevariantdir"
    ]
   )
 
-env.SConscript(dirs = ['tools/CppUnitTest/src'], build_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['tools/escriptconvert'], build_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
-env.SConscript(dirs = ['paso/src'], build_dir='build/$PLATFORM/paso', duplicate=0)
-env.SConscript(dirs = ['weipa/src'], build_dir='build/$PLATFORM/weipa', duplicate=0)
-env.SConscript(dirs = ['escript/src'], build_dir='build/$PLATFORM/escript', duplicate=0)
-env.SConscript(dirs = ['esysUtils/src'], build_dir='build/$PLATFORM/esysUtils', duplicate=0)
-env.SConscript(dirs = ['finley/src'], build_dir='build/$PLATFORM/finley', duplicate=0)
-env.SConscript(dirs = ['modellib/py_src'], build_dir='build/$PLATFORM/modellib', duplicate=0)
-env.SConscript(dirs = ['doc'], build_dir='build/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], build_dir='build/$PLATFORM/pyvisi', duplicate=0)
-env.SConscript(dirs = ['pycad/py_src'], build_dir='build/$PLATFORM/pycad', duplicate=0)
-env.SConscript(dirs = ['pythonMPI/src'], build_dir='build/$PLATFORM/pythonMPI', duplicate=0)
-env.SConscript(dirs = ['scripts'], build_dir='build/$PLATFORM/scripts', duplicate=0)
-env.SConscript(dirs = ['paso/profiling'], build_dir='build/$PLATFORM/paso/profiling', duplicate=0)
+CallSConscript(env, dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
+CallSConscript(env, dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
+CallSConscript(env, dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
+CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
+CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
+CallSConscript(env, dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
+CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
+CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
+CallSConscript(env, dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
+CallSConscript(env, dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
+CallSConscript(env, dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
+CallSConscript(env, dirs = ['pythonMPI/src'], variant_dir='build/$PLATFORM/pythonMPI', duplicate=0)
+CallSConscript(env, dirs = ['scripts'], variant_dir='build/$PLATFORM/scripts', duplicate=0)
+CallSConscript(env, dirs = ['paso/profiling'], variant_dir='build/$PLATFORM/paso/profiling', duplicate=0)
 
 
 ############ Remember what optimizations we used ###############
