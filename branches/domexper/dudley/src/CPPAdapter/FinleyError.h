@@ -12,19 +12,19 @@
 *******************************************************/
 
 
-#if !defined  finley_FinleyError_20040528_H
-#define finley_FinleyError_20040528_H
+#if !defined  dudley_FinleyError_20040528_H
+#define dudley_FinleyError_20040528_H
 #include "system_dep.h"
 
 extern "C" {
-#include "finley/Finley.h"
+#include "dudley/Dudley.h"
 }
 
 #include "FinleyAdapterException.h"
 
 #include <string>
 
-namespace finley {
+namespace dudley {
   /**
      \brief
      Provide a C++ interface to the finley C funcion of the same name.

@@ -18,7 +18,7 @@
 #include "FinleyError.h"
 #include <iostream>
 
-namespace finley {
+namespace dudley {
 
   void setFinleyError(Finley_ErrorCodeType errorCode, 
 		      const std::string& errMess) 

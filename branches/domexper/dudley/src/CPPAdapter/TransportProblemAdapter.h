@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#if !defined  finley_TransportProblemAdapter_H
-#define finley_TransportProblemAdapter_H
+#if !defined  dudley_TransportProblemAdapter_H
+#define dudley_TransportProblemAdapter_H
 #include "system_dep.h"
 
 extern "C" {
@@ -32,7 +32,7 @@ extern "C" {
 #include <boost/shared_ptr.hpp>
 #include <boost/python/extract.hpp>
 
-namespace finley {
+namespace dudley {
 
 class TransportProblemAdapter:public escript::AbstractTransportProblem {
 

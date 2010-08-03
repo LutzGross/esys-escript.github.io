@@ -17,7 +17,7 @@
 #include "paso/Paso_MPI.h"
 #endif
 extern "C" {
-#include "../Finley.h"
+#include "../Dudley.h"
 }
 
 #include "MeshAdapter.h"
@@ -40,9 +40,9 @@ extern "C" {
 using namespace boost::python;
 
 /**
-   \page finley Finley
+   \page dudley Dudley
    Finley is the python module name that contains the interfaces
-   to the C++ wrapper to finley.
+   to the C++ wrapper to dudley.
 
    \version 1.0.0 
 
@@ -60,24 +60,7 @@ using namespace boost::python;
 
 */
 
-//
-// The BOOST_PYTHON_FUNCTION_OVERLOADS macro generates function overloads for optional
-// arguments to the respective finley functions.
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//
-// NOTE: If the number of arguments to the finley functions change
-// the magic numbers in the BOOST_PYTHON_FUNCTION_OVERLOADS call 
-// must change.
-//
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// BOOST_PYTHON_FUNCTION_OVERLOADS(readMesh_overloads,finley::readMesh,1,2)
-// BOOST_PYTHON_FUNCTION_OVERLOADS(brick_overloads,finley::brick,0,12)
-// BOOST_PYTHON_FUNCTION_OVERLOADS(rectangle_overloads,finley::rectangle,0,9)
-// BOOST_PYTHON_FUNCTION_OVERLOADS(interval_overloads,finley::interval,0,6)
-// BOOST_PYTHON_FUNCTION_OVERLOADS(glueFaces_overloads,finley::glueFaces,1,3)
-// BOOST_PYTHON_FUNCTION_OVERLOADS(joinFaces_overloads,finley::joinFaces,1,3)
-
-BOOST_PYTHON_MODULE(finleycpp)
+BOOST_PYTHON_MODULE(dudleycpp)
 {
 // This feature was added in boost v1.34
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
@@ -89,14 +72,14 @@ BOOST_PYTHON_MODULE(finleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<dudley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
-  def("LoadMesh",finley::loadMesh,
+  def("LoadMesh",dudley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"
 /*      ,return_value_policy<manage_new_object>());*/
       );
 
-  def("ReadMesh",finley::readMesh,
+  def("ReadMesh",dudley::readMesh,
       (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
 /*      ,return_value_policy<manage_new_object>());*/
 	,"Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.\n\n"
@@ -106,7 +89,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
 
-  def("ReadGmsh",finley::readGmsh,
+  def("ReadGmsh",dudley::readGmsh,
       (arg("fileName")="file.msh",
        arg("numDim"), 
        arg("integrationOrder")=-1, 
@@ -123,7 +106,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
 );
 
-  def ("Brick",finley::brick,
+  def ("Brick",dudley::brick,
       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
       arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
@@ -148,7 +131,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def ("Rectangle",finley::rectangle,
+  def ("Rectangle",dudley::rectangle,
       (arg("n0")=1,arg("n1")=1,arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,
@@ -172,12 +155,12 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def("Merge",finley::meshMerge,args("meshList")
+  def("Merge",dudley::meshMerge,args("meshList")
 //       ,return_value_policy<manage_new_object>());
 ,"Merges a list of meshes into one mesh.\n\n:rtype: `Domain`"
   );
 
-  def("GlueFaces",finley::glueFaces,
+  def("GlueFaces",dudley::glueFaces,
       (arg("meshList"),arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
@@ -185,7 +168,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 ,"Detects matching faces in the mesh, removes them from the mesh and joins the elements touched by the face elements."
 	);
 
-  def("JoinFaces",finley::joinFaces,
+  def("JoinFaces",dudley::joinFaces,
       (arg("meshList"), arg("safetyFactor")=0.2,
       arg("tolerance")=1.e-8,
       arg("optimize")=true)
@@ -194,24 +177,24 @@ BOOST_PYTHON_MODULE(finleycpp)
 	);
 
 
-  class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
+  class_<dudley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
       ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Finley_Mesh*> >())
-      .def(init<const finley::MeshAdapter&>())
-      .def("write",&finley::MeshAdapter::write,args("filename"),
+      .def(init<const dudley::MeshAdapter&>())
+      .def("write",&dudley::MeshAdapter::write,args("filename"),
 "Write the current mesh to a file with the given name.")
-      .def("print_mesh_info",&finley::MeshAdapter::Print_Mesh_Info,(arg("full")=false),
+      .def("print_mesh_info",&dudley::MeshAdapter::Print_Mesh_Info,(arg("full")=false),
 ":param full:\n:type full: ``bool``")
-      .def("dump",&finley::MeshAdapter::dump,args("fileName")
+      .def("dump",&dudley::MeshAdapter::dump,args("fileName")
 ,"dumps the mesh to a file with the given name.")
-      .def("getDescription",&finley::MeshAdapter::getDescription,
+      .def("getDescription",&dudley::MeshAdapter::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
-      .def("getDim",&finley::MeshAdapter::getDim,":rtype: ``int``")
-      .def("getDataShape",&finley::MeshAdapter::getDataShape, args("functionSpaceCode"),
+      .def("getDim",&dudley::MeshAdapter::getDim,":rtype: ``int``")
+      .def("getDataShape",&dudley::MeshAdapter::getDataShape, args("functionSpaceCode"),
 ":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
-      .def("getNumDataPointsGlobal",&finley::MeshAdapter::getNumDataPointsGlobal,
+      .def("getNumDataPointsGlobal",&dudley::MeshAdapter::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
-      .def("addPDEToSystem",&finley::MeshAdapter::addPDEToSystem,
+      .def("addPDEToSystem",&dudley::MeshAdapter::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
@@ -225,13 +208,13 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("addPDEToLumpedSystem",&finley::MeshAdapter::addPDEToLumpedSystem,
+      .def("addPDEToLumpedSystem",&dudley::MeshAdapter::addPDEToLumpedSystem,
 args("mat", "D", "d"),
 "adds a PDE onto the lumped stiffness matrix\n\n"
 ":param mat:\n:type mat: `Data`\n"
 ":param D:\n:type D: `Data`\n"
 ":param d:\n:type d: `Data`\n")
-      .def("addPDEToRHS",&finley::MeshAdapter::addPDEToRHS, 
+      .def("addPDEToRHS",&dudley::MeshAdapter::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
@@ -240,7 +223,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
-      .def("addPDEToTransportProblem",&finley::MeshAdapter::addPDEToTransportProblem,
+      .def("addPDEToTransportProblem",&dudley::MeshAdapter::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 ":param tp:\n:type tp: `TransportProblemAdapter`\n"
 ":param source:\n:type source: `Data`\n"
@@ -256,7 +239,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("newOperator",&finley::MeshAdapter::newSystemMatrix,
+      .def("newOperator",&dudley::MeshAdapter::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
@@ -265,7 +248,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("newTransportProblem",&finley::MeshAdapter::newTransportProblem,
+      .def("newTransportProblem",&dudley::MeshAdapter::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
 "creates a TransportProblemAdapter\n\n"
 ":param theta:\n:type theta: ``float``\n"
@@ -273,7 +256,7 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId,
+      .def("getSystemMatrixTypeId",&dudley::MeshAdapter::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner, and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -282,7 +265,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("getTransportTypeId",&finley::MeshAdapter::getTransportTypeId,
+      .def("getTransportTypeId",&dudley::MeshAdapter::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the transport problem type to be used when a particular solver, perconditioner, package and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -291,20 +274,20 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("setX",&finley::MeshAdapter::setNewX,
+      .def("setX",&dudley::MeshAdapter::setNewX,
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
-      .def("getX",&finley::MeshAdapter::getX, ":return: locations in the FEM nodes\n\n"
+      .def("getX",&dudley::MeshAdapter::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
-      .def("getNormal",&finley::MeshAdapter::getNormal,
+      .def("getNormal",&dudley::MeshAdapter::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")
-      .def("getSize",&finley::MeshAdapter::getSize,":return: the element size\n"
+      .def("getSize",&dudley::MeshAdapter::getSize,":return: the element size\n"
 ":rtype: `Data`")
-      .def("saveDX",&finley::MeshAdapter::saveDX,args("filename" ,"arg"),
+      .def("saveDX",&dudley::MeshAdapter::saveDX,args("filename" ,"arg"),
 "Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier"
 "\n\n:param filename: \n:type filename: ``string``\n"
 "\n:param arg: \n:type arg: ``dict``\n")
-      .def("saveVTK",&finley::MeshAdapter::saveVTK,
+      .def("saveVTK",&dudley::MeshAdapter::saveVTK,
 args("filename" ,"arg",  "metadata", "metadata_schema"),
 "Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier"
 "\n\n:param filename:\n:type filename: ``string``\n"
@@ -312,33 +295,33 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
 ":param metadata:\n:type metadata: ``string``\n"
 ":param metadata_schema:\n:type metadata_schema: ``string``\n"
 )
-      .def("setTagMap",&finley::MeshAdapter::setTagMap,args("name","tag"),
+      .def("setTagMap",&dudley::MeshAdapter::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
 ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
-      .def("getTag",&finley::MeshAdapter::getTag,args("name"),":return: tag id for "
+      .def("getTag",&dudley::MeshAdapter::getTag,args("name"),":return: tag id for "
 "``name``\n:rtype: ``string``")
-      .def("isValidTagName",&finley::MeshAdapter::isValidTagName,args("name"),
+      .def("isValidTagName",&dudley::MeshAdapter::isValidTagName,args("name"),
 ":return: True is ``name`` corresponds to a tag\n:rtype: ``bool``")
-      .def("showTagNames",&finley::MeshAdapter::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
-      .def("getMPISize",&finley::MeshAdapter::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
-      .def("getMPIRank",&finley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
-      .def("MPIBarrier",&finley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+      .def("showTagNames",&dudley::MeshAdapter::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
+      .def("getMPISize",&dudley::MeshAdapter::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
+      .def("getMPIRank",&dudley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
+      .def("MPIBarrier",&dudley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
+      .def("onMasterProcessor",&dudley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
-  class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
+  class_<dudley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)
-      .def("print_matrix_info",&finley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false),"prints information about a system matrix")
-      .def("nullifyRowsAndCols",&finley::SystemMatrixAdapter::nullifyRowsAndCols)
-      .def("resetValues",&finley::SystemMatrixAdapter::resetValues, "resets the matrix entries")
-      .def("saveMM",&finley::SystemMatrixAdapter::saveMM,args("fileName"), 
+      .def("print_matrix_info",&dudley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false),"prints information about a system matrix")
+      .def("nullifyRowsAndCols",&dudley::SystemMatrixAdapter::nullifyRowsAndCols)
+      .def("resetValues",&dudley::SystemMatrixAdapter::resetValues, "resets the matrix entries")
+      .def("saveMM",&dudley::SystemMatrixAdapter::saveMM,args("fileName"), 
 "writes the matrix to a file using the Matrix Market file format")
-      .def("saveHB",&finley::SystemMatrixAdapter::saveHB, args("filename"),
+      .def("saveHB",&dudley::SystemMatrixAdapter::saveHB, args("filename"),
 "writes the matrix to a file using the Harwell-Boeing file format");
 
-  class_<finley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
+  class_<dudley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
       ("TransportProblemAdapter","",no_init)
-      .def("getSafeTimeStepSize",&finley::TransportProblemAdapter::getSafeTimeStepSize)
-      .def("getUnlimitedTimeStepSize",&finley::TransportProblemAdapter::getUnlimitedTimeStepSize)
-      .def("resetTransport",&finley::TransportProblemAdapter::resetTransport,
+      .def("getSafeTimeStepSize",&dudley::TransportProblemAdapter::getSafeTimeStepSize)
+      .def("getUnlimitedTimeStepSize",&dudley::TransportProblemAdapter::getUnlimitedTimeStepSize)
+      .def("resetTransport",&dudley::TransportProblemAdapter::resetTransport,
 "resets the transport operator typically as they have been updated");
 }

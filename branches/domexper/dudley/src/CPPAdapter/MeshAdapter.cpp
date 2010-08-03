@@ -29,7 +29,7 @@ extern "C" {
 using namespace std;
 using namespace escript;
 
-namespace finley {
+namespace dudley {
 
 //
 // define the static constants

@@ -18,12 +18,12 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_SHAPEFUNCTIONS
-#define INC_FINLEY_SHAPEFUNCTIONS
+#ifndef INC_DUDLEY_SHAPEFUNCTIONS
+#define INC_DUDLEY_SHAPEFUNCTIONS
 
 /**************************************************************/
 
-#include "Finley.h"
+#include "Dudley.h"
 
 /**************************************************************/
 

@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-#include "Finley.h"
+#include "Dudley.h"
 
 /* This function returns a time mark */
 double Finley_timer(void) {

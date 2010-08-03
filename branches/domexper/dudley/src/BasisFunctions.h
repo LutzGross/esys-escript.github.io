@@ -18,13 +18,13 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_REFERENCEELEMENTS
-#define INC_FINLEY_REFERENCEELEMENTS
+#ifndef INC_DUDLEY_REFERENCEELEMENTS
+#define INC_DUDLEY_REFERENCEELEMENTS
 
 
 /**************************************************************/
 
-#include "Finley.h"
+#include "Dudley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
 

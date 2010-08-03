@@ -12,9 +12,9 @@
 *******************************************************/
 
 
-#ifndef INC_FINLEYVERSION
-#define INC_FINLEYVERSION
+#ifndef INC_DUDLEYVERSION
+#define INC_DUDLEYVERSION
 
-char Finley_Version[]="$Revision$";
+char Dudley_Version[]="$Revision$";
 
 #endif 

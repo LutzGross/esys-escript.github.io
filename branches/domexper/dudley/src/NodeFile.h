@@ -12,12 +12,12 @@
 *******************************************************/
 
 
-#ifndef INC_FINLEY_NODEFILE
-#define INC_FINLEY_NODEFILE
+#ifndef INC_DUDLEY_NODEFILE
+#define INC_DUDLEY_NODEFILE
 
 #define MAX_numDim 3
 
-#include "Finley.h"
+#include "Dudley.h"
 #include "NodeMapping.h"
 #include "escript/DataC.h"
 #include "paso/Distribution.h"

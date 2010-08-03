@@ -841,7 +841,7 @@ Export(
 CallSConscript(env, dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
 CallSConscript(env, dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 CallSConscript(env, dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
-CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
+#CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
 CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
 CallSConscript(env, dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
 #CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
@@ -939,8 +939,8 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
-env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
-env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
+#env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
+#env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
 
 env.Alias('build_escriptreader', ['target_install_weipa_headers', 'target_escriptreader_a'])
 env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escriptreader_a'])
@@ -948,16 +948,16 @@ env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escri
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
-env.Alias('build_finley', ['target_install_finley_headers', 'target_finley_so', 'target_finleycpp_so'])
-env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target_install_finleycpp_so', 'target_install_finley_py'])
+env.Alias('build_dudley', ['target_install_dudley_headers', 'target_dudley_so', 'target_dudleycpp_so'])
+env.Alias('install_dudley', ['build_dudley', 'target_install_dudley_so', 'target_install_dudleycpp_so', 'target_install_dudley_py'])
 
 # Now gather all the above into a couple easy targets: build_all and install_all
 build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
-build_all_list += ['build_weipa']
+#build_all_list += ['build_weipa']
 build_all_list += ['build_escript']
-build_all_list += ['build_finley']
+build_all_list += ['build_dudley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
 build_all_list += ['target_escriptconvert']
@@ -967,9 +967,9 @@ install_all_list = []
 install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
-install_all_list += ['install_weipa']
+#install_all_list += ['install_weipa']
 install_all_list += ['install_escript']
-install_all_list += ['install_finley']
+install_all_list += ['install_dudley']
 install_all_list += ['target_install_pyvisi_py']
 install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']

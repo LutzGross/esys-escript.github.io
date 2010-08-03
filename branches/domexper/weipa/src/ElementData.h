@@ -17,10 +17,10 @@
 #include <weipa/weipa.h>
 
 extern "C" {
-#include <finley/ReferenceElements.h> // for ElementTypeId
+#include <dudley/ReferenceElements.h> // for ElementTypeId
 }
 
-#include <finley/vtkCellType.h>
+#include <dudley/vtkCellType.h>
 #include <ostream>
 
 class DBfile;

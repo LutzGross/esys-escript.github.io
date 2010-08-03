@@ -18,7 +18,7 @@
 
 #include "esysUtils/EsysException.h"
 
-namespace finley
+namespace dudley
 {
 
   /**

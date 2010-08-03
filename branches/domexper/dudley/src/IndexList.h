@@ -18,10 +18,10 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_INDEXLIST
-#define INC_FINLEY_INDEXLIST
+#ifndef INC_DUDLEY_INDEXLIST
+#define INC_DUDLEY_INDEXLIST
 
-#include "Finley.h"
+#include "Dudley.h"
 #include "ElementFile.h"
 #include "Mesh.h"
 

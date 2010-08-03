@@ -16,9 +16,9 @@
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
-#include <finley/CppAdapter/MeshAdapter.h>
+#include <dudley/CppAdapter/MeshAdapter.h>
 extern "C" {
-#include <finley/Mesh.h>
+#include <dudley/Mesh.h>
 }
 #endif
 

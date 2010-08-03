@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace finley {
+namespace dudley {
 
 struct null_deleter
 {
@@ -170,7 +170,7 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
-void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
+void dudley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 {
    Paso_SystemMatrix* mat=m_system_matrix.get();
    int first_row_index  = mat->row_distribution->first_component[mat->mpi_info->rank];

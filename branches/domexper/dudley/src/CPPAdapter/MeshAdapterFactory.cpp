@@ -31,7 +31,7 @@ extern "C" {
 using namespace std;
 using namespace escript;
 
-namespace finley {
+namespace dudley {
 
 #ifdef USE_NETCDF
   // A convenience method to retrieve an integer attribute from a NetCDF file

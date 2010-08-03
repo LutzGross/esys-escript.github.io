@@ -29,11 +29,11 @@ some mesh handling
 :var __date__: date of the version
 """
 
-__author__="Lutz Gross, l.gross@uq.edu.au"
+__author__="Lutz Gross, l.gross@uq.edu.au, Joel Fenwick"
 
 from esys.escript import *
 from esys.pycad.gmsh import Design as GMSHDesign
-from finleycpp import ReadGmsh
+from dudleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """
@@ -67,7 +67,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
                        useMacroElements)
         design.setFileFormat(ff)
     else:
-        raise TypeError("Finley does not support %s designs."%design.__class__.__name__)
+        raise TypeError("Dudley does not support %s designs."%design.__class__.__name__)
     # fill in the tag map
     design.getTagMap().passToDomain(dom)
     return dom
