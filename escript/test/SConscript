@@ -44,4 +44,4 @@ from grouptest import *
 tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/escript/test",('./escript_UnitTest',))
 TestGroups.append(tgroup)
 
-local_env.SConscript(dirs = ['#/escript/test/python'], build_dir='python', duplicate=0)
+CallSConscript(local_env,dirs = ['#/escript/test/python'], variant_dir='python', duplicate=0)

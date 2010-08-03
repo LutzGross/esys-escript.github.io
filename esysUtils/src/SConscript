@@ -62,5 +62,5 @@ env.Alias('target_install_esysUtils_a', tmp3)
 dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
 
-local_env.SConscript(dirs = ['#/esysUtils/test'], build_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
+CallSConscript(local_env,dirs = ['#/esysUtils/test'], variant_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
 

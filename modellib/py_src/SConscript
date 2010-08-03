@@ -30,5 +30,5 @@ tmp1 = local_env.Install(local_env['pyinstall']+'/modellib', pyc)
 env.Alias('target_install_modellib_py', [tmp1])
 
 # Call the unit tests SConscript
-local_env.SConscript(dirs = ['#/modellib/test/python'], build_dir='#/build/$PLATFORM/modellib/test/python', duplicate=0)
+CallSConscript(local_env,dirs = ['#/modellib/test/python'], variant_dir='#/build/$PLATFORM/modellib/test/python', duplicate=0)
 

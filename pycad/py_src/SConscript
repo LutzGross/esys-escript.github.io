@@ -31,6 +31,6 @@ tmp1 = local_env.Install(local_env['pyinstall']+'/pycad', pyc)
 env.Alias('target_install_pycad_py', [tmp1])
 
 # Call the unit tests SConscript
-local_env.SConscript(dirs = ['#/pycad/test/python'], build_dir='#/build/$PLATFORM/pycad/test/python', duplicate=0)
+CallSConscript(local_env,dirs = ['#/pycad/test/python'], variant_dir='#/build/$PLATFORM/pycad/test/python', duplicate=0)
 
 

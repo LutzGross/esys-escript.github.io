@@ -185,8 +185,8 @@ dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
 Export('dep_lib')
 
 # Call the python sconscript
-env.SConscript(dirs = ['#/finley/py_src'], build_dir='py', duplicate=0)
+CallSConscript(env,dirs = ['#/finley/py_src'], variant_dir='py', duplicate=0)
 
 # Call the unit tests SConscript
-local_env.SConscript(dirs = ['#/finley/test'], build_dir='#/build/$PLATFORM/finley/test', duplicate=0)
+CallSConscript(local_env,dirs = ['#/finley/test'], variant_dir='#/build/$PLATFORM/finley/test', duplicate=0)
 

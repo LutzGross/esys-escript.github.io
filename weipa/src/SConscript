@@ -115,8 +115,8 @@ if not IS_WINDOWS_PLATFORM:
 
 
 # Call the python SConscript
-env.SConscript(dirs = ['#/weipa/py_src'], build_dir='py', duplicate=0)
+CallSConscript(env,dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0)
 
 # Call the unit tests SConscript
-#local_env.SConscript(dirs = ['#/weipa/test'], build_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
+#CallSConscript(local_env,dirs = ['#/weipa/test'], variant_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
 
