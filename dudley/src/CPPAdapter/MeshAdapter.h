@@ -12,14 +12,14 @@
 *******************************************************/
 
 
-#if !defined finley_MeshAdapter_20040526_H
-#define finley_MeshAdapter_20040526_H
+#if !defined dudley_MeshAdapter_20040526_H
+#define dudley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
 extern "C" {
-#include "finley/Mesh.h"
-#include "finley/Finley.h"
-#include "finley/Assemble.h"
+#include "dudley/Mesh.h"
+#include "dudley/Dudley.h"
+#include "dudley/Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/Transport.h"
 #include "paso/Paso_MPI.h"
@@ -43,7 +43,7 @@ extern "C" {
 #include <string>
 #include <sstream>
 
-namespace finley {
+namespace dudley {
 
 struct null_deleter
 {

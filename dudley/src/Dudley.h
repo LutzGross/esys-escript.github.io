@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#ifndef INC_FINLEY
-#define INC_FINLEY
+#ifndef INC_DUDLEY
+#define INC_DUDLEY
 
 /**************************************************************/
 
@@ -64,5 +64,5 @@ void Finley_convertPasoError(void);
 bool_t Finley_MPI_noError( Paso_MPIInfo *mpi_info );
 void Finley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t *numTagsInUse, index_t **tagsInUse, Paso_MPIInfo* mpiinfo);
 
-#endif /* #ifndef INC_FINLEY */
+#endif /* #ifndef INC_DUDLEY */
 

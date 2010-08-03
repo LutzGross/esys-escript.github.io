@@ -12,10 +12,10 @@
 *******************************************************/
 
 
-#ifndef INC_FINLEY_ELEMENTFILE
-#define INC_FINLEY_ELEMENTFILE
+#ifndef INC_DUDLEY_ELEMENTFILE
+#define INC_DUDLEY_ELEMENTFILE
 
-#include "Finley.h"
+#include "Dudley.h"
 #include "NodeFile.h"
 #include "ReferenceElementSets.h"
 #include "escript/DataC.h"

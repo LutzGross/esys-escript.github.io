@@ -18,10 +18,10 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_UTIL
-#define INC_FINLEY_UTIL
+#ifndef INC_DUDLEY_UTIL
+#define INC_DUDLEY_UTIL
 
-#include "Finley.h"
+#include "Dudley.h"
 
 /**************************************************************/
 

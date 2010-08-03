@@ -15,7 +15,7 @@
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
-#include <finley/CppAdapter/MeshAdapter.h>
+#include <dudley/CppAdapter/MeshAdapter.h>
 #endif
 
 #include <iostream>

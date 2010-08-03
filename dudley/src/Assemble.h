@@ -18,13 +18,13 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_ASSEMBLE
-#define INC_FINLEY_ASSEMBLE
+#ifndef INC_DUDLEY_ASSEMBLE
+#define INC_DUDLEY_ASSEMBLE
 
 /**************************************************************/
 
 #include "ReferenceElements.h"
-#include "Finley.h"
+#include "Dudley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
 #include "escript/DataC.h"

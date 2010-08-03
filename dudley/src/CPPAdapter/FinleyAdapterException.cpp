@@ -15,7 +15,7 @@
 #include "FinleyAdapterException.h"
 
 
-using namespace finley;
+using namespace dudley;
 
 
 const std::string 

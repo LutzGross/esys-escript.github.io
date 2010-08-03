@@ -18,12 +18,12 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_QUADRATURE
-#define INC_FINLEY_QUADRATURE
+#ifndef INC_DUDLEY_QUADRATURE
+#define INC_DUDLEY_QUADRATURE
 
 /**************************************************************/
 
-#include "Finley.h"
+#include "Dudley.h"
 
 /**************************************************************/
 

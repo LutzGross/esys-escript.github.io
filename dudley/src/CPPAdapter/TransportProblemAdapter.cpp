@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace finley {
+namespace dudley {
 
 struct null_deleter
 {

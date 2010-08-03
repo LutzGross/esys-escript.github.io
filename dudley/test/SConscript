@@ -23,20 +23,20 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS=['finley', 'escript', 'paso', 'esysUtils', 'CppUnitTest'] + env['sys_libs'])
+local_env.Append(LIBS=['dudley', 'escript', 'paso', 'esysUtils', 'CppUnitTest'] + env['sys_libs'])
 
 # compile test
-program = local_env.Program('finley_UnitTest', sources)
+program = local_env.Program('dudley_UnitTest', sources)
 env.Alias('build_tests', program)
 
 # run the tests - but only if test_targets are stale
-local_env.RunUnitTest('finley_UnitTest')
-test_targets = os.path.splitext('finley_UnitTest')[0]+'.passed'
+local_env.RunUnitTest('dudley_UnitTest')
+test_targets = os.path.splitext('dudley_UnitTest')[0]+'.passed'
 Alias("run_tests", test_targets)
 
-CallSConscript(local_env,dirs = ['#/finley/test/python'], variant_dir='python', duplicate=0)
+CallSConscript(local_env,dirs = ['#/dudley/test/python'], variant_dir='python', duplicate=0)
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/finley/test",('./finley_UnitTest',))
+tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/dudley/test",('./dudley_UnitTest',))
 TestGroups.append(tgroup)

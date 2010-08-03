@@ -20,5 +20,5 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from finleycpp import *
+from dudleycpp import *
 from readers import *

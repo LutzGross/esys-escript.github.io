@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#ifndef INC_FINLEY_MESH
-#define INC_FINLEY_MESH
+#ifndef INC_DUDLEY_MESH
+#define INC_DUDLEY_MESH
 
 /**************************************************************/
 
@@ -56,7 +56,7 @@
 
 /**************************************************************/
 
-#include "Finley.h"
+#include "Dudley.h"
 #include "NodeFile.h"
 #include "ElementFile.h"
 #include "TagMap.h"

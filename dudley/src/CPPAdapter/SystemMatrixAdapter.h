@@ -32,7 +32,7 @@ extern "C" {
 #include <boost/shared_ptr.hpp>
 #include <boost/python/extract.hpp>
 
-namespace finley {
+namespace dudley {
 
 class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
 

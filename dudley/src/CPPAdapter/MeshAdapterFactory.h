@@ -17,9 +17,9 @@
 #include "system_dep.h"
 
 extern "C" {
-#include "finley/Finley.h"
-#include "finley/Mesh.h"
-#include "finley/RectangularMesh.h"
+#include "dudley/Dudley.h"
+#include "dudley/Mesh.h"
+#include "dudley/RectangularMesh.h"
 }
 
 #include "MeshAdapter.h"
@@ -30,7 +30,7 @@ extern "C" {
 
 #include <sstream>
 
-namespace finley {
+namespace dudley {
   /**
      \brief
      A suite of factory methods for creating various MeshAdapters.

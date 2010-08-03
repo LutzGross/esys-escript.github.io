@@ -18,10 +18,10 @@
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_TAGMAP
-#define INC_FINLEY_TAGMAP
+#ifndef INC_DUDLEY_TAGMAP
+#define INC_DUDLEY_TAGMAP
 
-#include "Finley.h"
+#include "Dudley.h"
 
 
 typedef struct Finley_TagMap {
