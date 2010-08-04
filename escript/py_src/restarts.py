@@ -122,7 +122,7 @@ class RestartManager(object):
        """
        # complete last saver:
        if not self.NEW_RESTART_DIR == None: 
-          self.__removeRestartDirectory(self.RESTART_DIR)
+          if self.RESTART_DIR!= None: self.__removeRestartDirectory(self.RESTART_DIR)
           self.RESTART_DIR=self.NEW_RESTART_DIR
           self.DOMAIN=self.NEW_DOMAIN
           self.N+=1
