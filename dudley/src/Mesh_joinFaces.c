@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh */
+/*   Dudley: Mesh */
 
 /* detects faces in the mesh that match and replaces it by step elements */
 
@@ -24,40 +24,40 @@
 
 /**************************************************************/
 
-void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t optimize) {
+void Dudley_Mesh_joinFaces(Dudley_Mesh* self,double safety_factor,double tolerance, bool_t optimize) {
 
    char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
-   Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
+   Dudley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
-   Finley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
+   Dudley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
 
    if (self->MPIInfo->size>1) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: MPI is not supported yet.");
+     Dudley_setError(TYPE_ERROR,"Dudley_Mesh_joinFaces: MPI is not supported yet.");
      return;
    }
    if (self->ContactElements==NULL) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: no contact element file present.");
+     Dudley_setError(TYPE_ERROR,"Dudley_Mesh_joinFaces: no contact element file present.");
      return;
    }
    if (self->FaceElements==NULL) return;
-   faceRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
-   contactRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
+   faceRefElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
+   contactRefElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
    
 
    NN=self->FaceElements->numNodes;
    NN_Contact=self->ContactElements->numNodes;
 
    if (faceRefElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
+     sprintf(error_msg,"Dudley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+     Dudley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
 
    if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:contact element file for %s need to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
+     sprintf(error_msg,"Dudley_Mesh_joinFaces:contact element file for %s need to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
+     Dudley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
@@ -67,11 +67,11 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    elem_mask=TMPMEMALLOC(self->FaceElements->numElements,index_t);
    matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
 
-   if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
+   if (!(Dudley_checkPtr(elem1) || Dudley_checkPtr(elem0) || Dudley_checkPtr(elem_mask) || Dudley_checkPtr(matching_nodes_in_elem1)))  {
 
       /* find the matching face elements */
-      Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
-      if (Finley_noError()) {
+      Dudley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
+      if (Dudley_noError()) {
          /* get a list of the face elements to be kept */
          #pragma omp parallel for private(e) schedule(static)
          for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=1;
@@ -88,18 +88,18 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /*  allocate new face element and Contact element files */
-         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->referenceElementSet, self->MPIInfo);
-         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
-         if (Finley_noError()) {
-               Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
-               Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
+         newContactElementsFile=Dudley_ElementFile_alloc(self->ContactElements->referenceElementSet, self->MPIInfo);
+         newFaceElementsFile=Dudley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
+         if (Dudley_noError()) {
+               Dudley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
+               Dudley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
          }
          /* copy the old elements over */
-         if (Finley_noError()) {
+         if (Dudley_noError()) {
             /* get the face elements which are still in use:*/
-            Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
+            Dudley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* get the Contact elements which are still in use:*/
-            Finley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
+            Dudley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
             c=self->ContactElements->numElements;
             /* OMP */
             for (e=0;e<numPairs;e++) {
@@ -116,17 +116,17 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
             newContactElementsFile->maxColor=numPairs-1;
          } 
          /* set new face and Contact elements */
-         if (Finley_noError()) {
+         if (Dudley_noError()) {
 
-            Finley_ElementFile_free(self->FaceElements);
+            Dudley_ElementFile_free(self->FaceElements);
             self->FaceElements=newFaceElementsFile;
-            Finley_ElementFile_free(self->ContactElements);
+            Dudley_ElementFile_free(self->ContactElements);
             self->ContactElements=newContactElementsFile;
-            Finley_Mesh_prepare(self, optimize);
+            Dudley_Mesh_prepare(self, optimize);
 
          } else {
-            Finley_ElementFile_free(newFaceElementsFile);
-            Finley_ElementFile_free(newContactElementsFile);
+            Dudley_ElementFile_free(newFaceElementsFile);
+            Dudley_ElementFile_free(newContactElementsFile);
          }
       }
    }

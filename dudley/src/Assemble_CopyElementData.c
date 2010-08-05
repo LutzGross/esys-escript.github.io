@@ -26,21 +26,21 @@
 /******************************************************************************************************/
 
 
-void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
+void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad;
     __const double *in_array;
     double *out_array;
     dim_t numComps=getDataPointSize(out);
     size_t len_size;
 
-    Finley_resetError();
+    Dudley_resetError();
     if( elements == NULL )
     {
        return;
     }
 
     numElements=elements->numElements;
-    if (Finley_Assemble_reducedIntegrationOrder(in)) {
+    if (Dudley_Assemble_reducedIntegrationOrder(in)) {
        numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
     } else {
        numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
@@ -48,18 +48,18 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* 
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: number of components of input and output Data do not match.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of input Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!numSamplesEqual(out,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of output Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: expanded Data object is expected for output data.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_CopyElementData: expanded Data object is expected for output data.");
     }
 
     /* now we can start */
 
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
          if (isExpanded(in)) {
              len_size=numComps*numQuad*sizeof(double);
 	     requireWrite(out);

@@ -13,7 +13,7 @@
 
 /***************************************************************************/
 /*   Writes data and mesh in VTK XML format to a VTU file.                 */
-/*   Nodal data needs to be given on FINLEY_NODES or FINLEY_REDUCED_NODES  */
+/*   Nodal data needs to be given on DUDLEY_NODES or DUDLEY_REDUCED_NODES  */
 /***************************************************************************/
 
 #include "Mesh.h"
@@ -146,8 +146,8 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
     return ret;
 }
 
-void Finley_Mesh_saveVTK(const char *filename_p,
-                         Finley_Mesh *mesh_p,
+void Dudley_Mesh_saveVTK(const char *filename_p,
+                         Dudley_Mesh *mesh_p,
                          const dim_t num_data,
                          char **names_p,
                          escriptDataC **data_pp,
@@ -175,8 +175,8 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     index_t myFirstNode=0, myLastNode=0, *globalNodeIndex=NULL;
     index_t myFirstCell=0, k;
     int mpi_size, i, j, l;
-    int cellType=0, nodeType=FINLEY_NODES, elementType=FINLEY_UNKNOWN;
-    Finley_ElementFile *elements = NULL;
+    int cellType=0, nodeType=DUDLEY_NODES, elementType=DUDLEY_UNKNOWN;
+    Dudley_ElementFile *elements = NULL;
     ElementTypeId typeId = NoRef;
 
     const char *vtkHeader = \
@@ -216,7 +216,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     nDim = mesh_p->Nodes->numDim;
 
     if (nDim != 2 && nDim != 3) {
-        Finley_setError(TYPE_ERROR, "saveVTK: spatial dimension 2 or 3 is supported only.");
+        Dudley_setError(TYPE_ERROR, "saveVTK: spatial dimension 2 or 3 is supported only.");
         return;
     }
     my_mpi_rank = mesh_p->Nodes->MPIInfo->rank;
@@ -236,7 +236,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                              amode, mpi_info, &mpi_fileHandle_p);
         if (ierr != MPI_SUCCESS) {
             sprintf(errorMsg, "saveVTK: File %s could not be opened for writing in parallel.", filename_p);
-            Finley_setError(IO_ERROR, errorMsg);
+            Dudley_setError(IO_ERROR, errorMsg);
         } else {
             ierr=MPI_File_set_view(mpi_fileHandle_p,MPI_DISPLACEMENT_CURRENT,
                     MPI_CHAR, MPI_CHAR, "native", mpi_info);
@@ -246,12 +246,12 @@ void Finley_Mesh_saveVTK(const char *filename_p,
         fileHandle_p = fopen(filename_p, "w");
         if (fileHandle_p==NULL) {
             sprintf(errorMsg, "saveVTK: File %s could not be opened for writing.", filename_p);
-            Finley_setError(IO_ERROR, errorMsg);
+            Dudley_setError(IO_ERROR, errorMsg);
         }
     }
     if (!Paso_MPIInfo_noError(mesh_p->Nodes->MPIInfo)) return;
 
-    /* General note: From this point if an error occurs Finley_setError is
+    /* General note: From this point if an error occurs Dudley_setError is
      * called and subsequent steps are skipped until the end of this function
      * where allocated memory is freed and the file is closed. */
 
@@ -260,79 +260,79 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
     isCellCentered = TMPMEMALLOC(num_data, bool_t);
     maxNameLen = 0;
-    if (!Finley_checkPtr(isCellCentered)) {
+    if (!Dudley_checkPtr(isCellCentered)) {
         for (dataIdx=0; dataIdx<num_data; ++dataIdx) {
             if (! isEmpty(data_pp[dataIdx])) {
                 switch(getFunctionSpaceType(data_pp[dataIdx]) ) {
-                    case FINLEY_NODES:
-                        nodeType = (nodeType == FINLEY_REDUCED_NODES) ? FINLEY_REDUCED_NODES : FINLEY_NODES;
+                    case DUDLEY_NODES:
+                        nodeType = (nodeType == DUDLEY_REDUCED_NODES) ? DUDLEY_REDUCED_NODES : DUDLEY_NODES;
                         isCellCentered[dataIdx] = FALSE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_ELEMENTS) {
-                            elementType = FINLEY_ELEMENTS;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_ELEMENTS) {
+                            elementType = DUDLEY_ELEMENTS;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case FINLEY_REDUCED_NODES:
-                        nodeType = FINLEY_REDUCED_NODES;
+                    case DUDLEY_REDUCED_NODES:
+                        nodeType = DUDLEY_REDUCED_NODES;
                         isCellCentered[dataIdx] = FALSE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_ELEMENTS) {
-                            elementType = FINLEY_ELEMENTS;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_ELEMENTS) {
+                            elementType = DUDLEY_ELEMENTS;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                     }
                     break;
-                    case FINLEY_REDUCED_ELEMENTS:
+                    case DUDLEY_REDUCED_ELEMENTS:
                         hasReducedElements = TRUE;
-                    case FINLEY_ELEMENTS:
+                    case DUDLEY_ELEMENTS:
                         isCellCentered[dataIdx] = TRUE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_ELEMENTS) {
-                            elementType = FINLEY_ELEMENTS;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_ELEMENTS) {
+                            elementType = DUDLEY_ELEMENTS;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case FINLEY_REDUCED_FACE_ELEMENTS:
+                    case DUDLEY_REDUCED_FACE_ELEMENTS:
                         hasReducedElements = TRUE;
-                    case FINLEY_FACE_ELEMENTS:
+                    case DUDLEY_FACE_ELEMENTS:
                         isCellCentered[dataIdx] = TRUE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_FACE_ELEMENTS) {
-                            elementType = FINLEY_FACE_ELEMENTS;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_FACE_ELEMENTS) {
+                            elementType = DUDLEY_FACE_ELEMENTS;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case FINLEY_POINTS:
+                    case DUDLEY_POINTS:
                         isCellCentered[dataIdx]=TRUE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_POINTS) {
-                            elementType = FINLEY_POINTS;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_POINTS) {
+                            elementType = DUDLEY_POINTS;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
+                    case DUDLEY_REDUCED_CONTACT_ELEMENTS_1:
                         hasReducedElements = TRUE;
-                    case FINLEY_CONTACT_ELEMENTS_1:
+                    case DUDLEY_CONTACT_ELEMENTS_1:
                         isCellCentered[dataIdx] = TRUE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_CONTACT_ELEMENTS_1) {
-                            elementType = FINLEY_CONTACT_ELEMENTS_1;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_CONTACT_ELEMENTS_1) {
+                            elementType = DUDLEY_CONTACT_ELEMENTS_1;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
+                    case DUDLEY_REDUCED_CONTACT_ELEMENTS_2:
                         hasReducedElements = TRUE;
-                    case FINLEY_CONTACT_ELEMENTS_2:
+                    case DUDLEY_CONTACT_ELEMENTS_2:
                         isCellCentered[dataIdx] = TRUE;
-                        if (elementType==FINLEY_UNKNOWN || elementType==FINLEY_CONTACT_ELEMENTS_1) {
-                            elementType = FINLEY_CONTACT_ELEMENTS_1;
+                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_CONTACT_ELEMENTS_1) {
+                            elementType = DUDLEY_CONTACT_ELEMENTS_1;
                         } else {
-                            Finley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
+                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
                     default:
                         sprintf(errorMsg, "saveVTK: unknown function space type %d",getFunctionSpaceType(data_pp[dataIdx]));
-                        Finley_setError(TYPE_ERROR, errorMsg);
+                        Dudley_setError(TYPE_ERROR, errorMsg);
                 }
                 if (isCellCentered[dataIdx]) {
                     writeCellData = TRUE;
@@ -347,49 +347,49 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     /************************************************************************/
     /* select number of points and the mesh component */
 
-    if (Finley_noError()) {
-        if (nodeType == FINLEY_REDUCED_NODES) {
-            myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
-            myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
-            globalNumPoints = Finley_NodeFile_getGlobalNumReducedNodes(mesh_p->Nodes);
-            globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
+    if (Dudley_noError()) {
+        if (nodeType == DUDLEY_REDUCED_NODES) {
+            myFirstNode = Dudley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
+            myLastNode = Dudley_NodeFile_getLastReducedNode(mesh_p->Nodes);
+            globalNumPoints = Dudley_NodeFile_getGlobalNumReducedNodes(mesh_p->Nodes);
+            globalNodeIndex = Dudley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
         } else {
-            myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
-            myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
-            globalNumPoints = Finley_NodeFile_getGlobalNumNodes(mesh_p->Nodes);
-            globalNodeIndex = Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
+            myFirstNode = Dudley_NodeFile_getFirstNode(mesh_p->Nodes);
+            myLastNode = Dudley_NodeFile_getLastNode(mesh_p->Nodes);
+            globalNumPoints = Dudley_NodeFile_getGlobalNumNodes(mesh_p->Nodes);
+            globalNodeIndex = Dudley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
         }
         myNumPoints = myLastNode - myFirstNode;
-        if (elementType==FINLEY_UNKNOWN) elementType=FINLEY_ELEMENTS;
+        if (elementType==DUDLEY_UNKNOWN) elementType=DUDLEY_ELEMENTS;
         switch(elementType) {
-            case FINLEY_ELEMENTS:
+            case DUDLEY_ELEMENTS:
                 elements = mesh_p->Elements;
             break;
-            case FINLEY_FACE_ELEMENTS:
+            case DUDLEY_FACE_ELEMENTS:
                 elements = mesh_p->FaceElements;
             break;
-            case FINLEY_POINTS:
+            case DUDLEY_POINTS:
                 elements = mesh_p->Points;
             break;
-            case FINLEY_CONTACT_ELEMENTS_1:
+            case DUDLEY_CONTACT_ELEMENTS_1:
                 elements = mesh_p->ContactElements;
             break;
         }
         if (elements==NULL) {
-            Finley_setError(SYSTEM_ERROR, "saveVTK: undefined element file");
+            Dudley_setError(SYSTEM_ERROR, "saveVTK: undefined element file");
         } else {
-            /* map finley element type to VTK element type */
+            /* map dudley element type to VTK element type */
             numCells = elements->numElements;
-            globalNumCells = Finley_ElementFile_getGlobalNumElements(elements);
-            myNumCells = Finley_ElementFile_getMyNumElements(elements);
-            myFirstCell = Finley_ElementFile_getFirstElement(elements);
+            globalNumCells = Dudley_ElementFile_getGlobalNumElements(elements);
+            myNumCells = Dudley_ElementFile_getMyNumElements(elements);
+            myFirstCell = Dudley_ElementFile_getFirstElement(elements);
             NN = elements->numNodes;
             if (hasReducedElements) {
                 quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
             } else {
                 quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
             }
-            if (nodeType==FINLEY_REDUCED_NODES) {
+            if (nodeType==DUDLEY_REDUCED_NODES) {
                 typeId = elements->referenceElementSet->referenceElement->LinearType->TypeId;
             } else {
                 typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
@@ -502,7 +502,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
 
                 default:
                     sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->referenceElementSet->referenceElement->Type->Name);
-                    Finley_setError(VALUE_ERROR, errorMsg);
+                    Dudley_setError(VALUE_ERROR, errorMsg);
             }
         }
     }
@@ -521,14 +521,14 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     txtBuffer = TMPMEMALLOC(txtBufferSize+1, char);
 
     /* sets error if memory allocation failed */
-    Finley_checkPtr(txtBuffer);
+    Dudley_checkPtr(txtBuffer);
 
     /************************************************************************/
     /* write number of points and the mesh component */
 
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
         const index_t *nodeIndex;
-        if (FINLEY_REDUCED_NODES == nodeType) {
+        if (DUDLEY_REDUCED_NODES == nodeType) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
         } else if (Line3Macro == typeId) {
              nodeIndex = VTK_LINE3_INDEX;
@@ -703,12 +703,12 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             fputs("</DataArray>\n</Cells>\n", fileHandle_p);
         } /* mpi_size */
 
-    } /* Finley_noError */
+    } /* Dudley_noError */
 
     /************************************************************************/
     /* write cell data */
 
-    if (writeCellData && Finley_noError()) {
+    if (writeCellData && Dudley_noError()) {
         bool_t set_scalar=FALSE, set_vector=FALSE, set_tensor=FALSE;
         /* mark the active data arrays */
         strcpy(txtBuffer, "<CellData");
@@ -744,15 +744,15 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     break;
                     default:
                         sprintf(errorMsg, "saveVTK: data %s: VTK supports data with rank <= 2 only.", names_p[dataIdx]);
-                        Finley_setError(VALUE_ERROR, errorMsg);
+                        Dudley_setError(VALUE_ERROR, errorMsg);
                 }
             }
-            if (!Finley_noError())
+            if (!Dudley_noError())
                 break;
         }
     }
     /* only continue if no error occurred */
-    if (writeCellData && Finley_noError()) {
+    if (writeCellData && Dudley_noError()) {
         strcat(txtBuffer, ">\n");
         if ( mpi_size > 1) {
             MPI_RANK0_WRITE_SHARED(txtBuffer);
@@ -774,17 +774,17 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     nCompReqd = 3;
                     shape = getDataPointShape(data_pp[dataIdx], 0);
                     if (shape > 3) {
-                        Finley_setError(VALUE_ERROR, "saveVTK: rank 1 objects must have 3 components at most.");
+                        Dudley_setError(VALUE_ERROR, "saveVTK: rank 1 objects must have 3 components at most.");
                     }
                 } else {
                     nCompReqd = 9;
                     shape = getDataPointShape(data_pp[dataIdx], 0);
                     if (shape > 3 || shape != getDataPointShape(data_pp[dataIdx], 1)) {
-                        Finley_setError(VALUE_ERROR, "saveVTK: rank 2 objects of shape 2x2 or 3x3 supported only.");
+                        Dudley_setError(VALUE_ERROR, "saveVTK: rank 2 objects of shape 2x2 or 3x3 supported only.");
                     }
                 }
                 /* bail out if an error occurred */
-                if (!Finley_noError())
+                if (!Dudley_noError())
                     break;
 
                 sprintf(txtBuffer, tag_Float_DataArray, names_p[dataIdx], nCompReqd);
@@ -886,7 +886,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     /************************************************************************/
     /* write point data */
 
-    if (writePointData && Finley_noError()) {
+    if (writePointData && Dudley_noError()) {
         /* mark the active data arrays */
         bool_t set_scalar=FALSE, set_vector=FALSE, set_tensor=FALSE;
         strcpy(txtBuffer, "<PointData");
@@ -919,15 +919,15 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     break;
                     default:
                         sprintf(errorMsg, "saveVTK: data %s: VTK supports data with rank <= 2 only.", names_p[dataIdx]);
-                        Finley_setError(VALUE_ERROR, errorMsg);
+                        Dudley_setError(VALUE_ERROR, errorMsg);
                 }
             }
-            if (!Finley_noError())
+            if (!Dudley_noError())
                 break;
         }
     }
     /* only continue if no error occurred */
-    if (writePointData && Finley_noError()) {
+    if (writePointData && Dudley_noError()) {
         strcat(txtBuffer, ">\n");
         if ( mpi_size > 1) {
             MPI_RANK0_WRITE_SHARED(txtBuffer);
@@ -938,10 +938,10 @@ void Finley_Mesh_saveVTK(const char *filename_p,
         /* write the arrays */
         for (dataIdx = 0; dataIdx < num_data; dataIdx++) {
             if (!isEmpty(data_pp[dataIdx]) && !isCellCentered[dataIdx]) {
-                Finley_NodeMapping* nodeMapping;
+                Dudley_NodeMapping* nodeMapping;
                 dim_t rank = getDataPointRank(data_pp[dataIdx]);
                 dim_t nCompReqd = 1; /* number of components mpi_required */
-                if (getFunctionSpaceType(data_pp[dataIdx]) == FINLEY_REDUCED_NODES) {
+                if (getFunctionSpaceType(data_pp[dataIdx]) == DUDLEY_REDUCED_NODES) {
                     nodeMapping = mesh_p->Nodes->reducedNodesMapping;
                 } else {
                     nodeMapping = mesh_p->Nodes->nodesMapping;
@@ -953,17 +953,17 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                     nCompReqd = 3;
                     shape = getDataPointShape(data_pp[dataIdx], 0);
                     if (shape > 3) {
-                        Finley_setError(VALUE_ERROR, "saveVTK: rank 1 objects must have 3 components at most.");
+                        Dudley_setError(VALUE_ERROR, "saveVTK: rank 1 objects must have 3 components at most.");
                     }
                 } else {
                     nCompReqd = 9;
                     shape=getDataPointShape(data_pp[dataIdx], 0);
                     if (shape > 3 || shape != getDataPointShape(data_pp[dataIdx], 1)) {
-                        Finley_setError(VALUE_ERROR, "saveVTK: rank 2 objects of shape 2x2 or 3x3 supported only.");
+                        Dudley_setError(VALUE_ERROR, "saveVTK: rank 2 objects of shape 2x2 or 3x3 supported only.");
                     }
                 }
                 /* bail out if an error occurred */
-                if (!Finley_noError())
+                if (!Dudley_noError())
                     break;
 
                 sprintf(txtBuffer, tag_Float_DataArray, names_p[dataIdx], nCompReqd);
@@ -1039,7 +1039,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     } /* if noError && writePointData */
 
     /* Final write to VTK file */
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
         if (mpi_size > 1) {
             MPI_RANK0_WRITE_SHARED(vtkFooter);
         } else {

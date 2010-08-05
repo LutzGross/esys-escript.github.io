@@ -25,7 +25,7 @@ extern "C" {
 #include "SystemMatrixAdapter.h"
 #include "TransportProblemAdapter.h"
 
-#include "FinleyAdapterException.h"
+#include "DudleyAdapterException.h"
 // #include "esysUtils/EsysException.h"
 #include "esysUtils/esysExceptionTranslator.h"
 
@@ -41,7 +41,7 @@ using namespace boost::python;
 
 /**
    \page dudley Dudley
-   Finley is the python module name that contains the interfaces
+   Dudley is the python module name that contains the interfaces
    to the C++ wrapper to dudley.
 
    \version 1.0.0 
@@ -72,7 +72,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<dudley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<dudley::DudleyAdapterException>(&(esysUtils::esysExceptionTranslator));
 
   def("LoadMesh",dudley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"
@@ -178,7 +178,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 
 
   class_<dudley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Finley_Mesh*> >())
+      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Dudley_Mesh*> >())
       .def(init<const dudley::MeshAdapter&>())
       .def("write",&dudley::MeshAdapter::write,args("filename"),
 "Write the current mesh to a file with the given name.")

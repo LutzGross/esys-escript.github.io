@@ -14,7 +14,7 @@
 
 /***************************************************************************************************************
 
-    Finley: Reference elements set managing the reference elements for the full and reduced intergation order
+    Dudley: Reference elements set managing the reference elements for the full and reduced intergation order
 
 **************************************************************************************************************/
 
@@ -23,63 +23,63 @@
 /**************************************************************/
 
 
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order) {
-        Finley_ReferenceElementInfo* id_info=NULL;
-        Finley_ShapeFunctionInfo* bf_info=NULL;
-	Finley_ReferenceElementSet *out=NULL;
-        id_info=Finley_ReferenceElement_getInfo(id);
-	if (! Finley_noError()) return NULL;
-        bf_info=Finley_ShapeFunction_getInfo(id_info->BasisFunctions);
-	if (! Finley_noError()) return NULL;
+Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order) {
+        Dudley_ReferenceElementInfo* id_info=NULL;
+        Dudley_ShapeFunctionInfo* bf_info=NULL;
+	Dudley_ReferenceElementSet *out=NULL;
+        id_info=Dudley_ReferenceElement_getInfo(id);
+	if (! Dudley_noError()) return NULL;
+        bf_info=Dudley_ShapeFunction_getInfo(id_info->BasisFunctions);
+	if (! Dudley_noError()) return NULL;
 
-	out=MEMALLOC(1,Finley_ReferenceElementSet);
-	if (Finley_checkPtr(out)) return NULL;
+	out=MEMALLOC(1,Dudley_ReferenceElementSet);
+	if (Dudley_checkPtr(out)) return NULL;
 	out->reference_counter=0;
         out->referenceElement =NULL;
         out->referenceElementReducedQuadrature =NULL;
 
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
             if (order<0) order=MAX(2*(bf_info->numOrder),0);
-	    out->referenceElement                 =Finley_ReferenceElement_alloc(id,  order);
+	    out->referenceElement                 =Dudley_ReferenceElement_alloc(id,  order);
         }
-        if (Finley_noError())  {
+        if (Dudley_noError())  {
                if (reduced_order<0) reduced_order=MAX(2*(bf_info->numOrder-1),0);
-	       out->referenceElementReducedQuadrature=Finley_ReferenceElement_alloc(id,  reduced_order);
+	       out->referenceElementReducedQuadrature=Dudley_ReferenceElement_alloc(id,  reduced_order);
         }
 
-	if (Finley_noError()) {
-	     if (! (Finley_ReferenceElement_getNumNodes(out->referenceElement) == Finley_ReferenceElement_getNumNodes(out->referenceElementReducedQuadrature) ) ) {
-		Finley_setError(VALUE_ERROR,"Finley_ReferenceElementSet_alloc: numNodes in referenceElement  and referenceElementReducedQuadrature don't match.");
+	if (Dudley_noError()) {
+	     if (! (Dudley_ReferenceElement_getNumNodes(out->referenceElement) == Dudley_ReferenceElement_getNumNodes(out->referenceElementReducedQuadrature) ) ) {
+		Dudley_setError(VALUE_ERROR,"Dudley_ReferenceElementSet_alloc: numNodes in referenceElement  and referenceElementReducedQuadrature don't match.");
              }
         }
 
-	if (! Finley_noError()) {
-		Finley_ReferenceElementSet_dealloc(out);
+	if (! Dudley_noError()) {
+		Dudley_ReferenceElementSet_dealloc(out);
 		return NULL;
 	} else {
-		out->numNodes=Finley_ReferenceElement_getNumNodes(out->referenceElement);
-		return Finley_ReferenceElementSet_reference(out);
+		out->numNodes=Dudley_ReferenceElement_getNumNodes(out->referenceElement);
+		return Dudley_ReferenceElementSet_reference(out);
 	}
 }
 
 /**************************************************************/
 
-void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in) {
+void Dudley_ReferenceElementSet_dealloc(Dudley_ReferenceElementSet* in) {
 	if (in!=NULL) {
 		in->reference_counter--;
 		if (in->reference_counter<1) {
-			Finley_ReferenceElement_dealloc(in->referenceElement);
-			Finley_ReferenceElement_dealloc(in->referenceElementReducedQuadrature);
+			Dudley_ReferenceElement_dealloc(in->referenceElement);
+			Dudley_ReferenceElement_dealloc(in->referenceElementReducedQuadrature);
 		}
 	}
 }
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_reference(Finley_ReferenceElementSet* in) {
+Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_reference(Dudley_ReferenceElementSet* in) {
      if (in!=NULL) ++(in->reference_counter);
      return in;
 }
 
-Finley_ReferenceElement* Finley_ReferenceElementSet_borrowReferenceElement(Finley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
-		Finley_ReferenceElement* out=NULL;
+Dudley_ReferenceElement* Dudley_ReferenceElementSet_borrowReferenceElement(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
+		Dudley_ReferenceElement* out=NULL;
     if (in !=NULL) {			  
 		 if (reducedIntegrationOrder) {
              out=in->referenceElementReducedQuadrature;
@@ -90,8 +90,8 @@ Finley_ReferenceElement* Finley_ReferenceElementSet_borrowReferenceElement(Finle
 	return out;
 }
 	
-Finley_ShapeFunction* Finley_ReferenceElementSet_borrowBasisFunctions(Finley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
-	Finley_ShapeFunction* basis=NULL;
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowBasisFunctions(Dudley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
+	Dudley_ShapeFunction* basis=NULL;
     if (in !=NULL) {	
 	  if (reducedShapefunction) {
 		  if (reducedIntegrationOrder) {
@@ -110,8 +110,8 @@ Finley_ShapeFunction* Finley_ReferenceElementSet_borrowBasisFunctions(Finley_Ref
 	return basis;
 }
 
-Finley_ShapeFunction* Finley_ReferenceElementSet_borrowParametrization(Finley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
-	Finley_ShapeFunction* shape=NULL;
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowParametrization(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
+	Dudley_ShapeFunction* shape=NULL;
     if (in !=NULL) {		
 		  if (reducedIntegrationOrder) {
 			 shape=in->referenceElementReducedQuadrature->Parametrization;

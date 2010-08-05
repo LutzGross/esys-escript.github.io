@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: ElementFile */
+/*   Dudley: ElementFile */
 
 /*   mark the used nodes with offeset: */
 
@@ -24,13 +24,13 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Finley_ElementFile* in,bool_t useLinear) {
+void Dudley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Dudley_ElementFile* in,bool_t useLinear) {
    dim_t i,NN,NN2,e;
    index_t *lin_nodes;
-   Finley_ReferenceElement* refElement=NULL;
+   Dudley_ReferenceElement* refElement=NULL;
    
    if (in!=NULL) {
-	     refElement=Finley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
+	     refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
 		 NN2=in->numNodes;
 		 if (useLinear) {
 			 NN=refElement->numLinearNodes;
@@ -53,15 +53,15 @@ void Finley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Fi
    	}
 }
 
-void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Finley_ElementFile*in ,bool_t useLinear) 
+void Dudley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Dudley_ElementFile*in ,bool_t useLinear) 
 {
    dim_t i,NN,NN2,e,j;
    index_t color,*lin_nodes;
-   Finley_ReferenceElement* refElement=NULL;
+   Dudley_ReferenceElement* refElement=NULL;
    register index_t k;
    
    if (in!=NULL) {
-	     refElement=Finley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
+	     refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
 		 NN2=in->numNodes;
 		 if (useLinear) {
 			 NN=refElement->numLinearNodes;

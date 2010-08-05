@@ -13,7 +13,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh */
+/*   Dudley: Mesh */
 
 /**************************************************************/
 
@@ -24,14 +24,14 @@
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected indepently. */
 
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info) 
+Dudley_Mesh* Dudley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info) 
 {
-  Finley_Mesh *out;
+  Dudley_Mesh *out;
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_Mesh);
-  if (Finley_checkPtr(out)) return NULL;
+  out=MEMALLOC(1,Dudley_Mesh);
+  if (Dudley_checkPtr(out)) return NULL;
   out->Name=NULL;  
   out->Nodes=NULL; 
   out->Elements=NULL;   
@@ -46,23 +46,23 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info)
   out->ReducedFullPattern=NULL;
   out->ReducedReducedPattern=NULL;
   out->MPIInfo = Paso_MPIInfo_getReference( mpi_info );
-  if (! Finley_noError()) {
-      Finley_Mesh_free(out);
+  if (! Dudley_noError()) {
+      Dudley_Mesh_free(out);
       return NULL;
   }
   /*   copy name: */
   
   out->Name=MEMALLOC(strlen(name)+1,char);
-  if (Finley_checkPtr(out->Name)) {
-      Finley_Mesh_free(out);
+  if (Dudley_checkPtr(out->Name)) {
+      Dudley_Mesh_free(out);
       return NULL;
   }
   strcpy(out->Name,name);
   
   /*   allocate node table: */
-  out->Nodes=Finley_NodeFile_alloc( numDim, mpi_info );
-  if (! Finley_noError()) {
-      Finley_Mesh_free(out);
+  out->Nodes=Dudley_NodeFile_alloc( numDim, mpi_info );
+  if (! Dudley_noError()) {
+      Dudley_Mesh_free(out);
       return NULL;
   }
   out->approximationOrder=-1;
@@ -78,26 +78,26 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info)
   return out;
 }
 
-/* returns a reference to Finley_Mesh in */
+/* returns a reference to Dudley_Mesh in */
 
-Finley_Mesh* Finley_Mesh_reference(Finley_Mesh* in) {
+Dudley_Mesh* Dudley_Mesh_reference(Dudley_Mesh* in) {
      if (in!=NULL) ++(in->reference_counter);
      return in;
 }
 
 /*   freeates a mesh: */
 
-void Finley_Mesh_free(Finley_Mesh* in) {
+void Dudley_Mesh_free(Dudley_Mesh* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<1) {
        MEMFREE(in->Name);
-       Finley_NodeFile_free(in->Nodes);
-       Finley_ElementFile_free(in->FaceElements);
-       Finley_ElementFile_free(in->Elements);   
-       Finley_ElementFile_free(in->ContactElements);
-       Finley_ElementFile_free(in->Points);
-       Finley_TagMap_free(in->TagMap);
+       Dudley_NodeFile_free(in->Nodes);
+       Dudley_ElementFile_free(in->FaceElements);
+       Dudley_ElementFile_free(in->Elements);   
+       Dudley_ElementFile_free(in->ContactElements);
+       Dudley_ElementFile_free(in->Points);
+       Dudley_TagMap_free(in->TagMap);
        Paso_SystemMatrixPattern_free(in->FullFullPattern);
        Paso_SystemMatrixPattern_free(in->FullReducedPattern);
        Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
@@ -112,27 +112,27 @@ void Finley_Mesh_free(Finley_Mesh* in) {
 
 /*  returns the spatial dimension of the mesh: */
 
-dim_t Finley_Mesh_getDim(Finley_Mesh *in) {
+dim_t Dudley_Mesh_getDim(Dudley_Mesh *in) {
   return in->Nodes->numDim;
 }
 
-void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->Elements);
+void Dudley_Mesh_setElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
+    Dudley_ElementFile_free(self->Elements);
     self->Elements=elements;
 }
-void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->FaceElements);
+void Dudley_Mesh_setFaceElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
+    Dudley_ElementFile_free(self->FaceElements);
     self->FaceElements=elements;
 }
-void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->ContactElements);
+void Dudley_Mesh_setContactElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
+    Dudley_ElementFile_free(self->ContactElements);
     self->ContactElements=elements;
 }
-void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->Points);
+void Dudley_Mesh_setPoints(Dudley_Mesh* self,Dudley_ElementFile *elements) {
+    Dudley_ElementFile_free(self->Points);
     self->Points=elements;
 }
-int  Finley_Mesh_getStatus(Finley_Mesh* in) {
+int  Dudley_Mesh_getStatus(Dudley_Mesh* in) {
    if  (in == NULL) {
         return -1;
    } else if (in->Nodes == NULL) {
@@ -142,7 +142,7 @@ int  Finley_Mesh_getStatus(Finley_Mesh* in) {
    }
 }
 
-void Mesh_setOrders(Finley_Mesh *in) 
+void Mesh_setOrders(Dudley_Mesh *in) 
 {
    const dim_t order_max=9999999;
    dim_t locals[4];

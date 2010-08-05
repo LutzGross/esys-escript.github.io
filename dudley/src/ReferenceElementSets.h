@@ -14,12 +14,12 @@
 
 /***************************************************************************************************************
 
-    Finley: Reference elements set managing the reference elements for the full and reduced intergation order
+    Dudley: Reference elements set managing the reference elements for the full and reduced intergation order
 
 **************************************************************************************************************/
 
-#ifndef INC_FINLEY_REFERENCEELEMENTSETS
-#define INC_FINLEY_REFERENCEELEMENTSETS
+#ifndef INC_DUDLEY_REFERENCEELEMENTSETS
+#define INC_DUDLEY_REFERENCEELEMENTSETS
 
 
 /**************************************************************/
@@ -29,21 +29,21 @@
 /**************************************************************/
 
    
-typedef struct Finley_ReferenceElementSet {
-	Finley_ReferenceElement* referenceElementReducedQuadrature;
-	Finley_ReferenceElement* referenceElement;
+typedef struct Dudley_ReferenceElementSet {
+	Dudley_ReferenceElement* referenceElementReducedQuadrature;
+	Dudley_ReferenceElement* referenceElement;
 	dim_t numNodes;
 	index_t reference_counter;
-} Finley_ReferenceElementSet;
+} Dudley_ReferenceElementSet;
 
 
 
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order);
-void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in);
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_reference(Finley_ReferenceElementSet* in);
-Finley_ShapeFunction* Finley_ReferenceElementSet_borrowBasisFunctions(Finley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder);
-Finley_ShapeFunction* Finley_ReferenceElementSet_borrowParametrization(Finley_ReferenceElementSet* in, bool_t reducedIntegrationOrder);
-Finley_ReferenceElement* Finley_ReferenceElementSet_borrowReferenceElement(Finley_ReferenceElementSet* in, bool_t reducedIntegrationOrder);
-#define Finley_ReferenceElementSet_getNumNodes(__IN__) ((__IN__)->numNodes)
+Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order);
+void Dudley_ReferenceElementSet_dealloc(Dudley_ReferenceElementSet* in);
+Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_reference(Dudley_ReferenceElementSet* in);
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowBasisFunctions(Dudley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder);
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowParametrization(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder);
+Dudley_ReferenceElement* Dudley_ReferenceElementSet_borrowReferenceElement(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder);
+#define Dudley_ReferenceElementSet_getNumNodes(__IN__) ((__IN__)->numNodes)
 
-#endif /* #ifndef INC_FINLEY_REFERENCEELEMENTSETS */
+#endif /* #ifndef INC_DUDLEY_REFERENCEELEMENTSETS */

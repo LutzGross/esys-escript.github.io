@@ -19,7 +19,7 @@
 #include <netcdfcpp.h>
 #endif
 #include "MeshAdapterFactory.h"
-#include "FinleyError.h"
+#include "DudleyError.h"
 extern "C" {
 #include "esysUtils/blocktimer.h"
 }
@@ -54,7 +54,7 @@ namespace dudley {
 #ifdef USE_NETCDF
     Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
     AbstractContinuousDomain* temp;
-    Finley_Mesh *mesh_p=NULL;
+    Dudley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
     char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
@@ -62,7 +62,7 @@ namespace dudley {
                                                 mpi_info->rank);
 
     double blocktimer_start = blocktimer_time();
-    Finley_resetError();
+    Dudley_resetError();
     int *first_DofComponent, *first_NodeComponent;
 
     // Open NetCDF file for reading
@@ -74,7 +74,7 @@ namespace dudley {
     NcFile dataFile(fName, NcFile::ReadOnly);
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening file NetCDF %s for reading failed.", fName);
-      Finley_setError(IO_ERROR,error_msg);
+      Dudley_setError(IO_ERROR,error_msg);
       Paso_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
@@ -120,11 +120,11 @@ namespace dudley {
     string msgPrefix("Error in loadMesh: NetCDF operation failed - ");
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
-    if (Finley_noError()) {
+    mesh_p = Dudley_Mesh_alloc(name,numDim,mpi_info);
+    if (Dudley_noError()) {
 
         /* read nodes */
-        Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
+        Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
           throw DataException(msgPrefix+"get_var(Nodes_Id)");
@@ -193,14 +193,14 @@ namespace dudley {
         }
 
         /* read elements */
-        if (Finley_noError()) {
-		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
-		  if (Finley_noError())  {
-			  mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
+        if (Dudley_noError()) {
+		  Dudley_ReferenceElementSet  *refElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
+		  if (Dudley_noError())  {
+			  mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
 		  }
-		  Finley_ReferenceElementSet_dealloc(refElements);
-          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
-		  if (Finley_noError()) {
+		  Dudley_ReferenceElementSet_dealloc(refElements);
+          if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
+		  if (Dudley_noError()) {
 			  mesh_p->Elements->minColor=0;
 			  mesh_p->Elements->maxColor=num_Elements-1;
 			  if (num_Elements>0) {
@@ -256,14 +256,14 @@ namespace dudley {
 	}
 
         /* get the face elements */
-        if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,order, reduced_order);
-		  if (Finley_noError())  {
-			  mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
+        if (Dudley_noError()) {
+		  Dudley_ReferenceElementSet *refFaceElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,order, reduced_order);
+		  if (Dudley_noError())  {
+			  mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
 		  }
-		  Finley_ReferenceElementSet_dealloc(refFaceElements);	
-          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
-		  if (Finley_noError()) {
+		  Dudley_ReferenceElementSet_dealloc(refFaceElements);	
+          if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
+		  if (Dudley_noError()) {
 			  mesh_p->FaceElements->minColor=0;
 			  mesh_p->FaceElements->maxColor=num_FaceElements-1;
 			  if (num_FaceElements>0) {
@@ -317,14 +317,14 @@ namespace dudley {
 	}
 
         /* get the Contact elements */
-        if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,order, reduced_order);
-		  if (Finley_noError())  {
-			  mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
+        if (Dudley_noError()) {
+		  Dudley_ReferenceElementSet *refContactElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,order, reduced_order);
+		  if (Dudley_noError())  {
+			  mesh_p->ContactElements=Dudley_ElementFile_alloc(refContactElements, mpi_info);
 		  }
-		  Finley_ReferenceElementSet_dealloc(refContactElements);	
-          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
-		  if (Finley_noError()) {
+		  Dudley_ReferenceElementSet_dealloc(refContactElements);	
+          if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
+		  if (Dudley_noError()) {
 			  mesh_p->ContactElements->minColor=0;
 			  mesh_p->ContactElements->maxColor=num_ContactElements-1;
 			  if (num_ContactElements>0) {
@@ -379,14 +379,14 @@ namespace dudley {
 	}
 
         /* get the Points (nodal elements) */
-        if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
-		  if (Finley_noError())  {
-			  mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
+        if (Dudley_noError()) {
+		  Dudley_ReferenceElementSet *refPoints=	Dudley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
+		  if (Dudley_noError())  {
+			  mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
 		  }
-		  Finley_ReferenceElementSet_dealloc(refPoints);
-          if (Finley_noError()) Finley_ElementFile_allocTable(mesh_p->Points, num_Points);
-		  if (Finley_noError()) {
+		  Dudley_ReferenceElementSet_dealloc(refPoints);
+          if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Points, num_Points);
+		  if (Dudley_noError()) {
 			  mesh_p->Points->minColor=0;
 			  mesh_p->Points->maxColor=num_Points-1;
 			  if (num_Points>0) {
@@ -439,7 +439,7 @@ namespace dudley {
 		}
 
         /* get the tags */
-        if (Finley_noError()) {
+        if (Dudley_noError()) {
           if (num_Tags>0) {
             // Temp storage to gather node IDs
             int *Tags_keys = TMPMEMALLOC(num_Tags, int);
@@ -462,22 +462,22 @@ namespace dudley {
               }
               char *name = attr->as_string(0);
               delete attr;
-              Finley_Mesh_addTagMap(mesh_p, name, Tags_keys[i]);
+              Dudley_Mesh_addTagMap(mesh_p, name, Tags_keys[i]);
 	    }
 	  }
 	}
    
-        if (Finley_noError()) Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
+        if (Dudley_noError()) Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
         TMPMEMFREE(first_DofComponent);
         TMPMEMFREE(first_NodeComponent);
 
-    } /* Finley_noError() after Finley_Mesh_alloc() */
+    } /* Dudley_noError() after Dudley_Mesh_alloc() */
 
-    checkFinleyError();
+    checkDudleyError();
     temp=new MeshAdapter(mesh_p);
 
-    if (! Finley_noError()) {
-      Finley_Mesh_free(mesh_p);
+    if (! Dudley_noError()) {
+      Dudley_Mesh_free(mesh_p);
     }
 
     /* win32 refactor */
@@ -497,8 +497,8 @@ namespace dudley {
   {
     //
     // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    Finley_Mesh* fMesh=0;
+    // to Dudley_Mesh_read
+    Dudley_Mesh* fMesh=0;
     // Win32 refactor
     if( fileName.size() == 0 )
     {
@@ -510,8 +510,8 @@ namespace dudley {
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
-    fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
-    checkFinleyError();
+    fMesh=Dudley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
     /* win32 refactor */
@@ -530,8 +530,8 @@ namespace dudley {
   {
     //
     // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    Finley_Mesh* fMesh=0;
+    // to Dudley_Mesh_read
+    Dudley_Mesh* fMesh=0;
     // Win32 refactor
     if( fileName.size() == 0 )
     {
@@ -543,8 +543,8 @@ namespace dudley {
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
 
-    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
-    checkFinleyError();
+    fMesh=Dudley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
+    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
     /* win32 refactor */
@@ -571,25 +571,25 @@ namespace dudley {
 
     //
     // linearInterpolation
-    Finley_Mesh* fMesh=NULL;
+    Dudley_Mesh* fMesh=NULL;
 
     if (order==1) {
-           fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+           fMesh=Dudley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE)) ;
     } else if (order==2) {
-           fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+           fMesh=Dudley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					      useElementsOnFace,useFullElementOrder,FALSE, (optimize ? TRUE : FALSE)) ;
     } else if (order==-1) {
-           fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+           fMesh=Dudley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE)) ;
     } else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
-      setFinleyError(VALUE_ERROR,temp.str().c_str());
+      setDudleyError(VALUE_ERROR,temp.str().c_str());
     }
     //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
+    // Convert any dudley errors into a C++ exception
+    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp->getPtr();
   }
@@ -608,47 +608,47 @@ namespace dudley {
     double length[]={l0,l1};
     int periodic[]={periodic0, periodic1};
 
-    Finley_Mesh* fMesh=0;
+    Dudley_Mesh* fMesh=0;
     if (order==1) {
-            fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
+            fMesh=Dudley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
 					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE));
     } else if (order==2) {
-            fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+            fMesh=Dudley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					      useElementsOnFace,useFullElementOrder,FALSE,(optimize ? TRUE : FALSE));
     } else if (order==-1) {
-            fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
+            fMesh=Dudley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
 					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE));
     } else {
       stringstream temp;
       temp << "Illegal interpolation order: " << order;
-      setFinleyError(VALUE_ERROR,temp.str().c_str());
+      setDudleyError(VALUE_ERROR,temp.str().c_str());
     }
     //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
+    // Convert any DUDLEY errors into a C++ exception
+    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp->getPtr();
   }
 
   Domain_ptr meshMerge(const boost::python::list& meshList)
   {
-    Finley_Mesh* fMesh=0;
+    Dudley_Mesh* fMesh=0;
     //
     // extract the meshes from meshList
     int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
-    Finley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Finley_Mesh*) : (Finley_Mesh**)NULL;
+    Dudley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Dudley_Mesh*) : (Dudley_Mesh**)NULL;
     for (int i=0;i<numMsh;++i) {
          AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
-         const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
-         mshes[i]=finley_meshListMember->getFinley_Mesh();
+         const MeshAdapter* dudley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
+         mshes[i]=dudley_meshListMember->getDudley_Mesh();
     }
     //
     // merge the meshes:
-    fMesh=Finley_Mesh_merge(numMsh,mshes);
+    fMesh=Dudley_Mesh_merge(numMsh,mshes);
 	  TMPMEMFREE(mshes);
     //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
+    // Convert any dudley errors into a C++ exception
+    checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
 
     return temp->getPtr();
@@ -659,20 +659,20 @@ namespace dudley {
 			               double tolerance,
                                        int optimize)
   {
-    Finley_Mesh* fMesh=0;
+    Dudley_Mesh* fMesh=0;
     //
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
 
     //
     // glue the faces:
-    const MeshAdapter* merged_finley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimize ? TRUE : FALSE));
+    const MeshAdapter* merged_dudley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
+    fMesh=merged_dudley_meshes->getDudley_Mesh();
+    Dudley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimize ? TRUE : FALSE));
 
     //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
+    // Convert any dudley errors into a C++ exception
+    checkDudleyError();
     return merged_meshes->getPtr();
   }
   Domain_ptr  joinFaces(const boost::python::list& meshList,
@@ -680,18 +680,18 @@ namespace dudley {
 			double tolerance,
                         int optimize)
   {
-    Finley_Mesh* fMesh=0;
+    Dudley_Mesh* fMesh=0;
     //
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
     //
     // join the faces:
-    const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimize ? TRUE : FALSE));
+    const MeshAdapter* merged_dudley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
+    fMesh=merged_dudley_meshes->getDudley_Mesh();
+    Dudley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimize ? TRUE : FALSE));
     //
-    // Convert any finley errors into a C++ exception
-    checkFinleyError();
+    // Convert any dudley errors into a C++ exception
+    checkDudleyError();
     return merged_meshes->getPtr();
   }
 

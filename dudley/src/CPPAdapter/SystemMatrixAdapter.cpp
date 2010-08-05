@@ -31,7 +31,7 @@ struct null_deleter
 
 SystemMatrixAdapter::SystemMatrixAdapter()
 {
-   throw FinleyAdapterException("Error - Illegal to generate default SystemMatrixAdapter.");
+   throw DudleyAdapterException("Error - Illegal to generate default SystemMatrixAdapter.");
 }
 
 SystemMatrixAdapter::SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
@@ -62,13 +62,13 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
 
    if ( x.getDataPointSize()  != getColumnBlockSize()) {
-      throw FinleyAdapterException("matrix vector product : column block size does not match the number of components in input.");
+      throw DudleyAdapterException("matrix vector product : column block size does not match the number of components in input.");
    } else if (y.getDataPointSize() != getRowBlockSize()) {
-      throw FinleyAdapterException("matrix vector product : row block size does not match the number of components in output.");
+      throw DudleyAdapterException("matrix vector product : row block size does not match the number of components in output.");
    } else if ( x.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw FinleyAdapterException("matrix vector product : column function space and function space of input don't match.");
+      throw DudleyAdapterException("matrix vector product : column function space and function space of input don't match.");
    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
-      throw FinleyAdapterException("matrix vector product : row function space and function space of output don't match.");
+      throw DudleyAdapterException("matrix vector product : row function space and function space of output don't match.");
    }
    x.expand();
    y.expand();
@@ -166,7 +166,7 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
-           throw FinleyAdapterException(temp.str());
+           throw DudleyAdapterException(temp.str());
     }
 }
 
@@ -216,13 +216,13 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    options.attr("resetDiagnostics")();
    escriptToPasoOptions(&paso_options,options);
    if ( out.getDataPointSize()  != getColumnBlockSize()) {
-      throw FinleyAdapterException("solve : column block size does not match the number of components of solution.");
+      throw DudleyAdapterException("solve : column block size does not match the number of components of solution.");
    } else if ( in.getDataPointSize() != getRowBlockSize()) {
-      throw FinleyAdapterException("solve : row block size does not match the number of components of  right hand side.");
+      throw DudleyAdapterException("solve : row block size does not match the number of components of  right hand side.");
    } else if ( out.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw FinleyAdapterException("solve : column function space and function space of solution don't match.");
+      throw DudleyAdapterException("solve : column function space and function space of solution don't match.");
    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
-      throw FinleyAdapterException("solve : row function space and function space of right hand side don't match.");
+      throw DudleyAdapterException("solve : row function space and function space of right hand side don't match.");
    }
    out.expand();
    in.expand();
@@ -237,13 +237,13 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
 {
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
    if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
-      throw FinleyAdapterException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
+      throw DudleyAdapterException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
    } else if ( row_q.getDataPointSize() != getRowBlockSize()) {
-      throw FinleyAdapterException("nullifyRowsAndCols : row block size does not match the number of components of row mask.");
+      throw DudleyAdapterException("nullifyRowsAndCols : row block size does not match the number of components of row mask.");
    } else if ( col_q.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw FinleyAdapterException("nullifyRowsAndCols : column function space and function space of column mask don't match.");
+      throw DudleyAdapterException("nullifyRowsAndCols : column function space and function space of column mask don't match.");
    } else if (row_q.getFunctionSpace() != getRowFunctionSpace()) {
-      throw FinleyAdapterException("nullifyRowsAndCols : row function space and function space of row mask don't match.");
+      throw DudleyAdapterException("nullifyRowsAndCols : row function space and function space of row mask don't match.");
    }
    row_q.expand();
    col_q.expand();
@@ -259,7 +259,7 @@ void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
    {
-      throw FinleyAdapterException("Null file name!");
+      throw DudleyAdapterException("Null file name!");
    }
 
    char *fName = TMPMEMALLOC(fileName.size()+1,char);
@@ -276,7 +276,7 @@ void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
    {
-      throw FinleyAdapterException("Null file name!");
+      throw DudleyAdapterException("Null file name!");
    }
 
    char *fName = TMPMEMALLOC(fileName.size()+1,char);

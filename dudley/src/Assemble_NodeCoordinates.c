@@ -26,21 +26,21 @@
 
 /**************************************************************/
 
-void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
+void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile* nodes,escriptDataC* x) {
   char error_msg[LenErrorMsg_MAX];
   dim_t n;
   size_t dim_size;
-  Finley_resetError();
+  Dudley_resetError();
   if (nodes==NULL) return;
   if (! numSamplesEqual(x,1,nodes->numNodes)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: illegal number of samples of Data object");
-  } else if (getFunctionSpaceType(x)!=FINLEY_NODES) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_NodeCoordinates: illegal number of samples of Data object");
+  } else if (getFunctionSpaceType(x)!=DUDLEY_NODES) {
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
   } else if (! isExpanded(x)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: expanded Data object expected");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_NodeCoordinates: expanded Data object expected");
   } else if (! isDataPointShapeEqual(x,1, &(nodes->numDim))) {
-       sprintf(error_msg,"Finley_Assemble_NodeCoordinates: Data object of shape (%d,) expected",nodes->numDim);
-       Finley_setError(TYPE_ERROR,error_msg);
+       sprintf(error_msg,"Dudley_Assemble_NodeCoordinates: Data object of shape (%d,) expected",nodes->numDim);
+       Dudley_setError(TYPE_ERROR,error_msg);
   } else {
        dim_size=nodes->numDim*sizeof(double);
        requireWrite(x);

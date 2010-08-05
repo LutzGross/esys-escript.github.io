@@ -26,7 +26,7 @@
 /******************************************************************************************************/
 
 
-void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
+void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad_in, numQuad_out, i;
     __const double *in_array;
     double *out_array, vol, volinv, *wq;
@@ -34,21 +34,21 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
     dim_t numComps=getDataPointSize(out);
     size_t numComps_size;
 
-    Finley_resetError();
+    Dudley_resetError();
     if( elements == NULL )
     {
        return;
     }
 
     numElements=elements->numElements;
-    if (Finley_Assemble_reducedIntegrationOrder(in)) {
+    if (Dudley_Assemble_reducedIntegrationOrder(in)) {
        numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
        wq=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadWeights;
     } else {
        numQuad_in=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
        wq=elements->referenceElementSet->referenceElement->Parametrization->QuadWeights;
     }
-    if (Finley_Assemble_reducedIntegrationOrder(out)) {
+    if (Dudley_Assemble_reducedIntegrationOrder(out)) {
        numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
     } else {
        numQuad_out=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
@@ -56,18 +56,18 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptData
 
     /* check out and in */
     if (numComps!=getDataPointSize(in)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_AverageElementData: number of components of input and output Data do not match.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_AverageElementData: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad_in,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_AverageElementData: illegal number of samples of input Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_AverageElementData: illegal number of samples of input Data object");
     } else if (!numSamplesEqual(out,numQuad_out,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_AverageElementData: illegal number of samples of output Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_AverageElementData: illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_AverageElementData: expanded Data object is expected for output data.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_AverageElementData: expanded Data object is expected for output data.");
     }
 
     /* now we can start */
 
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
          if (isExpanded(in)) {
 			 vol=0;
 			 for (q=0; q< numQuad_in;++q) vol+=wq[q];

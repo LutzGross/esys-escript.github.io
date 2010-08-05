@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#if !defined  finley_MeshAdapterFactory_20040526_H
-#define finley_MeshAdapterFactory_20040526_H
+#if !defined  dudley_MeshAdapterFactory_20040526_H
+#define dudley_MeshAdapterFactory_20040526_H
 #include "system_dep.h"
 
 extern "C" {
@@ -44,7 +44,7 @@ namespace dudley {
      recovers mesg from a dump file
      \param fileName Input -  The name of the file.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 /*  escript::AbstractContinuousDomain* loadMesh(const std::string& fileName);*/
   escript::Domain_ptr loadMesh(const std::string& fileName);
   /**
@@ -57,7 +57,7 @@ namespace dudley {
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
    escript::Domain_ptr readMesh(const std::string& fileName,
 				     int integrationOrder=-1,
@@ -74,7 +74,7 @@ namespace dudley {
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
   escript::Domain_ptr readGmsh(const std::string& fileName,
 				     int numDim, 
@@ -101,7 +101,7 @@ namespace dudley {
      \param useMacroElements
      \param optimize
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
   escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
@@ -131,7 +131,7 @@ namespace dudley {
      \param useFullElementOrder
      \param optimize
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
   escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
@@ -146,7 +146,7 @@ namespace dudley {
      Merges a list of meshes into one list.
      \param meshList Input - The list of meshes.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
   escript::Domain_ptr meshMerge(const boost::python::list& meshList);
   /**
@@ -158,7 +158,7 @@ namespace dudley {
      \param tolerance Input - ??
      \param optimize Input - switches on the optimization of node labels 
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
   escript::Domain_ptr glueFaces(const boost::python::list& meshList,
 			   double safetyFactor=0.2, 
@@ -172,7 +172,7 @@ namespace dudley {
      \param tolerance Input - ??
      \param optimize Input - switches on the optimization of node labels 
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
   escript::Domain_ptr joinFaces(const boost::python::list& meshList,
 			double safetyFactor=0.2, 

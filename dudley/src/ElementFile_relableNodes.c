@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: ElementFile */
+/*   Dudley: ElementFile */
 
 /*                                                                      */
 /*   assigns new node reference numbers to elements in element file in. */
@@ -26,7 +26,7 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_relableNodes(index_t* newNode,index_t offset,Finley_ElementFile* in) {
+void Dudley_ElementFile_relableNodes(index_t* newNode,index_t offset,Dudley_ElementFile* in) {
    dim_t i,j,NN;
 
    if (in!=NULL) {

@@ -103,8 +103,8 @@ sources = """
 	TagMap.c
 	Util.c
 	ReferenceElementSets.c
-	CPPAdapter/FinleyAdapterException.cpp
-	CPPAdapter/FinleyError.cpp
+	CPPAdapter/DudleyAdapterException.cpp
+	CPPAdapter/DudleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
 	CPPAdapter/MeshAdapterFactory.cpp
 	CPPAdapter/SystemMatrixAdapter.cpp
@@ -129,8 +129,8 @@ headers = """
 	vtkCellType.h
 """.split()
 cppadapter_headers = """
-	CPPAdapter/FinleyAdapterException.h
-	CPPAdapter/FinleyError.h
+	CPPAdapter/DudleyAdapterException.h
+	CPPAdapter/DudleyError.h
 	CPPAdapter/MeshAdapter.h
 	CPPAdapter/MeshAdapterFactory.h
 	CPPAdapter/SystemMatrixAdapter.h

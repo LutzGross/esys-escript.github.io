@@ -14,9 +14,9 @@
 
 /**************************************************************/
 /*                                                                                                         */
-/*   Finley: ElementFile                                                                                   */
+/*   Dudley: ElementFile                                                                                   */
 /*                                                                                                         */
-/*   This routine tries to reduce the number of colors used to color elements in the Finley_ElementFile in */
+/*   This routine tries to reduce the number of colors used to color elements in the Dudley_ElementFile in */
 /*                                                                                                         */
 /**************************************************************/
 
@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
+void Dudley_ElementFile_createColoring(Dudley_ElementFile* in,dim_t numNodes, index_t* degreeOfFreedom) {
     dim_t e,i,numUncoloredElements,n,len,NN;
     index_t *maskDOF,min_id,max_id;
     bool_t independent;
@@ -34,11 +34,11 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
     if (in->numElements<1) return;
     NN=in->numNodes;
 
-    min_id=Finley_Util_getMinInt(1,numNodes,degreeOfFreedom);
-    max_id=Finley_Util_getMaxInt(1,numNodes,degreeOfFreedom);
+    min_id=Dudley_Util_getMinInt(1,numNodes,degreeOfFreedom);
+    max_id=Dudley_Util_getMaxInt(1,numNodes,degreeOfFreedom);
     len=max_id-min_id+1;
     maskDOF=TMPMEMALLOC(len,index_t);
-    if (! Finley_checkPtr(maskDOF) ) {
+    if (! Dudley_checkPtr(maskDOF) ) {
          #pragma omp parallel for private(e) schedule(static)
          for (e=0;e<in->numElements;e++) in->Color[e]=-1;
          numUncoloredElements=in->numElements;

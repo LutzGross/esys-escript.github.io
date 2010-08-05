@@ -25,10 +25,10 @@
 #endif
 
 
-struct Finley_ElementFile_Jacobeans {
-  Finley_Status_t status;               /* status of mesh when jacobeans where updated last time */
+struct Dudley_ElementFile_Jacobeans {
+  Dudley_Status_t status;               /* status of mesh when jacobeans where updated last time */
   dim_t numDim;                         /* spatial dimension */
-  Finley_ShapeFunction* BasisFunctions; /* basis function used */
+  Dudley_ShapeFunction* BasisFunctions; /* basis function used */
   dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobeans = numSub * BasisFunctions->numQuadNodes*/
   dim_t numSides;                   /* number of sides (=1 normal, =2 contact) */
   index_t* offsets;         /* offset to sides (borrowed reference) */
@@ -40,13 +40,13 @@ struct Finley_ElementFile_Jacobeans {
   double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
 };
 
-typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
+typedef struct Dudley_ElementFile_Jacobeans Dudley_ElementFile_Jacobeans;
 
-struct Finley_ElementFile {
+struct Dudley_ElementFile {
   Paso_MPIInfo *MPIInfo;
   Paso_MPI_rank *Owner;
 
-  Finley_ReferenceElementSet *referenceElementSet; /* the reference element to be used */
+  Dudley_ReferenceElementSet *referenceElementSet; /* the reference element to be used */
 
   dim_t numElements;                             /* number of elements. */
   
@@ -83,40 +83,40 @@ struct Finley_ElementFile {
                                                  at anytime Color must provide a valid value. In any case one can set  
                                                  Color[e]=e  for all e */
 
-  Finley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order and  reduced order of shape function*/
+  Dudley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
+  Dudley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/
+  Dudley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
+  Dudley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order and  reduced order of shape function*/
 
 };
 
-typedef struct Finley_ElementFile Finley_ElementFile;
-Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo);
-void Finley_ElementFile_free(Finley_ElementFile*);
-void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
-void Finley_ElementFile_freeTable(Finley_ElementFile*);
-void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution);
-dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
-dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in);
-index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in); 
-void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t *Id);
+typedef struct Dudley_ElementFile Dudley_ElementFile;
+Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo);
+void Dudley_ElementFile_free(Dudley_ElementFile*);
+void Dudley_ElementFile_allocTable(Dudley_ElementFile*,dim_t);
+void Dudley_ElementFile_freeTable(Dudley_ElementFile*);
+void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile* in, dim_t* distribution);
+dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile* in);
+dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile* in);
+index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile* in); 
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t *Id);
 
-void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
-void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);
-void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
-void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markNodes(dim_t*,dim_t,dim_t,Finley_ElementFile*,dim_t);
-void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Finley_ElementFile*in ,bool_t useLinear);
+void Dudley_ElementFile_createColoring(Dudley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
+void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in);
+void Dudley_ElementFile_setNodeRange(dim_t*,dim_t*,Dudley_ElementFile*);
+void Dudley_ElementFile_relableNodes(dim_t*,dim_t,Dudley_ElementFile*);
+void Dudley_ElementFile_markNodes(dim_t*,dim_t,dim_t,Dudley_ElementFile*,dim_t);
+void Dudley_ElementFile_scatter(dim_t*,Dudley_ElementFile*,Dudley_ElementFile*);
+void Dudley_ElementFile_gather(dim_t*,Dudley_ElementFile*,Dudley_ElementFile*);
+void Dudley_ElementFile_copyTable(dim_t,Dudley_ElementFile*,dim_t,dim_t,Dudley_ElementFile*);
+void Dudley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Dudley_ElementFile*in ,bool_t useLinear);
 
-void Finley_ElementFile_setTags(Finley_ElementFile* ,const int, escriptDataC*);
-Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_ShapeFunction* );
-void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
-Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
-void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in);
+void Dudley_ElementFile_setTags(Dudley_ElementFile* ,const int, escriptDataC*);
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFunction* );
+void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans*);
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile*, Dudley_NodeFile*, bool_t, bool_t);
+void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile* in);
 
 
-#endif /* #ifndef INC_FINLEY_ELEMENTFILE */
+#endif /* #ifndef INC_DUDLEY_ELEMENTFILE */
 

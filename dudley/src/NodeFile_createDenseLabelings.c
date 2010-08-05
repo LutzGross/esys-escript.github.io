@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: NodeFile                                   */
+/*   Dudley: Mesh: NodeFile                                   */
 
 /*   creates a dense labeling of the global degrees of freedom  */
 /*   and returns the new number of  global degrees of freedom  */
@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in) 
+dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile* in) 
 {
   index_t min_dof, max_dof, unset_dof=-1,set_dof=1, dof_0, dof_1, *DOF_buffer=NULL, k;
   Paso_MPI_rank buffer_rank, dest, source, *distribution=NULL;
@@ -36,20 +36,20 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in)
   #endif
 
   /* get the global range of node ids */
-  Finley_NodeFile_setGlobalDOFRange(&min_dof,&max_dof,in);
+  Dudley_NodeFile_setGlobalDOFRange(&min_dof,&max_dof,in);
 
   distribution=TMPMEMALLOC(in->MPIInfo->size+1, index_t);
   offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
   loc_offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
   set_new_DOF=TMPMEMALLOC(in->numNodes, bool_t);
 
-  if ( ! (Finley_checkPtr(distribution) || Finley_checkPtr(offsets) || Finley_checkPtr(loc_offsets) || Finley_checkPtr(set_new_DOF)) ) {
+  if ( ! (Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets) || Dudley_checkPtr(set_new_DOF)) ) {
       /* distribute the range of node ids */
       buffer_len=Paso_MPIInfo_setDistribution(in->MPIInfo,min_dof,max_dof,distribution);
       myDOFs=distribution[in->MPIInfo->rank+1]-distribution[in->MPIInfo->rank];
       /* allocate buffers */
       DOF_buffer=TMPMEMALLOC(buffer_len,index_t);
-      if (! Finley_checkPtr(DOF_buffer)) {
+      if (! Dudley_checkPtr(DOF_buffer)) {
             /* fill DOF_buffer by the unset_dof marker to check if nodes are defined */
             #pragma omp parallel for private(n) schedule(static)
             for (n=0;n<buffer_len;n++) DOF_buffer[n]=unset_dof;
@@ -142,12 +142,12 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile* in)
   return new_numGlobalDOFs;
 }
 
-void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution){
+void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution){
   index_t min_DOF,max_DOF, k;
   dim_t n;
   Paso_MPI_rank p, p_min=in->MPIInfo->size, p_max=-1;
   /* first we calculate the min and max dof on this processor to reduce costs for seraching */
-  Finley_NodeFile_setDOFRange(&min_DOF,&max_DOF,in);
+  Dudley_NodeFile_setDOFRange(&min_DOF,&max_DOF,in);
 
   for (p=0; p<in->MPIInfo->size; ++p) {
        if (distribution[p]<=min_DOF) p_min=p;
@@ -164,7 +164,7 @@ void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiR
      }
   }
 } 
-dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t* reducedNodeMask) 
+dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile* in,index_t* reducedNodeMask) 
 {
   index_t min_dof, max_dof, unset_dof=-1,set_dof=1, dof_0, dof_1, *DOF_buffer=NULL, k;
   Paso_MPI_rank buffer_rank, dest, source, *distribution=NULL;
@@ -174,19 +174,19 @@ dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t*
   #endif
 
   /* get the global range of node ids */
-  Finley_NodeFile_setGlobalDOFRange(&min_dof,&max_dof,in);
+  Dudley_NodeFile_setGlobalDOFRange(&min_dof,&max_dof,in);
 
   distribution=TMPMEMALLOC(in->MPIInfo->size+1, index_t);
   offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
   loc_offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
 
-  if ( ! (Finley_checkPtr(distribution) || Finley_checkPtr(offsets) || Finley_checkPtr(loc_offsets) ) ) {
+  if ( ! (Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets) ) ) {
       /* distribute the range of node ids */
       buffer_len=Paso_MPIInfo_setDistribution(in->MPIInfo,min_dof,max_dof,distribution);
       myDOFs=distribution[in->MPIInfo->rank+1]-distribution[in->MPIInfo->rank];
       /* allocate buffers */
       DOF_buffer=TMPMEMALLOC(buffer_len,index_t);
-      if (! Finley_checkPtr(DOF_buffer)) {
+      if (! Dudley_checkPtr(DOF_buffer)) {
             /* fill DOF_buffer by the unset_dof marker to check if nodes are defined */
             #pragma omp parallel for private(n) schedule(static)
             for (n=0;n<buffer_len;n++) DOF_buffer[n]=unset_dof;
@@ -275,7 +275,7 @@ dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in,index_t*
   TMPMEMFREE(offsets);
   return globalNumReducedDOFs;
 }
-dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution) 
+dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution) 
 {
   index_t myFirstDOF, myLastDOF, max_id, min_id, loc_max_id, loc_min_id, dof, id, itmp, nodeID_0, nodeID_1, dof_0, dof_1, *Node_buffer=NULL;
   dim_t n, my_buffer_len, buffer_len, globalNumNodes=0, myNewNumNodes;
@@ -322,7 +322,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
    #endif
 
    Node_buffer=TMPMEMALLOC(buffer_len+header_len,index_t);
-   if (! Finley_checkPtr(Node_buffer)) {
+   if (! Dudley_checkPtr(Node_buffer)) {
        /* mark and count the nodes in use */
        #pragma omp parallel 
        {
@@ -400,7 +400,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
    return globalNumNodes;
 }
 
-dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in,index_t* reducedNodeMask) 
+dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile* in,index_t* reducedNodeMask) 
 {
   index_t min_node, max_node, unset_node=-1,set_node=1, node_0, node_1, *Nodes_buffer=NULL, k;
   Paso_MPI_rank buffer_rank, dest, source, *distribution=NULL;
@@ -410,19 +410,19 @@ dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in,index_t
   #endif
 
   /* get the global range of node ids */
-  Finley_NodeFile_setGlobalNodeIDIndexRange(&min_node,&max_node,in);
+  Dudley_NodeFile_setGlobalNodeIDIndexRange(&min_node,&max_node,in);
 
   distribution=TMPMEMALLOC(in->MPIInfo->size+1, index_t);
   offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
   loc_offsets=TMPMEMALLOC(in->MPIInfo->size, dim_t);
 
-  if ( ! (Finley_checkPtr(distribution) || Finley_checkPtr(offsets) || Finley_checkPtr(loc_offsets) ) ) {
+  if ( ! (Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets) ) ) {
       /* distribute the range of node ids */
       buffer_len=Paso_MPIInfo_setDistribution(in->MPIInfo,min_node,max_node,distribution);
       myNodes=distribution[in->MPIInfo->rank+1]-distribution[in->MPIInfo->rank];
       /* allocate buffers */
       Nodes_buffer=TMPMEMALLOC(buffer_len,index_t);
-      if (! Finley_checkPtr(Nodes_buffer)) {
+      if (! Dudley_checkPtr(Nodes_buffer)) {
             /* fill Nodes_buffer by the unset_node marker to check if nodes are defined */
             #pragma omp parallel for private(n) schedule(static)
             for (n=0;n<buffer_len;n++) Nodes_buffer[n]=unset_node;

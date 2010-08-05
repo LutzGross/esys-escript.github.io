@@ -14,7 +14,7 @@
 
 /**************************************************************/
 /*                                                                                                         */
-/*   Finley: ElementFile                                                                                   */
+/*   Dudley: ElementFile                                                                                   */
 /*                                                                                                         */
 /*  reorders the elements in the element file such that the elements are stored close to the nodes         */
 /*                                                                                                         */
@@ -25,36 +25,36 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in) {
-     Finley_Util_ValueAndIndex* item_list=NULL;
-     Finley_ElementFile* out=NULL;
+void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in) {
+     Dudley_Util_ValueAndIndex* item_list=NULL;
+     Dudley_ElementFile* out=NULL;
      dim_t e,i, NN;
      index_t *index=NULL;
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
         NN=(*in)->referenceElementSet->numNodes;
-        item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
+        item_list=TMPMEMALLOC((*in)->numElements,Dudley_Util_ValueAndIndex);
         index=TMPMEMALLOC((*in)->numElements,index_t);
-        if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
+        if (! (Dudley_checkPtr(item_list) || Dudley_checkPtr(index)) ) {
 
-           out=Finley_ElementFile_alloc((*in)->referenceElementSet, (*in)->MPIInfo);
-           if (Finley_noError()) {
-               Finley_ElementFile_allocTable(out,(*in)->numElements);
-               if (Finley_noError()) {
+           out=Dudley_ElementFile_alloc((*in)->referenceElementSet, (*in)->MPIInfo);
+           if (Dudley_noError()) {
+               Dudley_ElementFile_allocTable(out,(*in)->numElements);
+               if (Dudley_noError()) {
                      #pragma omp parallel for private(e,i) schedule(static)
                      for (e=0;e<(*in)->numElements;e++) {
                           item_list[e].index=e;
                           item_list[e].value=(*in)->Nodes[INDEX2(0,e,NN)];
                           for (i=1;i<NN;i++) item_list[e].value=MIN(item_list[e].value,(*in)->Nodes[INDEX2(i,e,NN)]);
                      }
-                     Finley_Util_sortValueAndIndex((*in)->numElements,item_list);
+                     Dudley_Util_sortValueAndIndex((*in)->numElements,item_list);
                      #pragma omp parallel for private(e) schedule(static)
                      for (e=0;e<(*in)->numElements;e++) index[e]=item_list[e].index;
-                     Finley_ElementFile_gather(index,*in,out);
-                     Finley_ElementFile_free(*in);
+                     Dudley_ElementFile_gather(index,*in,out);
+                     Dudley_ElementFile_free(*in);
                      *in=out;
                } else {
-                    Finley_ElementFile_free(out);
+                    Dudley_ElementFile_free(out);
                }
            }
         }

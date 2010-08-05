@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Reference elements */
+/*   Dudley: Reference elements */
 
 /**************************************************************/
 
@@ -119,7 +119,7 @@ typedef enum {
 
 /*  this struct holds the definition of the reference element: */
 
-typedef struct Finley_ReferenceElementInfo {
+typedef struct Dudley_ReferenceElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numLocalDim;                         /* local dimension of the element */
@@ -130,9 +130,9 @@ typedef struct Finley_ReferenceElementInfo {
   dim_t numVertices;                         /* number of vertices of the element */
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
   index_t linearNodes[MAX_numNodes];         /* gives the list of nodes defining the linear or macro element, typically it is linearNodes[i]=i */
-  Finley_Shape_Function* getValues;          /* function to evaluate the shape functions at a set of points */
-  Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points */
-  Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
+  Dudley_Shape_Function* getValues;          /* function to evaluate the shape functions at a set of points */
+  Dudley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points */
+  Dudley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
   
 /*********************************************************************************************************************************** */  
   dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
@@ -147,27 +147,27 @@ typedef struct Finley_ReferenceElementInfo {
   index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
   index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. the permutation has keep 0 fixed. */
                                               /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
-}  Finley_ReferenceElementInfo;
+}  Dudley_ReferenceElementInfo;
 
 /**************************************************************/
 
 /*  this struct holds the realization of a reference element */
 
-typedef struct Finley_ReferenceElement {
-  Finley_ReferenceElementInfo* Type;     /* type of the reference element */
+typedef struct Dudley_ReferenceElement {
+  Dudley_ReferenceElementInfo* Type;     /* type of the reference element */
   int numQuadNodes;                /* number of quadrature points */
   double *QuadNodes;               /* coordinates of quadrature nodes */
   double *QuadWeights;             /* weights of the quadrature scheme */
   double *S;                       /* shape functions at quadrature nodes */
   double *dSdv;                    /* derivative of the shape functions at quadrature nodes */
-}  Finley_ReferenceElement;
+}  Dudley_ReferenceElement;
 
 /**************************************************************/
 
 /*    interfaces: */
 
-Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId,int);
-void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
-ElementTypeId Finley_ReferenceElement_getTypeId(char*);
+Dudley_ReferenceElement* Dudley_ReferenceElement_alloc(ElementTypeId,int);
+void Dudley_ReferenceElement_dealloc(Dudley_ReferenceElement*);
+ElementTypeId Dudley_ReferenceElement_getTypeId(char*);
 
-#endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
+#endif /* #ifndef INC_DUDLEY_REFERENCEELEMENTS */

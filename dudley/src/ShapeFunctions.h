@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Shape functions header file */
+/*   Dudley: Shape functions header file */
 
 /**************************************************************/
 
@@ -53,67 +53,67 @@ typedef enum {
   Hex27Shape,
   Hex32Shape,
   NoShape   /* marks end of list */
-} Finley_ShapeFunctionTypeId;
+} Dudley_ShapeFunctionTypeId;
 
 /**************************************************************/
 
 /*  this struct holds the definition of the shape functions on element: */
 
-typedef void (Finley_ShapeFunction_Evaluation) (dim_t,double*,double*,double*);
+typedef void (Dudley_ShapeFunction_Evaluation) (dim_t,double*,double*,double*);
 
-typedef struct Finley_ShapeFunctionInfo {
+typedef struct Dudley_ShapeFunctionInfo {
  
-  Finley_ShapeFunctionTypeId TypeId;                        /* the id */
+  Dudley_ShapeFunctionTypeId TypeId;                        /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numDim;                              /* spacial dimension */
   dim_t numShapes;                           /* number of shape functions */
   dim_t numOrder;                            /* order of the shape functions */
   dim_t numVertices;                         /* number of vertices of the element */
-  Finley_ShapeFunction_Evaluation* getValues;           /* function to evaluate the shape functions at a set of points */
-}  Finley_ShapeFunctionInfo;
+  Dudley_ShapeFunction_Evaluation* getValues;           /* function to evaluate the shape functions at a set of points */
+}  Dudley_ShapeFunctionInfo;
 
 
 /**************************************************************/
 
 /*  this struct holds the evaluation of a shape function on a quadrature scheme: */
 
-typedef struct Finley_ShapeFunction {
-  Finley_ShapeFunctionInfo* Type;     /* type of the reference element */
+typedef struct Dudley_ShapeFunction {
+  Dudley_ShapeFunctionInfo* Type;     /* type of the reference element */
   int numQuadNodes;                /* number of quadrature points */
   double *QuadNodes;               /* coordinates of quadrature nodes */
   double *QuadWeights;             /* weights of the quadrature scheme */
   double *S;                       /* shape functions at quadrature nodes */
   double *dSdv;                    /* derivative of the shape functions at quadrature nodes */
   index_t reference_counter;	   /* reference counter */
-}  Finley_ShapeFunction;
+}  Dudley_ShapeFunction;
 
 /**************************************************************/
 /*   Interfaces: */
 
-Finley_ShapeFunction_Evaluation Finley_Shape_Point1;
-Finley_ShapeFunction_Evaluation Finley_Shape_Line2;
-Finley_ShapeFunction_Evaluation Finley_Shape_Line3;
-Finley_ShapeFunction_Evaluation Finley_Shape_Line4;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tri3;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tri6;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tri9;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tri10;
-Finley_ShapeFunction_Evaluation Finley_Shape_Rec4;
-Finley_ShapeFunction_Evaluation Finley_Shape_Rec8;
-Finley_ShapeFunction_Evaluation Finley_Shape_Rec9;
-Finley_ShapeFunction_Evaluation Finley_Shape_Rec12;
-Finley_ShapeFunction_Evaluation Finley_Shape_Rec16;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tet4;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tet10;
-Finley_ShapeFunction_Evaluation Finley_Shape_Tet16;
-Finley_ShapeFunction_Evaluation Finley_Shape_Hex8;
-Finley_ShapeFunction_Evaluation Finley_Shape_Hex20;
-Finley_ShapeFunction_Evaluation Finley_Shape_Hex27;
-Finley_ShapeFunction_Evaluation Finley_Shape_Hex32;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Point1;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Line2;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Line3;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Line4;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri3;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri6;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri9;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri10;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec4;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec8;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec9;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec12;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec16;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet4;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet10;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet16;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex8;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex20;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex27;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex32;
 
-Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights);
-void Finley_ShapeFunction_dealloc(Finley_ShapeFunction*);
-Finley_ShapeFunctionTypeId Finley_ShapeFunction_getTypeId(char*);
-Finley_ShapeFunction* Finley_ShapeFunction_reference(Finley_ShapeFunction* in);
-Finley_ShapeFunctionInfo* Finley_ShapeFunction_getInfo(Finley_ShapeFunctionTypeId id);
-#endif /* #ifndef INC_FINLEY_SHAPEFUNCTIONS */
+Dudley_ShapeFunction* Dudley_ShapeFunction_alloc(Dudley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights);
+void Dudley_ShapeFunction_dealloc(Dudley_ShapeFunction*);
+Dudley_ShapeFunctionTypeId Dudley_ShapeFunction_getTypeId(char*);
+Dudley_ShapeFunction* Dudley_ShapeFunction_reference(Dudley_ShapeFunction* in);
+Dudley_ShapeFunctionInfo* Dudley_ShapeFunction_getInfo(Dudley_ShapeFunctionTypeId id);
+#endif /* #ifndef INC_DUDLEY_SHAPEFUNCTIONS */

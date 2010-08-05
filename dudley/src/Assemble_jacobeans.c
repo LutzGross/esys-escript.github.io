@@ -67,7 +67,7 @@ void Assemble_jacobeans_1D(double* coordinates, dim_t numQuad,double* QuadWeight
               }
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_1D: element %d (id %d) has length zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  for (s=0;s<numTest; s++) dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*invD;
@@ -116,7 +116,7 @@ void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeight
               D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00= dXdv11*invD;
@@ -168,7 +168,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,double* Qu
               D=dXdv00*dXdv00+dXdv10*dXdv10;
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00=dXdv00*invD;
@@ -224,7 +224,7 @@ void Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* 
               D_1=dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1;
               if (D_0 == 0.  || D_1 == 0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
                  dvdX00_0=dXdv00_0*invD_0;
@@ -282,7 +282,7 @@ void Assemble_jacobeans_2D_M1D_E2D(double* coordinates, dim_t numQuad,double* Qu
               D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_E2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00= dXdv11*invD;
@@ -349,7 +349,7 @@ void Assemble_jacobeans_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,double* 
               D_1  =  dXdv00_1*dXdv11_1 - dXdv01_1*dXdv10_1;
               if ( (D_0 ==0.) || (D_1 ==0.) ) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_E2D_C: element %d (id %d) has area zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
                  dvdX00_0= dXdv11_0*invD_0;
@@ -427,7 +427,7 @@ void Assemble_jacobeans_3D(double* coordinates, dim_t numQuad,double* QuadWeight
               D  =  dXdv00*(dXdv11*dXdv22-dXdv12*dXdv21)+ dXdv01*(dXdv20*dXdv12-dXdv10*dXdv22)+dXdv02*(dXdv10*dXdv21-dXdv20*dXdv11);
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_3D: element %d (id %d) has volume zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00=(dXdv11*dXdv22-dXdv12*dXdv21)*invD;
@@ -500,7 +500,7 @@ void Assemble_jacobeans_3D_M2D_E3D(double* coordinates, dim_t numQuad,double* Qu
               D  =  dXdv00*(dXdv11*dXdv22-dXdv12*dXdv21)+ dXdv01*(dXdv20*dXdv12-dXdv10*dXdv22)+dXdv02*(dXdv10*dXdv21-dXdv20*dXdv11);
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_3D: element %d (id %d) has volume zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00=(dXdv11*dXdv22-dXdv12*dXdv21)*invD;
@@ -604,7 +604,7 @@ void Assemble_jacobeans_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,double* 
               D_1=dXdv00_1*(dXdv11_1*dXdv22_1-dXdv12_1*dXdv21_1)+dXdv01_1*(dXdv20_1*dXdv12_1-dXdv10_1*dXdv22_1)+dXdv02_1*(dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1);
               if ( (D_0==0.) || (D_1 == 0.)) {
                   sprintf(error_msg,"Assemble_jacobeans_3D_C: element %d (id %d) has volume zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
                  dvdX00_0=(dXdv11_0*dXdv22_0-dXdv12_0*dXdv21_0)*invD_0;
@@ -699,7 +699,7 @@ void Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,double* Qu
               D=m00*m11-m01*m01;
               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
                  dvdX00=( m00*dXdv00-m01*dXdv01)*invD;
@@ -786,7 +786,7 @@ void Assemble_jacobeans_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,double* 
               D_1=m00_1*m11_1-m01_1*m01_1;
               if ( (D_0==0.) || (D_1 == 0.) ) {
                   sprintf(error_msg,"Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Finley_setError(ZERO_DIVISION_ERROR,error_msg);
+                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
                  dvdX00_0=( m00_0*dXdv00_0-m01_0*dXdv01_0)*invD_0;

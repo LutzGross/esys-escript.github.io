@@ -29,18 +29,18 @@
 #endif
 
 /**************************************************************/
-void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* elements, escriptDataC* element_size) {
+void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escriptDataC* element_size) {
 
-  Finley_ShapeFunction *shape=NULL;
-  Finley_ReferenceElement*  refElement=NULL;
+  Dudley_ShapeFunction *shape=NULL;
+  Dudley_ReferenceElement*  refElement=NULL;
   double *local_X=NULL,*element_size_array;
   dim_t e,n0,n1,q,i, NVertices, NN, NS, numQuad, numDim;
   index_t node_offset;
   double d,diff,min_diff, f;
-  Finley_resetError();
+  Dudley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
-  refElement=Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet,Finley_Assemble_reducedIntegrationOrder(element_size));
+  refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet,Dudley_Assemble_reducedIntegrationOrder(element_size));
   shape= refElement->Parametrization;
   numDim=nodes->numDim;
   numQuad=shape->numQuadNodes;
@@ -51,7 +51,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   
   /* set a few more parameters */
 
-  if (getFunctionSpaceType(element_size)==FINLEY_CONTACT_ELEMENTS_2) {
+  if (getFunctionSpaceType(element_size)==DUDLEY_CONTACT_ELEMENTS_2) {
       node_offset=refElement->Type->offsets[1];
   } else {
       node_offset=refElement->Type->offsets[0];
@@ -61,26 +61,26 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
   /* check the dimensions of element_size */
 
   if (! numSamplesEqual(element_size,numQuad,elements->numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: illegal number of samples of element size Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_getSize: illegal number of samples of element size Data object");
   } else if (! isDataPointShapeEqual(element_size,0,&(numDim))) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: illegal data point shape of element size Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_getSize: illegal data point shape of element size Data object");
   }  else if (!isExpanded(element_size)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_getSize: expanded Data object is expected for element size.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_getSize: expanded Data object is expected for element size.");
   }
   /* now we can start: */
 
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
     requireWrite(element_size);
         #pragma omp parallel private(local_X)
         {
 			/* allocation of work arrays */
 			local_X=THREAD_MEMALLOC(NN*numDim,double);
-			if (! Finley_checkPtr(local_X) ) {
+			if (! Dudley_checkPtr(local_X) ) {
 				/* open the element loop */
 				#pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
 				for(e=0;e<elements->numElements;e++) {
 					/* gather local coordinates of nodes into local_X(numDim,NN): */
-					Finley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
+					Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
 					/* calculate minimal differences */
 					min_diff=-1;
 					for (n0=0;n0<NVertices;n0++) {

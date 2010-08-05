@@ -14,7 +14,7 @@
 
 /************************************************************************/
 
-/*   Finley: Mesh: optimizes the labeling of the DOFs on each processor */
+/*   Dudley: Mesh: optimizes the labeling of the DOFs on each processor */
 
 /************************************************************************/
 
@@ -23,14 +23,14 @@
 
 /**************************************************************/
 
-void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
+void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh* in,dim_t *distribution) {
 
      index_t myFirstVertex,myLastVertex, *newGlobalDOFID=NULL, firstVertex, lastVertex;
      register index_t k;
      dim_t mpiSize, myNumVertices,len, p, i;
      Paso_Pattern *pattern=NULL;
      Paso_MPI_rank myRank,dest,source,current_rank;
-     Finley_IndexList* index_list=NULL;
+     Dudley_IndexList* index_list=NULL;
      #ifdef PASO_MPI
      MPI_Status status;
      #endif
@@ -46,10 +46,10 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      len=0;
      for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
 
-     index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+     index_list=TMPMEMALLOC(myNumVertices,Dudley_IndexList);
      newGlobalDOFID=TMPMEMALLOC(len,index_t);
      /* create the adjacency structure xadj and adjncy */
-     if (! ( Finley_checkPtr(index_list) || Finley_checkPtr(newGlobalDOFID) ) ) {
+     if (! ( Dudley_checkPtr(index_list) || Dudley_checkPtr(newGlobalDOFID) ) ) {
          #pragma omp parallel private(i)
          {
             #pragma omp for schedule(static)
@@ -58,34 +58,34 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                 index_list[i].n=0;
             }
             /*  insert contributions from element matrices into colums index index_list: */
-            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                       in->Elements,in->Nodes->globalDegreesOfFreedom,
                                                                       in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                       in->FaceElements,in->Nodes->globalDegreesOfFreedom,
                                                                       in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                       in->ContactElements,in->Nodes->globalDegreesOfFreedom,
                                                                       in->Nodes->globalDegreesOfFreedom);
-            Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+            Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                       in->Points,in->Nodes->globalDegreesOfFreedom,
                                                                       in->Nodes->globalDegreesOfFreedom);
            }
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
+           pattern=Dudley_IndexList_createPattern(0,myNumVertices,index_list,myFirstVertex, myLastVertex,-myFirstVertex);
 
            /* clean up index list */
            if (index_list!=NULL) {
               #pragma omp parallel for private(i) 
-              for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
+              for(i=0;i<myNumVertices;++i) Dudley_IndexList_free(index_list[i].extension);
            }
 
-           if (Finley_noError()) Paso_Pattern_reduceBandwidth(pattern,newGlobalDOFID); 
+           if (Dudley_noError()) Paso_Pattern_reduceBandwidth(pattern,newGlobalDOFID); 
 
            Paso_Pattern_free(pattern);
       }
       Paso_MPIInfo_noError(in->MPIInfo);
-      if (Finley_noError()) {
+      if (Dudley_noError()) {
               /* shift new labeling to create a global id */
               #pragma omp parallel for private(i)
               for (i=0;i<myNumVertices;++i) newGlobalDOFID[i]+=myFirstVertex;

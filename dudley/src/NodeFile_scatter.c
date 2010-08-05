@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: NodeFile */
+/*   Dudley: Mesh: NodeFile */
 
 /*   scatters the NodeFile in into NodeFile out using index[0:in->numNodes-1].  */
 /*   index has to be between 0 and out->numNodes-1. */
@@ -26,7 +26,7 @@
 
 /**************************************************************/
 
-void Finley_NodeFile_scatterEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
+void Dudley_NodeFile_scatterEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
                                    index_t* Id_out, index_t* Id_in,
                                    index_t* Tag_out, index_t* Tag_in,
                                    index_t* globalDegreesOfFreedom_out, index_t* globalDegreesOfFreedom_in,
@@ -49,9 +49,9 @@ void Finley_NodeFile_scatterEntries(dim_t n, index_t* index, index_t min_index, 
    }
 }
 
-void Finley_NodeFile_scatter(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out)
+void Dudley_NodeFile_scatter(index_t* index, Dudley_NodeFile* in, Dudley_NodeFile* out)
 {
-   Finley_NodeFile_scatterEntries(out->numNodes, index, 0, in->numNodes,
+   Dudley_NodeFile_scatterEntries(out->numNodes, index, 0, in->numNodes,
                                   out->Id, in->Id,
                                   out->Tag, in->Tag,
                                   out->globalDegreesOfFreedom, in->globalDegreesOfFreedom,

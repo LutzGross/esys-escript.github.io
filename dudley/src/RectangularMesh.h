@@ -14,20 +14,20 @@
 
 /**************************************************************/
 
-/*   Finley: header file for generates rectangular meshes for 1D,2D,3D. */
+/*   Dudley: header file for generates rectangular meshes for 1D,2D,3D. */
 
 /**************************************************************/
 
-#ifndef INC_FINLEY_RECTANGULARMESH
-#define INC_FINLEY_RECTANGULARMESH
+#ifndef INC_DUDLEY_RECTANGULARMESH
+#define INC_DUDLEY_RECTANGULARMESH
 
 /**************************************************************/
 
 #include "Mesh.h"
 
-Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
+Dudley_Mesh* Dudley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
+Dudley_Mesh* Dudley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
+Dudley_Mesh* Dudley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
+Dudley_Mesh* Dudley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
 
-#endif /* #ifndef INC_FINLEY_RECTANGULARMESH */
+#endif /* #ifndef INC_DUDLEY_RECTANGULARMESH */

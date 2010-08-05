@@ -39,7 +39,7 @@
 
 /**************************************************************/
 
-void  Finley_Assemble_PDE_Single2_C(Assemble_Parameters p, Finley_ElementFile* elements,
+void  Dudley_Assemble_PDE_Single2_C(Assemble_Parameters p, Dudley_ElementFile* elements,
                                     Paso_SystemMatrix* Mat, escriptDataC* F, escriptDataC* D, escriptDataC* Y) {
 
     index_t color;
@@ -62,7 +62,7 @@ void  Finley_Assemble_PDE_Single2_C(Assemble_Parameters p, Finley_ElementFile* e
        EM_F=THREAD_MEMALLOC(p.row_numShapesTotal,double);
        row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
                                                                                                                                                                                                      
-       if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
+       if (!Dudley_checkPtr(EM_S) && !Dudley_checkPtr(EM_F) && !Dudley_checkPtr(row_index) ) {
 
           for (color=elements->minColor;color<=elements->maxColor;color++) {
              /*  open loop over all elements: */
@@ -140,8 +140,8 @@ void  Finley_Assemble_PDE_Single2_C(Assemble_Parameters p, Finley_ElementFile* e
                        /***********************************************************************************************/
                        for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
       
-                       if (add_EM_F) Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
-                       if (add_EM_S) Finley_Assemble_addToSystemMatrix(Mat,p.row_numShapesTotal,row_index,p.numEqu,p.col_numShapesTotal,row_index,p.numComp,EM_S);
+                       if (add_EM_F) Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
+                       if (add_EM_S) Dudley_Assemble_addToSystemMatrix(Mat,p.row_numShapesTotal,row_index,p.numEqu,p.col_numShapesTotal,row_index,p.numComp,EM_S);
 
                    } /* end of isub */
                 } /* end color check */

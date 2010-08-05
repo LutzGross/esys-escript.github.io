@@ -42,7 +42,7 @@ struct Assemble_Parameters {
    dim_t numEqu;
    index_t* row_DOF;
    dim_t row_DOF_UpperBound;
-   Finley_ElementFile_Jacobeans* row_jac;
+   Dudley_ElementFile_Jacobeans* row_jac;
    index_t* row_node;
    dim_t row_numShapesTotal;
    dim_t row_numShapes;
@@ -50,7 +50,7 @@ struct Assemble_Parameters {
    dim_t numComp;
    index_t * col_DOF;
    dim_t col_DOF_UpperBound;
-   Finley_ElementFile_Jacobeans* col_jac;
+   Dudley_ElementFile_Jacobeans* col_jac;
    index_t* col_node;
    dim_t col_numShapesTotal;
    dim_t col_numShapes;
@@ -59,39 +59,39 @@ struct Assemble_Parameters {
 typedef struct Assemble_Parameters Assemble_Parameters;
 
 
-#define Finley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == FINLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_2) )
+#define Dudley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_CONTACT_ELEMENTS_2) )
 
-void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void Dudley_Assemble_PDE(Dudley_NodeFile*,Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
-void Finley_Assemble_LumpedSystem(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*, escriptDataC*);
+void Dudley_Assemble_LumpedSystem(Dudley_NodeFile*,Dudley_ElementFile*, escriptDataC*, escriptDataC*);
 
-void Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,bool_t, Assemble_Parameters*);
-void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void Assemble_getAssembleParameters(Dudley_NodeFile*,Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,bool_t, Assemble_Parameters*);
+void  Dudley_Assemble_PDE_System2_3D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_System2_2D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void  Dudley_Assemble_PDE_System2_2D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_System2_1D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void  Dudley_Assemble_PDE_System2_1D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_System2_C(Assemble_Parameters , Finley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_Single2_3D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters , Dudley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
+void  Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_Single2_2D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void  Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_Single2_1D(Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
+void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Finley_Assemble_PDE_Single2_C(Assemble_Parameters p, Finley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
+void  Dudley_Assemble_PDE_Single2_C(Assemble_Parameters p, Dudley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
 
 
-void Finley_Assemble_NodeCoordinates(Finley_NodeFile*,escriptDataC*);
-void Finley_Assemble_setNormal(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*);
-void Finley_Assemble_interpolate(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*, escriptDataC*);
-void Finley_Assemble_gradient(Finley_NodeFile*, Finley_ElementFile*,escriptDataC*, escriptDataC*);
-void Finley_Assemble_integrate(Finley_NodeFile*,Finley_ElementFile*,escriptDataC*,double*) ;
-void Finley_Assemble_getSize(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*);
-void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in);
-void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
-void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
-void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile*,escriptDataC*);
+void Dudley_Assemble_setNormal(Dudley_NodeFile*, Dudley_ElementFile*, escriptDataC*);
+void Dudley_Assemble_interpolate(Dudley_NodeFile*,Dudley_ElementFile*,escriptDataC*, escriptDataC*);
+void Dudley_Assemble_gradient(Dudley_NodeFile*, Dudley_ElementFile*,escriptDataC*, escriptDataC*);
+void Dudley_Assemble_integrate(Dudley_NodeFile*,Dudley_ElementFile*,escriptDataC*,double*) ;
+void Dudley_Assemble_getSize(Dudley_NodeFile*,Dudley_ElementFile*, escriptDataC*);
+void Dudley_Assemble_CopyNodalData(Dudley_NodeFile* nodes,escriptDataC* out,escriptDataC* in);
+void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
+void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
+void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
 void Assemble_jacobeans_1D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_2D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
@@ -106,6 +106,6 @@ void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t, double*, dim_t, dim_t, dim_t,
 void Assemble_jacobeans_3D_M2D_E2D_C(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 
 
-void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
-#endif /* #ifndef INC_FINLEY_ASSEMBLE */
+void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
+#endif /* #ifndef INC_DUDLEY_ASSEMBLE */
 

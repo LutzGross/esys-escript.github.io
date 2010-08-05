@@ -24,7 +24,7 @@
 
 /**************************************************************/
 
-void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp) {
+void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_t num_data,char* *names_p,escriptDataC* *data_pp) {
   char error_msg[LenErrorMsg_MAX], elemTypeStr[32];
   /* some tables needed for reordering */
   int resort[6][9]={
@@ -40,92 +40,92 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   __const double* values;
   double rtmp;
   bool_t *isCellCentered=NULL;
-  Finley_ElementFile* elements=NULL;
+  Dudley_ElementFile* elements=NULL;
   ElementTypeId TypeId;
   /* open the file  and check handel */
 
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
   isCellCentered=MEMALLOC(num_data, bool_t);
-  if (Finley_checkPtr(isCellCentered)) return;
+  if (Dudley_checkPtr(isCellCentered)) return;
 
   fileHandle_p = fopen(filename_p, "w");
   if (fileHandle_p==NULL) {
     sprintf(error_msg,"File %s could not be opened for writing.",filename_p);
     MEMFREE(isCellCentered);
     fclose(fileHandle_p);
-    Finley_setError(IO_ERROR,error_msg);
+    Dudley_setError(IO_ERROR,error_msg);
     return;
   }
   /* find the mesh type to be written */
-  elementtype=FINLEY_UNKNOWN;
+  elementtype=DUDLEY_UNKNOWN;
   for (i_data=0;i_data<num_data;++i_data) {
      if (! isEmpty(data_pp[i_data])) {
         switch(getFunctionSpaceType(data_pp[i_data])) {
-           case FINLEY_REDUCED_NODES:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
-                 elementtype=FINLEY_ELEMENTS;
+           case DUDLEY_REDUCED_NODES:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_ELEMENTS) {
+                 elementtype=DUDLEY_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
              }
              isCellCentered[i_data]=FALSE;
              break;
-           case FINLEY_ELEMENTS:
-           case FINLEY_REDUCED_ELEMENTS:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_ELEMENTS) {
-                 elementtype=FINLEY_ELEMENTS;
+           case DUDLEY_ELEMENTS:
+           case DUDLEY_REDUCED_ELEMENTS:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_ELEMENTS) {
+                 elementtype=DUDLEY_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
              }
              isCellCentered[i_data]=TRUE;
              break;
-           case FINLEY_FACE_ELEMENTS:
-           case FINLEY_REDUCED_FACE_ELEMENTS:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_FACE_ELEMENTS) {
-                 elementtype=FINLEY_FACE_ELEMENTS;
+           case DUDLEY_FACE_ELEMENTS:
+           case DUDLEY_REDUCED_FACE_ELEMENTS:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_FACE_ELEMENTS) {
+                 elementtype=DUDLEY_FACE_ELEMENTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
              }
              isCellCentered[i_data]=TRUE;
              break;
-           case FINLEY_POINTS:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_POINTS) {
-                 elementtype=FINLEY_POINTS;
+           case DUDLEY_POINTS:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_POINTS) {
+                 elementtype=DUDLEY_POINTS;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
              }
              isCellCentered[i_data]=TRUE;
              break;
-           case FINLEY_CONTACT_ELEMENTS_1:
-           case FINLEY_REDUCED_CONTACT_ELEMENTS_1:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
-                 elementtype=FINLEY_CONTACT_ELEMENTS_1;
+           case DUDLEY_CONTACT_ELEMENTS_1:
+           case DUDLEY_REDUCED_CONTACT_ELEMENTS_1:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_CONTACT_ELEMENTS_1) {
+                 elementtype=DUDLEY_CONTACT_ELEMENTS_1;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
              }
              isCellCentered[i_data]=TRUE;
              break;
-           case FINLEY_CONTACT_ELEMENTS_2:
-           case FINLEY_REDUCED_CONTACT_ELEMENTS_2:
-             if (elementtype==FINLEY_UNKNOWN || elementtype==FINLEY_CONTACT_ELEMENTS_1) {
-                 elementtype=FINLEY_CONTACT_ELEMENTS_1;
+           case DUDLEY_CONTACT_ELEMENTS_2:
+           case DUDLEY_REDUCED_CONTACT_ELEMENTS_2:
+             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_CONTACT_ELEMENTS_1) {
+                 elementtype=DUDLEY_CONTACT_ELEMENTS_1;
              } else {
-                 Finley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
+                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
                  MEMFREE(isCellCentered);
                  fclose(fileHandle_p);
                  return;
@@ -134,7 +134,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
              break;
            default:
              sprintf(error_msg,"saveDX: I don't know how to handle function space type %d",getFunctionSpaceType(data_pp[i_data]));
-             Finley_setError(TYPE_ERROR,error_msg);
+             Dudley_setError(TYPE_ERROR,error_msg);
              MEMFREE(isCellCentered);
              fclose(fileHandle_p);
              return;
@@ -144,32 +144,32 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   /* select number of points and the mesh component */
   numPoints = mesh_p->Nodes->reducedNodesMapping->numTargets;
   nDim = mesh_p->Nodes->numDim; 
-  if (elementtype==FINLEY_UNKNOWN) elementtype=FINLEY_ELEMENTS;
+  if (elementtype==DUDLEY_UNKNOWN) elementtype=DUDLEY_ELEMENTS;
   switch(elementtype) {
-    case FINLEY_ELEMENTS:
+    case DUDLEY_ELEMENTS:
       elements=mesh_p->Elements;
       break;
-    case FINLEY_FACE_ELEMENTS:
+    case DUDLEY_FACE_ELEMENTS:
       elements=mesh_p->FaceElements;
       break;
-    case FINLEY_POINTS:
+    case DUDLEY_POINTS:
       elements=mesh_p->Points;
       break;
-    case FINLEY_CONTACT_ELEMENTS_2:
+    case DUDLEY_CONTACT_ELEMENTS_2:
       elements=mesh_p->ContactElements;
       break;
-    case FINLEY_CONTACT_ELEMENTS_1:
+    case DUDLEY_CONTACT_ELEMENTS_1:
       elements=mesh_p->ContactElements;
       break;
   }
   if (elements==NULL) {
-     Finley_setError(SYSTEM_ERROR,"saveDX: undefined element file");
+     Dudley_setError(SYSTEM_ERROR,"saveDX: undefined element file");
      MEMFREE(isCellCentered);
      fclose(fileHandle_p);
      return;
   }
 
-  /* map finley element type to DX element type */
+  /* map dudley element type to DX element type */
   TypeId = elements->referenceElementSet->referenceElement->Type->TypeId;
   numDXNodesPerElement=0;
   numCells = elements->numElements;
@@ -195,7 +195,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
      strcpy(elemTypeStr, "cubes");
    } else {
      sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->referenceElementSet->referenceElement->Type->Name);
-     Finley_setError(VALUE_ERROR,error_msg);
+     Dudley_setError(VALUE_ERROR,error_msg);
      MEMFREE(isCellCentered);
      fclose(fileHandle_p);
      return;
@@ -232,7 +232,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
             for (i = 0; i < rank; i++) fprintf(fileHandle_p, "%d ", getDataPointShape(data_pp[i_data],i));
          }
          if (isCellCentered[i_data]) {
-             if (Finley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
+             if (Dudley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
                 numPointsPerSample=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
              } else {
                 numPointsPerSample=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;

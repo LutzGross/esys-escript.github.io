@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: ElementFile: this will redistribute the Elements including overlap by */
+/*   Dudley: ElementFile: this will redistribute the Elements including overlap by */
 
 /**************************************************************/
 
@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t* Id) {
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t* Id) {
      size_t size_size;
      Paso_MPI_rank myRank, p, *Owner_buffer=NULL, loc_proc_mask_max;
      dim_t e, j, i, size, *send_count=NULL, *recv_count=NULL, *newOwner=NULL, *loc_proc_mask=NULL, *loc_send_count=NULL,
@@ -46,8 +46,8 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
          #ifdef PASO_MPI
             mpi_requests=TMPMEMALLOC(8*size, MPI_Request);
             mpi_stati=TMPMEMALLOC(8*size, MPI_Status);
-            Finley_checkPtr(mpi_requests);
-            Finley_checkPtr(mpi_stati);
+            Dudley_checkPtr(mpi_requests);
+            Dudley_checkPtr(mpi_stati);
          #endif
 
         /* count the number elements that have to be send to each processor (send_count) 
@@ -55,7 +55,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
         send_count=TMPMEMALLOC(size,dim_t);
         recv_count=TMPMEMALLOC(size,dim_t);
         newOwner=TMPMEMALLOC(self->numElements,Paso_MPI_rank);
-        if ( !( Finley_checkPtr(send_count) || Finley_checkPtr(recv_count) || Finley_checkPtr(newOwner) ) ) {
+        if ( !( Dudley_checkPtr(send_count) || Dudley_checkPtr(recv_count) || Dudley_checkPtr(newOwner) ) ) {
            memset(send_count, 0, size_size);
            #pragma omp parallel private(p,loc_proc_mask,loc_send_count)
            {
@@ -110,9 +110,9 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            send_offset=TMPMEMALLOC(size,index_t);
            recv_offset=TMPMEMALLOC(size,index_t);
            proc_mask=TMPMEMALLOC(size,bool_t);
-           if ( !( Finley_checkPtr(Id_buffer) || Finley_checkPtr(Tag_buffer) || Finley_checkPtr(Owner_buffer) ||
-                   Finley_checkPtr(Nodes_buffer) || Finley_checkPtr(send_offset) || Finley_checkPtr(recv_offset) || 
-                   Finley_checkPtr(proc_mask) )) {
+           if ( !( Dudley_checkPtr(Id_buffer) || Dudley_checkPtr(Tag_buffer) || Dudley_checkPtr(Owner_buffer) ||
+                   Dudley_checkPtr(Nodes_buffer) || Dudley_checkPtr(send_offset) || Dudley_checkPtr(recv_offset) || 
+                   Dudley_checkPtr(proc_mask) )) {
 
               /* callculate the offsets for the processor buffers */
               recv_offset[0]=0;
@@ -140,7 +140,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
                  }
               }
               /* allocate new tables */
-              Finley_ElementFile_allocTable(self,newNumElements);
+              Dudley_ElementFile_allocTable(self,newNumElements);
 
               /* start to receive new elements */
               numRequests=0;

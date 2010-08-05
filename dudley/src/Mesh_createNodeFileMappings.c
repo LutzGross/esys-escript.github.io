@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: NodeFile : creates the mappings using the indexReducedNodes */
+/*   Dudley: NodeFile : creates the mappings using the indexReducedNodes */
 /*                 no distribution is happening                          */
 
 /**************************************************************/
@@ -24,13 +24,13 @@
 
 /**************************************************************/
 
-void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
+void Mesh_createDOFMappingAndCoupling(Dudley_Mesh* in, bool_t use_reduced_elements) 
 {
   index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs=NULL;
   dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes,*rcv_len=NULL, *snd_len=NULL, count;
   Paso_MPI_rank myRank,p,p_min,p_max, *neighbor=NULL;
   Paso_SharedComponents *rcv_shcomp=NULL, *snd_shcomp=NULL;
-  Finley_NodeMapping *this_mapping=NULL;
+  Dudley_NodeMapping *this_mapping=NULL;
   Paso_Connector* this_connector=NULL;
   Paso_Distribution* dof_distribution;
   Paso_MPIInfo *mpi_info = in->MPIInfo;
@@ -56,8 +56,8 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   mpiSize=mpi_info->size;
   myRank=mpi_info->rank;
 
-  min_DOF=Finley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
-  max_DOF=Finley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
+  min_DOF=Dudley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
+  max_DOF=Dudley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
 
   if (max_DOF < min_DOF) {
       min_DOF=myFirstDOF;
@@ -75,7 +75,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
   len_loc_dof=max_DOF-min_DOF+1;
   if (! ((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF)) ) {
-      Finley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
+      Dudley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
       return;
   }
   rcv_len=TMPMEMALLOC(mpiSize,dim_t);
@@ -93,9 +93,9 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   shared=TMPMEMALLOC(numNodes*(p_max-p_min+1),index_t);
   offsetInShared=TMPMEMALLOC(mpiSize+1,index_t);
   locDOFMask=TMPMEMALLOC(len_loc_dof, index_t);
-  if (! ( Finley_checkPtr(neighbor) || Finley_checkPtr(shared) || Finley_checkPtr(offsetInShared) || Finley_checkPtr(locDOFMask) || 
-     Finley_checkPtr(nodeMask) || Finley_checkPtr(rcv_len) || Finley_checkPtr(snd_len) || Finley_checkPtr(mpi_requests) || Finley_checkPtr(mpi_stati) || 
-     Finley_checkPtr(mpi_stati) )) {
+  if (! ( Dudley_checkPtr(neighbor) || Dudley_checkPtr(shared) || Dudley_checkPtr(offsetInShared) || Dudley_checkPtr(locDOFMask) || 
+     Dudley_checkPtr(nodeMask) || Dudley_checkPtr(rcv_len) || Dudley_checkPtr(snd_len) || Dudley_checkPtr(mpi_requests) || Dudley_checkPtr(mpi_stati) || 
+     Dudley_checkPtr(mpi_stati) )) {
 
     memset(rcv_len,0,sizeof(dim_t)*mpiSize);
     #pragma omp parallel 
@@ -166,7 +166,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     }
 
     /* now we can set the mapping from nodes to local DOFs */
-    this_mapping=Finley_NodeMapping_alloc(numNodes,nodeMask,UNUSED);
+    this_mapping=Dudley_NodeMapping_alloc(numNodes,nodeMask,UNUSED);
     /* define how to get DOF values for controlled bu other processors */
     #ifdef BOUNDS_CHECK
     for (i=0;i<offsetInShared[numNeighbors];++i) {
@@ -222,7 +222,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
 
     snd_shcomp=Paso_SharedComponents_alloc(myLastDOF-myFirstDOF,numNeighbors,neighbor,shared,offsetInShared,1,0,dof_distribution->mpi_info);
 
-    if (Finley_noError()) this_connector=Paso_Connector_alloc(snd_shcomp,rcv_shcomp);
+    if (Dudley_noError()) this_connector=Paso_Connector_alloc(snd_shcomp,rcv_shcomp);
     /* assign new DOF labels to nodes */
     Paso_SharedComponents_free(rcv_shcomp);
     Paso_SharedComponents_free(snd_shcomp);
@@ -237,7 +237,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   TMPMEMFREE(shared);
   TMPMEMFREE(offsetInShared);
   TMPMEMFREE(locDOFMask);
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
      if (use_reduced_elements) {
         in->Nodes->reducedDegreesOfFreedomMapping=this_mapping;
         in->Nodes->reducedDegreesOfFreedomConnector=this_connector;
@@ -246,13 +246,13 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
         in->Nodes->degreesOfFreedomConnector=this_connector;
     }
   } else {
-     Finley_NodeMapping_free(this_mapping);
+     Dudley_NodeMapping_free(this_mapping);
      Paso_Connector_free(this_connector);
 
   }
 }
  
-void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* dof_distribution, index_t* node_distribution) {
+void Dudley_Mesh_createMappings(Dudley_Mesh* mesh, index_t* dof_distribution, index_t* node_distribution) {
   int i;
   index_t *maskReducedNodes=NULL, *indexReducedNodes=NULL;
   dim_t numReducedNodes;
@@ -260,20 +260,20 @@ void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* dof_distribution, in
   maskReducedNodes=TMPMEMALLOC(mesh->Nodes->numNodes,index_t);
   indexReducedNodes=TMPMEMALLOC(mesh->Nodes->numNodes,index_t);
 
-  if (! ( Finley_checkPtr(maskReducedNodes) || Finley_checkPtr(indexReducedNodes) ) ) {
+  if (! ( Dudley_checkPtr(maskReducedNodes) || Dudley_checkPtr(indexReducedNodes) ) ) {
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<mesh->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
-    Finley_Mesh_markNodes(maskReducedNodes,0,mesh,TRUE);
+    Dudley_Mesh_markNodes(maskReducedNodes,0,mesh,TRUE);
 
-    numReducedNodes=Finley_Util_packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
-    if (Finley_noError()) Finley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,dof_distribution, node_distribution);
+    numReducedNodes=Dudley_Util_packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+    if (Dudley_noError()) Dudley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,dof_distribution, node_distribution);
   }
 
   TMPMEMFREE(maskReducedNodes);
   TMPMEMFREE(indexReducedNodes);
 }
 
-void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component, index_t* nodes_first_component) {
+void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh* in, dim_t numReducedNodes, index_t* indexReducedNodes, index_t* dof_first_component, index_t* nodes_first_component) {
 
 
   index_t myFirstDOF, myLastDOF, myFirstNode, myLastNode, *reduced_dof_first_component=NULL, *nodeMask=NULL,
@@ -289,7 +289,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   reduced_dof_first_component=TMPMEMALLOC(mpiSize+1,index_t);
   reduced_nodes_first_component=TMPMEMALLOC(mpiSize+1,index_t);
 
-  if (! ( Finley_checkPtr(reduced_dof_first_component) || Finley_checkPtr(reduced_nodes_first_component) ) ) {
+  if (! ( Dudley_checkPtr(reduced_dof_first_component) || Dudley_checkPtr(reduced_nodes_first_component) ) ) {
 
      myFirstDOF=dof_first_component[myRank];
      myLastDOF=dof_first_component[myRank+1];
@@ -304,7 +304,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
      maskMyReducedNodes=TMPMEMALLOC(myNumNodes,index_t);
      indexMyReducedNodes=TMPMEMALLOC(myNumNodes,index_t);
 
-     if (! ( Finley_checkPtr(maskMyReducedDOF) || Finley_checkPtr(indexMyReducedDOF) || Finley_checkPtr(maskMyReducedNodes) || Finley_checkPtr(indexMyReducedNodes)  ) ) {
+     if (! ( Dudley_checkPtr(maskMyReducedDOF) || Dudley_checkPtr(indexMyReducedDOF) || Dudley_checkPtr(maskMyReducedNodes) || Dudley_checkPtr(indexMyReducedNodes)  ) ) {
 
         #pragma omp parallel private(i)
         {
@@ -322,8 +322,8 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
                }
             }
         }
-        myNumReducedNodes=Finley_Util_packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
-        myNumReducedDOF=Finley_Util_packMask(myNumDOF,maskMyReducedDOF,indexMyReducedDOF);
+        myNumReducedNodes=Dudley_Util_packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
+        myNumReducedDOF=Dudley_Util_packMask(myNumDOF,maskMyReducedDOF,indexMyReducedDOF);
         
         #ifdef PASO_MPI
            MPI_Allgather(&myNumReducedNodes,1,MPI_INT,reduced_nodes_first_component,1,MPI_INT,in->Nodes->MPIInfo->comm);
@@ -366,28 +366,28 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   TMPMEMFREE(reduced_nodes_first_component);
 
   nodeMask=TMPMEMALLOC(in->Nodes->numNodes,index_t);
-  if (! Finley_checkPtr(nodeMask) && Finley_noError()) {
+  if (! Dudley_checkPtr(nodeMask) && Dudley_noError()) {
 
     /* ==== nodes mapping which is a dummy structure ======== */
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<in->Nodes->numNodes;++i) nodeMask[i]=i;
-    in->Nodes->nodesMapping=Finley_NodeMapping_alloc(in->Nodes->numNodes,nodeMask,UNUSED);
+    in->Nodes->nodesMapping=Dudley_NodeMapping_alloc(in->Nodes->numNodes,nodeMask,UNUSED);
 
     /* ==== mapping between nodes and reduced nodes ========== */
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<in->Nodes->numNodes;++i) nodeMask[i]=UNUSED;
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<numReducedNodes;++i) nodeMask[indexReducedNodes[i]]=i;
-    in->Nodes->reducedNodesMapping=Finley_NodeMapping_alloc(in->Nodes->numNodes,nodeMask,UNUSED);
+    in->Nodes->reducedNodesMapping=Dudley_NodeMapping_alloc(in->Nodes->numNodes,nodeMask,UNUSED);
   }
   TMPMEMFREE(nodeMask);
   /* ==== mapping between nodes and DOFs + DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,FALSE);
+  if ( Dudley_noError()) Mesh_createDOFMappingAndCoupling(in,FALSE);
   /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,TRUE);
+  if ( Dudley_noError()) Mesh_createDOFMappingAndCoupling(in,TRUE);
 
   /* get the Ids for DOFs and reduced nodes */
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
      #pragma omp parallel private(i)
      {
          #pragma omp for
@@ -398,10 +398,10 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
          for (i=0;i<in->Nodes->reducedDegreesOfFreedomMapping->numTargets;++i) in->Nodes->reducedDegreesOfFreedomId[i]=in->Nodes->Id[in->Nodes->reducedDegreesOfFreedomMapping->map[i]];
      }
   } else {
-    Finley_NodeMapping_free(in->Nodes->nodesMapping);
-    Finley_NodeMapping_free(in->Nodes->reducedNodesMapping);
-    Finley_NodeMapping_free(in->Nodes->degreesOfFreedomMapping);
-    Finley_NodeMapping_free(in->Nodes->reducedDegreesOfFreedomMapping);
+    Dudley_NodeMapping_free(in->Nodes->nodesMapping);
+    Dudley_NodeMapping_free(in->Nodes->reducedNodesMapping);
+    Dudley_NodeMapping_free(in->Nodes->degreesOfFreedomMapping);
+    Dudley_NodeMapping_free(in->Nodes->reducedDegreesOfFreedomMapping);
     Paso_Distribution_free(in->Nodes->nodesDistribution);
     Paso_Distribution_free(in->Nodes->reducedNodesDistribution);
     Paso_Distribution_free(in->Nodes->degreesOfFreedomDistribution);

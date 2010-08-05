@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*	 Finley: Mesh: ElementFile */
+/*	 Dudley: Mesh: ElementFile */
 
 /*	set tags to newTag where mask>0 */
 
@@ -27,26 +27,26 @@
 /**************************************************************/
 
 
-void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escriptDataC* mask) {
+void Dudley_ElementFile_setTags(Dudley_ElementFile* self,const int newTag, escriptDataC* mask) {
 	register dim_t n,q;
 	dim_t numElements, numQuad;
 	register __const double *mask_array;
 	register bool_t check;
-	Finley_resetError();
+	Dudley_resetError();
 	if (self==NULL) return;
 	numElements=self->numElements;
 
-	numQuad= Finley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet,Finley_Assemble_reducedIntegrationOrder(mask))->Parametrization->numQuadNodes;
+	numQuad= Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet,Dudley_Assemble_reducedIntegrationOrder(mask))->Parametrization->numQuadNodes;
 	
 	if (1!=getDataPointSize(mask)) {
-	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: number of components of mask is 1.");
+	   Dudley_setError(TYPE_ERROR,"Dudley_ElementFile_setTags: number of components of mask is 1.");
 	} else if (!numSamplesEqual(mask,numQuad,numElements)) {
-	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: illegal number of samples of mask Data object");
+	   Dudley_setError(TYPE_ERROR,"Dudley_ElementFile_setTags: illegal number of samples of mask Data object");
 	}
 
 	/* now we can start */
 
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 		if (isExpanded(mask)) {
 			#pragma omp parallel private(n,check,mask_array)
 			{
@@ -68,7 +68,7 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
 				}
 			}
 		}
-		Finley_ElementFile_setTagsInUse(self);
+		Dudley_ElementFile_setTagsInUse(self);
 	}
 }
 

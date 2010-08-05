@@ -14,7 +14,7 @@
 
 /**************************************************************
  *
- *   Finley: Mesh: NodeFile                                   
+ *   Dudley: Mesh: NodeFile                                   
  *   gathers the NodeFile out from the NodeFile in using the entries 
  *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive) 
  *   the node index[i]
@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-void Finley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
+void Dudley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, index_t max_index,
                                    index_t* Id_out, index_t* Id_in, 
                                    index_t* Tag_out, index_t* Tag_in, 
                                    index_t* globalDegreesOfFreedom_out, index_t* globalDegreesOfFreedom_in, 
@@ -47,18 +47,18 @@ void Finley_NodeFile_gatherEntries(dim_t n, index_t* index, index_t min_index, i
    }
 }
 
-void Finley_NodeFile_gather(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out) 
+void Dudley_NodeFile_gather(index_t* index, Dudley_NodeFile* in, Dudley_NodeFile* out) 
 {
    index_t min_id, max_id;
-   Finley_NodeFile_setGlobalIdRange(&min_id,&max_id,in);
-   Finley_NodeFile_gatherEntries(out->numNodes, index, min_id, max_id,
+   Dudley_NodeFile_setGlobalIdRange(&min_id,&max_id,in);
+   Dudley_NodeFile_gatherEntries(out->numNodes, index, min_id, max_id,
                                  out->Id, in->Id, 
                                  out->Tag, in->Tag, 
                                  out->globalDegreesOfFreedom, in->globalDegreesOfFreedom, 
                                  out->numDim, out->Coordinates, in->Coordinates);
 }
 
-void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out)
+void Dudley_NodeFile_gather_global(index_t* index, Dudley_NodeFile* in, Dudley_NodeFile* out)
 {
   index_t min_id, max_id, undefined_node;
   Paso_MPI_rank buffer_rank, dest, source, *distribution=NULL;
@@ -71,12 +71,12 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
   #endif
 
   /* get the global range of node ids */
-  Finley_NodeFile_setGlobalIdRange(&min_id,&max_id,in);
+  Dudley_NodeFile_setGlobalIdRange(&min_id,&max_id,in);
   undefined_node=min_id-1;
 
   distribution=TMPMEMALLOC(in->MPIInfo->size+1, index_t);
 
-  if ( !Finley_checkPtr(distribution) ) {
+  if ( !Dudley_checkPtr(distribution) ) {
       /* distribute the range of node ids */
       buffer_len=Paso_MPIInfo_setDistribution(in->MPIInfo,min_id,max_id,distribution);
       /* allocate buffers */
@@ -84,8 +84,8 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
       Tag_buffer=TMPMEMALLOC(buffer_len,index_t);
       globalDegreesOfFreedom_buffer=TMPMEMALLOC(buffer_len,index_t);
       Coordinates_buffer=TMPMEMALLOC(buffer_len*out->numDim,double);
-      if (! (Finley_checkPtr(Id_buffer) || Finley_checkPtr(Tag_buffer) || 
-                     Finley_checkPtr(globalDegreesOfFreedom_buffer) || Finley_checkPtr(Coordinates_buffer) ) ) {
+      if (! (Dudley_checkPtr(Id_buffer) || Dudley_checkPtr(Tag_buffer) || 
+                     Dudley_checkPtr(globalDegreesOfFreedom_buffer) || Dudley_checkPtr(Coordinates_buffer) ) ) {
             /* fill Id_buffer by the undefined_node marker to check if nodes are defined */
             #pragma omp parallel for private(n) schedule(static)
             for (n=0;n<buffer_len;n++) Id_buffer[n]=undefined_node;
@@ -113,7 +113,7 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
                      in->MPIInfo->msg_tag_counter+=4;
                  }
                  buffer_rank=Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank-1);
-                 Finley_NodeFile_scatterEntries(in->numNodes, in->Id, 
+                 Dudley_NodeFile_scatterEntries(in->numNodes, in->Id, 
                                                 distribution[buffer_rank], distribution[buffer_rank+1],
                                                 Id_buffer, in->Id,
                                                 Tag_buffer, in->Tag, 
@@ -125,7 +125,7 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             source=Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
             buffer_rank=in->MPIInfo->rank;
             for (p=0; p< in->MPIInfo->size; ++p) {
-                 Finley_NodeFile_gatherEntries(out->numNodes, index, 
+                 Dudley_NodeFile_gatherEntries(out->numNodes, index, 
                                                distribution[buffer_rank], distribution[buffer_rank+1],
                                                out->Id, Id_buffer, 
                                                out->Tag, Tag_buffer, 
@@ -154,8 +154,8 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             #pragma omp parallel for private(n) schedule(static)
             for (n=0; n< out->numNodes; ++n) {
                 if (out->Id[n] == undefined_node ) {
-                 sprintf(error_msg,"Finley_NodeFile_gather_global: Node id %d at position %d is referenced but is not defined.",out->Id[n],n);
-                 Finley_setError(VALUE_ERROR,error_msg);
+                 sprintf(error_msg,"Dudley_NodeFile_gather_global: Node id %d at position %d is referenced but is not defined.",out->Id[n],n);
+                 Dudley_setError(VALUE_ERROR,error_msg);
                }
              }
 

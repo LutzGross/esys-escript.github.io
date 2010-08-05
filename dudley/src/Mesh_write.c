@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: write Mesh */
+/*   Dudley: write Mesh */
 
 /**************************************************************/
 
@@ -22,16 +22,16 @@
 
 /**************************************************************/
 
-/*  writes the mesh to the external file fname unsing the Finley file format: */
+/*  writes the mesh to the external file fname unsing the Dudley file format: */
 
-void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
+void Dudley_Mesh_write(Dudley_Mesh *in,char* fname) {
   char error_msg[LenErrorMsg_MAX];
   FILE *f;
   int NN,i,j,numDim;
-  Finley_TagMap* tag_map=in->TagMap;
+  Dudley_TagMap* tag_map=in->TagMap;
 
   if (in->MPIInfo->size >1 ) {
-    Finley_setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
+    Dudley_setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
     return;
 
   }
@@ -39,7 +39,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   f=fopen(fname,"w");
   if (f==NULL) {
     sprintf(error_msg,"Mesh_write: Opening file %s for writing failed.",fname);
-    Finley_setError(IO_ERROR,error_msg);
+    Dudley_setError(IO_ERROR,error_msg);
     return;
   }
 
@@ -50,7 +50,7 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   /*  write nodes: */
   
   if (in->Nodes!=NULL) {
-    numDim=Finley_Mesh_getDim(in);
+    numDim=Dudley_Mesh_getDim(in);
     fprintf(f,"%1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     for (i=0;i<in->Nodes->numNodes;i++) {
       fprintf(f,"%d %d %d",in->Nodes->Id[i],in->Nodes->globalDegreesOfFreedom[i],in->Nodes->Tag[i]);
@@ -120,16 +120,16 @@ void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
      }
   }
   fclose(f);
-  #ifdef Finley_TRACE
+  #ifdef Dudley_TRACE
   printf("mesh %s has been written to file %s\n",in->Name,fname);
   #endif
 }
 
-void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
+void Dudley_PrintMesh_Info(Dudley_Mesh *in, bool_t full) {
   int NN,i,j,numDim;
-  Finley_TagMap* tag_map=in->TagMap;
+  Dudley_TagMap* tag_map=in->TagMap;
 
-  fprintf(stdout, "Finley_PrintMesh_Info running on CPU %d of %d\n",in->MPIInfo->rank, in->MPIInfo->size);
+  fprintf(stdout, "Dudley_PrintMesh_Info running on CPU %d of %d\n",in->MPIInfo->rank, in->MPIInfo->size);
   fprintf(stdout, "\tMesh name '%s'\n",in->Name);
   fprintf(stdout, "\tApproximation order %d\n",in->approximationOrder);
   fprintf(stdout, "\tReduced Approximation order %d\n",in->reducedApproximationOrder);
@@ -138,7 +138,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
 
   /* write nodes: */
   if (in->Nodes!=NULL) {
-    numDim=Finley_Mesh_getDim(in);
+    numDim=Dudley_Mesh_getDim(in);
     fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
     if (full) {
       fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");
@@ -243,20 +243,5 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
   }
 }
 
-/*
-* $Log$
-* Revision 1.2  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.1.1.1.6.1  2005/09/07 06:26:20  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
+
 

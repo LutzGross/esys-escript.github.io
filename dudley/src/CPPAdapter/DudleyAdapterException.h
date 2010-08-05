@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#if !defined  finley_FinleyAdapterException_20040526_H
-#define finley_FinleyAdapterException_20040526_H
+#if !defined  dudley_DudleyAdapterException_20040526_H
+#define dudley_DudleyAdapterException_20040526_H
 #include "system_dep.h"
 
 #include "esysUtils/EsysException.h"
@@ -23,13 +23,13 @@ namespace dudley
 
   /**
   \brief
-  FinleyAdapterException exception class.
+  DudleyAdapterException exception class.
 
   Description:
-  FinleyAdapterException exception class.
+  DudleyAdapterException exception class.
   The class provides a public function returning the exception name
   */
-  class FinleyAdapterException : public esysUtils::EsysException
+  class DudleyAdapterException : public esysUtils::EsysException
   {
 
   protected:
@@ -41,42 +41,42 @@ namespace dudley
     \brief
     Default constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException() : Parent() { updateMessage();}
+    DUDLEY_DLL_API
+    DudleyAdapterException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException(const char *cstr) : Parent(cstr) { updateMessage();}
+    DUDLEY_DLL_API
+    DudleyAdapterException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException(const std::string &str) :
+    DUDLEY_DLL_API
+    DudleyAdapterException(const std::string &str) :
     Parent(str) { updateMessage();}
     /**
     \brief
     Copy Constructor for the exception.
     */
-    FINLEY_DLL_API
-    FinleyAdapterException(const FinleyAdapterException &other) : Parent(other)
+    DUDLEY_DLL_API
+    DudleyAdapterException(const DudleyAdapterException &other) : Parent(other)
       {
         updateMessage();
       }
 
     /// Destructor
-    FINLEY_DLL_API
-    virtual ~FinleyAdapterException() THROW(NO_ARG) {}
+    DUDLEY_DLL_API
+    virtual ~DudleyAdapterException() THROW(NO_ARG) {}
 
     /**
     \brief
     Assignment operator.
     */
-    FINLEY_DLL_API
-    inline FinleyAdapterException &
-    operator=(const FinleyAdapterException &other ) THROW(NO_ARG)
+    DUDLEY_DLL_API
+    inline DudleyAdapterException &
+    operator=(const DudleyAdapterException &other ) THROW(NO_ARG)
        {
          Parent::operator=(other);
          updateMessage();
@@ -87,7 +87,7 @@ namespace dudley
     \brief
     Returns the name of the exception.
     */
-    FINLEY_DLL_API
+    DUDLEY_DLL_API
     virtual const std::string & exceptionName() const;
 
   private:

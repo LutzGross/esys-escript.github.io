@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh */
+/*   Dudley: Mesh */
 
 /*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
 /*   NodeFile. It is also not ensured that all nodes refered by an element is actually available */
@@ -29,29 +29,29 @@
 
 /**************************************************************/
 
-void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
+void  Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in) {
 
   index_t min_id, max_id,  min_id2, max_id2, global_min_id, global_max_id, 
           *globalToNewLocalNodeLabels=NULL, *newLocalToGlobalNodeLabels=NULL;
   dim_t len, n, newNumNodes, numDim;
-  Finley_NodeFile *newNodeFile=NULL;
+  Dudley_NodeFile *newNodeFile=NULL;
   #ifdef PASO_MPI
   index_t id_range[2], global_id_range[2];
   #endif 
-  numDim=Finley_Mesh_getDim(in);
+  numDim=Dudley_Mesh_getDim(in);
   /*  find the minimum and maximum id used by elements: */
   min_id=INDEX_T_MAX;
   max_id=-INDEX_T_MAX;
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Elements);
+  Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Elements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->FaceElements);
+  Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->FaceElements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->ContactElements);
+  Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->ContactElements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
+  Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
   #ifdef PASO_MPI
@@ -64,7 +64,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
      global_min_id=min_id;
      global_max_id=max_id;
   #endif
-  #ifdef Finley_TRACE
+  #ifdef Dudley_TRACE
   printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
   #endif
   if (min_id>max_id) {
@@ -78,7 +78,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   len=(max_id>=min_id) ? max_id-min_id+1 : 0 ;
   globalToNewLocalNodeLabels=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
   newLocalToGlobalNodeLabels=TMPMEMALLOC(len,index_t);
-  if (! ( (Finley_checkPtr(globalToNewLocalNodeLabels) && Finley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
+  if (! ( (Dudley_checkPtr(globalToNewLocalNodeLabels) && Dudley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
 
        #pragma omp parallel
        {
@@ -89,11 +89,11 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
        }
 
        /*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
-       Finley_Mesh_markNodes(globalToNewLocalNodeLabels,min_id,in,FALSE);
+       Dudley_Mesh_markNodes(globalToNewLocalNodeLabels,min_id,in,FALSE);
 
        /* create a local labeling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels*/
 
-       newNumNodes=Finley_Util_packMask(len,globalToNewLocalNodeLabels,newLocalToGlobalNodeLabels);
+       newNumNodes=Dudley_Util_packMask(len,globalToNewLocalNodeLabels,newLocalToGlobalNodeLabels);
 
        /* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
        #pragma omp parallel for private(n) schedule(static)
@@ -106,23 +106,23 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
               newLocalToGlobalNodeLabels[n]+=min_id;
         }
         /* create a new table */
-        newNodeFile=Finley_NodeFile_alloc(numDim,in->MPIInfo);
-        if (Finley_noError()) {
-           Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
+        newNodeFile=Dudley_NodeFile_alloc(numDim,in->MPIInfo);
+        if (Dudley_noError()) {
+           Dudley_NodeFile_allocTable(newNodeFile,newNumNodes);
         }
-        if (Finley_noError()) {
-            Finley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
+        if (Dudley_noError()) {
+            Dudley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
         }
-        if (Finley_noError()) {
-           Finley_NodeFile_free(in->Nodes);
+        if (Dudley_noError()) {
+           Dudley_NodeFile_free(in->Nodes);
            in->Nodes=newNodeFile;
            /*  relable nodes of the elements: */
-           Finley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
+           Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
         }
   }
   TMPMEMFREE(globalToNewLocalNodeLabels);
   TMPMEMFREE(newLocalToGlobalNodeLabels);
-  if (! Finley_noError()) {
-       Finley_NodeFile_free(newNodeFile);
+  if (! Dudley_noError()) {
+       Dudley_NodeFile_free(newNodeFile);
   }
 }

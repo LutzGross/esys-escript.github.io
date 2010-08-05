@@ -26,27 +26,27 @@
 
 /**************************************************************/
 
-void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* elements,escriptDataC* data,double* out) {
+void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,escriptDataC* data,double* out) {
 /*    type_t data_type=getFunctionSpaceType(data);*/
     dim_t numQuadTotal;
     dim_t numComps=getDataPointSize(data);
-    Finley_ElementFile_Jacobeans* jac=NULL;
+    Dudley_ElementFile_Jacobeans* jac=NULL;
     Paso_MPI_rank my_mpi_rank;
     
-    Finley_resetError();
+    Dudley_resetError();
     if (nodes==NULL || elements==NULL) return;
     my_mpi_rank = nodes->MPIInfo->rank;
     /* set some parameter */
-    jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Finley_Assemble_reducedIntegrationOrder(data));
-    if (Finley_noError()) {
+    jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Dudley_Assemble_reducedIntegrationOrder(data));
+    if (Dudley_noError()) {
 		numQuadTotal=jac->numQuadTotal;
         /* check the shape of the data  */
         if (! numSamplesEqual(data,numQuadTotal,elements->numElements)) {
-           Finley_setError(TYPE_ERROR,"Finley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
+           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
         }
         /* now we can start */
 
-        if (Finley_noError()) {
+        if (Dudley_noError()) {
             dim_t q,e,i;
         	__const double *data_array=NULL;
             double *out_local=NULL, rtmp;
@@ -54,7 +54,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
             #pragma omp parallel private(q,i,rtmp,data_array,out_local)
             {
                 out_local=THREAD_MEMALLOC(numComps,double);
-                if (! Finley_checkPtr(out_local) ) {
+                if (! Dudley_checkPtr(out_local) ) {
                    /* initialize local result */
 
 				   for (i=0;i<numComps;i++) out_local[i]=0;
