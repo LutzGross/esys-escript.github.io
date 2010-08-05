@@ -34,14 +34,14 @@ Test suite for input and output of meshes and data objects
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh
+from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 REL_TOL=1.e-6
 
@@ -143,13 +143,13 @@ class InputOutput(unittest.TestCase):
      def test_mesh_read_rectangle_from_finley_file(self):
 	if getMPISizeWorld() < 16:
 	  mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
-          mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
+          mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_read_brick_from_finley_file(self):
 	if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
-          mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
+          mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':

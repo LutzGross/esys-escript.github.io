@@ -31,7 +31,7 @@ Test suite for the linearPDE  and pdetools test on finley
 :var __date__: date of the version
 """
 
-__author__="Lutz Gross, l.gross@uq.edu.au"
+__author__="Lutz Gross, l.gross@uq.edu.au, Joel Fenwick"
 
 import os
 
@@ -41,65 +41,62 @@ from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_ass
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadMesh
+from esys.dudley import Rectangle,Brick,JoinFaces, ReadMesh
 import sys
 
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
-NE=10 # number of element in each spatial direction (must be even)
+NE=3
 
-class Test_LinearPDEOnFinleyHex2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnFinleyHex2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,1)
+        self.domain = Rectangle(NE,NE,-1)
         self.order = 1
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyHex2DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do2, Test_TransportPDE):
+class Test_LinearPDEOnFinleyHex3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2)
-        self.order = 2
-   def tearDown(self):
-        del self.domain
-
-class Test_LinearPDEOnFinleyHex3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
-   RES_TOL=1.e-7
-   ABS_TOL=1.e-8
-   def setUp(self):
-        self.domain = Brick(NE,NE,NE,1)
+        self.domain = Brick(NE,NE,NE,-1)
         self.order = 1
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
+class Test_LinearPDEOnFinleyTet2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Brick(NE,NE,NE,2)
-        self.order = 2
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
+        # self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"../rec.fly"),optimize=False)
+        self.order = 1
+   def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnFinleyTet3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
+        self.order = 1
    def tearDown(self):
         del self.domain
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   if True :
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
-   else:
-      suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("test_DIRECT"))
-      pass
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DMacro))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

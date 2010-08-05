@@ -31,16 +31,16 @@ testdata_dir = [x for x in filenames if x.startswith('data_') ]
 #  files defining test runs (passing in a release)
 # 
 testruns = []
-testruns += ['run_escriptOnFinley.py']
+testruns += ['run_escriptOnDudley.py']
 testruns += ['run_generators.py']
 testruns += ['run_inputOutput.py']
-testruns += ['run_linearPDEsOnFinley1.py']
-testruns += ['run_linearPDEsOnFinley2.py']
-testruns += ['run_linearPDEsOnFinley3.py']
-testruns += ['run_linearPDEsOnFinleyMacro.py']
+testruns += ['run_linearPDEsOnDudley1.py']
+testruns += ['run_linearPDEsOnDudley2.py']
+testruns += ['run_linearPDEsOnDudley3.py']
+testruns += ['run_linearPDEsOnDudleyMacro.py']
 testruns += ['run_models.py']
 testruns += ['run_simplesolve.py']
-testruns += ['run_utilOnFinley.py']
+testruns += ['run_utilOnDudley.py']
 testruns += ['run_visualization_interface.py']
 # 
 #  files defining a few tests for a quick test
@@ -63,10 +63,10 @@ test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests',test_pyc)
 
 #Add Unit Test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/finley/test/python')))
+local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/dudley/test/python')))
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/finley/test/python').srcnode().abspath
-local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/finley/test/python').srcnode().abspath
+local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/dudley/test/python').srcnode().abspath
+local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/dudley/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 env.Alias('scalable_tests', [os.path.splitext(x)[0]+'.passed' for x in scalable_tests ])
@@ -78,8 +78,8 @@ program = local_env.RunPyUnitTest(alltestruns)
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("FINLEY_TEST_DATA","$BATCH_ROOT/finley/test/python"),('FINLEY_WORKDIR','$BUILD_DIR/finley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/finley/test/python","$BATCH_ROOT/finley/test/python",testruns)
-tgroup.makeDir("$BUILD_DIR/finley/test/python")
+tgroup=GroupTest("$PYTHONRUNNER ",(("FINLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('FINLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
+tgroup.makeDir("$BUILD_DIR/dudley/test/python")
 TestGroups.append(tgroup)
 
 Depends(program, local_env['pyinstall'])

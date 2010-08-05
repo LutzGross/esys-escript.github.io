@@ -32,7 +32,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 #######################################################EXTERNAL MODULES
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
-from esys.finley import MakeDomain #Converter for escript
+from esys.dudley import MakeDomain #Converter for escript
 from esys.escript import mkDir, getMPISizeWorld
 import os
 ########################################################MPI WORLD CHECK

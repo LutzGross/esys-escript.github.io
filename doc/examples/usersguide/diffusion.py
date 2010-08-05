@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 #... set some parameters ...
 xc=[0.02,0.002]
 r=0.001

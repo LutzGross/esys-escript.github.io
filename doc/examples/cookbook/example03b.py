@@ -38,7 +38,7 @@ from esys.escript import *
 # This defines the LinearPDE module as LinearPDE
 from esys.escript.linearPDEs import LinearPDE 
 # This imports the rectangle domain function from finley.
-from esys.finley import Rectangle 
+from esys.dudley import Rectangle 
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import *

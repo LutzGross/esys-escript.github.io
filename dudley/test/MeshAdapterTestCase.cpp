@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#include "finley/CppAdapter/MeshAdapter.h"
-#include "finley/CppAdapter/MeshAdapterFactory.h"
+#include "dudley/CppAdapter/MeshAdapter.h"
+#include "dudley/CppAdapter/MeshAdapterFactory.h"
 
 #include "escript/AbstractContinuousDomain.h"
 
@@ -22,7 +22,7 @@
 #include <boost/scoped_ptr.hpp>
 
 using namespace escript;
-using namespace finley;
+using namespace dudley;
 using namespace CppUnitTest;
 
 void MeshAdapterTestCase::setUp() {

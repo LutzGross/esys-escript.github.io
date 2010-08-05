@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 # Importing all the necessary modules required.
 from esys.escript import *
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 import sys
 import os
 from cblib1 import *

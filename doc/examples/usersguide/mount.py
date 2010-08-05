@@ -19,7 +19,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.models import Mountains
-from esys.finley import Brick,Rectangle
+from esys.dudley import Brick,Rectangle
 from math import pi, ceil
 
 NE=16

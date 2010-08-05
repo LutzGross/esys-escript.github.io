@@ -25,16 +25,16 @@ from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noG
 from test_symbols import Test_symbols
 
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces,ReadMesh
+from esys.dudley import Rectangle,Brick,JoinFaces,ReadMesh
 import sys
 import os
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 
 NE=4 # number elements, must be even
@@ -50,7 +50,7 @@ class Test_UtilOnFinley(Test_util,Test_symbols):
 class Test_Util_SpatialFunctionsOnFinleyTet2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -58,7 +58,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DOrder1(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyTet2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -66,7 +66,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DOrder2(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyTet2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -74,7 +74,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DMacro(Test_Util_SpatialFunctions_no
 class Test_Util_SpatialFunctionsOnFinleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -82,7 +82,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DOrder1(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyTet3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain
@@ -90,7 +90,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DOrder2(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
+        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
     def tearDown(self):
         del self.order
         del self.domain

@@ -27,34 +27,34 @@ import sys
 import os
 import unittest
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
+from esys.dudley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
 try:
-     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
+     DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
-     FINLEY_WORKDIR='.'
+     DUDLEY_WORKDIR='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 #if os.name == "nt":
-#   FINLEY_TEST_MESH_PATH = os.path.join(FINLEY_TEST_MESH_PATH,"win32")
-FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
+#   DUDLEY_TEST_MESH_PATH = os.path.join(DUDLEY_TEST_MESH_PATH,"win32")
+DUDLEY_WORKDIR_PATH=DUDLEY_WORKDIR
 
 TEST_FILE_PRE="test_"
 class Test_Generators(unittest.TestCase):
 
    def checker(self,dom,reference):
-      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_PRE+reference)
+      dom_file=os.path.join(DUDLEY_WORKDIR_PATH,TEST_FILE_PRE+reference)
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
 #      if True:
-#         dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
+#         dom.write(os.path.join(DUDLEY_TEST_MESH_PATH,reference))
       dom_string=open(dom_file).read().splitlines() 
-      ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
+      ref_string=open(os.path.join(DUDLEY_TEST_MESH_PATH,reference)).read().splitlines()
       self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
 	 line=dom_string[l].strip()
@@ -190,56 +190,56 @@ class Test_GMSHReader(unittest.TestCase):
    def test_Tri3(self):
          file="tri3_gmsh.msh"
          ref ="tri3.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tri3_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tri3_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),2,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
    def test_Tri6(self):
          file="tri6_gmsh.msh"
          ref="tri6.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tri6_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tri6_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),2,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
    def test_Tri6_macro(self):
          file="tri6_gmsh.msh"
          ref="tri6_macro.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tri6_macro_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),2,useMacroElements=True,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tri6_macro_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),2,useMacroElements=True,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
    def test_Tet4(self):
          file="tet4_gmsh.msh"
          ref="tet4.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tet4_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tet4_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),3,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
    def test_Tet10(self):
          file="tet10_gmsh.msh"
          ref="tet10.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tet10_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tet10_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),3,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
    def test_Tet10_macro(self):
          file="tet10_gmsh.msh"
          ref="tet10_macro.fly"
-         test = os.path.join(FINLEY_WORKDIR,"tet10_macro_test.fly")
-         dom = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,useMacroElements=True,optimize=False)
+         test = os.path.join(DUDLEY_WORKDIR,"tet10_macro_test.fly")
+         dom = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,file),3,useMacroElements=True,optimize=False)
          dom.write(test)
-         self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
+         self.compare(test, os.path.join(DUDLEY_TEST_MESH_PATH,ref))
 
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
-       test = os.path.join(FINLEY_WORKDIR,"test.fly")
-       dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,file),3,optimize=False)
+       test = os.path.join(DUDLEY_WORKDIR,"test.fly")
+       dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,file),3,optimize=False)
        insertTagNames(dom,A=1,B=2)
        dom.write(test)
        dom2 = ReadMesh(test,3,optimize=False)
@@ -485,96 +485,96 @@ class Test_Integration(unittest.TestCase):
       self.__test_2DQ(my_dom,10)
    #===================================================================================================
    def test_Tet2D_order1_integorder1(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=1)
       self.__test_2DT(my_dom,1)
    def test_Tet2D_order1_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=2)
       self.__test_2DT(my_dom,2)
    def test_Tet2D_order1_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=3)
       self.__test_2DT(my_dom,3)
    def test_Tet2D_order1_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=4)
       self.__test_2DT(my_dom,4)
    def test_Tet2D_order1_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=5)
       self.__test_2DT(my_dom,5)
    def test_Tet2D_order1_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=6)
       self.__test_2DT(my_dom,6)
    def test_Tet2D_order1_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=7)
       self.__test_2DT(my_dom,7)
    def test_Tet2D_order1_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=8)
       self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet2D_order1_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=9)
       self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet2D_order1_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri3.fly"),optimize=False,integrationOrder=10)
       self.__test_2DT(my_dom,10)
    #===================================================================================================
    def test_Tet2D_order2_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=1)
       self.__test_2DT(my_dom,1)
    def test_Tet2D_order2_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=2)
       self.__test_2DT(my_dom,2)
    def test_Tet2D_order2_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=3)
       self.__test_2DT(my_dom,3)
    def test_Tet2D_order2_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=4)
       self.__test_2DT(my_dom,4)
    def test_Tet2D_order2_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=5)
       self.__test_2DT(my_dom,5)
    def test_Tet2D_order2_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=6)
       self.__test_2DT(my_dom,6)
    def test_Tet2D_order2_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=7)
       self.__test_2DT(my_dom,7)
    def test_Tet2D_order2_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=8)
       self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet2D_order2_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=9)
       self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet2D_order2_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6.fly"),optimize=False,integrationOrder=10)
       self.__test_2DT(my_dom,10)
    #===================================================================================================
    def test_Tet2D_macro_integmacro(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=1)
       self.__test_2DT(my_dom,1)
    def test_Tet2D_macro_integmacro(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=2)
       self.__test_2DT(my_dom,2)
    def test_Tet2D_macro_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=3)
       self.__test_2DT(my_dom,3)
    def test_Tet2D_macro_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=4)
       self.__test_2DT(my_dom,4)
    def test_Tet2D_macro_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=5)
       self.__test_2DT(my_dom,5)
    def test_Tet2D_macro_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=6)
       self.__test_2DT(my_dom,6)
    def test_Tet2D_macro_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=7)
       self.__test_2DT(my_dom,7)
    def test_Tet2D_macro_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=8)
       self.__test_2DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet2D_macro_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=9)
       self.__test_2DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet2D_macro_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tri6_macro.fly"),optimize=False,integrationOrder=10)
       self.__test_2DT(my_dom,10)
    #===================================================================================================
    def test_hex3D_order1_integorder1(self):
@@ -701,96 +701,96 @@ class Test_Integration(unittest.TestCase):
       self.__test_3DQ(my_dom,10)
    #==========================================================================================
    def test_Tet3D_order1_integorder1(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=1)
       self.__test_3DT(my_dom,1)
    def test_Tet3D_order1_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=2)
       self.__test_3DT(my_dom,2)
    def test_Tet3D_order1_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=3)
       self.__test_3DT(my_dom,3)
    def test_Tet3D_order1_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=4)
       self.__test_3DT(my_dom,4)
    def test_Tet3D_order1_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=5)
       self.__test_3DT(my_dom,5)
    def test_Tet3D_order1_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=6)
       self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
    def test_Tet3D_order1_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=7)
       self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
    def test_Tet3D_order1_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=8)
       self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet3D_order1_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=9)
       self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet3D_order1_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet4.fly"),optimize=False,integrationOrder=10)
       self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
    #==========================================================================================
    def test_Tet3D_order2_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=1)
       self.__test_3DT(my_dom,1)
    def test_Tet3D_order2_integorder2(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=2)
       self.__test_3DT(my_dom,2)
    def test_Tet3D_order2_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=3)
       self.__test_3DT(my_dom,3)
    def test_Tet3D_order2_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=4)
       self.__test_3DT(my_dom,4)
    def test_Tet3D_order2_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=5)
       self.__test_3DT(my_dom,5)
    def test_Tet3D_order2_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=6)
       self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
    def test_Tet3D_order2_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=7)
       self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
    def test_Tet3D_order2_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=8)
       self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet3D_order2_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=9)
       self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet3D_order2_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10.fly"),optimize=False,integrationOrder=10)
       self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
    #==========================================================================================
    def test_Tet3D_macro_integmacro(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=1)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=1)
       self.__test_3DT(my_dom,1)
    def test_Tet3D_macro_integmacro(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=2)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=2)
       self.__test_3DT(my_dom,2)
    def test_Tet3D_macro_integorder3(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=3)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=3)
       self.__test_3DT(my_dom,3)
    def test_Tet3D_macro_integorder4(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=4)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=4)
       self.__test_3DT(my_dom,4)
    def test_Tet3D_macro_integorder5(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=5)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=5)
       self.__test_3DT(my_dom,5)
    def test_Tet3D_macro_integorder6(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=6)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=6)
       self.__test_3DT(my_dom,6,1./sqrt(EPSILON))
    def test_Tet3D_macro_integorder7(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=7)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=7)
       self.__test_3DT(my_dom,7,1./sqrt(EPSILON))
    def test_Tet3D_macro_integorder8(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=8)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=8)
       self.__test_3DT(my_dom,8,1./sqrt(EPSILON))
    def test_Tet3D_macro_integorder9(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=9)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=9)
       self.__test_3DT(my_dom,9,1./sqrt(EPSILON))
    def test_Tet3D_macro_integorder10(self):
-      my_dom = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=10)
+      my_dom = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet10_macro.fly"),optimize=False,integrationOrder=10)
       self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
 
 if __name__ == '__main__':
