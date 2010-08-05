@@ -12,18 +12,18 @@
 *******************************************************/
 
 
-#include "FinleyAdapterException.h"
+#include "DudleyAdapterException.h"
 
 
 using namespace dudley;
 
 
 const std::string 
-FinleyAdapterException::exceptionNameValue("FinleyAdapterException");
+DudleyAdapterException::exceptionNameValue("DudleyAdapterException");
 
 
 const std::string &
-FinleyAdapterException::exceptionName() const
+DudleyAdapterException::exceptionName() const
 {
   return exceptionNameValue;
 }

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: NodeFile */
+/*   Dudley: Mesh: NodeFile */
 
 /*  set tags to newTag where mask>0 */
 
@@ -26,23 +26,23 @@
 /**************************************************************/
 
 
-void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptDataC* mask) {
+void Dudley_NodeFile_setTags(Dudley_NodeFile* self,const int newTag, escriptDataC* mask) {
     register dim_t n;
     dim_t numNodes;
     register __const double *mask_array;
-    Finley_resetError();
+    Dudley_resetError();
 
     if (self==NULL) return;
     numNodes=self->numNodes;
     if (1!=getDataPointSize(mask)) {
-       Finley_setError(TYPE_ERROR,"Finley_NodeFile_setTags: number of components of mask is 1.");
+       Dudley_setError(TYPE_ERROR,"Dudley_NodeFile_setTags: number of components of mask is 1.");
     } else if (!numSamplesEqual(mask,1,numNodes)) {
-       Finley_setError(TYPE_ERROR,"Finley_NodeFile_setTags: illegal number of samples of mask Data object");
+       Dudley_setError(TYPE_ERROR,"Dudley_NodeFile_setTags: illegal number of samples of mask Data object");
     }
 
     /* now we can start */
 
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 	#pragma omp parallel private(n,mask_array)
         {
             #pragma omp for schedule(static)
@@ -51,7 +51,7 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
                  if (mask_array[0]>0) self->Tag[n]=newTag;
             }
         }
-        Finley_NodeFile_setTagsInUse(self);
+        Dudley_NodeFile_setTagsInUse(self);
     }
 }
 /*

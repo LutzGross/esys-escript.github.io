@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Finley: Mesh */
+/* Dudley: Mesh */
 
 /**************************************************************/
 
@@ -25,24 +25,24 @@
 
 /* returns a reference to the matrix pattern                  */
 
-Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
+Paso_SystemMatrixPattern* Dudley_getPattern(Dudley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
    Paso_SystemMatrixPattern *out=NULL;
-   Finley_resetError();
+   Dudley_resetError();
    /* make sure that the requested pattern is available */
    if (reduce_row_order) {
       if (reduce_col_order) {
-         if (mesh->ReducedReducedPattern==NULL) mesh->ReducedReducedPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+         if (mesh->ReducedReducedPattern==NULL) mesh->ReducedReducedPattern=Dudley_makePattern(mesh,reduce_row_order,reduce_col_order);
       } else {
-         if (mesh->ReducedFullPattern==NULL) mesh->ReducedFullPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+         if (mesh->ReducedFullPattern==NULL) mesh->ReducedFullPattern=Dudley_makePattern(mesh,reduce_row_order,reduce_col_order);
       }
    } else {
       if (reduce_col_order) {
-         if (mesh->FullReducedPattern==NULL) mesh->FullReducedPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+         if (mesh->FullReducedPattern==NULL) mesh->FullReducedPattern=Dudley_makePattern(mesh,reduce_row_order,reduce_col_order);
       } else {
-         if (mesh->FullFullPattern==NULL) mesh->FullFullPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+         if (mesh->FullFullPattern==NULL) mesh->FullFullPattern=Dudley_makePattern(mesh,reduce_row_order,reduce_col_order);
       }
    }
-   if (Finley_noError()) {
+   if (Dudley_noError()) {
       if (reduce_row_order) {
          if (reduce_col_order) {
             out=Paso_SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
@@ -59,18 +59,18 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh,bool_t reduce_row_
    }  
    return out;
 }
-Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
+Paso_SystemMatrixPattern* Dudley_makePattern(Dudley_Mesh *mesh,bool_t reduce_row_order, bool_t reduce_col_order) {
   double time0;
   Paso_SystemMatrixPattern* out=NULL;
   Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
   Paso_Connector *col_connector, *row_connector;
-  Finley_IndexList* index_list=NULL;
-  Finley_NodeMapping *colMap=NULL, *rowMap=NULL;
+  Dudley_IndexList* index_list=NULL;
+  Dudley_NodeMapping *colMap=NULL, *rowMap=NULL;
   Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
   index_t i;
-  Finley_resetError();
-  time0=Finley_timer();
+  Dudley_resetError();
+  time0=Dudley_timer();
 
   if (reduce_col_order) {
        colMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
@@ -93,8 +93,8 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
       row_connector=mesh->Nodes->degreesOfFreedomConnector;
   }
 
-  index_list=TMPMEMALLOC(rowMap->numTargets,Finley_IndexList);
-  if (! Finley_checkPtr(index_list)) {
+  index_list=TMPMEMALLOC(rowMap->numTargets,Dudley_IndexList);
+  if (! Dudley_checkPtr(index_list)) {
   
       #pragma omp parallel private(i)
       {
@@ -104,30 +104,30 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
              index_list[i].n=0;
         }
         /*  insert contributions from element matrices into colums index index_list: */
-        Finley_IndexList_insertElements(index_list,mesh->Elements,
+        Dudley_IndexList_insertElements(index_list,mesh->Elements,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        Finley_IndexList_insertElements(index_list,mesh->FaceElements,
+        Dudley_IndexList_insertElements(index_list,mesh->FaceElements,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        Finley_IndexList_insertElements(index_list,mesh->ContactElements,
+        Dudley_IndexList_insertElements(index_list,mesh->ContactElements,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        Finley_IndexList_insertElements(index_list,mesh->Points,
+        Dudley_IndexList_insertElements(index_list,mesh->Points,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
 
      }
  
      /* create pattern */
-     main_pattern=Finley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
+     main_pattern=Dudley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
                                                  0,Paso_Distribution_getMyNumComponents(colDistribution),
                                                  0);
-     col_couple_pattern=Finley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
+     col_couple_pattern=Dudley_IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
                                                  Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets,
                                                  -Paso_Distribution_getMyNumComponents(colDistribution));
-     row_couple_pattern=Finley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),rowMap->numTargets,index_list,
+     row_couple_pattern=Dudley_IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),rowMap->numTargets,index_list,
                                                        0,Paso_Distribution_getMyNumComponents(colDistribution),
                                                        0);
 
      /* if everthing is in order we can create the return value */
-     if (Finley_noError()) {
+     if (Dudley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
                                              rowDistribution,
                                              colDistribution,
@@ -140,7 +140,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
      /* clean up */
      if (index_list!=NULL) {
         #pragma omp parallel for private(i) 
-        for(i=0;i<rowMap->numTargets;++i) Finley_IndexList_free(index_list[i].extension);
+        for(i=0;i<rowMap->numTargets;++i) Dudley_IndexList_free(index_list[i].extension);
      }
      TMPMEMFREE(index_list);
      Paso_Pattern_free(main_pattern);

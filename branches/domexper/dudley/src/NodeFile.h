@@ -23,7 +23,7 @@
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 
-struct Finley_NodeFile {
+struct Dudley_NodeFile {
   Paso_MPIInfo *MPIInfo;              /* MPI information */
 
   dim_t numNodes;                      /* number of nodes */
@@ -45,10 +45,10 @@ struct Finley_NodeFile {
   index_t *globalNodesIndex;           /* assigns each local reduced node a global unique Id in a dens labeling */
 
 
- Finley_NodeMapping *nodesMapping;
- Finley_NodeMapping *reducedNodesMapping;
- Finley_NodeMapping *degreesOfFreedomMapping;
- Finley_NodeMapping *reducedDegreesOfFreedomMapping;
+ Dudley_NodeMapping *nodesMapping;
+ Dudley_NodeMapping *reducedNodesMapping;
+ Dudley_NodeMapping *degreesOfFreedomMapping;
+ Dudley_NodeMapping *reducedDegreesOfFreedomMapping;
  
  Paso_Distribution *nodesDistribution;
  Paso_Distribution *reducedNodesDistribution;
@@ -70,77 +70,77 @@ struct Finley_NodeFile {
                                                                                                                                                                                                  
 };
 
-typedef struct Finley_NodeFile Finley_NodeFile;
+typedef struct Dudley_NodeFile Dudley_NodeFile;
 
 
 
-Finley_NodeFile* Finley_NodeFile_alloc(dim_t, Paso_MPIInfo *MPIInfo);
-index_t Finley_NodeFile_getFirstReducedNode(Finley_NodeFile* in);
-index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowGlobalReducedNodesIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_GlobalDegreeOfFreedomIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_GlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in);
+Dudley_NodeFile* Dudley_NodeFile_alloc(dim_t, Paso_MPIInfo *MPIInfo);
+index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile* in);
+dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowGlobalReducedNodesIndex(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_maxGlobalNodeIDIndex(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_maxGlobalReducedNodeIDIndex(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_GlobalDegreeOfFreedomIndex(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_GlobalReducedDegreeOfFreedomIndex(Dudley_NodeFile* in);
 
-index_t Finley_NodeFile_getFirstNode(Finley_NodeFile* in);
-index_t Finley_NodeFile_getLastNode(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getGlobalNumNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowGlobalNodesIndex(Finley_NodeFile* in);
+index_t Dudley_NodeFile_getFirstNode(Dudley_NodeFile* in);
+index_t Dudley_NodeFile_getLastNode(Dudley_NodeFile* in);
+dim_t Dudley_NodeFile_getGlobalNumNodes(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowGlobalNodesIndex(Dudley_NodeFile* in);
 
 /* returns the number of target */
-dim_t Finley_NodeFile_getNumReducedNodes(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumDegreesOfFreedom(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumNodes(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumReducedDegreesOfFreedom(Finley_NodeFile* in);
+dim_t Dudley_NodeFile_getNumReducedNodes(Dudley_NodeFile* in);
+dim_t Dudley_NodeFile_getNumDegreesOfFreedom(Dudley_NodeFile* in);
+dim_t Dudley_NodeFile_getNumNodes(Dudley_NodeFile* in);
+dim_t Dudley_NodeFile_getNumReducedDegreesOfFreedom(Dudley_NodeFile* in);
 
 /* returns the mapping from local nodes to a target */
-index_t* Finley_NodeFile_borrowTargetReducedNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetDegreesOfFreedom(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(Finley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowTargetReducedNodes(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowTargetDegreesOfFreedom(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowTargetNodes(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(Dudley_NodeFile* in);
 /* returns the mapping from target to the local nodes */
-index_t* Finley_NodeFile_borrowReducedNodesTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowDegreesOfFreedomTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowNodesTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowReducedDegreesOfFreedomTarget(Finley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowReducedNodesTarget(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowDegreesOfFreedomTarget(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowNodesTarget(Dudley_NodeFile* in);
+index_t* Dudley_NodeFile_borrowReducedDegreesOfFreedomTarget(Dudley_NodeFile* in);
 
-void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
-void Finley_NodeFile_free(Finley_NodeFile*);
-void Finley_NodeFile_freeTable(Finley_NodeFile*);
-void Finley_NodeFile_setIdGlobalRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setDOFRange(index_t*,index_t*,Finley_NodeFile*);
+void Dudley_NodeFile_allocTable(Dudley_NodeFile*,dim_t);
+void Dudley_NodeFile_free(Dudley_NodeFile*);
+void Dudley_NodeFile_freeTable(Dudley_NodeFile*);
+void Dudley_NodeFile_setIdGlobalRange(index_t*,index_t*,Dudley_NodeFile*);
+void Dudley_NodeFile_setIdRange(index_t*,index_t*,Dudley_NodeFile*);
+void Dudley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Dudley_NodeFile*);
+void Dudley_NodeFile_setDOFRange(index_t*,index_t*,Dudley_NodeFile*);
 
 
-void Finley_NodeFile_setGlobalDOFRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setGlobalIdRange(index_t*,index_t*,Finley_NodeFile*);
-index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile*);
-index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile*);
+void Dudley_NodeFile_setGlobalDOFRange(index_t*,index_t*,Dudley_NodeFile*);
+void Dudley_NodeFile_setGlobalIdRange(index_t*,index_t*,Dudley_NodeFile*);
+index_t Dudley_NodeFile_maxGlobalDegreeOfFreedomIndex(Dudley_NodeFile*);
+index_t Dudley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Dudley_NodeFile*);
 
-void Finley_NodeFile_setReducedDOFRange(index_t*,index_t*,Finley_NodeFile*);
-dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
-dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution);
-dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
-dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
-void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution);
-void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_gather_global(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_gatherEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
-void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
-void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
-void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
-void Finley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
+void Dudley_NodeFile_setReducedDOFRange(index_t*,index_t*,Dudley_NodeFile*);
+dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile*);
+dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution);
+dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile* in, index_t* reducedNodeMask);
+dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile* in, index_t* reducedNodeMask);
+void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution);
+void Dudley_NodeFile_gather(index_t*,Dudley_NodeFile*,Dudley_NodeFile*);
+void Dudley_NodeFile_gather_global(index_t*,Dudley_NodeFile*,Dudley_NodeFile*);
+void Dudley_NodeFile_gatherEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
+void Dudley_NodeFile_copyTable(dim_t,Dudley_NodeFile*,dim_t,dim_t,Dudley_NodeFile*);
+void Dudley_NodeFile_scatter(index_t*,Dudley_NodeFile*,Dudley_NodeFile*);
+void Dudley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
+void Dudley_NodeFile_copyTable(dim_t,Dudley_NodeFile*,dim_t,dim_t,Dudley_NodeFile*);
+void Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in);
+void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in);
+void Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in);
 
 /* ===================== */
-void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
-void Finley_NodeFile_setTags(Finley_NodeFile*,const int,escriptDataC*);
-void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in);
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile*,escriptDataC*);
+void Dudley_NodeFile_setTags(Dudley_NodeFile*,const int,escriptDataC*);
+void Dudley_NodeFile_setTagsInUse(Dudley_NodeFile* in);
 
 #endif
 

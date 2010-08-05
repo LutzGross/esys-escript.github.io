@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: ElementFile */
+/*   Dudley: ElementFile */
 
 /*   allocates and deallocates element table                  */
 
@@ -28,13 +28,13 @@
 
 /*  allocates the element table within an element file to hold numElements: */
 
-void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements) 
+void Dudley_ElementFile_allocTable(Dudley_ElementFile* in,dim_t numElements) 
 {
   index_t *Id2=NULL,*Nodes2=NULL,*Tag2=NULL,*Color2=NULL;
   Paso_MPI_rank *Owner2=NULL;
   dim_t numNodes,e,i;
 
-  Finley_resetError();
+  Dudley_resetError();
   /*  allocate memory: */ 
   numNodes=in->numNodes;
   Owner2=MEMALLOC(numElements,Paso_MPI_rank);
@@ -45,15 +45,15 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
   
   /*  if fine, deallocate the old table and replace by new: */
   
-  if ( Finley_checkPtr(Owner2) || Finley_checkPtr(Id2) || Finley_checkPtr(Nodes2) || 
-                                                       Finley_checkPtr(Tag2) || Finley_checkPtr(Color2) ) {
+  if ( Dudley_checkPtr(Owner2) || Dudley_checkPtr(Id2) || Dudley_checkPtr(Nodes2) || 
+                                                       Dudley_checkPtr(Tag2) || Dudley_checkPtr(Color2) ) {
     MEMFREE(Owner2);	
     MEMFREE(Nodes2);
     MEMFREE(Id2);
     MEMFREE(Tag2);
     MEMFREE(Color2);
   } else { 
-    Finley_ElementFile_freeTable(in);
+    Dudley_ElementFile_freeTable(in);
     in->Owner=Owner2;
     in->numElements=numElements;
     in->Id=Id2;
@@ -77,13 +77,13 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
   return;
 }
 
-void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
+void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile* in)
 {
     index_t *tagsInUse=NULL;
     dim_t numTagsInUse;
     if (in !=NULL) {
-       Finley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
-       if (Finley_noError()) {
+       Dudley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
+       if (Dudley_noError()) {
           MEMFREE(in->tagsInUse);
           in->tagsInUse=tagsInUse;
           in->numTagsInUse=numTagsInUse;
@@ -93,7 +93,7 @@ void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
 
 /*  deallocates the element table within an element file: */
 
-void Finley_ElementFile_freeTable(Finley_ElementFile* in) {
+void Dudley_ElementFile_freeTable(Dudley_ElementFile* in) {
   MEMFREE(in->Owner);
   MEMFREE(in->Id);
   MEMFREE(in->Nodes);

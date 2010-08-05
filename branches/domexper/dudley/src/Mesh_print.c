@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: prints Mesh */
+/*   Dudley: prints Mesh */
 
 /**************************************************************/
 
@@ -24,7 +24,7 @@
 
 /*  prints the mesh to the standarts output: */
 
-void Finley_Mesh_print(Finley_Mesh *in) {
+void Dudley_Mesh_print(Dudley_Mesh *in) {
   dim_t NN,i,j,numDim,NN2;
 
   /* write header */

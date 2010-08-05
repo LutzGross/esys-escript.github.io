@@ -26,10 +26,10 @@
 /*****************************************************************/
 
 
-void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elements,
+void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                               escriptDataC* grad_data,escriptDataC* data) {
 
-  Finley_ReferenceElement*  refElement=NULL;
+  Dudley_ReferenceElement*  refElement=NULL;
   size_t localGradSize=0;
   register dim_t e,q,l,s,n;
   register __const double *data_array;
@@ -38,50 +38,50 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
   type_t data_type=getFunctionSpaceType(data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
   index_t s_offset=0,  *nodes_selector=NULL;
-  Finley_ElementFile_Jacobeans* jac=NULL;
+  Dudley_ElementFile_Jacobeans* jac=NULL;
   type_t grad_data_type=getFunctionSpaceType(grad_data);
   
-  Finley_resetError();
+  Dudley_resetError();
   if (nodes==NULL || elements==NULL) return;
   numComps=getDataPointSize(data);
   NN=elements->numNodes;
-  reducedIntegrationOrder=Finley_Assemble_reducedIntegrationOrder(grad_data);
+  reducedIntegrationOrder=Dudley_Assemble_reducedIntegrationOrder(grad_data);
 
-  if (data_type==FINLEY_NODES) {
+  if (data_type==DUDLEY_NODES) {
        reducedShapefunction=FALSE;
        numNodes=nodes->nodesMapping->numTargets;
-  } else if (data_type==FINLEY_REDUCED_NODES) { 
+  } else if (data_type==DUDLEY_REDUCED_NODES) { 
        reducedShapefunction=TRUE;
        numNodes=nodes->reducedNodesMapping->numTargets;
-  } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+  } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
        if (elements->MPIInfo->size>1) {
-          Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
+          Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
           return;
        }
        reducedShapefunction=FALSE;
        numNodes=nodes->degreesOfFreedomMapping->numTargets;
-  } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+  } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
        if (elements->MPIInfo->size>1) {
-          Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+          Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
           return;
        }
        reducedShapefunction=TRUE;
        numNodes=nodes->reducedDegreesOfFreedomMapping->numTargets;
   } else {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
+       Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
   }
 
-  jac=Finley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
-  refElement=Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reducedIntegrationOrder);
+  jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
+  refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reducedIntegrationOrder);
   
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
 
 	  numDim=jac->numDim;
           numShapes=jac->BasisFunctions->Type->numShapes;
 	  numShapesTotal=jac->numShapesTotal;
 	  numSub=jac->numSub;
 	  numQuad=jac->numQuadTotal/numSub;
-      	  if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type== FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
+      	  if (grad_data_type==DUDLEY_CONTACT_ELEMENTS_2 || grad_data_type== DUDLEY_REDUCED_CONTACT_ELEMENTS_2)  {
        	 	   s_offset=jac->offsets[1];
        	 	   s_offset=jac->offsets[1];
       	  } else {
@@ -89,7 +89,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
        	          s_offset=jac->offsets[0];
       	  }
 	  localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
-	  if ( (data_type==FINLEY_REDUCED_NODES) || (FINLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
+	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
 		  nodes_selector=refElement->Type->linearNodes;
 		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes * refElement->Type->numSides;
 	  } else { 
@@ -99,27 +99,27 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
       /* check the dimensions of data */
 
       if (! numSamplesEqual(grad_data,numQuad*numSub,elements->numElements)) {
-           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples in gradient Data object");
+           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of samples in gradient Data object");
       } else if (! numSamplesEqual(data,1,numNodes)) {
-           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of samples of input Data object");
+           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of samples of input Data object");
       } else if (numDim*numComps!=getDataPointSize(grad_data)) {
-           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: illegal number of components in gradient data object.");
+           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of components in gradient data object.");
       }  else if (!isExpanded(grad_data)) {
-           Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: expanded Data object is expected for output data.");
+           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: expanded Data object is expected for output data.");
       } else if (! (s_offset+numShapes <= numShapesTotal)) {
-           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
+           Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
       } else if (! (s_offset+numShapes <= numShapesTotal)) {
-           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: offset test failed.");
+           Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: offset test failed.");
       }
   }
   /* now we can start */
 
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
       requireWrite(grad_data);
       #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e, isub)
       {
 
-         if (data_type==FINLEY_NODES) {
+         if (data_type==DUDLEY_NODES) {
             if (numDim==1) {
                 #define DIM 1
                 #pragma omp for schedule(static)
@@ -185,7 +185,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                 }
                 #undef DIM
             }
-         } else if (data_type==FINLEY_REDUCED_NODES) {
+         } else if (data_type==DUDLEY_REDUCED_NODES) {
             if (numDim==1) {
                 #define DIM 1
                 #pragma omp for schedule(static)
@@ -250,7 +250,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
                 }
                 #undef DIM
             }
-         } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
+         } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
 
             if (numDim==1) {
                 #define DIM 1
@@ -316,7 +316,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
 				}
                 #undef DIM
             }
-         } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
+         } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
             if (numDim==1) {
                 #define DIM 1
                 #pragma omp for schedule(static)

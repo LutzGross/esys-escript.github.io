@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Finley: simple link list to privide clear names for a tag keys */
+/* Dudley: simple link list to privide clear names for a tag keys */
 
 /**************************************************************/
 
@@ -24,15 +24,15 @@
 #include "Dudley.h"
 
 
-typedef struct Finley_TagMap {
+typedef struct Dudley_TagMap {
   char* name;
   index_t tag_key;
-  struct Finley_TagMap *next;
-} Finley_TagMap;
+  struct Dudley_TagMap *next;
+} Dudley_TagMap;
 
-void Finley_TagMap_insert(Finley_TagMap**,const char* name, index_t tag_key);
-index_t Finley_TagMap_getTag(Finley_TagMap*,const char* name);
-bool_t Finley_TagMap_isValidTagName(Finley_TagMap*,const char* name);
-void Finley_TagMap_free(Finley_TagMap*);
-#endif /* #ifndef INC_FINLEY_TAGMAP */
+void Dudley_TagMap_insert(Dudley_TagMap**,const char* name, index_t tag_key);
+index_t Dudley_TagMap_getTag(Dudley_TagMap*,const char* name);
+bool_t Dudley_TagMap_isValidTagName(Dudley_TagMap*,const char* name);
+void Dudley_TagMap_free(Dudley_TagMap*);
+#endif /* #ifndef INC_DUDLEY_TAGMAP */
 

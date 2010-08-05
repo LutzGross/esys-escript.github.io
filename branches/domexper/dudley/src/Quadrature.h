@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, Point */
+/*   Dudley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, Point */
 
 /**************************************************************/
 
@@ -37,65 +37,65 @@ typedef enum {
   TetQuad,
   HexQuad,
   NoQuad   /* marks end of list */
-} Finley_QuadTypeId;
+} Dudley_QuadTypeId;
 
-typedef void (Finley_Quad_getNodes) (dim_t,double*,double*);
-typedef dim_t (Finley_Quad_getNumNodes) (dim_t);
-typedef dim_t(Finley_Quad_getMacro)(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, 
+typedef void (Dudley_Quad_getNodes) (dim_t,double*,double*);
+typedef dim_t (Dudley_Quad_getNumNodes) (dim_t);
+typedef dim_t(Dudley_Quad_getMacro)(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, 
                                         dim_t numF, double* dFdv, 
 					dim_t new_len, double* new_quadNodes, double* new_quadWeights,
                                         double* new_dFfv );
 
-typedef struct Finley_QuadInfo {
-  Finley_QuadTypeId TypeId;                  /* the id */
+typedef struct Dudley_QuadInfo {
+  Dudley_QuadTypeId TypeId;                  /* the id */
   char* Name;                                /* the name in text form e.g. Line,Rec,... */
   dim_t numDim;                              /* spacial dimension */
   dim_t numVertices;                         /* number of vertices of the element */
-  Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
-  Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
-  Finley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
-}  Finley_QuadInfo;
+  Dudley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
+  Dudley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
+  Dudley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
+}  Dudley_QuadInfo;
 
 /**************************************************************/
 
 /*     Interfaces: */
 
 
-Finley_Quad_getMacro Finley_Quad_MacroPoint;
-Finley_Quad_getMacro Finley_Quad_MacroLine;
-Finley_Quad_getMacro Finley_Quad_MacroTri;
-Finley_Quad_getMacro Finley_Quad_MacroRec;
-Finley_Quad_getMacro Finley_Quad_MacroTet;
-Finley_Quad_getMacro Finley_Quad_MacroHex;
+Dudley_Quad_getMacro Dudley_Quad_MacroPoint;
+Dudley_Quad_getMacro Dudley_Quad_MacroLine;
+Dudley_Quad_getMacro Dudley_Quad_MacroTri;
+Dudley_Quad_getMacro Dudley_Quad_MacroRec;
+Dudley_Quad_getMacro Dudley_Quad_MacroTet;
+Dudley_Quad_getMacro Dudley_Quad_MacroHex;
 
 
-Finley_Quad_getNodes Finley_Quad_getNodesTri;
-Finley_Quad_getNodes Finley_Quad_getNodesTet;
-Finley_Quad_getNodes Finley_Quad_getNodesRec;
-Finley_Quad_getNodes Finley_Quad_getNodesHex;
-Finley_Quad_getNodes Finley_Quad_getNodesLine;
-Finley_Quad_getNodes Finley_Quad_getNodesPoint;
-Finley_Quad_getNodes Finley_Quad_getNodesTriOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesRecOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesLineOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesPointOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesTriMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesTetMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesRecMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesHexMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesLineMacro;
+Dudley_Quad_getNodes Dudley_Quad_getNodesTri;
+Dudley_Quad_getNodes Dudley_Quad_getNodesTet;
+Dudley_Quad_getNodes Dudley_Quad_getNodesRec;
+Dudley_Quad_getNodes Dudley_Quad_getNodesHex;
+Dudley_Quad_getNodes Dudley_Quad_getNodesLine;
+Dudley_Quad_getNodes Dudley_Quad_getNodesPoint;
+Dudley_Quad_getNodes Dudley_Quad_getNodesTriOnFace;
+Dudley_Quad_getNodes Dudley_Quad_getNodesRecOnFace;
+Dudley_Quad_getNodes Dudley_Quad_getNodesLineOnFace;
+Dudley_Quad_getNodes Dudley_Quad_getNodesPointOnFace;
+Dudley_Quad_getNodes Dudley_Quad_getNodesTriMacro;
+Dudley_Quad_getNodes Dudley_Quad_getNodesTetMacro;
+Dudley_Quad_getNodes Dudley_Quad_getNodesRecMacro;
+Dudley_Quad_getNodes Dudley_Quad_getNodesHexMacro;
+Dudley_Quad_getNodes Dudley_Quad_getNodesLineMacro;
 
 
 
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesPoint;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesLine;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesTri;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesRec;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesTet;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesHex;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesPoint;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesLine;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesTri;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesRec;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesTet;
+Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesHex;
 
-void Finley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Finley_Quad_getNodes);
-Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id);
+void Dudley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Dudley_Quad_getNodes);
+Dudley_QuadInfo* Dudley_QuadInfo_getInfo(Dudley_QuadTypeId id);
 
-#endif /* #ifndef INC_FINLEY_QUADRATURE */
+#endif /* #ifndef INC_DUDLEY_QUADRATURE */
 

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: sets new coordinates for elements */
+/*   Dudley: Mesh: sets new coordinates for elements */
 
 /**************************************************************/
 
@@ -23,7 +23,7 @@
 /**************************************************************/
 
 
-void Finley_ElementFile_setCoordinates(Finley_ElementFile* self,escriptDataC* newX) {
+void Dudley_ElementFile_setCoordinates(Dudley_ElementFile* self,escriptDataC* newX) {
   /* self->volume_is_valid=FALSE;   
   self->DSDV_is_valid=FALSE;    
   self->DSLinearDV_is_valid=FALSE; 

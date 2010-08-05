@@ -12,39 +12,39 @@
 *******************************************************/
 
 
-#if !defined  dudley_FinleyError_20040528_H
-#define dudley_FinleyError_20040528_H
+#if !defined  dudley_DudleyError_20040528_H
+#define dudley_DudleyError_20040528_H
 #include "system_dep.h"
 
 extern "C" {
 #include "dudley/Dudley.h"
 }
 
-#include "FinleyAdapterException.h"
+#include "DudleyAdapterException.h"
 
 #include <string>
 
 namespace dudley {
   /**
      \brief
-     Provide a C++ interface to the finley C funcion of the same name.
+     Provide a C++ interface to the dudley C funcion of the same name.
      Needed because of constness problems.
   */
-  FINLEY_DLL_API
-  void setFinleyError(Finley_ErrorCodeType errorCode, 
+  DUDLEY_DLL_API
+  void setDudleyError(Dudley_ErrorCodeType errorCode, 
 		      const std::string& errMess);
  
   /**
      \brief
-     Convert a C finley error into a C++ exception.
+     Convert a C dudley error into a C++ exception.
   */
-  FINLEY_DLL_API
-  void checkFinleyError();
+  DUDLEY_DLL_API
+  void checkDudleyError();
   /**
      \brief
      Convert a C paso  error into a C++ exception.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   void checkPasoError();
 } // end of namespace
 #endif

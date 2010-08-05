@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Finley: Converting an element list into a matrix shape     */
+/* Dudley: Converting an element list into a matrix shape     */
 
 /**************************************************************/
 
@@ -27,16 +27,16 @@
    into the row index col. If symmetric is set, only the upper
    triangle of the matrix is stored. */
 
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
+void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_ElementFile* elements,
                                        bool_t reduce_row_order, index_t* row_map,
                                        bool_t reduce_col_order, index_t* col_map) {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
   index_t color;
-  Finley_ReferenceElement*refElement; 
+  Dudley_ReferenceElement*refElement; 
   dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN, *row_node=NULL, *col_node=NULL, isub, numSub;
   if (elements!=NULL) {
     NN=elements->numNodes;
-    refElement= Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
+    refElement= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
 	   
     if (reduce_col_order) {
 		  numSub=1;
@@ -67,7 +67,7 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
 						   irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
 						   for (kc=0;kc<NN_col;kc++) {
 							   icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
-							   Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+							   Dudley_IndexList_insertIndex(&(index_list[irow]),icol);
 						   }
 					   }
 				   }
@@ -79,8 +79,8 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
 }
 
 
-void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
-                                                 Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+void Dudley_IndexList_insertElementsWithRowRange(Dudley_IndexList* index_list, index_t firstRow, index_t lastRow,
+                                                 Dudley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
 /* this does not resolve macro elements */
 	index_t color;
@@ -97,7 +97,7 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
                           irow-=firstRow;
                           for (kc=0;kc<NN;kc++) {
                               icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
-                              Finley_IndexList_insertIndex(&(index_list[irow]),icol);
+                              Dudley_IndexList_insertIndex(&(index_list[irow]),icol);
                           }
                       }
                   }
@@ -106,8 +106,8 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
     }
   }
 }
-void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
-                                                              Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+void Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Dudley_IndexList* index_list, index_t firstRow, index_t lastRow,
+                                                              Dudley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
   /* this does not resolve macro elements */
   index_t color;
@@ -124,7 +124,7 @@ void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList*
                           irow_loc=irow-firstRow;
                           for (kc=0;kc<NN;kc++) {
                               icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
-                              if (icol != irow) Finley_IndexList_insertIndex(&(index_list[irow_loc]),icol);
+                              if (icol != irow) Dudley_IndexList_insertIndex(&(index_list[irow_loc]),icol);
                           }
                       }
                   }
@@ -134,9 +134,9 @@ void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList*
   }
 }
 
-/* inserts row index row into the Finley_IndexList in if it does not exist */
+/* inserts row index row into the Dudley_IndexList in if it does not exist */
 
-void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
+void Dudley_IndexList_insertIndex(Dudley_IndexList* in, index_t index) {
   dim_t i;
   /* is index in in? */
   for (i=0;i<in->n;i++) {
@@ -146,12 +146,12 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
   if (in->n==INDEXLIST_LENGTH) {
      /* if in->index is full check the extension */
      if (in->extension==NULL) {
-        in->extension=TMPMEMALLOC(1,Finley_IndexList);
-        if (Finley_checkPtr(in->extension)) return;
+        in->extension=TMPMEMALLOC(1,Dudley_IndexList);
+        if (Dudley_checkPtr(in->extension)) return;
         in->extension->n=0;
         in->extension->extension=NULL;
      }
-     Finley_IndexList_insertIndex(in->extension,index);
+     Dudley_IndexList_insertIndex(in->extension,index);
   } else {
      /* insert index into in->index*/
      in->index[in->n]=index;
@@ -159,9 +159,9 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
   }
 }
 
-/* counts the number of row indices in the Finley_IndexList in */
+/* counts the number of row indices in the Dudley_IndexList in */
 
-dim_t Finley_IndexList_count(Finley_IndexList* in, index_t range_min,index_t range_max) {
+dim_t Dudley_IndexList_count(Dudley_IndexList* in, index_t range_min,index_t range_max) {
   dim_t i;
   dim_t out=0;
   register index_t itmp;
@@ -172,13 +172,13 @@ dim_t Finley_IndexList_count(Finley_IndexList* in, index_t range_min,index_t ran
           itmp=in->index[i];
           if ((itmp>=range_min) && (range_max>itmp)) ++out;
     }
-     return out+Finley_IndexList_count(in->extension, range_min,range_max);
+     return out+Dudley_IndexList_count(in->extension, range_min,range_max);
   }
 }
 
-/* count the number of row indices in the Finley_IndexList in */
+/* count the number of row indices in the Dudley_IndexList in */
 
-void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t range_min,index_t range_max, index_t index_offset) {
+void Dudley_IndexList_toArray(Dudley_IndexList* in, index_t* array, index_t range_min,index_t range_max, index_t index_offset) {
   dim_t i, ptr;
   register index_t itmp;
   if (in!=NULL) {
@@ -191,21 +191,21 @@ void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t rang
           }
 
     }
-    Finley_IndexList_toArray(in->extension,&(array[ptr]), range_min, range_max, index_offset);
+    Dudley_IndexList_toArray(in->extension,&(array[ptr]), range_min, range_max, index_offset);
   }
 }
 
-/* deallocates the Finley_IndexList in by recursive calls */
+/* deallocates the Dudley_IndexList in by recursive calls */
 
-void Finley_IndexList_free(Finley_IndexList* in) {
+void Dudley_IndexList_free(Dudley_IndexList* in) {
   if (in!=NULL) {
-    Finley_IndexList_free(in->extension);
+    Dudley_IndexList_free(in->extension);
     TMPMEMFREE(in);
   }
 }
 
 /* creates a Paso_pattern from a range of indices */
-Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
+Paso_Pattern* Dudley_IndexList_createPattern(dim_t n0, dim_t n,Dudley_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
 {
    dim_t *ptr=NULL;
    register dim_t s,i,itmp;
@@ -213,11 +213,11 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
    Paso_Pattern* out=NULL;
 
    ptr=MEMALLOC(n+1-n0,index_t);
-   if (! Finley_checkPtr(ptr) ) {
+   if (! Dudley_checkPtr(ptr) ) {
        /* get the number of connections per row */
        #pragma omp parallel for schedule(static) private(i)
        for(i=n0;i<n;++i) {
-              ptr[i-n0]=Finley_IndexList_count(&index_list[i],range_min,range_max);
+              ptr[i-n0]=Dudley_IndexList_count(&index_list[i],range_min,range_max);
        }
        /* accumulate ptr */
        s=0;
@@ -229,15 +229,15 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
        ptr[n-n0]=s;
        /* fill index */
        index=MEMALLOC(ptr[n-n0],index_t);
-       if (! Finley_checkPtr(index)) {
+       if (! Dudley_checkPtr(index)) {
               #pragma omp parallel for schedule(static)
               for(i=n0;i<n;++i) {
-                  Finley_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
+                  Dudley_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
               out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
        }
   }
-  if (! Finley_noError()) {
+  if (! Dudley_noError()) {
         MEMFREE(ptr);
         MEMFREE(index);
         Paso_Pattern_free(out);

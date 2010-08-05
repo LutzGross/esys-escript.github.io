@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: optimizes the distribution of DOFs across processors */
+/*   Dudley: Mesh: optimizes the distribution of DOFs across processors */
 /*   using ParMETIS. On return a new distribution is given and the globalDOF are relabled */
 /*   accordingly but the mesh has not been redesitributed yet                             */
 
@@ -62,7 +62,7 @@ int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t *distribution, MP
 
 /**************************************************************/
 
-void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
+void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in,dim_t *distribution) {
 
      dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices,*partition_count=NULL, *new_distribution=NULL, *loc_partition_count=NULL;
      bool_t *setNewDOFId=NULL;
@@ -71,7 +71,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      index_t* partition=NULL;
      Paso_Pattern *pattern=NULL;
      Paso_MPI_rank myRank,dest,source,current_rank, rank;
-     Finley_IndexList* index_list=NULL;
+     Dudley_IndexList* index_list=NULL;
      float *xyz=NULL;
      int c;
      
@@ -100,7 +100,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      new_distribution=TMPMEMALLOC(mpiSize+1,dim_t);
      newGlobalDOFID=TMPMEMALLOC(len,index_t);
      setNewDOFId=TMPMEMALLOC(in->Nodes->numNodes,bool_t);
-     if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz) || Finley_checkPtr(partition_count) || Finley_checkPtr(partition_count) || Finley_checkPtr(newGlobalDOFID) || Finley_checkPtr(setNewDOFId))) {
+     if (!(Dudley_checkPtr(partition) || Dudley_checkPtr(xyz) || Dudley_checkPtr(partition_count) || Dudley_checkPtr(partition_count) || Dudley_checkPtr(newGlobalDOFID) || Dudley_checkPtr(setNewDOFId))) {
          dim_t *recvbuf=TMPMEMALLOC(mpiSize*mpiSize,dim_t);
 
          /* set the coordinates: */
@@ -113,10 +113,10 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
              }
          }
 
-         index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+         index_list=TMPMEMALLOC(myNumVertices,Dudley_IndexList);
 	 /* ksteube CSR of DOF IDs */
          /* create the adjacency structure xadj and adjncy */
-         if (! Finley_checkPtr(index_list)) {
+         if (! Dudley_checkPtr(index_list)) {
             #pragma omp parallel private(i)
             {
               #pragma omp for schedule(static)
@@ -126,30 +126,30 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               }
 	      /* ksteube build CSR format */
               /*  insert contributions from element matrices into colums index index_list: */
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Elements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->FaceElements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->ContactElements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Points,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
            }
            
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,0,globalNumVertices,0);
+           pattern=Dudley_IndexList_createPattern(0,myNumVertices,index_list,0,globalNumVertices,0);
 
            /* clean up index list */
            if (index_list!=NULL) {
               #pragma omp parallel for private(i) 
-              for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
+              for(i=0;i<myNumVertices;++i) Dudley_IndexList_free(index_list[i].extension);
            }
 
-           if (Finley_noError()) {
+           if (Dudley_noError()) {
 
 #ifdef USE_PARMETIS
 

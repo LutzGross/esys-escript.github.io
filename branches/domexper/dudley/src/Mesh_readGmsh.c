@@ -14,65 +14,65 @@
 
 /**************************************************************/
 
-/*   Finley: read mesh */
+/*   Dudley: read mesh */
 
 /**************************************************************/
 
 #include "Mesh.h"
 #include <stdio.h>
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Dudley_setError(IO_ERROR,"scan error while reading dudley file"); return NULL;} }
 
 /**************************************************************/
 
-/*  reads a mesh from a Finley file of name fname */
+/*  reads a mesh from a Dudley file of name fname */
 
 #define MAX_numNodes_gmsh 20
 
-Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize, bool_t useMacroElements) {
+Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, index_t reduced_order, bool_t optimize, bool_t useMacroElements) {
 
   double version = 1.0;
   int format = 0, size = sizeof(double), scan_ret;
   dim_t numNodes, totalNumElements=0, numTags=0, numNodesPerElement=0, numNodesPerElement2, element_dim=0;
   index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id;
   index_t numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
-  Finley_Mesh *mesh_p=NULL;
+  Dudley_Mesh *mesh_p=NULL;
   char line[LenString_MAX+1];
   char error_msg[LenErrorMsg_MAX];
   double rtmp0, rtmp1;
-  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
-#ifdef Finley_TRACE
-  double time0=Finley_timer();
+  Dudley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+#ifdef Dudley_TRACE
+  double time0=Dudley_timer();
 #endif
   FILE * fileHandle_p = NULL;
   ElementTypeId* element_type=NULL;
 
 
   Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
-  Finley_resetError();
+  Dudley_resetError();
   if (mpi_info->size>1) {
-    Finley_setError(IO_ERROR,"reading GMSH with MPI is not supported yet.");
+    Dudley_setError(IO_ERROR,"reading GMSH with MPI is not supported yet.");
     Paso_MPIInfo_free( mpi_info );
     return NULL;
   } else {
 
      /* allocate mesh */
    
-     mesh_p = Finley_Mesh_alloc(fname,numDim, mpi_info);
-     if (! Finley_noError()) return NULL;
+     mesh_p = Dudley_Mesh_alloc(fname,numDim, mpi_info);
+     if (! Dudley_noError()) return NULL;
    
      /* get file handle */
      fileHandle_p = fopen(fname, "r");
      if (fileHandle_p==NULL) {
        sprintf(error_msg,"Opening Gmsh file %s for reading failed.",fname);
-       Finley_setError(IO_ERROR,error_msg);
+       Dudley_setError(IO_ERROR,error_msg);
        Paso_MPIInfo_free( mpi_info );
        return NULL;
      }
    
      /* start reading */
      while(1) {
-       if (! Finley_noError()) break;
+       if (! Dudley_noError()) break;
        /* find line staring with $ */
        do {
          if( ! fgets(line, sizeof(line), fileHandle_p) ) break;
@@ -85,7 +85,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
        /* format */
        if (!strncmp(&line[1], "MeshFormat", 10)) {
          scan_ret = fscanf(fileHandle_p, "%lf %d %d\n", &version, &format, &size);
-	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	 FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
        }
        /* nodes are read */
        if ( !strncmp(&line[1], "NOD", 3)   ||
@@ -93,29 +93,29 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
             !strncmp(&line[1], "Nodes", 5)    ) {
         
          scan_ret = fscanf(fileHandle_p, "%d", &numNodes);
-	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
-         if (! Finley_noError()) break;
-         Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
-         if (! Finley_noError()) break;
+	 FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
+         if (! Dudley_noError()) break;
+         Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
+         if (! Dudley_noError()) break;
          for (i0 = 0; i0 < numNodes; i0++) {
             if (1 == numDim) {
    	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)], 
                          &rtmp0, 
                          &rtmp1);
-	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	       FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
             } else if (2 == numDim) {
    	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)],
                          &rtmp0);
-	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	       FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
             } else if (3 == numDim) {
    	       scan_ret = fscanf(fileHandle_p, "%d %le %le %le\n", &mesh_p->Nodes->Id[i0],
    	              &mesh_p->Nodes->Coordinates[INDEX2(0,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(1,i0,numDim)],
    	              &mesh_p->Nodes->Coordinates[INDEX2(2,i0,numDim)]);
-	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	       FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
             }
             mesh_p->Nodes->globalDegreesOfFreedom[i0]=mesh_p->Nodes->Id[i0];
             mesh_p->Nodes->Tag[i0]=0;
@@ -131,7 +131,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          numElements=0;
          numFaceElements=0;
          scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
-	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	 FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
    
          id=TMPMEMALLOC(totalNumElements,index_t);
          tag=TMPMEMALLOC(totalNumElements,index_t);
@@ -139,11 +139,11 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    
          element_type=TMPMEMALLOC(totalNumElements,ElementTypeId);
          vertices=TMPMEMALLOC(totalNumElements*MAX_numNodes_gmsh,index_t);
-         if (! (Finley_checkPtr(id) || Finley_checkPtr(tag) || Finley_checkPtr(element_type) || Finley_checkPtr(vertices) ) ) {
+         if (! (Dudley_checkPtr(id) || Dudley_checkPtr(tag) || Dudley_checkPtr(element_type) || Dudley_checkPtr(vertices) ) ) {
             /* read all in */
             for(e = 0; e < totalNumElements; e++) {
               scan_ret = fscanf(fileHandle_p, "%d %d", &id[e], &gmsh_type);
-	      FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	      FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
               switch (gmsh_type) {
                   case 1:  /* line order 1 */
                       element_type[e]=Line2;
@@ -224,14 +224,14 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                   default:
                      element_type[e]=NoRef;
                      sprintf(error_msg,"Unexected gmsh element type %d in mesh file %s.",gmsh_type,fname);
-                     Finley_setError(IO_ERROR,error_msg);
+                     Dudley_setError(IO_ERROR,error_msg);
               }
               if (element_dim == numDim) {
                  if (final_element_type == NoRef) {
                     final_element_type = element_type[e];
                  } else if (final_element_type != element_type[e]) {
-                     sprintf(error_msg,"Finley can handle a single type of internal elements only.");
-                     Finley_setError(IO_ERROR,error_msg);
+                     sprintf(error_msg,"Dudley can handle a single type of internal elements only.");
+                     Dudley_setError(IO_ERROR,error_msg);
                      break;
                  }
                  numElements++;
@@ -239,8 +239,8 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  if (final_face_element_type == NoRef) {
                     final_face_element_type = element_type[e];
                  } else if (final_face_element_type != element_type[e]) {
-                     sprintf(error_msg,"Finley can handle a single type of face elements only.");
-                     Finley_setError(IO_ERROR,error_msg);
+                     sprintf(error_msg,"Dudley can handle a single type of face elements only.");
+                     Dudley_setError(IO_ERROR,error_msg);
                      break;
                  }
                  numFaceElements++;
@@ -248,20 +248,20 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
               
    	   if(version <= 1.0){
    	     scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[e], &elementary_id, &numNodesPerElement2);
-	     FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	     FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
    	     partition_id = 1;
                 if (numNodesPerElement2 != numNodesPerElement) {
                      sprintf(error_msg,"Illegal number of nodes for element %d in mesh file %s.",id[e],fname);
-                     Finley_setError(IO_ERROR,error_msg);
+                     Dudley_setError(IO_ERROR,error_msg);
                 }
    	   } else {
    	     scan_ret = fscanf(fileHandle_p, "%d", &numTags);
-	     FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	     FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
    	     elementary_id = tag[e] = partition_id = 1;
                 numNodesPerElement2=-1;
    	     for(j = 0; j < numTags; j++){
    	       scan_ret = fscanf(fileHandle_p, "%d", &itmp);	    
-	       FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	       FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
    	       if (j == 0) {
    	         tag[e] = itmp;
    	       } else if (j == 1) {
@@ -272,10 +272,10 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    	       /* ignore any other tags */
    	     }
    	   }
-              if (! Finley_noError()) break;
+              if (! Dudley_noError()) break;
               for(j = 0; j < numNodesPerElement; j++) {
 		scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
-	        FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+	        FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
 	      }
               /* for tet10 the last two nodes need to be swapped */
               if ((element_type[e]==Tet10) || (element_type[e]==Tet10Macro)) {
@@ -284,9 +284,9 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                    vertices[INDEX2(8,e,MAX_numNodes_gmsh)]=itmp;
               }
             }
-            /* all elements have been read, now we have to identify the elements for finley */
+            /* all elements have been read, now we have to identify the elements for dudley */
         
-            if (Finley_noError()) {
+            if (Dudley_noError()) {
               /* first we have to identify the elements to define Elementis and FaceElements */
               if (final_element_type == NoRef) {
                  if (numDim==1) {
@@ -317,20 +317,20 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
               } else {
                   contact_element_type=Point1_Contact;
               }
-			  refElements= Finley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
-			  refFaceElements=Finley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
-			  refContactElements= Finley_ReferenceElementSet_alloc(contact_element_type,order, reduced_order);
-			  refPoints= Finley_ReferenceElementSet_alloc(Point1,order, reduced_order);
-              mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
-              mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
-              mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
-              mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
-              if (Finley_noError()) {
-                  Finley_ElementFile_allocTable(mesh_p->Elements, numElements);
-                  Finley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);
-                  Finley_ElementFile_allocTable(mesh_p->ContactElements, 0);
-                  Finley_ElementFile_allocTable(mesh_p->Points, 0);
-                  if (Finley_noError()) {
+			  refElements= Dudley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
+			  refFaceElements=Dudley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
+			  refContactElements= Dudley_ReferenceElementSet_alloc(contact_element_type,order, reduced_order);
+			  refPoints= Dudley_ReferenceElementSet_alloc(Point1,order, reduced_order);
+              mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
+              mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
+              mesh_p->ContactElements=Dudley_ElementFile_alloc(refContactElements, mpi_info);
+              mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
+              if (Dudley_noError()) {
+                  Dudley_ElementFile_allocTable(mesh_p->Elements, numElements);
+                  Dudley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);
+                  Dudley_ElementFile_allocTable(mesh_p->ContactElements, 0);
+                  Dudley_ElementFile_allocTable(mesh_p->Points, 0);
+                  if (Dudley_noError()) {
                       mesh_p->Elements->minColor=0;
                       mesh_p->Elements->maxColor=numElements-1;
                       mesh_p->FaceElements->minColor=0;
@@ -376,35 +376,35 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
       do {
          if (!fgets(line, sizeof(line), fileHandle_p)) {
             sprintf(error_msg,"Unexected end of file in %s",fname);
-            Finley_setError(IO_ERROR,error_msg);
+            Dudley_setError(IO_ERROR,error_msg);
          }
          if (feof(fileHandle_p)) {
             sprintf(error_msg,"Unexected end of file in %s",fname);
-            Finley_setError(IO_ERROR,error_msg);
+            Dudley_setError(IO_ERROR,error_msg);
          }
-         if (! Finley_noError()) break;
+         if (! Dudley_noError()) break;
        } while(line[0] != '$');
      }
    
      /* close file */
      fclose(fileHandle_p);
      /* clean up */
-     if (! Finley_noError()) {
-        Finley_Mesh_free(mesh_p);
+     if (! Dudley_noError()) {
+        Dudley_Mesh_free(mesh_p);
         return NULL;
      }
      /*   resolve id's : */
-     if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
+     if (Dudley_noError()) Dudley_Mesh_resolveNodeIds(mesh_p);
      /* rearrange elements: */
-     if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
+     if (Dudley_noError()) Dudley_Mesh_prepare(mesh_p, optimize);
 	 /* free up memory */
-	 Finley_ReferenceElementSet_dealloc(refPoints);
-	 Finley_ReferenceElementSet_dealloc(refContactElements);
-	 Finley_ReferenceElementSet_dealloc(refFaceElements);
-	 Finley_ReferenceElementSet_dealloc(refElements);
+	 Dudley_ReferenceElementSet_dealloc(refPoints);
+	 Dudley_ReferenceElementSet_dealloc(refContactElements);
+	 Dudley_ReferenceElementSet_dealloc(refFaceElements);
+	 Dudley_ReferenceElementSet_dealloc(refElements);
 	 Paso_MPIInfo_free( mpi_info );
-	 if (! Finley_noError()) {
-        Finley_Mesh_free(mesh_p);
+	 if (! Dudley_noError()) {
+        Dudley_Mesh_free(mesh_p);
         return NULL;
      } else {
 		 return mesh_p;

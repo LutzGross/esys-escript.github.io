@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: generates rectangular meshes  */
+/*   Dudley: generates rectangular meshes  */
 
 /*   Generates a numElements[0] x numElements[1] mesh with first order elements (Rec4) in the rectangle */
 /*   [0,Length[0]] x [0,Length[1]]. order is the desired accuracy of the integration scheme. */
@@ -25,7 +25,7 @@
 #include "RectangularMesh.h"
 
 
-Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
+Dudley_Mesh* Dudley_RectangularMesh_Rec4(dim_t* numElements,
                                           double* Length,
                                           bool_t* periodic,
                                           index_t order, 
@@ -39,18 +39,18 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   dim_t N0,N1,NE0,NE1,i0,i1,k,Nstride0=0,Nstride1=0, local_NE0, local_NE1, local_N0=0, local_N1=0, global_i0, global_i1;
   index_t offset0=0, offset1=0, e_offset0=0, e_offset1=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements,NN;
-  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+  Dudley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   index_t node0, myRank;
-  Finley_Mesh* out;
+  Dudley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
-  #ifdef Finley_TRACE
-  double time0=Finley_timer();
+  #ifdef Dudley_TRACE
+  double time0=Dudley_timer();
   #endif
 
   /* get MPI information */
   mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
-  if (! Finley_noError()) {
+  if (! Dudley_noError()) {
         return NULL;
   }
   myRank=mpi_info->rank;
@@ -64,27 +64,27 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
 
   /*  allocate mesh: */  
   sprintf(name,"Rectangular %d x %d mesh",N0,N1);
-  out=Finley_Mesh_alloc(name,DIM, mpi_info);
-  if (! Finley_noError()) { 
+  out=Dudley_Mesh_alloc(name,DIM, mpi_info);
+  if (! Dudley_noError()) { 
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Finley_ReferenceElementSet_alloc(Rec4,order,reduced_order);
+  refElements= Dudley_ReferenceElementSet_alloc(Rec4,order,reduced_order);
   if (useElementsOnFace) {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Rec4Face, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Rec4Face_Contact, order, reduced_order);
+	  	refFaceElements=Dudley_ReferenceElementSet_alloc(Rec4Face, order, reduced_order);
+		refContactElements=Dudley_ReferenceElementSet_alloc(Rec4Face_Contact, order, reduced_order);
   } else {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Line2, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Line2_Contact, order, reduced_order);
+	  	refFaceElements=Dudley_ReferenceElementSet_alloc(Line2, order, reduced_order);
+		refContactElements=Dudley_ReferenceElementSet_alloc(Line2_Contact, order, reduced_order);
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
   
-  if ( Finley_noError()) {
+  if ( Dudley_noError()) {
   
-	  Finley_Mesh_setPoints(out,Finley_ElementFile_alloc(refPoints, mpi_info));
-	  Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(refContactElements, mpi_info));
-	  Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(refFaceElements, mpi_info));
-	  Finley_Mesh_setElements(out,Finley_ElementFile_alloc(refElements, mpi_info));
+	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(refPoints, mpi_info));
+	  Dudley_Mesh_setContactElements(out,Dudley_ElementFile_alloc(refContactElements, mpi_info));
+	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(refFaceElements, mpi_info));
+	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(refElements, mpi_info));
  
   	/* work out the largest dimension */
 	if (N1==MAX(N0,N1)) {
@@ -126,12 +126,12 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   	/*  allocate tables: */
 
 
-	Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1);
-	Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1);
-	Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+	Dudley_NodeFile_allocTable(out->Nodes,local_N0*local_N1);
+	Dudley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1);
+	Dudley_ElementFile_allocTable(out->FaceElements,NFaceElements);
 
   }
-  if (Finley_noError()) {
+  if (Dudley_noError()) {
      /* create nodes */
      #pragma omp parallel for private(i0,i1,k,global_i0,global_i1)
      for (i1=0;i1<local_N1;i1++) {
@@ -271,26 +271,26 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
         totalNECount+=NE0;
 	 }
   } 
-  if (Finley_noError()) {	 
+  if (Dudley_noError()) {	 
      /* add tag names */
-     Finley_Mesh_addTagMap(out,"top", 20);
-     Finley_Mesh_addTagMap(out,"bottom", 10);
-     Finley_Mesh_addTagMap(out,"left", 1);
-     Finley_Mesh_addTagMap(out,"right", 2);
+     Dudley_Mesh_addTagMap(out,"top", 20);
+     Dudley_Mesh_addTagMap(out,"bottom", 10);
+     Dudley_Mesh_addTagMap(out,"left", 1);
+     Dudley_Mesh_addTagMap(out,"right", 2);
   } 
   /* prepare mesh for further calculatuions:*/
-  if (Finley_noError()) {
-         Finley_Mesh_resolveNodeIds(out);
+  if (Dudley_noError()) {
+         Dudley_Mesh_resolveNodeIds(out);
   }
-  if (Finley_noError()) {
-         Finley_Mesh_prepare(out, optimize);
+  if (Dudley_noError()) {
+         Dudley_Mesh_prepare(out, optimize);
   }
 
   /* free up memory */
-  Finley_ReferenceElementSet_dealloc(refPoints);
-  Finley_ReferenceElementSet_dealloc(refContactElements);
-  Finley_ReferenceElementSet_dealloc(refFaceElements);
-  Finley_ReferenceElementSet_dealloc(refElements);
+  Dudley_ReferenceElementSet_dealloc(refPoints);
+  Dudley_ReferenceElementSet_dealloc(refContactElements);
+  Dudley_ReferenceElementSet_dealloc(refFaceElements);
+  Dudley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
 
   return out;

@@ -17,7 +17,7 @@
 
 /**************************************************************/
 
-/*    Finley finite element solver */
+/*    Dudley finite element solver */
 
 /**************************************************************/
 
@@ -25,44 +25,44 @@
 #include "paso/Paso_MPI.h"
 
 /**************************************************************/
-/*#define Finley_TRACE */
-#define FINLEY_UNKNOWN -1
-#define FINLEY_DEGREES_OF_FREEDOM 1
-#define FINLEY_NODES 3
-#define FINLEY_ELEMENTS 4
-#define FINLEY_FACE_ELEMENTS 5
-#define FINLEY_POINTS 6
-#define FINLEY_CONTACT_ELEMENTS_1 7
-#define FINLEY_CONTACT_ELEMENTS_2 8
-#define FINLEY_REDUCED_DEGREES_OF_FREEDOM 2
-#define FINLEY_REDUCED_NODES 14
-#define FINLEY_REDUCED_ELEMENTS 10
-#define FINLEY_REDUCED_FACE_ELEMENTS 11
-#define FINLEY_REDUCED_CONTACT_ELEMENTS_1 12
-#define FINLEY_REDUCED_CONTACT_ELEMENTS_2 13
+/*#define Dudley_TRACE */
+#define DUDLEY_UNKNOWN -1
+#define DUDLEY_DEGREES_OF_FREEDOM 1
+#define DUDLEY_NODES 3
+#define DUDLEY_ELEMENTS 4
+#define DUDLEY_FACE_ELEMENTS 5
+#define DUDLEY_POINTS 6
+#define DUDLEY_CONTACT_ELEMENTS_1 7
+#define DUDLEY_CONTACT_ELEMENTS_2 8
+#define DUDLEY_REDUCED_DEGREES_OF_FREEDOM 2
+#define DUDLEY_REDUCED_NODES 14
+#define DUDLEY_REDUCED_ELEMENTS 10
+#define DUDLEY_REDUCED_FACE_ELEMENTS 11
+#define DUDLEY_REDUCED_CONTACT_ELEMENTS_1 12
+#define DUDLEY_REDUCED_CONTACT_ELEMENTS_2 13
 
 /* status stuff */
-typedef int Finley_Status_t;
-#define Finley_increaseStatus(self) ((self)->status)++
-#define FINLEY_INITIAL_STATUS 0
+typedef int Dudley_Status_t;
+#define Dudley_increaseStatus(self) ((self)->status)++
+#define DUDLEY_INITIAL_STATUS 0
 
 /* error codes */
 
 
-typedef Paso_ErrorCodeType Finley_ErrorCodeType;
+typedef Paso_ErrorCodeType Dudley_ErrorCodeType;
 
 /* interfaces */
 
-double Finley_timer(void);
-bool_t Finley_checkPtr(void*);
-void Finley_resetError(void);
-void Finley_setError(Finley_ErrorCodeType err,__const char* msg);
-bool_t Finley_noError(void);
-Finley_ErrorCodeType Finley_getErrorType(void);
-char* Finley_getErrorMessage(void);
-void Finley_convertPasoError(void);
-bool_t Finley_MPI_noError( Paso_MPIInfo *mpi_info );
-void Finley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t *numTagsInUse, index_t **tagsInUse, Paso_MPIInfo* mpiinfo);
+double Dudley_timer(void);
+bool_t Dudley_checkPtr(void*);
+void Dudley_resetError(void);
+void Dudley_setError(Dudley_ErrorCodeType err,__const char* msg);
+bool_t Dudley_noError(void);
+Dudley_ErrorCodeType Dudley_getErrorType(void);
+char* Dudley_getErrorMessage(void);
+void Dudley_convertPasoError(void);
+bool_t Dudley_MPI_noError( Paso_MPIInfo *mpi_info );
+void Dudley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t *numTagsInUse, index_t **tagsInUse, Paso_MPIInfo* mpiinfo);
 
 #endif /* #ifndef INC_DUDLEY */
 

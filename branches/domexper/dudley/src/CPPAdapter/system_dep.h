@@ -13,15 +13,15 @@
 
 
 /**
-\file finley/src/CPPAdapter/system_dep.h
+\file dudley/src/CPPAdapter/system_dep.h
 \ingroup Other
  */
 /*
    @(#) system_dep.h
 */
 
-#ifndef finley_system_dep_h
-#define finley_system_dep_h
+#ifndef dudley_system_dep_h
+#define dudley_system_dep_h
 
 #if defined(_WIN32) && defined(__INTEL_COMPILER)
 /*
@@ -38,16 +38,16 @@
 #   include <math.h>
 #endif
 
-#define FINLEY_DLL_API
+#define DUDLEY_DLL_API
 
 #ifdef _WIN32
 
-#   ifndef FINLEY_STATIC_LIB
-#      undef FINLEY_DLL_API
-#      ifdef FINLEY_EXPORTS
-#         define FINLEY_DLL_API __declspec(dllexport)
+#   ifndef DUDLEY_STATIC_LIB
+#      undef DUDLEY_DLL_API
+#      ifdef DUDLEY_EXPORTS
+#         define DUDLEY_DLL_API __declspec(dllexport)
 #      else
-#         define FINLEY_DLL_API __declspec(dllimport)
+#         define DUDLEY_DLL_API __declspec(dllimport)
 #      endif
 #   endif
 #endif

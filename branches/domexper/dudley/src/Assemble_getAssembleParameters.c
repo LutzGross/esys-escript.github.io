@@ -22,19 +22,19 @@
 
 /**************************************************************/
 
-void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, 
+void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
   dim_t  numSub,  numQuadSub;
-  Finley_resetError();
+  Dudley_resetError();
   
   if (!isEmpty(F) && !isExpanded(F) ) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
       return;
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {
     if (! numSamplesEqual(F,1,(Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size)/S->logical_row_block_size)) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows of matrix and length of right hand side don't match.");
       return;
     }
   }
@@ -53,7 +53,7 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
         parm->numComp=S->logical_col_block_size;
      } else {
         if ( getDataPointSize(F)!=S->logical_row_block_size) {
-          Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: matrix row block size and number of components of right hand side don't match.");
+          Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: matrix row block size and number of components of right hand side don't match.");
           return;
         }
         parm->numEqu=S->logical_row_block_size;
@@ -68,42 +68,42 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
       if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } 
       else if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-	   parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
-           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
+           Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
       }
       /* Make sure # cols in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
       if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		   parm->col_DOF=nodes->degreesOfFreedomMapping->target;
-		   parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+		   parm->col_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-           parm->col_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->col_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
-           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
+           Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
       }
   }
-  if (! Finley_noError()) return;
+  if (! Dudley_noError()) return;
   /* get the information from right hand side */
   if (!isEmpty(F)) {
       if (numSamplesEqual(F,1, Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-           parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } 
       else if (numSamplesEqual(F,1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-	   parm->row_jac=Finley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
-           Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
+           Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
       }
       if (S==NULL) {
            parm->col_DOF_UpperBound=parm->row_DOF_UpperBound;
@@ -115,39 +115,39 @@ void Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_ElementFile* e
   numSub=MIN(parm->row_jac->numSub, parm->col_jac->numSub);
   numQuadSub=parm->row_jac->numQuadTotal/numSub;
   if ( parm->row_jac->numSides !=parm->col_jac->numSides) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of sides for row and column shape functions must match.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of sides for row and column shape functions must match.");
   } 
   if ( parm->row_jac->numDim !=parm->col_jac->numDim) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
   
   if (elements->numNodes < parm->row_jac->numShapesTotal) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by row.");  
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by row.");  
   }
   if (elements->numNodes < parm->row_jac->numShapesTotal) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by col.");  
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by col.");  
   }
   if ( parm->row_jac->numElements !=elements->numElements) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for row is wrong.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for row is wrong.");
   }
   if ( parm->col_jac->numElements !=elements->numElements) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for column is wrong.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for column is wrong.");
   }
   if ( parm->row_jac->numQuadTotal !=parm->col_jac->numQuadTotal) {
-      Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
+      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
   }
     /* to consider different basis function for rows and columns this will require some work :*/
   if (numQuadSub * numSub != parm->row_jac->numQuadTotal) {
-     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row is not correct.");
+     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row is not correct.");
   }
   if (numQuadSub  * numSub != parm->row_jac->numQuadTotal) {
-     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters:   number of quadrature points for column is not correct.");
+     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters:   number of quadrature points for column is not correct.");
   }
   if (numQuadSub != parm->row_jac->BasisFunctions->numQuadNodes) {
-     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
+     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
   }
   if (numQuadSub != parm->col_jac->BasisFunctions->numQuadNodes) {
-     Finley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
+     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
   }
   
   parm->numQuadSub=numQuadSub;

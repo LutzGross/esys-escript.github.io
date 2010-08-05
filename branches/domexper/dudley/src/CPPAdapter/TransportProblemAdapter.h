@@ -21,8 +21,8 @@ extern "C" {
 #include "paso/Options.h"
 }
 
-#include "FinleyAdapterException.h"
-#include "FinleyError.h"
+#include "DudleyAdapterException.h"
+#include "DudleyError.h"
 
 #include "escript/AbstractTransportProblem.h"
 #include "escript/Data.h"
@@ -51,14 +51,14 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
      Default Constructor for TransportProblemAdapter.
      NB: Only throws an exception.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   TransportProblemAdapter();
 
   /**
      /brief
      Constructor for TransportProblemAdapter.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   TransportProblemAdapter(Paso_TransportProblem* transport_problem,
                           const bool useBackwardEuler,
                           const int block_size,
@@ -69,14 +69,14 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
      Destructor for TransportProblemAdapter. As specified in the constructor
      this deallocates the pointer given to the constructor.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   ~TransportProblemAdapter();
 
   /**
      \brief
      Returns the pointer to the transport problem.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   Paso_TransportProblem* getPaso_TransportProblem() const;
 
   /**
@@ -100,19 +100,19 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
   /**
   *      \brief resets the transport operator typically as they have been updated.
   *        */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   virtual void resetTransport() const;
 
   /**
   *      \brief returns a save time step size.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   virtual double getSafeTimeStepSize() const;
 
   /**
   *      \brief \brief returns the value for unlimited time step size.
   */
-  FINLEY_DLL_API
+  DUDLEY_DLL_API
   virtual double getUnlimitedTimeStepSize() const;
 
  protected:
@@ -123,7 +123,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *      \brief
     *           sets solution out by time step dt.
     *             */
-    FINLEY_DLL_API
+    DUDLEY_DLL_API
     virtual void setToSolution(escript::Data& out,escript::Data& u0, escript::Data& source,const double dt, boost::python::object& options) const;
    
 
@@ -132,12 +132,12 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
     *           copy constraint u_{,t}=r where q>0  into the problem 
     *            it is assumed that q and r are not empty and has appropriate shape and function space.
     *                       */
-    FINLEY_DLL_API
+    DUDLEY_DLL_API
     virtual void copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const;
 
 
    //
-   // pointer to the externally created finley mesh - transport_problem.
+   // pointer to the externally created dudley mesh - transport_problem.
    //
    boost::shared_ptr<Paso_TransportProblem> m_transport_problem;
 

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 /*                                                             */
-/*   Finley: Mesh : NodeFile */
+/*   Dudley: Mesh : NodeFile */
 /*                                                             */
 /*   allocates and freeates node files                      */
 /*                                                             */
@@ -25,16 +25,16 @@
 /**************************************************************/
 
 /*   allocates a node file to hold nodes */
-/*   use Finley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
+/*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
 
-Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
+Dudley_NodeFile* Dudley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
 {
-  Finley_NodeFile *out;
+  Dudley_NodeFile *out;
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_NodeFile);
-  if (Finley_checkPtr(out)) return NULL;
+  out=MEMALLOC(1,Dudley_NodeFile);
+  if (Dudley_checkPtr(out)) return NULL;
   out->numNodes=0;
   out->numDim=numDim;
   out->numTagsInUse=0;
@@ -42,7 +42,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   out->globalDegreesOfFreedom=NULL;
   out->Tag=NULL;
   out->Coordinates=NULL;
-  out->status=FINLEY_INITIAL_STATUS;
+  out->status=DUDLEY_INITIAL_STATUS;
 
   out->nodesMapping=NULL;
   out->reducedNodesMapping=NULL;
@@ -69,22 +69,22 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
 
 /*  frees a node file: */
 
-void Finley_NodeFile_free(Finley_NodeFile* in) {
+void Dudley_NodeFile_free(Dudley_NodeFile* in) {
   if (in!=NULL) {
-     Finley_NodeFile_freeTable(in);
+     Dudley_NodeFile_freeTable(in);
      Paso_MPIInfo_free( in->MPIInfo );
      MEMFREE(in);      
   }
 }
 
-index_t Finley_NodeFile_getFirstReducedNode(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile* in) {
   if (in!=NULL) {
     return Paso_Distribution_getFirstComponent(in->reducedNodesDistribution);
   } else {
     return 0;
   }
 }
-index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in){
+index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile* in){
   if (in!=NULL) {
     return Paso_Distribution_getLastComponent(in->reducedNodesDistribution);
   } else {
@@ -93,7 +93,7 @@ index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in){
 
 }
 
-dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in){
+dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile* in){
   if (in!=NULL) {
     return Paso_Distribution_getGlobalNumComponents(in->reducedNodesDistribution);
   } else {
@@ -101,21 +101,21 @@ dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in){
   }
 
 }
-index_t* Finley_NodeFile_borrowGlobalReducedNodesIndex(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowGlobalReducedNodesIndex(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->globalReducedNodesIndex;
   } else {
     return NULL;
   }
 }
-index_t Finley_NodeFile_getFirstNode(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_getFirstNode(Dudley_NodeFile* in) {
   if (in!=NULL) {
     return Paso_Distribution_getFirstComponent(in->nodesDistribution);
   } else {
     return 0;
   }
 }
-index_t Finley_NodeFile_getLastNode(Finley_NodeFile* in){
+index_t Dudley_NodeFile_getLastNode(Dudley_NodeFile* in){
   if (in!=NULL) {
     return Paso_Distribution_getLastComponent(in->nodesDistribution);
   } else {
@@ -123,7 +123,7 @@ index_t Finley_NodeFile_getLastNode(Finley_NodeFile* in){
   }
 
 }
-dim_t Finley_NodeFile_getGlobalNumNodes(Finley_NodeFile* in){
+dim_t Dudley_NodeFile_getGlobalNumNodes(Dudley_NodeFile* in){
   if (in!=NULL) {
     return Paso_Distribution_getGlobalNumComponents(in->nodesDistribution);
   } else {
@@ -131,7 +131,7 @@ dim_t Finley_NodeFile_getGlobalNumNodes(Finley_NodeFile* in){
   }
 
 }
-index_t* Finley_NodeFile_borrowGlobalNodesIndex(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowGlobalNodesIndex(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->globalNodesIndex;
   } else {
@@ -139,7 +139,7 @@ index_t* Finley_NodeFile_borrowGlobalNodesIndex(Finley_NodeFile* in){
   }
 }
 
-dim_t Finley_NodeFile_getNumReducedNodes(Finley_NodeFile* in) {
+dim_t Dudley_NodeFile_getNumReducedNodes(Dudley_NodeFile* in) {
   if (in!=NULL) {
        return in->reducedNodesMapping->numTargets;
   } else {
@@ -147,21 +147,21 @@ dim_t Finley_NodeFile_getNumReducedNodes(Finley_NodeFile* in) {
   }
 
 }
-dim_t Finley_NodeFile_getNumDegreesOfFreedom(Finley_NodeFile* in) {
+dim_t Dudley_NodeFile_getNumDegreesOfFreedom(Dudley_NodeFile* in) {
   if (in!=NULL) {
       return Paso_Distribution_getMyNumComponents(in->degreesOfFreedomDistribution);
   } else {
     return 0;
   }
 }
-dim_t Finley_NodeFile_getNumNodes(Finley_NodeFile* in) {
+dim_t Dudley_NodeFile_getNumNodes(Dudley_NodeFile* in) {
   if (in!=NULL) {
         return in->nodesMapping->numNodes;
   } else {
     return 0;
   }
 }
-dim_t Finley_NodeFile_getNumReducedDegreesOfFreedom(Finley_NodeFile* in) {
+dim_t Dudley_NodeFile_getNumReducedDegreesOfFreedom(Dudley_NodeFile* in) {
   if (in!=NULL) {
       return Paso_Distribution_getMyNumComponents(in->reducedDegreesOfFreedomDistribution);
   } else {
@@ -170,7 +170,7 @@ dim_t Finley_NodeFile_getNumReducedDegreesOfFreedom(Finley_NodeFile* in) {
 }
 
 
-index_t* Finley_NodeFile_borrowTargetReducedNodes(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowTargetReducedNodes(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->reducedNodesMapping->target;
   } else {
@@ -178,7 +178,7 @@ index_t* Finley_NodeFile_borrowTargetReducedNodes(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowTargetDegreesOfFreedom(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowTargetDegreesOfFreedom(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->degreesOfFreedomMapping->target;
   } else {
@@ -186,7 +186,7 @@ index_t* Finley_NodeFile_borrowTargetDegreesOfFreedom(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowTargetNodes(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowTargetNodes(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->nodesMapping->target;
   } else {
@@ -194,7 +194,7 @@ index_t* Finley_NodeFile_borrowTargetNodes(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->reducedDegreesOfFreedomMapping->target;
   } else {
@@ -202,7 +202,7 @@ index_t* Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(Finley_NodeFile* in
   }
 }
 
-index_t* Finley_NodeFile_borrowReducedNodesTarget(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowReducedNodesTarget(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->reducedNodesMapping->map;
   } else {
@@ -210,7 +210,7 @@ index_t* Finley_NodeFile_borrowReducedNodesTarget(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowDegreesOfFreedomTarget(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowDegreesOfFreedomTarget(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->degreesOfFreedomMapping->map;
   } else {
@@ -218,7 +218,7 @@ index_t* Finley_NodeFile_borrowDegreesOfFreedomTarget(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowNodesTarget(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowNodesTarget(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->nodesMapping->map;
   } else {
@@ -226,7 +226,7 @@ index_t* Finley_NodeFile_borrowNodesTarget(Finley_NodeFile* in){
   }
 }
 
-index_t* Finley_NodeFile_borrowReducedDegreesOfFreedomTarget(Finley_NodeFile* in){
+index_t* Dudley_NodeFile_borrowReducedDegreesOfFreedomTarget(Dudley_NodeFile* in){
   if (in!=NULL) {
     return in->reducedDegreesOfFreedomMapping->map;
   } else {

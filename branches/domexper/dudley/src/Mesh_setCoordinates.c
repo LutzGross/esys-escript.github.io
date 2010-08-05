@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: sets new coordinates for nodes */
+/*   Dudley: Mesh: sets new coordinates for nodes */
 
 /**************************************************************/
 
@@ -23,8 +23,8 @@
 /**************************************************************/
 
 
-void Finley_Mesh_setCoordinates(Finley_Mesh* self,escriptDataC* newX) {
-  Finley_NodeFile_setCoordinates(self->Nodes,newX);
+void Dudley_Mesh_setCoordinates(Dudley_Mesh* self,escriptDataC* newX) {
+  Dudley_NodeFile_setCoordinates(self->Nodes,newX);
 }
 /*
 * $Log$

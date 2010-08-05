@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: NodeFile */
+/*   Dudley: Mesh: NodeFile */
 
 /*   returns the maximum and minimum node id number of nodes: */
 
@@ -26,14 +26,14 @@
 /**************************************************************/
 
 
-void Finley_NodeFile_setGlobalIdRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+void Dudley_NodeFile_setGlobalIdRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
    index_t min_id_local, max_id_local;
    #ifdef PASO_MPI
    index_t global_id_range[2], id_range[2];
    #endif
 
-   min_id_local=Finley_Util_getMinInt(1,in->numNodes,in->Id);
-   max_id_local=Finley_Util_getMaxInt(1,in->numNodes,in->Id);
+   min_id_local=Dudley_Util_getMinInt(1,in->numNodes,in->Id);
+   max_id_local=Dudley_Util_getMaxInt(1,in->numNodes,in->Id);
 
    #ifdef PASO_MPI
    id_range[0]=-min_id_local;
@@ -51,22 +51,22 @@ void Finley_NodeFile_setGlobalIdRange(index_t* min_id,index_t* max_id,Finley_Nod
    }
 }
 
-void Finley_NodeFile_setIdRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
-   *min_id=Finley_Util_getMinInt(1,in->numNodes,in->Id);
-   *max_id=Finley_Util_getMaxInt(1,in->numNodes,in->Id);
+void Dudley_NodeFile_setIdRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
+   *min_id=Dudley_Util_getMinInt(1,in->numNodes,in->Id);
+   *max_id=Dudley_Util_getMaxInt(1,in->numNodes,in->Id);
    if (*max_id <*min_id) {
        *max_id=0;
        *min_id=-1;
    }
 }
-void Finley_NodeFile_setGlobalDOFRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+void Dudley_NodeFile_setGlobalDOFRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
    index_t min_id_local, max_id_local;
    #ifdef PASO_MPI
    index_t global_id_range[2], id_range[2];
    #endif
 
-   min_id_local=Finley_Util_getMinInt(1,in->numNodes,in->globalDegreesOfFreedom);
-   max_id_local=Finley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
+   min_id_local=Dudley_Util_getMinInt(1,in->numNodes,in->globalDegreesOfFreedom);
+   max_id_local=Dudley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
 
    #ifdef PASO_MPI
    id_range[0]=-min_id_local;
@@ -84,17 +84,17 @@ void Finley_NodeFile_setGlobalDOFRange(index_t* min_id,index_t* max_id,Finley_No
    }
 }
 
-void Finley_NodeFile_setDOFRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
-   *min_id=Finley_Util_getMinInt(1,in->numNodes,in->globalDegreesOfFreedom);
-   *max_id=Finley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
+void Dudley_NodeFile_setDOFRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
+   *min_id=Dudley_Util_getMinInt(1,in->numNodes,in->globalDegreesOfFreedom);
+   *max_id=Dudley_Util_getMaxInt(1,in->numNodes,in->globalDegreesOfFreedom);
    if (*max_id <*min_id) {
        *max_id=0;
        *min_id=-1;
    }
 }
-void Finley_NodeFile_setReducedDOFRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
-   *min_id=Finley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
-   *max_id=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+void Dudley_NodeFile_setReducedDOFRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
+   *min_id=Dudley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+   *max_id=Dudley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
    if (*max_id <*min_id) {
        *max_id=0;
        *min_id=-1;
@@ -102,26 +102,26 @@ void Finley_NodeFile_setReducedDOFRange(index_t* min_id,index_t* max_id,Finley_N
 }
 
 
-index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_maxGlobalDegreeOfFreedomIndex(Dudley_NodeFile* in) {
   index_t min_id,max_id;
-  Finley_NodeFile_setGlobalDOFRange(&min_id,&max_id,in);
+  Dudley_NodeFile_setGlobalDOFRange(&min_id,&max_id,in);
   return max_id;
 }
 
-index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Dudley_NodeFile* in) {
   index_t min_id,max_id;
-  Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(&min_id,&max_id,in);
+  Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(&min_id,&max_id,in);
   return max_id;
 }
 
-void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+void Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
    index_t min_id_local, max_id_local;
    #ifdef PASO_MPI
    index_t global_id_range[2], id_range[2];
    #endif
 
-   min_id_local=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
-   max_id_local=Finley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+   min_id_local=Dudley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
+   max_id_local=Dudley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedDOFIndex,-1);
 
    #ifdef PASO_MPI
    id_range[0]=-min_id_local;
@@ -139,20 +139,20 @@ void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_
    }
 }
 
-index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_maxGlobalNodeIDIndex(Dudley_NodeFile* in) {
   index_t min_id,max_id;
-  Finley_NodeFile_setGlobalNodeIDIndexRange(&min_id,&max_id,in);
+  Dudley_NodeFile_setGlobalNodeIDIndexRange(&min_id,&max_id,in);
   return max_id;
 }
 
-void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
    index_t min_id_local, max_id_local;
    #ifdef PASO_MPI
    index_t global_id_range[2], id_range[2];
    #endif
 
-   max_id_local=Finley_Util_getMaxInt(1,in->numNodes,in->globalNodesIndex);
-   min_id_local=Finley_Util_getMinInt(1,in->numNodes,in->globalNodesIndex);
+   max_id_local=Dudley_Util_getMaxInt(1,in->numNodes,in->globalNodesIndex);
+   min_id_local=Dudley_Util_getMinInt(1,in->numNodes,in->globalNodesIndex);
 
    #ifdef PASO_MPI
    id_range[0]=-min_id_local;
@@ -170,20 +170,20 @@ void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,F
    }
 }
 
-index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in) {
+index_t Dudley_NodeFile_maxGlobalReducedNodeIDIndex(Dudley_NodeFile* in) {
   index_t min_id,max_id;
-  Finley_NodeFile_setGlobalReducedNodeIDIndexRange(&min_id,&max_id,in);
+  Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(&min_id,&max_id,in);
   return max_id;
 }
 
-void Finley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in) {
+void Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Dudley_NodeFile* in) {
    index_t min_id_local, max_id_local;
    #ifdef PASO_MPI
    index_t global_id_range[2], id_range[2];
    #endif
 
-   max_id_local=Finley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedNodesIndex,-1);
-   min_id_local=Finley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedNodesIndex,-1);
+   max_id_local=Dudley_Util_getFlaggedMaxInt(1,in->numNodes,in->globalReducedNodesIndex,-1);
+   min_id_local=Dudley_Util_getFlaggedMinInt(1,in->numNodes,in->globalReducedNodesIndex,-1);
 
    #ifdef PASO_MPI
    id_range[0]=-min_id_local;

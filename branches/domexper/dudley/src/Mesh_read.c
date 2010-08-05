@@ -14,37 +14,37 @@
 
 /**************************************************************/
 
-/*   Finley: read mesh */
+/*   Dudley: read mesh */
 
 /**************************************************************/
 
 #include <ctype.h>
 #include "Mesh.h"
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
+#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Dudley_setError(IO_ERROR,"scan error while reading dudley file"); return NULL;} }
 
 
-Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize)
+Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize)
 {
     Paso_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;
-    Finley_Mesh *mesh_p=NULL;
-    Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+    Dudley_Mesh *mesh_p=NULL;
+    Dudley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
     ElementTypeId typeID=NoRef;
     int scan_ret;
 
-    Finley_resetError();
+    Dudley_resetError();
     mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
 
     if (mpi_info->rank == 0) {
         /* get file handle */
         fileHandle_p = fopen(fname, "r");
         if (fileHandle_p==NULL) {
-            sprintf(error_msg,"Finley_Mesh_read: Opening file %s for reading failed.",fname);
-            Finley_setError(IO_ERROR,error_msg);
+            sprintf(error_msg,"Dudley_Mesh_read: Opening file %s for reading failed.",fname);
+            Dudley_setError(IO_ERROR,error_msg);
             Paso_MPIInfo_free( mpi_info );
             return NULL;
         }
@@ -52,11 +52,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         /* read header */
         sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
         scan_ret = fscanf(fileHandle_p, frm, name);
-        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+        FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 
         /* get the number of nodes */
         scan_ret = fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
-        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+        FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
     }
 
     #ifdef PASO_MPI
@@ -80,9 +80,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     #endif
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
+    mesh_p = Dudley_Mesh_alloc(name,numDim,mpi_info);
 	
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 		/* Each CPU will get at most chunkSize nodes so the message has to be sufficiently large */
 		int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0,  nextCPU=1;
 		int *tempInts = TMPMEMALLOC(chunkSize*3+1, index_t);        /* Stores the integer message data */
@@ -111,25 +111,25 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 						scan_ret = fscanf(fileHandle_p, "%d %d %d %le\n",
 											&tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
 											&tempCoords[i1*numDim+0]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					if (2 == numDim) {
 						scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le\n",
 											&tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
 											&tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					if (3 == numDim) {
 						scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le %le\n",
 											&tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
 											&tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1], &tempCoords[i1*numDim+2]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					totalNodes++; /* When do we quit the infinite loop? */
 					chunkNodes++; /* How many nodes do we actually have in this chunk? It may be smaller than chunkSize. */
 				}
 				if (chunkNodes > chunkSize) {
-					Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: error reading chunks of mesh, data too large for message size");
+					Dudley_setError(PASO_MPI_ERROR, "Dudley_Mesh_read: error reading chunks of mesh, data too large for message size");
 					return NULL;
 				}
 				#ifdef PASO_MPI
@@ -156,9 +156,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}   /* Worker */
 
 		/* Copy node data from tempMem to mesh_p */
-        Finley_NodeFile_allocTable(mesh_p->Nodes, chunkNodes);
+        Dudley_NodeFile_allocTable(mesh_p->Nodes, chunkNodes);
         
-		if (Finley_noError()) {
+		if (Dudley_noError()) {
 			#pragma omp parallel for private (i0, i1) schedule(static)
 			for (i0=0; i0<chunkNodes; i0++) {
 				mesh_p->Nodes->Id[i0]               = tempInts[0+i0];
@@ -174,13 +174,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	}
 
 	/* ***********************************  read elements ******************************************************************/
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 
 		/* Read the element typeID */
 		if (mpi_info->rank == 0) {
 			scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+			FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
+            typeID=Dudley_ReferenceElement_getTypeId(element_type);
 		}
 		#ifdef PASO_MPI
 			if (mpi_info->size > 1) {
@@ -189,7 +189,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				temp1[1] = numEle;
 				mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
 				if (mpi_error != MPI_SUCCESS) {
-					Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
+					Dudley_setError(PASO_MPI_ERROR, "Dudley_Mesh_read: broadcast of Element typeID failed");
 					return NULL;
 				}
 				typeID = (ElementTypeId) temp1[0];
@@ -197,20 +197,20 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 		#endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
+            Dudley_setError(VALUE_ERROR, error_msg);
           }
     }
 
     /* Allocate the ElementFile */
-	if (Finley_noError()) {
-		refElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-		mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
+	if (Dudley_noError()) {
+		refElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+		mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
 		numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
 
     /* *************************** Read the element data *******************************************************************/
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
 		int *tempInts = TMPMEMALLOC(chunkSize*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
@@ -224,13 +224,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				for (i0=0; i0<chunkSize; i0++) {
 					if (totalEle >= numEle) break; /* End inner loop */
 					scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					for (i1 = 0; i1 < numNodes; i1++) {
 						scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					scan_ret = fscanf(fileHandle_p, "\n");
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					totalEle++;
 					chunkEle++;
 				}
@@ -256,11 +256,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}   /* Worker */
 
 		
-		Finley_ElementFile_allocTable(mesh_p->Elements, chunkEle);
+		Dudley_ElementFile_allocTable(mesh_p->Elements, chunkEle);
 
 	
 		/* Copy Element data from tempInts to mesh_p */
-		if (Finley_noError()) {
+		if (Dudley_noError()) {
 
 			mesh_p->Elements->minColor=0;
 			mesh_p->Elements->maxColor=chunkEle-1;
@@ -281,13 +281,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	/* ******************** end of Read the element data ******************************************************/
 
     /* ********************* read face elements ***************************************************************/
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 		/* Read the element typeID */
 
 		if (mpi_info->rank == 0) {
        	     scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-			 FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-			 typeID=Finley_ReferenceElement_getTypeId(element_type);
+			 FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
+			 typeID=Dudley_ReferenceElement_getTypeId(element_type);
 		}
 		#ifdef PASO_MPI
 			if (mpi_info->size > 1) {
@@ -300,13 +300,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 		#endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
+            Dudley_setError(VALUE_ERROR, error_msg);
         }
-		if (Finley_noError()) {
+		if (Dudley_noError()) {
 			/* Allocate the ElementFile */
-			refFaceElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-			mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
+			refFaceElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+			mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
 			numNodes = mesh_p->FaceElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 		}
 
@@ -314,7 +314,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     /* ********************** Read the face element data ********************************************************* */
 
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
     	int *tempInts = TMPMEMALLOC(chunkSize*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
 		/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
@@ -327,13 +327,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				for (i0=0; i0<chunkSize; i0++) {
 					if (totalEle >= numEle) break; /* End inner loop */
 					scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					for (i1 = 0; i1 < numNodes; i1++) {
 						scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					scan_ret = fscanf(fileHandle_p, "\n");
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					totalEle++;
 					chunkEle++;
 				}
@@ -358,9 +358,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				#endif
 		}   /* Worker */
 		
-		Finley_ElementFile_allocTable(mesh_p->FaceElements, chunkEle);
+		Dudley_ElementFile_allocTable(mesh_p->FaceElements, chunkEle);
 		
-		if (Finley_noError()) {
+		if (Dudley_noError()) {
 			/* Copy Element data from tempInts to mesh_p */
 			
         	mesh_p->FaceElements->minColor=0;
@@ -385,11 +385,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	/* ************************************* read contact elements ************************************************** */
 
     /* Read the element typeID */
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 		if (mpi_info->rank == 0) {
 			scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+			FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
+            typeID=Dudley_ReferenceElement_getTypeId(element_type);
 		}
 		#ifdef PASO_MPI
 	  		if (mpi_info->size > 1) {
@@ -402,19 +402,19 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 		#endif
         if (typeID==NoRef) {
-			sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+			sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
+            Dudley_setError(VALUE_ERROR, error_msg);
          }
     }
 
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 		/* Allocate the ElementFile */
-		refContactElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-		mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
+		refContactElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+		mesh_p->ContactElements=Dudley_ElementFile_alloc(refContactElements, mpi_info);
         numNodes = mesh_p->ContactElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
     /* *************************** Read the contact element data ************************************************* */
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
 		int *tempInts = TMPMEMALLOC(chunkSize*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
 		/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
@@ -427,13 +427,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				for (i0=0; i0<chunkSize; i0++) {
 					if (totalEle >= numEle) break; /* End inner loop */
 					scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					for (i1 = 0; i1 < numNodes; i1++) {
 						scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					scan_ret = fscanf(fileHandle_p, "\n");
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					totalEle++;
 					chunkEle++;
 				}
@@ -459,9 +459,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}   /* Worker */
 
 		/* Copy Element data from tempInts to mesh_p */
-   		 Finley_ElementFile_allocTable(mesh_p->ContactElements, chunkEle);
+   		 Dudley_ElementFile_allocTable(mesh_p->ContactElements, chunkEle);
 		 
-		 if (Finley_noError()) {		 
+		 if (Dudley_noError()) {		 
 			 mesh_p->ContactElements->minColor=0;
 			 mesh_p->ContactElements->maxColor=chunkEle-1;
 			 #pragma omp parallel for private (i0, i1)
@@ -482,11 +482,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     /* *******************************  Read the element typeID */
 
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 		if (mpi_info->rank == 0) {
 			scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+			FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
+            typeID=Dudley_ReferenceElement_getTypeId(element_type);
 		}
 		#ifdef PASO_MPI
 			if (mpi_info->size > 1) {
@@ -499,20 +499,20 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 		#endif
         if (typeID==NoRef) {
-			sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+			sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
+            Dudley_setError(VALUE_ERROR, error_msg);
          }
     }
 
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
 		/* Allocate the ElementFile */
-		refPoints= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-		mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
+		refPoints= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+		mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
 		numNodes = mesh_p->Points->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
 
 	/**********************************  Read the nodal element data **************************************************/
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
 		int *tempInts = TMPMEMALLOC(chunkSize*(2+numNodes)+1, index_t); /* Store Id + Tag + node list (+ one int at end for chunkEle) */
 		/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
@@ -525,13 +525,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				for (i0=0; i0<chunkSize; i0++) {
 					if (totalEle >= numEle) break; /* End inner loop */
 					scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					for (i1 = 0; i1 < numNodes; i1++) {
 						scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					}
 					scan_ret = fscanf(fileHandle_p, "\n");
-					FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+					FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 					totalEle++;
 					chunkEle++;
 				}
@@ -557,9 +557,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}   /* Worker */
 
 		/* Copy Element data from tempInts to mesh_p */
-		Finley_ElementFile_allocTable(mesh_p->Points, chunkEle);
+		Dudley_ElementFile_allocTable(mesh_p->Points, chunkEle);
         
-		if (Finley_noError()) {
+		if (Dudley_noError()) {
 			mesh_p->Points->minColor=0;
 			mesh_p->Points->maxColor=chunkEle-1;
 			#pragma omp parallel for private (i0, i1) schedule(static)
@@ -579,7 +579,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
 	
 	/******************  get the name tags *****************************************/
-	if (Finley_noError()) {
+	if (Dudley_noError()) {
         char *remainder=0, *ptr;
         size_t len=0;
 		#ifdef PASO_MPI
@@ -590,7 +590,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			/* Read the word 'Tag' */
 			if (! feof(fileHandle_p)) {
 				scan_ret = fscanf(fileHandle_p, "%s\n", name);
-				FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+				FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 			}
 
 			#if defined(_WIN32)  /* windows ftell lies on unix formatted text files */
@@ -635,7 +635,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 						scan_ret = fread(remainder, (size_t) end_pos-cur_pos,
                         			         sizeof(char), fileHandle_p);
 
-						FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+						FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
 						remainder[end_pos-cur_pos] = 0;
 					}
 				}
@@ -656,14 +656,14 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 			if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
 				   	MPI_SUCCESS)
-				Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of remainder failed");
+				Dudley_setError(PASO_MPI_ERROR, "Dudley_Mesh_read: broadcast of remainder failed");
 		#endif
 
 		if (remainder[0]) {
 			ptr = remainder;
 			do {
 				sscanf(ptr, "%s %d\n", name, &tag_key);
-				if (*name) Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+				if (*name) Dudley_Mesh_addTagMap(mesh_p,name,tag_key);
 				ptr++;
 			} while(NULL != (ptr = strchr(ptr, '\n')) && *ptr);
 		}
@@ -676,18 +676,18 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
 	/*   resolve id's : */
 	/* rearrange elements: */
-	if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
-	if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
+	if (Dudley_noError()) Dudley_Mesh_resolveNodeIds(mesh_p);
+	if (Dudley_noError()) Dudley_Mesh_prepare(mesh_p, optimize);
 
 	/* that's it */
-	if (! Finley_noError()) {
-		Finley_Mesh_free(mesh_p);
+	if (! Dudley_noError()) {
+		Dudley_Mesh_free(mesh_p);
 	}
 	/* free up memory */
-	Finley_ReferenceElementSet_dealloc(refPoints);
-	Finley_ReferenceElementSet_dealloc(refContactElements);
-	Finley_ReferenceElementSet_dealloc(refFaceElements);
-	Finley_ReferenceElementSet_dealloc(refElements);
+	Dudley_ReferenceElementSet_dealloc(refPoints);
+	Dudley_ReferenceElementSet_dealloc(refContactElements);
+	Dudley_ReferenceElementSet_dealloc(refFaceElements);
+	Dudley_ReferenceElementSet_dealloc(refElements);
 	Paso_MPIInfo_free( mpi_info );
 	return mesh_p;
 }

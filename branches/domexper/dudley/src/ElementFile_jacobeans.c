@@ -21,14 +21,14 @@
 
 /**************************************************************/
 
-Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_ShapeFunction* BasisFunctions)
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFunction* BasisFunctions)
 {
-  Finley_ElementFile_Jacobeans* out=MEMALLOC(1,Finley_ElementFile_Jacobeans);
-  if (Finley_checkPtr(out)) {
+  Dudley_ElementFile_Jacobeans* out=MEMALLOC(1,Dudley_ElementFile_Jacobeans);
+  if (Dudley_checkPtr(out)) {
      return NULL;
   } else {
-     out->status=FINLEY_INITIAL_STATUS-1;
-     out->BasisFunctions=Finley_ShapeFunction_reference(BasisFunctions);
+     out->status=DUDLEY_INITIAL_STATUS-1;
+     out->BasisFunctions=Dudley_ShapeFunction_reference(BasisFunctions);
 	 out->numDim=0;
 	 out->numQuadTotal=0;
 	 out->numElements=0;
@@ -40,10 +40,10 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_ShapeFun
 
 /**************************************************************/
 
-void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans* in)
+void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans* in)
 {
   if (in!=NULL) {
-	Finley_ShapeFunction_dealloc(in->BasisFunctions);  
+	Dudley_ShapeFunction_dealloc(in->BasisFunctions);  
     MEMFREE(in->volume);
     MEMFREE(in->DSDX);
     MEMFREE(in);
@@ -53,11 +53,11 @@ void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans* in)
 /**************************************************************/
 
 
-Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile* self, Finley_NodeFile* nodes, 
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile* self, Dudley_NodeFile* nodes, 
                                                                  bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
-  Finley_ElementFile_Jacobeans *out = NULL;
-  Finley_ShapeFunction *shape=NULL, *basis;
-  Finley_ReferenceElement*  refElement=NULL;
+  Dudley_ElementFile_Jacobeans *out = NULL;
+  Dudley_ShapeFunction *shape=NULL, *basis;
+  Dudley_ReferenceElement*  refElement=NULL;
   double *dBdv;
   
   dim_t numNodes=self->numNodes;
@@ -78,8 +78,8 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
   if (out->status < nodes->status) {
     
      basis=out->BasisFunctions;
-     shape=Finley_ReferenceElementSet_borrowParametrization(self->referenceElementSet, reducedIntegrationOrder);
-     refElement= Finley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet, reducedIntegrationOrder);
+     shape=Dudley_ReferenceElementSet_borrowParametrization(self->referenceElementSet, reducedIntegrationOrder);
+     refElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet, reducedIntegrationOrder);
 
      out->numDim=nodes->numDim;
      out->numQuadTotal=shape->numQuadNodes; 
@@ -100,11 +100,11 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
      }
      
      if (out->numQuadTotal != out->numSub * basis->numQuadNodes) {
-        Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
+        Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
         return NULL;
      }
      if (refElement->numNodes> numNodes) {
-           Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: Too many nodes expected.");
+           Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Too many nodes expected.");
            return NULL;
      }
 
@@ -113,11 +113,11 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                             *(out->numShapesTotal)
                                             *(out->numDim)
                                             *(out->numQuadTotal),double);
-     if (! (Finley_checkPtr(out->volume) || Finley_checkPtr(out->DSDX)) ) {
+     if (! (Dudley_checkPtr(out->volume) || Dudley_checkPtr(out->DSDX)) ) {
           /*========================== dim = 1 ============================================== */
           if (out->numDim==1) {
              if (refElement->numLocalDim==0) {
-		  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
+		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
                   if (out->numSides==2) {
 				       Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
@@ -125,15 +125,15 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                             shape->dSdv,basis->Type->numShapes,dBdv, out->DSDX,out->volume,self->Id);
 
                   } else {
-                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D supports one sided elements only.");
+                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 1D supports one sided elements only.");
                   }
              } else {
-                  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
+                  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
              }
           /*========================== dim = 2 ============================================== */
           } else if (out->numDim==2) {
              if (refElement->numLocalDim==0) {
-				 Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
+				 Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
                   if (out->BasisFunctions->Type->numDim==2) {
                      if (out->numSides==1) {
@@ -147,7 +147,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
                      } else {
-                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
+                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
                       }
                   }  else if (out->BasisFunctions->Type->numDim==1) {
                      if (out->numSides==1) {
@@ -161,10 +161,10 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
                      } else {
-                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
+                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
                       }
                   } else {
-                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
+                    Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
                   }
              } else if (refElement->numLocalDim==2) {
                   if (out->numSides==1) {
@@ -173,16 +173,16 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);
                   } else {
-                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D volume supports one sided elements only.");
+                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D volume supports one sided elements only.");
                   }
 
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
+               Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
              }
           /*========================== dim = 3 ============================================== */
           } else if (out->numDim==3) {
              if (refElement->numLocalDim==0) {
-		  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D does not support local dimension 0.");
+		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D does not support local dimension 0.");
              } else if (refElement->numLocalDim==2) {
                   if (out->BasisFunctions->Type->numDim==3) {
                      if (out->numSides==1) {
@@ -196,7 +196,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
                      } else {
-                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
+                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
                       }
                   }  else if (out->BasisFunctions->Type->numDim==2) {
                      if (out->numSides==1) {
@@ -210,10 +210,10 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
                      } else {
-                          Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
+                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
                       }
                   } else {
-                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
+                    Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
                   }
              } else if (refElement->numLocalDim==3) {
                   if (out->numSides==1) {
@@ -222,16 +222,16 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);
                   } else {
-                      Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D volume supports one sided elements only..");
+                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D volume supports one sided elements only..");
                   }
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
+               Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
              }
           } else {
-            Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: spatial dimension has to be 1, 2 or 3.");
+            Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: spatial dimension has to be 1, 2 or 3.");
           }
      }
-     if (Finley_noError()) {
+     if (Dudley_noError()) {
          out->status = nodes->status;
      } else {
          out=NULL;

@@ -28,7 +28,7 @@
 
 /*   returns true if any of the values in the short array values is not equalt to Zero */
 
-bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
+bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double* values) {
    dim_t q;
    for (q=0;q<N;++q) if (ABS(values[q])>0) return TRUE;
    return FALSE;
@@ -39,7 +39,7 @@ bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
 
-void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in, double * out){
+void Dudley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in, double * out){
     dim_t s,i;
     for (s=0;s<len;s++) {
        for (i=0;i<numData;i++) {
@@ -55,7 +55,7 @@ void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
 
-void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in, index_t * out){
+void Dudley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in, index_t * out){
     dim_t s,i;
     for (s=0;s<len;s++) {
        for (i=0;i<numData;i++) {
@@ -71,7 +71,7 @@ void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in,
 /*        out(1:numData,index[p])+=in(1:numData,p) where p = {k=1...len , index[k]<upperBound}*/
 
 
-void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
+void Dudley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
    dim_t i,s;
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {
@@ -86,7 +86,7 @@ void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
 
 /*          A(1:A1,1:A2)=B(1:A1,1:B2)*C(1:B2,1:A2) */
 
-void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
     dim_t i,j,s;
     register double rtmp;
        for (i=0;i<A1;i++) {
@@ -102,7 +102,7 @@ void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, 
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
 
-void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
     dim_t q,i,j,s;
     register double rtmp;
     for (q=0;q<len;q++) {
@@ -119,7 +119,7 @@ void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
 
-void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
     dim_t q,i,j,s;
     register double rtmp;
     for (q=0;q<len;q++) {
@@ -135,7 +135,7 @@ void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t 
 /*    inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 /*    the determinante is returned. */
 
-void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det){
+void Dudley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det){
    dim_t q;
    register double D,A11,A12,A13,A21,A22,A23,A31,A32,A33;
 
@@ -148,7 +148,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                D=1./D;
                invA[q]=D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Dudley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -170,7 +170,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(0,1,q,2,2)]=-A12*D;
                invA[INDEX3(1,1,q,2,2)]= A11*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Dudley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -202,7 +202,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)*D;
                invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Dudley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
                return;
             }
          }
@@ -214,7 +214,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
 
 /*    sets the derterminate of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 
-void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
+void Dudley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
    dim_t q;
    register double A11,A12,A13,A21,A22,A23,A31,A32,A33;
 
@@ -258,7 +258,7 @@ void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
 /*    returns the normalized vector Normal[dim,len] orthogonal to A(:,0,q) and A(:,1,q) in the case of dim=3  */
 /*    or the vector A(:,0,q) in the case of dim=2                                             */
 
-void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal) {
+void  Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal) {
    dim_t q;
    register double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33,length,invlength;
 
@@ -272,7 +272,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             A21=A[INDEX3(1,0,q,2,dim1)];
             length = sqrt(A11*A11+A21*A21);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Dudley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -294,7 +294,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             CO_A33=A11*A22-A21*A12;
             length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Dudley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -313,7 +313,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
 /*    return the length of the vector which is orthogonal to the vectors A(:,0,q) and A(:,1,q) in the case of dim=3 */
 /*    or the vector A(:,0,q) in the case of dim=2                                                                   */
 
-void  Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* length) {
+void  Dudley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* length) {
    dim_t q;
    double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33;
 
@@ -351,7 +351,7 @@ void  Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,do
 /* there is no range checking! */
 /* at output Map[invMap[i]]=i for i=0:lenInvMap */
 
-void Finley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_t* Map) {
+void Dudley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_t* Map) {
    dim_t i;
    for (i=0;i<lenInvMap;i++) invMap[i]=0;
    for (i=0;i<lenMap;i++) {
@@ -359,13 +359,13 @@ void Finley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_
    }
 }
 
-/* orders a Finley_Util_ValueAndIndex array by value */
+/* orders a Dudley_Util_ValueAndIndex array by value */
 /* it is assumed that n is large */
 
-int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
-   Finley_Util_ValueAndIndex *e1,*e2;
-   e1=(Finley_Util_ValueAndIndex*) arg1;
-   e2=(Finley_Util_ValueAndIndex*) arg2;
+int Dudley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
+   Dudley_Util_ValueAndIndex *e1,*e2;
+   e1=(Dudley_Util_ValueAndIndex*) arg1;
+   e2=(Dudley_Util_ValueAndIndex*) arg2;
    if (e1->value < e2->value) return -1;
    if (e1->value > e2->value) return  1;
    if (e1->index < e2->index) return -1;
@@ -373,9 +373,9 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
    return 0;
 }
 
-void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
+void Dudley_Util_sortValueAndIndex(dim_t n,Dudley_Util_ValueAndIndex* array) {
      /* OMP : needs parallelization !*/
-     qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
+     qsort(array,n,sizeof(Dudley_Util_ValueAndIndex),Dudley_Util_ValueAndIndex_compar);
 }
 
 
@@ -383,7 +383,7 @@ void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
 
 /* calculates the minimum value from a dim X N integer array */
 
-index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
+index_t Dudley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
    dim_t i,j;
    index_t out,out_local;
    out=INDEX_T_MAX;
@@ -405,7 +405,7 @@ index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
                                                                                                                                                    
 /* calculates the maximum value from a dim X N integer array */
 
-index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
+index_t Dudley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
    dim_t i,j;
    index_t out,out_local;
    out=-INDEX_T_MAX;
@@ -428,7 +428,7 @@ index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
 
 /* calculates the minimum value from a dim X N integer array */
 
-index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
+index_t Dudley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
    dim_t i,j;
    index_t out,out_local;
    out=INDEX_T_MAX;
@@ -450,7 +450,7 @@ index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values, index_t 
                                                                                                                                                    
 /* calculates the maximum value from a dim X N integer array */
 
-index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
+index_t Dudley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
    dim_t i,j;
    index_t out,out_local;
    out=-INDEX_T_MAX;
@@ -472,7 +472,7 @@ index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t 
 
 /* set the index of the positive entries in mask. The length of index is returned. */
 
-dim_t Finley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
+dim_t Dudley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
       dim_t out,k;
       out=0;
       /*OMP */
@@ -486,7 +486,7 @@ dim_t Finley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
 }
 
 /* returns true if array contains value */
-bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value) {
+bool_t Dudley_Util_isAny(dim_t N,index_t* array,index_t value) {
    bool_t out=FALSE;
    dim_t i;
    #pragma omp parallel for private(i) schedule(static) reduction(||:out)
@@ -494,7 +494,7 @@ bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value) {
    return out;
 }
 /* calculates the cummultative sum in array and returns the total sum */
-index_t Finley_Util_cumsum(dim_t N,index_t* array) {
+index_t Dudley_Util_cumsum(dim_t N,index_t* array) {
    index_t out=0,tmp;
    dim_t i;
    #ifdef _OPENMP
@@ -535,7 +535,7 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    #endif
    return out;
 }
-void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Paso_MPIInfo* mpiinfo)
+void Dudley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Paso_MPIInfo* mpiinfo)
 {
    dim_t i;
    index_t lastFoundValue=INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse=NULL;
@@ -588,7 +588,7 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
 
 
 #ifdef PASO_MPI
-void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
+void Dudley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
 {
   index_t i;
   
@@ -602,7 +602,7 @@ void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
     fprintf( fid, "... " );
   fprintf( fid, "]\n" );
 }
-void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  )
+void Dudley_printIntArray( FILE *fid, dim_t n, int *array, char *name  )
 {
   index_t i;
   
@@ -616,7 +616,7 @@ void Finley_printIntArray( FILE *fid, dim_t n, int *array, char *name  )
     fprintf( fid, "... " );
   fprintf( fid, "]\n" );
 }
-void Finley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  )
+void Dudley_printMaskArray( FILE *fid, dim_t n, int *array, char *name  )
 {
   index_t i;
   

@@ -15,27 +15,27 @@
 #ifdef PASO_MPI
 #include <mpi.h>
 #endif
-#include "FinleyError.h"
+#include "DudleyError.h"
 #include <iostream>
 
 namespace dudley {
 
-  void setFinleyError(Finley_ErrorCodeType errorCode, 
+  void setDudleyError(Dudley_ErrorCodeType errorCode, 
 		      const std::string& errMess) 
   {
-    Finley_setError(errorCode,(__const char*)(errMess.c_str()));
+    Dudley_setError(errorCode,(__const char*)(errMess.c_str()));
   }
 
-  void checkFinleyError() 
+  void checkDudleyError() 
   {
-    if (Finley_noError()) {
+    if (Dudley_noError()) {
       return;
     } else {
       //
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
-      Finley_resetError();
-      throw FinleyAdapterException(Finley_getErrorMessage());
+      Dudley_resetError();
+      throw DudleyAdapterException(Dudley_getErrorMessage());
     }
   }
   void checkPasoError() 
@@ -47,7 +47,7 @@ namespace dudley {
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
       Paso_resetError();
-      throw FinleyAdapterException(Paso_getErrorMessage());
+      throw DudleyAdapterException(Paso_getErrorMessage());
     }
   }
 

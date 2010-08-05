@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh */
+/*   Dudley: Mesh */
 
 /*                                                                      */
 /*   assigns new node reference numbers to elements in element file in. */
@@ -26,9 +26,9 @@
 
 /**************************************************************/
 
-void Finley_Mesh_relableElementNodes(index_t* newNode,index_t offset,Finley_Mesh* in) {
-      Finley_ElementFile_relableNodes(newNode,offset,in->Elements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->FaceElements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->ContactElements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->Points);
+void Dudley_Mesh_relableElementNodes(index_t* newNode,index_t offset,Dudley_Mesh* in) {
+      Dudley_ElementFile_relableNodes(newNode,offset,in->Elements);
+      Dudley_ElementFile_relableNodes(newNode,offset,in->FaceElements);
+      Dudley_ElementFile_relableNodes(newNode,offset,in->ContactElements);
+      Dudley_ElementFile_relableNodes(newNode,offset,in->Points);
 }

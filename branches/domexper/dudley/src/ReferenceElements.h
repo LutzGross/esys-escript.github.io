@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Reference elements */
+/*   Dudley: Reference elements */
 
 /**************************************************************/
 
@@ -120,7 +120,7 @@ typedef enum {
 
 /*  this struct holds the definition of the reference element: */
 
-typedef struct Finley_ReferenceElementInfo {
+typedef struct Dudley_ReferenceElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
@@ -136,9 +136,9 @@ typedef struct Finley_ReferenceElementInfo {
   
   index_t linearNodes[MAX_numNodes*MAX_numSides];         /* gives the list of nodes defining the linear or macro element */
   
-  Finley_QuadTypeId Quadrature;                /* quadrature scheme */
-  Finley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
-  Finley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
+  Dudley_QuadTypeId Quadrature;                /* quadrature scheme */
+  Dudley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
+  Dudley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
 
   index_t subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];         /* gives the list of nodes defining the subelements:
 																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
@@ -155,40 +155,40 @@ typedef struct Finley_ReferenceElementInfo {
   index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
   index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. the permutation has keep 0 fixed. */
                                               /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
-}  Finley_ReferenceElementInfo;
+}  Dudley_ReferenceElementInfo;
 
 
 /**************************************************************/
 
 /*  this struct holds the realization of a reference element */
 
-typedef struct Finley_ReferenceElement {
-	Finley_ReferenceElementInfo* Type;     /* type of the reference element */
-	Finley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
+typedef struct Dudley_ReferenceElement {
+	Dudley_ReferenceElementInfo* Type;     /* type of the reference element */
+	Dudley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
 	index_t reference_counter;	       /* reference counter */
         dim_t integrationOrder;                /* used integration order */
 	dim_t numNodes;
         dim_t numLocalDim;
 	dim_t numLinearNodes;
-	Finley_ShapeFunction* Parametrization;
-	Finley_ShapeFunction* BasisFunctions;
-	Finley_ShapeFunction* LinearBasisFunctions;
+	Dudley_ShapeFunction* Parametrization;
+	Dudley_ShapeFunction* BasisFunctions;
+	Dudley_ShapeFunction* LinearBasisFunctions;
         double* DBasisFunctionDv;                              /* pointer to derivatives to basis function corresponding to the Parametrization quad points */
         bool_t DBasisFunctionDvShared;                /* TRUE to indicate that DBasisFunctionDv is shared with another object which is managing it */
 
-}  Finley_ReferenceElement;
+}  Dudley_ReferenceElement;
 
 /**************************************************************/
 
 /*    interfaces: */
 
-Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId,int);
-void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
-ElementTypeId Finley_ReferenceElement_getTypeId(char*);
-Finley_ReferenceElement* Finley_ReferenceElement_reference(Finley_ReferenceElement* in);
-Finley_ReferenceElementInfo* Finley_ReferenceElement_getInfo(ElementTypeId id);
+Dudley_ReferenceElement* Dudley_ReferenceElement_alloc(ElementTypeId,int);
+void Dudley_ReferenceElement_dealloc(Dudley_ReferenceElement*);
+ElementTypeId Dudley_ReferenceElement_getTypeId(char*);
+Dudley_ReferenceElement* Dudley_ReferenceElement_reference(Dudley_ReferenceElement* in);
+Dudley_ReferenceElementInfo* Dudley_ReferenceElement_getInfo(ElementTypeId id);
 
 
-#define Finley_ReferenceElement_getNumNodes(__in__) (__in__)->Type->numNodes
+#define Dudley_ReferenceElement_getNumNodes(__in__) (__in__)->Type->numNodes
 
-#endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
+#endif /* #ifndef INC_DUDLEY_REFERENCEELEMENTS */

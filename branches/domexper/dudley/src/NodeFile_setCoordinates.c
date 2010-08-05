@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh: NodeFile */
+/*   Dudley: Mesh: NodeFile */
 
 /* copies the array newX into self->coordinates */
 
@@ -26,19 +26,19 @@
 /**************************************************************/
 
 
-void Finley_NodeFile_setCoordinates(Finley_NodeFile* self,escriptDataC* newX) {
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self,escriptDataC* newX) {
   char error_msg[LenErrorMsg_MAX];
   size_t numDim_size;
   int n;
    if (getDataPointSize(newX)!=self->numDim)  {
-      sprintf(error_msg,"Finley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.",self->numDim);
-      Finley_setError(VALUE_ERROR,error_msg);
+      sprintf(error_msg,"Dudley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.",self->numDim);
+      Dudley_setError(VALUE_ERROR,error_msg);
    } else if (! numSamplesEqual(newX,1,self->numNodes)) {
-         sprintf(error_msg,"Finley_NodeFile_setCoordinates: number of given nodes must to be %d.",self->numNodes);
-         Finley_setError(VALUE_ERROR,error_msg);
+         sprintf(error_msg,"Dudley_NodeFile_setCoordinates: number of given nodes must to be %d.",self->numNodes);
+         Dudley_setError(VALUE_ERROR,error_msg);
    } else {
           numDim_size=self->numDim*sizeof(double);
-          Finley_increaseStatus(self);
+          Dudley_increaseStatus(self);
 	  #pragma omp parallel private(n)
 	  {
 
