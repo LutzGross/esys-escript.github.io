@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
+Test suite for the linearPDE  and pdetools test on dudley
 
 :remark:
 
@@ -36,7 +36,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle,Brick
+from esys.dudley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
 OPTIMIZE=True
@@ -44,11 +44,11 @@ SOLVER_VERBOSE=False
 # setNumberOfThreads(2)
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 # number of elements in the spatial directions
 NE0=8

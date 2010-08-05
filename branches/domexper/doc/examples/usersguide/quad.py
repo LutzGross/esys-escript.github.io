@@ -33,7 +33,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
+from esys.dudley import MakeDomain
 p0=Point(0.,0.,0.)
 p1=Point(1.,0.,0.)
 p2=Point(1.,1.,0.)

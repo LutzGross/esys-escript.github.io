@@ -23,7 +23,7 @@ import unittest
 import tempfile
 
 from esys.escript import *
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 import sys
 import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation

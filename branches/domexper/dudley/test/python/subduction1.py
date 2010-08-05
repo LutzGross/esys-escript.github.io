@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import MaskFromBoundaryTag
-from esys.finley import ReadMesh
+from esys.dudley import ReadMesh
 from esys.escript.models import StokesProblemCartesian
 from math import ceil
 #

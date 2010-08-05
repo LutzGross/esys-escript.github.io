@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Brick
+from esys.dudley import Brick
 #... set some parameters ...
 lam=1.
 mu=0.1

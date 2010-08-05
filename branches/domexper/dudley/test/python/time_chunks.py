@@ -24,7 +24,7 @@ import os
 TEST_STR="timing: per iteration step:"
 REPEAT=10
 HEADER="""from esys.escript import *
-from esys.finley import Rectangle,Brick 
+from esys.dudley import Rectangle,Brick 
 from esys.escript.linearPDEs import LinearPDE 
 SOLVER_TOL=1.e-2
 REL_TOL=1.

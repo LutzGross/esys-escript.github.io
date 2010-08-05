@@ -32,7 +32,7 @@ import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import *
 from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
+from esys.dudley import MakeDomain
 from esys.escript import *
 import numpy as np
 import pylab as pl #Plotting package

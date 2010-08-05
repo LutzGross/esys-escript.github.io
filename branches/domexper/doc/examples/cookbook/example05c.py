@@ -34,7 +34,7 @@ import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
-from esys.finley import MakeDomain #Converter for escript
+from esys.dudley import MakeDomain #Converter for escript
 import os #file path tool
 from math import * # math package
 from esys.escript import *

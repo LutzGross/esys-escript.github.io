@@ -30,7 +30,7 @@ VERBOSE=False  and True
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
 from esys.escript.models import Mountains
-from esys.finley import Rectangle, Brick
+from esys.dudley import Rectangle, Brick
 
 from math import pi
 import numpy
@@ -38,9 +38,9 @@ import sys
 import os
 #====================================================================================================================
 try:
-     FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
+     DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
-     FINLEY_WORKDIR='.'
+     DUDLEY_WORKDIR='.'
 
 #====================================================================================================================
 class Test_StokesProblemCartesian2D(unittest.TestCase):

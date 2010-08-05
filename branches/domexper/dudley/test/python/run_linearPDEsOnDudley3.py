@@ -41,16 +41,16 @@ from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_ass
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
-from esys.finley import Rectangle,Brick,JoinFaces, ReadMesh
+from esys.dudley import Rectangle,Brick,JoinFaces, ReadMesh
 import sys
 
 
 try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+     DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA='.'
 
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
+DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=8 # number of element in each spatial direction (must be even)
 
@@ -89,7 +89,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_2Do1_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -104,7 +104,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_2Do2_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -119,7 +119,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_3Do1_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -134,7 +134,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_3Do2_Contact.fly"))
    def tearDown(self):
         del self.domain
 
@@ -150,7 +150,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do1_Contact_withElementsOnFace.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_2Do1_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -165,7 +165,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_2Do2_Contact_withElementsOnFace.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_2Do2_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -180,7 +180,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do1_Contact_withElementsOnFace.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_3Do1_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
@@ -195,7 +195,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
        # ContinuousFunction(d2).setTags(2,Scalar(1,ContinuousFunction(d2)))
        # d2.setX(d2.getX()+[0.5,0.,0.])
        # self.domain = JoinFaces([d1,d2],optimize=False)
-       self.domain=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"mesh_3Do2_Contact_withElementsOnFace.fly"))
+       self.domain=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"mesh_3Do2_Contact_withElementsOnFace.fly"))
    def tearDown(self):
         del self.domain
 
