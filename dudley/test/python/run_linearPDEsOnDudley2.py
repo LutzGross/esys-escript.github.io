@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
+Test suite for the linearPDE  and pdetools test on dudley
 
 :remark:
 

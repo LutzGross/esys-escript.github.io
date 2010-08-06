@@ -35,7 +35,7 @@ __author__="Lutz Gross, Louise Kettle"
 from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Brick
+from esys.dudley import Brick
 from esys.pyvisi import Scene, DataCollector, Contour, Camera, Velocity, Text2D, LocalPosition, Legend
 from esys.pyvisi.constant import *
 import os

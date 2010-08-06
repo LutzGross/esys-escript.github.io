@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 
 class SimpleStokesProblem(SaddlePointProblem):
       """

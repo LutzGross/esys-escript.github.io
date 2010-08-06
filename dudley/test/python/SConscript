@@ -65,8 +65,8 @@ env.Alias('build_py_tests',test_pyc)
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/dudley/test/python')))
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env['ENV']['FINLEY_TEST_DATA']=env.Dir('#/dudley/test/python').srcnode().abspath
-local_env['ENV']['FINLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/dudley/test/python').srcnode().abspath
+local_env['ENV']['DUDLEY_TEST_DATA']=env.Dir('#/dudley/test/python').srcnode().abspath
+local_env['ENV']['DUDLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/dudley/test/python').srcnode().abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 env.Alias('scalable_tests', [os.path.splitext(x)[0]+'.passed' for x in scalable_tests ])
@@ -78,7 +78,7 @@ program = local_env.RunPyUnitTest(alltestruns)
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("FINLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('FINLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/dudley/test/python")
 TestGroups.append(tgroup)
 

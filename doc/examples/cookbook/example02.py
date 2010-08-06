@@ -33,7 +33,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
-from esys.dudley import Rectangle # This imports the rectangle domain function from finley
+from esys.dudley import Rectangle # This imports the rectangle domain function 
 #For interactive use, you can comment out the next two lines
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing

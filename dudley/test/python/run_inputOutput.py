@@ -140,13 +140,13 @@ class InputOutput(unittest.TestCase):
 	  mydomain2=LoadMesh("tempfile.mesh.nc")
           self.domainsEqual(mydomain1, mydomain2)
 
-     def test_mesh_read_rectangle_from_finley_file(self):
+     def test_mesh_read_rectangle_from_dudley_file(self):
 	if getMPISizeWorld() < 16:
 	  mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
-     def test_mesh_read_brick_from_finley_file(self):
+     def test_mesh_read_brick_from_dudley_file(self):
 	if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))

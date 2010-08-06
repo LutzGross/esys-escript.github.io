@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.models import TemperatureCartesian, IncompressibleIsotropicFlowCartesian, Mountains, SubSteppingException
-from esys.finley import Rectangle, Brick, LoadMesh
+from esys.dudley import Rectangle, Brick, LoadMesh
 from optparse import OptionParser
 from math import pi, ceil
 import sys

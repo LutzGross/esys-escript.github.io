@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
+Test suite for the linearPDE  and pdetools test on dudley
 
 :remark:
 
@@ -54,22 +54,14 @@ DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=8 # number of element in each spatial direction (must be even)
 
-class Test_LameOnFinley(Test_LameEquation):
+class Test_LameOnDudley(Test_LameEquation):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
         self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
    def tearDown(self):
         del self.domain
-class Test_PoissonOnFinley(Test_Poisson):
-   RES_TOL=1.e-7
-   ABS_TOL=1.e-8
-   def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
-   def tearDown(self):
-        del self.domain
-
-class Test_HelmholtzOnFinley(Test_Helmholtz):
+class Test_PoissonOnDudley(Test_Poisson):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -77,8 +69,16 @@ class Test_HelmholtzOnFinley(Test_Helmholtz):
    def tearDown(self):
         del self.domain
 
+class Test_HelmholtzOnDudley(Test_Helmholtz):
+   RES_TOL=1.e-7
+   ABS_TOL=1.e-8
+   def setUp(self):
+        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+   def tearDown(self):
+        del self.domain
 
-class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
+
+class Test_AssemblePDEwithDudley_2Do1_Contact(Test_assemblage_2Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -93,7 +93,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact(Test_assemblage_2Do1_Contact):
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
+class Test_AssemblePDEwithDudley_2Do2_Contact(Test_assemblage_2Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -108,7 +108,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact(Test_assemblage_2Do2_Contact):
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
+class Test_AssemblePDEwithDudley_3Do1_Contact(Test_assemblage_3Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -123,7 +123,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact(Test_assemblage_3Do1_Contact):
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
+class Test_AssemblePDEwithDudley_3Do2_Contact(Test_assemblage_3Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -139,7 +139,7 @@ class Test_AssemblePDEwithFinley_3Do2_Contact(Test_assemblage_3Do2_Contact):
         del self.domain
 
 
-class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage_2Do1_Contact):
+class Test_AssemblePDEwithDudley_2Do1_Contact_withElementsOnFace(Test_assemblage_2Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -154,7 +154,7 @@ class Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace(Test_assemblage
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage_2Do2_Contact):
+class Test_AssemblePDEwithDudley_2Do2_Contact_withElementsOnFace(Test_assemblage_2Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -169,7 +169,7 @@ class Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace(Test_assemblage
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage_3Do1_Contact):
+class Test_AssemblePDEwithDudley_3Do1_Contact_withElementsOnFace(Test_assemblage_3Do1_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -184,7 +184,7 @@ class Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace(Test_assemblage
    def tearDown(self):
         del self.domain
 
-class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage_3Do2_Contact):
+class Test_AssemblePDEwithDudley_3Do2_Contact_withElementsOnFace(Test_assemblage_3Do2_Contact):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -202,17 +202,17 @@ class Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace(Test_assemblage
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True :
-      suite.addTest(unittest.makeSuite(Test_PoissonOnFinley))
-      suite.addTest(unittest.makeSuite(Test_HelmholtzOnFinley))
-      suite.addTest(unittest.makeSuite(Test_LameOnFinley))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do1_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_2Do2_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do1_Contact_withElementsOnFace))
-      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithFinley_3Do2_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_PoissonOnDudley))
+      suite.addTest(unittest.makeSuite(Test_HelmholtzOnDudley))
+      suite.addTest(unittest.makeSuite(Test_LameOnDudley))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_2Do1_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_2Do2_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_3Do1_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_3Do2_Contact))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_2Do1_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_2Do2_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_3Do1_Contact_withElementsOnFace))
+      suite.addTest(unittest.makeSuite(Test_AssemblePDEwithDudley_3Do2_Contact_withElementsOnFace))
    else:
       pass
 

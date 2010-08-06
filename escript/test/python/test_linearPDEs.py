@@ -22,24 +22,6 @@ __url__="https://launchpad.net/escript-finley"
 """
 Test suite for linearPDEs class
 
-The tests must be linked with a Domain class object in the setUp method:
-
-   from esys.finley import Rectangle
-   class Test_LinearPDEOnFinley(Test_LinearPDE):
-       def setUp(self):
-           self.domain = Rectangle(10,10,2)
-       def tearDown(self):
-           del self.domain
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
-   unittest.TextTestRunner(verbosity=2).run(suite)
-
-:var __author__: name of author
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"

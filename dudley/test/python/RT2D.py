@@ -1,8 +1,6 @@
 from esys.escript import *
-import esys.finley
 from esys.escript.models import StokesProblemCartesian
-from esys.finley import finley
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 
 
 #physical properties

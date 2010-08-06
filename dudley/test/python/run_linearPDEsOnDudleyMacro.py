@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
+Test suite for the linearPDE  and pdetools test on dudley
 
 :remark:
 
@@ -54,7 +54,7 @@ DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=3
 
-class Test_LinearPDEOnFinleyHex2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyHex2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -63,7 +63,7 @@ class Test_LinearPDEOnFinleyHex2DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyHex3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyHex3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -72,7 +72,7 @@ class Test_LinearPDEOnFinleyHex3DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyTet2DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -82,7 +82,7 @@ class Test_LinearPDEOnFinleyTet2DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnFinleyTet3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
+class Test_LinearPDEOnDudleyTet3DMacro(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
@@ -93,10 +93,10 @@ class Test_LinearPDEOnFinleyTet3DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DMacro))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DMacro))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet2DMacro))
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyTet3DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyHex2DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyHex3DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet2DMacro))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet3DMacro))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

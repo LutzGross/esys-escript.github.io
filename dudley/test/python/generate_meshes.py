@@ -41,10 +41,10 @@ NE=10
 CUT=0.5
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, Merge, JoinFaces
+from esys.dudley import Rectangle, Brick, Merge, JoinFaces
 from esys.pycad import Point, Line,PlaneSurface, CurveLoop, Volume,SurfaceLoop
 from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
+from esys.dudley import MakeDomain
 import os
 
 def getMesh(NE_X, NE_Y, t,d,o,fullOrder,r,l_X):

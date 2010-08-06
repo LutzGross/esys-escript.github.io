@@ -32,7 +32,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-import esys.finley as finley
+import esys.dudley as dudley
 
 TOL=1.e-8
 
@@ -83,7 +83,7 @@ def runTest(dom, n=1, a=0, b=0):
    print "error = ",error
    if error > 10*TOL: print "XXXXXXXXXX Error to large ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-domain=finley.Rectangle(10,20,1,l0=1.,l1=1.0)
+domain=dudley.Rectangle(10,20,1,l0=1.,l1=1.0)
 # or Brick or ReadMesh
 runTest(dom=domain, n=1, b=0)
 runTest(dom=domain, n=1, b=5)

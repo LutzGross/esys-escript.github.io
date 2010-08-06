@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-import esys.finley as finley
+import esys.dudley as dudley
 
 press0=1.
 lamb=1.
@@ -39,7 +39,7 @@ def setHookTensor(w,l,n):
    return C
   
 # generate mesh: here 10x20 mesh of order 2
-domain=finley.Rectangle(10,20,1,l0=0.5,l1=1.0)
+domain=dudley.Rectangle(10,20,1,l0=0.5,l1=1.0)
 # get handel to nodes and elements:
 e=Function(domain)
 fe=FunctionOnBoundary(domain)

@@ -23,18 +23,8 @@ from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
 from esys import dudley
 
-class FinleyReader(ParameterSet):
+class DudleyReader(ParameterSet):
        """
-       reads finley mesh file.
-
-       :ivar source: mesh file in finley or gmsh format
-       :type source: ``DataSource``
-       :ivar intergrationOrder: integration order, default -1 (in).
-       :type intergrationOrder: ``int``
-       :ivar reducedIntegrationOrder: reduced integration order, default -1 (in).
-       :type reducedIntegrationOrder: ``int``
-       :ivar optimizeLabeling: switches on optimization of the labeling of the nodes
-       :type optimizeLabeling: ``bool``
        """
        def __init__(self,**kwargs):
           """
