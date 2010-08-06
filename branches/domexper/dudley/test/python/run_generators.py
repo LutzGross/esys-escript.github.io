@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-checks the mesh generators against the reference meshes in test_meshes and test the finley integration schemes.
+checks the mesh generators against the reference meshes in test_meshes and test the dudley integration schemes.
 """
 
 import sys

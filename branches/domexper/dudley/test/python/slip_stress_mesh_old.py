@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 """
 
-generates   finley mesh simple vertical fault
+generates   dudley mesh simple vertical fault
 
 THIS CODE CREATES RICH CONTACT ELEMENTS AND RICH FACE ELEMENTS
 with fix for contact elements at FAULT ENDS

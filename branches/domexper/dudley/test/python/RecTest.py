@@ -25,7 +25,7 @@ import unittest
 
 from esys.escript import *
 from esys.escript.linearPDEs import *
-from esys import finley
+from esys import dudley
 
 import numpy
 
@@ -71,7 +71,7 @@ for onElements in [False,True]:
         if dim==2:
           for i0 in [True,True]:
             for i1 in [True,True]:
-              msh=finley.Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
+              msh=dudley.Rectangle(numElements,numElements,order,periodic0=i0,periodic1=i1,useElementsOnFace=onElements)
               n=ContinuousFunction(msh)
               x=n.getX()
               c=Scalar(0,what=n) 
@@ -89,7 +89,7 @@ for onElements in [False,True]:
           for i0 in [True,False]:
             for i1 in [True,False]:
               for i2 in [True,False]:
-                msh=finley.Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
+                msh=dudley.Brick(numElements,numElements,numElements,order,periodic0=i0,periodic1=i1,periodic2=i2,useElementsOnFace=onElements)
                 n=ContinuousFunction(msh)
                 x=n.getX()
                 c=Scalar(0,what=n)

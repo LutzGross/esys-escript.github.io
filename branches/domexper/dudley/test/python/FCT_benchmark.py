@@ -46,7 +46,7 @@ __url__="https://launchpad.net/escript-finley"
 #
 from math import pi, ceil
 from time import time as clock
-from esys.finley import Rectangle, Brick
+from esys.dudley import Rectangle, Brick
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
 #  

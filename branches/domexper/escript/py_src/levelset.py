@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SingleTransportPDE
 from esys.escript.pdetools import Projector
-#from esys import finley
+
 import math
 
 USE_OLD_VERSION=False

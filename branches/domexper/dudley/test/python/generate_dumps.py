@@ -32,7 +32,7 @@ This script can run under MPI.
 
 MESH_DIRECTORY="./tmp_meshes"
 from esys.escript import *
-from esys.finley import ReadMesh
+from esys.dudley import ReadMesh
 import os
 
 for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):

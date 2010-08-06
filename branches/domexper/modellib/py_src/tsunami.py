@@ -653,28 +653,28 @@ class EarthTriangulation:
         os.remove("%s.1.ele" % self.fn)
 
     def getFinleyDomain(self):
-        from esys.finley import ReadMesh
-        finley_file = open("%s.msh" % self.fn, "w")
-        finley_file.writelines("%s\n2D-Nodes %d\n" % (self.fn,
+        from esys.dudley import ReadMesh
+        dudley_file = open("%s.msh" % self.fn, "w")
+        dudley_file.writelines("%s\n2D-Nodes %d\n" % (self.fn,
                                len(self.node_coordinates)))
         for i in range(len(self.node_coordinates)):
-            finley_file.writelines("%s %s %s %e %e\n" % (self.node_ids[i],
+            dudley_file.writelines("%s %s %s %e %e\n" % (self.node_ids[i],
                                    self.node_ids[i],self.node_tags[i],
                                    self.node_coordinates[i][0],
                                    self.node_coordinates[i][1]))
 
-        finley_file.writelines("Tri3 %d\n" % len(self.triangles_nodes))
+        dudley_file.writelines("Tri3 %d\n" % len(self.triangles_nodes))
         for i in range(len(self.triangles_nodes)):
-            finley_file.writelines("%s 0 %s %s %s\n" % (
+            dudley_file.writelines("%s 0 %s %s %s\n" % (
                                    self.triangles_id[i],
                                    self.triangles_nodes[i][0],
                                    self.triangles_nodes[i][1],
                                    self.triangles_nodes[i][2]))
-        finley_file.writelines("Line2 0\n")
-        finley_file.writelines("Line2_Contact 0\n")
-        finley_file.writelines("Point1 0\n")
-        finley_file.close()
-        # read the mesh with finley
+        dudley_file.writelines("Line2 0\n")
+        dudley_file.writelines("Line2_Contact 0\n")
+        dudley_file.writelines("Point1 0\n")
+        dudley_file.close()
+        # read the mesh with dudley
         out=ReadMesh("%s.msh" % self.fn)
         os.remove("%s.msh" % self.fn)
         return out

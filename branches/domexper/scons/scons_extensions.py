@@ -38,7 +38,7 @@ def runUnitTest(target, source, env):
   else:
       if env['usempi']:
           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
+            "DUDLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
            app = "cd "+ pn +" & "+sn

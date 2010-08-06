@@ -39,7 +39,7 @@ DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnFinley(Test_util,Test_symbols):
+class Test_UtilOnDudley(Test_util,Test_symbols):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
@@ -47,7 +47,7 @@ class Test_UtilOnFinley(Test_util,Test_symbols):
        del self.functionspace
        del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
@@ -55,7 +55,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
@@ -63,7 +63,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
@@ -71,7 +71,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet2DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order1.fly"),optimize=False)
@@ -79,7 +79,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
@@ -87,7 +87,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyTet3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
@@ -95,7 +95,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Rectangle(n0=NE,n1=NE,order=1)
@@ -103,7 +103,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
         self.domain = Rectangle(n0=NE,n1=NE,order=2)
@@ -111,7 +111,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Rectangle(n0=NE,n1=NE,order=-1)
@@ -119,7 +119,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Brick(n0=NE,n1=NE,n2=NE,order=1)
@@ -127,7 +127,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
         self.domain = Brick(n0=NE,n1=NE,n2=NE,order=2)
@@ -135,7 +135,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyHex3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Brick(n0=NE,n1=NE,n2=NE,order=-1)
@@ -143,7 +143,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
         d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1)
@@ -154,7 +154,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
         d1 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
@@ -165,7 +165,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
         d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1)
@@ -176,7 +176,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
         d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2)
@@ -187,7 +187,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
         d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
@@ -198,7 +198,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
+class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
         d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
@@ -209,7 +209,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
         d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
@@ -220,7 +220,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
+class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
         d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
@@ -234,29 +234,29 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DMacro))
+      suite.addTest(unittest.makeSuite(Test_UtilOnDudley))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DMacro))
       # These tests use JoinFaces and are not MPI parallel
       if getMPISizeWorld() == 1:
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2useElementsOnFacewithContact))
    else:
       pass
    s=unittest.TextTestRunner(verbosity=2).run(suite)

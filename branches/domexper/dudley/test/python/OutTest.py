@@ -26,7 +26,7 @@ by Lutz Gross, ACcESS, University of Queensland, Australia, 2005.
 """
 
 from esys.escript import *
-from esys.finley import Rectangle,Brick
+from esys.dudley import Rectangle,Brick
 
 
 ne=1

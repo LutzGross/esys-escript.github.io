@@ -33,7 +33,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Brick
+from esys.dudley import Brick
 import time
 
 WORKDIR="./waves/"

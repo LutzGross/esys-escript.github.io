@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
-from esys import finley
+from esys import dudley
 
 ne_list=[10,15,22,33,50,75]
 height_list=[0.25,0.5,1.]
@@ -31,11 +31,11 @@ def getDomain(dim,ne,height):
 
     if dim==2:
      ne1=int(ne*height+0.5)
-     mydomain=finley.Rectangle(n0=ne,n1=ne1,l1=height,order=1)
+     mydomain=dudley.Rectangle(n0=ne,n1=ne1,l1=height,order=1)
      totne=ne1*ne
     else:
      ne2=int(ne*height+0.5)
-     mydomain=finley.Brick(n0=ne,n1=ne,n2=ne2,l2=height,order=2)
+     mydomain=dudley.Brick(n0=ne,n1=ne,n2=ne2,l2=height,order=2)
      totne=ne2*ne*ne
     print "%d -dimensional domain generated."%dim
     print "height of the domain is ",height

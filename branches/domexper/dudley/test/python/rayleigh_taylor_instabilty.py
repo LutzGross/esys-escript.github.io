@@ -32,8 +32,8 @@ __url__="https://launchpad.net/escript-finley"
 
 ### IMPORTS ###
 from esys.escript import *
-import esys.finley
-from esys.finley import finley
+import esys.dudley
+from esys.dudley import dudley
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector, SaddlePointProblem
 import sys
@@ -44,7 +44,7 @@ l0=1.
 l1=1.
 n0=10  # IDEALLY 80...
 n1=10  # IDEALLY 80...
-mesh=esys.finley.Brick(l0=l0, l1=l1, l2=l0, order=2, n0=n0, n1=n1, n2=n0)
+mesh=esys.dudley.Brick(l0=l0, l1=l1, l2=l0, order=2, n0=n0, n1=n1, n2=n0)
 
 ### PARAMETERS OF THE SIMULATION ###
 rho1 = 1.0e3         # DENSITY OF THE FLUID AT THE BOTTOM
