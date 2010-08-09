@@ -52,7 +52,7 @@ using namespace boost::python;
  *
  * - \ref esys_exception "Esys Exception"
  *
- * - \ref finley
+ * - \ref dudley
  *
  * - <a href="../../epydoc/index.html">Python module documentation (epydoc generated)</a>
  *

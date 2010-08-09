@@ -33,15 +33,15 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript import *
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
-import esys.finley 
+import esys.dudley
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import os
 import math
 import numpy
 
-class FinleyFilter(BenchmarkFilter):
+class DudleyFilter(BenchmarkFilter):
    """
-   defines a filter for `FinleyProblem` characteristics
+   defines a filter for `DudleyProblem` characteristics
    """
    TIME="t [sec]"
    ERROR="rel. error"
@@ -54,8 +54,8 @@ class FinleyFilter(BenchmarkFilter):
       :param args: list of value names to be filtered
       :type args: ``list`` of `TIME`, `ERROR`
       """
-      if args==None: args=[FinleyFilter.TIME,FinleyFilter.ERROR]
-      super(FinleyFilter,self).__init__()
+      if args==None: args=[DudleyFilter.TIME,DudleyFilter.ERROR]
+      super(DudleyFilter,self).__init__()
       self.__args=args
 
    def getResultNames(self):
@@ -71,7 +71,7 @@ class FinleyFilter(BenchmarkFilter):
        """
        filters out the characteristic values
        
-       :param result: characteristics rturned by a `FinleyProblem` run
+       :param result: characteristics rturned by a `DudleyProblem` run
        :type result: ``dict``
        :return: filtered values
        :rtype: ``list`` of ``str``
@@ -81,7 +81,7 @@ class FinleyFilter(BenchmarkFilter):
          out.append(result[a])
        return out
 
-class FinleyOptions(Options):
+class DudleyOptions(Options):
    """
    finley solver options to be handed over to paso
 
@@ -139,13 +139,13 @@ class FinleyOptions(Options):
        self.tolerance=tolerance
        self.package=package
        self.verbose=verbose
-       super(FinleyOptions,self).__init__(name=name)
+       super(DudleyOptions,self).__init__(name=name)
 
 
 
-class FinleyProblem(BenchmarkProblem):
+class DudleyProblem(BenchmarkProblem):
    """
-   The general benchmark problem for Finley
+   The general benchmark problem for Dudley
    """
    def run(self,options):
        """
@@ -153,7 +153,7 @@ class FinleyProblem(BenchmarkProblem):
        elapsed time and the error.
        
        :param options: solver options
-       :type options:  `FinleyOptions`
+       :type options:  `DudleyOptions`
        :return:  elapsed time and the error of calculated solution
        :rtype: pair of ``float``
        """
@@ -169,10 +169,10 @@ class FinleyProblem(BenchmarkProblem):
        uh=pde.getSolution()
        a=os.times()[4]-a
        if u==None:
-          return {FinleyFilter.TIME : a , FinleyFilter.ERROR : None }
+          return {DudleyFilter.TIME : a , DudleyFilter.ERROR : None }
        else:
           error=Lsup(u-uh)/Lsup(u)
-          return {FinleyFilter.TIME : a , FinleyFilter.ERROR : error }
+          return {DudleyFilter.TIME : a , DudleyFilter.ERROR : error }
 
    def getTestProblem(self,domain):
        """
@@ -196,7 +196,7 @@ class FinleyProblem(BenchmarkProblem):
        """
        raise NotImplementedError
 
-class RegularFinleyProblem(FinleyProblem):
+class RegularDudleyProblem(DudleyProblem):
     """
     base class for finley problem on a rectangular mesh
     """
@@ -213,7 +213,7 @@ class RegularFinleyProblem(FinleyProblem):
        :param num_equations: number of equations
        :type num_equations: ``int``
        """
-       super(RegularFinleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
+       super(RegularDudleyProblem,self).__init__(name=str(num_equations*(order*n+1)**dim))
        self.__n=n
        self.__order=order
        self.__dim=dim
@@ -227,12 +227,12 @@ class RegularFinleyProblem(FinleyProblem):
        :rtype: `escript.Domain`
        """
        if self.__dim==2:
-          domain=esys.finley.Rectangle(n0=self.__n,n1=self.__n,order=self.__order)
+          domain=esys.dudley.Rectangle(n0=self.__n,n1=self.__n,order=self.__order)
        else:
-          domain=esys.finley.Brick(n0=self.__n,n1=self.__n,n2=self.__n,order=self.__order)
+          domain=esys.dudley.Brick(n0=self.__n,n1=self.__n,n2=self.__n,order=self.__order)
        return domain
 
-class LaplaceProblem(RegularFinleyProblem):
+class LaplaceProblem(RegularDudleyProblem):
     """
     base class for the Lapalce eqaution on a rectangular mesh
     """
@@ -256,7 +256,7 @@ class LaplaceProblem(RegularFinleyProblem):
          pde.setValue(A=kronecker(domain),q=msk,r=u)
          return pde,u
 
-class AnisotropicProblem(RegularFinleyProblem):
+class AnisotropicProblem(RegularDudleyProblem):
     """
     base class for the Anisotropic scalar problem on a rectangular mesh
     """
@@ -297,7 +297,7 @@ class AnisotropicProblem(RegularFinleyProblem):
          pde.setValue(A=C,Y=F,q=msk,r=u)
          return pde,u
 
-class AnisotropicSystem(RegularFinleyProblem):
+class AnisotropicSystem(RegularDudleyProblem):
     """
     base class for the Anisotropic system problem on a rectangular mesh
     with an anisotropic 

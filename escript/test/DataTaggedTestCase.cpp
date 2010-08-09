@@ -26,7 +26,6 @@
 #include "escript/DataFactory.h"
 
 #include "escript/FunctionSpace.h"
-// #include "finley/CppAdapter/MeshAdapter.h"
 #include "escript/DataTypes.h"
 
 #include <iostream>
@@ -40,7 +39,6 @@ using namespace escript;
 using namespace esysUtils;
 using namespace std;
 using namespace escript::DataTypes;
-// using finley::MeshAdapter;
 
 // namespace {
 // std::string constr(FunctionSpace& fs)

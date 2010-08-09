@@ -25,8 +25,8 @@ Test suite for data objects. at the moment for dump and load only.
 The tests must be linked with some function space class object in the setUp method:
 to run the use:
 
-   from esys.finley import Brick
-   class Test_DumpOnFinley(Test_Dump):
+   from esys.dudley import Brick
+   class Test_DumpOnDudley(Test_Dump):
        def setUp(self):
           self.domain =Rectangle(NE,NE+1,2)
           self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
@@ -35,7 +35,7 @@ to run the use:
           self.filename_base="."
 
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_DumpOnFinley))
+   suite.addTest(unittest.makeSuite(Test_DumpOnDudley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author
