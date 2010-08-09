@@ -112,12 +112,8 @@ for it in range(0,ls):
     tt = t-t0
     dum1 = np.exp(-a * tt * tt)
     source[it] = -2. * a * tt * dum1
-#   source[it] = exp(-a * tt * tt)    !gaussian
     if (abs(source[it]) > ampmax):
         ampmax = abs(source[it])
-    #source[t]=np.exp(g*t)*U0*np.sin(2.*np.pi*t/(0.75*ls))*(np.exp(-.1*g*t)-1)
-    #decay1[t]=np.exp(g*t)
-    #decay2[t]=(np.exp(-.1*g*t)-1)
     time[t]=t*h
 
 ####################################################DOMAIN CONSTRUCTION
@@ -196,7 +192,7 @@ mypde.setValue(D=rho*kmat) #set the general form value D
 
 ##########################################################ESTABLISH ABC
 # Define where the boundary decay will be applied.
-bn=50.
+bn=20.
 bleft=xstep*bn; bright=width-(xstep*bn); bbot=depth-(ystep*bn)
 # btop=ystep*bn # don't apply to force boundary!!!
 
