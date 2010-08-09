@@ -24,15 +24,15 @@ Test suite for the pdetools module
 
 The tests must be linked with a Domain class object in the setUp method:
 
-   from esys.finley import Rectangle
-   class Test_LinearPDEOnFinley(Test_LinearPDE):
+   from esys.dudley import Rectangle
+   class Test_LinearPDEOnDudley(Test_LinearPDE):
        RES_TOL=1.e-8
        def setUp(self):
            self.domain = Rectangle(10,10,2)
        def tearDown(self):
            del self.domain
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author

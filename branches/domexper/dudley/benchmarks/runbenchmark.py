@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-some benchmarks for tetsing the finley solver.
+some benchmarks for tetsing the solver.
 
 :var __author__: name of author
 :var __licence__: licence agreement
@@ -32,8 +32,7 @@ var __url__: url entry point on documentation
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
-# from esys.finley.finleybench import *
-from finleybench import *
+from dudleybench import *
 
 type="all" 
 type="mantle"
@@ -44,12 +43,12 @@ thlist=[1,2,4,8,16]
 # thlist=[1,2,4,8,16,32,64,128]
 # thlist=[1,2,4,8,16,32,64,128]
 show=True
-ff=FinleyFilter()
+ff=DudleyFilter()
 
-opt1=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.JACOBI,verbose=show)
-opt2=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.ILU0,verbose=show)
-opt3=FinleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.RILU,verbose=show)
-opt4=FinleyOptions(solver_method=SolverOptions.DIRECT,verbose=show)
+opt1=DudleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.JACOBI,verbose=show)
+opt2=DudleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.ILU0,verbose=show)
+opt3=DudleyOptions(solver_method=SolverOptions.PCG,preconditioner=SolverOptions.RILU,verbose=show)
+opt4=DudleyOptions(solver_method=SolverOptions.DIRECT,verbose=show)
 ops=(opt1,opt3,opt4)
 ops=(opt1,opt3)
 
@@ -992,7 +991,7 @@ bm_CLA3D_o2_c6_n45.addProblem(CompressibleInhomogeneousLame3DOrder2JumpE6Normal4
 map(bm_CLA3D_o2_c6_n45.addOptions,ops)
 
 
-bms=BenchmarkSuite("Paso/Finley (%s benchmark)"%type)
+bms=BenchmarkSuite("Paso/Dudley (%s benchmark)"%type)
 
 # 2D ==========================================================
 bms.addBenchmark(bm_L2Do1)

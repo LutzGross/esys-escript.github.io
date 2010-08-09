@@ -37,7 +37,7 @@ from dudleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """
-    Creates a Finley `Domain` from a `esys.pycad.design.Design` object.
+    Creates a Dudley `Domain` from a `esys.pycad.design.Design` object.
     Currently only gmsh is supported.
 
     :param design: the geometry

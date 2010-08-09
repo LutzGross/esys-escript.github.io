@@ -652,7 +652,7 @@ class EarthTriangulation:
         os.remove("%s.1.node" % self.fn)
         os.remove("%s.1.ele" % self.fn)
 
-    def getFinleyDomain(self):
+    def getDudleyDomain(self):
         from esys.dudley import ReadMesh
         dudley_file = open("%s.msh" % self.fn, "w")
         dudley_file.writelines("%s\n2D-Nodes %d\n" % (self.fn,
@@ -840,7 +840,7 @@ class OceanRegion(Model):
                                 west_south_is_water=d[1]<=0,
                                 east_north_is_water=d[2]<=0,
                                 west_north_is_water=d[3]<=0
-                      ).getFinleyDomain()
+                      ).getDudleyDomain()
         self.domain.dump(os.path.join(WORKDIR, "coastline.nc"))
         self.bathymetry = maximum(-self.bathymetry_data.interpolate(Function(self.domain).getX()),0.)
 

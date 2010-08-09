@@ -36,7 +36,7 @@ import numpy as np
 import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import ReadMesh
+from esys.dudley import ReadMesh
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:

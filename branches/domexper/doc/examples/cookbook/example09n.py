@@ -133,7 +133,7 @@ d.addItems(sintf)
 d.setScriptFileName(os.path.join(save_path,"example09n.geo"))
 d.setMeshFileName(os.path.join(save_path,"example09n.msh"))
 #
-#  make the finley domain:
+#  
 #
 domain=MakeDomain(d)
 # Create a file that can be read back in to python with
