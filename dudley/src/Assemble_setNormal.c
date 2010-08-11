@@ -46,13 +46,8 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   
   /* set some parameter */
 
-  if (getFunctionSpaceType(normal)==DUDLEY_CONTACT_ELEMENTS_2) {
-	  node_offset=reference_element->Type->offsets[1];
-	  sign=-1;
-  } else {
-	  node_offset=reference_element->Type->offsets[0];
-	  sign=1;
-  }
+  node_offset=reference_element->Type->offsets[0];
+  sign=1;
   /* check the dimensions of normal */
   if (! (numDim==numDim_local || numDim-1==numDim_local)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_setNormal: Cannot calculate normal vector");

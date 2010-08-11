@@ -39,7 +39,6 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
   index_t s_offset=0,  *nodes_selector=NULL;
   Dudley_ElementFile_Jacobeans* jac=NULL;
-  type_t grad_data_type=getFunctionSpaceType(grad_data);
   
   Dudley_resetError();
   if (nodes==NULL || elements==NULL) return;
@@ -81,13 +80,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 	  numShapesTotal=jac->numShapesTotal;
 	  numSub=jac->numSub;
 	  numQuad=jac->numQuadTotal/numSub;
-      	  if (grad_data_type==DUDLEY_CONTACT_ELEMENTS_2 || grad_data_type== DUDLEY_REDUCED_CONTACT_ELEMENTS_2)  {
-       	 	   s_offset=jac->offsets[1];
-       	 	   s_offset=jac->offsets[1];
-      	  } else {
-       	  	  s_offset=jac->offsets[0];
-       	          s_offset=jac->offsets[0];
-      	  }
+       	  s_offset=jac->offsets[0];
+       	  s_offset=jac->offsets[0];
 	  localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
 	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
 		  nodes_selector=refElement->Type->linearNodes;

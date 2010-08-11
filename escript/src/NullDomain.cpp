@@ -177,6 +177,9 @@ const int* NullDomain::borrowListOfTagsInUse(int functionSpaceCode) const
   return defaultList;
 }
 
-
+bool NullDomain::supportsContactElements() const
+{
+  return false;
+}
 
 }  // end of namespace

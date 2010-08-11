@@ -457,6 +457,8 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    ESCRIPT_DLL_API
    virtual int getApproximationOrder(const int functionSpaceCode) const;
 
+   ESCRIPT_DLL_API
+   virtual bool supportsContactElements() const;
 
  protected:
 

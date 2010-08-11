@@ -51,11 +51,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   
   /* set a few more parameters */
 
-  if (getFunctionSpaceType(element_size)==DUDLEY_CONTACT_ELEMENTS_2) {
-      node_offset=refElement->Type->offsets[1];
-  } else {
-      node_offset=refElement->Type->offsets[0];
-  }
+  node_offset=refElement->Type->offsets[0];
   f=pow(0.5, pow((double)(refElement->Type->numSubElements), 1./(double)(numDim))-1);
 
   /* check the dimensions of element_size */

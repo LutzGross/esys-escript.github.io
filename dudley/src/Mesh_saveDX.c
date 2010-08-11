@@ -108,30 +108,6 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
              }
              isCellCentered[i_data]=TRUE;
              break;
-           case DUDLEY_CONTACT_ELEMENTS_1:
-           case DUDLEY_REDUCED_CONTACT_ELEMENTS_1:
-             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_CONTACT_ELEMENTS_1) {
-                 elementtype=DUDLEY_CONTACT_ELEMENTS_1;
-             } else {
-                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
-                 MEMFREE(isCellCentered);
-                 fclose(fileHandle_p);
-                 return;
-             }
-             isCellCentered[i_data]=TRUE;
-             break;
-           case DUDLEY_CONTACT_ELEMENTS_2:
-           case DUDLEY_REDUCED_CONTACT_ELEMENTS_2:
-             if (elementtype==DUDLEY_UNKNOWN || elementtype==DUDLEY_CONTACT_ELEMENTS_1) {
-                 elementtype=DUDLEY_CONTACT_ELEMENTS_1;
-             } else {
-                 Dudley_setError(TYPE_ERROR,"saveDX: cannot write given data into single file.");
-                 MEMFREE(isCellCentered);
-                 fclose(fileHandle_p);
-                 return;
-             }
-             isCellCentered[i_data]=TRUE;
-             break;
            default:
              sprintf(error_msg,"saveDX: I don't know how to handle function space type %d",getFunctionSpaceType(data_pp[i_data]));
              Dudley_setError(TYPE_ERROR,error_msg);
@@ -154,14 +130,7 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
       break;
     case DUDLEY_POINTS:
       elements=mesh_p->Points;
-      break;
-    case DUDLEY_CONTACT_ELEMENTS_2:
-      elements=mesh_p->ContactElements;
-      break;
-    case DUDLEY_CONTACT_ELEMENTS_1:
-      elements=mesh_p->ContactElements;
-      break;
-  }
+      break;  }
   if (elements==NULL) {
      Dudley_setError(SYSTEM_ERROR,"saveDX: undefined element file");
      MEMFREE(isCellCentered);

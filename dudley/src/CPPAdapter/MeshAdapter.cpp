@@ -43,10 +43,6 @@ const int MeshAdapter::ReducedElements=DUDLEY_REDUCED_ELEMENTS;
 const int MeshAdapter::FaceElements=DUDLEY_FACE_ELEMENTS;
 const int MeshAdapter::ReducedFaceElements=DUDLEY_REDUCED_FACE_ELEMENTS;
 const int MeshAdapter::Points=DUDLEY_POINTS;
-const int MeshAdapter::ContactElementsZero=DUDLEY_CONTACT_ELEMENTS_1;
-const int MeshAdapter::ReducedContactElementsZero=DUDLEY_REDUCED_CONTACT_ELEMENTS_1;
-const int MeshAdapter::ContactElementsOne=DUDLEY_CONTACT_ELEMENTS_2;
-const int MeshAdapter::ReducedContactElementsOne=DUDLEY_REDUCED_CONTACT_ELEMENTS_2;
 
 MeshAdapter::MeshAdapter(Dudley_Mesh* dudleyMesh)
 {
@@ -144,11 +140,9 @@ void MeshAdapter::dump(const string& fileName) const
    int numNodes				= mesh->Nodes->numNodes;
    int num_Elements			= mesh->Elements->numElements;
    int num_FaceElements			= mesh->FaceElements->numElements;
-   int num_ContactElements		= mesh->ContactElements->numElements;
    int num_Points			= mesh->Points->numElements;
    int num_Elements_numNodes		= mesh->Elements->numNodes;
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
-   int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
 #ifdef PASO_MPI
    MPI_Status status;
 #endif
@@ -192,9 +186,6 @@ void MeshAdapter::dump(const string& fileName) const
    if (num_FaceElements>0)
       if (! (ncdims[4] = dataFile.add_dim("dim_FaceElements", num_FaceElements)) )
          throw DataException(msgPrefix+"add_dim(dim_FaceElements)");
-   if (num_ContactElements>0)
-      if (! (ncdims[5] = dataFile.add_dim("dim_ContactElements", num_ContactElements)) )
-         throw DataException(msgPrefix+"add_dim(dim_ContactElements)");
    if (num_Points>0)
       if (! (ncdims[6] = dataFile.add_dim("dim_Points", num_Points)) )
          throw DataException(msgPrefix+"add_dim(dim_Points)");
@@ -204,9 +195,6 @@ void MeshAdapter::dump(const string& fileName) const
    if (num_FaceElements>0)
       if (! (ncdims[8] = dataFile.add_dim("dim_FaceElements_numNodes", num_FaceElements_numNodes)) )
          throw DataException(msgPrefix+"add_dim(dim_FaceElements_numNodes)");
-   if (num_ContactElements>0)
-      if (! (ncdims[9] = dataFile.add_dim("dim_ContactElements_numNodes", num_ContactElements_numNodes)) )
-         throw DataException(msgPrefix+"add_dim(dim_ContactElements_numNodes)");
    if (num_Tags>0)
       if (! (ncdims[10] = dataFile.add_dim("dim_Tags", num_Tags)) )
          throw DataException(msgPrefix+"add_dim(dim_Tags)");
@@ -230,22 +218,16 @@ void MeshAdapter::dump(const string& fileName) const
       throw DataException(msgPrefix+"add_att(num_Elements)");
    if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
       throw DataException(msgPrefix+"add_att(num_FaceElements)");
-   if (!dataFile.add_att("num_ContactElements",num_ContactElements) )
-      throw DataException(msgPrefix+"add_att(num_ContactElements)");
    if (!dataFile.add_att("num_Points",num_Points) )
       throw DataException(msgPrefix+"add_att(num_Points)");
    if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes) )
       throw DataException(msgPrefix+"add_att(num_Elements_numNodes)");
    if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
       throw DataException(msgPrefix+"add_att(num_FaceElements_numNodes)");
-   if (!dataFile.add_att("num_ContactElements_numNodes",num_ContactElements_numNodes) )
-      throw DataException(msgPrefix+"add_att(num_ContactElements_numNodes)");
    if (!dataFile.add_att("Elements_TypeId", mesh->Elements->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException(msgPrefix+"add_att(Elements_TypeId)");
    if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException(msgPrefix+"add_att(FaceElements_TypeId)");
-   if (!dataFile.add_att("ContactElements_TypeId", mesh->ContactElements->referenceElementSet->referenceElement->Type->TypeId) )
-      throw DataException(msgPrefix+"add_att(ContactElements_TypeId)");
    if (!dataFile.add_att("Points_TypeId", mesh->Points->referenceElementSet->referenceElement->Type->TypeId) )
       throw DataException(msgPrefix+"add_att(Points_TypeId)");
    if (!dataFile.add_att("num_Tags", num_Tags) )
@@ -401,46 +383,6 @@ void MeshAdapter::dump(const string& fileName) const
 
    }
 
-   // // // // // Contact_Elements // // // // //
-
-   if (num_ContactElements>0) {
-
-      // ContactElements_Id
-      if (! ( ids = dataFile.add_var("ContactElements_Id", ncInt, ncdims[5])) )
-         throw DataException(msgPrefix+"add_var(ContactElements_Id)");
-      int_ptr = &mesh->ContactElements->Id[0];
-      if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException(msgPrefix+"put(ContactElements_Id)");
-
-      // ContactElements_Tag
-      if (! ( ids = dataFile.add_var("ContactElements_Tag", ncInt, ncdims[5])) )
-         throw DataException(msgPrefix+"add_var(ContactElements_Tag)");
-      int_ptr = &mesh->ContactElements->Tag[0];
-      if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException(msgPrefix+"put(ContactElements_Tag)");
-
-      // ContactElements_Owner
-      if (! ( ids = dataFile.add_var("ContactElements_Owner", ncInt, ncdims[5])) )
-         throw DataException(msgPrefix+"add_var(ContactElements_Owner)");
-      int_ptr = &mesh->ContactElements->Owner[0];
-      if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException(msgPrefix+"put(ContactElements_Owner)");
-
-      // ContactElements_Color
-      if (! ( ids = dataFile.add_var("ContactElements_Color", ncInt, ncdims[5])) )
-         throw DataException(msgPrefix+"add_var(ContactElements_Color)");
-      int_ptr = &mesh->ContactElements->Color[0];
-      if (! (ids->put(int_ptr, num_ContactElements)) )
-         throw DataException(msgPrefix+"put(ContactElements_Color)");
-
-      // ContactElements_Nodes
-      if (! ( ids = dataFile.add_var("ContactElements_Nodes", ncInt, ncdims[5], ncdims[9]) ) )
-         throw DataException(msgPrefix+"add_var(ContactElements_Nodes)");
-      if (! (ids->put(&(mesh->ContactElements->Nodes[0]), num_ContactElements, num_ContactElements_numNodes)) )
-         throw DataException(msgPrefix+"put(ContactElements_Nodes)");
-
-   }
-
    // // // // // Points // // // // //
 
    if (num_Points>0) {
@@ -584,14 +526,6 @@ void MeshAdapter::setFunctionSpaceTypeNames()
    (FunctionSpaceNamesMapType::value_type(ReducedFaceElements,"Dudley_Reduced_Face_Elements"));
    m_functionSpaceTypeNames.insert
    (FunctionSpaceNamesMapType::value_type(Points,"Dudley_Points"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ContactElementsZero,"Dudley_Contact_Elements_0"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedContactElementsZero,"Dudley_Reduced_Contact_Elements_0"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ContactElementsOne,"Dudley_Contact_Elements_1"));
-   m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedContactElementsOne,"Dudley_Reduced_Contact_Elements_1"));
 }
 
 int MeshAdapter::getContinuousFunctionCode() const
@@ -623,20 +557,22 @@ int MeshAdapter::getReducedFunctionOnBoundaryCode() const
 
 int MeshAdapter::getFunctionOnContactZeroCode() const
 {
-   return ContactElementsZero;
+   throw DudleyAdapterException("Dudley does not support contact elements.");
 }
+
 int MeshAdapter::getReducedFunctionOnContactZeroCode() const
 {
-   return ReducedContactElementsZero;
+   throw DudleyAdapterException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getFunctionOnContactOneCode() const
 {
-   return ContactElementsOne;
+   throw DudleyAdapterException("Dudley does not support contact elements.");
 }
+
 int MeshAdapter::getReducedFunctionOnContactOneCode() const
 {
-   return ReducedContactElementsOne;
+   throw DudleyAdapterException("Dudley does not support contact elements.");
 }
 
 int MeshAdapter::getSolutionCode() const
@@ -721,30 +657,6 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
       numSamples=mesh->Points->numElements;
    }
    break;
-   case(ContactElementsZero):
-   if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
-      numSamples=mesh->ContactElements->numElements;
-   }
-   break;
-   case(ReducedContactElementsZero):
-   if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
-      numSamples=mesh->ContactElements->numElements;
-   }
-   break;
-   case(ContactElementsOne):
-   if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
-      numSamples=mesh->ContactElements->numElements;
-   }
-   break;
-   case(ReducedContactElementsOne):
-   if (mesh->ContactElements!=NULL) {
-      numDataPointsPerSample=mesh->ContactElements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
-      numSamples=mesh->ContactElements->numElements;
-   }
-   break;
    case(DegreesOfFreedom):
    if (mesh->Nodes!=NULL) {
       numDataPointsPerSample=1;
@@ -795,7 +707,6 @@ void MeshAdapter::addPDEToSystem(
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkDudleyError();
 }
 
@@ -838,7 +749,6 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y );
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs , 0, 0, 0, 0, 0, &_y_contact );
    checkDudleyError();
 }
 //
@@ -878,7 +788,6 @@ void MeshAdapter::addPDEToTransportProblem(
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, _tp->transport_matrix, &_source, 0, 0, 0, &_d, 0, &_y );
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, _tp->transport_matrix, &_source , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkDudleyError();
 }
 
@@ -917,14 +826,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(Points):
       Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
       break;
-      case(ContactElementsZero):
-      case(ReducedContactElementsZero):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-      break;
-      case(ContactElementsOne):
-      case(ReducedContactElementsOne):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-      break;
       default:
          stringstream temp;
          temp << "Error - Interpolation on Domain: Dudley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
@@ -950,14 +851,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-      break;
-      case(ContactElementsZero):
-      case(ReducedContactElementsZero):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
-      break;
-      case(ContactElementsOne):
-      case(ReducedContactElementsOne):
-      Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
       break;
       default:
          stringstream temp;
@@ -1005,24 +898,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
          throw DudleyAdapterException("Error - No interpolation with data on points possible.");
       }
       break;
-   case(ContactElementsZero):
-   case(ContactElementsOne):
-      if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
-         Dudley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
-      } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-         Dudley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
-      } else {
-         throw DudleyAdapterException("Error - No interpolation with data on contact elements possible.");
-      }
-      break;
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
-      if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-         Dudley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
-      } else {
-         throw DudleyAdapterException("Error - No interpolation with data on contact elements with reduced integration order possible.");
-      }
-      break;
    case(DegreesOfFreedom):      
       switch(target.getFunctionSpace().getTypeCode()) {
       case(ReducedDegreesOfFreedom):
@@ -1068,18 +943,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
          escriptDataC _in2 = temp.getDataC();
       } else {
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-      }
-      break;
-      case(ContactElementsZero):
-      case(ContactElementsOne):
-      case(ReducedContactElementsZero):
-      case(ReducedContactElementsOne):
-      if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
-         escriptDataC _in2 = temp.getDataC();
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
-      } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
       }
       break;
       default:
@@ -1137,18 +1000,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
       } else {
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
-      }
-      break;
-      case(ContactElementsZero):
-      case(ContactElementsOne):
-      case(ReducedContactElementsZero):
-      case(ReducedContactElementsOne):
-      if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
-         escriptDataC _in2 = temp.getDataC();
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
-      } else {
-         Dudley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
       }
       break;
       default:
@@ -1223,14 +1074,6 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
    case(Points):
    throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for point elements");
    break;
-   case (ContactElementsOne):
-   case (ContactElementsZero):
-   Dudley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,&_normal);
-   break;
-   case (ReducedContactElementsOne):
-   case (ReducedContactElementsZero):
-   Dudley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,&_normal);
-   break;
    case(DegreesOfFreedom):
    throw DudleyAdapterException("Error - Dudley does not support surface normal vectors for degrees of freedom.");
    break;
@@ -1298,18 +1141,6 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    break;
    case(Points):
    throw DudleyAdapterException("Error - Integral of data on points is not supported.");
-   break;
-   case(ContactElementsZero):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
-   break;
-   case(ReducedContactElementsZero):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
-   break;
-   case(ContactElementsOne):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
-   break;
-   case(ReducedContactElementsOne):
-   Dudley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
    break;
    case(DegreesOfFreedom):
    temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
@@ -1382,18 +1213,6 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    case(Points):
    throw DudleyAdapterException("Error - Gradient at points is not supported.");
    break;
-   case(ContactElementsZero):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&_grad,&nodeDataC);
-   break;
-   case(ReducedContactElementsZero):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&_grad,&nodeDataC);
-   break;
-   case(ContactElementsOne):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&_grad,&nodeDataC);
-   break;
-   case(ReducedContactElementsOne):
-   Dudley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&_grad,&nodeDataC);
-   break;
    case(DegreesOfFreedom):
    throw DudleyAdapterException("Error - Gradient at degrees of freedom is not supported.");
    break;
@@ -1437,14 +1256,6 @@ void MeshAdapter::setToSize(escript::Data& size) const
    break;
    case(Points):
    throw DudleyAdapterException("Error - Size of point elements is not supported.");
-   break;
-   case(ContactElementsZero):
-   case(ContactElementsOne):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->ContactElements,&tmp);
-   break;
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
-   Dudley_Assemble_getSize(mesh->Nodes,mesh->ContactElements,&tmp);
    break;
    case(DegreesOfFreedom):
    throw DudleyAdapterException("Error - Size of degrees of freedom is not supported.");
@@ -1687,12 +1498,8 @@ bool MeshAdapter::isCellOriented(int functionSpaceCode) const
    case(Elements):
    case(FaceElements):
    case(Points):
-   case(ContactElementsZero):
-   case(ContactElementsOne):
    case(ReducedElements):
    case(ReducedFaceElements):
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
    return true;
    break;
    default:
@@ -1737,8 +1544,6 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
     vector<int> hasline(4);	
     bool hasnodes=false;
     bool hasrednodes=false;
-    bool hascez=false;
-    bool hasrcez=false;
     for (int i=0;i<fs.size();++i)
     {
 	switch(fs[i])
@@ -1770,16 +1575,6 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 	case(ReducedFaceElements):
 		hasclass[7]=1;
 		hasline[2]=1;
-		break;
-	case(ContactElementsZero):  hascez=true;	// no break is deliberate
-	case(ContactElementsOne):
-		hasclass[8]=1;
-		hasline[3]=1;
-		break;
-	case(ReducedContactElementsZero):   hasrcez=true;   // no break is deliberate
-	case(ReducedContactElementsOne):
-		hasclass[9]=1;
-		hasline[3]=1;
 		break;
 	default:
 		return false;
@@ -1822,16 +1617,9 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
 	}
 	else	// so we must be in line3
 	{
-	    if (hasclass[9]==1)
-	    {
-		// need something from class 9
-		resultcode=(hasrcez?ReducedContactElementsZero:ReducedContactElementsOne);
-	    }
-	    else
-	    {
-		// something from class 8
-		resultcode=(hascez?ContactElementsZero:ContactElementsOne);
-	    }
+
+	    throw DudleyAdapterException("Programmer Error - choosing between contact elements - we should never get here.");
+
 	}
     }
     else	// totlines==0
@@ -1863,10 +1651,6 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 	case(FaceElements):
 	case(ReducedFaceElements):
 	case(Points):
-	case(ContactElementsZero):
-	case(ReducedContactElementsZero):
-	case(ContactElementsOne):
-	case(ReducedContactElementsOne):
 	return true;
 	default:
 	      stringstream temp;
@@ -1883,10 +1667,6 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 	case(FaceElements):
 	case(ReducedFaceElements):
 	case(Points):
-	case(ContactElementsZero):
-	case(ReducedContactElementsZero):
-	case(ContactElementsOne):
-	case(ReducedContactElementsOne):
 	return true;
 	case(Nodes):
 	case(DegreesOfFreedom):
@@ -1931,22 +1711,6 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 	} else {
       		return false;
 	}
-   case(ContactElementsZero):
-   case(ContactElementsOne):
-	if (functionSpaceType_target==ContactElementsZero || functionSpaceType_target==ContactElementsOne) {
-      		return true;
-	} else if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
-      		return true;
-	} else {
-      		return false;
-	}
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
-	if (functionSpaceType_target==ReducedContactElementsZero || functionSpaceType_target==ReducedContactElementsOne) {
-      		return true;
-	} else {
-      		return false;
-	}
    case(DegreesOfFreedom):
 	switch(functionSpaceType_target) {
 	case(ReducedDegreesOfFreedom):
@@ -1958,10 +1722,6 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 	case(Points):
 	case(FaceElements):
 	case(ReducedFaceElements):
-	case(ContactElementsZero):
-	case(ReducedContactElementsZero):
-	case(ContactElementsOne):
-	case(ReducedContactElementsOne):
 	return true;
 	default:
 		stringstream temp;
@@ -1978,10 +1738,6 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
 	case(FaceElements):
 	case(ReducedFaceElements):
 	case(Points):
-	case(ContactElementsZero):
-	case(ReducedContactElementsZero):
-	case(ContactElementsOne):
-	case(ReducedContactElementsOne):
 	return true;
 	case(Nodes):
 	case(DegreesOfFreedom):
@@ -2078,18 +1834,6 @@ const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
    case(Points):
    out=mesh->Points->Id;
    break;
-   case(ContactElementsZero):
-   out=mesh->ContactElements->Id;
-   break;
-   case(ReducedContactElementsZero):
-   out=mesh->ContactElements->Id;
-   break;
-   case(ContactElementsOne):
-   out=mesh->ContactElements->Id;
-   break;
-   case(ReducedContactElementsOne):
-   out=mesh->ContactElements->Id;
-   break;
    case(DegreesOfFreedom):
    out=mesh->Nodes->degreesOfFreedomId;
    break;
@@ -2129,18 +1873,6 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
    break;
    case(Points):
    out=mesh->Points->Tag[sampleNo];
-   break;
-   case(ContactElementsZero):
-   out=mesh->ContactElements->Tag[sampleNo];
-   break;
-   case(ReducedContactElementsZero):
-   out=mesh->ContactElements->Tag[sampleNo];
-   break;
-   case(ContactElementsOne):
-   out=mesh->ContactElements->Tag[sampleNo];
-   break;
-   case(ReducedContactElementsOne):
-   out=mesh->ContactElements->Tag[sampleNo];
    break;
    case(DegreesOfFreedom):
    throw DudleyAdapterException(" Error - DegreesOfFreedom does not support tags.");
@@ -2189,18 +1921,6 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
    break;
    case(Points):
    Dudley_ElementFile_setTags(mesh->Points,newTag,&tmp);
-   break;
-   case(ContactElementsZero):
-   Dudley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
-   break;
-   case(ReducedContactElementsZero):
-   Dudley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
-   break;
-   case(ContactElementsOne):
-   Dudley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
-   break;
-   case(ReducedContactElementsOne):
-   Dudley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
    break;
    default:
       stringstream temp;
@@ -2276,12 +1996,6 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
    case(Points):
           numTags=mesh->Points->numTagsInUse;
           break;
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-          numTags=mesh->ContactElements->numTagsInUse;
-          break;
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceCode;
@@ -2318,12 +2032,6 @@ const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
    case(Points):
           tags=mesh->Points->tagsInUse;
           break;
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
-          tags=mesh->ContactElements->tagsInUse;
-          break;
    default:
       stringstream temp;
       temp << "Error - Dudley does not know anything about function space type " << functionSpaceCode;
@@ -2342,10 +2050,6 @@ bool MeshAdapter::canTag(int functionSpaceCode) const
    case(FaceElements):
    case(ReducedFaceElements):
    case(Points):
-   case(ContactElementsZero):
-   case(ReducedContactElementsZero):
-   case(ContactElementsOne):
-   case(ReducedContactElementsOne):
           return true;
    case(ReducedNodes):
    case(DegreesOfFreedom):
@@ -2379,14 +2083,10 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
    case(Elements):
    case(FaceElements):
    case(Points):
-   case(ContactElementsZero):
-   case(ContactElementsOne):
           order=mesh->integrationOrder;
           break;
    case(ReducedElements):
    case(ReducedFaceElements):
-   case(ReducedContactElementsZero):
-   case(ReducedContactElementsOne):
           order=mesh->reducedIntegrationOrder;
           break;
    default:
@@ -2395,6 +2095,12 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
       throw DudleyAdapterException(temp.str());
   }
   return order;
+}
+
+
+bool MeshAdapter::supportsContactElements() const
+{
+    return false;
 }
 
 ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)

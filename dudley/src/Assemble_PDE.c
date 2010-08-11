@@ -118,17 +118,9 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Pas
        reducedIntegrationOrder=FALSE;
   } else if (funcspace==DUDLEY_FACE_ELEMENTS)  {
        reducedIntegrationOrder=FALSE;
-  } else if (funcspace==DUDLEY_CONTACT_ELEMENTS_1)  {
-       reducedIntegrationOrder=FALSE;
-  } else if (funcspace==DUDLEY_CONTACT_ELEMENTS_2)  {
-       reducedIntegrationOrder=FALSE;
   } else if (funcspace==DUDLEY_REDUCED_ELEMENTS) {
        reducedIntegrationOrder=TRUE;
   } else if (funcspace==DUDLEY_REDUCED_FACE_ELEMENTS)  {
-       reducedIntegrationOrder=TRUE;
-  } else if (funcspace==DUDLEY_REDUCED_CONTACT_ELEMENTS_1)  {
-       reducedIntegrationOrder=TRUE;
-  } else if (funcspace==DUDLEY_REDUCED_CONTACT_ELEMENTS_2)  {
        reducedIntegrationOrder=TRUE;
   } else {
        Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: assemblage failed because of illegal function space.");

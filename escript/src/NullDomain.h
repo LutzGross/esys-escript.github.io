@@ -213,6 +213,8 @@ class NullDomain : public AbstractDomain {
   ESCRIPT_DLL_API 
   virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
+  ESCRIPT_DLL_API
+  bool supportsContactElements() const;
  protected:
 
  private:
