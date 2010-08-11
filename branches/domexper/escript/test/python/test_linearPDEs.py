@@ -1007,17 +1007,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_Scalar(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact=1.)
-        coeff=mypde.getCoefficient("d_contact")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1,1))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact=1.)
+            coeff=mypde.getCoefficient("d_contact")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_Scalar(self):
         d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact=1.)
-        coeff=mypde.getCoefficient("y_contact")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1))
+	if self.domain.supportsContactElements():
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact=1.)
+            coeff=mypde.getCoefficient("y_contact")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1))
     def test_setCoefficient_A_reduced_Scalar(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1067,17 +1069,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_reduced_Scalar(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact_reduced=1.)
-        coeff=mypde.getCoefficient("d_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact_reduced=1.)
+            coeff=mypde.getCoefficient("d_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_reduced_Scalar(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact_reduced=1.)
-        coeff=mypde.getCoefficient("y_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact_reduced=1.)
+            coeff=mypde.getCoefficient("y_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
     def test_setCoefficient_r_Scalar(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -1154,17 +1158,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_reduced_Scalar_using_d_contact(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
-        coeff=mypde.getCoefficient("d_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+            coeff=mypde.getCoefficient("d_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_reduced_Scalar_using_y_contact(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
-        coeff=mypde.getCoefficient("y_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
+            coeff=mypde.getCoefficient("y_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1))
     #
     #  set coefficients for systems:
     #
@@ -1217,17 +1223,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_System(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact=numpy.ones((self.N,self.N)))
-        coeff=mypde.getCoefficient("d_contact")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnContactZero(self.domain),self.N,self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact=numpy.ones((self.N,self.N)))
+            coeff=mypde.getCoefficient("d_contact")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_System(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact=numpy.ones((self.N,)))
-        coeff=mypde.getCoefficient("y_contact")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),FunctionOnContactZero(self.domain),self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact=numpy.ones((self.N,)))
+            coeff=mypde.getCoefficient("y_contact")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),FunctionOnContactZero(self.domain),self.N))
     def test_setCoefficient_A_reduced_System(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1277,17 +1285,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_reduced_System(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact_reduced=numpy.ones((self.N,self.N)))
-        coeff=mypde.getCoefficient("d_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact_reduced=numpy.ones((self.N,self.N)))
+            coeff=mypde.getCoefficient("d_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_reduced_System(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact_reduced=numpy.ones((self.N,)))
-        coeff=mypde.getCoefficient("y_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact_reduced=numpy.ones((self.N,)))
+            coeff=mypde.getCoefficient("y_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
     def test_setCoefficient_r_System(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -1364,17 +1374,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_reduced_System_using_d_contact(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(d_contact=Data(numpy.ones((self.N,self.N)),ReducedFunctionOnContactZero(self.domain)))
-        coeff=mypde.getCoefficient("d_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            mypde.setValue(d_contact=Data(numpy.ones((self.N,self.N)),ReducedFunctionOnContactZero(self.domain)))
+            coeff=mypde.getCoefficient("d_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_reduced_System_using_y_contact(self):
-        d=self.domain.getDim()
-        mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
-        mypde.setValue(y_contact=Data(numpy.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
-        coeff=mypde.getCoefficient("y_contact_reduced")
-        self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
+	if self.domain.supportsContactElements():
+            d=self.domain.getDim()
+            mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
+            mypde.setValue(y_contact=Data(numpy.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
+            coeff=mypde.getCoefficient("y_contact_reduced")
+            self.failUnlessEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
     def test_resetCoefficient_HomogeneousConstraint(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
@@ -1432,7 +1444,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3*numpy.ones((self.N,self.N))
         d=4*numpy.ones((self.N,self.N))
         d_contact=5*numpy.ones((self.N,self.N))
-        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact)
+	pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
+	if self.domain.supportsContactElements():
+		pars["d_contact"]=d_contact
+		pars["d_contact_reduced"]=-d_contact
+	mypde.setValue(**pars)
         self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_System(self):
@@ -1466,11 +1482,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_d_contact_System(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        d_contact=5*numpy.ones((self.N,self.N))
-        d_contact[0,1]=0.
-        mypde.setValue(d_contact=d_contact)
-        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+	if self.domain.supportsContactElements():
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            d_contact=5*numpy.ones((self.N,self.N))
+            d_contact[0,1]=0.
+            mypde.setValue(d_contact=d_contact)
+            self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_reduced_System(self):
         d=self.domain.getDim()
@@ -1503,11 +1520,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_d_contact_reduced_System(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        d_contact=5*numpy.ones((self.N,self.N))
-        d_contact[0,1]=0.
-        mypde.setValue(d_contact_reduced=d_contact)
-        self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
+	if self.domain.supportsContactElements():
+            mypde=LinearPDE(self.domain,debug=self.DEBUG)
+            d_contact=5*numpy.ones((self.N,self.N))
+            d_contact[0,1]=0.
+            mypde.setValue(d_contact_reduced=d_contact)
+            self.failUnless(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckTrue_Scalar(self):
         d=self.domain.getDim()
@@ -1518,7 +1536,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3
         d=4
         d_contact=5
-        mypde.setValue(A=A,B=B,C=C,D=D,d=d,d_contact=d_contact,A_reduced=-A,B_reduced=-B,C_reduced=-C,D_reduced=-D,d_reduced=-d,d_contact_reduced=-d_contact)
+	pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
+	if self.domain.supportsContactElements():
+		pars["d_contact"]=d_contact
+		pars["d_contact_reduced"]=-d_contact
+	mypde.setValue(**pars)
         self.failUnless(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_Scalar(self):

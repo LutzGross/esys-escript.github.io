@@ -310,26 +310,6 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
                             Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
                         }
                     break;
-                    case DUDLEY_REDUCED_CONTACT_ELEMENTS_1:
-                        hasReducedElements = TRUE;
-                    case DUDLEY_CONTACT_ELEMENTS_1:
-                        isCellCentered[dataIdx] = TRUE;
-                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_CONTACT_ELEMENTS_1) {
-                            elementType = DUDLEY_CONTACT_ELEMENTS_1;
-                        } else {
-                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
-                        }
-                    break;
-                    case DUDLEY_REDUCED_CONTACT_ELEMENTS_2:
-                        hasReducedElements = TRUE;
-                    case DUDLEY_CONTACT_ELEMENTS_2:
-                        isCellCentered[dataIdx] = TRUE;
-                        if (elementType==DUDLEY_UNKNOWN || elementType==DUDLEY_CONTACT_ELEMENTS_1) {
-                            elementType = DUDLEY_CONTACT_ELEMENTS_1;
-                        } else {
-                            Dudley_setError(TYPE_ERROR, "saveVTK: cannot write given data in single file.");
-                        }
-                    break;
                     default:
                         sprintf(errorMsg, "saveVTK: unknown function space type %d",getFunctionSpaceType(data_pp[dataIdx]));
                         Dudley_setError(TYPE_ERROR, errorMsg);
@@ -370,9 +350,6 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             break;
             case DUDLEY_POINTS:
                 elements = mesh_p->Points;
-            break;
-            case DUDLEY_CONTACT_ELEMENTS_1:
-                elements = mesh_p->ContactElements;
             break;
         }
         if (elements==NULL) {

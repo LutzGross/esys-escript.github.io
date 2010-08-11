@@ -59,11 +59,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
-  	   if (getFunctionSpaceType(interpolated_data)==DUDLEY_CONTACT_ELEMENTS_2) {
-	            dof_offset=reference_element->Type->offsets[1];
-           } else {
-	            dof_offset=reference_element->Type->offsets[0];
-           }
+	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
 	   numSub=1;
@@ -71,11 +67,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedNodes(nodes);
-  	   if (getFunctionSpaceType(interpolated_data)==DUDLEY_CONTACT_ELEMENTS_2) {
-	            dof_offset=reference_element->LinearType->offsets[1];
-           } else {
-	            dof_offset=reference_element->LinearType->offsets[0];
-           }
+	   dof_offset=reference_element->LinearType->offsets[0];
   } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
 	   if (elements->MPIInfo->size>1) {
 		  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
@@ -87,11 +79,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
-  	   if (getFunctionSpaceType(interpolated_data)==DUDLEY_CONTACT_ELEMENTS_2) {
-	            dof_offset=reference_element->Type->offsets[1];
-           } else {
-	            dof_offset=reference_element->Type->offsets[0];
-           }
+	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	   if (elements->MPIInfo->size>1) {
 		  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
@@ -103,11 +91,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
-  	   if (getFunctionSpaceType(interpolated_data)==DUDLEY_CONTACT_ELEMENTS_2) {
-	            dof_offset=reference_element->LinearType->offsets[1];
-           } else {
-	            dof_offset=reference_element->LinearType->offsets[0];
-           }
+	   dof_offset=reference_element->LinearType->offsets[0];
    } else {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: Cannot interpolate data");
 	   return;

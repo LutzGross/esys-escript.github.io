@@ -155,7 +155,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
      .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier,"Wait until all processes have reached this point")
      .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
-
+     .def("supportsContactElements", &escript::AbstractDomain::supportsContactElements,"Does this domain support contact elements.")
      .def(self == self)
      .def(self != self);
 

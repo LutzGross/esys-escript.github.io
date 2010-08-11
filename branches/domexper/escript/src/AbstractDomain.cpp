@@ -307,10 +307,14 @@ bool AbstractDomain::canTag(int functionspacecode) const
 
 int AbstractDomain::getApproximationOrder(const int functionSpaceCode) const
 {
-  throwStandardException("AbstractContinuousDomain::getApproximationOrder");
+  throwStandardException("AbstractDomain::getApproximationOrder");
   return 0;
 }
 
-
+bool AbstractDomain::supportsContactElements() const
+{
+  throwStandardException("AbstractDomain::supportsConactElements");
+  return false;
+}
 
 } // end of namespace

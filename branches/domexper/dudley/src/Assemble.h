@@ -59,7 +59,7 @@ struct Assemble_Parameters {
 typedef struct Assemble_Parameters Assemble_Parameters;
 
 
-#define Dudley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_CONTACT_ELEMENTS_2) )
+#define Dudley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_FACE_ELEMENTS) )
 
 void Dudley_Assemble_PDE(Dudley_NodeFile*,Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;

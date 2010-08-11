@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import unittest
 from test_util import Test_util as Test_util
-from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symbols import Test_symbols
 
 from esys.escript import *
@@ -143,93 +143,7 @@ class Test_Util_SpatialFunctionsOnDudleyHex3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
-    def setUp(self):
-        self.order=1
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1)
-        d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
-    def setUp(self):
-        self.order=2
-        d1 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
-        d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
-    def setUp(self):
-        self.order=1
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1)
-        d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
-    def setUp(self):
-        self.order=2
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2)
-        d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
-    def setUp(self):
-        self.order=1
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
-    def setUp(self):
-        self.order=2
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2.setX(d2.getX()+[0.5,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
-    def setUp(self):
-        self.order=1
-        d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=True)
-        d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
-    def setUp(self):
-        self.order=2
-        d1 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=True)
-        d2.setX(d2.getX()+[0.5,0.,0.])
-        self.domain = JoinFaces([d1,d2],optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
@@ -247,16 +161,6 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DMacro))
-      # These tests use JoinFaces and are not MPI parallel
-      if getMPISizeWorld() == 1:
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2withContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1useElementsOnFacewithContact))
-        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2useElementsOnFacewithContact))
    else:
       pass
    s=unittest.TextTestRunner(verbosity=2).run(suite)

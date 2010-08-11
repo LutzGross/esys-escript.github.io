@@ -82,26 +82,6 @@ class Test_DomainOnDudley(Test_Domain):
        # For an MPI-distributed domain some tags may be missing
        if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
-   def test_tagsFunctionOnContactOne(self):
-       ref_tags=[]
-       tags=FunctionOnContactOne(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
-   def test_tagsFunctionOnContactZero(self):
-       ref_tags=[]
-       tags=FunctionOnContactZero(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
-   def test_tagsReducedFunctionOnContactOne(self):
-       ref_tags=[]
-       tags=ReducedFunctionOnContactOne(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
-   def test_tagsReducedFunctionOnContactZero(self):
-       ref_tags=[]
-       tags=ReducedFunctionOnContactZero(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
 
 class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
@@ -127,9 +107,7 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
     def setUp(self):
 	self.domain=Rectangle(4,4)
 	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-	    FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
-	    ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain)]
+	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
 	    #We aren't testing DiracDeltaFunction
 	self.xn=3	# number of grids on x axis
 	self.yn=3	# number of grids on y axis
@@ -155,8 +133,6 @@ class Test_CSVOnDudley(Test_saveCSV):
 	fname="test_singlefs.csv"
 	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-	FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
-	ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain),
 	DiracDeltaFunction(self.domain)]
 	for f in fss:
 		d=Data(7,f)
@@ -178,13 +154,6 @@ class Test_CSVOnDudley(Test_saveCSV):
 	bound=Data(1,FunctionOnBoundary(self.domain))
 	rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
 	saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
-	#test line 3
-	conzz=Data(7,FunctionOnContactZero(self.domain))
-	rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
-	saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
-	#check for cross line exceptions
-	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
-	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
 
 	
 if __name__ == '__main__':

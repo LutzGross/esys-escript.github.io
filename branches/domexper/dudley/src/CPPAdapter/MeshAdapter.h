@@ -685,6 +685,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   int getApproximationOrder(const int functionSpaceCode) const;
 
 
+  DUDLEY_DLL_API
+  bool supportsContactElements() const;
  protected:
 
  private:
