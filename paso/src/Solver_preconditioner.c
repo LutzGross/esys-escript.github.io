@@ -37,10 +37,7 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
       Paso_Solver_Jacobi_free(in->jacobi);
-      if (in->type==PASO_GAUSS_SEIDEL_MPI)
-        Paso_Solver_GSMPI_free(in->gs);
-      else 
-        Paso_Solver_GS_free(in->gs);
+      Paso_Solver_GS_free(in->gs);
       Paso_Solver_AMG_free(in->amg);
       Paso_Solver_AMG_System_free(in->amgSystem);
       Paso_Solver_AMLI_free(in->amli);
@@ -72,40 +69,40 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec->amli=NULL;
         prec->amgSystem=NULL;
         prec->amliSystem=NULL;
+	if (options->verbose && options->use_local_preconditioner) printf("Apply preconditioner locally only.\n");
 
         A->solver=prec;
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
               if (options->verbose) printf("Jacobi preconditioner is used.\n");
-              prec->jacobi=Paso_Solver_getJacobi(A->mainBlock);
+              prec->jacobi=Paso_Solver_getJacobi(A);
               prec->type=PASO_JACOBI;
               break;
+	   case PASO_GS:
+	      if (options->verbose) printf("Gauss-Seidel preconditioner is used.\n");
+	      prec->gs=Paso_Solver_getGS(A, options->sweeps, options->use_local_preconditioner, options->verbose);
+	      prec->type=PASO_GS;
+	      break;
+	      
+	   /***************************************************************************************/   
            case PASO_ILU0:
               if (options->verbose) printf("ILU preconditioner is used.\n");
               prec->ilu=Paso_Solver_getILU(A->mainBlock,options->verbose);
               prec->type=PASO_ILU0;
+	      Paso_MPIInfo_noError(A->mpi_info);
               break;
            case PASO_RILU:
               if (options->verbose) printf("RILU preconditioner is used.\n");
               prec->rilu=Paso_Solver_getRILU(A->mainBlock,options->verbose);
+	      Paso_MPIInfo_noError(A->mpi_info);
               prec->type=PASO_RILU;
               break;
-            case PASO_GS:
-              if (options->verbose) printf("Gauss-Seidel preconditioner is used.\n");
-              prec->gs=Paso_Solver_getGS(A->mainBlock,options->verbose);
-              prec->gs->sweeps=options->sweeps;
-              prec->type=PASO_GS;
-              break;
-            case PASO_GAUSS_SEIDEL_MPI:
-              if (options->verbose) printf("MPI versioned Gauss-Seidel preconditioner is used.\n");
-              prec->gs=Paso_Solver_getGSMPI(A->mainBlock,options->verbose);
-              prec->gs->sweeps=options->sweeps;
-              prec->type=PASO_GAUSS_SEIDEL_MPI;
-              break;
+
             case PASO_AMG:
               if (options->verbose) printf("AMG preconditioner is used.\n");
-              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
+              prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options); 
+	      Paso_MPIInfo_noError(A->mpi_info);
 	      /*
               prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
 	      if (Paso_checkPtr(prec->amgSystem)) return;
@@ -173,68 +170,26 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
     dim_t i,j;
     dim_t n=A->mainBlock->numRows;
-    double **xx;
-    double **bb;
+
     
-    xx=MEMALLOC(A->row_block_size,double*);
-    bb=MEMALLOC(A->row_block_size,double*);
-    if (Paso_checkPtr(xx) || Paso_checkPtr(bb)) return;
+
 
     switch (prec->type) {
         default:
         case PASO_JACOBI:
-           Paso_Solver_solveJacobi(prec->jacobi,x,b);
+           Paso_Solver_solveJacobi(A, prec->jacobi,x,b);
            break;
+	   
+	case PASO_GS:
+	   Paso_Solver_solveGS(A, prec->gs,x,b);
+	   break;	   
         case PASO_ILU0:
-           Paso_Solver_solveILU(prec->ilu,x,b);
+           Paso_Solver_solveILU(A->mainBlock, prec->ilu,x,b);
            break;
         case PASO_RILU:
-           Paso_Solver_solveRILU(prec->rilu,x,b);
+	   Paso_Solver_solveRILU(prec->rilu,x,b);
            break;
-        case PASO_GS:
-            /* Gauss-Seidel preconditioner P=U^{-1}DL^{-1} is used here with sweeps paramenter.
-              We want to solve x_new=x_old+P^{-1}(b-Ax_old). So for fisrt 3 we will have the following:
-              x_0=0
-              x_1=P^{-1}(b)
-              
-              b_old=b
-              
-              b_new=b_old+b
-              x_2=x_1+P^{-1}(b-Ax_1)=P^{-1}(b)+P^{-1}(b)-P^{-1}AP^{-1}(b))
-                 =P^{-1}(2b-AP^{-1}b)=P^{-1}(b_new-AP^{-1}b_old)
-              b_old=b_new
-              
-              b_new=b_old+b
-              b_new=b_new-Ax_2=b_new-AP^{-1}(2b-AP^{-1}b)
-              x_3=....=P^{-1}(b_new-AP^{-1}b_old)
-              b_old=b_new
-              
-              So for n- steps we will use loop, but we always make sure that every value calculated only once!
-            */
-            
-           Paso_Solver_solveGS(prec->gs,x,b);
-           if (prec->gs->sweeps>1) {
-                double *bnew=MEMALLOC(prec->gs->n*prec->gs->n_block,double);
-                dim_t sweeps=prec->gs->sweeps;
-           
-                #pragma omp parallel for private(i) schedule(static)
-                for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]=b[i];
-           
-                while(sweeps>1) {
-                   #pragma omp parallel for private(i) schedule(static)
-                   for (i=0;i<prec->gs->n*prec->gs->n_block;++i) bnew[i]+=b[i];
-                    /* Compute the residual b=b-Ax*/
-                   Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A->mainBlock, x, DBLE(1), bnew);
-                   /* Go round again*/
-                   Paso_Solver_solveGS(prec->gs,x,bnew);
-                   sweeps--;
-                }
-                MEMFREE(bnew); 
-           }
-           break;
-        case PASO_GAUSS_SEIDEL_MPI:
-           Paso_Solver_solveGSMPI(A,prec->gs,x,b);
-           break;
+
         case PASO_AMG:
             Paso_Solver_solveAMG(prec->amg,x,b);
 
@@ -283,8 +238,11 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 Paso_Solver_solveAMLI(prec->amli,x,b);
             }
             else {
-           
-                
+	       double **xx;
+	       double **bb;
+	       xx=MEMALLOC(A->row_block_size,double*);
+	       bb=MEMALLOC(A->row_block_size,double*);
+	       if (Paso_checkPtr(xx) || Paso_checkPtr(bb)) return;
                  for (i=0;i<A->row_block_size;i++) {
                     xx[i]=MEMALLOC(n,double);
                     bb[i]=MEMALLOC(n,double);
@@ -314,10 +272,10 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                 MEMFREE(xx[i]);
                 MEMFREE(bb[i]);
                 }
-               
+                MEMFREE(xx);
+		MEMFREE(bb);
             }
         break;
     }
-    MEMFREE(xx);
-    MEMFREE(bb);
+
 }

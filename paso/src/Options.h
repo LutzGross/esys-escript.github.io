@@ -37,7 +37,6 @@
 #define PASO_CR 4
 #define PASO_CGS 5
 #define PASO_BICGSTAB 6
-#define PASO_SSOR 7
 #define PASO_ILU0 8
 #define PASO_ILUT 9
 #define PASO_JACOBI 10
@@ -63,14 +62,13 @@
 #define PASO_DEFAULT_REORDERING 30
 #define PASO_SUPER_LU 31
 #define PASO_PASTIX 32
+#define PASO_STANDARD_COARSENING 39
 #define PASO_YAIR_SHAPIRA_COARSENING 33
 #define PASO_RUGE_STUEBEN_COARSENING 34
 #define PASO_AGGREGATION_COARSENING 35
 #define PASO_NO_PRECONDITIONER 36
 #define PASO_MIN_COARSE_MATRIX_SIZE 37
 #define PASO_AMLI 38
-#define PASO_STANDARD_COARSENING 39
-#define PASO_GAUSS_SEIDEL_MPI 40
 
 typedef struct {
     index_t method;
@@ -99,6 +97,7 @@ typedef struct {
     bool_t accept_failed_convergence;
     index_t coarsening_method;
     double relaxation_factor;
+    bool_t use_local_preconditioner;
 
     /* diagnostic values */
     dim_t num_iter;
@@ -109,6 +108,7 @@ typedef struct {
     double net_time;
     double residual_norm;
     bool_t converged;
+    double preconditioner_size; /* in Mbytes */
 
 } Paso_Options;
 

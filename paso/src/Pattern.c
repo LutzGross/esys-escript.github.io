@@ -93,6 +93,8 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
       out->ptr=ptr;
       out->index=index;
       out->main_iptr = NULL;
+      out->coloring = NULL;
+      out->numColors=-1;
 
       if (out->ptr == NULL) {
           out->len=0;
@@ -121,6 +123,7 @@ void Paso_Pattern_free(Paso_Pattern* in) {
         MEMFREE(in->ptr);
         MEMFREE(in->index);
 	MEMFREE(in->main_iptr);
+	MEMFREE(in->coloring);
         MEMFREE(in);
      }
    }
@@ -410,4 +413,26 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
 	 }
      }
      return A->main_iptr;
+}
+
+dim_t Paso_Pattern_getNumColors(Paso_Pattern* A)
+{
+   Paso_Pattern_borrowColoringPointer(A);  /* make sure numColors is defined */
+   return A->numColors;
+}
+index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A)
+{
+   dim_t n=A->numInput;
+   /* is coloring available ? */
+   if (A->coloring == NULL) {
+      
+      A->coloring=MEMALLOC(n,index_t);
+      if ( ! Paso_checkPtr(A->coloring)) {
+	 Paso_Pattern_color(A,&(A->numColors),A->coloring);
+	 if (! Paso_noError()) {
+	    MEMFREE(A->coloring);
+	 }
+      } 
+   }
+   return A->coloring;
 }

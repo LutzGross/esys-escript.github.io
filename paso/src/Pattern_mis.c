@@ -58,6 +58,10 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
     Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
   }
+  if (pattern_p->numOutput != pattern_p->numInput) {
+     Paso_setError(VALUE_ERROR,"Paso_Pattern_mis: pattern must be square.");
+     return;
+  }
   value=TMPMEMALLOC(n,double);
   if (!Paso_checkPtr(value)) {
 

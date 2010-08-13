@@ -57,6 +57,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->coarsening_method=PASO_DEFAULT;
   options->relaxation_factor=0.95;
   options->smoother=PASO_GS;
+  options->use_local_preconditioner=FALSE;
 
   /* diagnostic values */
   options->num_iter=-1;
@@ -67,6 +68,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->net_time=-1.;
   options->residual_norm=-1.;
   options->converged=FALSE;
+  options->preconditioner_size=-1.;
 }
 void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("Paso diagonsitics:\n");
@@ -78,6 +80,7 @@ void Paso_Options_showDiagnostics(const Paso_Options* options) {
         printf("\tnet_time = %e\n",options->net_time);
 	printf("\tresidual_norm = %e\n",options->residual_norm);
 	printf("\tconverged = %d\n",options->converged);
+        printf("\tpreconditioner_size = %e Mbytes\n", options->preconditioner_size);
 }
 const char* Paso_Options_name(const index_t key){
     switch (key) {
@@ -95,8 +98,6 @@ const char* Paso_Options_name(const index_t key){
           return "CGS";
        case  PASO_BICGSTAB:
           return "BICGSTAB";
-       case  PASO_SSOR:
-          return "SSOR";
        case  PASO_ILU0:
           return "ILU0";
        case  PASO_ILUT:
@@ -139,8 +140,6 @@ const char* Paso_Options_name(const index_t key){
           return "MINRES";
        case  PASO_GAUSS_SEIDEL:
           return "GAUSS_SEIDEL";
-       case  PASO_GAUSS_SEIDEL_MPI:
-          return "GAUSS_SEIDEL_MPI";
        case  PASO_RILU:
           return "RILU";
        case  PASO_DEFAULT_REORDERING:
@@ -159,8 +158,6 @@ const char* Paso_Options_name(const index_t key){
           return "STANDARD_COARSENING";
        case  PASO_NO_PRECONDITIONER:
           return "NO_PRECONDITIONER";
-       case  PASO_MIN_COARSE_MATRIX_SIZE:
-          return "MIN_COARSE_MATRIX_SIZE";
        default:
 	  return "<unknown>";
     }
@@ -191,4 +188,5 @@ void Paso_Options_show(const Paso_Options* options ) {
 	printf("\taccept_failed_convergence = %d\n",options->accept_failed_convergence);
 	printf("\tcoarsening_method = %s (%d)\n",Paso_Options_name(options->coarsening_method), options->coarsening_method);
 	printf("\trelaxation_factor = %e\n",options->relaxation_factor);
+	printf("\tuse_local_preconditioner = %d\n",options->use_local_preconditioner);
 }

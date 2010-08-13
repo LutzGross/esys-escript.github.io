@@ -42,54 +42,32 @@
 /* jacobi  preconditioner */
 
 typedef struct Paso_Solver_Jacobi {
-  dim_t n_block;
-  dim_t n;
   double* values;
   index_t* pivot;
 } Paso_Solver_Jacobi;
 
+/* GS preconditioner */
+typedef struct Paso_Solver_LocalGS {
+   double* diag;
+   index_t* pivot;
+   dim_t sweeps;
+} Paso_Solver_LocalGS;
 
+typedef struct Paso_Solver_GS {
+   Paso_Solver_LocalGS* localGS;
+   bool_t is_local;
+} Paso_Solver_GS;
+
+
+
+/*===============================================*/
 /* ILU preconditioner */
 struct Paso_Solver_ILU {
-  dim_t n_block;
-  dim_t n;
-  index_t num_colors;
-  index_t* colorOf;
-  index_t* main_iptr;
   double* factors;
-  Paso_Pattern* pattern;
 };
 typedef struct Paso_Solver_ILU Paso_Solver_ILU;
 
-/* GS preconditioner */
-struct Paso_Solver_GS {
-  dim_t n_block;
-  dim_t n;
-  index_t num_colors;
-  index_t* colorOf;
-  index_t* main_iptr;
-  double* diag;
-  Paso_SparseMatrix * factors;
-  Paso_Pattern* pattern;
-  dim_t sweeps;
-  double* x_old;
-};
-typedef struct Paso_Solver_GS Paso_Solver_GS;
 
-/* GaussSeidel preconditioner */
-struct Paso_Solver_GaussSeidel {
-  dim_t n_block;
-  dim_t n;
-  index_t num_colors;
-  index_t* colorOf;
-  index_t* main_iptr;
-  double* diag;
-  Paso_SparseMatrix * factors;
-  Paso_Pattern* pattern;
-  dim_t sweeps;
-  double* x_old;
-};
-typedef struct Paso_Solver_GaussSeidel Paso_Solver_GaussSeidel;
 
 
 /* RILU preconditioner */
@@ -117,7 +95,7 @@ typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 struct Paso_Solver_Smoother {
   dim_t ID;  
   Paso_Solver_Jacobi* Jacobi;
-  Paso_Solver_GS* GS;
+  Paso_Solver_LocalGS* GS;
 };
 typedef struct  Paso_Solver_Smoother  Paso_Solver_Smoother;
 
@@ -214,14 +192,16 @@ typedef struct Paso_Solver_AMG_System Paso_Solver_AMG_System;
 
 typedef struct Paso_Solver_Preconditioner {
   dim_t type;
+
   /* jacobi preconditioner */
   Paso_Solver_Jacobi* jacobi;
+  /* Gauss-Seidel preconditioner */
+  Paso_Solver_GS* gs;
+  
   /* ilu preconditioner */
   Paso_Solver_ILU* ilu;
   /* rilu preconditioner */
   Paso_Solver_RILU* rilu;
-  /* Gauss-Seidel preconditioner */
-  Paso_Solver_GS* gs;
   /* amg preconditioner */
   Paso_Solver_AMG* amg;
   /* amg on System */
@@ -240,22 +220,39 @@ err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter
 err_t Paso_Solver_TFQMR( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_MINRES( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
 err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart, Paso_Performance* pp);
+err_t Paso_Solver_GMRES2(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
+
+err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
+Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options);
+err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
+void Paso_Function_LinearSystem_free(Paso_Function * F);
+err_t Paso_Function_LinearSystem_setInitialGuess(Paso_SystemMatrix* A, double* x, Paso_Performance *pp);
+
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double*,double*);
 void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b);
 
-void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool_t verbose);
-void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b);
+Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p);
+void Paso_Solver_solveJacobi(Paso_SystemMatrix * A_p, Paso_Solver_Jacobi * prec, double * x, double * b);
+void Paso_Solver_solveLocalJacobi(Paso_SparseMatrix * A_p, Paso_Solver_Jacobi * prec, double * x, double * b);
+void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);
+Paso_Solver_Jacobi* Paso_Solver_getLocalJacobi(Paso_SparseMatrix * A_p);
 
 void Paso_Solver_GS_free(Paso_Solver_GS * in);
-Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A_p,bool_t verbose);
-void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b);
+void Paso_Solver_LocalGS_free(Paso_Solver_LocalGS * in);
+Paso_Solver_GS* Paso_Solver_getGS(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t is_local, bool_t verbose);
+Paso_Solver_LocalGS* Paso_Solver_getLocalGS(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose);
+void Paso_Solver_solveGS(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, const double * b);
+void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
+void Paso_Solver_solveLocalGS_sequential(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
+void Paso_Solver_solveLocalGS_tiled(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
+void Paso_Solver_solveLocalGS_colored(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
 
-void Paso_Solver_GSMPI_free(Paso_Solver_GS * in);
-Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A_p,bool_t verbose);
-void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b);
+/*******************************************/
+void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
+Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool_t verbose);
+void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
@@ -272,16 +269,10 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix * A_p,dim_t level,Paso_O
 void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b);
 
 void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot, Paso_SparseMatrix *A_FC);
-Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p);
-void Paso_Solver_solveJacobi(Paso_Solver_Jacobi * prec, double * x, double * b);
-void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in);
 
-err_t Paso_Solver_GMRES2(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
-err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
 
-Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options);
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
-void Paso_Function_LinearSystem_free(Paso_Function * F);
-err_t Paso_Function_LinearSystem_setInitialGuess(Paso_SystemMatrix* A, double* x, Paso_Performance *pp);
+
+
+
 
 #endif /* #ifndef INC_SOLVER */

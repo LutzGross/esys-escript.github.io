@@ -67,6 +67,7 @@ typedef struct Paso_SystemMatrix {
 
   Paso_Coupler* col_coupler;
   Paso_Coupler* row_coupler;
+
   /* this comes into play when PASO is used */
   Paso_SparseMatrix* mainBlock;                      /* main block */
   Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */

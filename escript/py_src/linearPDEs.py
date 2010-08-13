@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -69,7 +70,6 @@ class SolverOptions(object):
     :cvar BICGSTAB: The stabilized Bi-Conjugate Gradient method
     :cvar TFQMR: Transpose Free Quasi Minimal Residual method
     :cvar MINRES: Minimum residual method
-    :cvar SSOR: The symmetric over-relaxation method
     :cvar ILU0: The incomplete LU factorization preconditioner with no fill-in
     :cvar ILUT: The incomplete LU factorization preconditioner with fill-in
     :cvar JACOBI: The Jacobi preconditioner
@@ -89,8 +89,7 @@ class SolverOptions(object):
     :cvar AMLI: Algebraic Multi Level Iteration
     :cvar REC_ILU: recursive ILU0
     :cvar RILU: relaxed ILU0
-    :cvar GAUSS_SEIDEL: Gauss-Seidel solver
-    :cvar GAUSS_SEIDEL_MPI: MPI versioned Gauss-Seidel solver
+    :cvar GAUSS_SEIDEL: Gauss-Seidel preconditioner
     :cvar DEFAULT_REORDERING: the reordering method recommended by the solver
     :cvar SUPER_LU: the Super_LU solver package
     :cvar PASTIX: the Pastix direct solver_package
@@ -108,7 +107,6 @@ class SolverOptions(object):
     CR= 4
     CGS= 5
     BICGSTAB= 6
-    SSOR= 7
     ILU0= 8
     ILUT= 9
     JACOBI= 10
@@ -140,7 +138,6 @@ class SolverOptions(object):
     MIN_COARSE_MATRIX_SIZE=37
     AMLI=38
     STANDARD_COARSENING=39
-    GAUSS_SEIDEL_MPI=40
  
     def __init__(self):
         self.setLevelMax()
@@ -169,6 +166,7 @@ class SolverOptions(object):
         self.setCoarsening()
         self.setMinCoarseMatrixSize()
         self.setRelaxationFactor()        
+        self.setLocalPreconditionerOff()
         self.resetDiagnostics(all=True)
 
     def __str__(self):
@@ -184,8 +182,8 @@ class SolverOptions(object):
         out+="\nAbsolute tolerance = %e"%self.getAbsoluteTolerance()
         out+="\nSymmetric problem = %s"%self.isSymmetric()
         out+="\nMaximum number of iteration steps = %s"%self.getIterMax()
-        out+="\nInner tolerance = %e"%self.getInnerTolerance()
-        out+="\nAdapt innner tolerance = %s"%self.adaptInnerTolerance()
+        # out+="\nInner tolerance = %e"%self.getInnerTolerance()
+        # out+="\nAdapt innner tolerance = %s"%self.adaptInnerTolerance()
 	
         if self.getPackage() == self.PASO:
             out+="\nSolver method = %s"%self.getName(self.getSolverMethod())
@@ -196,8 +194,9 @@ class SolverOptions(object):
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
                 out+="\nMaximum number of levels = %s"%self.LevelMax()
                 out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
-                out+="\Coarsening method = %s"%self.getName(self.getCoarsening())
+                out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
             out+="\nPreconditioner = %s"%self.getName(self.getPreconditioner())
+            out+="\nApply preconditioner locally = %s"%self.useLocalPreconditioner()
             if self.getPreconditioner() == self.AMG:
                 out+="\nMaximum number of levels = %s"%self.LevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
@@ -212,8 +211,6 @@ class SolverOptions(object):
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
 	    if self.getPreconditioner() == self.GAUSS_SEIDEL:
-                out+="\nNumber of sweeps = %s"%self.getNumSweeps()
-            if self.getPreconditioner() == self.GAUSS_SEIDEL_MPI:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
             if self.getPreconditioner() == self.ILUT:
                 out+="\nDrop tolerance = %e"%self.getDropTolerance()
@@ -235,7 +232,6 @@ class SolverOptions(object):
         if key == self.CR: return "CR"
         if key == self.CGS: return "CGS"
         if key == self.BICGSTAB: return "BICGSTAB"
-        if key == self.SSOR: return "SSOR"
         if key == self.ILU0: return "ILU0:"
         if key == self.ILUT: return "ILUT"
         if key == self.JACOBI: return "JACOBI"
@@ -257,7 +253,6 @@ class SolverOptions(object):
         if key == self.TFQMR: return "TFQMR"
         if key == self.MINRES: return "MINRES"
         if key == self.GAUSS_SEIDEL: return "GAUSS_SEIDEL"
-        if key == self.GAUSS_SEIDEL_MPI: return "GAUSS_SEIDEL_MPI"
         if key == self.RILU: return "RILU"
         if key == self.DEFAULT_REORDERING: return "DEFAULT_REORDERING"
         if key == self.SUPER_LU: return "SUPER_LU"
@@ -267,7 +262,6 @@ class SolverOptions(object):
         if key == self.STANDARD_COARSENING: return "STANDARD_COARSENING"
         if key == self.AGGREGATION_COARSENING: return "AGGREGATION_COARSENING"
         if key == self.NO_PRECONDITIONER: return "NO_PRECONDITIONER"
-        if key == self.MIN_COARSE_MATRIX_SIZE: return "MIN_COARSE_MATRIX_SIZE"
         
     def resetDiagnostics(self,all=False):
         """
@@ -284,6 +278,7 @@ class SolverOptions(object):
         self.__net_time=None
         self.__residual_norm=None
         self.__converged=None
+        self.__preconditioner_size=-1
         if all: 
             self.__cum_num_inner_iter=0
             self.__cum_num_iter=0
@@ -336,9 +331,8 @@ class SolverOptions(object):
         - "cum_set_up_time": cumulative time to set up of the solver
         - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
         - "cum_net_time": cumulative net execution time
-        - "residual_norm": norm of the final residual
+        - "preconditioner_size": size of preconditioner [Bytes]
         - "converged": return self.__converged
-    
 	
         
         :param name: name of diagnostic information to return
@@ -359,6 +353,7 @@ class SolverOptions(object):
         elif name == "cum_net_time": return self.__cum_net_time
         elif name == "residual_norm": return self.__residual_norm
         elif name == "converged": return self.__converged      
+        elif name == "preconditioner_size": return  self.__preconditioner_size
         else:
             raise ValueError,"unknown diagnostic item %s"%name
     def hasConverged(self):
@@ -369,7 +364,7 @@ class SolverOptions(object):
         return self.getDiagnostics("converged")
     def setCoarsening(self,method=0):
         """
-        Sets the key of the coarsening method to be applied in AMG.
+        Sets the key of the coarsening method to be applied in AMG or AMLI
 
         :param method: selects the coarsening method .
         :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
@@ -381,7 +376,7 @@ class SolverOptions(object):
     
     def getCoarsening(self):
         """
-        Returns the key of the coarsening algorithm to be applied AMG.
+        Returns the key of the coarsening algorithm to be applied AMG or AMLI
 
         :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
         """
@@ -389,20 +384,20 @@ class SolverOptions(object):
       
     def setMinCoarseMatrixSize(self,size=500):
         """
-        Sets the minumum size of the coarsest level matrix in AMG.
+        Sets the minumum size of the coarsest level matrix in AMG or AMLI
 
         :param size: minumum size of the coarsest level matrix .
         :type size: positive ``int`` or ``None``
         """
+	if size==None: size=500
         size=int(size)
         if size<0:
            raise ValueError,"minumum size of the coarsest level matrix must be non-negative."
-	if size==None: size=500
         self.__MinCoarseMatrixSize=size
         
     def getMinCoarseMatrixSize(self):
         """
-        Returns the minumum size of the coarsest level matrix in AMG.
+        Returns the minumum size of the coarsest level matrix in AMG or AMLI
 
         :rtype: ``int``
         """
@@ -413,14 +408,14 @@ class SolverOptions(object):
         Sets the preconditioner to be used. 
 
         :param preconditioner: key of the preconditioner to be used.
-        :type preconditioner: in `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`, `SolverOptions.RILU`,
+        :type preconditioner: in `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
+                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
-        if not preconditioner in [ SolverOptions.SSOR, SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
-                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.GAUSS_SEIDEL_MPI, SolverOptions.RILU,
+        if not preconditioner in [  SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
+                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError,"unknown preconditioner %s"%preconditioner
         self.__preconditioner=preconditioner    
@@ -428,12 +423,12 @@ class SolverOptions(object):
         """
         Returns key of the preconditioner to be used. 
 
-        :rtype: in the list `SolverOptions.SSOR`, `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`, `SolverOptions.RILU`,
+        :rtype: in the list `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, SolverOptions.AMLI,
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
                                     `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
-    def setSmoother(self, smoother=28):
+    def setSmoother(self, smoother=None):
         """
         Sets the smoother to be used. 
 
@@ -460,17 +455,16 @@ class SolverOptions(object):
 
         :param method: key of the solver method to be used.
         :type method: in `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
-                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, 
                         `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
-                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
-                        `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`
+                        `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`
         :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
 	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
-                           SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, SolverOptions.SSOR, 
-                           SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE, SolverOptions.AMG, 
-                           SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES, SolverOptions.GAUSS_SEIDEL, SolverOptions.GAUSS_SEIDEL_MPI]:
+                           SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, 
+                           SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE,
+                           SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES ]:
              raise ValueError,"unknown solver method %s"%method
         self.__method=method
     def getSolverMethod(self):
@@ -478,10 +472,9 @@ class SolverOptions(object):
         Returns key of the solver method to be used. 
 
         :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
-                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, `SolverOptions.SSOR`, 
+                        `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, 
                         `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
-                        `SolverOptions.AMG`, `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`, 
-                        `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.GAUSS_SEIDEL_MPI`
+                        `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`
         """
         return self.__method
         
@@ -510,7 +503,7 @@ class SolverOptions(object):
         to optimize compute time and storage use during elimination. 
 
         :param ordering: selects the reordering strategy.
-        :type ordering: in `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
+        :type ordering: in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
         """
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
              raise ValueError,"unknown reordering strategy %s"%ordering
@@ -519,7 +512,7 @@ class SolverOptions(object):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        :rtype: in the list `SolverOptions.NO_REORDERING`, `SolverOptions.NO_REORDERING`,  `SolverOptions.NO_REORDERING`, `SolverOptions.DEFAULT_REORDERING`
+        :rtype ordering: in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
         """
         return self.__reordering
     def setRestart(self,restart=None):
@@ -940,6 +933,39 @@ class SolverOptions(object):
             self.setAcceptanceConvergenceFailureOn()
         else:
             self.setAcceptanceConvergenceFailureOff()
+
+    def useLocalPreconditioner(self):
+        """
+        Returns ``True`` if the preconditoner is applied locally on each MPI. This reducess communication costs
+        and speeds up the application of the preconditioner but at the costs of more iteration steps. This can be an 
+        advantage on clusters with slower interconnects.
+
+        :return: ``True`` if local preconditioning is applied
+        :rtype: ``bool``
+        """
+        return self.__use_local_preconditioner
+
+    def setLocalPreconditionerOn(self):
+        """
+        Sets a flag to use  local preconditioning to on 
+        """
+        self.__use_local_preconditioner=True
+    def setLocalPreconditionerOff(self):
+        """
+        Sets a flag to use  local preconditioning to off
+        """
+        self.__use_local_preconditioner=False
+    def setLocalPreconditioner(self,use=False):
+        """
+        Sets a flag to use  local preconditioning
+
+        :param accept: If ``True``, local proconditioning on each MPI rank is applied
+        :type accept: ``bool``
+        """
+        if use:
+            self.setUseLocalPreconditionerOn()
+        else:
+            self.setUseLocalPreconditionerOff()
 
 class IllegalCoefficient(ValueError):
    """

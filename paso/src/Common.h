@@ -228,4 +228,14 @@ do                                                                           \
 #define TMPMEMFREE(_PTR_) if ((void *)(_PTR_) != NULL ) { printf("TMPMEMFREE AAA %s %d\n", __FILE__, __LINE__); free(_PTR_); (_PTR_) = NULL; printf("TMPMEMFREE BBB %s %d\n", __FILE__, __LINE__); }
 */
 
+#ifdef USE_LAPACK
+
+   #ifdef MKL_LAPACK
+     #include <mkl_lapack.h>
+   #else	/* assuming clapack */
+     #include <clapack.h>
+   #endif
+   
+#endif
+
 #endif /* #ifndef INC_PASO_COMMON */

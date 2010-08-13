@@ -403,6 +403,15 @@ index_t* Paso_SparseMatrix_borrowMainDiagonalPointer(Paso_SparseMatrix * A_p)
     return Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
 }
 
+dim_t Paso_SparseMatrix_getNumColors(Paso_SparseMatrix* A_p) 
+{
+   return Paso_Pattern_getNumColors(A_p->pattern);
+}
+index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix* A_p)
+{
+   return Paso_Pattern_borrowColoringPointer(A_p->pattern);
+}
+
 Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {
 	Paso_SparseMatrix *out = NULL;
 	/*Paso_Pattern* mainPattern=NULL;*/
