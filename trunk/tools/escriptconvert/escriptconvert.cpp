@@ -55,6 +55,13 @@ int usage()
     return -1;
 }
 
+void cleanup()
+{
+#if HAVE_MPI
+    MPI_Finalize();
+#endif
+}
+
 int main(int argc, char** argv)
 {
 #if HAVE_MPI
@@ -71,14 +78,17 @@ int main(int argc, char** argv)
     string esdFile;
 
 #if USE_SILO
-    if (argc != 3)
+    if (argc != 3) {
+        cleanup();
         return usage();
+    }
 
     if (!strcmp(argv[1], "-vtk")) {
         doVTK = true;
     } else if (!strcmp(argv[1], "-silo")) {
         doSilo = true;
     } else {
+        cleanup();
         return usage();
     }
     esdFile = string(argv[2]);
@@ -87,10 +97,13 @@ int main(int argc, char** argv)
     if (argc == 2) {
         esdFile = string(argv[1]);
     } else if (argc == 3) {
-        if (strcmp(argv[1], "-vtk"))
+        if (strcmp(argv[1], "-vtk")) {
+            cleanup();
             return usage();
+        }
         esdFile = string(argv[2]);
     } else {
+        cleanup();
         return usage();
     }
     doVTK = true;
@@ -99,6 +112,7 @@ int main(int argc, char** argv)
     ifstream in(esdFile.c_str());
     if (!in.is_open()) {
         cerr << "Could not open " << esdFile << "." << endl;
+        cleanup();
         return -1;
     }
 
@@ -109,6 +123,7 @@ int main(int argc, char** argv)
     if (sscanf(line, "#escript datafile V%d.%d", &major, &minor) != 2) {
         cerr << esdFile << " is not a valid escript datafile." << endl;
         in.close();
+        cleanup();
         return -1;
     }
 
@@ -140,6 +155,7 @@ int main(int argc, char** argv)
         } else {
             cerr << esdFile << " is not a valid escript datafile." << endl;
             in.close();
+            cleanup();
             return -1;
         }
     }
@@ -148,6 +164,7 @@ int main(int argc, char** argv)
     
     if (nParts < 1 || meshFile == "" || nTimesteps < 1 || tsMultiplier < 1) {
         cerr << esdFile << " is not a valid escript datafile." << endl;
+        cleanup();
         return -1;
     }
 
@@ -217,10 +234,9 @@ int main(int argc, char** argv)
             ds->saveVTK(outFilename.str());
         }
 
-
         // keep mesh from first timestep if it should be reused
         if (writeMeshOnce && nTimesteps > 1 && timeStep == 0) {
-            meshFromTzero = ds->extractMesh();
+            meshFromTzero = ds->getConvertedDomain();
             meshFile = outFilename.str();
             MeshBlocks::iterator meshIt;
             if (doSilo) {
@@ -244,10 +260,7 @@ int main(int argc, char** argv)
     MeshBlocks::iterator meshIt;
 
     cout << "All done." << endl;
-
-#if HAVE_MPI
-    MPI_Finalize();
-#endif
+    cleanup();
 
     return 0;
 }
