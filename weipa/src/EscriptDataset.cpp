@@ -628,6 +628,8 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
     if (mpiSize > 1) {
 #if HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#else
+        gError = myError;
 #endif
     } else {
         gError = myError;
@@ -697,6 +699,8 @@ bool EscriptDataset::setDomain(const string filePattern, int nBlocks)
     if (mpiSize > 1) {
 #if HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#else
+        gError = myError;
 #endif
     } else {
         gError = myError;
@@ -733,6 +737,8 @@ bool EscriptDataset::setDomain(const MeshBlocks& domain)
     if (mpiSize > 1) {
 #if HAVE_MPI
         MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#else
+        gError = myError;
 #endif
     } else {
         gError = myError;
@@ -819,6 +825,8 @@ bool EscriptDataset::addData(const string filePattern, const string name)
         if (mpiSize > 1) {
 #if HAVE_MPI
             MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#else
+            gError = myError;
 #endif
         } else {
             gError = myError;
