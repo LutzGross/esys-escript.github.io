@@ -124,6 +124,16 @@ public:
     WEIPA_DLL_API
     const CoordArray& getData() const { return dataArray; }
 
+    /// \brief Returns a flattened array of data values, i.e. the ordering is
+    ///        s0c0 s0c1 s0c2 s1c0 s1c1 s1c2 s2c0 ...
+    ///        where s denotes the sample number and c the component.
+    WEIPA_DLL_API
+    float* getDataFlat() const;
+
+    /// \brief Returns the total number of components (sum of shape elements).
+    WEIPA_DLL_API
+    int getNumberOfComponents() const;
+
 private:
     void cleanup();
 
