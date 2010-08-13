@@ -46,10 +46,8 @@ const int NUM_SILO_FILES = 1;
 // Default constructor
 //
 EscriptDataset::EscriptDataset() :
-    numParts(0),
     cycle(0),
     time(0.),
-    keepMesh(false),
     externalMesh(false),
     mpiRank(0),
     mpiSize(1)
@@ -61,10 +59,8 @@ EscriptDataset::EscriptDataset() :
 //
 #if HAVE_MPI
 EscriptDataset::EscriptDataset(MPI_Comm comm) :
-    numParts(0),
     cycle(0),
     time(0.),
-    keepMesh(false),
     externalMesh(false),
     mpiComm(comm)
 {
@@ -88,56 +84,19 @@ bool EscriptDataset::initFromEscript(
         DataVec& escriptVars,
         const StringVec& varNames)
 {
-#ifndef VISIT_PLUGIN
-    int myError;
-    numParts = 1;
-    FinleyMesh_ptr mesh(new FinleyMesh());
-    if (mesh->initFromEscript(escriptDomain)) {
-        if (mpiSize > 1)
-            mesh->reorderGhostZones(mpiRank);
-        meshBlocks.push_back(mesh);
-        myError = false;
-    } else {
-        mesh.reset();
-        myError = true;
+    // Set the domain
+    if (!setDomain(escriptDomain)) {
+        return false;
     }
 
-    int gError;
-#if HAVE_MPI
-    MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_LOR, mpiComm);
-#else
-    gError = myError;
-#endif
-
-    if (!gError) {
-        // initialize variables
-        DataVec::iterator varIt = escriptVars.begin();
-        StringVec::const_iterator nameIt = varNames.begin();
-        for (; varIt != escriptVars.end(); varIt++, nameIt++) {
-            VarInfo vi;
-            vi.varName = *nameIt;
-
-            DataVar_ptr var(new DataVar(vi.varName));
-            if (var->initFromEscript(*varIt, mesh)) {
-                vi.dataBlocks.push_back(var);
-                updateSampleDistribution(vi);
-                vi.valid = true;
-            } else {
-                var.reset();
-                vi.valid = false;
-            }
-            variables.push_back(vi);
-        }
-
-        // Convert mesh data to variables
-        convertMeshVariables();
+    // initialize variables
+    DataVec::iterator varIt = escriptVars.begin();
+    StringVec::const_iterator nameIt = varNames.begin();
+    for (; varIt != escriptVars.end(); varIt++, nameIt++) {
+        addData(*varIt, *nameIt);
     }
 
-    return !gError;
-
-#else // VISIT_PLUGIN
-    return false;
-#endif
+    return true;
 }
 
 //
@@ -147,56 +106,38 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
                                 const StringVec& varFiles,
                                 const StringVec& varNames, int nBlocks)
 {
-    if (mpiSize > 1 && nBlocks != mpiSize) {
-        cerr << "Cannot load " << nBlocks << " chunks on " << mpiSize
-            << " MPI ranks!" << endl;
+    // Load the domain files
+    if (!setDomain(meshFilePattern, nBlocks)) {
         return false;
     }
-
-    numParts = nBlocks;
-    meshFmt = meshFilePattern;
-    
-    // Load the mesh files
-    if (!loadMeshFromNetCDF()) {
-        cerr << "Reading the domain failed." << endl;
-        return false;
-    }
-
-    // Convert mesh data to variables
-    convertMeshVariables();
 
     // Load the variables
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        loadVarFromNetCDF(*fileIt, *nameIt);
+        addData(*fileIt, *nameIt);
     }
 
     return true;
 }
 
 //
-// Load only variables using provided mesh
+// Load only variables using provided domain
 //
 bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
                                 const StringVec& varFiles,
                                 const StringVec& varNames)
 {
-    if (mpiSize > 1 && mesh.size() > 1) {
-        cerr << "Can only read one mesh block per rank when using MPI!" << endl;
+    // Set the domain
+    if (!setDomain(mesh)) {
         return false;
     }
-
-    externalMesh = true;
-    meshBlocks = mesh;
-    numParts = meshBlocks.size();
-    keepMesh = true;
 
     // Load the variables
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        loadVarFromNetCDF(*fileIt, *nameIt);
+        addData(*fileIt, *nameIt);
     }
 
     return true;
@@ -208,7 +149,7 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
 bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 {
 #if USE_SILO
-    if (numParts == 0)
+    if (meshBlocks.size() == 0)
         return false;
 
     const char* blockDirFmt = "/block%04d";
@@ -343,7 +284,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 //
 bool EscriptDataset::saveVTK(string fileName)
 {
-    if (numParts == 0)
+    if (meshBlocks.size() == 0)
         return false;
 
     string meshName;
@@ -433,22 +374,6 @@ bool EscriptDataset::saveVTK(string fileName)
         return false;
     }
 
-    int myNumCells;
-    if (mpiSize > 1)
-        meshBlocks[0]->removeGhostZones(mpiRank);
-    ElementData_ptr elements = meshBlocks[0]->getElementsByName(meshName);
-    myNumCells = elements->getNumElements();
-    MPI_Reduce(&myNumCells, &gNumCells, 1, MPI_INT, MPI_SUM, 0, mpiComm);
-
-    int myCellSizeAndType[2];
-    myCellSizeAndType[0] = elements->getNodesPerElement();
-    myCellSizeAndType[1] = elements->getType();
-
-    // rank 0 needs to know element type and size but it's possible that this
-    // information is only available on other ranks (value=0) so retrieve it
-    MPI_Reduce(&myCellSizeAndType, &gCellSizeAndType, 2, MPI_INT, MPI_MAX, 0,
-            mpiComm);
-
     // these definitions make the code more readable and life easier -
     // WRITE_ORDERED causes all ranks to write the contents of the stream while
     // WRITE_SHARED should only be called for rank 0.
@@ -476,18 +401,6 @@ bool EscriptDataset::saveVTK(string fileName)
 
     ofstream ofs(fileName.c_str());
 
-    int idx = 0;
-    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
-        if (numParts > 1)
-            (*meshIt)->removeGhostZones(idx);
-        ElementData_ptr elements = (*meshIt)->getElementsByName(meshName);
-        gNumCells += elements->getNumElements();
-        if (gCellSizeAndType[0] == 0)
-            gCellSizeAndType[0] = elements->getNodesPerElement();
-        if (gCellSizeAndType[1] == 0)
-            gCellSizeAndType[1] = elements->getType();
-    }
-
     // the non-MPI versions of WRITE_ORDERED and WRITE_SHARED are
     // identical.
 #define WRITE_ORDERED(_stream) \
@@ -502,7 +415,38 @@ bool EscriptDataset::saveVTK(string fileName)
         _stream.str("");\
     } while(0)
 
+#endif // HAVE_MPI
+
+    if (mpiSize > 1) {
+#if HAVE_MPI
+        meshBlocks[0]->removeGhostZones(mpiRank);
+        ElementData_ptr elements = meshBlocks[0]->getElementsByName(meshName);
+        int myNumCells = elements->getNumElements();
+        MPI_Reduce(&myNumCells, &gNumCells, 1, MPI_INT, MPI_SUM, 0, mpiComm);
+
+        int myCellSizeAndType[2];
+        myCellSizeAndType[0] = elements->getNodesPerElement();
+        myCellSizeAndType[1] = elements->getType();
+
+        // rank 0 needs to know element type and size but it's possible that
+        // this information is only available on other ranks (value=0) so
+        // retrieve it
+        MPI_Reduce(&myCellSizeAndType, &gCellSizeAndType, 2, MPI_INT, MPI_MAX,
+                0, mpiComm);
 #endif
+    } else {
+        int idx = 0;
+        for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
+            if (meshBlocks.size() > 1)
+                (*meshIt)->removeGhostZones(idx);
+            ElementData_ptr elements = (*meshIt)->getElementsByName(meshName);
+            gNumCells += elements->getNumElements();
+            if (gCellSizeAndType[0] == 0)
+                gCellSizeAndType[0] = elements->getNodesPerElement();
+            if (gCellSizeAndType[1] == 0)
+                gCellSizeAndType[1] = elements->getType();
+        }
+    }
 
     gNumPoints = meshBlocks[0]->getNodes()->getGlobalNumNodes();
 
@@ -541,9 +485,10 @@ bool EscriptDataset::saveVTK(string fileName)
 
     //
     // coordinates (note that we are using the original nodes)
-    // 
-    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++) {
-        (*meshIt)->getNodes()->writeCoordinatesVTK(oss, mpiRank);
+    //
+    int blockNum = (mpiSize>1 ? mpiRank : 0);
+    for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, blockNum++) {
+        (*meshIt)->getNodes()->writeCoordinatesVTK(oss, blockNum);
     }
 
     WRITE_ORDERED(oss);
@@ -646,98 +591,247 @@ void EscriptDataset::writeVarToVTK(const VarInfo& varInfo, ostream& os)
             << "\" format=\"ascii\">" << endl;
     }
 
+    // this is required in case we read a dataset with more than one chunk on
+    // one rank
+    int blockNum = (mpiSize>1 ? mpiRank : 0);
     DataBlocks::const_iterator blockIt;
-    for (blockIt = varBlocks.begin(); blockIt != varBlocks.end(); blockIt++) {
-        (*blockIt)->writeToVTK(os, mpiRank);
+    for (blockIt = varBlocks.begin(); blockIt != varBlocks.end(); blockIt++, blockNum++) {
+        (*blockIt)->writeToVTK(os, blockNum);
     }
 }
 
 //
+// Sets the domain using an escript::AbstractDomain instance.
 //
-//
-bool EscriptDataset::loadMeshFromNetCDF()
+bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
 {
-    bool ok = true;
-    char* str = new char[meshFmt.length()+10];
-    if (mpiSize > 1) {
-        FinleyMesh_ptr meshPart(new FinleyMesh());
-        sprintf(str, meshFmt.c_str(), mpiRank);
-        string meshfile = str;
-        if (meshPart->initFromNetCDF(meshfile)) {
-            meshPart->reorderGhostZones(mpiRank);
-            meshBlocks.push_back(meshPart);
-        } else {
-            meshPart.reset();
-            ok = false;
-        }
+#ifndef VISIT_PLUGIN
+    int myError = 0, gError;
+
+    // fail if the domain has already been set
+    if (meshBlocks.size() > 0) {
+        cerr << "Domain has already been set!" << endl;
+        myError = 1;
+
     } else {
-        for (int idx=0; idx < numParts; idx++) {
-            FinleyMesh_ptr meshPart(new FinleyMesh());
-            sprintf(str, meshFmt.c_str(), idx);
-            string meshfile = str;
-            if (meshPart->initFromNetCDF(meshfile)) {
-                if (numParts > 1)
-                    meshPart->reorderGhostZones(idx);
-                meshBlocks.push_back(meshPart);
-            } else {
-                meshPart.reset();
-                ok = false;
-                break;
-            }
+        FinleyMesh_ptr mesh(new FinleyMesh());
+        if (mesh->initFromEscript(domain)) {
+            if (mpiSize > 1)
+                mesh->reorderGhostZones(mpiRank);
+            meshBlocks.push_back(mesh);
+        } else {
+            cerr << "Error initializing domain!" << endl;
+            myError = 1;
         }
     }
-    delete[] str;
-    return ok;
-}
-
-//
-//
-//
-bool EscriptDataset::loadVarFromNetCDF(const string& fileName,
-                                       const string& varName)
-{
-    int myError = false;
-    char* str = new char[fileName.length()+10];
-    VarInfo vi;
-
-    vi.varName = varName;
-    vi.valid = true;
-
-    // read all parts of the variable
-    MeshBlocks::iterator mIt;
-    int idx = (mpiSize > 1) ? mpiRank : 0;
-    for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++, idx++) {
-        sprintf(str, fileName.c_str(), idx);
-        string dfile = str;
-        DataVar_ptr var(new DataVar(varName));
-        if (var->initFromNetCDF(dfile, *mIt))
-            vi.dataBlocks.push_back(var);
-        else {
-            cerr << "Error reading " << dfile << endl;
-            var.reset();
-            myError = true;
-            break;
-        }
-    }
-    delete[] str;
-
-    int gError = myError;
 
     if (mpiSize > 1) {
 #if HAVE_MPI
-        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_LOR, mpiComm);
+        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #endif
+    } else {
+        gError = myError;
     }
 
     if (gError) {
-        // at least one chunk was not read correctly
-        vi.dataBlocks.clear();
-        vi.valid = false;
+        meshBlocks.clear();
+    } else {
+        // Convert mesh data to variables
+        convertMeshVariables();
+    }
+    return !gError;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
+}
+
+//
+// Sets the domain from dump files.
+//
+bool EscriptDataset::setDomain(const string filePattern, int nBlocks)
+{
+    int myError = 0, gError;
+
+    if (mpiSize > 1 && nBlocks != mpiSize) {
+        cerr << "Cannot load " << nBlocks << " chunks on " << mpiSize
+            << " MPI ranks!" << endl;
+        myError = 1;
+
+    } else if (meshBlocks.size() > 0) {
+        cerr << "Domain has already been set!" << endl;
+        myError = 1;
+
+    } else {
+        char* str = new char[filePattern.length()+10];
+        if (mpiSize > 1) {
+            FinleyMesh_ptr meshPart(new FinleyMesh());
+            sprintf(str, filePattern.c_str(), mpiRank);
+            string meshfile = str;
+            if (meshPart->initFromNetCDF(meshfile)) {
+                meshPart->reorderGhostZones(mpiRank);
+                meshBlocks.push_back(meshPart);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 1;
+            }
+        } else {
+            for (int idx=0; idx < nBlocks; idx++) {
+                FinleyMesh_ptr meshPart(new FinleyMesh());
+                sprintf(str, filePattern.c_str(), idx);
+                string meshfile = str;
+                if (meshPart->initFromNetCDF(meshfile)) {
+                    if (nBlocks > 1)
+                        meshPart->reorderGhostZones(idx);
+                    meshBlocks.push_back(meshPart);
+                } else {
+                    cerr << "Error initializing domain block " << idx << endl;
+                    myError = 1;
+                    break;
+                }
+            }
+        }
+        delete[] str;
     }
 
-    updateSampleDistribution(vi);
-    variables.push_back(vi);
-    return vi.valid;
+    if (mpiSize > 1) {
+#if HAVE_MPI
+        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#endif
+    } else {
+        gError = myError;
+    }
+
+    if (gError) {
+        meshBlocks.clear();
+    } else {
+        // Convert mesh data to variables
+        convertMeshVariables();
+    }
+
+    return !gError;
+}
+
+//
+// Sets an already converted domain.
+//
+bool EscriptDataset::setDomain(const MeshBlocks& domain)
+{
+    int myError = 0, gError;
+
+    if (mpiSize > 1 && domain.size() > 1) {
+        cerr << "Can only add one domain block per rank when using MPI!"
+            << endl;
+        myError = 1;
+
+    } else if (meshBlocks.size() > 0) {
+        cerr << "Domain has already been set!" << endl;
+        myError = 1;
+
+    }
+
+    if (mpiSize > 1) {
+#if HAVE_MPI
+        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#endif
+    } else {
+        gError = myError;
+    }
+
+    if (!gError) {
+        externalMesh = true;
+        meshBlocks = domain;
+    }
+
+    return !gError;
+}
+
+//
+//
+//
+bool EscriptDataset::addData(escript::Data& data, const string name)
+{
+#ifndef VISIT_PLUGIN
+    bool success = true;
+
+    // fail if no domain has been set
+    if (meshBlocks.size() == 0) {
+        success = false;
+
+    } else {
+        // initialize variable
+        VarInfo vi;
+        vi.varName = name;
+
+        DataVar_ptr var(new DataVar(vi.varName));
+        if (var->initFromEscript(data, meshBlocks[0])) {
+            vi.dataBlocks.push_back(var);
+            updateSampleDistribution(vi);
+            vi.valid = true;
+        } else {
+            var.reset();
+            vi.valid = false;
+        }
+        variables.push_back(vi);
+    }
+    return success;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
+}
+
+//
+//
+//
+bool EscriptDataset::addData(const string filePattern, const string name)
+{
+    int myError = 0, gError;
+
+    // fail if no domain has been set
+    if (meshBlocks.size() == 0) {
+        gError = 1;
+
+    } else {
+        // initialize variable
+        VarInfo vi;
+        vi.varName = name;
+        vi.valid = true;
+        char* str = new char[filePattern.length()+10];
+
+        // read all parts of the variable
+        MeshBlocks::iterator mIt;
+        int idx = (mpiSize > 1) ? mpiRank : 0;
+        for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++, idx++) {
+            sprintf(str, filePattern.c_str(), idx);
+            string dfile = str;
+            DataVar_ptr var(new DataVar(name));
+            if (var->initFromNetCDF(dfile, *mIt))
+                vi.dataBlocks.push_back(var);
+            else {
+                cerr << "Error reading " << dfile << endl;
+                myError = 1;
+                break;
+            }
+        }
+        delete[] str;
+
+        if (mpiSize > 1) {
+#if HAVE_MPI
+            MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
+#endif
+        } else {
+            gError = myError;
+        }
+
+        if (!gError) {
+            // only add variable if all chunks have been read without error
+            updateSampleDistribution(vi);
+            variables.push_back(vi);
+        }
+    }
+
+    return !gError;
 }
 
 //
