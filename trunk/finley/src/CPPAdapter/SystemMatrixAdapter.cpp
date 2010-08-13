@@ -97,8 +97,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_CGS;
        case  ESCRIPT_BICGSTAB:
           return PASO_BICGSTAB;
-       case  ESCRIPT_SSOR:
-          return PASO_SSOR;
        case  ESCRIPT_ILU0:
           return PASO_ILU0;
        case  ESCRIPT_ILUT:
@@ -141,8 +139,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_MINRES;
        case  ESCRIPT_GAUSS_SEIDEL:
           return PASO_GAUSS_SEIDEL;
-       case  ESCRIPT_GAUSS_SEIDEL_MPI:
-          return PASO_GAUSS_SEIDEL_MPI;
        case  ESCRIPT_RILU:
           return PASO_RILU;
        case  ESCRIPT_DEFAULT_REORDERING:
@@ -161,8 +157,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AGGREGATION_COARSENING;
        case  ESCRIPT_NO_PRECONDITIONER:
           return PASO_NO_PRECONDITIONER;
-       case  ESCRIPT_MIN_COARSE_MATRIX_SIZE:
-          return PASO_MIN_COARSE_MATRIX_SIZE;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";

@@ -33,10 +33,7 @@
 
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
      if (in!=NULL) {
-        MEMFREE(in->colorOf);
         MEMFREE(in->factors);
-        MEMFREE(in->main_iptr);  
-        Paso_Pattern_free(in->pattern);   
         MEMFREE(in);
      }
 }
@@ -47,58 +44,40 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 
 */
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
-  dim_t n=A->numRows;
-  dim_t n_block=A->row_block_size;
+  const dim_t n=A->numRows;
+  const dim_t n_block=A->row_block_size;
+  const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
+  const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
+  const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
-  register index_t i,iptr_main,iptr,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
-  double time0=0,time_color=0,time_fac=0;
+  register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
+  double time0=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_ILU* out=MEMALLOC(1,Paso_Solver_ILU);
   if (Paso_checkPtr(out)) return NULL;
-  out->colorOf=MEMALLOC(n,index_t);
   out->factors=MEMALLOC(A->len,double);
-  out->main_iptr=MEMALLOC(n,index_t);
-  out->pattern=Paso_Pattern_getReference(A->pattern);
-  out->n_block=n_block;
-  out->n=n;
-  if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
-    time0=Paso_timer();
-    Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
-    time_color=Paso_timer()-time0;
+  
+  if ( ! Paso_checkPtr(out->factors)  ) {
 
-    if (Paso_noError()) {
        time0=Paso_timer();
-       /* find main diagonal and copy matrix values */ 
-       #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
-       for (i = 0; i < n; ++i) {
-               iptr_main=A->pattern->ptr[0]-1;
-               for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; iptr++) {
-                   if (A->pattern->index[iptr]==i) iptr_main=iptr;
-                   for (k=0;k<n_block*n_block;++k) out->factors[n_block*n_block*iptr+k]=A->val[n_block*n_block*iptr+k];
-               }
-               out->main_iptr[i]=iptr_main;
-               if (iptr_main==A->pattern->ptr[0]-1)  {
-                  Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: no main diagonal");
-               }
-       }
        /* start factorization */
    
        #pragma omp barrier
-       for (color=0;color<out->num_colors && Paso_noError();++color) {
+       for (color=0;color<num_colors && Paso_noError();++color) {
               if (n_block==1) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,j,iptr_ij,A11,iptr_main,D)
                  for (i = 0; i < n; ++i) {
-                    if (out->colorOf[i]==color) {
+                    if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];                          
-                             if (out->colorOf[k]==color2) {
+                             if (colorOf[k]==color2) {
                                 A11=out->factors[iptr_ik]; 
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (out->colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) { 
                                       S11=out->factors[iptr_kj];
                                       for (iptr_ij=A->pattern->ptr[i];iptr_ij<A->pattern->ptr[i+1]; iptr_ij++) {
                                          if (j==A->pattern->index[iptr_ij]) {
@@ -111,7 +90,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }
                           }
                        }
-                       iptr_main=out->main_iptr[i];
+                       iptr_main=ptr_main[i];
                        D=out->factors[iptr_main];
                        if (ABS(D)>0.) {
                           D=1./D;
@@ -119,7 +98,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                           /* a_ik=a_ii^{-1}*a_ik */
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];
-                             if (out->colorOf[k]>color) {
+                             if (colorOf[k]>color) {
                                 A11=out->factors[iptr_ik];
                                 out->factors[iptr_ik]=A11*D;
                              }                               
@@ -132,11 +111,11 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
               } else if (n_block==2) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,S21,S12,S22,j,iptr_ij,A11,A21,A12,A22,iptr_main,D)
                  for (i = 0; i < n; ++i) {
-                    if (out->colorOf[i]==color) {
+                    if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];                          
-                             if (out->colorOf[k]==color2) { 
+                             if (colorOf[k]==color2) { 
                                 A11=out->factors[iptr_ik*4  ];
                                 A21=out->factors[iptr_ik*4+1];
                                 A12=out->factors[iptr_ik*4+2];
@@ -144,7 +123,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (out->colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) { 
                                       S11=out->factors[iptr_kj*4];
                                       S21=out->factors[iptr_kj*4+1];
                                       S12=out->factors[iptr_kj*4+2];
@@ -163,7 +142,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }
                           }
                        }
-                       iptr_main=out->main_iptr[i];
+                       iptr_main=ptr_main[i];
                        A11=out->factors[iptr_main*4];
                        A21=out->factors[iptr_main*4+1];
                        A12=out->factors[iptr_main*4+2];
@@ -182,7 +161,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                           /* a_ik=a_ii^{-1}*a_ik */
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];
-                             if (out->colorOf[k]>color) {
+                             if (colorOf[k]>color) {
                                 A11=out->factors[iptr_ik*4  ];
                                 A21=out->factors[iptr_ik*4+1];
                                 A12=out->factors[iptr_ik*4+2];
@@ -201,11 +180,11 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
               } else if (n_block==3) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,S21,S31,S12,S22,S32,S13,S23,S33,j,iptr_ij,A11,A21,A31,A12,A22,A32,A13,A23,A33,iptr_main,D)
                  for (i = 0; i < n; ++i) {
-                    if (out->colorOf[i]==color) {
+                    if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];                          
-                             if (out->colorOf[k]==color2) { 
+                             if (colorOf[k]==color2) { 
                                 A11=out->factors[iptr_ik*9  ];
                                 A21=out->factors[iptr_ik*9+1];
                                 A31=out->factors[iptr_ik*9+2];
@@ -218,7 +197,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (out->colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) { 
                                       S11=out->factors[iptr_kj*9  ];
                                       S21=out->factors[iptr_kj*9+1];
                                       S31=out->factors[iptr_kj*9+2];
@@ -247,7 +226,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }
                           }
                        }
-                       iptr_main=out->main_iptr[i];
+                       iptr_main=ptr_main[i];
                        A11=out->factors[iptr_main*9  ];
                        A21=out->factors[iptr_main*9+1];
                        A31=out->factors[iptr_main*9+2];
@@ -283,7 +262,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                           /* a_ik=a_ii^{-1}*a_ik */
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];
-                             if (out->colorOf[k]>color) {
+                             if (colorOf[k]>color) {
                                 A11=out->factors[iptr_ik*9  ];
                                 A21=out->factors[iptr_ik*9+1];
                                 A31=out->factors[iptr_ik*9+2];
@@ -315,13 +294,9 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
               #pragma omp barrier
        }
        time_fac=Paso_timer()-time0;
-     }
   }
   if (Paso_noError()) {
-      if (verbose) {
-         printf("ILU: %d color used \n",out->num_colors);
-         printf("timing: ILU: coloring/elemination : %e/%e\n",time_color,time_fac);
-     }
+      if (verbose) printf("timing: ILU: coloring/elemination : %e sec\n",time_fac);
      return out;
   } else  {
      Paso_Solver_ILU_free(out);
@@ -340,53 +315,56 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
 
 */
 
-void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
+void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b) {
      register dim_t i,k;
      register index_t color,iptr_ik,iptr_main;
      register double S1,S2,S3,R1,R2,R3;
-     dim_t n_block=ilu->n_block;
-     dim_t n=ilu->n;
+     const dim_t n=A->numRows;
+     const dim_t n_block=A->row_block_size;
+     const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
+     const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
+     const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
      
      
      /* copy x into b*/
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n*n_block;++i) x[i]=b[i];
      /* forward substitution */
-     for (color=0;color<ilu->num_colors;++color) {
+     for (color=0;color<num_colors;++color) {
            if (n_block==1) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */                     
                      S1=x[i];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]<color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]<color) {
                              R1=x[k];                              
                              S1-=ilu->factors[iptr_ik]*R1;
                           }
                      }
-                     iptr_main=ilu->main_iptr[i];
+                     iptr_main=ptr_main[i];
                      x[i]=ilu->factors[iptr_main]*S1;
                    }
               }
            } else if (n_block==2) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,iptr_main,S1,S2,R1,R2)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[2*i];
                      S2=x[2*i+1];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]<color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]<color) {
                              R1=x[2*k];
                              R2=x[2*k+1];
                              S1-=ilu->factors[4*iptr_ik  ]*R1+ilu->factors[4*iptr_ik+2]*R2;
                              S2-=ilu->factors[4*iptr_ik+1]*R1+ilu->factors[4*iptr_ik+3]*R2;
                           }
                      }
-                     iptr_main=ilu->main_iptr[i];
+                     iptr_main=ptr_main[i];
                      x[2*i  ]=ilu->factors[4*iptr_main  ]*S1+ilu->factors[4*iptr_main+2]*S2;
                      x[2*i+1]=ilu->factors[4*iptr_main+1]*S1+ilu->factors[4*iptr_main+3]*S2;
                    }
@@ -395,14 +373,14 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
            } else if (n_block==3) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,iptr_main,k,S1,S2,S3,R1,R2,R3)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[3*i];
                      S2=x[3*i+1];
                      S3=x[3*i+2];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]<color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]<color) {
                              R1=x[3*k];
                              R2=x[3*k+1];
                              R3=x[3*k+2];
@@ -411,7 +389,7 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
                              S3-=ilu->factors[9*iptr_ik+2]*R1+ilu->factors[9*iptr_ik+5]*R2+ilu->factors[9*iptr_ik+8]*R3;
                           }
                      }
-                     iptr_main=ilu->main_iptr[i];
+                     iptr_main=ptr_main[i];
                      x[3*i  ]=ilu->factors[9*iptr_main  ]*S1+ilu->factors[9*iptr_main+3]*S2+ilu->factors[9*iptr_main+6]*S3;
                      x[3*i+1]=ilu->factors[9*iptr_main+1]*S1+ilu->factors[9*iptr_main+4]*S2+ilu->factors[9*iptr_main+7]*S3;
                      x[3*i+2]=ilu->factors[9*iptr_main+2]*S1+ilu->factors[9*iptr_main+5]*S2+ilu->factors[9*iptr_main+8]*S3;
@@ -420,16 +398,16 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
            }
      }
      /* backward substitution */
-     for (color=(ilu->num_colors)-1;color>-1;--color) {
+     for (color=(num_colors)-1;color>-1;--color) {
            if (n_block==1) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[i];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]>color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]>color) {
                              R1=x[k]; 
                              S1-=ilu->factors[iptr_ik]*R1;
                           }
@@ -440,13 +418,13 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
            } else if (n_block==2) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,R1,R2)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[2*i];
                      S2=x[2*i+1];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]>color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]>color) {
                              R1=x[2*k];
                              R2=x[2*k+1];
                              S1-=ilu->factors[4*iptr_ik  ]*R1+ilu->factors[4*iptr_ik+2]*R2;
@@ -460,14 +438,14 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
            } else if (n_block==3) {
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,S2,S3,R1,R2,R3)
               for (i = 0; i < n; ++i) {
-                   if (ilu->colorOf[i]==color) {
+                   if (colorOf[i]==color) {
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[3*i  ];
                      S2=x[3*i+1];
                      S3=x[3*i+2];
-                     for (iptr_ik=ilu->pattern->ptr[i];iptr_ik<ilu->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=ilu->pattern->index[iptr_ik];                          
-                          if (ilu->colorOf[k]>color) {
+                     for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
+                          k=A->pattern->index[iptr_ik];                          
+                          if (colorOf[k]>color) {
                              R1=x[3*k];
                              R2=x[3*k+1];
                              R3=x[3*k+2];
@@ -486,15 +464,4 @@ void Paso_Solver_solveILU(Paso_Solver_ILU * ilu, double * x, double * b) {
      }
      return;
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
+

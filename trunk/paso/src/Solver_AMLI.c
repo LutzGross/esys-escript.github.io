@@ -173,12 +173,12 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
          #else
             #ifdef UMFPACK 
             #else
-                out->GS=Paso_Solver_getJacobi(A_p);
+                out->GS=Paso_Solver_getLocalJacobi(A_p);
             #endif
          #endif
      } else {
          out->coarsest_level=FALSE;
-         out->GS=Paso_Solver_getJacobi(A_p);
+         out->GS=Paso_Solver_getLocalJacobi(A_p);
  
          /* identify independend set of rows/columns */
          #pragma omp parallel for private(i) schedule(static)
@@ -427,7 +427,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
       time0=Paso_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
       if (amli->n_F==0 || amli->n_F==amli->n) {
-        Paso_Solver_solveJacobi(amli->GS,x,b);
+        Paso_Solver_solveLocalJacobi(amli->A, amli->GS,x,b);
       }
        else {
        #ifdef MKL
@@ -438,7 +438,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
              Paso_UMFPACK1(&ptr,amli->A,x,b,verbose);
              amli->solver=(void*) ptr;
           #else      
-             Paso_Solver_solveJacobi(amli->GS,x,b);
+          Paso_Solver_solveLocalJacobi(amli->A,amli->GS,x,b);
          #endif
        #endif
        }
@@ -448,7 +448,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      } else {
         /* presmoothing */
          time0=Paso_timer();
-         Paso_Solver_solveJacobi(amli->GS,x,b);
+	 Paso_Solver_solveLocalJacobi(amli->A,amli->GS,x,b);
          
          /***************/
          #pragma omp parallel for private(i) schedule(static)
@@ -461,7 +461,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
               /* Compute the residual b=b-Ax*/
              Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
              /* Go round again*/
-             Paso_Solver_solveJacobi(amli->GS,x,r);
+	     Paso_Solver_solveLocalJacobi(amli->A,amli->GS,x,r);
              pre_sweeps-=1;
          }
          /***************/  
@@ -529,7 +529,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      
      /*r=b-Ax */
      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
-     Paso_Solver_solveJacobi(amli->GS,x0,r);
+     Paso_Solver_solveLocalJacobi(amli->A,amli->GS,x0,r);
      
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<amli->n;++i) x[i]+=x0[i];
@@ -542,7 +542,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
           for (i=0;i<amli->n;++i) r[i]=b[i];
           
           Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
-          Paso_Solver_solveJacobi(amli->GS,x0,r);
+	  Paso_Solver_solveLocalJacobi(amli->A,amli->GS,x0,r);
           #pragma omp parallel for private(i) schedule(static)
            for (i=0;i<amli->n;++i)  {
             x[i]+=x0[i];

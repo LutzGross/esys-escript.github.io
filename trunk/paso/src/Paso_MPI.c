@@ -129,17 +129,16 @@ bool_t Paso_MPIInfo_noError( Paso_MPIInfo *mpi_info )
 {
   int errorLocal = Paso_noError() ? 0 : 1;
   int errorGlobal = errorLocal;
-#if 0
-#ifdef PASO_MPI
-  if (mpi_info->size>1) {
-     MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_MAX, mpi_info->comm  );
-  }
-  if( (errorLocal==0) && (errorGlobal==1) ) {
-     Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
-  }
-#endif
-#endif
-  return (errorGlobal==0);
+
+     #ifdef PASO_MPI
+     if (mpi_info->size>1) {
+         MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_MAX, mpi_info->comm  );
+      }
+      if( (errorLocal==0) && (errorGlobal==1) ) {
+         Paso_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
+      }
+      #endif
+      return (errorGlobal==0);
 }
 
 /**************************************************

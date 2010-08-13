@@ -79,7 +79,7 @@ useumfpack		= 'yes'
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'no'
+useopenmp		= 'yes'
 
 # OPENMP
 usempi= 'no'

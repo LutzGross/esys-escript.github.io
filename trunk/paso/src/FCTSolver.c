@@ -193,7 +193,7 @@ err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double
 err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options* options, Paso_Performance *pp) 
 {
    const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
-   const double critical_rate=0.6;   /* expected value of convergence rate */
+   const double critical_rate=0.8;   /* expected value of convergence rate */
    
    double norm_u_tilde, ATOL, norm_u, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, *du=NULL, rate;
    err_t errorCode=SOLVER_NO_ERROR;
