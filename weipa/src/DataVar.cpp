@@ -27,6 +27,8 @@
 #include <silo.h>
 #endif
 
+#include <numeric> // for accumulate
+
 using namespace std;
 
 namespace weipa {
@@ -468,6 +470,44 @@ bool DataVar::reorderSamples()
     sampleID = *requiredIDs;
 
     return true;
+}
+
+//
+//
+//
+int DataVar::getNumberOfComponents() const
+{
+    return (rank == 0 ? 1 : accumulate(shape.begin(), shape.end(), 0));
+}
+
+//
+//
+//
+float* DataVar::getDataFlat() const
+{
+    int totalSize = numSamples * getNumberOfComponents();
+    float* res = new float[totalSize];
+    if (rank == 0) {
+        copy(dataArray[0], dataArray[0]+numSamples, res);
+    } else if (rank == 1) {
+        float *dest = res;
+        for (size_t c=0; c<numSamples; c++) {
+            for (size_t i=0; i<shape[0]; i++) {
+                *dest++ = dataArray[i][c];
+            }
+        }
+    } else if (rank == 2) {
+        float *dest = res;
+        for (size_t c=0; c<numSamples; c++) {
+            for (int i=0; i<shape[1]; i++) {
+                for (int j=0; j<shape[0]; j++) {
+                    *dest++ = dataArray[i*shape[0]+j][c];
+                }
+            }
+        }
+    }
+
+    return res;
 }
 
 //
