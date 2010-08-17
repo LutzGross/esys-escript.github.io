@@ -84,6 +84,7 @@ bool EscriptDataset::initFromEscript(
         DataVec& escriptVars,
         const StringVec& varNames)
 {
+#ifndef VISIT_PLUGIN
     // Set the domain
     if (!setDomain(escriptDomain)) {
         return false;
@@ -97,6 +98,9 @@ bool EscriptDataset::initFromEscript(
     }
 
     return true;
+#else
+    return false;
+#endif
 }
 
 //
