@@ -156,6 +156,10 @@ adder(
   ('silo_path', 'Path to Silo includes', '/usr/include'),
   ('silo_lib_path', 'Path to Silo libs', usr_lib),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
+# VisIt
+  BoolVariable('usevisit', 'switch on/off the usage of the VisIt sim library', 'no'),
+  ('visit_path', 'Path to VisIt libsim includes', '/usr/include'),
+  ('visit_lib_path', 'Path to VisIt sim library', usr_lib),
 # AMD (used by UMFPACK)
   ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
   ('amd_lib_path', 'Path to AMD libs', usr_lib),
@@ -651,6 +655,12 @@ if env['usesilo']:
   env.AppendUnique(CPPPATH = [env['silo_path']])
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
 
+############ VisIt (optional) ###################################
+
+if env['usevisit']:
+  env.AppendUnique(CPPPATH = [env['visit_path']])
+  env.AppendUnique(LIBPATH = [env['visit_lib_path']])
+
 ########### Lapack (optional) ##################################
 
 if env['uselapack']:
@@ -773,6 +783,8 @@ if env['usenetcdf']: print "	Using NetCDF"
 else: print "	Not using NetCDF"
 if env['usevtk']: print "	Using VTK"
 else: print "	Not using VTK"
+if env['usevisit']: print "	Using VisIt"
+else: print "	Not using VisIt"
 if env['usemkl']: print "	Using MKL"
 else: print "	Not using MKL"
 if env['useumfpack']: print "	Using UMFPACK"
@@ -922,6 +934,11 @@ if env['usesilo']:
    out+="y"
 else:
    out+="n"
+out+="\nusevisit="
+if env['usevisit']:
+   out+="y"
+else:
+   out+="n"
 buildvars.write(out+"\n")
 buildvars.close()
 
@@ -940,6 +957,7 @@ env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
 env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
 env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
+
 
 env.Alias('build_escriptreader', ['target_install_weipa_headers', 'target_escriptreader_a'])
 env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escriptreader_a'])

@@ -13,6 +13,7 @@
 
 
 #include <weipa/FileSavers.h>
+#include <weipa/VisItControl.h>
 
 #include <boost/python.hpp>
 #include <boost/python/module.hpp>
@@ -63,7 +64,14 @@ BOOST_PYTHON_MODULE(weipacpp)
   docstring_options docopt(true,true,false);
 #endif
 
+  // File savers
   def("_saveSilo", weipa::saveSilo, (args("filename", "cycle", "time", "domain", "datavars")));
+  def("_saveVTK", weipa::saveVTK, (args("filename", "cycle", "time", "domain", "datavars", "metadata", "metadata_schema")));
 
+  // VisIt Control
+  def("_visitInitialize", weipa::VisItControl::initialize, (args(
+                  "simFile", "comment")));
+  def("_visitPublishData", weipa::VisItControl::publishData, (args(
+                  "cycle", "time", "domain", "datavars")));
 }
 

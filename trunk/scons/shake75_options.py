@@ -13,9 +13,10 @@
 
 
 # Configuration for shake75 (32-bit Intel Core 2 running Debian Linux)
+# If you cannot use the default compiler flags set in SConstruct,
+# then change them here
 #cc="gcc-4.4"
 #cxx="g++-4.4"
-# If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
 # cc_flags      = '-ansi'
 # cc_optim      = '-O2'
@@ -37,9 +38,9 @@ ld_extra        = '-fopenmp'
 # sys_libs      = []
 
 # Python libraries
-# python_path       = '/usr/lib/python2.5'
+# python_path       = '/usr/lib/python2.6'
 # python_lib_path   = '/usr/lib'
-# python_libs       = 'python2.5'
+# python_libs       = 'python2.6'
 # python_cmd        = 'python'
 
 # Boost libraries
@@ -64,15 +65,15 @@ boost_libs          = ['boost_python']
 
 # UMFPACK (requires AMD and BLAS)
 useumfpack    = 'yes'
-# ufc_path      = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# umf_path      = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# umf_lib_path  = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# ufc_path      = '/usr/include'
+# umf_path      = '/usr/include'
+# umf_lib_path  = '/usr/lib'
 # umf_libs      = ['umfpack']
-# amd_path      = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# amd_lib_path  = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# amd_path      = '/usr/include'
+# amd_lib_path  = '/usr/lib'
 # amd_libs      = ['amd']
-# blas_path     = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/include'
-# blas_lib_path = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2/lib'
+# blas_path     = '/usr/include'
+# blas_lib_path = '/usr/lib'
 # blas_libs     = ['blas']
 
 # Silo
@@ -81,10 +82,17 @@ silo_path       = '/usr/local/include/'
 silo_lib_path   = '/usr/local/lib/'
 silo_libs       = ['siloh5', 'hdf5']
 
+# VisIt
+usevisit        = 'yes'
+visit_path      = '/opt/visit/2.1.0/linux-intel/libsim/V2/include'
+visit_lib_path  = '/opt/visit/2.1.0/linux-intel/libsim/V2/lib'
+#visit_path      = '/home/caltinay/src/visit-trunk/src/include/visit'
+#visit_lib_path  = '/home/caltinay/src/visit-trunk/src/lib'
+
 # OpenMP
 useopenmp       = 'yes'
 
-# MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
+# MPI
 usempi          = 'yes'
 mpi_path        = '/usr/include/mpi'
 mpi_lib_path    = '/usr/lib/openmpi/lib'
@@ -98,9 +106,9 @@ mpi_flavour     = 'OPENMPI'
 #parmetis_libs      = ['parmetis', 'metis']
 
 # PAPI
-# usepapi                   = 'no'
-# papi_path                 = '/usr/include'
-# papi_lib_path             = '/usr/lib'
-# papi_libs                 = ['papi']
-# papi_instrument_solver    = 'no'
+# usepapi                = 'no'
+# papi_path              = '/usr/include'
+# papi_lib_path          = '/usr/lib'
+# papi_libs              = ['papi']
+# papi_instrument_solver = 'no'
 
