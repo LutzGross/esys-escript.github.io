@@ -41,7 +41,7 @@ else
   else
       # name does not contain / therefore we are using 
       tscriptdir=`which $0`
-      if [ $? != 0 ]
+      if [ $? -ne 0 ]
       then
           echo "Error! Unable to determine script directory. Exiting."
           exit 1
@@ -84,7 +84,20 @@ then
     EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
-
+#
+#   Add VisIt paths if required
+#
+WITH_VISIT=`grep usevisit $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
+if [ "$WITH_VISIT" = "y" ]; then
+    VISIT_BIN=`which visit`
+    if [ $? -eq 0 ]; then
+        VISIT_PY_PATH=`$VISIT_BIN -env | grep LIBPATH | cut -d= -f2`
+        EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
+        EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$VISIT_PY_PATH
+    elif [ ! -z $ESCRIPT_VERBOSE ]; then
+        echo "VisIt module enabled but VisIt not in path!"
+    fi
+fi
 
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]

@@ -101,11 +101,17 @@ useparmetis		= 'yes'
 parmetis_path          = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/include'
 parmetis_lib_path      = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1/lib'
 parmetis_libs		= ['parmetis', 'metis']
+
 # Silo
 # usesilo		= 'yes'
 silo_path		= '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2/include'
 silo_lib_path	        = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2/lib'
 # silo_libs		= ['siloh5', 'hdf5']
+
+# VisIt
+usevisit		= 'no'
+visit_path		= '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/libsim/V2/include'
+visit_lib_path	= '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/libsim/V2/lib'
 
 
 # OpenMP

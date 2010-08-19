@@ -28,6 +28,7 @@ sources = """
     FileSavers.cpp
     FinleyMesh.cpp
     NodeData.cpp
+    VisItControl.cpp
 """.split()
 
 headers = """
@@ -37,8 +38,15 @@ headers = """
     FileSavers.h
     FinleyMesh.h
     NodeData.h
+    VisItControl.h
     weipa.h
 """.split()
+
+if local_env['usevisit']:
+    sources.append(['VisItData.cpp'])
+    headers.append(['VisItData.h'])
+    local_env.Append(CPPDEFINES = ['USE_VISIT'])
+    local_env.AppendUnique(LIBS = ['simV2'])
 
 local_env.AppendUnique(LIBS = ['esysUtils', 'finley', 'escript'] + env['sys_libs'])
 if local_env['usesilo']:
@@ -112,7 +120,6 @@ if not IS_WINDOWS_PLATFORM:
 
     tmp = local_env.Install(local_env['libinstall'], plugin_lib)
     env.Alias('target_install_escriptreader_a', tmp)
-
 
 # Call the python SConscript
 CallSConscript(env,dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0)
