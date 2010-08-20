@@ -62,7 +62,7 @@ INLINE void Paso_BlockOps_MV_2(double* R, const double* MAT, const double* V)
 }
 
 
-INLINE void Paso_BlockOps_MV_3(double* R, const double* MAT, const double* V)  
+INLINE void Paso_BlockOps_MV_3(double* R, const double* MAT, const double* V) 
 { 
    register double S1=V[0];
    register double S2=V[1];
@@ -82,7 +82,7 @@ INLINE void Paso_BlockOps_MV_3(double* R, const double* MAT, const double* V)
 }
 
 /* this does not work in place */
-INLINE void Paso_BlockOps_MV_N(const dim_t N, double* R, const double* MAT, const double* V)  
+INLINE void Paso_BlockOps_MV_N(const dim_t N, double* R, const double* MAT, const double* V) 
 { 
    dim_t p,q; 
    for (p=0; p<N; p++ ) {                               
@@ -97,14 +97,14 @@ INLINE void Paso_BlockOps_Solve_N(const dim_t N, double* R, const double* MAT, c
    Paso_setError(TYPE_ERROR, "Paso_BlockOps_Solve_N: Right now there is support block size less than 4 only");  
 } 
 
-INLINE void Paso_BlockOps_SMV_1(double* R, const double* MAT, const double* V)  
+INLINE void Paso_BlockOps_SMV_1(double* R, const double* MAT, const double* V)   
 {
    register double S1=V[0]; 
    register double A11=MAT[0];
    R[0]-=A11 * S1;
 }
 
-INLINE void Paso_BlockOps_SMV_2(double* R, const double* MAT, const double* V)  
+INLINE void Paso_BlockOps_SMV_2(double* R, const double* MAT, const double* V) 
 {
    register double S1=V[0]; 
    register double S2=V[1];
@@ -136,7 +136,7 @@ INLINE void Paso_BlockOps_SMV_3(double* R, const double* MAT, const double* V)
 }
 
 /* this does not work in place */
-INLINE void Paso_BlockOps_SMV_N(const dim_t N, double* R, const double* MAT, const double* V)  
+INLINE void Paso_BlockOps_SMV_N(const dim_t N, double* R, const double* MAT, const double* V)   
 { 
    dim_t p,q; 
    for (p=0; p<N; p++ ) {                               

@@ -178,7 +178,7 @@ void Paso_Solver_localGSSweep(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, do
    #else
    const dim_t nt = 1;
    #endif
-   if (nt > 1) {
+   if (nt < 2) {
       Paso_Solver_localGSSweep_sequential(A,gs,x);
    } else {
       Paso_Solver_localGSSweep_colored(A,gs,x);
@@ -199,38 +199,46 @@ void Paso_Solver_localGSSweep_sequential(Paso_SparseMatrix* A_p, Paso_Solver_Loc
    register index_t iptr_ik, mm;
    
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
-   
+
    /* forward substitution */
    
    if (n_block==1) {
-      for (i = 0; i < n; ++i) {
+
+      Paso_BlockOps_MV_1(&x[0], &diag[0], &x[0]);
+
+      for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 /* x_i=x_i-a_ik*x_k  (with k<i) */                     
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
-	    k=A_p->pattern->index[iptr_ik];                          
+	    k=A_p->pattern->index[iptr_ik];  
+/* printf("row %d : add %d\n",i,k); */
 	    Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]); 
 	 }
-	 Paso_BlockOps_MV_1(&x[i], &A_p->val[i], &x[i]);
+	 Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
+/* printf("row %d : multipy by \n",i); */
       }
+      return;
    } else if (n_block==2) {
-      for (i = 0; i < n; ++i) {
+      Paso_BlockOps_MV_2(&x[0], &diag[0], &x[0]);
+      for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];                          
 	    Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	 }
-	 Paso_BlockOps_MV_2(&x[2*i], &A_p->val[4*i], &x[2*i]);
+	 Paso_BlockOps_MV_2(&x[2*i], &diag[4*i], &x[2*i]);
       }
    } else if (n_block==3) {
-      for (i = 0; i < n; ++i) {
+      Paso_BlockOps_MV_3(&x[0], &diag[0], &x[0]);
+      for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 /* x_i=x_i-a_ik*x_k */
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];
 	    Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
 	 }
-	 Paso_BlockOps_MV_3(&x[3*i], &A_p->val[9*i], &x[3*i]); 
+	 Paso_BlockOps_MV_3(&x[3*i], &diag[9*i], &x[3*i]); 
       }
       
    } /* add block size >3 */
@@ -240,36 +248,37 @@ void Paso_Solver_localGSSweep_sequential(Paso_SparseMatrix* A_p, Paso_Solver_Loc
    /* backward substitution */
    
    if (n_block==1) {
+
       for (i = n-2; i > -1; ++i) {	       
-	 mm=ptr_main[i];
-	 Paso_BlockOps_MV_1(&x[i], &A_p->val[mm], &x[i]);
-	 for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
-	    k=A_p->pattern->index[iptr_ik];  
-	    Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]);
-	 }
-	 Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
+	    mm=ptr_main[i];
+	    Paso_BlockOps_MV_1(&x[i], &A_p->val[mm], &x[i]);
+	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+	       k=A_p->pattern->index[iptr_ik];  
+	       Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]);
+	    }
+	    Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
       }
+      
    } else if (n_block==2) {
       for (i = n-2; i > -1; ++i) {
-	 mm=ptr_main[i];
-	 Paso_BlockOps_MV_3(&x[2*i], &A_p->val[4*mm], &x[2*i]);
-	 for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
-	    k=A_p->pattern->index[iptr_ik]; 
-	    Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
-	 }
-	 Paso_BlockOps_MV_2(&x[2*i], &diag[i*4], &x[2*i]);	     
+	    mm=ptr_main[i];
+	    Paso_BlockOps_MV_2(&x[2*i], &A_p->val[4*mm], &x[2*i]);
+	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+	       k=A_p->pattern->index[iptr_ik]; 
+	       Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
+	    }
+	    Paso_BlockOps_MV_2(&x[2*i], &diag[i*4], &x[2*i]);
       }
    } else if (n_block==3) {
       for (i = n-2; i > -1; ++i) {
+	    mm=ptr_main[i];
+	    Paso_BlockOps_MV_3(&x[3*i], &A_p->val[9*mm], &x[3*i]);
 	 
-	 mm=ptr_main[i];
-	 Paso_BlockOps_MV_3(&x[3*i], &A_p->val[9*mm], &x[3*i]);
-	 
-	 for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
-	    k=A_p->pattern->index[iptr_ik];    
-	    Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
-	 }
-	 Paso_BlockOps_MV_3(&x[3*i], &diag[i*9], &x[3*i]);
+	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+	       k=A_p->pattern->index[iptr_ik];    
+	       Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+	    }
+	    Paso_BlockOps_MV_3(&x[3*i], &diag[i*9], &x[3*i]);
       }
       
    } /* add block size >3 */      
