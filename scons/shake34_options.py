@@ -29,7 +29,7 @@ omp_debug       = '-fopenmp'
 omp_libs        = []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx -msse'
+cc_extra        = '-Wall -mmmx -msse -Winline -finline-functions'
 ld_extra        = '-fopenmp'
 
 # Be picky about errors
