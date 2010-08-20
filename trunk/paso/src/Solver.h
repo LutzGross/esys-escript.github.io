@@ -49,6 +49,7 @@ typedef struct Paso_Solver_Jacobi {
 /* GS preconditioner */
 typedef struct Paso_Solver_LocalGS {
    double* diag;
+   double* buffer;
    index_t* pivot;
    dim_t sweeps;
 } Paso_Solver_LocalGS;
@@ -245,9 +246,11 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t 
 Paso_Solver_LocalGS* Paso_Solver_getLocalGS(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose);
 void Paso_Solver_solveGS(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, const double * b);
 void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
-void Paso_Solver_solveLocalGS_sequential(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
-void Paso_Solver_solveLocalGS_tiled(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
-void Paso_Solver_solveLocalGS_colored(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x, const double * b);
+
+void Paso_Solver_localGSSweep(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x);
+void Paso_Solver_localGSSweep_sequential(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x);
+void Paso_Solver_localGSSweep_tiled(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x);
+void Paso_Solver_localGSSweep_colored(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x);
 
 /*******************************************/
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in);

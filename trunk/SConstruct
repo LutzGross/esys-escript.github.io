@@ -265,7 +265,7 @@ omp_libs = []
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-std=c99 -fPIC -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
-  cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
+  cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -ip"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
@@ -275,7 +275,7 @@ if env["CC"] == "icc":
   sysheaderopt		= ""
 elif env["CC"][:3] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+  cc_flags		= "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"

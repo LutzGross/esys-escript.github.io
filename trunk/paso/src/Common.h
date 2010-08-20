@@ -64,6 +64,16 @@ typedef int err_t;
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
 #define SMALL_NEGATIVE_FLOAT -DBL_MAX
+
+#if defined(__INTEL_COMPILER)
+   #define INLINE __inline
+#elif defined(_WIN32) 
+   #define INLINE __forceinline
+#elif defined(__GNUC__)
+   #define INLINE __inline__
+#else
+   #define INLINE inline
+#endif
 /*#ifndef NAN
    #define NAN (0.0/0.0)
 #endif

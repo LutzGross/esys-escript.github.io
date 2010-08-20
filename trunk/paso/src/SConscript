@@ -116,6 +116,7 @@ headers = """
 	UMFPACK.h
 	mmio.h
 	mpi_C.h
+	BlockOps.h
 	performance.h
 """.split()
 
