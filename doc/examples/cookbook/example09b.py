@@ -53,7 +53,7 @@ mkDir(savepath)
 mx = 200. # model lenght
 my = 200. # model width
 mz=100.0
-step=10.0 # the element size
+step=4.0 # the element size
 ndx = int(mx/step) # steps in x direction 
 ndy = int(my/step) # steps in y direction
 ndz = int(mz/step)
@@ -68,7 +68,7 @@ tend=0.1    # end time
 h=0.00005    # time step
 # data recording times
 rtime=0.0 # first time to record
-rtime_inc=tend/50.0 # time increment to record
+rtime_inc=tend/200.0 # time increment to record
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
@@ -137,7 +137,7 @@ xb=FunctionOnBoundary(domain).getX()
 yx=(cos(length(xb-xc)*3.1415/src_length)+1)*whereNegative(length(xb-xc)-src_length)
 stop=Scalar(0.0,FunctionOnBoundary(domain))
 stop.setTaggedValue("stop",1.0)
-src_dir=numpy.array([0.,0.,1.0]) # defines direction of point source as down
+src_dir=numpy.array([0.,1.,0.0]) # defines direction of point source as down
 
 mypde.setValue(y=source[0]*yx*src_dir*stop) #set the source as a function on the boundary
 # initial value of displacement at point source is constant (U0=0.01)
