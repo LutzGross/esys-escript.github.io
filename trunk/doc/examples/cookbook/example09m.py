@@ -52,7 +52,7 @@ xwidth=200.0   #x width of model
 ywidth=200.0   #y width of model
 depth=100.0   #depth of model
 intf=depth/2.   #Depth of the interface.
-element_size=2.0
+element_size=4.0
 
 ####################################################DOMAIN CONSTRUCTION
 # Domain Corners
@@ -141,12 +141,12 @@ domain.write(os.path.join(save_path,"example09m.fly"))
 intfaces=[10,30,50,55,80,100,200,250,400,500]
 
 # Specify the domain.
-domaindes=Design(dim=3,element_size=element_size,order=2)
-cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
-cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
-cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
-dcmplx=MakeDomain(cmplx_domain)
-dcmplx.write(os.path.join(save_path,"example09lc.fly"))
+#domaindes=Design(dim=3,element_size=element_size,order=2)
+#cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
+#cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
+#cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+#dcmplx=MakeDomain(cmplx_domain)
+#dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 
 
 
