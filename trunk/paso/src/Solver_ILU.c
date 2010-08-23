@@ -51,7 +51,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
-  register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2;
+  register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
   double time0=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_ILU* out=MEMALLOC(1,Paso_Solver_ILU);
@@ -61,9 +61,14 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   if ( ! Paso_checkPtr(out->factors)  ) {
 
        time0=Paso_timer();
+
+       #pragma omp parallel for schedule(static) private(i,iptr,k)
+       for (i = 0; i < n; ++i) {
+               for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; iptr++) {
+                     for (k=0;k<n_block*n_block;++k) out->factors[n_block*n_block*iptr+k]=A->val[n_block*n_block*iptr+k];
+               }
+       }	
        /* start factorization */
-   
-       #pragma omp barrier
        for (color=0;color<num_colors && Paso_noError();++color) {
               if (n_block==1) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,j,iptr_ij,A11,iptr_main,D)
