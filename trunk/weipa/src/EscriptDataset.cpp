@@ -467,7 +467,14 @@ bool EscriptDataset::saveVTK(string fileName)
 #endif
 
         oss << "<?xml version=\"1.0\"?>" << endl;
-        oss << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">" << endl;
+        oss << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\"";
+        if (mdSchema.length()>0) {
+            oss << " " << mdSchema;
+        }
+        oss << ">" << endl;
+        if (mdString.length()>0) {
+            oss << mdString << endl;
+        }
         oss << "<UnstructuredGrid>" << endl;
 
         // write time and cycle values
