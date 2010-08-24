@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -821,8 +822,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getSolverMethod() == 13, "LUMPING is not set.")
         so.setSolverMethod(so.ITERATIVE)
         self.failUnless(so.getSolverMethod() == 20, "ITERATIVE is not set.")
-        so.setSolverMethod(so.AMG)
-        self.failUnless(so.getSolverMethod() == 22, "AMG is not set.")
         so.setSolverMethod(so.NONLINEAR_GMRES)
         self.failUnless(so.getSolverMethod() == 25, "NONLINEAR_GMRES is not set.")
         so.setSolverMethod(so.TFQMR)
@@ -848,6 +847,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getPreconditioner() == 28, "GAUSS_SEIDEL is not set.")
         so.setPreconditioner(so.RILU)
         self.failUnless(so.getPreconditioner() == 29, "RILU is not set.")
+        so.setPreconditioner(so.AMLI)
+        self.failUnless(so.getPreconditioner() == 38, "AMLI is not set.")
         so.setPreconditioner(so.NO_PRECONDITIONER)
         self.failUnless(so.getPreconditioner() == 36, "NO_PRECONDITIONER is not set.")        
 
