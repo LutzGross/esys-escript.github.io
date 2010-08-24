@@ -86,6 +86,7 @@ void saveVTK(const string& filename, int cycle, double time, Domain_ptr domain,
     if (!dataset->initFromEscript(domain.get(), vars, varNames))
         throw escript::DataException("saveVTK: Error initialising dataset.");
 
+    dataset->setMetadataSchemaString(metadata_schema, metadata);
     dataset->setCycleAndTime(cycle, time);
     dataset->saveVTK(filename);
 }

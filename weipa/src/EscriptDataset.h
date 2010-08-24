@@ -102,6 +102,12 @@ public:
     WEIPA_DLL_API
     void setCycleAndTime(int c, double t) { cycle=c; time=t; }
 
+    /// \brief Sets a metadata schema and content (for VTK output)
+    WEIPA_DLL_API
+    void setMetadataSchemaString(const std::string schema,
+                                 const std::string metadata)
+        { mdSchema=schema; mdString=metadata; }
+
     /// \brief Saves the dataset in the Silo file format.
     WEIPA_DLL_API
     bool saveSilo(const std::string fileName, bool useMultiMesh=true);
@@ -139,6 +145,7 @@ private:
 
     int cycle;
     double time;
+    std::string mdSchema, mdString;
     bool externalMesh;
     MeshBlocks meshBlocks;
     VarVector variables, meshVariables;

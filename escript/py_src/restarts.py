@@ -167,13 +167,19 @@ class DataManager(object):
 
     def setMetadataSchemaString(self, schema, metadata=""):
         """
-        Do not use this yet.
+        Sets metadata namespaces and the corresponding metadata.
+        Only used for the VTK file format at the moment.
+
+        :param schema: A dictionary that maps namespace prefixes to namespace
+                       names, e.g. {'gml':'http://www.opengis.net/gml'}
+        :param metadata: The actual metadata string which will be enclosed in
+                         '<MetaData>' tags.
         """
         self._metadata="<MetaData>"+metadata+"</MetaData>"
-        schema=""
-        for i,p in self._md_schema.items():
-            schema="%s xmlns:%s=\"%s\""%(schema, i, p)
-        self._md_schema=schema.strip()
+        ss=""
+        for i,p in schema.items():
+            ss="%s xmlns:%s=\"%s\""%(ss, i, p)
+        self._md_schema=ss.strip()
 
     def export(self):
         """
