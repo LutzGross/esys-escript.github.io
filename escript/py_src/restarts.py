@@ -279,7 +279,7 @@ class DataManager(object):
 
     def __saveState(self):
         restartdir = "%s_%04d"%(self._restartprefix, self._N)
-        util.mkDir(restartdir)
+        util.mkDir(os.path.join(self._workdir, restartdir))
         stamp_file=self.__getStampFilename(restartdir)
         cPickle.dump(self._stamp, open(stamp_file, "wb"))
         ff=self.__getDumpFilename("__mesh_finley", restartdir)
@@ -291,7 +291,7 @@ class DataManager(object):
             #print "%s dumped to %s."%(name, ff)
         # keep only one restart directory
         old_restartdir = "%s_%04d"%(self._restartprefix, self._N-1)
-        self.__removeDirectory(old_restartdir)
+        self.__removeDirectory(os.path.join(self._workdir, old_restartdir))
 
     def __removeDirectory(self, path):
         if self._myrank==0 and os.path.isdir(path):
