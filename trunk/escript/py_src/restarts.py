@@ -294,7 +294,7 @@ class DataManager(object):
         for name, var in self._data.items():
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
-        print "Restart files saved in "+os.path.join(self._workdir, self._restartdir)
+        print "Restart files saved in "+os.path.join(self._workdir, restartdir)
         # keep only one restart directory
         old_restartdir = "%s_%04d"%(self._restartprefix, self._N-1)
         self.__removeDirectory(os.path.join(self._workdir, old_restartdir))
