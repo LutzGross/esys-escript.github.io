@@ -14,6 +14,7 @@
 #include <weipa/EscriptDataset.h>
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
+#include <weipa/FileWriter.h>
 #include <weipa/FinleyMesh.h>
 #include <weipa/NodeData.h>
 
@@ -21,10 +22,7 @@
 #include <escript/Data.h>
 #endif
 
-#include <fstream>
-#include <iostream>
 #include <numeric> // for std::accumulate
-#include <sstream>
 
 #if USE_SILO
 #include <silo.h>
@@ -85,7 +83,12 @@ bool EscriptDataset::initFromEscript(
         const StringVec& varNames)
 {
 #ifndef VISIT_PLUGIN
-    // Set the domain
+    // sanity check
+    if (escriptVars.size() != varNames.size()) {
+        return false;
+    }
+
+    // set the domain
     if (!setDomain(escriptDomain)) {
         return false;
     }
@@ -94,7 +97,12 @@ bool EscriptDataset::initFromEscript(
     DataVec::iterator varIt = escriptVars.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; varIt != escriptVars.end(); varIt++, nameIt++) {
-        addData(*varIt, *nameIt);
+        if (varIt->getDomain().get() == escriptDomain) {
+            addData(*varIt, *nameIt);
+        } else {
+            cerr << "Warning, all data must be on the same domain. Not adding "
+                << *nameIt << "." << endl;
+        }
     }
 
     return true;
@@ -110,12 +118,17 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
                                 const StringVec& varFiles,
                                 const StringVec& varNames, int nBlocks)
 {
-    // Load the domain files
+    // sanity check
+    if (varFiles.size() != varNames.size()) {
+        return false;
+    }
+
+    // load the domain files
     if (!setDomain(meshFilePattern, nBlocks)) {
         return false;
     }
 
-    // Load the variables
+    // load the variables
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
@@ -132,12 +145,17 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
                                 const StringVec& varFiles,
                                 const StringVec& varNames)
 {
-    // Set the domain
+    // sanity check
+    if (varFiles.size() != varNames.size()) {
+        return false;
+    }
+
+    // set the domain
     if (!setDomain(mesh)) {
         return false;
     }
 
-    // Load the variables
+    // load the variables
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
@@ -345,84 +363,11 @@ bool EscriptDataset::saveVTK(string fileName)
     int gNumCells = 0;
     int gCellSizeAndType[2] = { 0, 0 };
 
-#if HAVE_MPI
-    // remove file first if it exists
-    int error = 0;
-    int mpiErr;
-    if (mpiRank == 0) {
-        ifstream f(fileName.c_str());
-        if (f.is_open()) {
-            f.close();
-            if (remove(fileName.c_str())) {
-                error=1;
-            }
-        }
-    }
-    MPI_Allreduce(&error, &mpiErr, 1, MPI_INT, MPI_MAX, mpiComm);
-    if (mpiErr != 0) {
-        cerr << "Error removing " << fileName << "!" << endl;
-        return false;
-    }
-
-    MPI_File mpiFileHandle;
-    MPI_Info mpiInfo = MPI_INFO_NULL;
-    int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
-    mpiErr = MPI_File_open(mpiComm, const_cast<char*>(fileName.c_str()),
-            amode, mpiInfo, &mpiFileHandle);
-    if (mpiErr == MPI_SUCCESS) {
-        mpiErr = MPI_File_set_view(mpiFileHandle, 0, MPI_CHAR, MPI_CHAR,
-                const_cast<char*>("native"), mpiInfo);
-    }
-    if (mpiErr != MPI_SUCCESS) {
-        cerr << "Error opening " << fileName << " for parallel writing!" << endl;
-        return false;
-    }
-
-    // these definitions make the code more readable and life easier -
-    // WRITE_ORDERED causes all ranks to write the contents of the stream while
-    // WRITE_SHARED should only be called for rank 0.
-#define WRITE_ORDERED(_stream) \
-    do {\
-        MPI_Status mpiStatus;\
-        string contents = _stream.str();\
-        mpiErr = MPI_File_write_ordered(\
-            mpiFileHandle, const_cast<char*>(contents.c_str()),\
-            contents.length(), MPI_CHAR, &mpiStatus);\
-        _stream.str("");\
-    } while(0)
-
-#define WRITE_SHARED(_stream) \
-    do {\
-        MPI_Status mpiStatus;\
-        string contents = _stream.str();\
-        mpiErr = MPI_File_write_shared(\
-            mpiFileHandle, const_cast<char*>(contents.c_str()),\
-            contents.length(), MPI_CHAR, &mpiStatus);\
-        _stream.str("");\
-    } while(0)
-
-#else /*********** non-MPI version follows ************/
-
-    ofstream ofs(fileName.c_str());
-
-    // the non-MPI versions of WRITE_ORDERED and WRITE_SHARED are
-    // identical.
-#define WRITE_ORDERED(_stream) \
-    do {\
-        ofs << _stream.str();\
-        _stream.str("");\
-    } while(0)
-
-#define WRITE_SHARED(_stream) \
-    do {\
-        ofs << _stream.str();\
-        _stream.str("");\
-    } while(0)
-
-#endif // HAVE_MPI
+    FileWriter* fw = NULL;
 
     if (mpiSize > 1) {
 #if HAVE_MPI
+        fw = new FileWriter(mpiComm);
         meshBlocks[0]->removeGhostZones(mpiRank);
         ElementData_ptr elements = meshBlocks[0]->getElementsByName(meshName);
         int myNumCells = elements->getNumElements();
@@ -439,6 +384,7 @@ bool EscriptDataset::saveVTK(string fileName)
                 0, mpiComm);
 #endif
     } else {
+        fw = new FileWriter();
         int idx = 0;
         for (meshIt = meshBlocks.begin(); meshIt != meshBlocks.end(); meshIt++, idx++) {
             if (meshBlocks.size() > 1)
@@ -456,6 +402,10 @@ bool EscriptDataset::saveVTK(string fileName)
 
     ostringstream oss;
     oss.setf(ios_base::scientific, ios_base::floatfield);
+
+    if (!fw->openFile(fileName)) {
+        return false;
+    }
 
     if (mpiRank == 0) {
 #ifdef _DEBUG
@@ -502,7 +452,9 @@ bool EscriptDataset::saveVTK(string fileName)
         (*meshIt)->getNodes()->writeCoordinatesVTK(oss, blockNum);
     }
 
-    WRITE_ORDERED(oss);
+    if (!fw->writeOrdered(oss)) {
+        cerr << "Warning, ignoring file write error!" << endl;
+    }
 
     if (mpiRank == 0) {
         oss << "</DataArray>" << endl << "</Points>" << endl;
@@ -518,7 +470,9 @@ bool EscriptDataset::saveVTK(string fileName)
         el->writeConnectivityVTK(oss);
     }
 
-    WRITE_ORDERED(oss);
+    if (!fw->writeOrdered(oss)) {
+        cerr << "Warning, ignoring file write error!" << endl;
+    }
 
     //
     // offsets & types
@@ -535,7 +489,9 @@ bool EscriptDataset::saveVTK(string fileName)
             oss << gCellSizeAndType[1] << endl;
         }
         oss << "</DataArray>" << endl << "</Cells>" << endl;
-        WRITE_SHARED(oss);
+        if (!fw->writeShared(oss)) {
+            cerr << "Warning, ignoring file write error!" << endl;
+        }
     }
 
     // now write all variables - first the nodal data, then cell data
@@ -546,7 +502,9 @@ bool EscriptDataset::saveVTK(string fileName)
             oss << "<PointData>" << endl;
         for (viIt = nodalVars.begin(); viIt != nodalVars.end(); viIt++) {
             writeVarToVTK(*viIt, oss);
-            WRITE_ORDERED(oss);
+            if (!fw->writeOrdered(oss)) {
+                cerr << "Warning, ignoring file write error!" << endl;
+            }
             if (mpiRank == 0)
                 oss << "</DataArray>" << endl;
         }
@@ -560,7 +518,9 @@ bool EscriptDataset::saveVTK(string fileName)
             oss << "<CellData>" << endl;
         for (viIt = cellVars.begin(); viIt != cellVars.end(); viIt++) {
             writeVarToVTK(*viIt, oss);
-            WRITE_ORDERED(oss);
+            if (!fw->writeOrdered(oss)) {
+                cerr << "Warning, ignoring file write error!" << endl;
+            }
             if (mpiRank == 0)
                 oss << "</DataArray>" << endl;
         }
@@ -571,15 +531,13 @@ bool EscriptDataset::saveVTK(string fileName)
     if (mpiRank == 0) {
         oss << "</Piece>" << endl << "</UnstructuredGrid>" << endl
             << "</VTKFile>" << endl;
-        WRITE_SHARED(oss);
+        if (!fw->writeShared(oss)) {
+            cerr << "Warning, ignoring file write error!" << endl;
+        }
     }
 
-#if HAVE_MPI
-    mpiErr = MPI_File_close(&mpiFileHandle);
-#else
-    ofs.close();
-#endif
-
+    fw->close();
+    delete fw;
     return true;
 }
 
@@ -623,7 +581,9 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
     if (meshBlocks.size() > 0) {
         cerr << "Domain has already been set!" << endl;
         myError = 1;
-
+    } else if (!domain) {
+        cerr << "Domain is NULL!" << endl;
+        myError = 1;
     } else {
         FinleyMesh_ptr mesh(new FinleyMesh());
         if (mesh->initFromEscript(domain)) {
@@ -632,7 +592,7 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
             meshBlocks.push_back(mesh);
         } else {
             cerr << "Error initializing domain!" << endl;
-            myError = 1;
+            myError = 2;
         }
     }
 
@@ -646,13 +606,13 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         gError = myError;
     }
 
-    if (gError) {
+    if (gError>1) {
         meshBlocks.clear();
-    } else {
+    } else if (gError==0) {
         // Convert mesh data to variables
         convertMeshVariables();
     }
-    return !gError;
+    return (gError==0);
 
 #else // VISIT_PLUGIN
     return false;
