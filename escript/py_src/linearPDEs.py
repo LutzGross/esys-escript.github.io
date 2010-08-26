@@ -279,6 +279,7 @@ class SolverOptions(object):
         self.__residual_norm=None
         self.__converged=None
         self.__preconditioner_size=-1
+        self.__time_step_backtracking_used=None
         if all: 
             self.__cum_num_inner_iter=0
             self.__cum_num_iter=0
@@ -316,6 +317,8 @@ class SolverOptions(object):
             self.__residual_norm=float(value)
         if name == "converged":
             self.__converged = (value == True)
+        if name == "time_step_backtracking_used":
+            self.__time_step_backtracking_used = (value == True)
     def getDiagnostics(self, name):
         """
         Returns the diagnostic information ``name``. Possible values are:
@@ -333,6 +336,7 @@ class SolverOptions(object):
         - "cum_net_time": cumulative net execution time
         - "preconditioner_size": size of preconditioner [Bytes]
         - "converged": return self.__converged
+        - "time_step_backtracking_used": return self.__converged
 	
         
         :param name: name of diagnostic information to return
@@ -354,6 +358,7 @@ class SolverOptions(object):
         elif name == "residual_norm": return self.__residual_norm
         elif name == "converged": return self.__converged      
         elif name == "preconditioner_size": return  self.__preconditioner_size
+        elif name == "time_step_backtracking_used": return  self.__time_step_backtracking_used
         else:
             raise ValueError,"unknown diagnostic item %s"%name
     def hasConverged(self):

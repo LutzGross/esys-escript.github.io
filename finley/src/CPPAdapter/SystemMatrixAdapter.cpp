@@ -302,6 +302,7 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("net_time", net_time, double);
    SET("residual_norm", residual_norm, double);
    SET("converged",converged, bool);
+   SET("time_step_backtracking_used",time_step_backtracking_used, bool);
 #undef SET
 }
 void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
@@ -336,6 +337,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT_OPTION("getCoarsening", coarsening_method, index_t);
    EXTRACT_OPTION("getSmoother", smoother, index_t); 
    EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
+   EXTRACT("useLocalPreconditioner",  use_local_preconditioner,  bool_t);  
   
 #undef EXTRACT
 #undef EXTRACT_OPTION

@@ -69,6 +69,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->residual_norm=-1.;
   options->converged=FALSE;
   options->preconditioner_size=-1.;
+  options->time_step_backtracking_used=FALSE;
 }
 void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("Paso diagonsitics:\n");
@@ -81,6 +82,7 @@ void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("\tresidual_norm = %e\n",options->residual_norm);
 	printf("\tconverged = %d\n",options->converged);
         printf("\tpreconditioner_size = %e Mbytes\n", options->preconditioner_size);
+        printf("\ttime_step_backtracking_used = %d\n", options->time_step_backtracking_used);
 }
 const char* Paso_Options_name(const index_t key){
     switch (key) {
