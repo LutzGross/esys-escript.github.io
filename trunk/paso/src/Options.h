@@ -109,6 +109,7 @@ typedef struct {
     double residual_norm;
     bool_t converged;
     double preconditioner_size; /* in Mbytes */
+    bool_t time_step_backtracking_used;
 
 } Paso_Options;
 

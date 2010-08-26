@@ -80,11 +80,16 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->type=PASO_JACOBI;
               break;
 	   case PASO_GS:
-	      if (options->verbose) printf("Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
-	      prec->gs=Paso_Solver_getGS(A, options->sweeps, options->use_local_preconditioner, options->verbose);
-	      prec->type=PASO_GS;
+	      if (options->sweeps > 0 ) {
+		  if (options->verbose) printf("Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
+		  prec->gs=Paso_Solver_getGS(A, options->sweeps, options->use_local_preconditioner, options->verbose);
+		  prec->type=PASO_GS;
+	      } else {
+		 if (options->verbose) printf("Jacobi preconditioner is used.\n");
+		 prec->jacobi=Paso_Solver_getJacobi(A);
+		 prec->type=PASO_JACOBI;
+	      }
 	      break;
-	      
 	   /***************************************************************************************/   
            case PASO_ILU0:
               if (options->verbose) printf("ILU preconditioner is used.\n");
