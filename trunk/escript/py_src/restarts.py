@@ -100,6 +100,7 @@ class DataManager(object):
             restart_folders.sort()
             if do_restart:
                 self._restartdir=restart_folders[-1]
+                print "Restart from "+os.path.join(self._workdir, self._restartdir)
                 for f in restart_folders[:-1]:
                     self.__removeDirectory(f)
                 self.__loadState()
@@ -158,6 +159,12 @@ class DataManager(object):
         var = load(ff, self._domain)
         #print "Value %s recovered from %s."%(value_name, ff)
         return var 
+
+    def getCycle(self):
+        """
+        Returns the export cycle (=number of times export() has been called)
+        """
+        return self._N
 
     def setTime(self, time):
         """
@@ -284,11 +291,10 @@ class DataManager(object):
         cPickle.dump(self._stamp, open(stamp_file, "wb"))
         ff=self.__getDumpFilename("__mesh_finley", restartdir)
         self._domain.dump(ff)
-        #print "Domain dumped to %s."%(ff)
         for name, var in self._data.items():
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
-            #print "%s dumped to %s."%(name, ff)
+        print "Restart files saved in "+os.path.join(self._workdir, self._restartdir)
         # keep only one restart directory
         old_restartdir = "%s_%04d"%(self._restartprefix, self._N-1)
         self.__removeDirectory(os.path.join(self._workdir, old_restartdir))
