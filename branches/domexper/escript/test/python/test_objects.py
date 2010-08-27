@@ -153,7 +153,7 @@ class Test_saveCSV(unittest.TestCase):
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount!=self.linecount1*2)
+	self.failUnless(linecount==self.linecount1*2)
 	f.close()
 	#Now to other output
 	T2=Tensor(7,X.getFunctionSpace())
@@ -171,7 +171,7 @@ class Test_saveCSV(unittest.TestCase):
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount!=self.linecount1)
+	self.failUnless(linecount==self.linecount1)
 	f.close()	
 	#Now to test separators and mask
 	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
@@ -179,7 +179,7 @@ class Test_saveCSV(unittest.TestCase):
 	line=f.readline()
 	self.failUnless(line=='U/0|U/1|V\n')
 	line=f.readline()
-	line_expected=[0.125, 0., 0.125]
+	line_expected=[0.25, 0., 0.25]
 	line_got=[float(elt) for elt in line.split('|')]
 	self.failUnless(line_expected==line_got)
 	linecount=1
@@ -193,6 +193,9 @@ class Test_Domain(unittest.TestCase):
 
    def test_getListOfTags(self): # requires self.boundary_tag_list
        tags=FunctionOnBoundary(self.domain).getListOfTags()
+       print self.boundary_tag_list
+       print tags
+       print self.domain
        self.failUnless(len(self.boundary_tag_list) == len(tags), "tag list length does not match")
        for i in self.boundary_tag_list:
            self.failUnless(i in tags, "tag %s is missing."%i)

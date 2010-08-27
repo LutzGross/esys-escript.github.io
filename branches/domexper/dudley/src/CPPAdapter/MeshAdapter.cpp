@@ -684,8 +684,7 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 void MeshAdapter::addPDEToSystem(
                                  SystemMatrixAdapter& mat, escript::Data& rhs,
                                  const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
-                                 const escript::Data& d, const escript::Data& y, 
-                                 const escript::Data& d_contact,const escript::Data& y_contact) const
+                                 const escript::Data& d, const escript::Data& y) const
 {
    escriptDataC _rhs=rhs.getDataC();
    escriptDataC _A  =A.getDataC();
@@ -696,16 +695,16 @@ void MeshAdapter::addPDEToSystem(
    escriptDataC _Y=Y.getDataC();
    escriptDataC _d=d.getDataC();
    escriptDataC _y=y.getDataC();
-   escriptDataC _d_contact=d_contact.getDataC();
-   escriptDataC _y_contact=y_contact.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
    checkDudleyError();
 
+
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
    checkDudleyError();
+
 
    checkDudleyError();
 }
@@ -741,7 +740,7 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _X=X.getDataC();
    escriptDataC _Y=Y.getDataC();
    escriptDataC _y=y.getDataC();
-   escriptDataC _y_contact=y_contact.getDataC();
+//   escriptDataC _y_contact=y_contact.getDataC();
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkDudleyError();

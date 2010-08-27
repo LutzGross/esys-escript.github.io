@@ -155,21 +155,21 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       numNodesPerElement= 3;
                       element_dim=2;
                       break;
-                  case 3:  /* quadrilateral order 1 */
-                      element_type[e]=Rec4;
-                      numNodesPerElement= 4;
-                      element_dim=2;
-                      break;
+//                   case 3:  /* quadrilateral order 1 */
+//                       element_type[e]=Rec4;
+//                       numNodesPerElement= 4;
+//                       element_dim=2;
+//                       break;
                   case 4:  /* tetrahedron order 1 */
                       element_type[e]=Tet4;
                       numNodesPerElement= 4;
                       element_dim=3;
                       break;
-                  case 5:  /* hexahedron order 1 */
-                      element_type[e]=Hex8;
-                      numNodesPerElement= 8;
-                      element_dim=3;
-                      break;
+//                   case 5:  /* hexahedron order 1 */
+//                       element_type[e]=Hex8;
+//                       numNodesPerElement= 8;
+//                       element_dim=3;
+//                       break;
                   case 8:  /* line order 2 */
                       if (useMacroElements) {
                           element_type[e]=Line3Macro;
@@ -188,15 +188,15 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       numNodesPerElement= 6;
                       element_dim=2;
                       break;
-                  case 10:  /* quadrilateral order 2 */
-                      if (useMacroElements) {
-                          element_type[e]=Rec9Macro;
-                      } else {
-                          element_type[e]=Rec9;
-                      }
-                      numNodesPerElement= 9;
-                      element_dim=2;
-                      break;
+//                  case 10:  /* quadrilateral order 2 */
+//                      if (useMacroElements) {
+//                          element_type[e]=Rec9Macro;
+//                      } else {
+//                          element_type[e]=Rec9;
+//                      }
+//                      numNodesPerElement= 9;
+//                      element_dim=2;
+//                      break;
                   case 11:  /* tetrahedron order 2 */
                       if (useMacroElements) {
                           element_type[e]=Tet10Macro;
@@ -206,16 +206,16 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       numNodesPerElement= 10;
                       element_dim=3;
                       break;
-                  case 16:  /* rectangular order 2 */
-                      element_type[e]=Rec8;
-                      numNodesPerElement= 8;
-                      element_dim=2;
-                      break;
-                  case 17:  /* hexahedron order 2 */
-                      element_type[e]=Hex20;
-                      numNodesPerElement= 20;
-                      element_dim=3;
-                      break;
+// /*                  case 16:  /* rectangular order 2 */
+//                       element_type[e]=Rec8;
+//                       numNodesPerElement= 8;
+//                       element_dim=2;
+//                       break;
+//                   case 17:  /* hexahedron order 2 */
+//                       element_type[e]=Hex20;
+//                       numNodesPerElement= 20;
+//                       element_dim=3;
+//                       break;*/
                   case 15 :  /* point */
                       element_type[e]=Point1;
                       numNodesPerElement= 1;

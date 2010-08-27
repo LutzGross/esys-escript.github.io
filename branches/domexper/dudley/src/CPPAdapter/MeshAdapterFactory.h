@@ -16,12 +16,6 @@
 #define dudley_MeshAdapterFactory_20040526_H
 #include "system_dep.h"
 
-extern "C" {
-#include "dudley/Dudley.h"
-#include "dudley/Mesh.h"
-#include "dudley/RectangularMesh.h"
-}
-
 #include "MeshAdapter.h"
 
 #include "escript/AbstractContinuousDomain.h"
@@ -102,16 +96,16 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
   escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
-		    double l0=1.0,double l1=1.0,double l2=1.0,
-		    int periodic0=0,int periodic1=0,
-		    int periodic2=0,
-		    int integrationOrder=-1,
-     	            int reducedIntegrationOrder=-1, 
-		    int useElementsOnFace=0,
+                    double l0=1.0,double l1=1.0,double l2=1.0,
+                    int periodic0=0,int periodic1=0,
+                    int periodic2=0,
+                    int integrationOrder=-1,
+                    int reducedIntegrationOrder=-1,
+                    int useElementsOnFace=0,
                     int useFullElementOrder=0,
                     int optimize=0);
+
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -132,15 +126,15 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
   escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
-				      double l0=1.0, double l1=1.0,
-				      int periodic0=false,int periodic1=false,
-				      int integrationOrder=-1,
-     	                              int reducedIntegrationOrder=-1, 
-				      int useElementsOnFace=0,
+                                      double l0=1.0, double l1=1.0,
+                                      int periodic0=false,int periodic1=false,
+                                      int integrationOrder=-1,
+                                      int reducedIntegrationOrder=-1,
+                                      int useElementsOnFace=0,
                                       int useFullElementOrder=0,
                                       int optimize=0);
+
   /**
      \brief
      Merges a list of meshes into one list.

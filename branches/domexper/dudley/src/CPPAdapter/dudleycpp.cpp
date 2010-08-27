@@ -115,8 +115,6 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-      
-//       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
@@ -139,7 +137,6 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-//       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
@@ -195,7 +192,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
       .def("addPDEToSystem",&dudley::MeshAdapter::addPDEToSystem,
-args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -205,8 +202,6 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param d:\n:type d: `Data`\n"
-":param d_contact:\n:type d_contact: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`\n"
 )
       .def("addPDEToLumpedSystem",&dudley::MeshAdapter::addPDEToLumpedSystem,
 args("mat", "D", "d"),

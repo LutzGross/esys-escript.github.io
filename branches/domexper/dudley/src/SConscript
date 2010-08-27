@@ -67,8 +67,6 @@ sources = """
 	Mesh_findMatchingFaces.c
 	Mesh_getPattern.c
 	Mesh_glueFaces.c
-	Mesh_hex20.c
-	Mesh_hex8.c
 	Mesh_joinFaces.c
 	Mesh_markNodes.c
 	Mesh_merge.c
@@ -78,14 +76,14 @@ sources = """
 	Mesh_print.c
 	Mesh_read.c
 	Mesh_readGmsh.c
-	Mesh_rec4.c
-	Mesh_rec8.c
 	Mesh_relableElementNodes.c
 	Mesh_resolveNodeIds.c
 	Mesh_saveDX.c
 	Mesh_saveVTK.c
 	Mesh_setCoordinates.c
 	Mesh_tagmaps.c
+	Mesh_tet4.c
+	Mesh_tri3.c
 	Mesh_write.c
 	NodeFile.c
 	NodeFile_allocTable.c
@@ -120,7 +118,7 @@ headers = """
 	NodeFile.h
 	NodeMapping.h
 	Quadrature.h
-	RectangularMesh.h
+	TriangularMesh.h
 	ReferenceElements.h
 	ShapeFunctions.h
 	TagMap.h

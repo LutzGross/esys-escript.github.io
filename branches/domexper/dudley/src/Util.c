@@ -416,7 +416,12 @@ index_t Dudley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
          out_local=out;
          #pragma omp for private(i,j) schedule(static)
          for (j=0;j<N;j++) {
-             for (i=0;i<dim;i++) out_local=MAX(out_local,values[INDEX2(i,j,dim)]);
+             for (i=0;i<dim;i++) 
+{
+//printf("%d,%d,%d[%d] %d\n",i,j,dim,INDEX2(i,j,dim),  values[INDEX2(i,j,dim)]);
+out_local=MAX(out_local,values[INDEX2(i,j,dim)]);
+
+}
          }
          #pragma omp critical
          out=MAX(out_local,out);
