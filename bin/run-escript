@@ -333,17 +333,9 @@ then
   then
     echo "No program to run was specified. Exiting."
     exit 1
+  else
+    DOINTERACTIVE="yes"
   fi
-fi
-if [ -z "$@" ]
-then
-   if [ ! -z $DOBINARY ]
-   then
-       echo "Program must be given."
-       exit 1
-   else
-      DOINTERACTIVE="yes"
-   fi
 fi
 
 #=========================================================================================================
