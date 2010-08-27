@@ -22,6 +22,10 @@
 #include "DudleyError.h"
 extern "C" {
 #include "esysUtils/blocktimer.h"
+#include "dudley/Dudley.h"
+#include "dudley/Mesh.h"
+#include "dudley/TriangularMesh.h"
+
 }
 
 #include <boost/python/extract.hpp>
@@ -554,39 +558,45 @@ namespace dudley {
     return temp->getPtr();
   }
 
-/*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
+
   Domain_ptr brick(int n0,int n1,int n2,int order,
-		    double l0,double l1,double l2,
-		    int periodic0,int periodic1,
-		    int periodic2,
-		    int integrationOrder,
+                    double l0,double l1,double l2,
+                    int periodic0,int periodic1,
+                    int periodic2,
+                    int integrationOrder,
                     int reducedIntegrationOrder,
-		    int useElementsOnFace,
-		    int useFullElementOrder,
+                    int useElementsOnFace,
+                    int useFullElementOrder,
                     int optimize)
   {
+
+
     int numElements[]={n0,n1,n2};
     double length[]={l0,l1,l2};
-    int periodic[]={periodic0, periodic1, periodic2};
 
+    if (periodic0 || periodic1)	// we don't support periodic boundary conditions
+    {
+	throw DudleyAdapterException("Dudley does not support periodic boundary conditions.");
+    }
+    else if (integrationOrder>3 || reducedIntegrationOrder>1)
+    {
+	throw DudleyAdapterException("Dudley does not support the requested integrationOrders.");
+    }
+    else if (useElementsOnFace || useFullElementOrder)
+    {
+	throw DudleyAdapterException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+    }
+    if (order>1)
+    {
+	throw DudleyAdapterException("Dudley does not support element order greater than 1.");
+    }
     //
     // linearInterpolation
     Dudley_Mesh* fMesh=NULL;
 
-    if (order==1) {
-           fMesh=Dudley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE)) ;
-    } else if (order==2) {
-           fMesh=Dudley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					      useElementsOnFace,useFullElementOrder,FALSE, (optimize ? TRUE : FALSE)) ;
-    } else if (order==-1) {
-           fMesh=Dudley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE)) ;
-    } else {
-      stringstream temp;
-      temp << "Illegal interpolation order: " << order;
-      setDudleyError(VALUE_ERROR,temp.str().c_str());
-    }
+    fMesh=Dudley_TriangularMesh_Tet4(numElements,length,integrationOrder,reducedIntegrationOrder,
+					(optimize ? TRUE : FALSE)) ;
+
     //
     // Convert any dudley errors into a C++ exception
     checkDudleyError();
@@ -596,33 +606,36 @@ namespace dudley {
 
 /*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
   Domain_ptr  rectangle(int n0,int n1,int order,
-			double l0, double l1,
-			int periodic0,int periodic1,
-			int integrationOrder,
+                        double l0, double l1,
+                        int periodic0,int periodic1,
+                        int integrationOrder,
                         int reducedIntegrationOrder,
-			int useElementsOnFace,
-		        int useFullElementOrder,
+                        int useElementsOnFace,
+                        int useFullElementOrder,
                         int optimize)
   {
     int numElements[]={n0,n1};
     double length[]={l0,l1};
-    int periodic[]={periodic0, periodic1};
 
-    Dudley_Mesh* fMesh=0;
-    if (order==1) {
-            fMesh=Dudley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
-					useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE));
-    } else if (order==2) {
-            fMesh=Dudley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					      useElementsOnFace,useFullElementOrder,FALSE,(optimize ? TRUE : FALSE));
-    } else if (order==-1) {
-            fMesh=Dudley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-					      useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE));
-    } else {
-      stringstream temp;
-      temp << "Illegal interpolation order: " << order;
-      setDudleyError(VALUE_ERROR,temp.str().c_str());
+    if (periodic0 || periodic1)	// we don't support periodic boundary conditions
+    {
+	throw DudleyAdapterException("Dudley does not support periodic boundary conditions.");
     }
+    else if (integrationOrder>3 || reducedIntegrationOrder>1)
+    {
+	throw DudleyAdapterException("Dudley does not support the requested integrationOrders.");
+    }
+    else if (useElementsOnFace || useFullElementOrder)
+    {
+	throw DudleyAdapterException("Dudley does not support useElementsOnFace or useFullElementOrder.");
+    }
+
+    if (order>1)
+    {
+	throw DudleyAdapterException("Dudley does not support element order greater than 1.");
+    }
+    Dudley_Mesh* fMesh=Dudley_TriangularMesh_Tri3(numElements, length,integrationOrder,reducedIntegrationOrder,
+					(optimize ? TRUE : FALSE));
     //
     // Convert any DUDLEY errors into a C++ exception
     checkDudleyError();

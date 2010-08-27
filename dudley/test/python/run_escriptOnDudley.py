@@ -121,9 +121,9 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
 		
 class Test_CSVOnDudley(Test_saveCSV):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
-       self.linecount1=20		#see test_save1 for the meaning of these params
-       self.linecount2=69
+       self.domain =Rectangle(NE,NE+1)
+       self.linecount1=31		#see test_save1 for the meaning of these params
+       self.linecount2=25
        
    def tearDown(self):
        del self.domain
@@ -158,10 +158,10 @@ class Test_CSVOnDudley(Test_saveCSV):
 	
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
-   suite.addTest(unittest.makeSuite(Test_DataOpsOnDudley))
-   suite.addTest(unittest.makeSuite(Test_DomainOnDudley))
-   suite.addTest(unittest.makeSuite(Test_TableInterpolationOnDudley))
+   #suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
+   #suite.addTest(unittest.makeSuite(Test_DataOpsOnDudley))
+   #suite.addTest(unittest.makeSuite(Test_DomainOnDudley))
+   #suite.addTest(unittest.makeSuite(Test_TableInterpolationOnDudley))
    suite.addTest(unittest.makeSuite(Test_CSVOnDudley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

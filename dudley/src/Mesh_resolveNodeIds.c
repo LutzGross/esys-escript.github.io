@@ -42,12 +42,15 @@ void  Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in) {
   /*  find the minimum and maximum id used by elements: */
   min_id=INDEX_T_MAX;
   max_id=-INDEX_T_MAX;
+//printf("Trying Elements:\n");
   Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Elements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
+//printf("Trying FaceElements:\n");
   Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->FaceElements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
+//printf("Trying ContactElements:\n");
   Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->ContactElements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);

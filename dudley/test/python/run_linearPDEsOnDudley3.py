@@ -58,14 +58,16 @@ class Test_LameOnDudley(Test_LameEquation):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        #self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+	self.domain = Rectangle(NE,NE,1,useFullElementOrder=False)
    def tearDown(self):
         del self.domain
 class Test_PoissonOnDudley(Test_Poisson):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        #self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+	self.domain = Rectangle(NE,NE,1,useFullElementOrder=False)
    def tearDown(self):
         del self.domain
 
@@ -73,7 +75,8 @@ class Test_HelmholtzOnDudley(Test_Helmholtz):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        #self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+	self.domain = Rectangle(NE,NE,1,useFullElementOrder=False)
    def tearDown(self):
         del self.domain
 

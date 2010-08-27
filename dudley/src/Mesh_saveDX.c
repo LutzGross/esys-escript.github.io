@@ -150,18 +150,18 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
      numDXNodesPerElement = 3;
      resortIndex=resort[1];
      strcpy(elemTypeStr, "triangles");
-   } else if (TypeId==Rec4 || TypeId==Rec8 || TypeId==Rec9 || TypeId==Rec12 || TypeId==Rec16 || TypeId==Rec9Macro ) {
+/*   } else if (TypeId==Rec4 || TypeId==Rec8 || TypeId==Rec9 || TypeId==Rec12 || TypeId==Rec16 || TypeId==Rec9Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[3];
-     strcpy(elemTypeStr, "quads");
+     strcpy(elemTypeStr, "quads");*/
    } else if (TypeId==Tet4 || TypeId==Tet10 || TypeId==Tet16 || TypeId==Tet10Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[2];
      strcpy(elemTypeStr, "tetrahedra");
-   } else if (TypeId==Hex8 || TypeId==Hex20 || TypeId==Hex32 ) {
+/*   } else if (TypeId==Hex8 || TypeId==Hex20 || TypeId==Hex32 ) {
      numDXNodesPerElement = 8;
      resortIndex=resort[4];
-     strcpy(elemTypeStr, "cubes");
+     strcpy(elemTypeStr, "cubes");*/
    } else {
      sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->referenceElementSet->referenceElement->Type->Name);
      Dudley_setError(VALUE_ERROR,error_msg);

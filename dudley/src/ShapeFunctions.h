@@ -40,18 +40,22 @@ typedef enum {
   Tri6Shape,
   Tri9Shape,
   Tri10Shape,
+/*
   Rec4Shape,
   Rec8Shape,
   Rec9Shape,
   Rec12Shape,
   Rec16Shape,
+*/
   Tet4Shape,
   Tet10Shape,
   Tet16Shape,
+/*
   Hex8Shape,
   Hex20Shape,
   Hex27Shape,
   Hex32Shape,
+*/
   NoShape   /* marks end of list */
 } Dudley_ShapeFunctionTypeId;
 
@@ -98,18 +102,22 @@ Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri3;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri6;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri9;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri10;
+/*
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec4;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec8;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec9;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec12;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Rec16;
+*/
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet4;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet10;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet16;
+/*
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex8;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex20;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex27;
 Dudley_ShapeFunction_Evaluation Dudley_Shape_Hex32;
+*/
 
 Dudley_ShapeFunction* Dudley_ShapeFunction_alloc(Dudley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights);
 void Dudley_ShapeFunction_dealloc(Dudley_ShapeFunction*);

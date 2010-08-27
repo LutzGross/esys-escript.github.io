@@ -565,8 +565,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      SystemMatrixAdapter& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact, const escript::Data& y_contact) const;
+                     const escript::Data& d, const escript::Data& y) const;
   /**
      \brief
      adds a PDE onto the lumped stiffness matrix matrix
