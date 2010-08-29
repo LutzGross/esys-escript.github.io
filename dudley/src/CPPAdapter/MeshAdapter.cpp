@@ -732,7 +732,7 @@ void  MeshAdapter::addPDEToLumpedSystem(
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
@@ -740,7 +740,6 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _X=X.getDataC();
    escriptDataC _Y=Y.getDataC();
    escriptDataC _y=y.getDataC();
-//   escriptDataC _y_contact=y_contact.getDataC();
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkDudleyError();

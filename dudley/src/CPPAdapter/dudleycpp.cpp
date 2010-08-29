@@ -216,7 +216,6 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param y:\n:type y: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`"
 )
       .def("addPDEToTransportProblem",&dudley::MeshAdapter::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),

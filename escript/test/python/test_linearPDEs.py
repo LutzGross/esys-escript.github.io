@@ -1429,9 +1429,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u1=mypde.getSolution()
         error1=Lsup(u1-u1_ref)/Lsup(u1_ref)
         self.failUnless(mypde.getDomainStatus() == mypde.getSystemStatus(), "status of first pde does not match domain status.")
-
         self.domain.setX(x*5)
-
         self.failUnless(mypde.getDomainStatus() != mypde.getSystemStatus(), "status of first pde matches updated domain status.")
         x2=self.domain.getX()
         u2_ref=x2[0]*(5.-x2[0])
