@@ -76,8 +76,7 @@ class Test_LinearPDEOnDudleyBrickOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-#        self.domain = Brick(NE,NE,NE,1)
-        self.domain = Brick(1,1,1,1)
+        self.domain = Brick(NE,NE,NE,1)
         self.order = 1
    def tearDown(self):
         del self.domain
@@ -97,7 +96,7 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyRectOrder1))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyBrickOrder1))
    else:
-      suite.addTest(Test_LinearPDEOnDudleyBrickOrder1("test_assemblage_3D_solO1_coeffOFull_NEqu1_A_Const_typeStrong_comp00"))
+      suite.addTest(Test_LinearPDEOnDudleyBrickOrder1("test_Status"))
       pass
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)

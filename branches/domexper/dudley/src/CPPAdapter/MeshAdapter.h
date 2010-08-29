@@ -583,7 +583,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   DUDLEY_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& y, const escript::Data& y_contact) const;
+                     const escript::Data& y) const;
   /**
      \brief
      adds a PDE onto a transport problem

@@ -2506,15 +2506,16 @@ class LinearPDE(LinearProblem):
                       raise ValueError,"coefficient B in lumped matrix may not be present."
                  if not self.getCoefficient("C").isEmpty():
                       raise ValueError,"coefficient C in lumped matrix may not be present."
-                 if not self.getCoefficient("d_contact").isEmpty():
-                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
                  if not self.getCoefficient("A_reduced").isEmpty():
                       raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
                  if not self.getCoefficient("B_reduced").isEmpty():
                       raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
                  if not self.getCoefficient("C_reduced").isEmpty():
                       raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
-                 if not self.getCoefficient("d_contact_reduced").isEmpty():
+		 if self.getDomain().supportsContactElements():
+                   if not self.getCoefficient("d_contact").isEmpty():
+                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."                 
+		   if not self.getCoefficient("d_contact_reduced").isEmpty():
                       raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
                  D=self.getCoefficient("D")
                  d=self.getCoefficient("d")
@@ -2570,16 +2571,18 @@ class LinearPDE(LinearProblem):
               if not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addPDEToRHS(righthandside, \
-                               self.getCoefficient("X"), \
+		 args=(self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
-                               self.getCoefficient("y"),\
-                               self.getCoefficient("y_contact"))
-                 self.getDomain().addPDEToRHS(righthandside, \
-                               self.getCoefficient("X_reduced"), \
+                               self.getCoefficient("y"))
+		 if self.getDomain().supportsContactElements():
+			 args+=(self.getCoefficient("y_contact"),)
+                 self.getDomain().addPDEToRHS(righthandside, *args)
+		 args=(self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
-                               self.getCoefficient("y_reduced"),\
-                               self.getCoefficient("y_contact_reduced"))
+                               self.getCoefficient("y_reduced"))
+		 if self.getDomain().supportsContactElements():
+			 args+=self.getCoefficient("y_contact_reduced")
+                 self.getDomain().addPDEToRHS(righthandside, *args)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
               self.insertConstraint(rhs_only=False)
@@ -2623,16 +2626,18 @@ class LinearPDE(LinearProblem):
              elif not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addPDEToRHS(righthandside,
-                               self.getCoefficient("X"), \
+		 args=(self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
-                               self.getCoefficient("y"),\
-                               self.getCoefficient("y_contact"))
-                 self.getDomain().addPDEToRHS(righthandside,
-                               self.getCoefficient("X_reduced"), \
+                               self.getCoefficient("y"))
+		 if self.getDomain().supportsContactElements():
+			 args+=(self.getCoefficient("y_contact"),)
+                 self.getDomain().addPDEToRHS(righthandside, *args)
+		 args=( self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
-                               self.getCoefficient("y_reduced"),\
-                               self.getCoefficient("y_contact_reduced"))
+                               self.getCoefficient("y_reduced"))
+		 if self.getDomain().supportsContactElements():
+			 args+=(self.getCoefficient("y_contact_reduced"),)
+                 self.getDomain().addPDEToRHS(righthandside,*args)
                  self.insertConstraint(rhs_only=True)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
