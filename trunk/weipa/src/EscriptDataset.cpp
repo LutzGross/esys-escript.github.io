@@ -177,6 +177,12 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     const char* blockDirFmt = "/block%04d";
     string siloPath;
     DBfile* dbfile = NULL;
+    int driver = DB_HDF5; // prefer HDF5 if available
+    //FIXME: Silo's HDF5 driver and NetCDF 4 are currently incompatible because
+    //NetCDF calls H5close() when all its files are closed.
+    //Unidata has been contacted, Ticket ID: YTC-894489.
+    //When this issue is resolved, remove the following line.
+    driver = DB_PDB;
 #if HAVE_MPI
     PMPIO_baton_t* baton = NULL;
 #endif
@@ -185,7 +191,14 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 #if HAVE_MPI
         baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE,
                     mpiComm, 0x1337, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
-                    PMPIO_DefaultClose, NULL);
+                    PMPIO_DefaultClose, (void*)&driver);
+        // try the fallback driver in case of error
+        if (!baton && driver != DB_PDB) {
+            driver = DB_PDB;
+            baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE,
+                        mpiComm, 0x1337, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
+                        PMPIO_DefaultClose, (void*)&driver);
+        }
         if (baton) {
             char str[64];
             snprintf(str, 64, blockDirFmt, PMPIO_RankInGroup(baton, mpiRank));
@@ -196,12 +209,31 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 #endif
     } else {
         dbfile = DBCreate(fileName.c_str(), DB_CLOBBER, DB_LOCAL,
-                "escriptData", DB_PDB);
+                "escriptData", driver);
+        // try the fallback driver in case of error
+        if (!dbfile && driver != DB_PDB) {
+            driver = DB_PDB;
+            dbfile = DBCreate(fileName.c_str(), DB_CLOBBER, DB_LOCAL,
+                    "escriptData", driver);
+        }
     }
 
     if (!dbfile) {
         cerr << "Could not create Silo file." << endl;
+        if (mpiSize > 1) {
+#if HAVE_MPI
+            PMPIO_HandOffBaton(baton, dbfile);
+            PMPIO_Finish(baton);
+#endif
+        }
         return false;
+    }
+
+    if (driver==DB_HDF5) {
+        // gzip level 1 already provides good compression with minimal
+        // performance penalty. Some tests showed that gzip levels >3 performed
+        // rather badly on escript data both in terms of time and space
+        DBSetCompression("ERRMODE=FALLBACK METHOD=GZIP LEVEL=1");
     }
 
     MeshBlocks::iterator meshIt;
