@@ -25,6 +25,7 @@
 #include "TriangularMesh.h"
 
 
+/* Be careful reading this function. The X? and NStride? are 1,2,3 but the loop vars are 0,1,2 */
 Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
                                           double* Length,
 					  index_t order,
@@ -182,9 +183,9 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
            out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0) 
                                                +Nstride1*(global_i1%NDOF1) 
                                                +Nstride2*(global_i2%NDOF2);
-/*	   printf("N=%d: %f,%f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
-		out->Nodes->Coordinates[INDEX2(1,k,DIM)],
-		out->Nodes->Coordinates[INDEX2(2,k,DIM)]);*/
+// 	   printf("N=%d: %f,%f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
+// 		out->Nodes->Coordinates[INDEX2(1,k,DIM)],
+// 		out->Nodes->Coordinates[INDEX2(2,k,DIM)]);
          }
        }
      }
@@ -322,7 +323,7 @@ for (int j=0;j<4;++j)
      NN=out->FaceElements->numNodes;
      totalNECount=5*NE0*NE1*NE2;
      faceNECount=0;
-//printf("Top\n");
+//printf("Bottom\n");
      /*   these are the quadrilateral elements on boundary 1 (x3=0): */
      if (local_NE2>0) 
      {
@@ -336,42 +337,39 @@ for (int j=0;j<4;++j)
 	    {
               k=2*(i0+local_NE0*i1)+faceNECount;
               node0=Nstride0*N_PER_E*(i0+e_offset0)+Nstride1*N_PER_E*(i1+e_offset1);
-     
 	      index_t res=2*((i0+e_offset0)+NE0*(i1+e_offset1))+totalNECount;
               out->FaceElements->Id[k]=res;
-              out->FaceElements->Tag[k]=TOPTAG;
+              out->FaceElements->Tag[k]=BOTTOMTAG;
               out->FaceElements->Owner[k]=myRank;
               out->FaceElements->Id[k+1]=res+1;
-              out->FaceElements->Tag[k+1]=TOPTAG;
+              out->FaceElements->Tag[k+1]=BOTTOMTAG;
               out->FaceElements->Owner[k+1]=myRank;
-	      // in the element generation this face is a,b,c,d which is split by a-c
 
-	      index_t n4=node0+Nstride2;
-	      index_t n5=node0+Nstride0+Nstride2;
-	      index_t n6=node0+Nstride1+Nstride2;
-	      index_t n7=node0+Nstride0+Nstride1+Nstride2;
+	      index_t n0=node0;
+	      index_t n1=node0+Nstride0;
+	      index_t n2=node0+Nstride1;
+	      index_t n3=node0+Nstride0+Nstride1;
 
 	      if ((global_adjustment+i0+i1)%2==0)
 	      {
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n1;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n5;
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
-
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 	      }
 	      else
 	      {
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n1;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n4;
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 
 
@@ -388,7 +386,7 @@ for (int j=0;j<4;++j)
        }
        totalNECount+=2*NE1*NE0;
 
-//printf("Bottom\n");
+//printf("Top\n");
        /* **  elements on boundary 200 (x3=1) */
        if (local_NE2+e_offset2 == NE2) {
           #pragma omp parallel for private(i0,i1,k,node0) 
@@ -400,47 +398,37 @@ for (int j=0;j<4;++j)
 
 	      index_t res=2*((i0+e_offset0)+NE0*(i1+e_offset1))+totalNECount;
               out->FaceElements->Id[k]=res;
-              out->FaceElements->Tag[k]=BOTTOMTAG;
+              out->FaceElements->Tag[k]=TOPTAG;
               out->FaceElements->Owner[k]=myRank;
               out->FaceElements->Id[k+1]=res+1;
-              out->FaceElements->Tag[k+1]=BOTTOMTAG;
+              out->FaceElements->Tag[k+1]=TOPTAG;
               out->FaceElements->Owner[k+1]=myRank;
 
-	      index_t n0=node0;
-	      index_t n1=node0+Nstride0;
-	      index_t n2=node0+Nstride1;
-	      index_t n3=node0+Nstride1+Nstride0;
+	      index_t n4=node0+Nstride2;
+	      index_t n5=node0+Nstride0+Nstride2;
+	      index_t n6=node0+Nstride1+Nstride2;
+	      index_t n7=node0+Nstride1+Nstride0+Nstride2;
 
 	      if ((global_adjustment+i0+i1+local_NE2-1)%2==0)
 	      {
-// 	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-// 	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
-// 	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[2];
-// 
-// 	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-// 	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[1];
-// 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n6;
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n3;
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n2;
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n0;
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n1;
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
-
-
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
 	      }
 	      else
 	      {
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n1;
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n7;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n1;
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n3;
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
 	      }
 
 // printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
