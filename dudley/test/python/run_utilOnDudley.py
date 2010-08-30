@@ -41,7 +41,7 @@ NE=4 # number elements, must be even
 
 class Test_UtilOnDudley(Test_util,Test_symbols):
    def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
+       self.domain =Rectangle(NE,NE+1,1)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):
        del self.functionspace
@@ -55,21 +55,6 @@ class Test_Util_SpatialFunctionsOnDudleyTet2DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyTet2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=2
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyTet2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_macro.fly"),optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
 
 class Test_Util_SpatialFunctionsOnDudleyTet3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
@@ -79,23 +64,7 @@ class Test_Util_SpatialFunctionsOnDudleyTet3DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyTet3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=2
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyTet3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_macro.fly"),optimize=False)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyRectOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Rectangle(n0=NE,n1=NE,order=1)
@@ -103,42 +72,11 @@ class Test_Util_SpatialFunctionsOnDudleyHex2DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyHex2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=2
-        self.domain = Rectangle(n0=NE,n1=NE,order=2)
-    def tearDown(self):
-        del self.order
-        del self.domain
 
-class Test_Util_SpatialFunctionsOnDudleyHex2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = Rectangle(n0=NE,n1=NE,order=-1)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnDudleyBrickOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Brick(n0=NE,n1=NE,n2=NE,order=1)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=2
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=2)
-    def tearDown(self):
-        del self.order
-        del self.domain
-
-class Test_Util_SpatialFunctionsOnDudleyHex3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=-1)
     def tearDown(self):
         del self.order
         del self.domain
@@ -150,17 +88,9 @@ if __name__ == '__main__':
    if True:
       suite.addTest(unittest.makeSuite(Test_UtilOnDudley))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DMacro))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyHex3DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyRectOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyBrickOrder1))
    else:
       pass
    s=unittest.TextTestRunner(verbosity=2).run(suite)

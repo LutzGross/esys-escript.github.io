@@ -63,7 +63,6 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
 # testing but should not be invoked directly themselves
 
 sortOutExample( 'usersguide/lit_driven_cavity.py')
-sortOutExample( 'usersguide/mount.py')
 sortOutExample( 'usersguide/heatedblock.py')
 sortOutExample( 'usersguide/helmholtz.py')
 sortOutExample( 'usersguide/fluid.py')
