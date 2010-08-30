@@ -182,9 +182,9 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
            out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0) 
                                                +Nstride1*(global_i1%NDOF1) 
                                                +Nstride2*(global_i2%NDOF2);
-//	   printf("N=%d: %f,%f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
-//		out->Nodes->Coordinates[INDEX2(1,k,DIM)],
-//		out->Nodes->Coordinates[INDEX2(2,k,DIM)]);
+/*	   printf("N=%d: %f,%f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
+		out->Nodes->Coordinates[INDEX2(1,k,DIM)],
+		out->Nodes->Coordinates[INDEX2(2,k,DIM)]);*/
          }
        }
      }
@@ -212,7 +212,7 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 
 	   index_t v[8];
 /*	   in non-rotated orientation the points are numbered as follows:
-	   The top face (clockwise= 0,1,3,2), bottom face (4,5,7,6)*/
+	   The bottom face (anticlockwise= 0,1,3,2), top face (anticlockwise 4,5,7,6)*/
 	   if ((global_adjustment+i0+i1+i2)%2==0)
 	   {
 // printf("Type0 %d, %d, %d\n",i0,i1,i2);
@@ -230,16 +230,24 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 // printf("Type1 %d, %d, %d\n",i0,i1,i2);
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
 
-	   v[0]=node0+Nstride2;
-	   v[2]=node0;
-	   v[6]=node0+Nstride1;
-	   v[4]=node0+Nstride1+Nstride2;
+	   v[0]=node0+Nstride1;			// node 0 ends up in position 2
+	   v[2]=node0+Nstride1+Nstride2;	// node 2 ends up in position 6
+	   v[6]=node0+Nstride2;			// node 6 ends up in position 4
+	   v[4]=node0;				// node 4 ends up in position 0
 
-	   v[1]=node0+Nstride0+Nstride2;
-	   v[3]=node0+Nstride0;
-	   v[7]=node0+Nstride1+Nstride0;
-	   v[5]=node0+Nstride2+Nstride1+Nstride0;
+	   v[1]=node0+Nstride0+Nstride1;	// node 1 -> pos 3
+	   v[3]=node0+Nstride2+Nstride1+Nstride0;	// node 3-> pos 7
+	   v[7]=node0+Nstride0+Nstride2;	// node 7 -> pos 5
+	   v[5]=node0+Nstride0;			// node 5 -> pos 1
 	   }
+
+// for (int z=0;z<8;++z)
+// {
+//     printf("z[%d]=%d\n", z, v[z]);
+// 
+// }
+
+
 // 	   index_t a=node0, b=node0+Nstride0, c=node0+Nstride1+Nstride0, d=node0+Nstride1;
 // 	   index_t e=node0+Nstride2, f=node0+Nstride2+Nstride0, g=node0+Nstride2+Nstride1+Nstride0,
 // 		 h=node0+Nstride2+Nstride1;
@@ -266,6 +274,7 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   out->Elements->Nodes[INDEX2(2,k+2,NN)] =v[0];
 	   out->Elements->Nodes[INDEX2(3,k+2,NN)] =v[6];
 
+
 	   out->Elements->Nodes[INDEX2(0,k+3,NN)] =v[1];
 	   out->Elements->Nodes[INDEX2(1,k+3,NN)] =v[0];
 	   out->Elements->Nodes[INDEX2(2,k+3,NN)] =v[3];
@@ -276,6 +285,18 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   out->Elements->Nodes[INDEX2(1,k+4,NN)] =v[0];
 	   out->Elements->Nodes[INDEX2(2,k+4,NN)] =v[6];
 	   out->Elements->Nodes[INDEX2(3,k+4,NN)] =v[3];
+
+
+// for (int z=0;z<5;++z)
+// {
+// printf("E %d:",z);
+//    for (int q=0;q<4;++q)
+//    {
+// 	index_t id=out->Elements->Nodes[INDEX2(q,z,NN)];
+// 	printf("   %d = %f, %f, %f\n", id, out->Nodes->Coordinates[INDEX2(0,id,DIM)],
+// 		out->Nodes->Coordinates[INDEX2(1,id,DIM)], out->Nodes->Coordinates[INDEX2(2,id,DIM)]);
+//    }
+// printf("\n");}
 
 
 /*
@@ -325,37 +346,35 @@ for (int j=0;j<4;++j)
               out->FaceElements->Owner[k+1]=myRank;
 	      // in the element generation this face is a,b,c,d which is split by a-c
 
-	      index_t v[4];
+	      index_t n4=node0+Nstride2;
+	      index_t n5=node0+Nstride0+Nstride2;
+	      index_t n6=node0+Nstride1+Nstride2;
+	      index_t n7=node0+Nstride0+Nstride1+Nstride2;
+
 	      if ((global_adjustment+i0+i1)%2==0)
 	      {
-		v[0]=node0+Nstride1+Nstride2;	// node 6
-		v[1]=node0+Nstride2+Nstride1+Nstride0; // node 7
-		v[2]=node0+Nstride2;	// node 4
-		v[3]=node0+Nstride0+Nstride2;	// node 5
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n6;
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[2];
 
 	      }
 	      else
 	      {
-		v[0]=node0+Nstride2;		// node4
-		v[1]=node0+Nstride0+Nstride2;	// node5
-		v[2]=node0;			// node0
-		v[3]=node0+Nstride0;		// node1
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n7;
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[2];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[1];
+
+
 	      }
 // printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
 // out->FaceElements->Nodes[INDEX2(2,k,NN)]);
@@ -387,40 +406,41 @@ for (int j=0;j<4;++j)
               out->FaceElements->Tag[k+1]=BOTTOMTAG;
               out->FaceElements->Owner[k+1]=myRank;
 
-	      index_t v[4]; 
+	      index_t n0=node0;
+	      index_t n1=node0+Nstride0;
+	      index_t n2=node0+Nstride1;
+	      index_t n3=node0+Nstride1+Nstride0;
+
 	      if ((global_adjustment+i0+i1+local_NE2-1)%2==0)
 	      {
-		v[0]=node0;		// node 0
-		v[1]=node0+Nstride0;	// node 1
-		v[2]=node0+Nstride1;	// node 2
-		v[3]=node0+Nstride1+Nstride0;	// node 3
+// 	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
+// 	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
+// 	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[2];
+// 
+// 	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
+// 	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[1];
+// 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[2];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n2;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
-
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 
 	      }
 	      else
 	      {
-		v[0]=node0+Nstride2;	// 4
-		v[1]=node0+Nstride0+Nstride2;	//5
-		v[2]=node0;		// 0
-		v[3]=node0+Nstride0;	// 1
 
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n2;
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n2;
 	      }
 
 // printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
@@ -456,36 +476,32 @@ for (int j=0;j<4;++j)
                out->FaceElements->Tag[k+1]=LEFTTAG;
                out->FaceElements->Owner[k+1]=myRank;
       
-	      index_t v[4];
+	      index_t n0=node0;
+	      index_t n2=node0+Nstride1;
+	      index_t n4=node0+Nstride2;
+	      index_t n6=node0+Nstride1+Nstride2;
+	      
 	       if ((global_adjustment+0+i1+i2)%2==0)
 	   {
-	   v[0]=node0+Nstride1+Nstride2;	// 6
-	   v[1]=node0+Nstride2;			// 4
-	   v[2]=node0+Nstride1;			// 2
-	   v[3]=node0;
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n6;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n2;
 	   }
 	   else
 	   {
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
-	   v[0]=node0+Nstride1;		// 2
-	   v[1]=node0+Nstride1+Nstride2;	// 6
-	   v[2]=node0;		// 0
-	   v[3]=node0+Nstride2;	// 4
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n2;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n4;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n2;
 	   }
 // printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
 // out->FaceElements->Nodes[INDEX2(2,k,NN)]);
@@ -515,38 +531,31 @@ for (int j=0;j<4;++j)
                out->FaceElements->Tag[k+1]=RIGHTTAG;
                out->FaceElements->Owner[k+1]=myRank;
 
-	      index_t v[4];
+	      index_t n1=node0+Nstride0;
+	      index_t n3=node0+Nstride0+Nstride1;
+	      index_t n5=node0+Nstride0+Nstride2;
+	      index_t n7=node0+Nstride0+Nstride1+Nstride2;
 	       if ((global_adjustment+local_NE0-1+i1+i2)%2==0)
 	   {
-	   v[0]=node0+Nstride0+Nstride2;	// 5
-	   v[1]=node0+Nstride2+Nstride1+Nstride0; // 7
-	   v[2]=node0+Nstride0;		// 1
-	   v[3]=node0+Nstride1+Nstride0;	// 3
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n5;
 
-
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n5;
 	   }
 	   else
 	   {
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
-	   v[0]=node0+Nstride2;			// 4
-	   v[1]=node0+Nstride1+Nstride0;	// 3
-	   v[2]=node0+Nstride0+Nstride2;	// 5
-	   v[3]=node0+Nstride0;			// 1
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n5;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[1];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[3];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n3;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n7;
 	   }
 // printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
 // out->FaceElements->Nodes[INDEX2(2,k,NN)]);
@@ -578,40 +587,34 @@ for (int j=0;j<4;++j)
                out->FaceElements->Tag[k+1]=FRONTTAG;
                out->FaceElements->Owner[k+1]=myRank;
 
-	      index_t v[4];
+	      index_t n0=node0;
+	      index_t n1=node0+Nstride0;
+	      index_t n4=node0+Nstride2;
+	      index_t n5=node0+Nstride0+Nstride2;
+
 	       if ((global_adjustment+i0+0+i2)%2==0)
 	   {
-	   v[0]=node0+Nstride2;			// 4
-	   v[1]=node0+Nstride0+Nstride2;	// 5
-	   v[2]=node0;				// 0
-	   v[3]=node0+Nstride0;			// 1
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n5;
 
-
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n4;
 
 
 	   }
 	   else
 	   {
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
-	   v[0]=node0+Nstride1+Nstride2;	// 6
-	   v[1]=node0+Nstride2+Nstride1+Nstride0;	// 7
-	   v[2]=node0+Nstride2;			// 4
-	   v[3]=node0+Nstride0+Nstride2;	// 5
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[2];
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n0;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n4;
 
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n1;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n5;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n4;
 
 	   }
 /*printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
@@ -641,40 +644,33 @@ out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
                out->FaceElements->Tag[k+1]=BACKTAG;
                out->FaceElements->Owner[k+1]=myRank;
 
-	      index_t v[4];
+	      index_t n2=node0+Nstride1;
+	      index_t n6=node0+Nstride1+Nstride2;
+	      index_t n7=node0+Nstride0+Nstride1+Nstride2;
+	      index_t n3=node0+Nstride0+Nstride1;
+
 	       if ((global_adjustment+i0+local_NE1-1+i2)%2==0)
 	   {
-	   v[0]=node0+Nstride2+Nstride1+Nstride0;	// 7
-	   v[1]=node0+Nstride1+Nstride2;		// 6
-	   v[2]=node0+Nstride1+Nstride0;		// 3
-	   v[3]=node0+Nstride1;				// 2
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n3;
 
-
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[1];
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 
 	   }
 	   else
 	   {
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
-	   v[0]=node0+Nstride1+Nstride0;	// 3
-	   v[1]=node0+Nstride1;			// 2
-	   v[2]=node0+Nstride0;			// 1
-	   v[3]=node0;				// 0
+	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=n6;
+	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=n7;
 
-	        out->FaceElements->Nodes[INDEX2(0,k,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k,NN)]=v[2];
-	        out->FaceElements->Nodes[INDEX2(2,k,NN)]=v[3];
-
-	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=v[0];
-	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=v[3];
-	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=v[1];
+	        out->FaceElements->Nodes[INDEX2(0,k+1,NN)]=n2;
+	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
+	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 	   }
 /*printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
