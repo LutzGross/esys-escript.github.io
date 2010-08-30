@@ -25,8 +25,8 @@
 
 #include "Paso.h"
 #include "SystemMatrix.h"
-#include "Solver.h"
 #include "PasoUtil.h"
+#include "Preconditioner.h"
 
 /***********************************************************************************/
 
@@ -46,19 +46,14 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
     }
 }
 
-
-/*  call the iterative solver: */
-
-void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
+Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options* options) {
 
     Paso_Solver_Preconditioner* prec=NULL;
     dim_t i;
-    /*char filename[7];*/
-    if (A->solver==NULL) {
-        /* allocate structure to hold preconditioner */
-        prec=MEMALLOC(1,Paso_Solver_Preconditioner);
 
-        if (Paso_checkPtr(prec)) return;
+    prec=MEMALLOC(1,Paso_Solver_Preconditioner);
+
+    if (! Paso_checkPtr(prec)) {
         
         prec->type=UNKNOWN;
         prec->rilu=NULL;
@@ -71,7 +66,6 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         prec->amliSystem=NULL;
 	if (options->verbose && options->use_local_preconditioner) printf("Apply preconditioner locally only.\n");
 
-        A->solver=prec;
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
@@ -136,7 +130,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
             case PASO_AMLI:
 	      
 	      prec->amliSystem=MEMALLOC(1,Paso_Solver_AMLI_System);
-              if (Paso_checkPtr(prec->amliSystem)) return;
+              if (! Paso_checkPtr(prec->amliSystem)) {
                 
               prec->amliSystem->block_size=A->row_block_size;
               
@@ -158,27 +152,25 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
                 }
               }
               prec->type=PASO_AMLI;
+	      }
               break;
  
         }
-        if (! Paso_MPIInfo_noError(A->mpi_info ) ){
-            Paso_Preconditioner_free(prec);
-            A->solver=NULL;
-        }
+    }
+    if (! Paso_MPIInfo_noError(A->mpi_info ) ){
+         Paso_Preconditioner_free(prec);
+	return NULL;
+    } else {
+	return prec;
     }
 }
 
 /* applies the preconditioner */
 /* has to be called within a parallel reqion */
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
-    Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
+void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatrix* A,double* x,double* b){
     dim_t i,j;
     dim_t n=A->mainBlock->numRows;
-
-    
-
-
     switch (prec->type) {
         default:
         case PASO_JACOBI:

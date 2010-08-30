@@ -24,6 +24,7 @@ lib_name = 'paso'
 
 sources = """
 	BiCGStab.c
+	BlockOps.c
 	Coupler.c
 	Distribution.c
 	Functions.c
@@ -52,15 +53,14 @@ sources = """
 	FCTSolver_util.c
 	ReactiveSolver.c
 	Solver_Function.c
-	Solver_GS.c
-	Solver_ILU.c
-	Solver_RILU.c
-	Solver_AMG.c
-	Solver_AMLI.c
-	Solver_SchurComplement.c
-	Solver_applyBlockDiagonalMatrix.c
-	Solver_jacobi.c
-	Solver_preconditioner.c
+	GS.c
+	ILU.c
+	RILU.c
+	AMG.c
+	AMLI.c
+	SchurComplement.c
+	Jacobi.c
+	Preconditioner.c
 	SparseMatrix.c
 	SparseMatrix_MatrixVector.c
 	SparseMatrix_addAbsRow.c
@@ -104,6 +104,7 @@ headers = """
 	Paso_MPI.h
 	Pattern.h
 	Pattern_coupling.h
+	Preconditioner.h
 	SharedComponents.h
 	Solver.h
 	Transport.h

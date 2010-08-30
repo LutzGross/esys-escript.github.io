@@ -23,8 +23,9 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "Solver.h"
+#include "Preconditioner.h"
 #include "PasoUtil.h"
+#include "BlockOps.h"
 
 /**************************************************************/
 
@@ -322,7 +323,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
      
      if (rilu->n_C==0) {
         /* x=invA_FF*b  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,x,b);
+        Paso_BlockOps_allMV(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,x,b);
      } else {
         /* b->[b_F,b_C]     */
         if (n_block==1) {
@@ -339,7 +340,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
                  for (k=0;k<n_block;k++) rilu->b_C[rilu->n_block*i+k]=b[n_block*rilu->rows_in_C[i]+k];
         }
         /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
+        Paso_BlockOps_allMV(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* b_C=b_C-A_CF*x_F */
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
         /* x_C=RILU(b_C)     */
@@ -347,7 +348,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
         /* b_F=b_F-A_FC*x_C */
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
         /* x_F=invA_FF*b_F  */
-        Paso_Solver_applyBlockDiagonalMatrix(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
+        Paso_BlockOps_allMV(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F,rilu->b_F);
         /* x<-[x_F,x_C]     */
         if (n_block==1) {
            #pragma omp parallel for private(i) schedule(static)

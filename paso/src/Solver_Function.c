@@ -23,7 +23,7 @@
 Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options)
 {
     Paso_Function * out=NULL;
-    Paso_Solver_setPreconditioner(A,options);
+    Paso_SystemMatrix_setPreconditioner(A,options);
     if (! Paso_noError()) return NULL;
     out=MEMALLOC(1,Paso_Function);
     if (! Paso_checkPtr(out)) {
@@ -60,6 +60,6 @@ err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const dou
     Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
     Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, arg,-PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
-    Paso_Solver_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
+    Paso_SystemMatrix_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
     return NO_ERROR;
 }

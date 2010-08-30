@@ -124,6 +124,10 @@ void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const do
 void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
 void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
 
+void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b);
+void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
+void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A);
+
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */
 

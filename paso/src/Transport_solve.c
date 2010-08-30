@@ -56,6 +56,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
    options->time_step_backtracking_used=FALSE;
+   options->num_iter=0;
 
 
    if (dt<=0.) {

@@ -186,7 +186,7 @@ err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double
       /* Paso_Solver(more->transportproblem->iteration_matrix,value,F->tmp,&options,pp); */ 
       
       
-      Paso_Solver_solvePreconditioner(more->transportproblem->iteration_matrix,value,F->tmp);
+      Paso_SystemMatrix_solvePreconditioner(more->transportproblem->iteration_matrix,value,F->tmp);
       return NO_ERROR;
 }
 
@@ -232,6 +232,7 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
 	         
                  while ( (!converged) && (!diverged) && (! max_m_reached) && Paso_noError()) {
 	            errorCode=Paso_FCTSolver_Function_call(F,du, u, pp);
+                    options->num_iter++;
                     Paso_Update(n,1.,u,omega,du);
                      norm_u=Paso_lsup(n,u, fctp->mpi_info);
 		     norm_du_old=norm_du;
@@ -348,7 +349,7 @@ void Paso_FCTSolver_Function_initialize(const double dt, Paso_TransportProblem* 
            fctp->iteration_matrix->mainBlock->val[main_iptr[i]]=rtmp4;
     }
     Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
-    Paso_Solver_setPreconditioner(fctp->iteration_matrix,options);
+    Paso_SystemMatrix_setPreconditioner(fctp->iteration_matrix,options);
     Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
 }
 

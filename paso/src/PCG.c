@@ -180,7 +180,7 @@ err_t Paso_Solver_PCG(
 
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-           Paso_Solver_solvePreconditioner(A,v,r);
+	   Paso_SystemMatrix_solvePreconditioner(A,v,r);
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 

@@ -118,7 +118,7 @@ err_t Paso_Solver_MINRES(
   Paso_Copy(n,r1,r);
   
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_Solver_solvePreconditioner(A,y,r1);
+  Paso_SystemMatrix_solvePreconditioner(A,y,r1);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   
   beta1=Paso_InnerProduct(n,r1,y,A->mpi_info);
@@ -178,7 +178,7 @@ err_t Paso_Solver_MINRES(
 
      Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
      Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     Paso_Solver_solvePreconditioner(A,y,r2);
+     Paso_SystemMatrix_solvePreconditioner(A,y,r2);
      Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 
