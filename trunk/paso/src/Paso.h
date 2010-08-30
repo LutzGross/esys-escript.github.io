@@ -51,6 +51,8 @@ enum Paso_ErrorCodeType {
 
 typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;
 
+#define PASO_ONE (double)(1.0)
+#define PASO_ZERO (double)(0.0)
 /* interfaces */
 
 

@@ -32,8 +32,7 @@
 /*  free space */
 
 void Paso_Solver_free(Paso_SystemMatrix* A) {
-   Paso_Preconditioner_free(A->solver);
-   A->solver=NULL;
+   Paso_SystemMatrix_freePreconditioner(A);
 }
 /*  call the iterative solver: */
 
@@ -86,7 +85,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      if (method==PASO_NONLINEAR_GMRES) {
         Paso_Function* F=NULL;
         F=Paso_Function_LinearSystem_alloc(A,b,options);
-        Paso_Solver_solvePreconditioner(A,x,b);
+        Paso_SystemMatrix_solvePreconditioner(A,x,b);
         errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
         if (errorCode!=NO_ERROR) {
            Paso_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
@@ -168,13 +167,13 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             /* construct the preconditioner */
             blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
-            Paso_Solver_setPreconditioner(A,options);
+	    Paso_SystemMatrix_setPreconditioner(A,options);
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             blocktimer_increment("Paso_Solver_setPreconditioner()", blocktimer_precond);
             options->set_up_time=Paso_timer()-time_iter;
             if (! Paso_noError()) return;
               /* get an initial guess by evaluating the preconditioner */
-              Paso_Solver_solvePreconditioner(A,x,b);
+	      Paso_SystemMatrix_solvePreconditioner(A,x,b);
               /* start the iteration process :*/
               r=TMPMEMALLOC(numEqua,double);
               x0=TMPMEMALLOC(numEqua,double);

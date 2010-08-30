@@ -23,7 +23,7 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "Solver.h"
+#include "Preconditioner.h"
 #include "PasoUtil.h"
 #include "BlockOps.h"
 

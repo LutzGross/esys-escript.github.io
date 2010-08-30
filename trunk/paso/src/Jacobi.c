@@ -24,7 +24,8 @@
 /**************************************************************/
 
 #include "Paso.h"
-#include "Solver.h"
+#include "Preconditioner.h"
+#include "BlockOps.h"
 
 /**************************************************************/
 
@@ -96,7 +97,7 @@ void Paso_Solver_solveJacobi(Paso_SystemMatrix * A_p, Paso_Solver_Jacobi * prec,
 void Paso_Solver_solveLocalJacobi(Paso_SparseMatrix * A_p, Paso_Solver_Jacobi * prec, double * x, double * b) {
      dim_t n = A_p->numCols;
      dim_t n_block=A_p->row_block_size;
-     Paso_Solver_applyBlockDiagonalMatrix(n_block,n,prec->values,prec->pivot,x,b);
+     Paso_BlockOps_allMV(n_block,n,prec->values,prec->pivot,x,b);
      return;
 }
 
