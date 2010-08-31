@@ -186,14 +186,15 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
                                                +Nstride1*(global_i1%NDOF1);
 
 
-//	   printf("N=%d: %f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
-//		out->Nodes->Coordinates[INDEX2(1,k,DIM)]);
+// 	   printf("N=%d: %f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
+// 		out->Nodes->Coordinates[INDEX2(1,k,DIM)]);
 
        }
      }
 //printf("Now listing elements\n");
      /*   set the elements: */
      dim_t NN=out->Elements->numNodes;
+     index_t global_adjustment=(offset0+offset1)%2;
      #pragma omp parallel for private(i0,i1) 
      for (i1=0;i1<local_NE1;i1++)
      {
@@ -213,12 +214,12 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
 	   /* a,b,c,d gives the nodes in the rectangle in clockwise order*/
 	   index_t a=node0,b=node0+Nstride0,c=node0+Nstride1+Nstride0,d=node0+Nstride1;
 
-//printf("node0=%d, Nstride0=%d, Nstride1=%d\n", node0, Nstride0, Nstride1);
-//printf("a=%d, b=%d, c=%d, d=%d\n",a,b,c,d);
+// printf("node0=%d, Nstride0=%d, Nstride1=%d\n", node0, Nstride0, Nstride1);
+// printf("a=%d, b=%d, c=%d, d=%d\n",a,b,c,d);
 
 
 	   /* For a little bit of variety  */
-	   if (node0%2)
+	   if ((global_adjustment+node0)%2)
 	   {
 		out->Elements->Nodes[INDEX2(0,k,NN)]=a;
 		out->Elements->Nodes[INDEX2(1,k,NN)]=b;
@@ -236,14 +237,14 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
 		out->Elements->Nodes[INDEX2(1,k+1,NN)]=c;
 		out->Elements->Nodes[INDEX2(2,k+1,NN)]=d;
 	   }
-/*
-for (int q=k;q<k+2;++q)
-{
-printf("E=%d: %d, %d, %d\n", q, out->Elements->Nodes[INDEX2(0,q,NN)],
-out->Elements->Nodes[INDEX2(1,q,NN)],
-out->Elements->Nodes[INDEX2(2,q,NN)]);
-}
-*/
+
+// for (int q=k;q<k+2;++q)
+// {
+// printf("E=%d: %d, %d, %d\n", q, out->Elements->Nodes[INDEX2(0,q,NN)],
+// out->Elements->Nodes[INDEX2(1,q,NN)],
+// out->Elements->Nodes[INDEX2(2,q,NN)]);
+// }
+
          }
      }
 //printf("Starting face elements\n");
@@ -269,8 +270,8 @@ out->Elements->Nodes[INDEX2(2,q,NN)]);
 
 
 
-//printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-//INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
+// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
+// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE1;
         }
@@ -288,8 +289,8 @@ out->Elements->Nodes[INDEX2(2,q,NN)]);
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0+Nstride0;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+Nstride1+Nstride0;
 
-//printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-//INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
+// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
+// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE1;
          }
@@ -310,8 +311,8 @@ out->Elements->Nodes[INDEX2(2,q,NN)]);
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+Nstride0;
 
-//printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-//INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
+// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
+// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE0;
         }
@@ -326,10 +327,11 @@ out->Elements->Nodes[INDEX2(2,q,NN)]);
                out->FaceElements->Id[k]=i0+e_offset0+totalNECount;
                out->FaceElements->Tag[k]=TOPTAG;
                out->FaceElements->Owner[k]=myRank;
+
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0+Nstride1+Nstride0;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+Nstride1;
-//printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-//INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
+/*printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
+INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
            }
            faceNECount+=local_NE0;
         }
