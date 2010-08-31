@@ -846,7 +846,7 @@ CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript
 CallSConscript(env, dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
 #CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
 CallSConscript(env, dirs = ['dudley/src'], variant_dir='build/$PLATFORM/dudley', duplicate=0)
-CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
+#CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
 CallSConscript(env, dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
 #CallSConscript(env, dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
 CallSConscript(env, dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
@@ -971,7 +971,7 @@ install_all_list += ['install_paso']
 install_all_list += ['install_escript']
 install_all_list += ['install_dudley']
 #install_all_list += ['target_install_pyvisi_py']
-install_all_list += ['target_install_modellib_py']
+#install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
