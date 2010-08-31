@@ -192,7 +192,7 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 // printf("Now listing elements\n");
      /*   set the elements: */
 
-     int global_adjustment=0;	// If we are not the only rank we may need to shift our pattern to match neighbours
+     int global_adjustment=(offset0+offset1+offset2)%2;	// If we are not the only rank we may need to shift our pattern to match neighbours
 
      NN=out->Elements->numNodes;
      #pragma omp parallel for private(i0,i1,i2,k,node0) 

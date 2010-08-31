@@ -91,6 +91,7 @@ if __name__ == '__main__':
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder1))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyRectOrder1))
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyBrickOrder1))
+#      suite.addTest(Test_Util_SpatialFunctionsOnDudleyRectOrder1("test_normal_FunctionOnBoundary"))
    else:
       pass
    s=unittest.TextTestRunner(verbosity=2).run(suite)
