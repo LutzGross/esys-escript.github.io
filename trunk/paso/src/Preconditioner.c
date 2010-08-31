@@ -34,10 +34,12 @@
 
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
     if (in!=NULL) {
+      Paso_Preconditioner_Jacobi_free(in->jacobi);
+      Paso_Preconditioner_GS_free(in->gs);
+       
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
-      Paso_Solver_Jacobi_free(in->jacobi);
-      Paso_Solver_GS_free(in->gs);
+
       Paso_Solver_AMG_free(in->amg);
       Paso_Solver_AMG_System_free(in->amgSystem);
       Paso_Solver_AMLI_free(in->amli);
@@ -70,17 +72,17 @@ Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_
            default:
            case PASO_JACOBI:
               if (options->verbose) printf("Jacobi preconditioner is used.\n");
-              prec->jacobi=Paso_Solver_getJacobi(A);
+	      prec->jacobi=Paso_Preconditioner_Jacobi_alloc(A);
               prec->type=PASO_JACOBI;
               break;
 	   case PASO_GS:
 	      if (options->sweeps > 0 ) {
 		  if (options->verbose) printf("Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
-		  prec->gs=Paso_Solver_getGS(A, options->sweeps, options->use_local_preconditioner, options->verbose);
+		  prec->gs=Paso_Preconditioner_GS_alloc(A, options->sweeps, options->use_local_preconditioner, options->verbose);
 		  prec->type=PASO_GS;
 	      } else {
 		 if (options->verbose) printf("Jacobi preconditioner is used.\n");
-		 prec->jacobi=Paso_Solver_getJacobi(A);
+		 prec->jacobi=Paso_Preconditioner_Jacobi_alloc(A);
 		 prec->type=PASO_JACOBI;
 	      }
 	      break;
@@ -174,11 +176,10 @@ void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatr
     switch (prec->type) {
         default:
         case PASO_JACOBI:
-           Paso_Solver_solveJacobi(A, prec->jacobi,x,b);
-           break;
-	   
+           Paso_Preconditioner_Jacobi_solve(A, prec->jacobi,x,b);
+           break;   
 	case PASO_GS:
-	   Paso_Solver_solveGS(A, prec->gs,x,b);
+	   Paso_Preconditioner_GS_solve(A, prec->gs,x,b);
 	   break;	   
         case PASO_ILU0:
            Paso_Solver_solveILU(A->mainBlock, prec->ilu,x,b);

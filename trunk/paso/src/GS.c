@@ -34,13 +34,13 @@
 
 /* free all memory used by GS                                */
 
-void Paso_Solver_GS_free(Paso_Solver_GS * in) {
+void Paso_Preconditioner_GS_free(Paso_Preconditioner_GS * in) {
      if (in!=NULL) {
-	Paso_Solver_LocalGS_free(in->localGS);
+	Paso_Preconditioner_LocalGS_free(in->localGS);
         MEMFREE(in);
      }
 }
-void Paso_Solver_LocalGS_free(Paso_Solver_LocalGS * in) {
+void Paso_Preconditioner_LocalGS_free(Paso_Preconditioner_LocalGS * in) {
    if (in!=NULL) {
       MEMFREE(in->diag);
       MEMFREE(in->pivot); 
@@ -53,23 +53,23 @@ void Paso_Solver_LocalGS_free(Paso_Solver_LocalGS * in) {
 /*   constructs the symmetric Gauss-Seidel preconditioner     
 
 */
-Paso_Solver_GS* Paso_Solver_getGS(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t is_local, bool_t verbose) 
+Paso_Preconditioner_GS* Paso_Preconditioner_GS_alloc(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t is_local, bool_t verbose) 
 {
   
   /* allocations: */  
-  Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
+  Paso_Preconditioner_GS* out=MEMALLOC(1,Paso_Preconditioner_GS);
   if (! Paso_checkPtr(out)) {
-     out->localGS=Paso_Solver_getLocalGS(A_p->mainBlock,sweeps,verbose);
+     out->localGS=Paso_Preconditioner_LocalGS_alloc(A_p->mainBlock,sweeps,verbose);
      out->is_local=is_local;
   }
   if (Paso_MPIInfo_noError(A_p->mpi_info)) {
      return out;
   } else {
-     Paso_Solver_GS_free(out);
+     Paso_Preconditioner_GS_free(out);
      return NULL;
   }
 }
-Paso_Solver_LocalGS* Paso_Solver_getLocalGS(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose) {
+Paso_Preconditioner_LocalGS* Paso_Preconditioner_LocalGS_alloc(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose) {
    
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
@@ -77,7 +77,7 @@ Paso_Solver_LocalGS* Paso_Solver_getLocalGS(Paso_SparseMatrix * A_p, dim_t sweep
    
    double time0=Paso_timer();
    /* allocations: */  
-   Paso_Solver_LocalGS* out=MEMALLOC(1,Paso_Solver_LocalGS);
+   Paso_Preconditioner_LocalGS* out=MEMALLOC(1,Paso_Preconditioner_LocalGS);
    if (! Paso_checkPtr(out)) {
       
       out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
@@ -96,7 +96,7 @@ Paso_Solver_LocalGS* Paso_Solver_getLocalGS(Paso_SparseMatrix * A_p, dim_t sweep
       if (verbose) printf("timing: Gauss-Seidel preparation: elemination : %e\n",time0);
       return out;
    } else {
-      Paso_Solver_LocalGS_free(out);
+      Paso_Preconditioner_LocalGS_free(out);
       return NULL;
    }
 }
@@ -114,7 +114,7 @@ if GS is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
 
 */
 
-void Paso_Solver_solveGS(Paso_SystemMatrix* A_p, Paso_Solver_GS * gs, double * x, const double * b) 
+void Paso_Preconditioner_GS_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_GS * gs, double * x, const double * b) 
 {
    register dim_t i;
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
@@ -123,12 +123,12 @@ void Paso_Solver_solveGS(Paso_SystemMatrix* A_p, Paso_Solver_GS * gs, double * x
    dim_t sweeps=gs->localGS->sweeps;
    
    if (gs->is_local) {
-      Paso_Solver_solveLocalGS(A_p->mainBlock,gs->localGS,x,b);
+      Paso_Preconditioner_LocalGS_solve(A_p->mainBlock,gs->localGS,x,b);
    } else {
       #pragma omp parallel for private(i) schedule(static)
       for (i=0;i<n;++i) x[i]=b[i];
       
-      Paso_Solver_localGSSweep(A_p->mainBlock,gs->localGS,x);
+      Paso_Preconditioner_LocalGS_Sweep(A_p->mainBlock,gs->localGS,x);
       
       while (sweeps > 1 ) {
 	 #pragma omp parallel for private(i) schedule(static)
@@ -136,7 +136,7 @@ void Paso_Solver_solveGS(Paso_SystemMatrix* A_p, Paso_Solver_GS * gs, double * x
 
          Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 
-	 Paso_Solver_localGSSweep(A_p->mainBlock,gs->localGS,b_new);
+	 Paso_Preconditioner_LocalGS_Sweep(A_p->mainBlock,gs->localGS,b_new);
 	 
 	 #pragma omp parallel for private(i) schedule(static)
 	 for (i=0;i<n;++i) x[i]+=b_new[i]; 
@@ -145,7 +145,7 @@ void Paso_Solver_solveGS(Paso_SystemMatrix* A_p, Paso_Solver_GS * gs, double * x
       
    }
 }
-void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, double * x, const double * b) 
+void Paso_Preconditioner_LocalGS_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x, const double * b) 
 {
    register dim_t i;
    const dim_t n= (A_p->numRows) * (A_p->row_block_size);
@@ -155,7 +155,7 @@ void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, 
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i) x[i]=b[i];
    
-   Paso_Solver_localGSSweep(A_p,gs,x);
+   Paso_Preconditioner_LocalGS_Sweep(A_p,gs,x);
    
    while (sweeps > 1 ) {
 	 #pragma omp parallel for private(i) schedule(static)
@@ -163,7 +163,7 @@ void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, 
 	 
 	 Paso_SparseMatrix_MatrixVector_CSC_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 
-	 Paso_Solver_localGSSweep(A_p,gs,b_new);
+	 Paso_Preconditioner_LocalGS_Sweep(A_p,gs,b_new);
 	 
 	 #pragma omp parallel for private(i) schedule(static)
 	 for (i=0;i<n;++i) x[i]+=b_new[i];
@@ -172,7 +172,7 @@ void Paso_Solver_solveLocalGS(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, 
    }
 }
 
-void Paso_Solver_localGSSweep(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, double * x) 
+void Paso_Preconditioner_LocalGS_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x) 
 {
    #ifdef _OPENMP
    const dim_t nt=omp_get_max_threads();
@@ -180,15 +180,15 @@ void Paso_Solver_localGSSweep(Paso_SparseMatrix* A, Paso_Solver_LocalGS * gs, do
    const dim_t nt = 1;
    #endif
    if (nt < 2) {
-      Paso_Solver_localGSSweep_sequential(A,gs,x);
+      Paso_Preconditioner_LocalGS_Sweep_sequential(A,gs,x);
    } else {
-      Paso_Solver_localGSSweep_colored(A,gs,x);
+      Paso_Preconditioner_LocalGS_Sweep_colored(A,gs,x);
    }
 }
 
 /* inplace Gauss-Seidel sweep in seqential mode: */
 
-void Paso_Solver_localGSSweep_sequential(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, double * x)
+void Paso_Preconditioner_LocalGS_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x)
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
@@ -276,7 +276,7 @@ void Paso_Solver_localGSSweep_sequential(Paso_SparseMatrix* A_p, Paso_Solver_Loc
    return;
 }
        
-void Paso_Solver_localGSSweep_colored(Paso_SparseMatrix* A_p, Paso_Solver_LocalGS * gs, double * x) 
+void Paso_Preconditioner_LocalGS_Sweep_colored(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x) 
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
@@ -425,6 +425,3 @@ void Paso_Solver_localGSSweep_colored(Paso_SparseMatrix* A_p, Paso_Solver_LocalG
    }
    return;
 }
-
-
- 

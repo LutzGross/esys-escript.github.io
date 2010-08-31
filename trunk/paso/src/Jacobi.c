@@ -31,16 +31,16 @@
 
 /* frees the Jacobi preconditioner */
 
-void Paso_Solver_Jacobi_free(Paso_Solver_Jacobi * in) {
+void Paso_Preconditioner_Jacobi_free(Paso_Preconditioner_Jacobi * in) {
   if (in!=NULL) {
      MEMFREE(in->values);
      MEMFREE(in->pivot);
      MEMFREE(in);
   }
 }
-Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p)
+Paso_Preconditioner_Jacobi* Paso_Preconditioner_Jacobi_alloc(Paso_SystemMatrix * A_p)
 {
-   Paso_Solver_Jacobi* jac=Paso_Solver_getLocalJacobi(A_p->mainBlock);
+   Paso_Preconditioner_Jacobi* jac=Paso_Preconditioner_LocalJacobi_alloc(A_p->mainBlock);
    if (Paso_MPIInfo_noError(A_p->mpi_info)) {
          return jac;
    } else {
@@ -52,8 +52,8 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SystemMatrix * A_p)
 
 /* Jacobi precondioner set up */
 
-Paso_Solver_Jacobi* Paso_Solver_getLocalJacobi(Paso_SparseMatrix * A_p) {
-  Paso_Solver_Jacobi* out=NULL;
+Paso_Preconditioner_Jacobi* Paso_Preconditioner_LocalJacobi_alloc(Paso_SparseMatrix * A_p) {
+  Paso_Preconditioner_Jacobi* out=NULL;
   dim_t n = A_p->numCols;
   dim_t n_block=A_p->row_block_size;
   dim_t block_size=A_p->block_size;
@@ -64,7 +64,7 @@ Paso_Solver_Jacobi* Paso_Solver_getLocalJacobi(Paso_SparseMatrix * A_p) {
     return NULL;
   }
    
-  out=MEMALLOC(1,Paso_Solver_Jacobi);
+  out=MEMALLOC(1,Paso_Preconditioner_Jacobi);
   if (! Paso_checkPtr(out)) {
      out->values = MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
      out->pivot = MEMALLOC(  ((size_t) n) * ((size_t) n_block), index_t);
@@ -78,7 +78,7 @@ Paso_Solver_Jacobi* Paso_Solver_getLocalJacobi(Paso_SparseMatrix * A_p) {
   if (Paso_noError()) {
      return out;
   } else {
-     Paso_Solver_Jacobi_free(out);
+     Paso_Preconditioner_Jacobi_free(out);
      return NULL;
   }
 } 
@@ -89,12 +89,12 @@ Paso_Solver_Jacobi* Paso_Solver_getLocalJacobi(Paso_SparseMatrix * A_p) {
 /* should be called within a parallel region                                              */
 /* barrier synconization should be performed to make sure that the input vector available */
 
-void Paso_Solver_solveJacobi(Paso_SystemMatrix * A_p, Paso_Solver_Jacobi * prec, double * x, double * b) {
-   Paso_Solver_solveLocalJacobi( A_p->mainBlock, prec, x,  b) ;
+void Paso_Preconditioner_Jacobi_solve(Paso_SystemMatrix * A_p, Paso_Preconditioner_Jacobi * prec, double * x, double * b) {
+   Paso_Preconditioner_LocalJacobi_solve( A_p->mainBlock, prec, x,  b) ;
    return;
 }
 
-void Paso_Solver_solveLocalJacobi(Paso_SparseMatrix * A_p, Paso_Solver_Jacobi * prec, double * x, double * b) {
+void Paso_Preconditioner_LocalJacobi_solve(Paso_SparseMatrix * A_p, Paso_Preconditioner_Jacobi * prec, double * x, double * b) {
      dim_t n = A_p->numCols;
      dim_t n_block=A_p->row_block_size;
      Paso_BlockOps_allMV(n_block,n,prec->values,prec->pivot,x,b);
