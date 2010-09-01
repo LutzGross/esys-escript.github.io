@@ -54,41 +54,26 @@ void EscriptDatasetTestCase::testAll()
     cout << "\tTest getMeshVariables without data." << endl;
     assert(dataset->getMeshVariables().size() == 0);
 
-    // instantiate some domains and data
+    // instantiate a domain and data
     Domain_ptr dom2d(rectangle());
-    Domain_ptr dom3d(brick());
+    //Domain_ptr dom3d(brick());
     escript::Data dataOn2d = Scalar(0.0, continuousFunction(*dom2d), true);
-    escript::Data dataOn3d = Scalar(0.0, continuousFunction(*dom3d), true);
-    DataVec dv;
-    StringVec names;
+    //escript::Data dataOn3d = Scalar(0.0, continuousFunction(*dom3d), true);
 
-    cout << "\tTest initFromEscript with NULL domain." << endl;
-    assert(dataset->initFromEscript(NULL, dv, names) == false);
+    cout << "\tTest addData with NULL domain." << endl;
+    assert(dataset->addData(dataOn2d, "foo", "bar") == false);
 
-    cout << "\tTest initFromEscript with domain only." << endl;
-    assert(dataset->initFromEscript(dom2d.get(), dv, names) == true);
+    cout << "\tTest setDomain." << endl;
+    assert(dataset->setDomain(dom2d.get()) == true);
 
-    cout << "\tTest bogus initFromEscript call." << endl;
-    assert(dataset->initFromEscript(dom2d.get(), dv, names) == false);
+    cout << "\tTest bogus setDomain call." << endl;
+    assert(dataset->setDomain(dom2d.get()) == false);
 
     cout << "\tTest getConvertedDomain." << endl;
     assert(dataset->getConvertedDomain().size() > 0);
 
-    dataset.reset(new EscriptDataset());
-    dv.push_back(dataOn2d);
-    cout << "\tTest initFromEscript with empty names." << endl;
-    assert(dataset->initFromEscript(dom2d.get(), dv, names) == false);
-
-    names.push_back("Testdata2d");
-    cout << "\tTest initFromEscript with valid data." << endl;
-    assert(dataset->initFromEscript(dom2d.get(), dv, names) == true);
-    assert(dataset->getVariables().size() == 1);
-
-    dataset.reset(new EscriptDataset());
-    dv.push_back(dataOn3d);
-    names.push_back("Testdata3d");
-    cout << "\tTest initFromEscript with incompatible data." << endl;
-    assert(dataset->initFromEscript(dom3d.get(), dv, names) == true);
+    cout << "\tTest addData with valid data." << endl;
+    assert(dataset->addData(dataOn2d, "test2d", "") == true);
     assert(dataset->getVariables().size() == 1);
 }
 
