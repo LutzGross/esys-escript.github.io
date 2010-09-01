@@ -357,14 +357,15 @@ void FinleyMesh::removeGhostZones(int ownIndex)
 //
 //
 //
-bool FinleyMesh::writeToSilo(DBfile* dbfile, const string& pathInSilo)
+bool FinleyMesh::writeToSilo(DBfile* dbfile, const string& pathInSilo,
+                             const StringVec& labels, const StringVec& units)
 {
 #if USE_SILO
     // Write nodes, elements and mesh variables
     if (!initialized ||
-            !cells->writeToSilo(dbfile, pathInSilo) ||
-            !faces->writeToSilo(dbfile, pathInSilo) ||
-            !contacts->writeToSilo(dbfile, pathInSilo))
+            !cells->writeToSilo(dbfile, pathInSilo, labels, units) ||
+            !faces->writeToSilo(dbfile, pathInSilo, labels, units) ||
+            !contacts->writeToSilo(dbfile, pathInSilo, labels, units))
         return false;
 
     siloPath = pathInSilo;

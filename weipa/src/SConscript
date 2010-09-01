@@ -25,7 +25,6 @@ sources = """
     DataVar.cpp
     ElementData.cpp
     EscriptDataset.cpp
-    FileSavers.cpp
     FileWriter.cpp
     FinleyMesh.cpp
     NodeData.cpp
@@ -36,7 +35,6 @@ headers = """
     DataVar.h
     ElementData.h
     EscriptDataset.h
-    FileSavers.h
     FileWriter.h
     FinleyMesh.h
     NodeData.h

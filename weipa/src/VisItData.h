@@ -25,13 +25,11 @@ namespace weipa {
 class VisItData {
 
 public:
-    VisItData();
+    VisItData() : runFlag(false) {}
 
-    void publishData(escript::const_Domain_ptr domain,
-                     const boost::python::dict& datavars);
-
-    void setCommandNames(std::vector<std::string> commandNames);
-    void setSimulationStatus(bool runFlag, double time, int cycle);
+    void publishData(EscriptDataset_ptr ds) { dataset=ds; }
+    void setCommandNames(std::vector<std::string> names) { cmdNames=names; }
+    void setSimulationStatus(bool running) { runFlag=running; }
 
     visit_handle getDomainList();
     visit_handle getMesh(const char* name);
@@ -47,15 +45,9 @@ private:
                              const std::string& meshName, int centering,
                              int rank);
 
-    int mpiRank, mpiSize;
-    int cycle;
-    double time;
     bool runFlag;
-    std::vector<std::string> cmdNames;
-    escript::const_Domain_ptr escriptDomain;
-    DataVec dataVec;
-    StringVec varNames;
     EscriptDataset_ptr dataset;
+    std::vector<std::string> cmdNames;
     std::map<std::string, DataVar_ptr> variables;
 };
 

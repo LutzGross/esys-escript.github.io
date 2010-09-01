@@ -73,7 +73,8 @@ public:
     /// beforehand using setMesh() or if a Silo function fails this method
     /// returns false.
     WEIPA_DLL_API
-    bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
+    bool writeToSilo(DBfile* dbfile, const std::string& siloPath,
+                     const std::string& units);
 
     /// \brief Writes the data values to ostream in VTK text format.
     WEIPA_DLL_API
