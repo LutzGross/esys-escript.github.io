@@ -93,57 +93,7 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
 #define INSIDE_1D(_X_,_C_,_R_) ( ABS((_X_)-(_C_)) <= (_R_) )
 #define INSIDE_2D(_X_,_Y_,_CX_,_CY_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_))
 #define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
-
-    int ret;
-    if ( type == Line3Macro ) {
-        if (q==0)
-            ret = INSIDE_1D(coords[idx],0.25,0.25);
-        else if (q==1)
-            ret = INSIDE_1D(coords[idx],0.75,0.25);
-        else
-            ret=1;
-    } /*else if ( (type == Rec9) || (type == Rec9Macro) ) {
-        if (q==0)
-            ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.25, 0.25, 0.25);
-        else if (q==1)
-            ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.75, 0.25, 0.25);
-        else if (q==2)
-            ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.25, 0.75, 0.25);
-        else if (q==3)
-            ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.75, 0.75, 0.25);
-        else
-            ret = 0;
-    }*/ /*else if ((type == Hex27) || (type == Hex27Macro) ){
-        if (q==0)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.25, 0.25, 0.25, 0.25);
-        else if (q==1)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.75, 0.25, 0.25, 0.25);
-        else if (q==2)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.25, 0.75, 0.25, 0.25);
-        else if (q==3)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.75, 0.75, 0.25, 0.25);
-        else if (q==4)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.25, 0.25, 0.75, 0.25);
-        else if (q==5)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.75, 0.25, 0.75, 0.25);
-        else if (q==6)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.25, 0.75, 0.75, 0.25);
-        else if (q==7)
-            ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
-                    0.75, 0.75, 0.75, 0.25);
-        else
-            ret = 0;
-    } */ else {
-        ret = 1;
-    }
-    return ret;
+    return 1;
 }
 
 void Dudley_Mesh_saveVTK(const char *filename_p,
@@ -192,23 +142,6 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     char *tags_End_Conn_and_Start_Offset = "</DataArray>\n<DataArray Name=\"offsets\" type=\"Int32\" format=\"ascii\">\n";
     char *tags_End_Offset_and_Start_Type = "</DataArray>\n<DataArray Name=\"types\" type=\"UInt8\" format=\"ascii\">\n";
     char *tag_End_DataArray = "</DataArray>\n";
-
-    const int VTK_LINE3_INDEX[] =
-      { 0, 2,
-        2, 1 };
-//     const int VTK_HEX20_INDEX[] =
-//       { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15 };
-//     const int VTK_REC9_INDEX[] =
-//       { 0, 4, 8, 7,  4, 1, 5, 8,  7, 8, 6, 3,  8, 5, 2, 6 };
-//     const int VTK_HEX27_INDEX[] =
-//       {  0,  8, 20, 11, 12, 21, 26, 24,
-//          8,  1,  9, 20, 21, 13, 22, 26,
-//         11, 20, 10,  3, 24, 26, 23, 15,
-//         20,  9,  2, 10, 26, 22, 14, 23,
-//         12, 21, 26, 24,  4, 16, 25, 19,
-//         21, 13, 22, 26, 16,  5, 17, 25,
-//         24, 26, 23, 15, 19, 25, 18,  7,
-//         26, 22, 14, 23, 25, 17,  6, 18 };
 
     /* if there is no mesh we just return */
     if (mesh_p==NULL) return;
@@ -374,108 +307,26 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             switch (typeId) {
                 case Point1:
                 case Line2Face:
-                case Line3Face:
-                case Point1_Contact:
-                case Line2Face_Contact:
-                case Line3Face_Contact:
                     cellType = VTK_VERTEX;
                     numVTKNodesPerElement = 1;
                 break;
 
                 case Line2:
                 case Tri3Face:
-//                 case Rec4Face:
-                case Line2_Contact:
-                case Tri3_Contact:
-                case Tri3Face_Contact:
-/*                case Rec4Face_Contact:*/
                     cellType = VTK_LINE;
-                    numVTKNodesPerElement = 2;
-                break;
-
-		case Line3Macro:
-                    cellType = VTK_LINE;
-                    numCellFactor = 2;
                     numVTKNodesPerElement = 2;
                 break;
 
                 case Tri3:
                 case Tet4Face:
-                case Tet4Face_Contact:
                     cellType = VTK_TRIANGLE;
                     numVTKNodesPerElement = 3;
                 break;
-
-//                 case Rec4:
-//                 case Hex8Face:
-//                 case Rec4_Contact:
-//                 case Hex8Face_Contact:
-//                     cellType = VTK_QUAD;
-//                     numVTKNodesPerElement = 4;
-//                 break;
-
-//                 case Rec9Macro:
-// 		case Rec9:
-//                     numCellFactor = 4;
-//                     cellType = VTK_QUAD;
-//                     numVTKNodesPerElement = 4;
-//                 break;
 
                 case Tet4:
                     cellType = VTK_TETRA;
                     numVTKNodesPerElement = 4;
                 break;
-
-//                 case Hex8:
-//                     cellType = VTK_HEXAHEDRON;
-//                     numVTKNodesPerElement = 8;
-//                 break;
-
-                case Line3:
-                case Tri6Face:
-//                 case Rec8Face:
-                case Line3_Contact:
-                case Tri6Face_Contact:
-//                 case Rec8Face_Contact:
-                    cellType = VTK_QUADRATIC_EDGE;
-                    numVTKNodesPerElement = 3;
-                break;
-
-                case Tri6:
-		case Tri6Macro:		
-                case Tet10Face:
-                case Tri6_Contact:
-                case Tet10Face_Contact:
-                    cellType = VTK_QUADRATIC_TRIANGLE;
-                    numVTKNodesPerElement = 6;
-                break;
-
-
-//                 case Rec8:
-//                 case Hex20Face:
-//                 case Rec8_Contact:
-//                 case Hex20Face_Contact:
-//                     cellType = VTK_QUADRATIC_QUAD;
-//                     numVTKNodesPerElement = 8;
-//                 break;
-
-		case Tet10Macro:
-                case Tet10:
-                    cellType = VTK_QUADRATIC_TETRA;
-                    numVTKNodesPerElement = 10;
-                break;
-
-//                 case Hex20:
-//                     cellType = VTK_QUADRATIC_HEXAHEDRON;
-//                     numVTKNodesPerElement = 20;
-//                 break;
-
-// 		case Hex27Macro:
-//                 case Hex27:
-//                     numCellFactor = 8;
-//                     cellType = VTK_HEXAHEDRON;
-//                     numVTKNodesPerElement = 8;
-//                 break;
 
                 default:
                     sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->referenceElementSet->referenceElement->Type->Name);
@@ -507,15 +358,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
         const index_t *nodeIndex;
         if (DUDLEY_REDUCED_NODES == nodeType) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
-        } else if (Line3Macro == typeId) {
-             nodeIndex = VTK_LINE3_INDEX;
-        }/* else if ( (Rec9 == typeId) || (Rec9Macro == typeId) ) {
-            nodeIndex = VTK_REC9_INDEX;
-        } else if (Hex20 == typeId) {
-            nodeIndex = VTK_HEX20_INDEX;
-        } else if ( (Hex27 == typeId) || (Hex27Macro == typeId) ){
-            nodeIndex = VTK_HEX27_INDEX;
-        } */ else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
+        } else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->relevantGeoNodes;
         } else {
             nodeIndex = NULL;

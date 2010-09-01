@@ -108,8 +108,6 @@ Paso_SystemMatrixPattern* Dudley_makePattern(Dudley_Mesh *mesh,bool_t reduce_row
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
         Dudley_IndexList_insertElements(index_list,mesh->FaceElements,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        Dudley_IndexList_insertElements(index_list,mesh->ContactElements,
-                                        reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
         Dudley_IndexList_insertElements(index_list,mesh->Points,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
 

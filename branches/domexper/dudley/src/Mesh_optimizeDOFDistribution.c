@@ -133,9 +133,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in,dim_t *distribution) {
                                                                         in->FaceElements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
               Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
-                                                                        in->ContactElements,in->Nodes->globalDegreesOfFreedom,
-                                                                        in->Nodes->globalDegreesOfFreedom);
-              Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Points,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
            }

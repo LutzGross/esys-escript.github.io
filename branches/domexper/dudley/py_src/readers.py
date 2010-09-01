@@ -54,8 +54,10 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :return: the Finley domain defined by the design
     :rtype: `Domain`
     """
+    if useMacroElements:
+	raise TypeError("Dudley does not support macro elements")
     if isinstance(design, GMSHDesign):
-        if useMacroElements: design.setElementOrder(2)
+        design.setElementOrder(1)
         ff=design.getFileFormat()
         design.setFileFormat(design.GMSH)
         mshname=design.getMeshHandler()

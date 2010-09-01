@@ -88,19 +88,6 @@ void Dudley_Mesh_write(Dudley_Mesh *in,char* fname) {
     fprintf(f,"Tri3 0\n");
   }
 
-  /*  write Contact elements : */
-  if (in->ContactElements!=NULL) {
-    fprintf(f, "%s %d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements);
-    NN=in->ContactElements->numNodes;
-    for (i=0;i<in->ContactElements->numElements;i++) {
-      fprintf(f,"%d %d",in->ContactElements->Id[i],in->ContactElements->Tag[i]);
-      for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN)]]);
-      fprintf(f,"\n");
-    }
-  } else {
-    fprintf(f,"Tri3_Contact 0\n");
-  }
-  
   /*  write points: */
   if (in->Points!=NULL) {
     fprintf(f, "%s %d\n",in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements);
@@ -192,27 +179,6 @@ void Dudley_PrintMesh_Info(Dudley_Mesh *in, bool_t full) {
     }
   } else {
     fprintf(stdout, "\tFace elements: Tri3 0\n");
-  }
-
-  /* write Contact elements : */
-  if (in->ContactElements!=NULL) {
-    int mine=0, overlap=0;
-    for (i=0;i<in->ContactElements->numElements;i++) {
-      if (in->ContactElements->Owner[i] == in->MPIInfo->rank) mine++;
-      else overlap++;
-    }
-    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
-    NN=in->ContactElements->numNodes;
-    if (full) {
-      fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-      for (i=0;i<in->ContactElements->numElements;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d: ",in->ContactElements->Id[i],in->ContactElements->Tag[i],in->ContactElements->Owner[i],in->ContactElements->Color[i]);
-        for (j=0;j<NN;j++) fprintf(stdout," %5d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN)]]);
-        fprintf(stdout,"\n");
-      }
-    }
-  } else {
-    fprintf(stdout, "\tContact elements: Tri3_Contact 0\n");
   }
 
   /* write points: */

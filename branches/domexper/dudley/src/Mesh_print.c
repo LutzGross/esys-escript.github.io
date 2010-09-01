@@ -84,21 +84,6 @@ void Dudley_Mesh_print(Dudley_Mesh *in) {
     }
   }
 
-  /*  write Contact elements : */
-  if (in->ContactElements!=NULL) {
-    printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-                       in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->minColor,in->ContactElements->maxColor);
-    NN=in->ContactElements->referenceElementSet->referenceElement->Type->numNodes;
-	NN2=in->ContactElements->numNodes;
-    if (in->ContactElements->numElements>0) {
-       printf("Id,Tag,Owner,Color,Nodes\n");
-       for (i=0;i<in->ContactElements->numElements;i++) {
-         printf("%d,%d,%d,%d,",in->ContactElements->Id[i],in->ContactElements->Tag[i],in->Elements->Owner[i], in->ContactElements->Color[i]);
-         for (j=0;j<NN;j++) printf(" %d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN2)]]);
-         printf("\n");
-       }
-    }
-  }
   
   /*  write points: */
   if (in->Points!=NULL) {

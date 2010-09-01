@@ -63,14 +63,6 @@ class Test_LinearPDEOnDudleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnDudleyTet2DOrder2(Test_LinearPDE_noLumping,Test_pdetools_noLumping,Test_assemblage_2Do2, Test_TransportPDE):
-   RES_TOL=1.e-7
-   ABS_TOL=1.e-8
-   def setUp(self):
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order2.fly"),optimize=False)
-        self.order = 2
-   def tearDown(self):
-        del self.domain
 
 class Test_LinearPDEOnDudleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do1, Test_TransportPDE):
    RES_TOL=1.e-7
@@ -81,22 +73,13 @@ class Test_LinearPDEOnDudleyTet3DOrder1(Test_LinearPDE,Test_pdetools,Test_assemb
    def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnDudleyTet3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemblage_3Do2, Test_TransportPDE):
-   RES_TOL=1.e-7
-   ABS_TOL=1.e-8
-   def setUp(self):
-        self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_3D_order2.fly"),optimize=False)
-        self.order = 2
-   def tearDown(self):
-        del self.domain
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True :
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet2DOrder2))
       suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudleyTet3DOrder2))
+      #suite.addTest(Test_LinearPDEOnDudleyTet3DOrder1('test_symmetryOnIterative_System'))
    else:
       pass
 
