@@ -615,7 +615,8 @@ inline int toSiloElementType(int type)
 //
 //
 //
-bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
+bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath,
+                              const StringVec& labels, const StringVec& units)
 {
 #if USE_SILO
     if (numElements == 0)
@@ -642,10 +643,30 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
             numGhostElements, &eltype, &nodesPerElement, &numElements, 1, NULL);
     if (ret == 0) {
         CoordArray& coordbase = const_cast<CoordArray&>(nodeMesh->getCoords());
+        DBoptlist* optList = NULL;
+        int nOpts = labels.size()+units.size();
+        if (nOpts>0) {
+            optList = DBMakeOptlist(nOpts);
+            if (labels.size()>0)
+                DBAddOption(optList, DBOPT_XLABEL, (void*)labels[0].c_str());
+            if (labels.size()>1)
+                DBAddOption(optList, DBOPT_YLABEL, (void*)labels[1].c_str());
+            if (labels.size()>2)
+                DBAddOption(optList, DBOPT_ZLABEL, (void*)labels[2].c_str());
+            if (units.size()>0)
+                DBAddOption(optList, DBOPT_XUNITS, (void*)units[0].c_str());
+            if (units.size()>1)
+                DBAddOption(optList, DBOPT_YUNITS, (void*)units[1].c_str());
+            if (units.size()>2)
+                DBAddOption(optList, DBOPT_ZUNITS, (void*)units[2].c_str());
+        }
         ret = DBPutUcdmesh(dbfile, siloMeshName,
                 nodeMesh->getNumDims(), NULL, &coordbase[0],
                 nodeMesh->getNumNodes(), numElements, varName.c_str(),
-                /*"facelist"*/NULL, DB_FLOAT, NULL);
+                /*"facelist"*/NULL, DB_FLOAT, optList);
+        if (optList) {
+            DBFreeOptlist(optList);
+        }
     }
     
     // Point mesh is useful for debugging
@@ -683,7 +704,7 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath)
     }
 
     if (reducedElements) {
-        reducedElements->writeToSilo(dbfile, siloPath);
+        reducedElements->writeToSilo(dbfile, siloPath, labels, units);
     }
 
     // "Elements" is a special case

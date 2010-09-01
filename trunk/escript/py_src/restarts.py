@@ -200,23 +200,29 @@ class DataManager(object):
             return
 
         idata = self.__interpolateData()
-
         self._N += 1
         nameprefix=os.path.join(self._workdir, "dataset%04d"%(self._N))
 
+        from esys.weipa.weipacpp import EscriptDataset
+        ds=EscriptDataset()
+        ds.setDomain(self._domain)
+        ds.setCycleAndTime(self._N, self._time)
+        ds.setMetadataSchemaString(self._metadata, self._md_schema)
+        #ds.setMeshLabels("x","y","z") # FIXME
+        #ds.setMeshUnits("cm","cm","cm") # FIXME
+        for n,d in idata.items():
+            ds.addData(d, n, "") #FIXME: data units are not supported yet
+
         for f in self._exportformats:
             if f == self.SILO:
-                from esys.weipa.weipacpp import _saveSilo
                 filename=nameprefix+".silo"
-                _saveSilo(filename, self._N, self._time, self._domain, idata)
+                ds.saveSilo(filename)
             elif f == self.VTK:
-                from esys.weipa.weipacpp import _saveVTK
                 filename=nameprefix+".vtu"
-                _saveVTK(filename, self._N, self._time, self._domain,
-                        idata, self._metadata, self._md_schema)
+                ds.saveVTK(filename)
             elif f == self.VISIT:
-                from esys.weipa.weipacpp import _visitPublishData
-                _visitPublishData(self._N, self._time, self._domain, idata)
+                from esys.weipa.weipacpp import visitPublishData
+                visitPublishData(ds)
             elif f == self.RESTART:
                 self.__saveState()
             else:
@@ -245,11 +251,11 @@ class DataManager(object):
                         loaded into a VisIt client
         :param comment: A short description of this simulation
         """
-        from esys.weipa.weipacpp import _visitInitialize
-        return _visitInitialize(simFile, comment)
+        from esys.weipa.weipacpp import visitInitialize
+        return visitInitialize(simFile, comment)
 
     def __interpolateData(self):
-        # (Reduced)Solution is not directly supported so interpolate to
+        # (Reduced)Solution is not directly supported so interpolate to a
         # different function space
         from esys.escript import Solution, ReducedSolution
         from esys.escript import ContinuousFunction, ReducedContinuousFunction

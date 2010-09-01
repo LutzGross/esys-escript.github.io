@@ -114,7 +114,8 @@ public:
     /// the node mesh itself. If Silo was not available at compile time or if
     /// a Silo function fails this method returns false.
     WEIPA_DLL_API
-    bool writeToSilo(DBfile* dbfile, const std::string& siloPath);
+    bool writeToSilo(DBfile* dbfile, const std::string& siloPath,
+                     const StringVec& labels, const StringVec& units);
 
     /// \brief Returns the names of the meshes associated with the elements.
     WEIPA_DLL_API

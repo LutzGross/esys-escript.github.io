@@ -202,15 +202,14 @@ bool initialize(const std::string& simFile, const std::string& comment)
 }
 
 // Main entry point that checks for client input and publishes new data
-void publishData(int cycle, double time, escript::Domain_ptr domain,
-                 const boost::python::dict& datavars)
+void publishData(EscriptDataset_ptr dataset)
 {
 #ifdef USE_VISIT
     int visitState = 0, err = 0;
 
     if (connected) {
-        visitData->publishData(domain, datavars);
-        visitData->setSimulationStatus(runFlag, time, cycle);
+        visitData->publishData(dataset);
+        visitData->setSimulationStatus(runFlag);
         VisItTimeStepChanged();
     }
 
@@ -222,7 +221,7 @@ void publishData(int cycle, double time, escript::Domain_ptr domain,
         }
 
 #ifdef PASO_MPI
-        MPI_Bcast(&visitState, 1, MPI_INT, 0, domain->getMPIComm());
+        MPI_Bcast(&visitState, 1, MPI_INT, 0, dataset->getMPIComm());
 #endif
 
         // visitState values:
@@ -238,8 +237,8 @@ void publishData(int cycle, double time, escript::Domain_ptr domain,
             if (VisItAttemptToCompleteConnection() == VISIT_OKAY) {
                 std::cout << "Client connected!" << std::endl;
                 // publish latest data
-                visitData->publishData(domain, datavars);
-                visitData->setSimulationStatus(runFlag, time, cycle);
+                visitData->publishData(dataset);
+                visitData->setSimulationStatus(runFlag);
                 void* cbdata = NULL;
                 VisItSetCommandCallback(controlCommandCallback, cbdata);
                 VisItSetSlaveProcessCallback(slaveProcessCallback);

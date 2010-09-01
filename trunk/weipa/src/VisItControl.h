@@ -26,8 +26,7 @@ namespace VisItControl {
 
     bool initialize(const std::string& simFile, const std::string& comment);
 
-    void publishData(int cycle, double time, escript::Domain_ptr domain,
-                     const boost::python::dict& datavars);
+    void publishData(EscriptDataset_ptr dataset);
 
 } // namespace VisItControl
 

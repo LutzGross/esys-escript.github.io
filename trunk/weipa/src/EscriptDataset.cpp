@@ -75,38 +75,92 @@ EscriptDataset::~EscriptDataset()
 }
 
 //
+// Sets the domain using an escript domain instance.
 //
-//
-bool EscriptDataset::initFromEscript(
-        const escript::AbstractDomain* escriptDomain,
-        DataVec& escriptVars,
-        const StringVec& varNames)
+bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
 {
 #ifndef VISIT_PLUGIN
-    // sanity check
-    if (escriptVars.size() != varNames.size()) {
-        return false;
-    }
+    int myError = 0, gError;
 
-    // set the domain
-    if (!setDomain(escriptDomain)) {
-        return false;
-    }
-
-    // initialize variables
-    DataVec::iterator varIt = escriptVars.begin();
-    StringVec::const_iterator nameIt = varNames.begin();
-    for (; varIt != escriptVars.end(); varIt++, nameIt++) {
-        if (varIt->getDomain().get() == escriptDomain) {
-            addData(*varIt, *nameIt);
+    // fail if the domain has already been set
+    if (meshBlocks.size() > 0) {
+        cerr << "Domain has already been set!" << endl;
+        myError = 1;
+    } else if (!domain) {
+        cerr << "Domain is NULL!" << endl;
+        myError = 1;
+    } else {
+#if HAVE_MPI
+        mpiComm = domain->getMPIComm();
+        mpiRank = domain->getMPIRank();
+        mpiSize = domain->getMPISize();
+#endif
+        FinleyMesh_ptr mesh(new FinleyMesh());
+        if (mesh->initFromEscript(domain)) {
+            if (mpiSize > 1)
+                mesh->reorderGhostZones(mpiRank);
+            meshBlocks.push_back(mesh);
         } else {
-            cerr << "Warning, all data must be on the same domain. Not adding "
-                << *nameIt << "." << endl;
+            cerr << "Error initializing domain!" << endl;
+            myError = 2;
         }
     }
 
-    return true;
+    if (mpiSize > 1) {
+#if HAVE_MPI
+        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
 #else
+        gError = myError;
+#endif
+    } else {
+        gError = myError;
+    }
+
+    if (gError>1) {
+        meshBlocks.clear();
+    } else if (gError==0) {
+        // Convert mesh data to variables
+        convertMeshVariables();
+    }
+    return (gError==0);
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
+}
+
+//
+//
+//
+bool EscriptDataset::addData(escript::Data& data, const string name,
+                             const string units)
+{
+#ifndef VISIT_PLUGIN
+    bool success = true;
+
+    // fail if no domain has been set
+    if (meshBlocks.size() == 0) {
+        success = false;
+    } else {
+        // initialize variable
+        VarInfo vi;
+        vi.varName = name;
+        vi.units = units;
+
+        DataVar_ptr var(new DataVar(vi.varName));
+        if (var->initFromEscript(data, meshBlocks[0])) {
+            vi.dataBlocks.push_back(var);
+            updateSampleDistribution(vi);
+            vi.valid = true;
+        } else {
+            var.reset();
+            vi.valid = false;
+        }
+        variables.push_back(vi);
+    }
+    return success;
+
+#else // VISIT_PLUGIN
     return false;
 #endif
 }
@@ -124,7 +178,7 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
     }
 
     // load the domain files
-    if (!setDomain(meshFilePattern, nBlocks)) {
+    if (!loadDomain(meshFilePattern, nBlocks)) {
         return false;
     }
 
@@ -132,7 +186,7 @@ bool EscriptDataset::loadNetCDF(const string meshFilePattern,
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        addData(*fileIt, *nameIt);
+        loadData(*fileIt, *nameIt, "");
     }
 
     return true;
@@ -151,7 +205,7 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
     }
 
     // set the domain
-    if (!setDomain(mesh)) {
+    if (!setExternalDomain(mesh)) {
         return false;
     }
 
@@ -159,7 +213,7 @@ bool EscriptDataset::loadNetCDF(const MeshBlocks& mesh,
     StringVec::const_iterator fileIt = varFiles.begin();
     StringVec::const_iterator nameIt = varNames.begin();
     for (; fileIt != varFiles.end(); fileIt++, nameIt++) {
-        addData(*fileIt, *nameIt);
+        loadData(*fileIt, *nameIt, "");
     }
 
     return true;
@@ -248,8 +302,10 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
         }
         // write block of the mesh if we don't use an external mesh
         if (!externalMesh) {
-            if (! (*meshIt)->writeToSilo(dbfile, siloPath)) {
-                cerr << "Error writing block " << idx << " of mesh to Silo file!\n";
+            if (! (*meshIt)->writeToSilo(
+                        dbfile, siloPath, meshLabels, meshUnits)) {
+                cerr << "Error writing block " << idx
+                    << " of mesh to Silo file!" << endl;
                 break;
             }
         }
@@ -257,12 +313,12 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
         // write variables for current mesh block
         for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
             // do not attempt to write this variable if previous steps failed
-            if (!(*viIt).valid) continue;
-            DataVar_ptr var = (*viIt).dataBlocks[idx];
-            if (!var->writeToSilo(dbfile, siloPath)) {
+            if (!viIt->valid) continue;
+            DataVar_ptr var = viIt->dataBlocks[idx];
+            if (!var->writeToSilo(dbfile, siloPath, viIt->units)) {
                 cerr << "Error writing block " << idx << " of '"
                     << var->getName() << "' to Silo file!" << endl;
-                (*viIt).valid = false;
+                viIt->valid = false;
             }
         }
     }
@@ -280,8 +336,8 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
                 putSiloMultiVar(dbfile, *viIt, true);
 
             for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
-                if (!(*viIt).valid) continue;
-                DataVar_ptr var = (*viIt).dataBlocks[0];
+                if (!viIt->valid) continue;
+                DataVar_ptr var = viIt->dataBlocks[0];
                 if (var->getRank() < 2)
                     putSiloMultiVar(dbfile, *viIt);
                 else
@@ -295,8 +351,8 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 
         // collect tensors for their Silo definitions
         for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
-            if (!(*viIt).valid) continue;
-            DataVar_ptr var = (*viIt).dataBlocks[0];
+            if (!viIt->valid) continue;
+            DataVar_ptr var = viIt->dataBlocks[0];
             if (var->getRank() == 2) {
                 tensorDefStrings.push_back(var->getTensorDef());
                 tensorDefs.push_back((char*)tensorDefStrings.back().c_str());
@@ -576,6 +632,30 @@ bool EscriptDataset::saveVTK(string fileName)
 //
 //
 //
+void EscriptDataset::setMeshLabels(const string x, const string y, const string z)
+{
+    meshLabels.clear();
+    meshLabels.push_back(x);
+    meshLabels.push_back(y);
+    if (z.length()>0)
+        meshLabels.push_back(z);
+}
+
+//
+//
+//
+void EscriptDataset::setMeshUnits(const string x, const string y, const string z)
+{
+    meshUnits.clear();
+    meshUnits.push_back(x);
+    meshUnits.push_back(y);
+    if (z.length()>0)
+        meshUnits.push_back(z);
+}
+
+//
+//
+//
 void EscriptDataset::writeVarToVTK(const VarInfo& varInfo, ostream& os)
 {
     const DataBlocks& varBlocks = varInfo.dataBlocks;
@@ -602,59 +682,9 @@ void EscriptDataset::writeVarToVTK(const VarInfo& varInfo, ostream& os)
 }
 
 //
-// Sets the domain using an escript::AbstractDomain instance.
-//
-bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
-{
-#ifndef VISIT_PLUGIN
-    int myError = 0, gError;
-
-    // fail if the domain has already been set
-    if (meshBlocks.size() > 0) {
-        cerr << "Domain has already been set!" << endl;
-        myError = 1;
-    } else if (!domain) {
-        cerr << "Domain is NULL!" << endl;
-        myError = 1;
-    } else {
-        FinleyMesh_ptr mesh(new FinleyMesh());
-        if (mesh->initFromEscript(domain)) {
-            if (mpiSize > 1)
-                mesh->reorderGhostZones(mpiRank);
-            meshBlocks.push_back(mesh);
-        } else {
-            cerr << "Error initializing domain!" << endl;
-            myError = 2;
-        }
-    }
-
-    if (mpiSize > 1) {
-#if HAVE_MPI
-        MPI_Allreduce(&myError, &gError, 1, MPI_INT, MPI_MAX, mpiComm);
-#else
-        gError = myError;
-#endif
-    } else {
-        gError = myError;
-    }
-
-    if (gError>1) {
-        meshBlocks.clear();
-    } else if (gError==0) {
-        // Convert mesh data to variables
-        convertMeshVariables();
-    }
-    return (gError==0);
-
-#else // VISIT_PLUGIN
-    return false;
-#endif
-}
-
-//
 // Sets the domain from dump files.
 //
-bool EscriptDataset::setDomain(const string filePattern, int nBlocks)
+bool EscriptDataset::loadDomain(const string filePattern, int nBlocks)
 {
     int myError = 0, gError;
 
@@ -722,7 +752,7 @@ bool EscriptDataset::setDomain(const string filePattern, int nBlocks)
 //
 // Sets an already converted domain.
 //
-bool EscriptDataset::setDomain(const MeshBlocks& domain)
+bool EscriptDataset::setExternalDomain(const MeshBlocks& domain)
 {
     int myError = 0, gError;
 
@@ -758,42 +788,8 @@ bool EscriptDataset::setDomain(const MeshBlocks& domain)
 //
 //
 //
-bool EscriptDataset::addData(escript::Data& data, const string name)
-{
-#ifndef VISIT_PLUGIN
-    bool success = true;
-
-    // fail if no domain has been set
-    if (meshBlocks.size() == 0) {
-        success = false;
-
-    } else {
-        // initialize variable
-        VarInfo vi;
-        vi.varName = name;
-
-        DataVar_ptr var(new DataVar(vi.varName));
-        if (var->initFromEscript(data, meshBlocks[0])) {
-            vi.dataBlocks.push_back(var);
-            updateSampleDistribution(vi);
-            vi.valid = true;
-        } else {
-            var.reset();
-            vi.valid = false;
-        }
-        variables.push_back(vi);
-    }
-    return success;
-
-#else // VISIT_PLUGIN
-    return false;
-#endif
-}
-
-//
-//
-//
-bool EscriptDataset::addData(const string filePattern, const string name)
+bool EscriptDataset::loadData(const string filePattern, const string name,
+                              const string units)
 {
     int myError = 0, gError;
 
@@ -805,6 +801,7 @@ bool EscriptDataset::addData(const string filePattern, const string name)
         // initialize variable
         VarInfo vi;
         vi.varName = name;
+        vi.units = units;
         vi.valid = true;
         char* str = new char[filePattern.length()+10];
 

@@ -630,7 +630,8 @@ string DataVar::getTensorDef() const
 // The corresponding mesh must have been written already and made known
 // to this variable by a call to setMesh().
 //
-bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
+bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath,
+                          const string& units)
 {
 #if USE_SILO
     if (!initialized)
@@ -649,10 +650,14 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
  
     char* siloMesh = const_cast<char*>(siloMeshName.c_str());
     int dcenter = (centering == NODE_CENTERED ? DB_NODECENT : DB_ZONECENT);
+    DBoptlist* optList = DBMakeOptlist(2);
+    if (units.length()>0) {
+        DBAddOption(optList, DBOPT_UNITS, (void*)units.c_str());
+    }
 
     if (rank == 0) {
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMesh, dataArray[0],
-                numSamples, NULL, 0, DB_FLOAT, dcenter, NULL);
+                numSamples, NULL, 0, DB_FLOAT, dcenter, optList);
     }
     else if (rank == 1) {
         const string comps[3] = {
@@ -664,14 +669,13 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
 
         ret = DBPutUcdvar(dbfile, varName.c_str(), siloMesh, shape[0],
                 (char**)varnames, &dataArray[0], numSamples, NULL,
-                0, DB_FLOAT, dcenter, NULL);
+                0, DB_FLOAT, dcenter, optList);
     }
     else {
         string tensorDir = varName+string("_comps/");
         ret = DBMkdir(dbfile, tensorDir.c_str());
         if (ret == 0) {
             int one = 1;
-            DBoptlist* optList = DBMakeOptlist(1);
             DBAddOption(optList, DBOPT_HIDE_FROM_GUI, &one);
 
             for (int i=0; i<shape[1]; i++) {
@@ -685,10 +689,10 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
                 }
                 if (ret != 0) break;
             }
-            DBFreeOptlist(optList);
         } // ret==0
     } // rank
 
+    DBFreeOptlist(optList);
     DBSetDir(dbfile, "/");
     return (ret == 0);
 

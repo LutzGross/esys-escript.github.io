@@ -28,7 +28,6 @@
 #include <set>
 #include <sstream>
 
-using escript::const_Domain_ptr;
 using std::map;
 using std::set;
 using std::string;
@@ -36,54 +35,8 @@ using std::vector;
 
 namespace weipa {
 
-///
-/// Constructor
-///
-VisItData::VisItData() :
-    mpiRank(0),
-    mpiSize(1),
-    cycle(0),
-    time(0.),
-    runFlag(false)
-{
-}
-
-///
-/// Updates the domain and variables
-///
-void VisItData::publishData(const_Domain_ptr domain,
-                            const boost::python::dict& datavars)
-{
-    dataVec.clear();
-    varNames.clear();
-    escriptDomain = domain;
-
-#ifdef PASO_MPI
-    MPI_Comm comm = escriptDomain->getMPIComm();
-    MPI_Comm_rank(comm, &mpiRank);
-    MPI_Comm_size(comm, &mpiSize);
-#endif
-
-    int numData = boost::python::extract<int>(datavars.attr("__len__")());
-    if (numData > 0) {
-        boost::python::list keys = datavars.keys();
-
-        for (int i=0; i<numData; i++) {
-            string varName = boost::python::extract<string>(keys[i]);
-            varNames.push_back(varName);
-            escript::Data varData = boost::python::extract<escript::Data>(
-                    datavars[keys[i]]);
-            if (varData.getDomain() != domain) {
-                throw escript::DataException(
-                        "publishData: all data must be on the same domain.");
-            }
-            dataVec.push_back(varData);
-        }
-    }
-}
-
 //
-// Returns simulation metadata after converting the dataset
+// Returns simulation metadata from this dataset.
 //
 visit_handle VisItData::getSimMetaData()
 {
@@ -99,23 +52,14 @@ visit_handle VisItData::getSimMetaData()
     }
     VisIt_SimulationMetaData_setMode(mdh, runFlag ?
         VISIT_SIMMODE_RUNNING : VISIT_SIMMODE_STOPPED);
-    VisIt_SimulationMetaData_setCycleTime(mdh, cycle, time);
 
-    if (escriptDomain == NULL) {
+    if (dataset.get() == NULL) {
         return mdh;
     }
 
-#ifdef PASO_MPI
-    MPI_Comm comm = escriptDomain->getMPIComm();
-    dataset.reset(new EscriptDataset(comm));
-#else
-    dataset.reset(new EscriptDataset());
-#endif
+    VisIt_SimulationMetaData_setCycleTime(
+            mdh, dataset->getCycle(), dataset->getTime());
 
-    if (!dataset->initFromEscript(escriptDomain.get(), dataVec, varNames)) {
-        throw escript::DataException("weipa: error initialising dataset.");
-    }
- 
     set<string> usedMeshes;
 
     // add "special" mesh variable metadata
@@ -159,6 +103,11 @@ visit_handle VisItData::getSimMetaData()
     }
 
     // add all meshes
+    int mpiSize=1;
+#ifdef HAVE_MPI
+    MPI_Comm comm = dataset->getMPIComm();
+    MPI_Comm_size(comm, &mpiSize);
+#endif
     set<string>::const_iterator sIt;
     int dim = dataset->getConvertedDomain()[0]->getNodes()->getNumDims();
     for (sIt = usedMeshes.begin(); sIt != usedMeshes.end(); sIt++) {
@@ -176,6 +125,12 @@ visit_handle VisItData::getDomainList()
     // each MPI rank serves exactly one domain (chunk) of the data
     visit_handle domainList = VISIT_INVALID_HANDLE;
     if (VisIt_DomainList_alloc(&domainList) == VISIT_OKAY) {
+        int mpiRank=0, mpiSize=1;
+#ifdef HAVE_MPI
+        MPI_Comm comm = dataset->getMPIComm();
+        MPI_Comm_rank(comm, &mpiRank);
+        MPI_Comm_size(comm, &mpiSize);
+#endif
         visit_handle hdl;
         int* rank = (int*)malloc(sizeof(int));
         *rank = mpiRank;
@@ -253,8 +208,8 @@ visit_handle VisItData::getMesh(const char* name)
                 elements->getNumElements(), hc);
 
         // set ghost information
-        VisIt_UnstructuredMesh_setRealIndices(hmesh, 0, 
-            elements->getNumElements() - elements->getGhostCount());
+        VisIt_UnstructuredMesh_setRealIndices(hmesh, 0,
+            elements->getNumElements()-elements->getGhostCount()-1);
     }
 
     return hmesh;
@@ -278,24 +233,6 @@ visit_handle VisItData::getVariable(const char* name)
     }
 
     return hvar;
-}
-
-//
-// Sets the list of available command names
-//
-void VisItData::setCommandNames(vector<string> commandNames)
-{
-    cmdNames = commandNames;
-}
-
-//
-// Sets the simulation status
-//
-void VisItData::setSimulationStatus(bool running, double t, int c)
-{
-    runFlag = running;
-    time = t;
-    cycle = c;
 }
 
 ///
@@ -326,6 +263,7 @@ void VisItData::addMeshMetadata(visit_handle smd, const string& name, int dim,
         VisIt_MeshMetaData_setTopologicalDimension(mmd, dim);
         VisIt_MeshMetaData_setSpatialDimension(mmd, dim);
         VisIt_MeshMetaData_setNumDomains(mmd, numDoms);
+        VisIt_MeshMetaData_setDomainTitle(mmd, "domains");
         VisIt_SimulationMetaData_addMesh(smd, mmd);
     }
 }

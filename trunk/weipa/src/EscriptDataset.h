@@ -34,6 +34,7 @@ typedef std::vector<FinleyMesh_ptr> MeshBlocks;
 
 struct VarInfo {
     std::string varName;
+    std::string units;
     DataBlocks dataBlocks;
     IntVec sampleDistribution;
     bool valid;
@@ -73,10 +74,21 @@ public:
     WEIPA_DLL_API
     ~EscriptDataset();
 
-    /// \brief Initialises with instances of escript domain and data.
+    /// \brief Sets the escript domain for this dataset. This method can only
+    ///        be called once and should be the first call unless loading from
+    ///        dump files.
+    ///
+    /// \note If MPI is enabled this method also initialises the communicator
+    ///       that will be used subsequently.
     WEIPA_DLL_API
-    bool initFromEscript(const escript::AbstractDomain* mesh,
-                         DataVec& escriptVars, const StringVec& varNames);
+    bool setDomain(const escript::AbstractDomain* domain);
+
+    /// \brief Adds an escript data instance to this dataset. You must ensure
+    ///        that the data is defined on the domain that was used in
+    //         setDomain(), otherwise you will get undefined behaviour later!
+    WEIPA_DLL_API
+    bool addData(escript::Data& data, const std::string name,
+                 const std::string units = "");
 
     /// \brief Loads mesh and variables from escript NetCDF files.
     ///
@@ -102,7 +114,26 @@ public:
     WEIPA_DLL_API
     void setCycleAndTime(int c, double t) { cycle=c; time=t; }
 
-    /// \brief Sets a metadata schema and content (for VTK output)
+    /// \brief Returns the cycle number.
+    WEIPA_DLL_API
+    int getCycle() const { return cycle; }
+
+    /// \brief Returns the time value.
+    WEIPA_DLL_API
+    double getTime() const { return time; }
+
+    /// \brief Sets labels for the mesh axes.
+    /// \note This information is only used by the Silo writer.
+    WEIPA_DLL_API
+    void setMeshLabels(const std::string x, const std::string y, const std::string z="");
+
+    /// \brief Sets units for the mesh axes.
+    /// \note This information is only used by the Silo writer.
+    WEIPA_DLL_API
+    void setMeshUnits(const std::string x, const std::string y, const std::string z="");
+
+    /// \brief Sets a metadata schema and content
+    /// \note Only used by the VTK writer.
     WEIPA_DLL_API
     void setMetadataSchemaString(const std::string schema,
                                  const std::string metadata)
@@ -128,12 +159,19 @@ public:
     WEIPA_DLL_API
     const VarVector& getMeshVariables() const { return meshVariables; }
 
+    WEIPA_DLL_API
+#if HAVE_MPI
+    MPI_Comm
+#else
+    void*
+#endif
+        getMPIComm() { return mpiComm; }
+
 private:
-    bool setDomain(const escript::AbstractDomain* domain);
-    bool setDomain(const std::string filePattern, int nBlocks);
-    bool setDomain(const MeshBlocks& domain);
-    bool addData(escript::Data& data, const std::string name);
-    bool addData(const std::string filePattern, const std::string name);
+    bool loadDomain(const std::string filePattern, int nBlocks);
+    bool setExternalDomain(const MeshBlocks& domain);
+    bool loadData(const std::string filePattern, const std::string name,
+                  const std::string units);
 
     void convertMeshVariables();
     void updateSampleDistribution(VarInfo& vi);
@@ -146,6 +184,7 @@ private:
     int cycle;
     double time;
     std::string mdSchema, mdString;
+    StringVec meshLabels, meshUnits;
     bool externalMesh;
     MeshBlocks meshBlocks;
     VarVector variables, meshVariables;

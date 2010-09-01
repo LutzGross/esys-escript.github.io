@@ -40,7 +40,7 @@ class NodeData;
 ///
 /// Note that this class is not MPI aware, that is if domain decomposition
 /// was used only one 'chunk' of the domain can be read per instance of this
-/// class. See MPDataSet for how to process full domains.
+/// class. See the EscriptDataset class for how to process full domains.
 class FinleyMesh
 {
 public:
@@ -67,7 +67,8 @@ public:
 
     /// \brief Writes the mesh to a Silo file
     WEIPA_DLL_API
-    bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo);
+    bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo,
+                     const StringVec& labels, const StringVec& units);
 
     /// \brief Reorders elements so that 'ghost' elements appear last
     WEIPA_DLL_API
@@ -139,7 +140,7 @@ private:
     ElementData_ptr cells;
     ElementData_ptr faces;
     ElementData_ptr contacts;
-    std::string siloPath;
+    std::string     siloPath;
 };
 
 } // namespace weipa
