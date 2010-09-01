@@ -41,21 +41,21 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
     if (reduce_col_order) {
 		  numSub=1;
           col_node=refElement->Type->linearNodes;
-          NN_col=(refElement->LinearBasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+          NN_col=(refElement->LinearBasisFunctions->Type->numShapes);
     } else {
 		  numSub=refElement->Type->numSubElements;
           col_node=refElement->Type->subElementNodes;
-          NN_col=(refElement->BasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+          NN_col=(refElement->BasisFunctions->Type->numShapes);
     }
 
     if (reduce_row_order) {
 		  numSub=1;
           row_node=refElement->Type->linearNodes;
-          NN_row=(refElement->LinearBasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+          NN_row=(refElement->LinearBasisFunctions->Type->numShapes);
     } else {
 		  numSub=refElement->Type->numSubElements;
           row_node=refElement->Type->subElementNodes;
-          NN_row=(refElement->BasisFunctions->Type->numShapes) * (refElement->Type->numSides) ;
+          NN_row=(refElement->BasisFunctions->Type->numShapes) ;
 	}
 
 	for (color=elements->minColor;color<=elements->maxColor;color++) {

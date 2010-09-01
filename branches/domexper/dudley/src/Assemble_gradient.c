@@ -85,10 +85,10 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 	  localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
 	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
 		  nodes_selector=refElement->Type->linearNodes;
-		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes * refElement->Type->numSides;
+		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes;
 	  } else { 
 		  nodes_selector=refElement->Type->subElementNodes;
-		  numShapesTotal2=refElement->BasisFunctions->Type->numShapes * refElement->Type->numSides;
+		  numShapesTotal2=refElement->BasisFunctions->Type->numShapes;
 	  }
       /* check the dimensions of data */
 
