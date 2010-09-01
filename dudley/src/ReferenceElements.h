@@ -56,9 +56,6 @@ typedef struct Dudley_ReferenceElementInfo {
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
   dim_t numSubElements;                      /* number of subelements. >1 is macro elements are used. */
-  dim_t numSides;							 /* specifies the number of sides the element supports. This =2 if contatact elements are used
-                                                otherwise =1. */
-                                                
 
   index_t offsets[MAX_numSides+1];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
 

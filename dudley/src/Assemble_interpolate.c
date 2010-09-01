@@ -98,7 +98,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   }
 
   numQuad=basis->numQuadNodes;
-  numShapesTotal2=basis->Type->numShapes * reference_element->Type->numSides;
+  numShapesTotal2=basis->Type->numShapes;
   NS_DOF=basis->Type->numShapes;
   
   /* check the dimensions of interpolated_data and data */

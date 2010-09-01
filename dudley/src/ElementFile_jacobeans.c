@@ -83,7 +83,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 
      out->numDim=nodes->numDim;
      out->numQuadTotal=shape->numQuadNodes; 
-     out->numSides=refElement->Type->numSides;
+     out->numSides=1;
      out->numShapesTotal=basis->Type->numShapes * out->numSides; 
      out->numElements=self->numElements;
      
