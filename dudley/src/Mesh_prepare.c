@@ -113,7 +113,6 @@ void Dudley_Mesh_createColoring(Dudley_Mesh* in, index_t *node_localDOF_map) {
   if (Dudley_noError()) Dudley_ElementFile_createColoring(in->Elements,in->Nodes->numNodes,node_localDOF_map);
   if (Dudley_noError()) Dudley_ElementFile_createColoring(in->FaceElements,in->Nodes->numNodes,node_localDOF_map);
   if (Dudley_noError()) Dudley_ElementFile_createColoring(in->Points,in->Nodes->numNodes,node_localDOF_map);
-  if (Dudley_noError()) Dudley_ElementFile_createColoring(in->ContactElements,in->Nodes->numNodes,node_localDOF_map);
 }
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */
@@ -122,7 +121,6 @@ void Dudley_Mesh_optimizeElementOrdering(Dudley_Mesh* in) {
   if (Dudley_noError()) Dudley_ElementFile_optimizeOrdering(&(in->Elements));
   if (Dudley_noError()) Dudley_ElementFile_optimizeOrdering(&(in->FaceElements));
   if (Dudley_noError()) Dudley_ElementFile_optimizeOrdering(&(in->Points));
-  if (Dudley_noError()) Dudley_ElementFile_optimizeOrdering(&(in->ContactElements));
 }
 
 /*                                                                    */
@@ -133,5 +131,4 @@ void Dudley_Mesh_setTagsInUse(Dudley_Mesh* in)
     if (Dudley_noError()) Dudley_ElementFile_setTagsInUse(in->Elements);
     if (Dudley_noError()) Dudley_ElementFile_setTagsInUse(in->FaceElements);
     if (Dudley_noError()) Dudley_ElementFile_setTagsInUse(in->Points);
-    if (Dudley_noError()) Dudley_ElementFile_setTagsInUse(in->ContactElements);
 }

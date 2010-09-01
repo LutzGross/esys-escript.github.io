@@ -37,7 +37,6 @@ Dudley_Mesh* Dudley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info)
   out->Elements=NULL;   
   out->FaceElements=NULL; 
   out->Points=NULL;      
-  out->ContactElements=NULL;      
   out->TagMap=NULL;      
   out->reference_counter=0;
 
@@ -73,7 +72,6 @@ Dudley_Mesh* Dudley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info)
   out->Elements=NULL;
   out->FaceElements=NULL;
   out->Points=NULL;
-  out->ContactElements=NULL;
   out->reference_counter++;
   return out;
 }
@@ -95,7 +93,6 @@ void Dudley_Mesh_free(Dudley_Mesh* in) {
        Dudley_NodeFile_free(in->Nodes);
        Dudley_ElementFile_free(in->FaceElements);
        Dudley_ElementFile_free(in->Elements);   
-       Dudley_ElementFile_free(in->ContactElements);
        Dudley_ElementFile_free(in->Points);
        Dudley_TagMap_free(in->TagMap);
        Paso_SystemMatrixPattern_free(in->FullFullPattern);
@@ -123,10 +120,6 @@ void Dudley_Mesh_setElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
 void Dudley_Mesh_setFaceElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
     Dudley_ElementFile_free(self->FaceElements);
     self->FaceElements=elements;
-}
-void Dudley_Mesh_setContactElements(Dudley_Mesh* self,Dudley_ElementFile *elements) {
-    Dudley_ElementFile_free(self->ContactElements);
-    self->ContactElements=elements;
 }
 void Dudley_Mesh_setPoints(Dudley_Mesh* self,Dudley_ElementFile *elements) {
     Dudley_ElementFile_free(self->Points);
@@ -167,15 +160,6 @@ void Mesh_setOrders(Dudley_Mesh *in)
          locals[3]=MIN(locals[3], in->FaceElements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
      }
 
-
-  }
-  if ( in->ContactElements!=NULL) {
-     if (in->ContactElements->numElements > 0) {
-         locals[0]=MIN(locals[0], in->ContactElements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
-         locals[1]=MIN(locals[1], in->ContactElements->referenceElementSet->referenceElement->LinearBasisFunctions->Type->numOrder);
-         locals[2]=MIN(locals[2], in->ContactElements->referenceElementSet->referenceElement->integrationOrder);
-         locals[3]=MIN(locals[3], in->ContactElements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
-     }
 
   }
 

@@ -42,7 +42,6 @@ void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh* self, index_t *dof_distribut
         /* while at the output they refer to the global labeling which is rectified in the next step */
         if (Dudley_noError()) Dudley_ElementFile_distributeByRankOfDOF(self->Elements,mpiRankOfDOF, self->Nodes->Id);
         if (Dudley_noError()) Dudley_ElementFile_distributeByRankOfDOF(self->FaceElements,mpiRankOfDOF, self->Nodes->Id);
-        if (Dudley_noError()) Dudley_ElementFile_distributeByRankOfDOF(self->ContactElements,mpiRankOfDOF, self->Nodes->Id);
         if (Dudley_noError()) Dudley_ElementFile_distributeByRankOfDOF(self->Points,mpiRankOfDOF, self->Nodes->Id);
    
         /* resolve the node ids */

@@ -40,7 +40,7 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   char line[LenString_MAX+1];
   char error_msg[LenErrorMsg_MAX];
   double rtmp0, rtmp1;
-  Dudley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
 #ifdef Dudley_TRACE
   double time0=Dudley_timer();
 #endif
@@ -127,7 +127,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
    
          ElementTypeId final_element_type = NoRef;
          ElementTypeId final_face_element_type = NoRef;
-         ElementTypeId contact_element_type = NoRef;
          numElements=0;
          numFaceElements=0;
          scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
@@ -155,67 +154,11 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       numNodesPerElement= 3;
                       element_dim=2;
                       break;
-//                   case 3:  /* quadrilateral order 1 */
-//                       element_type[e]=Rec4;
-//                       numNodesPerElement= 4;
-//                       element_dim=2;
-//                       break;
                   case 4:  /* tetrahedron order 1 */
                       element_type[e]=Tet4;
                       numNodesPerElement= 4;
                       element_dim=3;
                       break;
-//                   case 5:  /* hexahedron order 1 */
-//                       element_type[e]=Hex8;
-//                       numNodesPerElement= 8;
-//                       element_dim=3;
-//                       break;
-                  case 8:  /* line order 2 */
-                      if (useMacroElements) {
-                          element_type[e]=Line3Macro;
-                      } else {
-                          element_type[e]=Line3;
-                      }
-                      numNodesPerElement= 3;
-                      element_dim=1;
-                      break;
-                  case 9:  /* traingle order 2 */
-                      if (useMacroElements) {
-                           element_type[e]=Tri6Macro;
-                      } else {
-                           element_type[e]=Tri6;
-                      }
-                      numNodesPerElement= 6;
-                      element_dim=2;
-                      break;
-//                  case 10:  /* quadrilateral order 2 */
-//                      if (useMacroElements) {
-//                          element_type[e]=Rec9Macro;
-//                      } else {
-//                          element_type[e]=Rec9;
-//                      }
-//                      numNodesPerElement= 9;
-//                      element_dim=2;
-//                      break;
-                  case 11:  /* tetrahedron order 2 */
-                      if (useMacroElements) {
-                          element_type[e]=Tet10Macro;
-                      } else {
-                          element_type[e]=Tet10;
-                      }
-                      numNodesPerElement= 10;
-                      element_dim=3;
-                      break;
-// /*                  case 16:  /* rectangular order 2 */
-//                       element_type[e]=Rec8;
-//                       numNodesPerElement= 8;
-//                       element_dim=2;
-//                       break;
-//                   case 17:  /* hexahedron order 2 */
-//                       element_type[e]=Hex20;
-//                       numNodesPerElement= 20;
-//                       element_dim=3;
-//                       break;*/
                   case 15 :  /* point */
                       element_type[e]=Point1;
                       numNodesPerElement= 1;
@@ -277,12 +220,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 		scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
 	        FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
 	      }
-              /* for tet10 the last two nodes need to be swapped */
-              if ((element_type[e]==Tet10) || (element_type[e]==Tet10Macro)) {
-                   itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];
-                   vertices[INDEX2(9,e,MAX_numNodes_gmsh)]=vertices[INDEX2(8,e,MAX_numNodes_gmsh)];
-                   vertices[INDEX2(8,e,MAX_numNodes_gmsh)]=itmp;
-              }
             }
             /* all elements have been read, now we have to identify the elements for dudley */
         
@@ -306,37 +243,21 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                     final_face_element_type=Tri3;
                  }
               }
-              if (final_face_element_type == Line2) {
-                  contact_element_type=Line2_Contact;
-              } else  if ( (final_face_element_type == Line3) || (final_face_element_type == Line3Macro) ) {
-                  contact_element_type=Line3_Contact;
-              } else  if (final_face_element_type == Tri3) {
-                  contact_element_type=Tri3_Contact;
-              } else  if ( (final_face_element_type == Tri6) || (final_face_element_type == Tri6Macro)) {
-                  contact_element_type=Tri6_Contact;
-              } else {
-                  contact_element_type=Point1_Contact;
-              }
 			  refElements= Dudley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
 			  refFaceElements=Dudley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
-			  refContactElements= Dudley_ReferenceElementSet_alloc(contact_element_type,order, reduced_order);
 			  refPoints= Dudley_ReferenceElementSet_alloc(Point1,order, reduced_order);
               mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
               mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
-              mesh_p->ContactElements=Dudley_ElementFile_alloc(refContactElements, mpi_info);
               mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
               if (Dudley_noError()) {
                   Dudley_ElementFile_allocTable(mesh_p->Elements, numElements);
                   Dudley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);
-                  Dudley_ElementFile_allocTable(mesh_p->ContactElements, 0);
                   Dudley_ElementFile_allocTable(mesh_p->Points, 0);
                   if (Dudley_noError()) {
                       mesh_p->Elements->minColor=0;
                       mesh_p->Elements->maxColor=numElements-1;
                       mesh_p->FaceElements->minColor=0;
                       mesh_p->FaceElements->maxColor=numFaceElements-1;
-                      mesh_p->ContactElements->minColor=0;
-                      mesh_p->ContactElements->maxColor=0;
                       mesh_p->Points->minColor=0;
                       mesh_p->Points->maxColor=0;
                       numElements=0;
@@ -399,7 +320,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
      if (Dudley_noError()) Dudley_Mesh_prepare(mesh_p, optimize);
 	 /* free up memory */
 	 Dudley_ReferenceElementSet_dealloc(refPoints);
-	 Dudley_ReferenceElementSet_dealloc(refContactElements);
 	 Dudley_ReferenceElementSet_dealloc(refFaceElements);
 	 Dudley_ReferenceElementSet_dealloc(refElements);
 	 Paso_MPIInfo_free( mpi_info );

@@ -50,10 +50,6 @@ void  Dudley_Mesh_resolveNodeIds(Dudley_Mesh* in) {
   Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->FaceElements);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-//printf("Trying ContactElements:\n");
-  Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->ContactElements);
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
   Dudley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);

@@ -27,26 +27,19 @@
 void Dudley_Mesh_joinFaces(Dudley_Mesh* self,double safety_factor,double tolerance, bool_t optimize) {
 
    char error_msg[LenErrorMsg_MAX];
-   index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
-   Dudley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
-   dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
+   index_t *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
+   Dudley_ElementFile *newFaceElementsFile=NULL;
+   dim_t e,numPairs, NN, new_numFaceElements;
    Dudley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
 
    if (self->MPIInfo->size>1) {
      Dudley_setError(TYPE_ERROR,"Dudley_Mesh_joinFaces: MPI is not supported yet.");
      return;
    }
-   if (self->ContactElements==NULL) {
-     Dudley_setError(TYPE_ERROR,"Dudley_Mesh_joinFaces: no contact element file present.");
-     return;
-   }
    if (self->FaceElements==NULL) return;
    faceRefElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
-   contactRefElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
-   
 
    NN=self->FaceElements->numNodes;
-   NN_Contact=self->ContactElements->numNodes;
 
    if (faceRefElement->Type->numNodesOnFace<=0) {
      sprintf(error_msg,"Dudley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
@@ -87,46 +80,25 @@ void Dudley_Mesh_joinFaces(Dudley_Mesh* self,double safety_factor,double toleran
                new_numFaceElements++;
              }
          }
-         /*  allocate new face element and Contact element files */
-         newContactElementsFile=Dudley_ElementFile_alloc(self->ContactElements->referenceElementSet, self->MPIInfo);
+         /*  allocate new face element file */
          newFaceElementsFile=Dudley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
          if (Dudley_noError()) {
-               Dudley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
                Dudley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
          }
          /* copy the old elements over */
          if (Dudley_noError()) {
             /* get the face elements which are still in use:*/
             Dudley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
-            /* get the Contact elements which are still in use:*/
-            Dudley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
-            c=self->ContactElements->numElements;
-            /* OMP */
-            for (e=0;e<numPairs;e++) {
-                 e0=elem0[e];
-                 e1=elem1[e];
-                 newContactElementsFile->Id[c]=MIN(self->FaceElements->Id[e0],self->FaceElements->Id[e1]);
-                 newContactElementsFile->Tag[c]=MIN(self->FaceElements->Tag[e0],self->FaceElements->Tag[e1]);
-                 newContactElementsFile->Color[c]=e;
-                 for (i=0;i<NN;i++) newContactElementsFile->Nodes[INDEX2(i,c,NN_Contact)]=self->FaceElements->Nodes[INDEX2(i,e0,NN)];
-                 for (i=0;i<NN;i++) newContactElementsFile->Nodes[INDEX2(i+NN,c,NN_Contact)]=matching_nodes_in_elem1[INDEX2(i,e,NN)];
-                 c++;
-            }
-            newContactElementsFile->minColor=0;
-            newContactElementsFile->maxColor=numPairs-1;
          } 
          /* set new face and Contact elements */
          if (Dudley_noError()) {
 
             Dudley_ElementFile_free(self->FaceElements);
             self->FaceElements=newFaceElementsFile;
-            Dudley_ElementFile_free(self->ContactElements);
-            self->ContactElements=newContactElementsFile;
             Dudley_Mesh_prepare(self, optimize);
 
          } else {
             Dudley_ElementFile_free(newFaceElementsFile);
-            Dudley_ElementFile_free(newContactElementsFile);
          }
       }
    }

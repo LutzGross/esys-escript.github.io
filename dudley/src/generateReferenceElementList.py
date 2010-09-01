@@ -127,13 +127,13 @@ def LENLEN(l):
 
 outall="Dudley_ReferenceElementInfo Dudley_ReferenceElement_InfoList[]={\n"
 
-for name in ["Point1", "Line2", "Line3", "Line4", "Tri3", "Tri6", "Tri9", "Tri10", "Rec4", "Rec8", "Rec9", "Rec12", "Rec16", "Tet4", "Tet10", "Tet16", "Hex8", "Hex20", "Hex27", "Hex32", "Line2Face", "Line3Face", "Line4Face", "Tri3Face", "Tri6Face", "Tri9Face", "Tri10Face", "Rec4Face", "Rec8Face", "Rec9Face", "Rec12Face", "Rec16Face", "Tet4Face", "Tet10Face", "Tet16Face", "Hex8Face", "Hex20Face", "Hex27Face", "Hex32Face", "Point1_Contact", "Line2_Contact", "Line3_Contact", "Line4_Contact", "Tri3_Contact", "Tri6_Contact", "Tri9_Contact", "Tri10_Contact", "Rec4_Contact", "Rec8_Contact", "Rec9_Contact", "Rec12_Contact", "Rec16_Contact", "Line2Face_Contact", "Line3Face_Contact", "Line4Face_Contact", "Tri3Face_Contact", "Tri6Face_Contact", "Tri9Face_Contact", "Tri10Face_Contact", "Rec4Face_Contact", "Rec8Face_Contact", "Rec9Face_Contact", "Rec12Face_Contact", "Rec16Face_Contact", "Tet4Face_Contact", "Tet10Face_Contact", "Tet16Face_Contact", "Hex8Face_Contact", "Hex20Face_Contact", "Hex27Face_Contact", "Hex32Face_Contact", "Line3Macro", "Tri6Macro", "Rec9Macro", "Tet10Macro", "Hex27Macro" ]:
+for name in ["Point1", "Line2", "Tri3", "Tet4", "Line2Face", "Tri3Face", "Tet4Face" ]:
         isFace=False
         isMacro=False
         isContact=False
         n=1
         z="Point"
-        for z in [ "Point", "Line", "Tri", "Rec", "Tet", "Hex" ] :
+        for z in [ "Point", "Line", "Tri", "Tet"] :
             if name.startswith(z):
                s=name[len(z):]
                n=s

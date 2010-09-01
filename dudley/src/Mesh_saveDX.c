@@ -142,11 +142,11 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
   TypeId = elements->referenceElementSet->referenceElement->Type->TypeId;
   numDXNodesPerElement=0;
   numCells = elements->numElements;
-  if (TypeId==Line2 || TypeId==Line3 || TypeId==Line4 || TypeId==Line3Macro ) {
+  if (TypeId==Line2 ) {
      numDXNodesPerElement=2;
      resortIndex=resort[0];
      strcpy(elemTypeStr, "lines");
-   } else if (TypeId==Tri3 || TypeId==Tri6 || TypeId==Tri9 || TypeId==Tri10 ) {
+   } else if (TypeId==Tri3 ) {
      numDXNodesPerElement = 3;
      resortIndex=resort[1];
      strcpy(elemTypeStr, "triangles");
@@ -154,7 +154,7 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
      numDXNodesPerElement = 4;
      resortIndex=resort[3];
      strcpy(elemTypeStr, "quads");*/
-   } else if (TypeId==Tet4 || TypeId==Tet10 || TypeId==Tet16 || TypeId==Tet10Macro ) {
+   } else if (TypeId==Tet4 ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[2];
      strcpy(elemTypeStr, "tetrahedra");

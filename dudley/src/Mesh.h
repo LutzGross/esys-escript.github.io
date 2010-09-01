@@ -82,7 +82,6 @@ struct Dudley_Mesh {
   Dudley_NodeFile* Nodes;               /* the table of the nodes */
   Dudley_ElementFile* Elements;         /* the table of the elements */
   Dudley_ElementFile* FaceElements;     /* the table of the face elements */
-  Dudley_ElementFile* ContactElements;  /* the table of the contact elements */
   Dudley_ElementFile* Points;           /* the table of points (treated as elements of dimension 0) */
   Dudley_TagMap* TagMap;                /* the tag map mapping names to tag keys */
 
@@ -130,7 +129,6 @@ void Mesh_setOrders(Dudley_Mesh *in);
 void Dudley_Mesh_setCoordinates(Dudley_Mesh*,escriptDataC*);
 void Dudley_Mesh_setElements(Dudley_Mesh* self,Dudley_ElementFile *elements);
 void Dudley_Mesh_setFaceElements(Dudley_Mesh* self,Dudley_ElementFile *elements);
-void Dudley_Mesh_setContactElements(Dudley_Mesh* self,Dudley_ElementFile *elements);
 void Dudley_Mesh_setPoints(Dudley_Mesh* self,Dudley_ElementFile *elements);
 
 void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh* in,dim_t *distribution);
