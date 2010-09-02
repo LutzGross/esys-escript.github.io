@@ -78,7 +78,7 @@ void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters p, Dudley_ElementFile* e
                    D_p=getSampleDataRO(D,e);
                    Y_p=getSampleDataRO(Y,e);
 
-                      Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadSub,1)]);
+                      Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadTotal,1)]);
                       add_EM_F=FALSE;
                       add_EM_S=FALSE;
                       
@@ -88,13 +88,13 @@ void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters p, Dudley_ElementFile* e
 		      if (NULL!=D_p) {
                         add_EM_S=TRUE;
                         if (extendedD) {
-			    D_q=&(D_p[INDEX4(0,0,0,0, p.numEqu,p.numComp, p.numQuadSub)]);
+			    D_q=&(D_p[INDEX4(0,0,0,0, p.numEqu,p.numComp, p.numQuadTotal)]);
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                 for (k=0;k<p.numEqu;k++) {
                                   for (m=0;m<p.numComp;m++) {
                                     rtmp=0;
-                                    for (q=0;q<p.numQuadSub;q++) {
+                                    for (q=0;q<p.numQuadTotal;q++) {
                                        rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_q[INDEX3(k,m,q,p.numEqu,p.numComp)]*S[INDEX2(r,q,p.row_numShapes)];
                                     }
                                     EM_S[INDEX4(k,m,s         ,r         ,p.numEqu,p.numComp,p.row_numShapesTotal)]= rtmp;
@@ -109,7 +109,7 @@ void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters p, Dudley_ElementFile* e
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                   rtmp=0;
-                                  for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(r,q,p.row_numShapes)];
+                                  for (q=0;q<p.numQuadTotal;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(r,q,p.row_numShapes)];
                                   for (k=0;k<p.numEqu;k++) {
                                       for (m=0;m<p.numComp;m++) {
                                         rtmp_D=rtmp*D_p[INDEX2(k,m,p.numEqu)];
@@ -129,11 +129,11 @@ void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters p, Dudley_ElementFile* e
                       if (NULL!=Y_p) {
                         add_EM_F=TRUE;
                         if (extendedY) {
-			   Y_q=&(Y_p[INDEX3(0,0,0, p.numEqu,p.numQuadSub)]);
+			   Y_q=&(Y_p[INDEX3(0,0,0, p.numEqu,p.numQuadTotal)]);
                            for (s=0;s<p.row_numShapes;s++) {
                               for (k=0;k<p.numEqu;k++) {
                                  rtmp=0;
-                                 for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[INDEX2(k,q,p.numEqu)];
+                                 for (q=0;q<p.numQuadTotal;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[INDEX2(k,q,p.numEqu)];
                                  EM_F[INDEX2(k,s         ,p.numEqu)]=-rtmp;
                                  EM_F[INDEX2(k,s+p.row_numShapes,p.numEqu)]= rtmp;
                               }
@@ -141,7 +141,7 @@ void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters p, Dudley_ElementFile* e
                          } else {
                            for (s=0;s<p.row_numShapes;s++) {
                                rtmp=0;
-                               for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
+                               for (q=0;q<p.numQuadTotal;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
                                for (k=0;k<p.numEqu;k++) {
                                   rtmp_D=rtmp*Y_p[k];
                                   EM_F[INDEX2(k,s         ,p.numEqu)]=-rtmp_D;
