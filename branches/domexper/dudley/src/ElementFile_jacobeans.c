@@ -87,18 +87,16 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      out->numElements=self->numElements;
      
      if (reducedShapefunction) {
-        out->numSub=1;
         out->node_selection=refElement->Type->linearNodes;
         out->offsets=refElement->LinearType->offsets;
         dBdv=basis->dSdv;
      } else {
-        out->numSub=refElement->Type->numSubElements;
         out->node_selection=refElement->Type->subElementNodes; 
         out->offsets=refElement->Type->offsets;
         dBdv=refElement->DBasisFunctionDv;
      }
      
-     if (out->numQuadTotal != out->numSub * basis->numQuadNodes) {
+     if (out->numQuadTotal != basis->numQuadNodes) {
         Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
         return NULL;
      }
