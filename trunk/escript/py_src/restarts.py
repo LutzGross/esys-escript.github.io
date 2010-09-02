@@ -294,7 +294,6 @@ class DataManager(object):
         restartdir = "%s_%04d"%(self._restartprefix, self._N)
         util.mkDir(os.path.join(self._workdir, restartdir))
         stamp_file=self.__getStampFilename(restartdir)
-        loadmethod=self._domain
         self._stamp['__domainmodule']=self._domain.__module__
         self._stamp['__domainclass']=type(self._domain).__name__
         cPickle.dump(self._stamp, open(stamp_file, "wb"))
