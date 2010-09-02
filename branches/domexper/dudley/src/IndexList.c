@@ -29,51 +29,54 @@
 
 void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_ElementFile* elements,
                                        bool_t reduce_row_order, index_t* row_map,
-                                       bool_t reduce_col_order, index_t* col_map) {
+                                       bool_t reduce_col_order, index_t* col_map)
+{
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
   index_t color;
   Dudley_ReferenceElement*refElement; 
-  dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN, *row_node=NULL, *col_node=NULL, isub, numSub;
-  if (elements!=NULL) {
+  dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN, *row_node=NULL, *col_node=NULL;
+  if (elements!=NULL)
+  {
     NN=elements->numNodes;
     refElement= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
-	   
-    if (reduce_col_order) {
-		  numSub=1;
-          col_node=refElement->Type->linearNodes;
-          NN_col=(refElement->LinearBasisFunctions->Type->numShapes);
+    if (reduce_col_order)
+    {
+	col_node=refElement->Type->linearNodes;
+	NN_col=(refElement->LinearBasisFunctions->Type->numShapes);
+    }
+    else
+    {
+	col_node=refElement->Type->subElementNodes;
+	NN_col=(refElement->BasisFunctions->Type->numShapes);
+    }
+    if (reduce_row_order)
+    {
+	row_node=refElement->Type->linearNodes;
+	NN_row=(refElement->LinearBasisFunctions->Type->numShapes);
     } else {
-		  numSub=refElement->Type->numSubElements;
-          col_node=refElement->Type->subElementNodes;
-          NN_col=(refElement->BasisFunctions->Type->numShapes);
+	row_node=refElement->Type->subElementNodes;
+	NN_row=(refElement->BasisFunctions->Type->numShapes) ;
     }
 
-    if (reduce_row_order) {
-		  numSub=1;
-          row_node=refElement->Type->linearNodes;
-          NN_row=(refElement->LinearBasisFunctions->Type->numShapes);
-    } else {
-		  numSub=refElement->Type->numSubElements;
-          row_node=refElement->Type->subElementNodes;
-          NN_row=(refElement->BasisFunctions->Type->numShapes) ;
+    for (color=elements->minColor;color<=elements->maxColor;color++)
+    {
+	#pragma omp for private(e,irow,kr,kc,icol,isub) schedule(static)
+	for (e=0;e<elements->numElements;e++) 
+	{
+		if (elements->Color[e]==color)
+		{
+			for (kr=0;kr<NN_row;kr++)
+			{
+				irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,0,NN_row)],e,NN)]];
+				for (kc=0;kc<NN_col;kc++)
+				{
+				icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,0,NN_col)],e,NN)]];
+				Dudley_IndexList_insertIndex(&(index_list[irow]),icol);
+				}
+			}
+		}
+		}
 	}
-
-	for (color=elements->minColor;color<=elements->maxColor;color++) {
-           #pragma omp for private(e,irow,kr,kc,icol,isub) schedule(static)
-           for (e=0;e<elements->numElements;e++) {
-               if (elements->Color[e]==color) {
-				   for (isub=0;isub<numSub; isub++) {
-					   for (kr=0;kr<NN_row;kr++) {
-						   irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
-						   for (kc=0;kc<NN_col;kc++) {
-							   icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
-							   Dudley_IndexList_insertIndex(&(index_list[irow]),icol);
-						   }
-					   }
-				   }
-               }
-           }
-       }
   }
   return;
 }
