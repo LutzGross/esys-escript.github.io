@@ -36,12 +36,13 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
     if (in!=NULL) {
       Paso_Preconditioner_Jacobi_free(in->jacobi);
       Paso_Preconditioner_GS_free(in->gs);
-       
+      Paso_Solver_AMG_free(in->amg);
+      
+      
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
 
-      Paso_Solver_AMG_free(in->amg);
-      Paso_Solver_AMG_System_free(in->amgSystem);
+      
       Paso_Solver_AMLI_free(in->amli);
       Paso_Solver_AMLI_System_free(in->amliSystem);
       MEMFREE(in);
@@ -64,7 +65,6 @@ Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_
         prec->gs=NULL;
         prec->amg=NULL;
         prec->amli=NULL;
-        prec->amgSystem=NULL;
         prec->amliSystem=NULL;
 	if (options->verbose && options->use_local_preconditioner) printf("Apply preconditioner locally only.\n");
 
@@ -104,28 +104,6 @@ Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_
               if (options->verbose) printf("AMG preconditioner is used.\n");
               prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options); 
 	      Paso_MPIInfo_noError(A->mpi_info);
-	      /*
-              prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
-	      if (Paso_checkPtr(prec->amgSystem)) return;
-	      prec->amgSystem->block_size=A->row_block_size;
-	      for (i=0;i<A->row_block_size;++i) {
-		prec->amgSystem->amgblock[i]=NULL;
-		prec->amgSystem->block[i]=NULL;
-	      }
-              */
-                       
-              /*For performace reasons we check if block_size is one. If yes, then we do not need to separate blocks.*/
-              /*if (A->row_block_size==1) {
-                prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
-              }
-              else {
-                for (i=0;i<A->row_block_size;++i) {
-                prec->amgSystem->block[i]=Paso_SparseMatrix_getBlock(A->mainBlock,i+1);
-                prec->amgSystem->amgblock[i]=Paso_Solver_getAMG(prec->amgSystem->block[i],options->level_max,options);
-                }
-              }
-              */
-                          
               prec->type=PASO_AMG;
               break;
 
@@ -190,45 +168,7 @@ void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatr
 
         case PASO_AMG:
             Paso_Solver_solveAMG(prec->amg,x,b);
-
-            /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/
-            /*
-            if (A->row_block_size<4) {
-                Paso_Solver_solveAMG(prec->amg,x,b);
-            }
-            else {
-           
-                
-                 for (i=0;i<A->row_block_size;i++) {
-                    xx[i]=MEMALLOC(n,double);
-                    bb[i]=MEMALLOC(n,double);
-                    if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
-                }
-                
-                for (i=0;i<n;i++) {
-                    for (j=0;j<A->row_block_size;j++) {
-                     bb[j][i]=b[A->row_block_size*i+j];
-                    }
-                 }
-                
-                
-                for (i=0;i<A->row_block_size;i++) {
-                Paso_Solver_solveAMG(prec->amgSystem->amgblock[i],xx[i],bb[i]);
-                }
-                               
-                for (i=0;i<n;i++) {
-                    for (j=0;j<A->row_block_size;j++) {
-                    x[A->row_block_size*i+j]=xx[j][i];
-                    }
-                 }
-                
-                for (i=0;i<A->row_block_size;i++) {
-                MEMFREE(xx[i]);
-                MEMFREE(bb[i]);
-                }
-            }
-            */
-        break;
+	    break;
         case PASO_AMLI:
             
             /*For performace reasons we check if block_size is one. If yes, then we do not need to do unnecessary copying.*/

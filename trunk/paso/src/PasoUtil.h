@@ -45,7 +45,9 @@ void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* 
 void Paso_Copy(const dim_t n, double* out, const double* in);
 bool_t Paso_fileExists( const char* filename );
 double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
-
+#define Paso_Scale(n, x, a) Paso_Update(n, a, x, 0, x);
+#define Paso_AXPY(n, x, a, y) Paso_Update(n, 1., x, a,  y);
 #define Paso_copyShortDouble(n, source, target)  memcpy(target,source,sizeof(double)*(size_t)n)
+
 
 #endif /* #ifndef INC_PASO_UTIL */

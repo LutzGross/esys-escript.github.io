@@ -162,14 +162,6 @@ struct Paso_Solver_AMLI_System {
 typedef struct Paso_Solver_AMLI_System Paso_Solver_AMLI_System;
 
 
-/* AMG preconditioner on blocks*/
-struct Paso_Solver_AMG_System {
-    dim_t block_size;
-    Paso_SparseMatrix *block[MAX_BLOCK_SIZE];
-    Paso_Solver_AMG *amgblock[MAX_BLOCK_SIZE];
-};
-typedef struct Paso_Solver_AMG_System Paso_Solver_AMG_System;
-
 /* general preconditioner interface */
 
 typedef struct Paso_Solver_Preconditioner {
@@ -186,8 +178,6 @@ typedef struct Paso_Solver_Preconditioner {
   Paso_Solver_RILU* rilu;
   /* amg preconditioner */
   Paso_Solver_AMG* amg;
-  /* amg on System */
-  Paso_Solver_AMG_System* amgSystem;
   /* amg preconditioner */
   Paso_Solver_AMLI* amli;
   /* amg on System */
@@ -221,6 +211,11 @@ void Paso_Preconditioner_LocalGS_Sweep_sequential(Paso_SparseMatrix* A, Paso_Pre
 void Paso_Preconditioner_LocalGS_Sweep_tiled(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
 void Paso_Preconditioner_LocalGS_Sweep_colored(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
 
+/* AMG: */
+void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
+Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
+void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);
+
 /*******************************************/
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool_t verbose);
@@ -230,10 +225,7 @@ void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
 Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
 
-void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in);
-void Paso_Solver_AMG_free(Paso_Solver_AMG * in);
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
-void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b);
+
 
 void Paso_Solver_AMLI_System_free(Paso_Solver_AMLI_System * in);
 void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in);

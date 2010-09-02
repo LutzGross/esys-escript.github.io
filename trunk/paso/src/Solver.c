@@ -130,12 +130,17 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
            norm2_of_b=sqrt(norm2_of_b);
          /* if norm2_of_b==0 we are ready: x=0 */
          if ( IS_NAN(norm2_of_b) || IS_NAN(norm_max_of_b) ) {
+
             Paso_setError(VALUE_ERROR,"Paso_Solver: Matrix or right hand side contains undefined values.");
+
          } else if (norm2_of_b <=0.) {
+
             #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
             if (options->verbose) printf("right hand side is identical zero.\n");
+
          } else {
+
             if (options->verbose) {
                printf("Paso_Solver: l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
                printf("Paso_Solver: l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
@@ -163,7 +168,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                   }
                   break;
                }
+
             }
+
             /* construct the preconditioner */
             blocktimer_precond = blocktimer_time();
             Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
@@ -171,24 +178,31 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             blocktimer_increment("Paso_Solver_setPreconditioner()", blocktimer_precond);
             options->set_up_time=Paso_timer()-time_iter;
+
             if (! Paso_noError()) return;
+
               /* get an initial guess by evaluating the preconditioner */
 	      Paso_SystemMatrix_solvePreconditioner(A,x,b);
+
               /* start the iteration process :*/
               r=TMPMEMALLOC(numEqua,double);
               x0=TMPMEMALLOC(numEqua,double);
               Paso_checkPtr(r);
 	      Paso_checkPtr(x0);
+
               if (Paso_noError()) {
+
                  totIter = 1;
                  finalizeIteration = FALSE;
                  last_norm2_of_residual=norm2_of_b;
                  last_norm_max_of_residual=norm_max_of_b;
 		 net_time_start=Paso_timer();
+
                  /* Loop */
                  while (! finalizeIteration) {
                     cntIter = options->iter_max - totIter;
                     finalizeIteration = TRUE;
+
                     /*     Set initial residual. */
                     norm2_of_residual = 0;
                     norm_max_of_residual = 0;
@@ -221,16 +235,23 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                     options->residual_norm=norm2_of_residual;
 
                   if (options->verbose) printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
+
                   if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
+
                      if (options->verbose) printf(" divergence!\n");
                      Paso_setError(DIVERGED, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
+
                   } else {
+
                      /* */
                      if (norm2_of_residual>tolerance*norm2_of_b || norm_max_of_residual>tolerance*norm_max_of_b ) {
+
                         tol=tolerance*MIN(norm2_of_b,0.1*norm2_of_residual/norm_max_of_residual*norm_max_of_b);
                         if (options->verbose) printf(" (new tolerance = %e).\n",tol);
+
                         last_norm2_of_residual=norm2_of_residual;
                         last_norm_max_of_residual=norm_max_of_residual;
+
                         /* call the solver */
                         switch (method) {
                         case PASO_BICGSTAB:
@@ -248,12 +269,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            }
                            break;
                         case PASO_MINRES:
-                           tol=tolerance*norm2_of_residual/norm2_of_b; 
-                           errorCode = Paso_Solver_MINRES(A, r, x0, &cntIter, &tol, pp);
-                           #pragma omp for private(i) schedule(static)
-                           for (i = 0; i < numEqua; i++) {
-                            x[i]+= x0[i];
-                           }
+                           /* tol=tolerance*norm2_of_residual/norm2_of_b; */
+                           errorCode = Paso_Solver_MINRES(A, r, x, &cntIter, &tol, pp);
                            break;
                         case PASO_PRES20:
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,5,20, pp); 
@@ -262,7 +279,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart, pp); 
                            break;
                         }
+
                         totIter += cntIter;
+
                         /* error handling  */
                         if (errorCode==SOLVER_NO_ERROR) {
                            finalizeIteration = FALSE;
@@ -272,14 +291,20 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
                            Paso_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");
                            if (options->verbose) printf("Paso_Solver: Internal error!\n");
+			} else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+			   Paso_setError(VALUE_ERROR,"Paso_Solver: negative energy norm (try other solver or preconditioner).");
+			   if (options->verbose) printf("Paso_Solver: negative energy norm (try other solver or preconditioner)!\n");
                         } else if ( errorCode == SOLVER_BREAKDOWN ) {
                            if (cntIter <= 1) {
                               Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
                               if (options->verbose) printf("Paso_Solver: Uncurable break down!\n");
                            } else {
-                              if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", cntIter+totIter, tol);
+                              if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
                               finalizeIteration = FALSE;
                            }
+                        } else {
+			   Paso_setError(SYSTEM_ERROR,"Paso_Solver:generic error in solver.");
+			   if (options->verbose) printf("Paso_Solver: generic error in solver!\n");
                         }
                       } else {
                          if (options->verbose) printf(". convergence! \n");
