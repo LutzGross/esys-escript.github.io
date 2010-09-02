@@ -147,7 +147,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
   }
   
-  parm->numQuadSub=numQuadSub;
   parm->numQuadTotal=parm->row_jac->numQuadTotal; 
   parm->NN=elements->numNodes;
   parm->numElements=elements->numElements;
