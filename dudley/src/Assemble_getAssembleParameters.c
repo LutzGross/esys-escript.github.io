@@ -24,7 +24,6 @@
 
 void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
-  dim_t  numSub,  numQuadSub;
   Dudley_resetError();
   
   if (!isEmpty(F) && !isExpanded(F) ) {
@@ -112,8 +111,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       } 
   }
 
-  numSub=MIN(parm->row_jac->numSub, parm->col_jac->numSub);
-  numQuadSub=parm->row_jac->numQuadTotal/numSub;
   if ( parm->row_jac->numDim !=parm->col_jac->numDim) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
@@ -132,19 +129,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   }
   if ( parm->row_jac->numQuadTotal !=parm->col_jac->numQuadTotal) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
-  }
-    /* to consider different basis function for rows and columns this will require some work :*/
-  if (numQuadSub * numSub != parm->row_jac->numQuadTotal) {
-     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row is not correct.");
-  }
-  if (numQuadSub  * numSub != parm->row_jac->numQuadTotal) {
-     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters:   number of quadrature points for column is not correct.");
-  }
-  if (numQuadSub != parm->row_jac->BasisFunctions->numQuadNodes) {
-     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
-  }
-  if (numQuadSub != parm->col_jac->BasisFunctions->numQuadNodes) {
-     Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");
   }
   
   parm->numQuadTotal=parm->row_jac->numQuadTotal; 
