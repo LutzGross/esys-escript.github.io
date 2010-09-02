@@ -34,6 +34,8 @@ import os
 from esys.escript.pdetools import Projector, Locator
 from esys.escript.unitsSI import *
 import numpy as np
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
