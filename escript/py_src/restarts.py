@@ -281,21 +281,24 @@ class DataManager(object):
         except:
             raise IOError, "Could not load stamp file "+stamp_file
         # load domain
-        path=os.path.join(self._workdir, self._restartdir)
-        for f in os.listdir(path):
-            if f.startswith("__mesh_finley"): 
-                ff=self.__getDumpFilename("__mesh_finley",self._restartdir)
-                import esys.finley
-                self._domain = esys.finley.LoadMesh(ff)
-                #print "Domain recovered from file %s."%ff
-                break
+        ff=self.__getDumpFilename("_domain",self._restartdir)
+        modname=self._stamp['__domainmodule']
+        clsname=self._stamp['__domainclass']
+        try:
+            domclass=__import__(modname, fromlist=[clsname])
+            self._domain = domclass.LoadMesh(ff)
+        except:
+            raise ImportError, "Unable to load %s using %s.%s!"%(ff, modname, clsname)
 
     def __saveState(self):
         restartdir = "%s_%04d"%(self._restartprefix, self._N)
         util.mkDir(os.path.join(self._workdir, restartdir))
         stamp_file=self.__getStampFilename(restartdir)
+        loadmethod=self._domain
+        self._stamp['__domainmodule']=self._domain.__module__
+        self._stamp['__domainclass']=type(self._domain).__name__
         cPickle.dump(self._stamp, open(stamp_file, "wb"))
-        ff=self.__getDumpFilename("__mesh_finley", restartdir)
+        ff=self.__getDumpFilename("_domain", restartdir)
         self._domain.dump(ff)
         for name, var in self._data.items():
             ff=self.__getDumpFilename(name, restartdir)
