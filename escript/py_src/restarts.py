@@ -76,6 +76,8 @@ class DataManager(object):
         self._md_schema=""
         self._data={}
         self._domain=None
+        self._meshlabels=["","",""]
+        self._meshunits=["","",""]
         self._stamp={}
         self._time=0.
         self._restartdir=None
@@ -172,6 +174,20 @@ class DataManager(object):
         """
         self._time = time
 
+    def setMeshLabels(self, x, y, z=""):
+        """
+        Sets labels for the mesh axes. These are currently only used by the
+        Silo exporter.
+        """
+        self._meshlabels=[x,y,z]
+
+    def setMeshUnits(self, x, y, z=""):
+        """
+        Sets units for the mesh axes. These are currently only used by the
+        Silo exporter.
+        """
+        self._meshunits=[x,y,z]
+
     def setMetadataSchemaString(self, schema, metadata=""):
         """
         Sets metadata namespaces and the corresponding metadata.
@@ -208,8 +224,8 @@ class DataManager(object):
         ds.setDomain(self._domain)
         ds.setCycleAndTime(self._N, self._time)
         ds.setMetadataSchemaString(self._metadata, self._md_schema)
-        #ds.setMeshLabels("x","y","z") # FIXME
-        #ds.setMeshUnits("cm","cm","cm") # FIXME
+        ds.setMeshLabels(self._meshlabels[0], self._meshlabels[1], self._meshlabels[2])
+        ds.setMeshUnits(self._meshunits[0], self._meshunits[1], self._meshunits[2])
         for n,d in idata.items():
             ds.addData(d, n, "") #FIXME: data units are not supported yet
 
