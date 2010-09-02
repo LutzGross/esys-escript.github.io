@@ -223,7 +223,7 @@ class DataManager(object):
         ds=EscriptDataset()
         ds.setDomain(self._domain)
         ds.setCycleAndTime(self._N, self._time)
-        ds.setMetadataSchemaString(self._metadata, self._md_schema)
+        ds.setMetadataSchemaString(self._md_schema, self._metadata)
         ds.setMeshLabels(self._meshlabels[0], self._meshlabels[1], self._meshlabels[2])
         ds.setMeshUnits(self._meshunits[0], self._meshunits[1], self._meshunits[2])
         for n,d in idata.items():
