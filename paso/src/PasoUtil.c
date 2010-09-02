@@ -123,6 +123,7 @@ void Paso_zeroes(const dim_t n, double* x)
    }
 
 }
+
 /*
  * performs an update of the form x=a*x+b*y  where y and x are long vectors.
  * if b=0, y is not used.
@@ -157,7 +158,7 @@ void Paso_Update(const dim_t n, const double a, double* x, const double b, const
             for (q=n_start;q<n_end;++q) {
               x[q]=0.;
             }
-        } else if ((ABS(a)==0) && (ABS(b)==1)) {
+        } else if ((ABS(a)==0) && (b==1)) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               x[q]=y[q];

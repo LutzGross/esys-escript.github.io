@@ -35,20 +35,6 @@
 
 /* free all memory used by AMG                                */
 
-void Paso_Solver_AMG_System_free(Paso_Solver_AMG_System * in) {
-     dim_t i;
-     if (in!=NULL) {
-        for (i=0;i<in->block_size;++i) {
-          Paso_Solver_AMG_free(in->amgblock[i]);
-          Paso_SparseMatrix_free(in->block[i]);
-        }
-        MEMFREE(in);
-     }
-}
-
-
-/* free all memory used by AMG                                */
-
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
      if (in!=NULL) {
         
@@ -122,6 +108,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
+  
+  
   index_t* mis_marker=NULL;  
   index_t* counter=NULL;
   /*index_t iPtr,*index, *where_p;*/
