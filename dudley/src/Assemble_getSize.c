@@ -36,7 +36,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   double *local_X=NULL,*element_size_array;
   dim_t e,n0,n1,q,i, NVertices, NN, NS, numQuad, numDim;
   index_t node_offset;
-  double d,diff,min_diff, f;
+  double d,diff,min_diff;
   Dudley_resetError();
 
   if (nodes==NULL || elements==NULL) return;
@@ -52,7 +52,6 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   /* set a few more parameters */
 
   node_offset=refElement->Type->offsets[0];
-  f=pow(0.5, pow((double)(refElement->Type->numSubElements), 1./(double)(numDim))-1);
 
   /* check the dimensions of element_size */
 
@@ -93,7 +92,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
 							}
 						}
 					}
-					min_diff=sqrt(MAX(min_diff,0))*f;
+					min_diff=sqrt(MAX(min_diff,0));
 					/* set all values to min_diff */
 					element_size_array=getSampleDataRW(element_size,e);
 					for (q=0;q<numQuad;q++) element_size_array[q]=min_diff;

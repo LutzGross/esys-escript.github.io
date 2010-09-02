@@ -33,8 +33,6 @@
 /*     The ids of the allowed reference ellements: */
 
 #define MAX_numNodes 64
-#define MAX_numSubElements 8
-#define MAX_numSides 2
 
 typedef enum {
   Point1,
@@ -55,20 +53,19 @@ typedef struct Dudley_ReferenceElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
-  dim_t numSubElements;                      /* number of subelements. >1 is macro elements are used. */
 
-  index_t offsets[MAX_numSides+1];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
+  index_t offsets[2];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
 
   
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
   
-  index_t linearNodes[MAX_numNodes*MAX_numSides];         /* gives the list of nodes defining the linear or macro element */
+  index_t linearNodes[MAX_numNodes];         /* gives the list of nodes defining the linear or macro element */
   
   Dudley_QuadTypeId Quadrature;                /* quadrature scheme */
   Dudley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
   Dudley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
 
-  index_t subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];         /* gives the list of nodes defining the subelements:
+  index_t subElementNodes[MAX_numNodes];         /* gives the list of nodes defining the subelements:
 																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
 /*********************************************************************************************************************************** */  
   dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element

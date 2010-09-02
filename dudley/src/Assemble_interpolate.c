@@ -32,7 +32,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   double* local_data=NULL; 
   index_t dof_offset;
   bool_t reduced_integration=FALSE;
-  dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0, numSub=0, isub, numShapesTotal2;
+  dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0, numShapesTotal2;
   Dudley_ReferenceElement* reference_element=NULL;
   Dudley_ShapeFunction *basis=NULL;
   dim_t numComps=getDataPointSize(data);
@@ -55,14 +55,12 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   if (data_type==DUDLEY_NODES) {
 	   type=NODES;
 	   resort_nodes=reference_element->Type->subElementNodes;
-	   numSub=reference_element->Type->numSubElements;
 	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
 	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
-	   numSub=1;
 	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
@@ -74,7 +72,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=DOF;
-	   numSub=reference_element->Type->numSubElements;
 	   resort_nodes=reference_element->Type->subElementNodes;
 	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
@@ -86,7 +83,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=REDUCED_DOF;
-	   numSub=1;
 	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
@@ -103,7 +99,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   
   /* check the dimensions of interpolated_data and data */
 
-  if (! numSamplesEqual(interpolated_data,numQuad*numSub,elements->numElements)) {
+  if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of input Data object");
@@ -115,31 +111,34 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 
   /* now we can start */
 
-  if (Dudley_noError()) {
-	   requireWrite(interpolated_data);
-	   #pragma omp parallel private(local_data, numComps_size, isub)
-	   {
-		  local_data=NULL; 
-		  /* allocation of work arrays */
-		  local_data=THREAD_MEMALLOC(NS_DOF*numComps*numSub,double); 
-		  if (! Dudley_checkPtr(local_data)) {
-			  numComps_size=(size_t)numComps*sizeof(double);
-			  /* open the element loop */
-			  #pragma omp for private(e,q,i,data_array,isub) schedule(static)
-			  for(e=0;e<elements->numElements;e++) {
-				  for (isub=0; isub<numSub; isub++) {
-					  for (q=0;q<NS_DOF;q++) {											  
-						  i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal2)],e,NN)];
-						  data_array=getSampleDataRO(data,map[i]);
-						  memcpy(&(local_data[INDEX3(0,q,isub, numComps,NS_DOF)]), data_array, numComps_size);
-					  }
-				  }
-				  /*  calculate interpolated_data=local_data*S */
-				  Dudley_Util_SmallMatSetMult1(numSub,numComps,numQuad,getSampleDataRW(interpolated_data,e),NS_DOF,local_data,basis->S);
-			  } /* end of element loop */
-		  }
-		   THREAD_MEMFREE(local_data);
-	 	} /* end of parallel region */
+  if (Dudley_noError())
+  {
+	requireWrite(interpolated_data);
+	#pragma omp parallel private(local_data, numComps_size, isub)
+	{
+	    local_data=NULL; 
+	    /* allocation of work arrays */
+	    local_data=THREAD_MEMALLOC(NS_DOF*numComps,double); 
+	    if (! Dudley_checkPtr(local_data))
+	    {
+		numComps_size=(size_t)numComps*sizeof(double);
+		/* open the element loop */
+		#pragma omp for private(e,q,i,data_array,isub) schedule(static)
+		for(e=0;e<elements->numElements;e++)
+		{
+			for (q=0;q<NS_DOF;q++)
+			{ 
+				    i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,0,numShapesTotal2)],e,NN)];
+				    data_array=getSampleDataRO(data,map[i]);
+				    memcpy(&(local_data[INDEX3(0,q,0, numComps,NS_DOF)]), data_array, numComps_size);
+			}
+			/*  calculate interpolated_data=local_data*S */
+			Dudley_Util_SmallMatSetMult1(1, numComps, numQuad, getSampleDataRW(interpolated_data,e),
+				 NS_DOF,local_data,basis->S);
+		} /* end of element loop */
+	    }
+	    THREAD_MEMFREE(local_data);
+	} /* end of parallel region */
   }
   #undef NODES 
   #undef REDUCED_NODES 
