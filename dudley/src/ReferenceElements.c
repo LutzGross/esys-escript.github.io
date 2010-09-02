@@ -169,12 +169,7 @@ Dudley_ReferenceElement* Dudley_ReferenceElement_alloc(ElementTypeId id, int ord
 			quadWeights2=MEMALLOC(numQuadNodes*nsub,double);
 			if ( !( Dudley_checkPtr(quadNodes2) || Dudley_checkPtr(quadWeights2) || Dudley_checkPtr(out->DBasisFunctionDv)) ) {
 
-				numQuadNodes2=quadscheme->getMacro(nsub,out->BasisFunctions->numQuadNodes,
-                                                                        out->BasisFunctions->QuadNodes,
-                                                                        out->BasisFunctions->QuadWeights,
-                                                                        out->BasisFunctions->Type->numShapes, out->BasisFunctions->dSdv,
-                                                                        numQuadNodes*nsub, quadNodes2, quadWeights2,
-                                                                        out->DBasisFunctionDv);
+				numQuadNodes2=nsub*out->BasisFunctions->numQuadNodes;	// fake output of macro function
 				if (Dudley_noError()) {
 					out->Parametrization=Dudley_ShapeFunction_alloc(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2);
 					out->LinearBasisFunctions=Dudley_ShapeFunction_alloc(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2); 

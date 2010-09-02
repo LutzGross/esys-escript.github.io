@@ -33,9 +33,9 @@ typedef enum {
   PointQuad,
   LineQuad,
   TriQuad,
-  RecQuad,
+//  RecQuad,
   TetQuad,
-  HexQuad,
+//  HexQuad,
   NoQuad   /* marks end of list */
 } Dudley_QuadTypeId;
 
@@ -53,7 +53,6 @@ typedef struct Dudley_QuadInfo {
   dim_t numVertices;                         /* number of vertices of the element */
   Dudley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
   Dudley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
-  Dudley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
 }  Dudley_QuadInfo;
 
 /**************************************************************/
@@ -61,38 +60,38 @@ typedef struct Dudley_QuadInfo {
 /*     Interfaces: */
 
 
-Dudley_Quad_getMacro Dudley_Quad_MacroPoint;
-Dudley_Quad_getMacro Dudley_Quad_MacroLine;
-Dudley_Quad_getMacro Dudley_Quad_MacroTri;
-Dudley_Quad_getMacro Dudley_Quad_MacroRec;
-Dudley_Quad_getMacro Dudley_Quad_MacroTet;
-Dudley_Quad_getMacro Dudley_Quad_MacroHex;
+// Dudley_Quad_getMacro Dudley_Quad_MacroPoint;
+// Dudley_Quad_getMacro Dudley_Quad_MacroLine;
+// Dudley_Quad_getMacro Dudley_Quad_MacroTri;
+// Dudley_Quad_getMacro Dudley_Quad_MacroRec;
+// Dudley_Quad_getMacro Dudley_Quad_MacroTet;
+// Dudley_Quad_getMacro Dudley_Quad_MacroHex;
 
 
 Dudley_Quad_getNodes Dudley_Quad_getNodesTri;
 Dudley_Quad_getNodes Dudley_Quad_getNodesTet;
-Dudley_Quad_getNodes Dudley_Quad_getNodesRec;
-Dudley_Quad_getNodes Dudley_Quad_getNodesHex;
+//Dudley_Quad_getNodes Dudley_Quad_getNodesRec;
+//Dudley_Quad_getNodes Dudley_Quad_getNodesHex;
 Dudley_Quad_getNodes Dudley_Quad_getNodesLine;
 Dudley_Quad_getNodes Dudley_Quad_getNodesPoint;
 Dudley_Quad_getNodes Dudley_Quad_getNodesTriOnFace;
-Dudley_Quad_getNodes Dudley_Quad_getNodesRecOnFace;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesRecOnFace;
 Dudley_Quad_getNodes Dudley_Quad_getNodesLineOnFace;
 Dudley_Quad_getNodes Dudley_Quad_getNodesPointOnFace;
-Dudley_Quad_getNodes Dudley_Quad_getNodesTriMacro;
-Dudley_Quad_getNodes Dudley_Quad_getNodesTetMacro;
-Dudley_Quad_getNodes Dudley_Quad_getNodesRecMacro;
-Dudley_Quad_getNodes Dudley_Quad_getNodesHexMacro;
-Dudley_Quad_getNodes Dudley_Quad_getNodesLineMacro;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesTriMacro;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesTetMacro;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesRecMacro;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesHexMacro;
+// Dudley_Quad_getNodes Dudley_Quad_getNodesLineMacro;
 
 
 
 Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesPoint;
 Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesLine;
 Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesTri;
-Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesRec;
+//Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesRec;
 Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesTet;
-Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesHex;
+//Dudley_Quad_getNumNodes Dudley_Quad_getNumNodesHex;
 
 void Dudley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Dudley_Quad_getNodes);
 Dudley_QuadInfo* Dudley_QuadInfo_getInfo(Dudley_QuadTypeId id);
