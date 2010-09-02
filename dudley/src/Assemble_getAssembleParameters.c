@@ -114,9 +114,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
 
   numSub=MIN(parm->row_jac->numSub, parm->col_jac->numSub);
   numQuadSub=parm->row_jac->numQuadTotal/numSub;
-  if ( parm->row_jac->numSides !=parm->col_jac->numSides) {
-      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of sides for row and column shape functions must match.");
-  } 
   if ( parm->row_jac->numDim !=parm->col_jac->numDim) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
@@ -158,7 +155,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   parm->numDim=parm->row_jac->numDim;
   parm->col_node=parm->col_jac->node_selection;
   parm->row_node=parm->row_jac->node_selection;
-  parm->numSides=parm->row_jac->numSides;
   parm->row_numShapesTotal=parm->row_jac->numShapesTotal;
   parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
   parm->col_numShapesTotal=parm->col_jac->numShapesTotal;
