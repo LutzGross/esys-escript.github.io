@@ -264,82 +264,23 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Pas
         if (p.numEqu > 1) {
           /* system of PDESs */
           if (p.numDim==3) {
-            if ( p.numSides == 1 ) {
                Dudley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.numSides == 2 ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
+
           } else if (p.numDim==2) {
-            if ( p.numSides == 1 ) {
                Dudley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if (  p.numSides == 2 ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
           } else if (p.numDim==1) {
-            if ( p.numSides == 1  ) {
                Dudley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.numSides == 2 ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
           } else {
             Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
           }
         } else {
           /* single PDES */
           if (p.numDim==3) {
-            if ( p.numSides == 1  ) {
                Dudley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.numSides == 2 ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
           } else if (p.numDim==2) {
-            if ( p.numSides == 1 ) {
                Dudley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.numSides == 2 ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
           } else if (p.numDim==1) {
-            if ( p.numSides == 1 ) {
                Dudley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
-            } else if ( p.numSides == 2  ) {
-               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
-                  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
-               } else {
-                  Dudley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
-               }
-            } else {
-               Dudley_setError(TYPE_ERROR,"Dudley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
-            }
           } else {
             Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
           }

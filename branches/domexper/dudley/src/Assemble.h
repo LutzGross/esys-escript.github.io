@@ -33,7 +33,6 @@
 struct Assemble_Parameters {
    dim_t numQuadTotal; /* total number of quadrature nodes = numQuadSub * numQuadSub */
    dim_t numQuadSub; /* number of quadrature nodes per subelements */
-   dim_t numSides; /* number of sides */
    dim_t numSub;  /* number of subelements */
    dim_t numDim;  /* spatial dimension */ 
    dim_t NN;     /* leading dimension of element node table */

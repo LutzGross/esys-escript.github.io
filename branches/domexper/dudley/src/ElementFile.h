@@ -30,7 +30,6 @@ struct Dudley_ElementFile_Jacobeans {
   dim_t numDim;                         /* spatial dimension */
   Dudley_ShapeFunction* BasisFunctions; /* basis function used */
   dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobeans = numSub * BasisFunctions->numQuadNodes*/
-  dim_t numSides;                   /* number of sides (=1 normal, =2 contact) */
   index_t* offsets;         /* offset to sides (borrowed reference) */
   dim_t numSub;         /* number of subelements        */
   dim_t numShapesTotal;         /* total number of shape functions =  BasisFunctions->numShapes * numSides */

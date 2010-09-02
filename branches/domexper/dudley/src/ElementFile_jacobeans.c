@@ -83,8 +83,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 
      out->numDim=nodes->numDim;
      out->numQuadTotal=shape->numQuadNodes; 
-     out->numSides=1;
-     out->numShapesTotal=basis->Type->numShapes * out->numSides; 
+     out->numShapesTotal=basis->Type->numShapes; 
      out->numElements=self->numElements;
      
      if (reducedShapefunction) {
@@ -119,14 +118,10 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
              if (refElement->numLocalDim==0) {
 		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
-                  if (out->numSides==2) {
 				       Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                             shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                             shape->dSdv,basis->Type->numShapes,dBdv, out->DSDX,out->volume,self->Id);
 
-                  } else {
-                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 1D supports one sided elements only.");
-                  }
              } else {
                   Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
              }
@@ -136,46 +131,23 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 				 Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
                   if (out->BasisFunctions->Type->numDim==2) {
-                     if (out->numSides==1) {
                         Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
-                     } else if (out->numSides==2) {
-                        Assemble_jacobeans_2D_M1D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                        shape->dSdv,basis->Type->numShapes,dBdv,
-                                                        out->DSDX,out->volume,self->Id);
-                     } else {
-                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
-                      }
                   }  else if (out->BasisFunctions->Type->numDim==1) {
-                     if (out->numSides==1) {
                         Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
-                     } else if (out->numSides==2) {
-                        Assemble_jacobeans_2D_M1D_E1D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                        shape->dSdv,basis->Type->numShapes,dBdv,
-                                                        out->DSDX,out->volume,self->Id);
-                     } else {
-                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
-                      }
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
                   }
              } else if (refElement->numLocalDim==2) {
-                  if (out->numSides==1) {
                      Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);
-                  } else {
-                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D volume supports one sided elements only.");
-                  }
-
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
              }
@@ -185,45 +157,23 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D does not support local dimension 0.");
              } else if (refElement->numLocalDim==2) {
                   if (out->BasisFunctions->Type->numDim==3) {
-                     if (out->numSides==1) {
                         Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
-                     } else if (out->numSides==2) {
-                        Assemble_jacobeans_3D_M2D_E3D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                        shape->dSdv,basis->Type->numShapes,dBdv,
-                                                        out->DSDX,out->volume,self->Id);
-                     } else {
-                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
-                      }
                   }  else if (out->BasisFunctions->Type->numDim==2) {
-                     if (out->numSides==1) {
                         Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
-                     } else if (out->numSides==2) {
-                        Assemble_jacobeans_3D_M2D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                        shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                        shape->dSdv,basis->Type->numShapes,dBdv,
-                                                        out->DSDX,out->volume,self->Id);
-                     } else {
-                          Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
-                      }
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
                   }
              } else if (refElement->numLocalDim==3) {
-                  if (out->numSides==1) {
                      Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);
-                  } else {
-                      Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D volume supports one sided elements only..");
-                  }
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
              }
