@@ -32,14 +32,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
-from esys.finley import Rectangle # This imports the rectangle domain function from finley
+from esys.finley import ReadMesh
 import os, sys #This package is necessary to handle saving our data.
-from math import pi, sqrt, sin, cos
-
-from esys.escript.pdetools import Projector
-from cblib import toRegGrid
-import pylab as pl #Plotting package
-import numpy as np
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -48,14 +42,6 @@ if getMPISizeWorld() > 1:
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
-#Domain related.
-mx = 5000*m #meters - model length
-my = -5000*m #meters - model width
-ndx = 100 # mesh steps in x direction 
-ndy = 100 # mesh steps in y direction - one dimension means one element
-#PDE related
-rho=200.0
-rholoc=[2500,-2500]
 G=6.67300*10E-11
 
 ################################################ESTABLISHING PARAMETERS
@@ -65,52 +51,23 @@ save_path= os.path.join("data","example10")
 mkDir(save_path)
 
 ####################################################DOMAIN CONSTRUCTION
-domain = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
+domain=ReadMesh(os.path.join(save_path,'fault.fly')) # create the domain
 x=Solution(domain).getX()
-mask=wherePositive(10-length(x-rholoc))
-rho=rho*mask
+rho=Scalar(0,Function(domain))
+rho.setTaggedValue("xx",500.)
+rho.setTaggedValue("limestone",0.0)
+rho.setTaggedValue("fault",1200.)
+
 kro=kronecker(domain)
 
-q=whereZero(x[1]-my)+whereZero(x[1])+whereZero(x[0])+whereZero(x[0]-mx)
+q=whereZero(x[2])#-sup(x[2]))
 ###############################################ESCRIPT PDE CONSTRUCTION
 
 mypde=LinearPDE(domain)
 mypde.setValue(A=kro,Y=4.*3.1415*G*rho,q=q,r=0)
-mypde.setSymmetryOn()
 sol=mypde.getSolution()
-
-g_field=grad(sol) #The graviational accelleration g.
-g_fieldz=g_field*[0,1] #
-gz=length(g_fieldz)
-# Save the output to file.
-saveVTK(os.path.join(save_path,"ex10a.vtu"),\
-        grav_pot=sol,g_field=g_field,g_fieldz=g_fieldz,gz=gz)
-
-##################################################REGRIDDING & PLOTTING
-
-
-xi, yi, zi = toRegGrid(sol, nx=50, ny=50)
-pl.matplotlib.pyplot.autumn()
-pl.contourf(xi,yi,zi,10)
-pl.xlabel("Horizontal Displacement (m)")
-pl.ylabel("Depth (m)")
-pl.savefig(os.path.join(save_path,"Ucontour.png"))
-print "Solution has been plotted  ..."
-
-cut=int(len(xi)/2)
-
-pl.clf()
-
-r=np.linspace(0,mx/2,100)
-m=2*pl.pi*10*10*200*-G/(r*r)
-
-pl.plot(xi,zi[:,cut])
-#pl.plot(r+2500,m)
-pl.title("Potential Profile")
-pl.xlabel("Horizontal Displacement (m)")
-pl.ylabel("Potential")
-pl.savefig(os.path.join(save_path,"Upot00.png"))
-
-out=np.array([xi,zi[:,cut]])
-pl.savetxt('profile1.asc',out.transpose())
-pl.clf()
+saveVTK(os.path.join(save_path,"ex10c.vtu"),\
+        grav_pot=sol,\
+        g_field=-grad(sol),\
+        g_fieldz=-grad(sol)*[0,0,1],\
+        gz=length(-grad(sol)*[0,0,1]))
