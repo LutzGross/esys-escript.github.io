@@ -51,7 +51,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
 
     #define DIM 1
     index_t color;
-    dim_t e, isub;
+    dim_t e;
     __const double *A_p, *B_p, *C_p, *D_p, *X_p, *Y_p, *A_q, *B_q, *C_q, *D_q, *X_q, *Y_q;
     double *EM_S, *EM_F, *Vol, *DSDX;
     index_t *row_index;
@@ -70,7 +70,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
     dim_t len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal;
     dim_t len_EM_F=p.row_numShapesTotal;
 
-    #pragma omp parallel private(color, EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q, row_index, q, s,r,rtmp,add_EM_F, add_EM_S, isub)
+    #pragma omp parallel private(color, EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q, row_index, q, s,r,rtmp,add_EM_F, add_EM_S)
     {
        EM_S=THREAD_MEMALLOC(len_EM_S,double);
        EM_F=THREAD_MEMALLOC(len_EM_F,double);
@@ -92,9 +92,8 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                   X_p=getSampleDataRO(X,e);
                   Y_p=getSampleDataRO(Y,e);
 
-                  for (isub=0; isub<p.numSub; isub++) {
-                      Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                      DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,isub,e, p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
+                      Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadSub,1)]);
+                      DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,0,e, p.row_numShapesTotal,DIM,p.numQuadSub,1)]);
                       for (q=0;q<len_EM_S;++q) EM_S[q]=0;
                       for (q=0;q<len_EM_F;++q) EM_F[q]=0;
                       add_EM_F=FALSE;
@@ -105,7 +104,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=A_p) {
                          add_EM_S=TRUE;
                          if (extendedA) {
-			    A_q=&(A_p[INDEX4(0,0,0,isub, DIM,DIM,p.numQuadSub)]);
+			    A_q=&(A_p[INDEX4(0,0,0,0, DIM,DIM,p.numQuadSub)]);
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                  rtmp=0;
@@ -131,7 +130,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=B_p) {
                          add_EM_S=TRUE;
                          if (extendedB) {
-			    B_q=&(B_p[INDEX3(0,0,isub, DIM, p.numQuadSub)]);
+			    B_q=&(B_p[INDEX3(0,0,0, DIM, p.numQuadSub)]);
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                 rtmp=0;
@@ -157,7 +156,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=C_p) {
                          add_EM_S=TRUE;
                         if (extendedC) {
-			    C_q=&(C_p[INDEX3(0,0,isub, DIM, p.numQuadSub)]);
+			    C_q=&(C_p[INDEX3(0,0,0, DIM, p.numQuadSub)]);
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                 rtmp=0;
@@ -183,7 +182,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=D_p) {
                         add_EM_S=TRUE;
                         if (extendedD) {
-			    D_q=&(D_p[INDEX2(0,isub, p.numQuadSub)]);
+			    D_q=&(D_p[INDEX2(0,0, p.numQuadSub)]);
                             for (s=0;s<p.row_numShapes;s++) {
                               for (r=0;r<p.col_numShapes;r++) {
                                  rtmp=0;
@@ -209,7 +208,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=X_p) {
                         add_EM_F=TRUE;
                         if (extendedX) {
-		           X_q=&(X_p[INDEX3(0,0,isub, DIM,p.numQuadSub)]);
+		           X_q=&(X_p[INDEX3(0,0,0, DIM,p.numQuadSub)]);
                            for (s=0;s<p.row_numShapes;s++) {
                              rtmp=0;
                              for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*X_q[INDEX2(0,q,DIM)];
@@ -229,7 +228,7 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                       if (NULL!=Y_p) {
                         add_EM_F=TRUE;
                         if (extendedY) {
-			   Y_q=&(Y_p[INDEX2(0,isub, p.numQuadSub)]);
+			   Y_q=&(Y_p[INDEX2(0,0, p.numQuadSub)]);
                            for (s=0;s<p.row_numShapes;s++) {
                               rtmp=0;
                               for (q=0;q<p.numQuadSub;q++) rtmp+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[q];
@@ -246,11 +245,10 @@ void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                        /***********************************************************************************************/
                        /* add the element matrices onto the matrix and right hand side                                */
                        /***********************************************************************************************/
-                       for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+                       for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,0,p.row_numShapesTotal)],e,p.NN)]];
 		       
                        if (add_EM_F) Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
                        if (add_EM_S) Dudley_Assemble_addToSystemMatrix(Mat,p.row_numShapesTotal,row_index,p.numEqu,p.col_numShapesTotal,row_index,p.numComp,EM_S);
-                  } /* end of isub */
    
                 } /* end color check */
              } /* end element loop */

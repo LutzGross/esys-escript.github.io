@@ -148,7 +148,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   }
   
   parm->numQuadSub=numQuadSub;
-  parm->numSub=numSub;
   parm->numQuadTotal=parm->row_jac->numQuadTotal; 
   parm->NN=elements->numNodes;
   parm->numElements=elements->numElements;
