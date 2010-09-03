@@ -355,15 +355,12 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     /* write number of points and the mesh component */
 
     if (Dudley_noError()) {
-        const index_t *nodeIndex;
+	int flag1=0;
         if (DUDLEY_REDUCED_NODES == nodeType) {
-            nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
+            flag1=1;
         } else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
-            nodeIndex = elements->referenceElementSet->referenceElement->Type->relevantGeoNodes;
-        } else {
-            nodeIndex = NULL;
-        }
-
+            flag1=1;
+        } 
         if (strlen(metadata)>0) {
            if (strlen(metadata_schema)>0) {
               sprintf(txtBuffer, vtkHeader," ",metadata_schema,metadata,"\n",globalNumPoints, numCellFactor*globalNumCells, 3);
@@ -410,7 +407,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             MPI_RANK0_WRITE_SHARED(tags_End_Points_and_Start_Conn);
             txtBuffer[0] = '\0';
             txtBufferInUse = 0;
-            if (nodeIndex == NULL) {
+            if (!flag1) {
                 for (i = 0; i < numCells; i++) {
                     if (elements->Owner[i] == my_mpi_rank) {
                         for (j = 0; j < numVTKNodesPerElement; j++) {
@@ -424,9 +421,9 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
                 for (i = 0; i < numCells; i++) {
                     if (elements->Owner[i] == my_mpi_rank) {
                         for (l = 0; l < numCellFactor; l++) {
-                            const int* idx=&nodeIndex[l*numVTKNodesPerElement];
+			    const int idx=l*numVTKNodesPerElement;
                             for (j = 0; j < numVTKNodesPerElement; j++) {
-                                sprintf(tmpBuffer, INT_FORMAT, globalNodeIndex[elements->Nodes[INDEX2(idx[j], i, NN)]]);
+                                sprintf(tmpBuffer, INT_FORMAT, globalNodeIndex[elements->Nodes[INDEX2(idx+j, i, NN)]]);
                                 __STRCAT(txtBuffer, tmpBuffer, txtBufferInUse);
                             }
                             __STRCAT(txtBuffer, NEWLINE, txtBufferInUse);
@@ -489,7 +486,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 
             /* write the cells */
             fputs(tags_End_Points_and_Start_Conn, fileHandle_p);
-            if (nodeIndex == NULL) {
+            if (!flag1) {
                 for (i = 0; i < numCells; i++) {
                     for (j = 0; j < numVTKNodesPerElement; j++) {
                         fprintf(fileHandle_p, INT_FORMAT, globalNodeIndex[elements->Nodes[INDEX2(j, i, NN)]]);
@@ -499,9 +496,9 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             } else {
                 for (i = 0; i < numCells; i++) {
                     for (l = 0; l < numCellFactor; l++) {
-                        const int* idx=&nodeIndex[l*numVTKNodesPerElement];
+                        const int idx=l*numVTKNodesPerElement;
                         for (j = 0; j < numVTKNodesPerElement; j++) {
-                            fprintf(fileHandle_p, INT_FORMAT, globalNodeIndex[elements->Nodes[INDEX2(idx[j], i, NN)]]);
+                            fprintf(fileHandle_p, INT_FORMAT, globalNodeIndex[elements->Nodes[INDEX2(idx+j, i, NN)]]);
                         }
                         fprintf(fileHandle_p, NEWLINE);
                     }

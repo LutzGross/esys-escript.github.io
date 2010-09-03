@@ -59,14 +59,10 @@ typedef struct Dudley_ReferenceElementInfo {
   
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
   
-  index_t linearNodes[MAX_numNodes];         /* gives the list of nodes defining the linear or macro element */
-  
   Dudley_QuadTypeId Quadrature;                /* quadrature scheme */
   Dudley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
   Dudley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
 
-  index_t subElementNodes[MAX_numNodes];         /* gives the list of nodes defining the subelements:
-																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
 /*********************************************************************************************************************************** */  
   dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
                                                 typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 

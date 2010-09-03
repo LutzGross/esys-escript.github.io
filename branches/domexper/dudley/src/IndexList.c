@@ -34,27 +34,23 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
   index_t color;
   Dudley_ReferenceElement*refElement; 
-  dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN, *row_node=NULL, *col_node=NULL;
+  dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN;
   if (elements!=NULL)
   {
     NN=elements->numNodes;
     refElement= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
     if (reduce_col_order)
     {
-	col_node=refElement->Type->linearNodes;
 	NN_col=(refElement->LinearBasisFunctions->Type->numShapes);
     }
     else
     {
-	col_node=refElement->Type->subElementNodes;
 	NN_col=(refElement->BasisFunctions->Type->numShapes);
     }
     if (reduce_row_order)
     {
-	row_node=refElement->Type->linearNodes;
 	NN_row=(refElement->LinearBasisFunctions->Type->numShapes);
     } else {
-	row_node=refElement->Type->subElementNodes;
 	NN_row=(refElement->BasisFunctions->Type->numShapes) ;
     }
 
@@ -67,10 +63,10 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
 		{
 			for (kr=0;kr<NN_row;kr++)
 			{
-				irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,0,NN_row)],e,NN)]];
+				irow=row_map[elements->Nodes[INDEX2(kr,e,NN)]];
 				for (kc=0;kc<NN_col;kc++)
 				{
-				icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,0,NN_col)],e,NN)]];
+				icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
 				Dudley_IndexList_insertIndex(&(index_list[irow]),icol);
 				}
 			}
