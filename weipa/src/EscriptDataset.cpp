@@ -517,7 +517,8 @@ bool EscriptDataset::saveVTK(string fileName)
         }
         oss << ">" << endl;
         if (mdString.length()>0) {
-            oss << mdString << endl;
+            oss << "<MetaData>" << endl << mdString << endl
+                << "</MetaData>" << endl;
         }
         oss << "<UnstructuredGrid>" << endl;
 
@@ -715,7 +716,7 @@ bool EscriptDataset::loadDomain(const string filePattern, int nBlocks)
                 meshBlocks.push_back(chunk);
             } else {
                 cerr << "Error initializing domain!" << endl;
-                myError = 1;
+                myError = 2;
             }
         } else {
             for (int idx=0; idx < nBlocks; idx++) {
@@ -728,7 +729,7 @@ bool EscriptDataset::loadDomain(const string filePattern, int nBlocks)
                     meshBlocks.push_back(chunk);
                 } else {
                     cerr << "Error initializing domain block " << idx << endl;
-                    myError = 1;
+                    myError = 2;
                     break;
                 }
             }
@@ -746,14 +747,13 @@ bool EscriptDataset::loadDomain(const string filePattern, int nBlocks)
         gError = myError;
     }
 
-    if (gError) {
+    if (gError>1) {
         meshBlocks.clear();
-    } else {
+    } else if (gError==0) {
         // Convert mesh data to variables
         convertMeshVariables();
     }
-
-    return !gError;
+    return (gError==0);
 }
 
 //
