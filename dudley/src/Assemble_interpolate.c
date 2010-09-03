@@ -30,7 +30,6 @@
 void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* elements,escriptDataC* data,escriptDataC* interpolated_data) {
   __const double *data_array;
   double* local_data=NULL; 
-  index_t dof_offset;
   bool_t reduced_integration=FALSE;
   dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0, numShapesTotal2;
   Dudley_ReferenceElement* reference_element=NULL;
@@ -57,13 +56,11 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
-	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedNodes(nodes);
-	   dof_offset=reference_element->LinearType->offsets[0];
   } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
 	   if (elements->MPIInfo->size>1) {
 		  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
@@ -73,7 +70,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
-	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
 	   if (elements->MPIInfo->size>1) {
 		  Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
@@ -83,7 +79,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
-	   dof_offset=reference_element->LinearType->offsets[0];
    } else {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: Cannot interpolate data");
 	   return;

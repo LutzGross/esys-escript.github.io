@@ -30,7 +30,7 @@ void Dudley_Mesh_glueFaces(Dudley_Mesh* self,double safety_factor,double toleran
    Dudley_NodeFile *newNodeFile=NULL;
    Dudley_ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
-   index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
+   index_t  *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL;
    Dudley_ReferenceElement*  faceRefElement=NULL;
    
    if (self->MPIInfo->size>1) {
@@ -43,7 +43,6 @@ void Dudley_Mesh_glueFaces(Dudley_Mesh* self,double safety_factor,double toleran
    NNFace=faceRefElement->Type->numNodesOnFace;
    NN=self->FaceElements->numNodes;
    numDim=self->Nodes->numDim;
-   faceNodes=faceRefElement->Type->faceNodes;
    
    if (NNFace<=0) {
      sprintf(error_msg,"Dudley_Mesh_glueFaces:glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
@@ -70,8 +69,7 @@ void Dudley_Mesh_glueFaces(Dudley_Mesh* self,double safety_factor,double toleran
              elem_mask[elem0[e]]=1;
              elem_mask[elem1[e]]=1;
              for (i=0;i<NNFace;i++) {
-                face_node=faceNodes[i];
-                new_node_label[matching_nodes_in_elem1[INDEX2(face_node,e,NN)]]=self->FaceElements->Nodes[INDEX2(face_node,elem0[e],NN)];
+                new_node_label[matching_nodes_in_elem1[INDEX2(i,e,NN)]]=self->FaceElements->Nodes[INDEX2(i,elem0[e],NN)];
              }
          }
          /* create an index of face elements */

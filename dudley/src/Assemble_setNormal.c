@@ -29,7 +29,7 @@
 
 void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escriptDataC* normal) {
   double *local_X=NULL, *dVdv=NULL,*normal_array;
-  index_t sign,node_offset;
+  index_t sign;
   Dudley_ReferenceElement* reference_element=NULL;
   dim_t e,q, NN, NS, numDim, numQuad, numDim_local;
   if (nodes==NULL || elements==NULL) return;
@@ -46,7 +46,6 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   
   /* set some parameter */
 
-  node_offset=reference_element->Type->offsets[0];
   sign=1;
   /* check the dimensions of normal */
   if (! (numDim==numDim_local || numDim-1==numDim_local)) {
@@ -75,7 +74,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 					   #pragma omp for private(e,q,normal_array) schedule(static)
 					   for(e=0;e<elements->numElements;e++) {
 						  /* gather local coordinates of nodes into local_X: */
-						  Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
+						  Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,local_X);
 						  /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
 						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->Parametrization->dSdv);
 						  /* get normalized vector:	 */

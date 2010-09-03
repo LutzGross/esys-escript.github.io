@@ -53,9 +53,6 @@ typedef struct Dudley_ReferenceElementInfo {
   ElementTypeId TypeId;                      /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
-
-  index_t offsets[2];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
-
   
   ElementTypeId LinearTypeId;                /* id of the linear version of the element */
   
@@ -64,15 +61,10 @@ typedef struct Dudley_ReferenceElementInfo {
   Dudley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
 
 /*********************************************************************************************************************************** */  
-  dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
-                                                typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 
-						this is the number of nodes on the particular face. */
-  index_t relevantGeoNodes[MAX_numNodes];    /* list to gather the geometrically relevant nodes (length used is numRelevantGeoNodes)
-                                                this list is used for VTK interface */
-  
+ 
   dim_t numNodesOnFace;                       /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes defining the face */
                                               /* the following lists are only used for face elements defined by numNodesOnFace>0 */
-  index_t faceNodes[MAX_numNodes];             /* list of the nodes defining the face */
+
   index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
   index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. the permutation has keep 0 fixed. */
                                               /* shiftNodes={-1} or reverseNodes={-1} are ignored. */

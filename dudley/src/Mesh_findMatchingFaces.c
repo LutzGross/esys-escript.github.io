@@ -61,7 +61,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
     char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;   
     Dudley_Mesh_findMatchingFaces_center *center;
-    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL, *faceNodes=NULL, *shiftNodes=NULL, *reverseNodes=NULL ;
+    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL, *shiftNodes=NULL, *reverseNodes=NULL ;
     dim_t e,i,i0,i1,n,NN,numNodesOnFace;
 	
 	dim_t numDim=nodes->numDim;
@@ -70,7 +70,6 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
     NN=faces->numNodes;
 	
 	numNodesOnFace=refElement->Type->numNodesOnFace;
-	faceNodes=refElement->Type->faceNodes;
 	shiftNodes=refElement->Type->shiftNodes;
 	reverseNodes=refElement->Type->reverseNodes;
 	
@@ -92,13 +91,13 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
             center[e].refId=e;
             for (i=0;i<MAX_numDim;i++) center[e].x[i]=0;
             for (i0=0;i0<numNodesOnFace;i0++) {
-               for (i=0;i<numDim;i++) center[e].x[i]+=X[INDEX3(i,faceNodes[i0],e,numDim,NN)];
+               for (i=0;i<numDim;i++) center[e].x[i]+=X[INDEX3(i,i0,e,numDim,NN)];
             }
             for (i=0;i<numDim;i++) center[e].x[i]/=numNodesOnFace;
             /* get the minimum distance between nodes in the element */
             for (i0=0;i0<numNodesOnFace;i0++) {
                for (i1=i0+1;i1<numNodesOnFace;i1++) {
-                  getDist(h_local,e,faceNodes[i0],e,faceNodes[i1]);
+                  getDist(h_local,e,i0,e,i1);
                   h=MIN(h,h_local);
                }
             }
@@ -147,7 +146,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
               /* now we check if the second nodes match */
               if (Dudley_noError()) {
                  if (numNodesOnFace>1) {
-                    getDist(dist,e_0,1,e_1,perm[faceNodes[1]]);
+                    getDist(dist,e_0,1,e_1,perm[1]);
                     /* if the second node does not match we reverse the direction of the nodes */
                     if (dist>h*tolerance) {
                           /* rotate the nodes */
@@ -160,7 +159,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
                              perm_tmp=itmp_ptr;
                              #pragma ivdep
                              for (i=0;i<NN;i++) perm[i]=perm_tmp[reverseNodes[i]];
-                             getDist(dist,e_0,1,e_1,perm[faceNodes[1]]);
+                             getDist(dist,e_0,1,e_1,perm[1]);
                              if (dist>h*tolerance) {
                                  sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
                                  Dudley_setError(VALUE_ERROR,error_msg);
@@ -172,7 +171,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
               /* we check if the rest of the face nodes match: */
               if (Dudley_noError()) {
                  for (i=2;i<numNodesOnFace;i++) {
-                    n=faceNodes[i];
+                    n=i;
                     getDist(dist,e_0,n,e_1,perm[n]);
                     if (dist>h*tolerance) {
                        sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);

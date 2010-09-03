@@ -35,7 +35,6 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   Dudley_ReferenceElement*  refElement=NULL;
   double *local_X=NULL,*element_size_array;
   dim_t e,n0,n1,q,i, NVertices, NN, NS, numQuad, numDim;
-  index_t node_offset;
   double d,diff,min_diff;
   Dudley_resetError();
 
@@ -49,10 +48,6 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   NVertices=refElement->Parametrization->Type->numVertices;
   
   
-  /* set a few more parameters */
-
-  node_offset=refElement->Type->offsets[0];
-
   /* check the dimensions of element_size */
 
   if (! numSamplesEqual(element_size,numQuad,elements->numElements)) {
@@ -75,7 +70,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
 				#pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
 				for(e=0;e<elements->numElements;e++) {
 					/* gather local coordinates of nodes into local_X(numDim,NN): */
-					Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(node_offset,e,NN)]),numDim,nodes->Coordinates,local_X);
+					Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,local_X);
 					/* calculate minimal differences */
 					min_diff=-1;
 					for (n0=0;n0<NVertices;n0++) {

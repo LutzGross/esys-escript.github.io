@@ -37,7 +37,6 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   dim_t numNodes=0, numShapes=0, numShapesTotal=0, numComps, NN=0, numDim=0, numShapesTotal2=0, numQuad=0;
   type_t data_type=getFunctionSpaceType(data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
-  index_t s_offset=0;
   Dudley_ElementFile_Jacobeans* jac=NULL;
   
   Dudley_resetError();
@@ -79,8 +78,6 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
           numShapes=jac->BasisFunctions->Type->numShapes;
 	  numShapesTotal=jac->numShapesTotal;
 	  numQuad=jac->numQuadTotal;
-       	  s_offset=jac->offsets[0];
-       	  s_offset=jac->offsets[0];
 	  localGradSize=sizeof(double)*numDim*numQuad*numComps;
 	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
 		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes;
@@ -97,9 +94,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of components in gradient data object.");
       }  else if (!isExpanded(grad_data)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: expanded Data object is expected for output data.");
-      } else if (! (s_offset+numShapes <= numShapesTotal)) {
+      } else if (! (numShapes <= numShapesTotal)) {
            Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
-      } else if (! (s_offset+numShapes <= numShapesTotal)) {
+      } else if (! (numShapes <= numShapesTotal)) {
            Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: offset test failed.");
       }
   }
@@ -123,7 +120,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-                                      grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+                                      grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -141,8 +138,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
 /*printf("data_array of l=%d = %e\n",l,data_array[l]); */
 								}
 							}
@@ -161,9 +158,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -183,7 +180,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {								
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -201,8 +198,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -220,9 +217,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {	
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -243,7 +240,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -261,8 +258,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-                           	        grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+                           	        grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 					}
@@ -280,9 +277,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 					}
@@ -302,7 +299,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 							}
 						}
@@ -320,8 +317,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 						}
                     }
@@ -340,9 +337,9 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
 								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
 								}
 						}
                     }
