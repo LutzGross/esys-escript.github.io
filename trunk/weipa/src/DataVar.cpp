@@ -175,6 +175,7 @@ bool DataVar::initFromMeshData(const_DomainChunk_ptr dom, const IntVec& data,
     domain = dom;
     rank = 0;
     ptsPerSample = 1;
+    centering = c;
     sampleID = id;
     meshName = nodes->getName();
     siloMeshName = nodes->getFullSiloName();
