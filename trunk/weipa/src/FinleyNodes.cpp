@@ -11,7 +11,7 @@
 *
 *******************************************************/
 
-#include <weipa/NodeData.h>
+#include <weipa/FinleyNodes.h>
 
 #ifndef VISIT_PLUGIN
 extern "C" {
@@ -35,7 +35,7 @@ namespace weipa {
 //
 // Constructor with name
 //
-NodeData::NodeData(const string& meshName) :
+FinleyNodes::FinleyNodes(const string& meshName) :
     numDims(0), numNodes(0), name(meshName)
 {
 }
@@ -43,7 +43,7 @@ NodeData::NodeData(const string& meshName) :
 //
 //
 //
-NodeData::NodeData(NodeData_ptr fullNodes, IntVec& requiredNodes,
+FinleyNodes::FinleyNodes(FinleyNodes_ptr fullNodes, IntVec& requiredNodes,
                    const string& meshName) :
     name(meshName)
 {
@@ -90,7 +90,7 @@ NodeData::NodeData(NodeData_ptr fullNodes, IntVec& requiredNodes,
 //
 // Copy constructor
 //
-NodeData::NodeData(const NodeData& m)
+FinleyNodes::FinleyNodes(const FinleyNodes& m)
 {
     numDims = m.numDims;
     numNodes = m.numNodes;
@@ -112,7 +112,7 @@ NodeData::NodeData(const NodeData& m)
 //
 //
 //
-NodeData::~NodeData()
+FinleyNodes::~FinleyNodes()
 {
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
@@ -122,7 +122,7 @@ NodeData::~NodeData()
 //
 //
 //
-bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
+bool FinleyNodes::initFromFinley(const Finley_NodeFile* finleyFile)
 {
 #ifndef VISIT_PLUGIN
     numDims = finleyFile->numDim;
@@ -189,7 +189,7 @@ bool NodeData::initFromFinley(const Finley_NodeFile* finleyFile)
 //
 //
 //
-bool NodeData::readFromNc(NcFile* ncFile)
+bool FinleyNodes::readFromNc(NcFile* ncFile)
 {
 #if USE_NETCDF
     NcAtt* att;
@@ -265,7 +265,7 @@ bool NodeData::readFromNc(NcFile* ncFile)
 //
 //
 //
-const IntVec& NodeData::getVarDataByName(const string& name) const
+const IntVec& FinleyNodes::getVarDataByName(const string& name) const
 {
     if (name == "Nodes_Id")
         return nodeID;
@@ -286,7 +286,7 @@ const IntVec& NodeData::getVarDataByName(const string& name) const
 //
 //
 //
-StringVec NodeData::getVarNames() const
+StringVec FinleyNodes::getVarNames() const
 {
     StringVec res;
     res.push_back("Nodes_Id");
@@ -301,7 +301,7 @@ StringVec NodeData::getVarNames() const
 //
 //
 //
-int NodeData::getGlobalNumNodes() const
+int FinleyNodes::getGlobalNumNodes() const
 {
     int ret=0;
     if (!nodeDist.empty())
@@ -312,7 +312,7 @@ int NodeData::getGlobalNumNodes() const
 //
 //
 //
-void NodeData::writeCoordinatesVTK(ostream& os, int ownIndex)
+void FinleyNodes::writeCoordinatesVTK(ostream& os, int ownIndex)
 {
     if (numNodes > 0) {
         int firstId = nodeDist[ownIndex];
@@ -333,7 +333,7 @@ void NodeData::writeCoordinatesVTK(ostream& os, int ownIndex)
 //
 //
 //
-bool NodeData::writeToSilo(DBfile* dbfile)
+bool FinleyNodes::writeToSilo(DBfile* dbfile)
 {
 #if USE_SILO
     if (numNodes == 0)

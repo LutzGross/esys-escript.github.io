@@ -14,7 +14,6 @@
 #include <weipa/VisItData.h>
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
-#include <weipa/FinleyMesh.h>
 #include <weipa/NodeData.h>
 
 #include <VisItDataInterface_V2.h>
@@ -147,7 +146,7 @@ visit_handle VisItData::getDomainList()
 visit_handle VisItData::getMesh(const char* name)
 {
     visit_handle hmesh = VISIT_INVALID_HANDLE;
-    FinleyMesh_ptr dom = dataset->getConvertedDomain()[0];
+    DomainChunk_ptr dom = dataset->getConvertedDomain()[0];
     NodeData_ptr nodes = dom->getMeshByName(name);
     ElementData_ptr elements = dom->getElementsByName(name);
 

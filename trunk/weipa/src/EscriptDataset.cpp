@@ -15,11 +15,12 @@
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
 #include <weipa/FileWriter.h>
-#include <weipa/FinleyMesh.h>
+#include <weipa/FinleyDomain.h>
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
+#include <finley/CppAdapter/MeshAdapter.h>
 #endif
 
 #include <numeric> // for std::accumulate
@@ -95,13 +96,18 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         mpiRank = domain->getMPIRank();
         mpiSize = domain->getMPISize();
 #endif
-        FinleyMesh_ptr mesh(new FinleyMesh());
-        if (mesh->initFromEscript(domain)) {
-            if (mpiSize > 1)
-                mesh->reorderGhostZones(mpiRank);
-            meshBlocks.push_back(mesh);
+        if (dynamic_cast<const finley::MeshAdapter*>(domain)) {
+            DomainChunk_ptr dom(new FinleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                meshBlocks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
         } else {
-            cerr << "Error initializing domain!" << endl;
+            cerr << "Unsupported domain type!" << endl;
             myError = 2;
         }
     }
@@ -699,26 +705,27 @@ bool EscriptDataset::loadDomain(const string filePattern, int nBlocks)
 
     } else {
         char* str = new char[filePattern.length()+10];
+        // FIXME: This assumes a finley domain!
         if (mpiSize > 1) {
-            FinleyMesh_ptr meshPart(new FinleyMesh());
+            DomainChunk_ptr chunk(new FinleyDomain());
             sprintf(str, filePattern.c_str(), mpiRank);
-            string meshfile = str;
-            if (meshPart->initFromNetCDF(meshfile)) {
-                meshPart->reorderGhostZones(mpiRank);
-                meshBlocks.push_back(meshPart);
+            string domainFile = str;
+            if (chunk->initFromFile(domainFile)) {
+                chunk->reorderGhostZones(mpiRank);
+                meshBlocks.push_back(chunk);
             } else {
                 cerr << "Error initializing domain!" << endl;
                 myError = 1;
             }
         } else {
             for (int idx=0; idx < nBlocks; idx++) {
-                FinleyMesh_ptr meshPart(new FinleyMesh());
+                DomainChunk_ptr chunk(new FinleyDomain());
                 sprintf(str, filePattern.c_str(), idx);
-                string meshfile = str;
-                if (meshPart->initFromNetCDF(meshfile)) {
+                string domainFile = str;
+                if (chunk->initFromFile(domainFile)) {
                     if (nBlocks > 1)
-                        meshPart->reorderGhostZones(idx);
-                    meshBlocks.push_back(meshPart);
+                        chunk->reorderGhostZones(idx);
+                    meshBlocks.push_back(chunk);
                 } else {
                     cerr << "Error initializing domain block " << idx << endl;
                     myError = 1;
@@ -812,7 +819,7 @@ bool EscriptDataset::loadData(const string filePattern, const string name,
             sprintf(str, filePattern.c_str(), idx);
             string dfile = str;
             DataVar_ptr var(new DataVar(name));
-            if (var->initFromNetCDF(dfile, *mIt))
+            if (var->initFromFile(dfile, *mIt))
                 vi.dataBlocks.push_back(var);
             else {
                 cerr << "Error reading " << dfile << endl;
@@ -856,8 +863,8 @@ void EscriptDataset::convertMeshVariables()
         // get all parts of current variable
         MeshBlocks::iterator mIt;
         for (mIt = meshBlocks.begin(); mIt != meshBlocks.end(); mIt++) {
-            DataVar_ptr var(new DataVar(*it));
-            if (var->initFromMesh(*mIt)) {
+            DataVar_ptr var = (*mIt)->getDataVarByName(*it);
+            if (var != NULL) {
                 vi.dataBlocks.push_back(var);
             } else {
                 cerr << "Error converting mesh variable " << *it << endl;

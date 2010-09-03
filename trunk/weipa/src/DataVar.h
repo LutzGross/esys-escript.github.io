@@ -11,10 +11,10 @@
 *
 *******************************************************/
 
-#ifndef __DATAVAR_H__
-#define __DATAVAR_H__
+#ifndef __WEIPA_DATAVAR_H__
+#define __WEIPA_DATAVAR_H__
 
-#include <weipa/weipa.h>
+#include <weipa/DomainChunk.h>
 #include <ostream>
 
 class DBfile;
@@ -26,67 +26,53 @@ namespace escript {
 
 namespace weipa {
 
-class FinleyMesh;
-
 /// \brief A class that provides functionality to read an escript data object
-/// from NetCDF file or an escript::Data instance and write that data in Silo
+/// from a dump file or an escript::Data instance and write that data in Silo
 /// or VTK XML formats.
 class DataVar
 {
 public:
     /// \brief Constructor with variable name
-    WEIPA_DLL_API
     DataVar(const std::string& name);
 
     /// \brief Copy constructor. Performs a deep copy of the data values.
-    WEIPA_DLL_API
     DataVar(const DataVar& d);
 
     /// \brief Destructor
-    WEIPA_DLL_API
     ~DataVar();
 
     /// \brief Initialises values and IDs from an escript::Data instance.
     ///
     /// \return true if a valid instance of expanded data was supplied,
     ///         false if the initialisation was unsuccessful.
-    WEIPA_DLL_API
-    bool initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh);
+    bool initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr dom);
 
     /// \brief Initialises with integral mesh data like IDs or tags.
-    ///
-    /// The data is retrieved from the mesh using the variable name.
-    WEIPA_DLL_API
-    bool initFromMesh(FinleyMesh_ptr mesh);
+    bool initFromMeshData(const_DomainChunk_ptr dom, const IntVec& data,
+            int fsCode, Centering c, NodeData_ptr nodes, const IntVec& id);
 
-    /// \brief Reads values and IDs for this variable from escript NetCDF file.
+    /// \brief Reads values and IDs for this variable from an escript dump
+    ///        file.
     ///
     /// \return true if the file was found and contains valid escript data
     ///         with at least one sample, false otherwise.
     /// \note Only expanded data with rank <=2 is supported at the moment.
-    WEIPA_DLL_API
-    bool initFromNetCDF(const std::string& filename, FinleyMesh_ptr mesh);
+    bool initFromFile(const std::string& filename, const_DomainChunk_ptr dom);
 
-    /// \brief Writes the data into given directory in given Silo file.
+    /// \brief Writes the data into given directory within a Silo file.
     ///
-    /// If Silo was not available at compile time or the mesh was not set
-    /// beforehand using setMesh() or if a Silo function fails this method
-    /// returns false.
-    WEIPA_DLL_API
+    /// If Silo was not available at compile time this method returns false.
     bool writeToSilo(DBfile* dbfile, const std::string& siloPath,
                      const std::string& units);
 
     /// \brief Writes the data values to ostream in VTK text format.
-    WEIPA_DLL_API
     void writeToVTK(std::ostream& os, int ownIndex);
 
     /// \brief Returns the rank of the data.
-    WEIPA_DLL_API
     int getRank() const { return rank; }
 
     /// \brief Returns true if the variable data is node centered, false if
     ///        zone centered.
-    WEIPA_DLL_API
     bool isNodeCentered() const;
 
     /// \brief Returns the name of the associated mesh.
@@ -94,17 +80,14 @@ public:
     /// The returned name is one of the sub-meshes of the mesh set with
     /// setMesh() determined on the basis of the function space type and
     /// whether reduced elements are used or not.
-    WEIPA_DLL_API
     std::string getMeshName() const { return meshName; }
 
     /// \brief Returns the shape vector of the data.
     ///
     /// The shape vector has as many elements as the rank of this variable.
-    WEIPA_DLL_API
     const IntVec& getShape() const { return shape; }
 
     /// \brief Returns the variable name.
-    WEIPA_DLL_API
     std::string getName() const { return varName; }
 
     /// \brief Returns the Silo tensor definition for this tensor.
@@ -113,26 +96,21 @@ public:
     /// separately in the Silo file. This method then returns a string that
     /// contains the proper Silo expression to put the tensor together again.
     /// For non-tensor data this method returns an empty string.
-    WEIPA_DLL_API
     std::string getTensorDef() const;
 
     /// \brief Returns the number of data values.
-    WEIPA_DLL_API
     int getNumberOfSamples() const { return numSamples; }
 
     /// \brief Returns the array of data values where array[i] is the i-th
     ///        component of the data.
-    WEIPA_DLL_API
     const CoordArray& getData() const { return dataArray; }
 
     /// \brief Returns a flattened array of data values, i.e. the ordering is
     ///        s0c0 s0c1 s0c2 s1c0 s1c1 s1c2 s2c0 ...
     ///        where s denotes the sample number and c the component.
-    WEIPA_DLL_API
     float* getDataFlat() const;
 
     /// \brief Returns the total number of components (sum of shape elements).
-    WEIPA_DLL_API
     int getNumberOfComponents() const;
 
 private:
@@ -160,9 +138,10 @@ private:
     void sampleToStream(std::ostream& os, int index);
 
     bool initialized;
-    FinleyMesh_ptr finleyMesh;
+    const_DomainChunk_ptr domain;
     std::string varName;
-    int numSamples, rank, ptsPerSample, centering, funcSpace;
+    int numSamples, rank, ptsPerSample, funcSpace;
+    Centering centering;
     IntVec shape;
     IntVec sampleID;
     CoordArray dataArray;
@@ -185,5 +164,5 @@ inline IndexMap DataVar::buildIndexMap()
 
 } // namespace weipa
 
-#endif // __DATAVAR_H__
+#endif // __WEIPA_DATAVAR_H__
 

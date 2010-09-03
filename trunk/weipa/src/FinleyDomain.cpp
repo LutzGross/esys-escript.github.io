@@ -11,9 +11,9 @@
 *
 *******************************************************/
 
-#include <weipa/FinleyMesh.h>
-#include <weipa/ElementData.h>
-#include <weipa/NodeData.h>
+#include <weipa/FinleyDomain.h>
+#include <weipa/FinleyNodes.h>
+#include <weipa/DataVar.h>
 
 #ifndef VISIT_PLUGIN
 #include <finley/CppAdapter/MeshAdapter.h>
@@ -39,7 +39,7 @@ namespace weipa {
 //
 //
 //
-FinleyMesh::FinleyMesh() :
+FinleyDomain::FinleyDomain() :
     initialized(false)
 {
 }
@@ -47,19 +47,19 @@ FinleyMesh::FinleyMesh() :
 //
 //
 //
-FinleyMesh::FinleyMesh(const FinleyMesh& m)
+FinleyDomain::FinleyDomain(const FinleyDomain& m)
 {
-    nodes = NodeData_ptr(new NodeData(*m.nodes));
-    cells = ElementData_ptr(new ElementData(*m.cells));
-    faces = ElementData_ptr(new ElementData(*m.faces));
-    contacts = ElementData_ptr(new ElementData(*m.contacts));
+    nodes = FinleyNodes_ptr(new FinleyNodes(*m.nodes));
+    cells = FinleyElements_ptr(new FinleyElements(*m.cells));
+    faces = FinleyElements_ptr(new FinleyElements(*m.faces));
+    contacts = FinleyElements_ptr(new FinleyElements(*m.contacts));
     initialized = m.initialized;
 }
 
 //
 //
 //
-FinleyMesh::~FinleyMesh()
+FinleyDomain::~FinleyDomain()
 {
     cleanup();
 }
@@ -67,7 +67,7 @@ FinleyMesh::~FinleyMesh()
 //
 //
 //
-void FinleyMesh::cleanup()
+void FinleyDomain::cleanup()
 {
     nodes.reset();
     cells.reset();
@@ -79,20 +79,22 @@ void FinleyMesh::cleanup()
 //
 //
 //
-bool FinleyMesh::initFromEscript(const escript::AbstractDomain* escriptDomain)
+bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 {
 #ifndef VISIT_PLUGIN
     cleanup();
 
-    finleyMesh = dynamic_cast<const finley::MeshAdapter*>(escriptDomain)->getFinley_Mesh();
-    if (!finleyMesh) {
+    if (!dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
         return false;
     }
 
-    nodes = NodeData_ptr(new NodeData("Elements"));
-    cells = ElementData_ptr(new ElementData("Elements", nodes));
-    faces = ElementData_ptr(new ElementData("FaceElements", nodes));
-    contacts = ElementData_ptr(new ElementData("ContactElements", nodes));
+    finleyMesh = dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
+        ->getFinley_Mesh();
+
+    nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
+    cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
+    faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
+    contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
 
     if (nodes->initFromFinley(finleyMesh->Nodes) &&
             cells->initFromFinley(finleyMesh->Elements) &&
@@ -110,7 +112,7 @@ bool FinleyMesh::initFromEscript(const escript::AbstractDomain* escriptDomain)
 //
 // Reads mesh and element data from NetCDF file with given name
 //
-bool FinleyMesh::initFromNetCDF(const string& filename)
+bool FinleyDomain::initFromFile(const string& filename)
 {
     cleanup();
     
@@ -125,16 +127,16 @@ bool FinleyMesh::initFromNetCDF(const string& filename)
         return false;
     }
 
-    nodes = NodeData_ptr(new NodeData("Elements"));
+    nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
     if (!nodes->readFromNc(input))
         return false;
 
     // Read all element types
-    cells = ElementData_ptr(new ElementData("Elements", nodes));
+    cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
     cells->readFromNc(input);
-    faces = ElementData_ptr(new ElementData("FaceElements", nodes));
+    faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
     faces->readFromNc(input);
-    contacts = ElementData_ptr(new ElementData("ContactElements", nodes));
+    contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
     contacts->readFromNc(input);
 
     delete input;
@@ -144,19 +146,25 @@ bool FinleyMesh::initFromNetCDF(const string& filename)
     return initialized;
 }
 
+Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
+{
+    return (fsCode==FINLEY_REDUCED_NODES || fsCode==FINLEY_NODES ?
+        NODE_CENTERED : ZONE_CENTERED);
+}
+
 //
 //
 //
-NodeData_ptr FinleyMesh::getMeshForFinleyFS(int functionSpace) const
+NodeData_ptr FinleyDomain::getMeshForFunctionSpace(int fsCode) const
 {
     NodeData_ptr result;
 
     if (!initialized)
         return result;
 
-    ElementData_ptr elements = getElementsForFinleyFS(functionSpace);
+    ElementData_ptr elements = getElementsForFunctionSpace(fsCode);
     if (elements != NULL)
-        result = elements->getNodeMesh();
+        result = elements->getNodes();
  
     return result;
 }
@@ -164,7 +172,7 @@ NodeData_ptr FinleyMesh::getMeshForFinleyFS(int functionSpace) const
 //
 //
 //
-ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
+ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
 {
     ElementData_ptr result;
 
@@ -172,14 +180,14 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
         return result;
     }
 
-    if (functionSpace == FINLEY_NODES) {
+    if (fsCode == FINLEY_NODES) {
         result = cells;
-    } else if (functionSpace == FINLEY_REDUCED_NODES) {
+    } else if (fsCode == FINLEY_REDUCED_NODES) {
         result = cells->getReducedElements();
         if (!result)
             result = cells;
     } else {
-        switch (functionSpace) {
+        switch (fsCode) {
             case FINLEY_REDUCED_ELEMENTS:
             case FINLEY_ELEMENTS:
                 result = cells;
@@ -198,19 +206,17 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
                 break;
 
             default: {
-                cerr << "Unsupported function space type " << functionSpace
+                cerr << "Unsupported function space type " << fsCode
                     << "!" << endl;
                 return result;
             }
         }
-        if (result->getFinleyTypeId() != Rec9 &&
-                result->getFinleyTypeId() != Rec9Macro &&
-                result->getFinleyTypeId() != Hex27 &&
-                result->getFinleyTypeId() != Hex27Macro &&
-                result->getFinleyTypeId() != Tri6 &&
-                result->getFinleyTypeId() != Tri6Macro &&
-                result->getFinleyTypeId() != Tet10 &&
-                result->getFinleyTypeId() != Tet10Macro) {
+        int typeId = static_cast<FinleyElements*>(result.get())
+            ->getFinleyTypeId();
+        if (typeId != Rec9 && typeId != Rec9Macro && typeId != Hex27 &&
+                typeId != Hex27Macro && typeId != Tri6 &&
+                typeId != Tri6Macro && typeId != Tet10 &&
+                typeId != Tet10Macro) {
             if (result->getReducedElements())
                 result = result->getReducedElements();
         }
@@ -220,10 +226,9 @@ ElementData_ptr FinleyMesh::getElementsForFinleyFS(int functionSpace) const
 }
 
 //
-// Returns a vector of strings containing Silo mesh names that have been
-// written
+// Returns a vector of strings containing mesh names for this domain
 //
-StringVec FinleyMesh::getMeshNames() const
+StringVec FinleyDomain::getMeshNames() const
 {
     StringVec res;
     if (initialized) {
@@ -239,10 +244,9 @@ StringVec FinleyMesh::getMeshNames() const
 }
 
 //
-// Returns a vector of strings containing Silo variable names that have
-// been written
+// Returns a vector of strings containing mesh variable names for this domain
 //
-StringVec FinleyMesh::getVarNames() const
+StringVec FinleyDomain::getVarNames() const
 {
     StringVec res;
  
@@ -262,28 +266,49 @@ StringVec FinleyMesh::getVarNames() const
 //
 //
 //
-const IntVec& FinleyMesh::getVarDataByName(const string& name) const
+DataVar_ptr FinleyDomain::getDataVarByName(const string& name) const
 {
     if (!initialized) {
-        throw "Mesh not initialized";
+        throw "Domain not initialized";
     }
 
-    if (name.find("ContactElements_") != name.npos)
-        return contacts->getVarDataByName(name);
-    else if (name.find("FaceElements_") != name.npos)
-        return faces->getVarDataByName(name);
-    else if (name.find("Elements_") != name.npos)
-        return cells->getVarDataByName(name);
-    else if (name.find("Nodes_") != name.npos)
-        return nodes->getVarDataByName(name);
-    else
-        throw "Invalid variable name";
+    DataVar_ptr var(new DataVar(name));
+    if (name.find("ContactElements_") != name.npos) {
+        const IntVec& data = contacts->getVarDataByName(name);
+        string elementName = name.substr(0, name.find('_'));
+        ElementData_ptr elements = getElementsByName(elementName);
+        var->initFromMeshData(shared_from_this(), data,
+                FINLEY_CONTACT_ELEMENTS_1, ZONE_CENTERED, elements->getNodes(),
+                elements->getIDs());
+    } else if (name.find("FaceElements_") != name.npos) {
+        const IntVec& data =  faces->getVarDataByName(name);
+        string elementName = name.substr(0, name.find('_'));
+        ElementData_ptr elements = getElementsByName(elementName);
+        var->initFromMeshData(shared_from_this(), data,
+                FINLEY_FACE_ELEMENTS, ZONE_CENTERED, elements->getNodes(),
+                elements->getIDs());
+    } else if (name.find("Elements_") != name.npos) {
+        const IntVec& data =  cells->getVarDataByName(name);
+        string elementName = name.substr(0, name.find('_'));
+        ElementData_ptr elements = getElementsByName(elementName);
+        var->initFromMeshData(shared_from_this(), data, FINLEY_ELEMENTS,
+                ZONE_CENTERED, elements->getNodes(), elements->getIDs());
+    } else if (name.find("Nodes_") != name.npos) {
+        const IntVec& data =  nodes->getVarDataByName(name);
+        var->initFromMeshData(shared_from_this(), data, FINLEY_NODES,
+                NODE_CENTERED, getNodes(), getNodes()->getNodeIDs());
+    } else {
+        cerr << "WARNING: Unrecognized domain variable '" << name << "'\n";
+        return DataVar_ptr();
+    }
+
+    return var;
 }
 
 //
 //
 //
-ElementData_ptr FinleyMesh::getElementsByName(const string& name) const
+ElementData_ptr FinleyDomain::getElementsByName(const string& name) const
 {
     ElementData_ptr ret;
     if (name == "Elements")
@@ -305,13 +330,13 @@ ElementData_ptr FinleyMesh::getElementsByName(const string& name) const
 //
 //
 //
-NodeData_ptr FinleyMesh::getMeshByName(const string& name) const
+NodeData_ptr FinleyDomain::getMeshByName(const string& name) const
 {
     NodeData_ptr ret;
     if (initialized) {
         ElementData_ptr els = getElementsByName(name);
         if (els)
-            ret = els->getNodeMesh();
+            ret = els->getNodes();
     }
 
     return ret;
@@ -320,7 +345,7 @@ NodeData_ptr FinleyMesh::getMeshByName(const string& name) const
 //
 //
 //
-void FinleyMesh::reorderGhostZones(int ownIndex)
+void FinleyDomain::reorderGhostZones(int ownIndex)
 {
     if (initialized) {
         cells->reorderGhostZones(ownIndex);
@@ -338,7 +363,7 @@ void FinleyMesh::reorderGhostZones(int ownIndex)
 //
 //
 //
-void FinleyMesh::removeGhostZones(int ownIndex)
+void FinleyDomain::removeGhostZones(int ownIndex)
 {
     if (initialized) {
         cells->removeGhostZones(ownIndex);
@@ -357,8 +382,8 @@ void FinleyMesh::removeGhostZones(int ownIndex)
 //
 //
 //
-bool FinleyMesh::writeToSilo(DBfile* dbfile, const string& pathInSilo,
-                             const StringVec& labels, const StringVec& units)
+bool FinleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
+                               const StringVec& labels, const StringVec& units)
 {
 #if USE_SILO
     // Write nodes, elements and mesh variables

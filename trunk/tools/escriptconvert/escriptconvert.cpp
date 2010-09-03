@@ -12,7 +12,6 @@
 *******************************************************/
 
 #include <weipa/EscriptDataset.h>
-#include <weipa/FinleyMesh.h>
 #include <weipa/DataVar.h>
 
 #if USE_SILO

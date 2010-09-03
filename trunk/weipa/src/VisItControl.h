@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#ifndef __VISITCONTROL_H__
-#define __VISITCONTROL_H__
+#ifndef __WEIPA_VISITCONTROL_H__
+#define __WEIPA_VISITCONTROL_H__
 
 #include <weipa/weipa.h>
 #include <escript/AbstractDomain.h>
@@ -32,5 +32,5 @@ namespace VisItControl {
 
 } // namespace weipa
 
-#endif // __VISITCONTROL_H__
+#endif // __WEIPA_VISITCONTROL_H__
 

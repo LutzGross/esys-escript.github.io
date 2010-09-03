@@ -23,20 +23,23 @@ del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
     DataVar.cpp
-    ElementData.cpp
     EscriptDataset.cpp
     FileWriter.cpp
-    FinleyMesh.cpp
-    NodeData.cpp
+    FinleyDomain.cpp
+    FinleyElements.cpp
+    FinleyNodes.cpp
     VisItControl.cpp
 """.split()
 
 headers = """
     DataVar.h
+    DomainChunk.h
     ElementData.h
     EscriptDataset.h
     FileWriter.h
-    FinleyMesh.h
+    FinleyDomain.h
+    FinleyElements.h
+    FinleyNodes.h
     NodeData.h
     VisItControl.h
     weipa.h
@@ -106,10 +109,10 @@ if not IS_WINDOWS_PLATFORM:
     visitplugin_env = clone_env(env_mpi)
     plugin_sources = """
         DataVar.cpp
-        ElementData.cpp
         EscriptDataset.cpp
-        FinleyMesh.cpp
-        NodeData.cpp
+        FinleyDomain.cpp
+        FinleyElements.cpp
+        FinleyNodes.cpp
     """.split()
 
     visitplugin_env.AppendUnique(LIBS = ['esysUtils' ] + env['sys_libs'])
