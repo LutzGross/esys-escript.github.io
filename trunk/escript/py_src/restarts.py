@@ -198,7 +198,7 @@ class DataManager(object):
         :param metadata: The actual metadata string which will be enclosed in
                          '<MetaData>' tags.
         """
-        self._metadata="<MetaData>"+metadata+"</MetaData>"
+        self._metadata=metadata
         ss=""
         for i,p in schema.items():
             ss="%s xmlns:%s=\"%s\""%(ss, i, p)

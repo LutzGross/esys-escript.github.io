@@ -28,7 +28,6 @@ namespace escript {
 
 namespace weipa {
 
-typedef std::vector<escript::Data>   DataVec;
 typedef std::vector<DataVar_ptr>     DataBlocks;
 typedef std::vector<DomainChunk_ptr> MeshBlocks;
 
