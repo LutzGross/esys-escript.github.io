@@ -38,9 +38,9 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   NN=elements->numNodes;
   numDim=nodes->numDim;
 
-  numQuad=reference_element->Parametrization->numQuadNodes;
-  numDim_local=reference_element->Parametrization->Type->numDim;
-  NS=reference_element->Parametrization->Type->numShapes;
+  numQuad=reference_element->BasisFunctions->numQuadNodes;
+  numDim_local=reference_element->BasisFunctions->Type->numDim;
+  NS=reference_element->BasisFunctions->Type->numShapes;
 
 
   
@@ -76,7 +76,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 						  /* gather local coordinates of nodes into local_X: */
 						  Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,local_X);
 						  /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
-						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->Parametrization->dSdv);
+						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->BasisFunctions->dSdv);
 						  /* get normalized vector:	 */
 						  normal_array=getSampleDataRW(normal,e);
 						  Dudley_NormalVector(numQuad,numDim,numDim_local,dVdv,normal_array);

@@ -72,33 +72,29 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
   refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reducedIntegrationOrder);
   
-  if (Dudley_noError()) {
-
-	  numDim=jac->numDim;
-          numShapes=jac->BasisFunctions->Type->numShapes;
-	  numShapesTotal=jac->numShapesTotal;
-	  numQuad=jac->numQuadTotal;
-	  localGradSize=sizeof(double)*numDim*numQuad*numComps;
-	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
-		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes;
-	  } else { 
-		  numShapesTotal2=refElement->BasisFunctions->Type->numShapes;
-	  }
+  if (Dudley_noError())
+  {
+	numDim=jac->numDim;
+        numShapes=jac->BasisFunctions->Type->numShapes;
+	numShapesTotal=jac->numShapesTotal;
+	numQuad=jac->numQuadTotal;
+	localGradSize=sizeof(double)*numDim*numQuad*numComps;
+	numShapesTotal2=refElement->BasisFunctions->Type->numShapes;
       /* check the dimensions of data */
 
-      if (! numSamplesEqual(grad_data,numQuad,elements->numElements)) {
+      	if (! numSamplesEqual(grad_data,numQuad,elements->numElements)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of samples in gradient Data object");
-      } else if (! numSamplesEqual(data,1,numNodes)) {
+      	} else if (! numSamplesEqual(data,1,numNodes)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of samples of input Data object");
-      } else if (numDim*numComps!=getDataPointSize(grad_data)) {
+      	} else if (numDim*numComps!=getDataPointSize(grad_data)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of components in gradient data object.");
-      }  else if (!isExpanded(grad_data)) {
+      	}  else if (!isExpanded(grad_data)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: expanded Data object is expected for output data.");
-      } else if (! (numShapes <= numShapesTotal)) {
+      	} else if (! (numShapes <= numShapesTotal)) {
            Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
-      } else if (! (numShapes <= numShapesTotal)) {
+      	} else if (! (numShapes <= numShapesTotal)) {
            Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: offset test failed.");
-      }
+      	}
   }
   /* now we can start */
 

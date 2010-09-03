@@ -295,12 +295,12 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             myFirstCell = Dudley_ElementFile_getFirstElement(elements);
             NN = elements->numNodes;
             if (hasReducedElements) {
-                quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadNodes;
+                quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadNodes;
             } else {
-                quadNodes_p=elements->referenceElementSet->referenceElement->Parametrization->QuadNodes;
+                quadNodes_p=elements->referenceElementSet->referenceElement->BasisFunctions->QuadNodes;
             }
             if (nodeType==DUDLEY_REDUCED_NODES) {
-                typeId = elements->referenceElementSet->referenceElement->LinearType->TypeId;
+                typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
             } else {
                 typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
             }

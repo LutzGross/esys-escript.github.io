@@ -41,9 +41,9 @@ void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* 
 
     numElements=elements->numElements;
     if (Dudley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
+       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
     } else {
-       numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
+       numQuad=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
     }
 
     /* check out and in */

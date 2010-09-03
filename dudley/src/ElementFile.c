@@ -57,8 +57,8 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
  
   out->jacobeans=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
   out->jacobeans_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
-  out->jacobeans_reducedS=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->LinearBasisFunctions);
-  out->jacobeans_reducedS_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
+  out->jacobeans_reducedS=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
+  out->jacobeans_reducedS_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
 
 
 
