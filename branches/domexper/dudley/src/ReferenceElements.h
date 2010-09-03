@@ -54,10 +54,7 @@ typedef struct Dudley_ReferenceElementInfo {
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
   
-  ElementTypeId LinearTypeId;                /* id of the linear version of the element */
-  
   Dudley_QuadTypeId Quadrature;                /* quadrature scheme */
-  Dudley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
   Dudley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
 
 /*********************************************************************************************************************************** */  
@@ -76,16 +73,12 @@ typedef struct Dudley_ReferenceElementInfo {
 /*  this struct holds the realization of a reference element */
 
 typedef struct Dudley_ReferenceElement {
-	Dudley_ReferenceElementInfo* Type;     /* type of the reference element */
-	Dudley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
+	Dudley_ReferenceElementInfo* Type;     /* type of the reference element  - dudley only supports linear elements*/
 	index_t reference_counter;	       /* reference counter */
         dim_t integrationOrder;                /* used integration order */
 	dim_t numNodes;
         dim_t numLocalDim;
-	dim_t numLinearNodes;
-	Dudley_ShapeFunction* Parametrization;
 	Dudley_ShapeFunction* BasisFunctions;
-	Dudley_ShapeFunction* LinearBasisFunctions;
         double* DBasisFunctionDv;                              /* pointer to derivatives to basis function corresponding to the Parametrization quad points */
         bool_t DBasisFunctionDvShared;                /* TRUE to indicate that DBasisFunctionDv is shared with another object which is managing it */
 

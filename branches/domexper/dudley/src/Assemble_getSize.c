@@ -40,12 +40,12 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
 
   if (nodes==NULL || elements==NULL) return;
   refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet,Dudley_Assemble_reducedIntegrationOrder(element_size));
-  shape= refElement->Parametrization;
+  shape= refElement->BasisFunctions;
   numDim=nodes->numDim;
   numQuad=shape->numQuadNodes;
   NN=elements->numNodes;
-  NS=refElement->Parametrization->Type->numShapes;
-  NVertices=refElement->Parametrization->Type->numVertices;
+  NS=refElement->BasisFunctions->Type->numShapes;
+  NVertices=refElement->BasisFunctions->Type->numVertices;
   
   
   /* check the dimensions of element_size */

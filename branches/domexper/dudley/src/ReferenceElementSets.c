@@ -78,47 +78,57 @@ Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_reference(Dudley_Referenc
      return in;
 }
 
-Dudley_ReferenceElement* Dudley_ReferenceElementSet_borrowReferenceElement(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
-		Dudley_ReferenceElement* out=NULL;
-    if (in !=NULL) {			  
-		 if (reducedIntegrationOrder) {
-             out=in->referenceElementReducedQuadrature;
-		  } else {
-			 out=in->referenceElement;
-		  }
+Dudley_ReferenceElement* Dudley_ReferenceElementSet_borrowReferenceElement(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder)
+{
+    Dudley_ReferenceElement* out=NULL;
+    if (in !=NULL)
+    {			  
+	if (reducedIntegrationOrder)
+	{
+		out=in->referenceElementReducedQuadrature;
+	} else {
+		out=in->referenceElement;
 	}
-	return out;
+    }
+    return out;
 }
 	
-Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowBasisFunctions(Dudley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
-	Dudley_ShapeFunction* basis=NULL;
-    if (in !=NULL) {	
-	  if (reducedShapefunction) {
-		  if (reducedIntegrationOrder) {
-             basis=in->referenceElementReducedQuadrature->LinearBasisFunctions;
-		  } else {
-			  basis=in->referenceElement->LinearBasisFunctions;
-		  }
-	  } else {
-		  if (reducedIntegrationOrder) {
-             basis=in->referenceElementReducedQuadrature->BasisFunctions;
-		  } else {
-			  basis=in->referenceElement->BasisFunctions;
-		  }
-      }
-	}
-	return basis;
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowBasisFunctions(Dudley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder)
+{
+    Dudley_ShapeFunction* basis=NULL;
+    if (in !=NULL)
+    {	
+	if (reducedShapefunction)
+	{
+	    if (reducedIntegrationOrder)
+	    {
+		basis=in->referenceElementReducedQuadrature->BasisFunctions;
+	    } else {
+		basis=in->referenceElement->BasisFunctions;
+	    }
+	} else {
+	    if (reducedIntegrationOrder) {
+            	basis=in->referenceElementReducedQuadrature->BasisFunctions;
+	    } else {
+	    	basis=in->referenceElement->BasisFunctions;
+	    }
+        }
+    }
+    return basis;
 }
 
-Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowParametrization(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder) {
-	Dudley_ShapeFunction* shape=NULL;
-    if (in !=NULL) {		
-		  if (reducedIntegrationOrder) {
-			 shape=in->referenceElementReducedQuadrature->Parametrization;
-		  } else {
-			  shape=in->referenceElement->Parametrization;
-		  }
+Dudley_ShapeFunction* Dudley_ReferenceElementSet_borrowParametrization(Dudley_ReferenceElementSet* in, bool_t reducedIntegrationOrder)
+{
+    Dudley_ShapeFunction* shape=NULL;
+    if (in !=NULL)
+    {		
+	if (reducedIntegrationOrder)
+	{
+	    shape=in->referenceElementReducedQuadrature->BasisFunctions;
+	} else {
+	    shape=in->referenceElement->BasisFunctions;
 	}
-	return shape;
+    }
+    return shape;
 }
 

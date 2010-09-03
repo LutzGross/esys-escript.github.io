@@ -42,16 +42,16 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
 
     numElements=elements->numElements;
     if (Dudley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
-       wq=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadWeights;
+       numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+       wq=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadWeights;
     } else {
-       numQuad_in=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
-       wq=elements->referenceElementSet->referenceElement->Parametrization->QuadWeights;
+       numQuad_in=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+       wq=elements->referenceElementSet->referenceElement->BasisFunctions->QuadWeights;
     }
     if (Dudley_Assemble_reducedIntegrationOrder(out)) {
-       numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
+       numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
     } else {
-       numQuad_out=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
+       numQuad_out=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
     }
 
     /* check out and in */

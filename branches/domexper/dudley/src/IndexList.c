@@ -39,20 +39,9 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
   {
     NN=elements->numNodes;
     refElement= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
-    if (reduce_col_order)
-    {
-	NN_col=(refElement->LinearBasisFunctions->Type->numShapes);
-    }
-    else
-    {
-	NN_col=(refElement->BasisFunctions->Type->numShapes);
-    }
-    if (reduce_row_order)
-    {
-	NN_row=(refElement->LinearBasisFunctions->Type->numShapes);
-    } else {
-	NN_row=(refElement->BasisFunctions->Type->numShapes) ;
-    }
+    NN_col=(refElement->BasisFunctions->Type->numShapes);
+    NN_col=(refElement->BasisFunctions->Type->numShapes);
+    NN_row=(refElement->BasisFunctions->Type->numShapes) ;
 
     for (color=elements->minColor;color<=elements->maxColor;color++)
     {
