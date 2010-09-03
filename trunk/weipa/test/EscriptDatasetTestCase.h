@@ -22,14 +22,12 @@
 class EscriptDatasetTestCase : public CppUnitTest::TestCase
 {
 public:
-
     //
     // setUp is called before each test method to set up test state
     void setUp();
     //
     // tearDown is called after each test method is called.
     void tearDown(); 
-
     //
     // A test method must return void and have no arguments
     // DataEmpty class
@@ -37,11 +35,16 @@ public:
 
     EscriptDatasetTestCase(std::string name) : TestCase(name) {}
     ~EscriptDatasetTestCase() {}
-    //
+
     //
     // return the suite of tests to perform
     //
     static CppUnitTest::TestSuite* suite();
+
+private:
+    void checkVTKfile(std::string filename);
+    int getDataArrayLength(std::istream& is);
+
 };
 
 #endif

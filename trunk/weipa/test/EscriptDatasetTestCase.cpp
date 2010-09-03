@@ -55,26 +55,61 @@ void EscriptDatasetTestCase::testAll()
     assert(dataset->getMeshVariables().size() == 0);
 
     // instantiate a domain and data
-    Domain_ptr dom2d(rectangle());
-    //Domain_ptr dom3d(brick());
-    escript::Data dataOn2d = Scalar(0.0, continuousFunction(*dom2d), true);
-    //escript::Data dataOn3d = Scalar(0.0, continuousFunction(*dom3d), true);
+    Domain_ptr dom(brick());
+    escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;
-    assert(dataset->addData(dataOn2d, "foo", "bar") == false);
+    assert(dataset->addData(data, "foo", "bar") == false);
 
     cout << "\tTest setDomain." << endl;
-    assert(dataset->setDomain(dom2d.get()) == true);
+    assert(dataset->setDomain(dom.get()) == true);
+    assert(dataset->getMeshVariables().size() > 0);
 
     cout << "\tTest bogus setDomain call." << endl;
-    assert(dataset->setDomain(dom2d.get()) == false);
+    assert(dataset->setDomain(dom.get()) == false);
 
     cout << "\tTest getConvertedDomain." << endl;
-    assert(dataset->getConvertedDomain().size() > 0);
+    MeshBlocks blocks = dataset->getConvertedDomain();
+    assert(blocks.size() > 0);
+
+    StringVec varfiles, varnames;
+    varfiles.push_back("testvar%04d.nc");
+    varnames.push_back("testvar");
+    cout << "\tTest bogus loadNetCDF call 1." << endl;
+    assert(dataset->loadNetCDF("mesh%04d.nc", varfiles, varnames, 1) == false);
+
+    cout << "\tTest bogus loadNetCDF call 2." << endl;
+    assert(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
 
     cout << "\tTest addData with valid data." << endl;
-    assert(dataset->addData(dataOn2d, "test2d", "") == true);
+    assert(dataset->addData(data, "testvar", "cm") == true);
     assert(dataset->getVariables().size() == 1);
+
+    cout << "\tTest set/getCycleAndTime." << endl;
+    dataset->setCycleAndTime(42, 3.1415);
+    assert(dataset->getCycle() == 42);
+    assert(dataset->getTime()-3.1415 < 0.001);
+
+    dataset->setMetadataSchemaString("xmlns:test=\"http://myschema.com/test\"",
+            "<MyValue>4711</MyValue>");
+    dataset->setMeshLabels("x-axis", "y-axis", "z-axis");
+    dataset->setMeshUnits("km", "cm", "mm");
+
+#if USE_SILO
+    cout << "\tTest saveSilo." << endl;
+    assert(dataset->saveSilo("weipatest.silo") == true);
+    ifstream f("weipatest.silo");
+    assert(f.is_open());
+    f.close();
+#endif
+
+    cout << "\tTest saveVTK." << endl;
+    assert(dataset->saveVTK("weipatest.vtu") == true);
+    checkVTKfile("weipatest.vtu");
+
+    //varnames.push_back("dummy");
+    //cout << "\tTest loadNetCDF with invalid params." << endl;
+    //assert(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
 }
 
 TestSuite* EscriptDatasetTestCase::suite()
@@ -86,5 +121,101 @@ TestSuite* EscriptDatasetTestCase::suite()
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testAll",&EscriptDatasetTestCase::testAll));
     return testSuite;
+}
+
+int EscriptDatasetTestCase::getDataArrayLength(std::istream& is)
+{
+    int length=0;
+    char line[256];
+    while (is.good()) {
+        is.getline(line, 256);
+        string s(line);
+        if (s.find("</DataArray") != 0)
+            length++;
+        else
+            break;
+    }
+    return length;
+}
+
+void EscriptDatasetTestCase::checkVTKfile(std::string filename)
+{
+    ifstream f(filename.c_str());
+    assert(f.is_open());
+
+    char line[256];
+    int numPoints=0, numCells=0;
+    while (f.good()) {
+        f.getline(line, 256);
+        string s(line);
+        size_t pp = s.find("NumberOfPoints=");
+        size_t cp = s.find("NumberOfCells=");
+        if (pp!=s.npos && cp!=s.npos) {
+            stringstream ss;
+            string tmp(s.substr(pp+16));
+            ss.str(tmp);
+            ss >> numPoints;
+            tmp = s.substr(cp+15);
+            ss.str(tmp);
+            ss >> numCells;
+            break;
+        }
+    }
+    assert(numPoints>0);
+    assert(numCells>0);
+
+    bool pointsFound=false, cellsFound=false;
+    int numPointData=0, numCellData=0;
+
+    while (f.good()) {
+        f.getline(line, 256);
+        string s(line);
+        if (s.compare("<Points>") == 0) {
+            pointsFound=true;
+            // check node coordinates
+            while (f.good() && s.find("</Points>") != 0) {
+                f.getline(line, 256);
+                s = line;
+                if (s.find("<DataArray") == 0) {
+                    assertLongsEqual(numPoints, getDataArrayLength(f));
+                }
+            }
+        } else if (s.find("<Cells>") == 0) {
+            cellsFound=true;
+            // check cell info (connectivity, offsets, types)
+            while (f.good() && s.find("</Cells>") != 0) {
+                f.getline(line, 256);
+                s = line;
+                if (s.find("<DataArray") == 0) {
+                    assertLongsEqual(numCells, getDataArrayLength(f));
+                }
+            }
+        } else if (s.compare("<PointData>") == 0) {
+            // check nodal data
+            while (f.good() && s.find("</PointData>") != 0) {
+                f.getline(line, 256);
+                s = line;
+                if (s.find("<DataArray") == 0) {
+                    numPointData++;
+                    assertLongsEqual(numPoints, getDataArrayLength(f));
+                }
+            }
+        } else if (s.find("<CellData>") == 0) {
+            // check cell data
+            while (f.good() && s.find("</CellData>") != 0) {
+                f.getline(line, 256);
+                s = line;
+                if (s.find("<DataArray") == 0) {
+                    numCellData++;
+                    assertLongsEqual(numCells, getDataArrayLength(f));
+                }
+            }
+        }
+    }
+
+    assert(pointsFound);
+    assert(cellsFound);
+    assert(numPointData>0);
+    assert(numCellData>0);
 }
 
