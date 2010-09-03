@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#ifndef __VISITDATA_H__
-#define __VISITDATA_H__
+#ifndef __WEIPA_VISITDATA_H__
+#define __WEIPA_VISITDATA_H__
 
 #include <escript/AbstractDomain.h>
 #include <escript/Data.h>
@@ -56,5 +56,5 @@ typedef boost::shared_ptr<VisItData> VisItData_ptr;
 
 } // namespace weipa
 
-#endif // __VISITDATA_H__
+#endif // __WEIPA_VISITDATA_H__
 

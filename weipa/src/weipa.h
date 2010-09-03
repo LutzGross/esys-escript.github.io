@@ -43,22 +43,25 @@
 namespace weipa {
 
 class DataVar;
+class DomainChunk;
 class ElementData;
 class EscriptDataset;
-class FinleyMesh;
 class NodeData;
 
+typedef std::vector<float>       FloatVec;
+typedef std::vector<int>         IntVec;
 typedef std::vector<std::string> StringVec;
-typedef std::vector<float> FloatVec;
-typedef std::vector<int> IntVec;
-typedef std::vector<float*> CoordArray;
-typedef std::map<int, size_t> IndexMap;
+typedef std::vector<float*>      CoordArray;
+typedef std::map<int, size_t>    IndexMap;
 
-typedef boost::shared_ptr<DataVar> DataVar_ptr;
-typedef boost::shared_ptr<ElementData> ElementData_ptr;
-typedef boost::shared_ptr<FinleyMesh> FinleyMesh_ptr;
-typedef boost::shared_ptr<NodeData> NodeData_ptr;
+typedef boost::shared_ptr<DataVar>        DataVar_ptr;
+typedef boost::shared_ptr<DomainChunk>    DomainChunk_ptr;
+typedef boost::shared_ptr<ElementData>    ElementData_ptr;
 typedef boost::shared_ptr<EscriptDataset> EscriptDataset_ptr;
+typedef boost::shared_ptr<NodeData>       NodeData_ptr;
+
+typedef boost::shared_ptr<const DomainChunk>    const_DomainChunk_ptr;
+typedef boost::shared_ptr<const EscriptDataset> const_EscriptDataset_ptr;
 
 } // namespace weipa
 

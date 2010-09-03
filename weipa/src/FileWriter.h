@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#ifndef __WEIPAFILEWRITER_H__
-#define __WEIPAFILEWRITER_H__
+#ifndef __WEIPA_FILEWRITER_H__
+#define __WEIPA_FILEWRITER_H__
 
 #include <weipa/weipa.h>
 
@@ -47,5 +47,5 @@ private:
 
 } // namespace weipa
 
-#endif // __WEIPAFILEWRITER_H__
+#endif // __WEIPA_FILEWRITER_H__
 

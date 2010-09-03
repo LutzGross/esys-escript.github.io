@@ -11,7 +11,7 @@
 *
 *******************************************************/
 
-#include <weipa/ElementData.h>
+#include <weipa/FinleyElements.h>
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
@@ -97,18 +97,18 @@ namespace weipa {
 //
 // Constructor
 //
-ElementData::ElementData(const string& elementName, NodeData_ptr nodeData)
+FinleyElements::FinleyElements(const string& elementName, FinleyNodes_ptr nodeData)
     : originalMesh(nodeData), name(elementName), numElements(0),
       numGhostElements(0), nodesPerElement(0),
       type(ZONETYPE_UNKNOWN), finleyTypeId(NoRef), elementFactor(1)
 {
-    nodeMesh.reset(new NodeData(name));
+    nodeMesh.reset(new FinleyNodes(name));
 }
 
 //
 // Copy constructor
 //
-ElementData::ElementData(const ElementData& e)
+FinleyElements::FinleyElements(const FinleyElements& e)
 {
     name = e.name;
     numElements = e.numElements;
@@ -119,9 +119,9 @@ ElementData::ElementData(const ElementData& e)
     elementFactor = e.elementFactor;
     originalMesh = e.originalMesh;
     if (e.nodeMesh)
-        nodeMesh.reset(new NodeData(*e.nodeMesh));
+        nodeMesh.reset(new FinleyNodes(*e.nodeMesh));
     else
-        nodeMesh.reset(new NodeData(name));
+        nodeMesh.reset(new FinleyNodes(name));
 
     nodes = e.nodes;
     ID = e.ID;
@@ -130,13 +130,14 @@ ElementData::ElementData(const ElementData& e)
     owner = e.owner;
 
     if (e.reducedElements)
-        reducedElements = ElementData_ptr(new ElementData(*e.reducedElements));
+        reducedElements = FinleyElements_ptr(
+                new FinleyElements(*e.reducedElements));
 }
 
 //
 //
 //
-bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
+bool FinleyElements::initFromFinley(const Finley_ElementFile* finleyFile)
 {
 #ifndef VISIT_PLUGIN
     numElements = finleyFile->numElements;
@@ -229,7 +230,7 @@ bool ElementData::initFromFinley(const Finley_ElementFile* finleyFile)
 //
 // Reads element data from given NetCDF file
 //
-bool ElementData::readFromNc(NcFile* ncfile)
+bool FinleyElements::readFromNc(NcFile* ncfile)
 {
 #if USE_NETCDF
     string num_str("num_");
@@ -332,7 +333,7 @@ bool ElementData::readFromNc(NcFile* ncfile)
 //
 //
 //
-StringVec ElementData::getMeshNames() const
+StringVec FinleyElements::getMeshNames() const
 {
     StringVec res;
     if (nodeMesh)
@@ -348,7 +349,7 @@ StringVec ElementData::getMeshNames() const
 //
 //
 //
-StringVec ElementData::getVarNames() const
+StringVec FinleyElements::getVarNames() const
 {
     StringVec res;
     res.push_back(name + string("_Color"));
@@ -361,7 +362,7 @@ StringVec ElementData::getVarNames() const
 //
 //
 //
-const IntVec& ElementData::getVarDataByName(const string varName) const
+const IntVec& FinleyElements::getVarDataByName(const string varName) const
 {
     if (varName == name+string("_Color"))
         return color;
@@ -380,11 +381,11 @@ const IntVec& ElementData::getVarDataByName(const string varName) const
 //
 //
 //
-const QuadMaskInfo& ElementData::getQuadMask(int functionSpace) const
+const QuadMaskInfo& FinleyElements::getQuadMask(int fsCode) const
 {
-    if (functionSpace == FINLEY_REDUCED_ELEMENTS ||
-            functionSpace == FINLEY_REDUCED_FACE_ELEMENTS ||
-            functionSpace == FINLEY_REDUCED_CONTACT_ELEMENTS_1) {
+    if (fsCode == FINLEY_REDUCED_ELEMENTS ||
+            fsCode == FINLEY_REDUCED_FACE_ELEMENTS ||
+            fsCode == FINLEY_REDUCED_CONTACT_ELEMENTS_1) {
         return reducedQuadMask;
     } else {
         return quadMask;
@@ -394,7 +395,7 @@ const QuadMaskInfo& ElementData::getQuadMask(int functionSpace) const
 //
 //
 //
-void ElementData::reorderArray(IntVec& v, const IntVec& idx,
+void FinleyElements::reorderArray(IntVec& v, const IntVec& idx,
                                int elementsPerIndex)
 {
     IntVec newArray(v.size());
@@ -417,7 +418,7 @@ void ElementData::reorderArray(IntVec& v, const IntVec& idx,
 //
 //
 //
-void ElementData::buildReducedElements(const FinleyElementInfo& f)
+void FinleyElements::buildReducedElements(const FinleyElementInfo& f)
 {
     // create the node list for the new element type
     IntVec reducedNodes(f.reducedElementSize*numElements, 0);
@@ -446,7 +447,7 @@ void ElementData::buildReducedElements(const FinleyElementInfo& f)
 
         // create the reduced elements which are basically a copy of the
         // current elements
-        reducedElements = ElementData_ptr(new ElementData(
+        reducedElements = FinleyElements_ptr(new FinleyElements(
                     "Reduced"+name, originalMesh));
         reducedElements->nodes = reducedNodes;
         reducedElements->numElements = numElements;
@@ -490,7 +491,7 @@ void ElementData::buildReducedElements(const FinleyElementInfo& f)
 //
 //
 //
-IntVec ElementData::prepareGhostIndices(int ownIndex)
+IntVec FinleyElements::prepareGhostIndices(int ownIndex)
 {
     IntVec indexArray;
     numGhostElements = 0;
@@ -514,7 +515,7 @@ IntVec ElementData::prepareGhostIndices(int ownIndex)
 //
 //
 //
-void ElementData::reorderGhostZones(int ownIndex)
+void FinleyElements::reorderGhostZones(int ownIndex)
 {
     IntVec indexArray = prepareGhostIndices(ownIndex);
 
@@ -534,7 +535,7 @@ void ElementData::reorderGhostZones(int ownIndex)
 //
 //
 //
-void ElementData::removeGhostZones(int ownIndex)
+void FinleyElements::removeGhostZones(int ownIndex)
 {
     reorderGhostZones(ownIndex);
 
@@ -555,15 +556,15 @@ void ElementData::removeGhostZones(int ownIndex)
 //
 //
 //
-void ElementData::buildMeshes()
+void FinleyElements::buildMeshes()
 {
     // build a new mesh containing only the required nodes
     if (numElements > 0) {
         if (nodeMesh && nodeMesh->getNumNodes() > 0) {
-            NodeData_ptr newMesh(new NodeData(nodeMesh, nodes, name));
+            FinleyNodes_ptr newMesh(new FinleyNodes(nodeMesh, nodes, name));
             nodeMesh.swap(newMesh);
         } else {
-            nodeMesh.reset(new NodeData(originalMesh, nodes, name));
+            nodeMesh.reset(new FinleyNodes(originalMesh, nodes, name));
         }
 #ifdef _DEBUG
         cout << nodeMesh->getName() << " has " << nodeMesh->getNumNodes()
@@ -578,7 +579,7 @@ void ElementData::buildMeshes()
 //
 //
 //
-void ElementData::writeConnectivityVTK(ostream& os)
+void FinleyElements::writeConnectivityVTK(ostream& os)
 {
     if (numElements > 0) {
         const IntVec& gNI = nodeMesh->getGlobalNodeIndices();
@@ -615,8 +616,9 @@ inline int toSiloElementType(int type)
 //
 //
 //
-bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath,
-                              const StringVec& labels, const StringVec& units)
+bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
+                                 const StringVec& labels,
+                                 const StringVec& units)
 {
 #if USE_SILO
     if (numElements == 0)
@@ -722,7 +724,7 @@ bool ElementData::writeToSilo(DBfile* dbfile, const string& siloPath,
 //
 //
 //
-FinleyElementInfo ElementData::getFinleyTypeInfo(ElementTypeId typeId)
+FinleyElementInfo FinleyElements::getFinleyTypeInfo(ElementTypeId typeId)
 {
     FinleyElementInfo ret;
     ret.multiCellIndices = NULL;
@@ -982,7 +984,7 @@ static bool pointInTri(float x, float y,
 //
 //
 //
-QuadMaskInfo ElementData::buildQuadMask(const CoordArray& qnodes, int numQNodes)
+QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNodes)
 {
     QuadMaskInfo qmi;
     if (numQNodes == 0)
