@@ -41,6 +41,9 @@ from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector
 from cblib import toRegGrid, subsample
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+
 import pylab as pl #Plotting package
 import numpy as np
 
