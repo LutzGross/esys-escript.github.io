@@ -75,8 +75,8 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
 				}
 			}
 		}
-		}
 	}
+     }
   }
   return;
 }

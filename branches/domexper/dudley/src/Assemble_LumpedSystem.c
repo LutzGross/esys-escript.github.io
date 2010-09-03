@@ -153,7 +153,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                #endif
                                for (q=0;q<p.row_numShapesTotal;q++)
 			       {
-				 row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,0, p.row_numShapesTotal)],e,p.NN)]];
+				 row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
 			       }
                                Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */	       
@@ -191,7 +191,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp*D_p[0];
                                    }
                                #endif
-                               for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q, 0, p.row_numShapesTotal)],e,p.NN)]];
+                               for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
                                Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */ 
                     } /* end element loop */
@@ -233,7 +233,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                        }
 				  }
 				  #endif
-				  for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,0,p.row_numShapesTotal)],e,p.NN)]];
+				  for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
 				  Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */
                     } /* end element loop */
@@ -271,7 +271,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                      }
 				 }
 			      #endif
-			      for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,0,p.row_numShapesTotal)],e,p.NN)]];
+			      for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
 			      Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */
                     } /* end element loop */
