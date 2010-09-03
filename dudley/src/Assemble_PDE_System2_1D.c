@@ -291,7 +291,7 @@ void  Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile* 
                        /* add the element matrices onto the matrix and right hand side                                */
                        /***********************************************************************************************/
                       
-		       for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,0,p.row_numShapesTotal)],e,p.NN)]];
+		       for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
                        
 		       if (add_EM_F) Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);
                        if (add_EM_S) Dudley_Assemble_addToSystemMatrix(Mat,p.row_numShapesTotal,row_index,p.numEqu,p.col_numShapesTotal,row_index,p.numComp,EM_S);

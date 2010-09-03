@@ -37,7 +37,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   dim_t numNodes=0, numShapes=0, numShapesTotal=0, numComps, NN=0, numDim=0, numShapesTotal2=0, numQuad=0;
   type_t data_type=getFunctionSpaceType(data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
-  index_t s_offset=0,  *nodes_selector=NULL;
+  index_t s_offset=0;
   Dudley_ElementFile_Jacobeans* jac=NULL;
   
   Dudley_resetError();
@@ -83,10 +83,8 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
        	  s_offset=jac->offsets[0];
 	  localGradSize=sizeof(double)*numDim*numQuad*numComps;
 	  if ( (data_type==DUDLEY_REDUCED_NODES) || (DUDLEY_REDUCED_DEGREES_OF_FREEDOM==data_type) )  {
-		  nodes_selector=refElement->Type->linearNodes;
 		  numShapesTotal2=refElement->LinearBasisFunctions->Type->numShapes;
 	  } else { 
-		  nodes_selector=refElement->Type->subElementNodes;
 		  numShapesTotal2=refElement->BasisFunctions->Type->numShapes;
 	  }
       /* check the dimensions of data */
@@ -120,7 +118,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -138,7 +136,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -158,7 +156,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e); 
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,n);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -180,7 +178,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);            
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -198,7 +196,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -217,7 +215,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
                     	for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
 							for (q=0;q<numQuad;q++) {	
 								#pragma ivdep
@@ -240,7 +238,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -258,7 +256,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -277,7 +275,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -299,7 +297,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -317,7 +315,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep
@@ -337,7 +335,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
                     grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
 						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,0,numShapesTotal2)],e, NN)];
+							n=elements->Nodes[INDEX2(s,e, NN)];
 							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
 							for (q=0;q<numQuad;q++) {
 								#pragma ivdep

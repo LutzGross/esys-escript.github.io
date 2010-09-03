@@ -135,8 +135,6 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   parm->NN=elements->numNodes;
   parm->numElements=elements->numElements;
   parm->numDim=parm->row_jac->numDim;
-  parm->col_node=parm->col_jac->node_selection;
-  parm->row_node=parm->row_jac->node_selection;
   parm->row_numShapesTotal=parm->row_jac->numShapesTotal;
   parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
   parm->col_numShapesTotal=parm->col_jac->numShapesTotal;

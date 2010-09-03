@@ -36,7 +36,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   Dudley_ReferenceElement* reference_element=NULL;
   Dudley_ShapeFunction *basis=NULL;
   dim_t numComps=getDataPointSize(data);
-  index_t *resort_nodes=NULL, *map=NULL;
+  index_t *map=NULL;
   type_t data_type=getFunctionSpaceType(data);
   type_t type;
   size_t numComps_size;
@@ -54,14 +54,12 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 
   if (data_type==DUDLEY_NODES) {
 	   type=NODES;
-	   resort_nodes=reference_element->Type->subElementNodes;
 	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
 	   dof_offset=reference_element->Type->offsets[0];
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
-	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedNodes(nodes);
@@ -72,7 +70,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=DOF;
-	   resort_nodes=reference_element->Type->subElementNodes;
 	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
@@ -83,7 +80,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=REDUCED_DOF;
-	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
@@ -127,8 +123,8 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		for(e=0;e<elements->numElements;e++)
 		{
 			for (q=0;q<NS_DOF;q++)
-			{ 
-				    i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,0,numShapesTotal2)],e,NN)];
+			{
+				    i=elements->Nodes[INDEX2(q,e,NN)];
 				    data_array=getSampleDataRO(data,map[i]);
 				    memcpy(&(local_data[INDEX3(0,q,0, numComps,NS_DOF)]), data_array, numComps_size);
 			}

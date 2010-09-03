@@ -87,11 +87,9 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      out->numElements=self->numElements;
      
      if (reducedShapefunction) {
-        out->node_selection=refElement->Type->linearNodes;
         out->offsets=refElement->LinearType->offsets;
         dBdv=basis->dSdv;
      } else {
-        out->node_selection=refElement->Type->subElementNodes; 
         out->offsets=refElement->Type->offsets;
         dBdv=refElement->DBasisFunctionDv;
      }
