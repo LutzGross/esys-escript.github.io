@@ -12,13 +12,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{3D pycad}
-\sslist{example09n.py}
-
-This example explains how to build a 3D layered model using pycad. There are a
-few import concepts that one must remember when using pycad to build a layered
-model that will function correctly.
+\sslist{example09m.py}
+This example explains how to build a 3D layered domain using pycad. As
+simple as this example sounds, there are a few import concepts that one must
+remember  so that the model will function correctly.
 \begin{itemize}
-  \item There must be no duplication of any geometric features whether they be
+  \item There must be no duplication of any geometric features whether they are
   points, lines, loops, surfaces or volumes.
   \item All objects with dimensions greater then a line have a normal defined by
   the right hand rull (RHR). It is important to consider which direction a
@@ -38,7 +37,7 @@ import os
 \end{python}
 After carrying out some routine checks and setting the \verb!save_path! we then
 specify the parameters of the model. This model will be 2000 by 2000 meters on
-the surface and extend to a depth of 500 meters. An interface of boundary
+the surface and extend to a depth of 500 meters. An interface or boundary
 between two layers will be created at half the total depth or 250 meters. This
 type of model is known as a horizontally layered model or a layer cake model. 
 \begin{python}
@@ -84,12 +83,12 @@ linhe_ar.append(Line(ip3,ip0))
 Consider now the sides of the domain. One could specify the whole side using the
 points first defined for the top and bottom layer. This would specify the whole
 domain as one volume. However, there is an interface and we wish to define each
-layer individually. Therefore there will be 8 surfaces on the sides of our
+layer individually. Therefore, there will be 8 surfaces on the sides of our
 domain. We can do this operation quite simply using the points and lines that we
 had defined previously. First loops are created and then surfaces making sure to
 keep a normal for each layer which is consistent with upper and lower surfaces
-of the layer. For example all normals must face outwards from or inwards towards
- the centre of the volume.
+of the layer. For example, all surface normals must face outwards from or
+inwards towards the centre of the volume.
 \begin{python}
 cintfa_ar=[]; cintfb_ar=[] #curveloops for above and below interface on sides
 cintfa_ar.append(CurveLoop(linte_ar[0],linhe_ar[0],-linte_ar[2],-l01))
@@ -102,7 +101,7 @@ sintfb_ar=[PlaneSurface(cintfb_ar[i]) for i in range(0,4)]
 sintf=PlaneSurface(CurveLoop(*tuple(linhe_ar)))
 \end{python}
 Assuming all is well with the normals, the volumes can be created from our
-surface arrays. Note the use here of the \verb!*tuple*! function. This allows us
+surface arrays. Note the use here of the \verb!*tuple! function. This allows us
 to pass an list array as an argument list to a function. It must be placed at
 the end of the function arguments and there cannot be more than one per function
 call.
@@ -165,7 +164,8 @@ from pycad.
 from esys.pycad import layer_cake
 intfaces=[10,30,50,55,80,100,200,250,400,500]
 
-cmplx_domain=layer_cake.LayerCake(xwidth,ywidth,intfaces,200.0)
+domaindes=Design(dim=3,element_size=element_size,order=2)
+cmplx_domain=layer_cake.LayerCake(domaindes,xwidth,ywidth,intfaces)
 cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
 cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
 dcmplx=MakeDomain(cmplx_domain)
@@ -187,3 +187,55 @@ directionality of your primatives when constructing more complicated domains. If
 one cannot establist the tangent of a line or curveloop, or the normal of a
 surface. These values can be checked by importing the geometry to gmesh and
 applying the appropriate options.
+
+\section{3D Seismic Wave Propagation}
+Adding an extra dimension to our wave equation solution script should be
+relatively simple. Apart from the changes to the domain and therefore the
+parameters of the model, there are only a few minor things which must be
+modified to make the solution appropriate for 3d modelling.
+
+\section{Applying a function to a domain tag}
+\sslist{example09b.py}
+To apply a function or data object to a domain requires a two step process. The
+first step is to create a data object with a on/off mask based upon the tagged
+value. This is quite simple and can be achieved by using a scalar data object
+based upon the domain. In this case we are using the \verb!FunctionOnBoundary!
+function space because the tagged value \verb!'stop'! is effectively a specific
+subsurface of the boundary of the whole domain. 
+\begin{python}
+stop=Scalar(0.0,FunctionOnBoundary(domain))
+stop.setTaggedValue("stop",1.0)
+\end{python}
+Now the data object \verb|stop| has the value 1.0 on the surface
+\verb!'stop'! and zero everywhere else.
+% 
+ To apply our function to the boundary only on \verb|stop| we now
+ mulitply it by \verb|stop|
+\begin{python}
+xb=FunctionOnBoundary(domain).getX()
+yx=(cos(length(xb-xc)*3.1415/src_length)+1)*whereNegative(length(xb-xc)-src_length)
+src_dir=numpy.array([0.,0.,1.0]) # defines direction of point source as down
+mypde.setValue(y=source[0]*yx*src_dir*stop) #set the source as a function on the boundary
+\end{python}
+
+\section{Mayavi2 with 3D data.}
+There are a variety of visualisation options available when using VTK data. The
+types of visualisation are often data and interpretation specific and thus
+consideration must be given to the type of output saved to file. Whether that is
+scalar, vector or tensor data.
+
+\begin{figure}[htp]
+\centering
+\begin{subfigure}[Example 9 at time step 201.]
+ 	{\label{fig:ex9b 201}
+ 	\includegraphics[width=0.45\textwidth]{figures/ex09b00201.png}}
+ \end{subfigure}
+ \begin{subfigure}[Example 9 at time step 341.]
+ 	{\label{fig:ex9b 201}
+ 	\includegraphics[width=0.45\textwidth]{figures/ex09b00341.png}}
+ \end{subfigure}\\
+ \begin{subfigure}[Example 9 at time step 440.]
+ 	{\label{fig:ex9b 201}
+ 	\includegraphics[width=0.45\textwidth]{figures/ex09b00440.png}}
+ \end{subfigure}
+\end{figure}
