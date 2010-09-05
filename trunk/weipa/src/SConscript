@@ -73,7 +73,7 @@ tmp = local_env.Install(local_env['libinstall'], lib)
 env.Alias('target_install_weipa_so', tmp)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['weipa'] + env['sys_libs'])
+py_wrapper_local_env.Append(LIBS = ['weipa', 'escript'] + env['sys_libs'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
 env.Alias('target_weipacpp_so', py_wrapper_lib)
