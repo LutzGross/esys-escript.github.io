@@ -14,12 +14,11 @@
 \section{Seismic Wave Propagation in Two Dimensions}
 
 \sslist{example08a.py}
-
 We will now expand upon the previous chapter by introducing a vector form of
-the wave equation. This means that the waves will have both a scalar magnitude,
-but also a direction. This type of scenario is apparent in wave forms that
-exhibit compressional and transverse particle motion. A common type of wave
-that obeys this principle are seismic waves.
+the wave equation. This means that the waves will have not only a scalar
+magnitude as for the pressure wave solution, but also a direction. This type of
+scenario is apparent in wave types that exhibit compressional and transverse
+particle motion. An example of this would be seismic waves.
 
 Wave propagation in the earth can be described by the elastic wave equation
 \begin{equation} \label{eqn:wav} \index{wave equation}
@@ -31,8 +30,8 @@ where $\sigma$ is the stress given by
  \sigma \hackscore{ij} = \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu (
 u\hackscore{i,j} + u\hackscore{j,i})
 \end{equation}
-with $\lambda$ and $\mu$ representing the Lame Coefficients. Specifically
-$\mu$ is the bulk modulus. 
+and $\lambda$ and $\mu$ represent Lame's parameters. Specifically for seismic
+waves, $\mu$ is the propagation materials shear modulus. 
 In a similar process to the previous chapter, we will use the acceleration
 solution to solve this PDE. By substituting $a$ directly for
 $\frac{\partial^{2}u\hackscore{i}}{\partial t^2}$ we can derive the
@@ -41,9 +40,8 @@ displacement solution. Using $a$ we can see that \refEq{eqn:wav} becomes
 \rho a\hackscore{i} - \frac{\partial
 \sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
 \end{equation}
-This is very similar to our acceleration solution in the previous chapter. Thus
-the problem will be solved for acceleration and for displacement using the
-backwards difference approximation.
+Thus the problem will be solved for acceleration and then converted to 
+displacement using the backwards difference approximation.
 
 Consider now the stress $\sigma$. One can see that the stress consists of two
 distinct terms:
@@ -87,8 +85,8 @@ rtime=0.0 # first time to record
 rtime_inc=tend/20.0 # time increment to record
 \end{python}
 Currently the PDE solution will be saved to file $20$ times between the start of
-the modelling and the final time step. With these parameters set an if catch is
-introduced to the time loop
+the modelling and the final time step. With these parameters set, an if
+statement is introduced to the time loop
 \begin{python}
 if (t >= rtime):
 	saveVTK(os.path.join(savepath,"ex08a.%05d.vtu"%n),displacement=length(u),\
@@ -111,7 +109,31 @@ $escript -t 4 example08a.py
 \end{verbatim}
 would call the script in this section and solve it using 4 threads.
 
+The computation times on an increasing number of cores is outlines in Table
+\ref{tab:wpcores}
+
+\begin{table}[ht]
+\begin{center}
+\caption{Computation times for an increasing number of cores.}
+\label{tab:wpcores}
+\begin{tabular}{| c | c |}
+\hline
+Number of Cores & Time (s) \\
+\hline
+1 & 691.0 \\
+2 & 400.0 \\
+3 & 305.0 \\
+4 & 328.0 \\
+5 & 323.0 \\
+6 & 292.0 \\
+7 & 282.0 \\
+8 & 445.0 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
 \section{Vector source on the boundary}
+\sslist{example08b.py}
 For this particular example, we will introduce the source by applying a
 displacment to the boundary during the initial time steps. The source will again
 be
@@ -127,17 +149,22 @@ xc=[ndx/2,0]
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_length = 20; print "src_length = ",src_length
+src_length = 40; print "src_length = ",src_length
 # set initial values for first two time steps with source terms
-y=U0*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)\
-								    -src_length)
+xb=FunctionOnBoundary(domain).getX()
+y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*\
+                whereNegative(length(xb-src_length))
+src_dir=numpy.array([0.,1.]) # defines direction of point source as down
+y=y*src_dir
 \end{python}
-where \verb xc  is the source point on the boundary of the model. The source
-direction is then defined as an $(x,y)$ array and multiplied by the source
-function. The directional array must have a magnitude of $\left| 1 \right| $
-otherwise the
-amplitude of the source will become modified. For this example, the source is
-directed in the $-y$ direction.
+where \verb xc  is the source point on the boundary of the model. Note that
+because the source is specifically located on the boundary, we have used the
+\verb!FunctionOnBoundary! call to ensure the nodes are located upon the
+boundary only. These boundary nodes are passed to source as \verb!xb!. The
+source direction is then defined as an $(x,y)$ array and multiplied by the 
+source function. The directional array must have a magnitude of $\left| 1
+\right| $ otherwise the amplitude of the source will become modified. For this
+example, the source is directed in the $-y$ direction.
 \begin{python}
 src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
 y=y*src_dir
@@ -153,7 +180,7 @@ must set the model state to zero for the first two time steps.
 \begin{python}
 # initial value of displacement at point source is constant (U0=0.01)
 # for first two time steps
-u=[0.0,0.0]*whereNegative(x)
+u=[0.0,0.0]*wherePositive(x)
 u_m1=u
 \end{python}
 
@@ -181,29 +208,46 @@ iteration stage. This is covered in the following section.
 \label{fig:ex08pw}
 \caption{Results of Example 08 at various times.}
 \end{figure}
+\clearpage
 
 \section{Time variant source}
 
-\sslist{example08a.py}
-
+\sslist{example08b.py}
 Until this point, all of the wave propagation examples in this cookbook have
 used impulsive sources which are smooth in space but not time. It is however,
 advantageous to have a time smoothed source as it can reduce the temporal
 frequency range and thus mitigate aliasing in the solution. 
 
-
 It is quite 
 simple to implement a source which is smooth in time. In addition to the
 original source function the only extra requirement is a time function. For
-this example it will be a decaying sinusoidal curve defined by;
+this example the time variant source will be the derivative of a gausian curve
+defined by the required dominant frequency (\refig{fig:tvsource}).
 \begin{python}
-U0=0.1 # amplitude of point source
-ls=100   # length of the source
+#Creating the time function of the source.
+dfeq=50 #Dominant Frequency
+a = 2.0 * (np.pi * dfeq)**2.0
+t0 = 5.0 / (2.0 * np.pi * dfeq)
+srclength = 5. * t0
+ls = int(srclength/h)
+print 'source length',ls
 source=np.zeros(ls,'float') # source array
-g=np.log(0.01)/ls
-for t in range(0,ls):
-    source[t]=np.exp(g*t)*U0*np.sin(2.*np.pi*t/(0.75*ls))
+ampmax=0
+for it in range(0,ls):
+    t = it*h
+    tt = t-t0
+    dum1 = np.exp(-a * tt * tt)
+    source[it] = -2. * a * tt * dum1
+    if (abs(source[it]) > ampmax):
+        ampmax = abs(source[it])
+    time[t]=t*h
 \end{python}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=3in]{figures/source.png}
+\caption{Time variant source with a dominant frequency of 50Hz.}
+\label{fig:tvsource}
+\end{figure}
 
 We then build the source and the first two time steps via;
 \begin{python}
@@ -247,7 +291,10 @@ elastic wave equations}, 1985, Cerjan C, Geophysics 50, doi:10.1190/1.1441945}
 where the solution and the stress are multiplied by a damping function defined
 on $n$ nodes of the domain adjacent to the boundary, given by;
 \begin{equation}
- y=
+\gamma =\sqrt\left(\frac{|-log(\gamma\hackscore{b})|}{n^2}\right)
+\end{equation}
+\begin{equation}
+y=e^{-(\gamma x)^2}
 \end{equation}
 This is applied to the bounding 20-50 pts of the model using the location
 specifiers of \esc;
@@ -291,8 +338,25 @@ abcbottom=abcbottom+whereZero(abcbottom)
 abc=abcleft*abcright*abcbottom
 \end{python}
 Note that the boundary conditions are not applied to the surface, as this is
-effectively a free surface where normal reflections would be experienced. The
-resulting boundary damping function can be viewed in Figure \ref{fig:abconds}
+effectively a free surface where normal reflections would be experienced.
+Special conditions can be introduced at this surface if they are known. The
+resulting boundary damping function can be viewed in Figure
+\ref{fig:abconds}.
+
+\section{Second order Meshing}
+For stiff problems like the wave equation it is often prudent to implement
+second order meshing. This creates a more accurate mesh approximation with some
+increased processing cost. To turn second order meshing on, the \verb!rectangle!
+function accpets an \verb!order! keyword argument.
+\begin{python}
+domain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy,order=2) # create the domain
+\end{python}
+Other pycad functions and objects have similar keyword arguments for higher
+order meshing.
+
+Note that when implementing second order meshing, a smaller timestep is required
+then for first order meshes as the second order essentially reduces the size of
+the mesh by half.
 
 \begin{figure}[ht]
  \centering
@@ -322,3 +386,52 @@ resulting boundary damping function can be viewed in Figure \ref{fig:abconds}
 \label{fig:ex08pw}
 \caption{Results of Example 08b at various times.}
 \end{figure}
+\clearpage
+
+\section{Pycad example}
+\sslist{example08c.py}
+To make the problem more interesting we will now introduce an interface to the
+middle of the domain. Infact we will use the same domain as we did for heat flux
+in Chapter \ref{CHAP HEAT 2}. The domain contains a syncline with two set of
+material properties on either side of the interface.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=5in]{figures/example08cgeo.png}
+\caption{Domain geometry for example08c.py showing line tangents.}
+\label{fig:ex08cgeo}
+\end{center}
+\end{figure}
+
+It is simple enough to slightly modify the scripts of the previous sections to
+accept this domain. Multiple material parameters must now be deined and assigned
+to specific tagged areas. Again this is done via
+\begin{python}
+lam=Scalar(0,Function(domain))
+lam.setTaggedValue("top",lam1)
+lam.setTaggedValue("bottom",lam2)
+mu=Scalar(0,Function(domain))
+mu.setTaggedValue("top",mu1)
+mu.setTaggedValue("bottom",mu2)
+rho=Scalar(0,Function(domain))
+rho.setTaggedValue("top",rho1)
+rho.setTaggedValue("bottom",rho2)
+\end{python}
+Don't forget that teh source boudnary must also be tagged and added so it can be
+referenced 
+\begin{python}
+# Add the subdomains and flux boundaries.
+d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
+                                     PropertySet("linetop",l30))
+\end{python}
+It is now possible to solve the script as in the previous examples.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=4in]{figures/ex08c2601.png}
+\caption{Modelling results of example08c.py at 0.2601 seconds. Notice the
+refraction of the wave front about the boundary between the two layers.}
+\label{fig:ex08cres}
+\end{figure}
+
+
