@@ -320,68 +320,6 @@ namespace dudley {
 		  }
 	}
 
-        /* get the Contact elements */
-        if (Dudley_noError()) {
-		  Dudley_ReferenceElementSet *refContactElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,order, reduced_order);
-		  if (Dudley_noError())  {
-			  mesh_p->ContactElements=Dudley_ElementFile_alloc(refContactElements, mpi_info);
-		  }
-		  Dudley_ReferenceElementSet_dealloc(refContactElements);	
-          if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
-		  if (Dudley_noError()) {
-			  mesh_p->ContactElements->minColor=0;
-			  mesh_p->ContactElements->maxColor=num_ContactElements-1;
-			  if (num_ContactElements>0) {
-	           // ContactElements_Id
-                   if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
-                     throw DataException("get_var(ContactElements_Id)");
-                   if (! nc_var_temp->get(&mesh_p->ContactElements->Id[0], num_ContactElements) ) {
-                     TMPMEMFREE(mesh_p->ContactElements->Id);
-                     throw DataException("get(ContactElements_Id)");
-                   }
-	           // ContactElements_Tag
-                   if (! ( nc_var_temp = dataFile.get_var("ContactElements_Tag")) )
-                     throw DataException("get_var(ContactElements_Tag)");
-                   if (! nc_var_temp->get(&mesh_p->ContactElements->Tag[0], num_ContactElements) ) {
-                     TMPMEMFREE(mesh_p->ContactElements->Tag);
-                     throw DataException("get(ContactElements_Tag)");
-                   }
-	           // ContactElements_Owner
-                   if (! ( nc_var_temp = dataFile.get_var("ContactElements_Owner")) )
-                     throw DataException("get_var(ContactElements_Owner)");
-                   if (! nc_var_temp->get(&mesh_p->ContactElements->Owner[0], num_ContactElements) ) {
-                     TMPMEMFREE(mesh_p->ContactElements->Owner);
-                     throw DataException("get(ContactElements_Owner)");
-                   }
-	           // ContactElements_Color
-                   if (! ( nc_var_temp = dataFile.get_var("ContactElements_Color")) )
-                     throw DataException("get_var(ContactElements_Color)");
-                   if (! nc_var_temp->get(&mesh_p->ContactElements->Color[0], num_ContactElements) ) {
-                     TMPMEMFREE(mesh_p->ContactElements->Color);
-                     throw DataException("get(ContactElements_Color)");
-                   }
-	           // ContactElements_Nodes
-			   		int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
-                   if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
-                     TMPMEMFREE(mesh_p->ContactElements->Nodes);
-                     throw DataException("get_var(ContactElements_Nodes)");
-                   }
-                   if (! nc_var_temp->get(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes) ) {
-                     TMPMEMFREE(ContactElements_Nodes);
-                     throw DataException("get(ContactElements_Nodes)");
-                   }
-				   // Copy temp array into mesh_p->ContactElements->Nodes
-				   	for (int i=0; i<num_ContactElements; i++) {
-						for (int j=0; j<num_ContactElements_numNodes; j++) {
-							mesh_p->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]= ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)];
-						}
-					}
-					TMPMEMFREE(ContactElements_Nodes);
-				 } /* num_ContactElements>0 */
-			  } 
-		  
-	}
-
         /* get the Points (nodal elements) */
         if (Dudley_noError()) {
 		  Dudley_ReferenceElementSet *refPoints=	Dudley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);

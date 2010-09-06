@@ -74,10 +74,6 @@ typedef struct Dudley_ShapeFunction {
 /**************************************************************/
 /*   Interfaces: */
 
-Dudley_ShapeFunction_Evaluation Dudley_Shape_Point1;
-Dudley_ShapeFunction_Evaluation Dudley_Shape_Line2;
-Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri3;
-Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet4;
 
 Dudley_ShapeFunction* Dudley_ShapeFunction_alloc(Dudley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights);
 void Dudley_ShapeFunction_dealloc(Dudley_ShapeFunction*);
