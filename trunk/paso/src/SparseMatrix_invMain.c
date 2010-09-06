@@ -27,6 +27,7 @@
 #include "SparseMatrix.h"
 #include "Solver.h"
 #include "BlockOps.h"
+#include "PasoUtil.h"
 
 void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* pivot) {
    /*   inv_diag=MEMALLOC( A->numRows * A_p-> block_size,double);
@@ -129,7 +130,7 @@ void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_d
    pivot=MEMALLOC( A->numRows * A->row_block_size */
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
-  
-   Paso_BlockOps_allMV(n_block,n,block_diag,pivot,x,b);
+   Paso_Copy(n_block*n, x,b);
+   Paso_BlockOps_allMV(n_block,n,block_diag,pivot,x);
 }
 

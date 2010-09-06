@@ -21,7 +21,7 @@
 
 **************************************************************/
 
-void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b) {
+void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
      dim_t i;
      register dim_t i3,i9;
      register double b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22;
@@ -29,15 +29,15 @@ void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* 
      if (n_block==1) {
          #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<n;++i) {
-            x[i]=D[i]*b[i];
+            x[i]=D[i]*x[i];
          }
      } else if (n_block==2) {
          #pragma omp parallel for private(i,b0,b1,D00,D10,D01,D11,i3,i9) schedule(static)
          for (i=0;i<n;++i) {
             i3=2*i;
             i9=4*i;
-            b0=b[i3];
-            b1=b[i3+1];
+            b0=x[i3];
+            b1=x[i3+1];
             D00=D[i9  ];
             D10=D[i9+1];
             D01=D[i9+2];
@@ -50,9 +50,9 @@ void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* 
          for (i=0;i<n;++i) {
             i3=3*i;
             i9=9*i;
-            b0=b[i3];
-            b1=b[i3+1];
-            b2=b[i3+2];
+            b0=x[i3];
+            b1=x[i3+1];
+            b2=x[i3+2];
             D00=D[i9  ];
             D10=D[i9+1];
             D20=D[i9+2];

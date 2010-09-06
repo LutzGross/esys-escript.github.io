@@ -32,15 +32,15 @@
 
 /**************************************************************/
 
-/* free all memory used by GS                                */
+/* free all memory used by Smoother                                */
 
-void Paso_Preconditioner_GS_free(Paso_Preconditioner_GS * in) {
+void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in) {
      if (in!=NULL) {
-	Paso_Preconditioner_LocalGS_free(in->localGS);
+	Paso_Preconditioner_LocalSmoother_free(in->localSmoother);
         MEMFREE(in);
      }
 }
-void Paso_Preconditioner_LocalGS_free(Paso_Preconditioner_LocalGS * in) {
+void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * in) {
    if (in!=NULL) {
       MEMFREE(in->diag);
       MEMFREE(in->pivot); 
@@ -53,23 +53,24 @@ void Paso_Preconditioner_LocalGS_free(Paso_Preconditioner_LocalGS * in) {
 /*   constructs the symmetric Gauss-Seidel preconditioner     
 
 */
-Paso_Preconditioner_GS* Paso_Preconditioner_GS_alloc(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t is_local, bool_t verbose) 
+Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose) 
 {
   
   /* allocations: */  
-  Paso_Preconditioner_GS* out=MEMALLOC(1,Paso_Preconditioner_GS);
+  Paso_Preconditioner_Smoother* out=MEMALLOC(1,Paso_Preconditioner_Smoother);
   if (! Paso_checkPtr(out)) {
-     out->localGS=Paso_Preconditioner_LocalGS_alloc(A_p->mainBlock,sweeps,verbose);
+     out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
      out->is_local=is_local;
   }
   if (Paso_MPIInfo_noError(A_p->mpi_info)) {
      return out;
   } else {
-     Paso_Preconditioner_GS_free(out);
+     Paso_Preconditioner_Smoother_free(out);
      return NULL;
   }
 }
-Paso_Preconditioner_LocalGS* Paso_Preconditioner_LocalGS_alloc(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose) {
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, bool_t verbose)
+{
    
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
@@ -77,13 +78,13 @@ Paso_Preconditioner_LocalGS* Paso_Preconditioner_LocalGS_alloc(Paso_SparseMatrix
    
    double time0=Paso_timer();
    /* allocations: */  
-   Paso_Preconditioner_LocalGS* out=MEMALLOC(1,Paso_Preconditioner_LocalGS);
+   Paso_Preconditioner_LocalSmoother* out=MEMALLOC(1,Paso_Preconditioner_LocalSmoother);
    if (! Paso_checkPtr(out)) {
       
       out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
       out->pivot=MEMALLOC( ((size_t) n) * ((size_t)  n_block), index_t);
       out->buffer=MEMALLOC( ((size_t) n) * ((size_t)  n_block), double);
-      out->sweeps=sweeps;
+      out->Jacobi=jacobi;
       
       if ( ! ( Paso_checkPtr(out->diag) || Paso_checkPtr(out->pivot) ) ) {
 	 Paso_SparseMatrix_invMain(A_p, out->diag, out->pivot );
@@ -93,10 +94,16 @@ Paso_Preconditioner_LocalGS* Paso_Preconditioner_LocalGS_alloc(Paso_SparseMatrix
    time0=Paso_timer()-time0;
    
    if (Paso_noError()) {
-      if (verbose) printf("timing: Gauss-Seidel preparation: elemination : %e\n",time0);
+      if (verbose) {
+	 if (jacobi) {
+	   printf("timing: Jacobi preparation: elemination : %e\n",time0);
+	 } else {   
+	   printf("timing: Gauss-Seidel preparation: elemination : %e\n",time0);
+	 }
+      }
       return out;
    } else {
-      Paso_Preconditioner_LocalGS_free(out);
+      Paso_Preconditioner_LocalSmoother_free(out);
       return NULL;
    }
 }
@@ -110,90 +117,85 @@ S (x_{k} -  x_{k-1}) = b - A x_{k-1}
 where x_{0}=0 and S provides some approximatioon of A.
 
 Under MPI S is build on using A_p->mainBlock only.
-if GS is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
+if Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
 
 */
 
-void Paso_Preconditioner_GS_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_GS * gs, double * x, const double * b) 
+void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, const dim_t sweeps) 
 {
-   register dim_t i;
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
    
-   double *b_new = gs->localGS->buffer;
-   dim_t sweeps=gs->localGS->sweeps;
-   
-   if (gs->is_local) {
-      Paso_Preconditioner_LocalGS_solve(A_p->mainBlock,gs->localGS,x,b);
+   double *b_new = smoother->localSmoother->buffer;
+   dim_t nsweeps=sweeps;
+   if (smoother->is_local) {
+      Paso_Preconditioner_LocalSmoother_solve(A_p->mainBlock,smoother->localSmoother,x,b,sweeps);
    } else {
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<n;++i) x[i]=b[i];
+      Paso_Copy(n, x, b);
       
-      Paso_Preconditioner_LocalGS_Sweep(A_p->mainBlock,gs->localGS,x);
+      Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
       
-      while (sweeps > 1 ) {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0;i<n;++i) b_new[i]=b[i];
+      while (nsweeps > 1 ) {
+	 Paso_Copy(n, b_new, b);
 
          Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 
-	 Paso_Preconditioner_LocalGS_Sweep(A_p->mainBlock,gs->localGS,b_new);
+	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);
 	 
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0;i<n;++i) x[i]+=b_new[i]; 
-	 sweeps--;
+	 Paso_AXPY(n, x, 1., b_new); 
+	 nsweeps--;
       }
       
    }
 }
-void Paso_Preconditioner_LocalGS_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x, const double * b) 
+void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, const dim_t sweeps) 
 {
-   register dim_t i;
    const dim_t n= (A_p->numRows) * (A_p->row_block_size);
-   double *b_new = gs->buffer;
-   dim_t sweeps=gs->sweeps;
+   double *b_new = smoother->buffer;
+   dim_t nsweeps=sweeps;
    
-   #pragma omp parallel for private(i) schedule(static)
-   for (i=0;i<n;++i) x[i]=b[i];
+   Paso_Copy(n, x, b);
+   Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,x);
    
-   Paso_Preconditioner_LocalGS_Sweep(A_p,gs,x);
-   
-   while (sweeps > 1 ) {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0;i<n;++i) b_new[i]=b[i];
+   while (nsweeps > 1 ) {
+
+	 Paso_Copy(n, b_new, b);
 	 
 	 Paso_SparseMatrix_MatrixVector_CSC_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
+	  
+	 Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,b_new);
+
+	 Paso_AXPY(n, x, 1., b_new)
 	 
-	 Paso_Preconditioner_LocalGS_Sweep(A_p,gs,b_new);
-	 
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0;i<n;++i) x[i]+=b_new[i];
-	 
-	 sweeps--;
+	 nsweeps--;
    }
 }
 
-void Paso_Preconditioner_LocalGS_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x) 
+void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
    #ifdef _OPENMP
    const dim_t nt=omp_get_max_threads();
    #else
    const dim_t nt = 1;
    #endif
-   if (nt < 2) {
-      Paso_Preconditioner_LocalGS_Sweep_sequential(A,gs,x);
+   if (smoother->Jacobi) {
+      Paso_BlockOps_allMV(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
    } else {
-      Paso_Preconditioner_LocalGS_Sweep_colored(A,gs,x);
+      if (nt < 2) {
+	 Paso_Preconditioner_LocalSmoother_Sweep_sequential(A,smoother,x);
+      } else {
+	 Paso_Preconditioner_LocalSmoother_Sweep_colored(A,smoother,x);
+      }
    }
 }
 
 /* inplace Gauss-Seidel sweep in seqential mode: */
 
-void Paso_Preconditioner_LocalGS_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x)
+void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x)
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
-   const double *diag = gs->diag;
-   /* const index_t* pivot = gs->pivot;
+   const double *diag = smoother->diag;
+   /* const index_t* pivot = smoother->pivot;
    const dim_t block_size=A_p->block_size;  use for block size >3*/
    
    register dim_t i,k;
@@ -276,12 +278,12 @@ void Paso_Preconditioner_LocalGS_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_P
    return;
 }
        
-void Paso_Preconditioner_LocalGS_Sweep_colored(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalGS * gs, double * x) 
+void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
-   const double *diag = gs->diag;
-   index_t* pivot = gs->pivot; 
+   const double *diag = smoother->diag;
+   index_t* pivot = smoother->pivot; 
    const dim_t block_size=A_p->block_size;
    
    register dim_t i,k;
