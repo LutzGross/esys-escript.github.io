@@ -265,13 +265,10 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Pas
           /* system of PDESs */
           if (p.numDim==3) {
                Dudley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
-
           } else if (p.numDim==2) {
                Dudley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
-          } else if (p.numDim==1) {
-               Dudley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
           } else {
-            Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+            Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
           }
         } else {
           /* single PDES */
@@ -279,10 +276,8 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Pas
                Dudley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
           } else if (p.numDim==2) {
                Dudley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
-          } else if (p.numDim==1) {
-               Dudley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
           } else {
-            Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+            Dudley_setError(VALUE_ERROR,"Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
           }
         }
      } else {

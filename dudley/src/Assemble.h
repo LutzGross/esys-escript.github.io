@@ -67,14 +67,13 @@ void  Dudley_Assemble_PDE_System2_2D(Assemble_Parameters, Dudley_ElementFile*,Pa
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
 void  Dudley_Assemble_PDE_System2_1D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Dudley_Assemble_PDE_System2_C(Assemble_Parameters , Dudley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
+
 void  Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
 void  Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
 void  Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters, Dudley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
-void  Dudley_Assemble_PDE_Single2_C(Assemble_Parameters p, Dudley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
 
 
 void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile*,escriptDataC*);

@@ -29,14 +29,10 @@ sources = """
 	Assemble_LumpedSystem.c
 	Assemble_NodeCoordinates.c
 	Assemble_PDE.c
-	Assemble_PDE_Single2_1D.c
 	Assemble_PDE_Single2_2D.c
 	Assemble_PDE_Single2_3D.c
-	Assemble_PDE_Single2_C.c
-	Assemble_PDE_System2_1D.c
 	Assemble_PDE_System2_2D.c
 	Assemble_PDE_System2_3D.c
-	Assemble_PDE_System2_C.c
 	Assemble_addToSystemMatrix.c
 	Assemble_getAssembleParameters.c
 	Assemble_getSize.c
