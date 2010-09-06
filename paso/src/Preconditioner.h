@@ -20,27 +20,32 @@
 
 #define MAX_BLOCK_SIZE 3
 
-/* jacobi  preconditioner */
-
-typedef struct Paso_Preconditioner_Jacobi {
-  double* values;
-  index_t* pivot;
-} Paso_Preconditioner_Jacobi;
-
-/* GS preconditioner */
-typedef struct Paso_Preconditioner_LocalGS {
+/* GAUSS SEIDEL & Jacobi */
+typedef struct Paso_Preconditioner_LocalSmoother {
+   bool_t Jacobi;
    double* diag;
    double* buffer;
    index_t* pivot;
-   dim_t sweeps;
-} Paso_Preconditioner_LocalGS;
+} Paso_Preconditioner_LocalSmoother;
 
-typedef struct Paso_Preconditioner_GS {
-   Paso_Preconditioner_LocalGS* localGS;
+typedef struct Paso_Preconditioner_Smoother {
+   Paso_Preconditioner_LocalSmoother* localSmoother;
    bool_t is_local;
-} Paso_Preconditioner_GS;
+} Paso_Preconditioner_Smoother;
 
+void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in);
+void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * in);
 
+Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose);
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p,const bool_t jacobi, const bool_t verbose);
+
+void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps);
+void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps);
+
+void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
+void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
+void Paso_Preconditioner_LocalSmoother_Sweep_tiled(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
+void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 
 /*===============================================*/
 /* ILU preconditioner */
@@ -76,8 +81,8 @@ typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 
 struct Paso_Solver_Smoother {
   dim_t ID;  
-  Paso_Preconditioner_Jacobi* Jacobi;
-  Paso_Preconditioner_LocalGS* GS;
+  Paso_Preconditioner_LocalSmoother* Jacobi;
+  Paso_Preconditioner_LocalSmoother* GS;
 };
 typedef struct  Paso_Solver_Smoother  Paso_Solver_Smoother;
 
@@ -147,11 +152,10 @@ struct Paso_Solver_AMLI {
   Paso_SparseMatrix * A;
   Paso_SparseMatrix * AOffset1;
   void* solver;
-  Paso_Preconditioner_Jacobi* GS;
+  Paso_Preconditioner_LocalSmoother* GS;
   struct Paso_Solver_AMLI * AMLI_of_Schur;
 };
 typedef struct Paso_Solver_AMLI Paso_Solver_AMLI;
-
 
 /* AMLI preconditioner on blocks*/
 struct Paso_Solver_AMLI_System {
@@ -166,11 +170,11 @@ typedef struct Paso_Solver_AMLI_System Paso_Solver_AMLI_System;
 
 typedef struct Paso_Solver_Preconditioner {
   dim_t type;
-
+  dim_t sweeps;
   /* jacobi preconditioner */
-  Paso_Preconditioner_Jacobi* jacobi;
+  Paso_Preconditioner_Smoother* jacobi;
   /* Gauss-Seidel preconditioner */
-  Paso_Preconditioner_GS* gs;
+  Paso_Preconditioner_Smoother* gs;
   
   /* ilu preconditioner */
   Paso_Solver_ILU* ilu;
@@ -189,27 +193,8 @@ void Paso_Preconditioner_free(Paso_Solver_Preconditioner*);
 Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatrix* A,double*,double*);
 
-/* JACOBI */
-Paso_Preconditioner_Jacobi* Paso_Preconditioner_Jacobi_alloc(Paso_SystemMatrix * A_p);
-Paso_Preconditioner_Jacobi* Paso_Preconditioner_LocalJacobi_alloc(Paso_SparseMatrix * A_p);
-void Paso_Preconditioner_Jacobi_free(Paso_Preconditioner_Jacobi * in);
 
-void Paso_Preconditioner_Jacobi_solve(Paso_SystemMatrix * A_p, Paso_Preconditioner_Jacobi * prec, double * x, double * b);
-void Paso_Preconditioner_LocalJacobi_solve(Paso_SparseMatrix * A_p, Paso_Preconditioner_Jacobi * prec, double * x, double * b);
 
-/* GAUSS SEIDEL */
-void Paso_Preconditioner_GS_free(Paso_Preconditioner_GS * in);
-void Paso_Preconditioner_LocalGS_free(Paso_Preconditioner_LocalGS * in);
-Paso_Preconditioner_GS* Paso_Preconditioner_GS_alloc(Paso_SystemMatrix * A_p, dim_t sweeps, bool_t is_local, bool_t verbose);
-
-Paso_Preconditioner_LocalGS* Paso_Preconditioner_LocalGS_alloc(Paso_SparseMatrix * A_p, dim_t sweeps, bool_t verbose);
-void Paso_Preconditioner_GS_solve(Paso_SystemMatrix* A, Paso_Preconditioner_GS * gs, double * x, const double * b);
-void Paso_Preconditioner_LocalGS_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x, const double * b);
-
-void Paso_Preconditioner_LocalGS_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
-void Paso_Preconditioner_LocalGS_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
-void Paso_Preconditioner_LocalGS_Sweep_tiled(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
-void Paso_Preconditioner_LocalGS_Sweep_colored(Paso_SparseMatrix* A, Paso_Preconditioner_LocalGS * gs, double * x);
 
 /* AMG: */
 void Paso_Solver_AMG_free(Paso_Solver_AMG * in);

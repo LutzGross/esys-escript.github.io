@@ -53,13 +53,12 @@ sources = """
 	FCTSolver_util.c
 	ReactiveSolver.c
 	Solver_Function.c
-	GS.c
+	Smoother.c
 	ILU.c
 	RILU.c
 	AMG.c
 	AMLI.c
 	SchurComplement.c
-	Jacobi.c
 	Preconditioner.c
 	SparseMatrix.c
 	SparseMatrix_MatrixVector.c

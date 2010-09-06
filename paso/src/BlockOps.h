@@ -18,7 +18,7 @@
 #include "Common.h"
 #include "Paso.h"
 
-void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b);
+void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x);
 
 #define Paso_BlockOps_Cpy_1(R, V) \
 {\

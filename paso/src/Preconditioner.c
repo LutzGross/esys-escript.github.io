@@ -34,8 +34,8 @@
 
 void Paso_Preconditioner_free(Paso_Solver_Preconditioner* in) {
     if (in!=NULL) {
-      Paso_Preconditioner_Jacobi_free(in->jacobi);
-      Paso_Preconditioner_GS_free(in->gs);
+      Paso_Preconditioner_Smoother_free(in->jacobi);
+      Paso_Preconditioner_Smoother_free(in->gs);
       Paso_Solver_AMG_free(in->amg);
       
       
@@ -71,20 +71,16 @@ Paso_Solver_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
-              if (options->verbose) printf("Jacobi preconditioner is used.\n");
-	      prec->jacobi=Paso_Preconditioner_Jacobi_alloc(A);
+	      if (options->verbose) printf("Jacobi(%d) preconditioner is used.\n",options->sweeps);
+	      prec->jacobi=Paso_Preconditioner_Smoother_alloc(A, TRUE, options->use_local_preconditioner, options->verbose);
               prec->type=PASO_JACOBI;
+	      prec->sweeps=options->sweeps;
               break;
 	   case PASO_GS:
-	      if (options->sweeps > 0 ) {
-		  if (options->verbose) printf("Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
-		  prec->gs=Paso_Preconditioner_GS_alloc(A, options->sweeps, options->use_local_preconditioner, options->verbose);
-		  prec->type=PASO_GS;
-	      } else {
-		 if (options->verbose) printf("Jacobi preconditioner is used.\n");
-		 prec->jacobi=Paso_Preconditioner_Jacobi_alloc(A);
-		 prec->type=PASO_JACOBI;
-	      }
+	      if (options->verbose) printf("Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
+	      prec->gs=Paso_Preconditioner_Smoother_alloc(A, FALSE, options->use_local_preconditioner, options->verbose);
+	      prec->type=PASO_GS;
+	      prec->sweeps=options->sweeps;
 	      break;
 	   /***************************************************************************************/   
            case PASO_ILU0:
@@ -154,10 +150,10 @@ void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatr
     switch (prec->type) {
         default:
         case PASO_JACOBI:
-           Paso_Preconditioner_Jacobi_solve(A, prec->jacobi,x,b);
+	   Paso_Preconditioner_Smoother_solve(A, prec->jacobi,x,b,prec->sweeps);
            break;   
 	case PASO_GS:
-	   Paso_Preconditioner_GS_solve(A, prec->gs,x,b);
+	   Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps);
 	   break;	   
         case PASO_ILU0:
            Paso_Solver_solveILU(A->mainBlock, prec->ilu,x,b);
