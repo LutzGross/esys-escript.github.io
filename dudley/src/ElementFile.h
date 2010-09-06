@@ -81,9 +81,9 @@ struct Dudley_ElementFile {
                                                  Color[e]=e  for all e */
 
   Dudley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
-  Dudley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/
+//  Dudley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/
   Dudley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
-  Dudley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order and  reduced order of shape function*/
+//  Dudley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order and  reduced order of shape function*/
 
 };
 

@@ -22,6 +22,13 @@
 
 
 
+
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Point1;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Line2;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tri3;
+Dudley_ShapeFunction_Evaluation Dudley_Shape_Tet4;
+
+
 Dudley_ShapeFunctionInfo Dudley_ShapeFunction_InfoList[]={
 	{Point1Shape, "Point1", 0,  1, 1, 1,	Dudley_Shape_Point1 } ,
         {Line2Shape,  "Line2",  1,  2, 1, 2,	Dudley_Shape_Line2  } ,

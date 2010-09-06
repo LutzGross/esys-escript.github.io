@@ -64,9 +64,9 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
   
   if (reducedShapefunction) {
        if (reducedIntegrationOrder) {
-           out=self->jacobeans_reducedS_reducedQ;
+           out=self->jacobeans_reducedQ;
        } else {
-           out=self->jacobeans_reducedS;
+           out=self->jacobeans;
        }
   } else {
        if (reducedIntegrationOrder) {
