@@ -323,7 +323,7 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
      
      if (rilu->n_C==0) {
         /* x=invA_FF*b  */
-	Paso_Copy(n_block*rilu->n_F, b, x);
+	Paso_Copy(n_block*rilu->n_F, x, b);
         Paso_BlockOps_allMV(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,x);
      } else {
         /* b->[b_F,b_C]     */

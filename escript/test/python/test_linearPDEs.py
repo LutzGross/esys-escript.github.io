@@ -666,7 +666,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setMinCoarseMatrixSize(1000)
         self.failUnless(so.getMinCoarseMatrixSize() == 1000, "Minimum Coarse Matrix Size is wrong.")
 
-        self.failUnless(so.getNumSweeps() == 2, "initial  Sweeps is wrong.")
+        self.failUnless(so.getNumSweeps() == 1, "initial  Sweeps is wrong.")
         self.failUnlessRaises(ValueError,so.setNumSweeps,-1)
         so.setNumSweeps(3)
         self.failUnless(so.getNumSweeps() == 3, "Sweeps is wrong.")
