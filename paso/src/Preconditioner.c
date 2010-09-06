@@ -150,10 +150,10 @@ void Paso_Preconditioner_solve(Paso_Solver_Preconditioner* prec, Paso_SystemMatr
     switch (prec->type) {
         default:
         case PASO_JACOBI:
-	   Paso_Preconditioner_Smoother_solve(A, prec->jacobi,x,b,prec->sweeps);
+	   Paso_Preconditioner_Smoother_solve(A, prec->jacobi,x,b,prec->sweeps, FALSE);
            break;   
 	case PASO_GS:
-	   Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps);
+	   Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps, FALSE);
 	   break;	   
         case PASO_ILU0:
            Paso_Solver_solveILU(A->mainBlock, prec->ilu,x,b);

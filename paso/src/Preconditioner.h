@@ -39,8 +39,8 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
 Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose);
 Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p,const bool_t jacobi, const bool_t verbose);
 
-void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps);
-void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps);
+void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
+void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
 
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
@@ -79,12 +79,6 @@ struct Paso_Solver_RILU {
 };
 typedef struct Paso_Solver_RILU Paso_Solver_RILU;
 
-struct Paso_Solver_Smoother {
-  dim_t ID;  
-  Paso_Preconditioner_LocalSmoother* Jacobi;
-  Paso_Preconditioner_LocalSmoother* GS;
-};
-typedef struct  Paso_Solver_Smoother  Paso_Solver_Smoother;
 
 /* AMG preconditioner */
 struct Paso_Solver_AMG {
@@ -119,7 +113,7 @@ struct Paso_Solver_AMG {
   Paso_SparseMatrix * AOffset1;
   Paso_SparseMatrix * AUnrolled;
   void* solver;
-  Paso_Solver_Smoother* Smoother;
+  Paso_Preconditioner_LocalSmoother* Smoother;
   struct Paso_Solver_AMG * AMG_of_Coarse;
 };
 typedef struct Paso_Solver_AMG Paso_Solver_AMG;
@@ -152,7 +146,7 @@ struct Paso_Solver_AMLI {
   Paso_SparseMatrix * A;
   Paso_SparseMatrix * AOffset1;
   void* solver;
-  Paso_Preconditioner_LocalSmoother* GS;
+  Paso_Preconditioner_LocalSmoother* Smoother;
   struct Paso_Solver_AMLI * AMLI_of_Schur;
 };
 typedef struct Paso_Solver_AMLI Paso_Solver_AMLI;
