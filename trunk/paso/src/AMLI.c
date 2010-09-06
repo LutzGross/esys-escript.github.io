@@ -52,7 +52,8 @@ void Paso_Solver_AMLI_System_free(Paso_Solver_AMLI_System * in) {
 
 void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in) {
      if (in!=NULL) {
-        Paso_Preconditioner_LocalSmoother_free(in->GS);
+	Paso_Preconditioner_LocalSmoother_free(in->Smoother);
+	
         MEMFREE(in->inv_A_FF);
         MEMFREE(in->A_FF_pivot);
         Paso_SparseMatrix_free(in->A_FC);
@@ -151,9 +152,8 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      out->b_F=NULL;
      out->x_C=NULL;
      out->b_C=NULL;
-     out->GS=NULL;
      out->A=Paso_SparseMatrix_getReference(A_p);
-     out->GS=NULL;
+     out->Smoother=NULL;
      out->solver=NULL;
      /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
@@ -174,12 +174,12 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
          #else
             #ifdef UMFPACK 
             #else
-            out->GS=LocalSmoother_alloc(A_p,TRUE,verbose);
+            out->Smoother=LocalSmoother_alloc(A_p,TRUE,verbose);
             #endif
          #endif
      } else {
          out->coarsest_level=FALSE;
-         out->GS=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
+	 out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
  
          /* identify independend set of rows/columns */
          #pragma omp parallel for private(i) schedule(static)
@@ -428,7 +428,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
       time0=Paso_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
       if (amli->n_F==0 || amli->n_F==amli->n) {
-	 Paso_Preconditioner_LocalSmoother_solve(amli->A, amli->GS,x,b,1);
+	 Paso_Preconditioner_LocalSmoother_solve(amli->A, amli->Smoother,x,b,1,FALSE);
       }
        else {
        #ifdef MKL
@@ -439,7 +439,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
              Paso_UMFPACK1(&ptr,amli->A,x,b,verbose);
              amli->solver=(void*) ptr;
           #else      
-          Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->GS,x,b,1);
+          Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,1,FALSE);
          #endif
        #endif
        }
@@ -449,24 +449,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      } else {
         /* presmoothing */
          time0=Paso_timer();
-	 Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->GS,x,b,1);
-         
-         /***************/
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<amli->n;++i) r[i]=b[i];
-   
-         while(pre_sweeps>1) {
-             #pragma omp parallel for private(i) schedule(static)
-             for (i=0;i<amli->n;++i) r[i]+=b[i];
-             
-              /* Compute the residual b=b-Ax*/
-             Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
-             /* Go round again*/
-	     Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->GS,x,r,1);
-             pre_sweeps-=1;
-         }
-         /***************/  
-         
+	 Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,pre_sweeps,FALSE);
          time0=Paso_timer()-time0;
          if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
         /* end of presmoothing */
@@ -527,33 +510,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
 
      /*postsmoothing*/
      time0=Paso_timer();
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amli->n;++i) r[i]=b[i];
-     
-     /*r=b-Ax */
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
-     Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->GS,x0,r,1);
-     
-     #pragma omp parallel for private(i) schedule(static)
-     for (i=0;i<amli->n;++i) x[i]+=x0[i];
-     
-     
-     /***************/ 
-       while(post_sweeps>1) {
-          
-          #pragma omp parallel for private(i) schedule(static)
-          for (i=0;i<amli->n;++i) r[i]=b[i];
-          
-          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
-	  Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->GS,x0,r,1);
-          #pragma omp parallel for private(i) schedule(static)
-           for (i=0;i<amli->n;++i)  {
-            x[i]+=x0[i];
-           }
-          post_sweeps-=1;
-       }
-       /**************/
-     
+     Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,post_sweeps,TRUE);     
      time0=Paso_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
 

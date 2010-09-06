@@ -121,51 +121,49 @@ if Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock
 
 */
 
-void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, const dim_t sweeps) 
+void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
+					const dim_t sweeps, const bool_t x_is_initial) 
 {
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
    
    double *b_new = smoother->localSmoother->buffer;
    dim_t nsweeps=sweeps;
    if (smoother->is_local) {
-      Paso_Preconditioner_LocalSmoother_solve(A_p->mainBlock,smoother->localSmoother,x,b,sweeps);
+      Paso_Preconditioner_LocalSmoother_solve(A_p->mainBlock,smoother->localSmoother,x,b,sweeps,x_is_initial);
    } else {
-      Paso_Copy(n, x, b);
-      
-      Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
-      
-      while (nsweeps > 1 ) {
+      if (! x_is_initial) {
+	 Paso_Copy(n, x, b);
+	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
+	 nsweeps--;
+      }
+      while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
-
          Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
-	 
-	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);
-	 
+	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);	 
 	 Paso_AXPY(n, x, 1., b_new); 
 	 nsweeps--;
       }
       
    }
 }
-void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, const dim_t sweeps) 
+void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
+					     const dim_t sweeps, const bool_t x_is_initial) 
 {
    const dim_t n= (A_p->numRows) * (A_p->row_block_size);
    double *b_new = smoother->buffer;
    dim_t nsweeps=sweeps;
    
-   Paso_Copy(n, x, b);
-   Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,x);
+   if (! x_is_initial) {
+      Paso_Copy(n, x, b);
+      Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,x);
+      nsweeps--;
+   }
    
-   while (nsweeps > 1 ) {
-
+   while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
-	 
 	 Paso_SparseMatrix_MatrixVector_CSC_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
-	  
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,b_new);
-
-	 Paso_AXPY(n, x, 1., b_new)
-	 
+	 Paso_AXPY(n, x, 1., b_new);
 	 nsweeps--;
    }
 }
