@@ -92,14 +92,11 @@ namespace dudley {
     int numNodes			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numNodes");
     int num_Elements			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements");
     int num_FaceElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements");
-    int num_ContactElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements");
     int num_Points			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Points");
     int num_Elements_numNodes		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements_numNodes");
     int Elements_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Elements_TypeId");
     int num_FaceElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements_numNodes");
     int FaceElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"FaceElements_TypeId");
-    int num_ContactElements_numNodes	= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_ContactElements_numNodes");
-    int ContactElements_TypeId		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"ContactElements_TypeId");
     int Points_TypeId			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"Points_TypeId");
     int num_Tags			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Tags");
 

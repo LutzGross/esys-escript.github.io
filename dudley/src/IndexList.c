@@ -45,7 +45,7 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
 
     for (color=elements->minColor;color<=elements->maxColor;color++)
     {
-	#pragma omp for private(e,irow,kr,kc,icol,isub) schedule(static)
+	#pragma omp for private(e,irow,kr,kc,icol) schedule(static)
 	for (e=0;e<elements->numElements;e++) 
 	{
 		if (elements->Color[e]==color)

@@ -801,7 +801,6 @@ print ""
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.debug")))
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.mpi")))
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.openmp")))
-Execute(Delete(os.path.join(env['libinstall'],"pyversion")))
 Execute(Delete(os.path.join(env['libinstall'],"buildvars")))
 if not env['usempi']: Execute(Delete(os.path.join(env['libinstall'],"pythonMPI")))
 
@@ -839,7 +838,6 @@ Export(
   )
 
 CallSConscript(env, dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-CallSConscript(env, dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 CallSConscript(env, dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
 #CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
 CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
@@ -876,9 +874,8 @@ env.Alias('remember_options', remember_list)
 if not IS_WINDOWS_PLATFORM:
 
   versionstring="Python "+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
-  if sys.version_info[4] >0 : versionstring+="rc%s"%sys.version_info[4]
-  os.system("echo "+versionstring+" > "+os.path.join(env['libinstall'],"pyversion"))
-
+#  if sys.version_info[4] >0 : versionstring+="rc%s"%sys.version_info[4]
+  
 ############## Populate the buildvars file #####################
 
 buildvars=open(os.path.join(env['libinstall'],'buildvars'),'w')
@@ -960,7 +957,6 @@ build_all_list += ['build_escript']
 build_all_list += ['build_dudley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
-build_all_list += ['target_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -975,7 +971,6 @@ install_all_list += ['install_dudley']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
-if env['usesilo']:	install_all_list += ['target_install_escriptconvert']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 
