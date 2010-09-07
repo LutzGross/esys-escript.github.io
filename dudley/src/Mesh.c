@@ -140,7 +140,7 @@ void Mesh_setOrders(Dudley_Mesh *in)
    const dim_t order_max=9999999;
    dim_t locals[3];
    #ifdef PASO_MPI
-       dim_t globals[4];
+       dim_t globals[3];
    #endif
    locals[0]=order_max; locals[1]=order_max; locals[2]=order_max;
 
@@ -162,11 +162,11 @@ void Mesh_setOrders(Dudley_Mesh *in)
   }
 
    #ifdef PASO_MPI
-       MPI_Allreduce( locals, globals, 4, MPI_INT, MPI_MIN, in->MPIInfo->comm );
+       MPI_Allreduce( locals, globals, 3, MPI_INT, MPI_MIN, in->MPIInfo->comm );
        in->approximationOrder=(globals[0] < order_max ? globals[0] : -1 );
-       in->reducedApproximationOrder=(globals[1] < order_max ? globals[1] : -1 );
-       in->integrationOrder=(globals[2] < order_max ? globals[2] : -1 );
-       in->reducedIntegrationOrder=(globals[3] < order_max ? globals[3] : -1 );
+       in->reducedApproximationOrder=in->approximationOrder;
+       in->integrationOrder=(globals[1] < order_max ? globals[1] : -1 );
+       in->reducedIntegrationOrder=(globals[2] < order_max ? globals[2] : -1 );
    #else
        in->approximationOrder=(locals[0] < order_max ? locals[0] : -1 );
        in->reducedApproximationOrder=(locals[0] < order_max ? locals[0] : -1 );
