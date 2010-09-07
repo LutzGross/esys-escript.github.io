@@ -24,7 +24,7 @@ filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h",
 
 sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
 
-local_env.Append(LIBS=['weipa', 'CppUnitTest'] + local_env['sys_libs'] )
+local_env.Append(LIBS=['weipa', 'escript', 'CppUnitTest'] + local_env['sys_libs'] )
 if local_env['usesilo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])
