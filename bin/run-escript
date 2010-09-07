@@ -350,7 +350,7 @@ else
         if [ -f $ESCRIPT_ROOT/lib/pyversion ]
         then
            compversion=`cat $ESCRIPT_ROOT/lib/pyversion`
-           intversion=`$PYTHON_CMD -V 2>&1`
+	   intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d.%d"%(sys.version_info[0], sys.version_info[1], sys.version_info[2])'`
            if [ "$compversion" != "$intversion" ]
            then
               echo "Python versions do not match. Escript was compiled for "$compversion"."
