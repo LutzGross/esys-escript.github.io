@@ -54,7 +54,7 @@ python_libs		= 'python2.6'
 boost_libs		= ['libboost_python-mt-py26.so']
 
 # Specify whether or not to use VTK
-# usevtk		= 'yes'
+usevtk          = 'no'
 
 # NetCDF
 #usenetcdf		= 'yes'
@@ -64,7 +64,6 @@ boost_libs		= ['libboost_python-mt-py26.so']
 
 # Silo
 usesilo         = 'yes'
-#silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
 silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
 silo_lib_path   = '/usr/local/py2.6.2/silo4.7.2/lib'
 silo_libs       = ['siloh5', 'hdf5']
