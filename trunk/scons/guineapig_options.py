@@ -39,15 +39,19 @@ cxx_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 # sys_libs		= ['guide', 'pthread', 'stdc++']
 
 # Python libraries
-python_path		= '/usr/local/python2.6.2/include/python2.6'
-python_lib_path		= '/usr/local/python2.6.2/lib'
+#python_path		= '/usr/local/python2.6.2/include/python2.6'	# For our local build
+#python_lib_path		= '/usr/local/python2.6.2/lib'		# For our local build
+python_path		= '/usr/include/python2.6'
+python_lib_path		= ''		# Its in the standard path
+
 python_libs		= 'python2.6'
 # python_cmd		= 'python'
 
 # Boost libraries
-boost_path		= '/usr/local/py2.6.2/boost1.39.0/include/boost-1_39'
-boost_lib_path		= '/usr/local/py2.6.2/boost1.39.0/lib'
-boost_libs		= ['libboost_python-gcc44-mt']
+#boost_path		= '/usr/local/py2.6.2/boost1.39.0/include/boost-1_39'	# For our local build
+#boost_lib_path		= '/usr/local/py2.6.2/boost1.39.0/lib'			# For our local build
+#boost_libs		= ['libboost_python-gcc44-mt']
+boost_libs		= ['libboost_python-mt-py26.so']
 
 # Specify whether or not to use VTK
 # usevtk		= 'yes'
