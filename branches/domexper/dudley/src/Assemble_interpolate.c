@@ -105,7 +105,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   if (Dudley_noError())
   {
 	requireWrite(interpolated_data);
-	#pragma omp parallel private(local_data, numComps_size, isub)
+	#pragma omp parallel private(local_data, numComps_size)
 	{
 	    local_data=NULL; 
 	    /* allocation of work arrays */
@@ -114,7 +114,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	    {
 		numComps_size=(size_t)numComps*sizeof(double);
 		/* open the element loop */
-		#pragma omp for private(e,q,i,data_array,isub) schedule(static)
+		#pragma omp for private(e,q,i,data_array) schedule(static)
 		for(e=0;e<elements->numElements;e++)
 		{
 			for (q=0;q<NS_DOF;q++)
