@@ -74,14 +74,13 @@ test_pyc = env.PyCompile(testfiles)
 env.Alias('build_py_tests', test_pyc)
 
 #
-# run all tests:
+# only run tests if VTK is enabled:
 #
-try:
-   import vtk
-   VTK_AVAILABLE = True
-except ImportError:
-      VTK_AVAILABLE =False
-      print "Warning: cannot import vtk. pyvisi tests are skipped."
+if env['usevtk']:
+    VTK_AVAILABLE = True
+else:
+    VTK_AVAILABLE = False
+    print "Warning: VTK disabled, skipping pyvisi tests."
        
 
 #Add Unit Test to target alias
