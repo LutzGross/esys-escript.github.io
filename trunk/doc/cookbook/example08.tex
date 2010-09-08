@@ -222,7 +222,7 @@ It is quite
 simple to implement a source which is smooth in time. In addition to the
 original source function the only extra requirement is a time function. For
 this example the time variant source will be the derivative of a gausian curve
-defined by the required dominant frequency (\refig{fig:tvsource}).
+defined by the required dominant frequency (Figure \ref{fig:tvsource}).
 \begin{python}
 #Creating the time function of the source.
 dfeq=50 #Dominant Frequency
@@ -291,7 +291,7 @@ elastic wave equations}, 1985, Cerjan C, Geophysics 50, doi:10.1190/1.1441945}
 where the solution and the stress are multiplied by a damping function defined
 on $n$ nodes of the domain adjacent to the boundary, given by;
 \begin{equation}
-\gamma =\sqrt\left(\frac{|-log(\gamma\hackscore{b})|}{n^2}\right)
+\gamma =\sqrt{\frac{| -log( \gamma \hackscore{b} ) |}{n^2}}
 \end{equation}
 \begin{equation}
 y=e^{-(\gamma x)^2}
@@ -397,8 +397,7 @@ material properties on either side of the interface.
 
 \begin{figure}[ht]
 \begin{center}
-%\includegraphics[width=5in]{figures/example08cgeo.png}
-%Fix this.
+\includegraphics[width=5in]{figures/gmsh-example08c.png}
 \caption{Domain geometry for example08c.py showing line tangents.}
 \label{fig:ex08cgeo}
 \end{center}
