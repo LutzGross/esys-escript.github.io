@@ -85,29 +85,24 @@ void Assemble_jacobeans_1D(double* coordinates, dim_t numQuad,double* QuadWeight
 /*                                                            */
 /*  Jacobean 2D with area element                             */
 /*                                                            */
-void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeights,
-                           dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                           double* DSDv, dim_t numTest, double* DTDv, 
-                           double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 2
-     #define LOCDIM 2
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     double quadweight=(numQuad==1)?1./2:1./6;	/* numQuad is 1 or 3 */
-	/* ignoring numTest param - in this case it will always be 3 */
-     #pragma omp parallel 
-     {
-       register double dXdv00,dXdv10,dXdv01,dXdv11,
-                       dvdX00,dvdX10,dvdX01,dvdX11, D,invD,
-                       X0_loc, X1_loc;
-       #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static) 
-       for(e=0;e<numElements;e++){
-              dXdv00=0;
-              dXdv10=0;
-              dXdv01=0;
-              dXdv11=0;
-
-
+void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t* nodes,
+                           double* dTdX, double* volume, index_t* element_id)
+{
+    #define DIM 2
+    #define LOCDIM 2
+    register int e,q,s;
+    char error_msg[LenErrorMsg_MAX];
+    const double quadweight=(numQuad==1)?1./2:1./6;	/* numQuad is 1 or 3 */
+    const dim_t numTest=3;		// hoping this is used in constant folding
+    static const int DTDV[3][2]={{-1,-1}, {1,0}, {0,1}};	// if constant folding is not applied here will need to write
+							// out in full
+    #pragma omp parallel 
+    {
+	register double dXdv00,dXdv10,dXdv01,dXdv11,
+                       dvdX00,dvdX10,dvdX01,dvdX11, D,invD;
+	#pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static) 
+	for(e=0;e<numElements;e++)
+	{
 #define COMPDXDV0(P)  coordinates[INDEX2(P,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1)+\
 coordinates[INDEX2(P,nodes[INDEX2(1,e,numNodes)],DIM)]*1+\
 coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(0)
@@ -116,47 +111,48 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(0)
 coordinates[INDEX2(P,nodes[INDEX2(1,e,numNodes)],DIM)]*(0)+\
 coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 
-		dXdv00=COMPDXDV0(0);
-		dXdv10=COMPDXDV0(1);
-		dXdv01=COMPDXDV1(0);
-		dXdv11=COMPDXDV1(1);
-              for (s=0;s<3; s++) {
-                 X0_loc=coordinates[INDEX2(0,nodes[INDEX2(s,e,numNodes)],DIM)];
-                 X1_loc=coordinates[INDEX2(1,nodes[INDEX2(s,e,numNodes)],DIM)];
-//                 dXdv00+=X0_loc*DSDv[INDEX3(s,0,0,numShape,LOCDIM)];
-//                 dXdv10+=X1_loc*DSDv[INDEX3(s,0,0,numShape,LOCDIM)];
-//                 dXdv01+=X0_loc*DSDv[INDEX3(s,1,0,numShape,LOCDIM)];
-//                 dXdv11+=X1_loc*DSDv[INDEX3(s,1,0,numShape,LOCDIM)];
-              }
-              D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
-              if (D==0.) {
-                  sprintf(error_msg,"Assemble_jacobeans_2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD=1./D;
-                 dvdX00= dXdv11*invD;
-                 dvdX10=-dXdv10*invD;
-                 dvdX01=-dXdv01*invD;
-                 dvdX11= dXdv00*invD;
-		 if (numQuad==1)
-		 {
-			for (s=0;s<3; s++) {
-			dTdX[INDEX4(s,0,0,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,0,numTest,LOCDIM)]*dvdX00+DTDv[INDEX3(s,1,0,numTest,LOCDIM)]*dvdX10;
-			dTdX[INDEX4(s,1,0,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,0,numTest,LOCDIM)]*dvdX01+DTDv[INDEX3(s,1,0,numTest,LOCDIM)]*dvdX11;
-	
-			}
-			volume[INDEX2(0,e,numQuad)]=ABS(D)*quadweight;
-		 }
-		 else	// numQuad==3
-		 {
-		    for (q=0;q<3;++q)	// relying on unroll loops here
+	    dXdv00=0;
+            dXdv10=0;
+            dXdv01=0;
+            dXdv11=0;
+	    dXdv00=COMPDXDV0(0);
+	    dXdv10=COMPDXDV0(1);
+	    dXdv01=COMPDXDV1(0);
+	    dXdv11=COMPDXDV1(1);
+            D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
+            if (D==0.)
+	    {
+		sprintf(error_msg,"Assemble_jacobeans_2D: element %d (id %d) has area zero.",e,element_id[e]);
+                Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
+            }
+	    else 
+	    {
+		invD=1./D;
+		dvdX00= dXdv11*invD;
+		dvdX10=-dXdv10*invD;
+		dvdX01=-dXdv01*invD;
+		dvdX11= dXdv00*invD;
+		if (numQuad==1)
+		{
+		    for (s=0;s<3; s++)
 		    {
-			for (s=0;s<3; s++) {
-			dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10;
-			dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11;
-	
+#define DTDXSET(P,Q) dTdX[INDEX4(s,P,Q,e,numTest,DIM,numQuad)] = DTDV[s][0]*dvdX0##P+DTDV[s][1]*dvdX1##P
+
+			DTDXSET(0,0);
+			DTDXSET(1,0);
+		    }
+		    volume[INDEX2(0,e,1)]=ABS(D)*quadweight;
+		}
+		else	// numQuad==3
+		{
+		    for (q=0;q<numTest;++q)	// relying on unroll loops to optimise this
+		    {
+			for (s=0;s<3; s++)
+			{
+			    DTDXSET(0,q);
+			    DTDXSET(1,q);
 			}
-			volume[INDEX2(q,e,numQuad)]=ABS(D)*quadweight;	
+			volume[INDEX2(q,e,3)]=ABS(D)*quadweight;	
 		    }
 		}
            }
@@ -164,7 +160,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
      }
      #undef DIM 
      #undef LOCDIM 
-
+     #undef DTDXSET
      #undef COMPDXDV0
      #undef COMPDXDV1
 }
@@ -216,6 +212,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,double* Qu
      #undef DIM 
      #undef LOCDIM 
 }
+
 /**************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements woth contact   */

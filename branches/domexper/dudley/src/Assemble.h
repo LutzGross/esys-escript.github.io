@@ -88,7 +88,7 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
 void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
 void Assemble_jacobeans_1D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Assemble_jacobeans_2D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
+void Assemble_jacobeans_2D(double*, dim_t, dim_t, dim_t, index_t*, double*, double*, index_t*);
 void Assemble_jacobeans_2D_M1D_E2D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_2D_M1D_E2D_C(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 void Assemble_jacobeans_2D_M1D_E1D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
