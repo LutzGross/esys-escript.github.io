@@ -33,7 +33,7 @@ Dudley_ShapeFunctionInfo Dudley_ShapeFunction_InfoList[]={
 	{Point1Shape, "Point1", 0,  1, 1, 1,	Dudley_Shape_Point1 } ,
         {Line2Shape,  "Line2",  1,  2, 1, 2,	Dudley_Shape_Line2  } ,
 	{Tri3Shape,   "Tri3",   2,  3, 1, 3,	Dudley_Shape_Tri3   },
-	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Dudley_Shape_Tet4,  },
+	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Dudley_Shape_Tet4   },
 	{NoShape, "NoType", 0,  1, 1, 1,	Dudley_Shape_Point1  }
 };
 
