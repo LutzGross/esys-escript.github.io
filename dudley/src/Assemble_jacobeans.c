@@ -93,6 +93,8 @@ void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeight
      #define LOCDIM 2
      register int e,q,s;
      char error_msg[LenErrorMsg_MAX];
+     double quadweight=(numQuad==1)?1./2:1./6;	/* numQuad is 1 or 3 */
+	/* ignoring numTest param - in this case it will always be 3 */
      #pragma omp parallel 
      {
        register double dXdv00,dXdv10,dXdv01,dXdv11,
@@ -100,18 +102,31 @@ void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeight
                        X0_loc, X1_loc;
        #pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static) 
        for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
               dXdv00=0;
               dXdv10=0;
               dXdv01=0;
               dXdv11=0;
-              for (s=0;s<numShape; s++) {
+
+
+#define COMPDXDV0(P)  coordinates[INDEX2(P,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1)+\
+coordinates[INDEX2(P,nodes[INDEX2(1,e,numNodes)],DIM)]*1+\
+coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(0)
+
+#define COMPDXDV1(P)  coordinates[INDEX2(P,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1)+\
+coordinates[INDEX2(P,nodes[INDEX2(1,e,numNodes)],DIM)]*(0)+\
+coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
+
+		dXdv00=COMPDXDV0(0);
+		dXdv10=COMPDXDV0(1);
+		dXdv01=COMPDXDV1(0);
+		dXdv11=COMPDXDV1(1);
+              for (s=0;s<3; s++) {
                  X0_loc=coordinates[INDEX2(0,nodes[INDEX2(s,e,numNodes)],DIM)];
                  X1_loc=coordinates[INDEX2(1,nodes[INDEX2(s,e,numNodes)],DIM)];
-                 dXdv00+=X0_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10+=X1_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01+=X0_loc*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11+=X1_loc*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
+//                 dXdv00+=X0_loc*DSDv[INDEX3(s,0,0,numShape,LOCDIM)];
+//                 dXdv10+=X1_loc*DSDv[INDEX3(s,0,0,numShape,LOCDIM)];
+//                 dXdv01+=X0_loc*DSDv[INDEX3(s,1,0,numShape,LOCDIM)];
+//                 dXdv11+=X1_loc*DSDv[INDEX3(s,1,0,numShape,LOCDIM)];
               }
               D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
               if (D==0.) {
@@ -123,20 +138,35 @@ void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* QuadWeight
                  dvdX10=-dXdv10*invD;
                  dvdX01=-dXdv01*invD;
                  dvdX11= dXdv00*invD;
-
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10;
-                   dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11;
-                 }
-
-              }
-              volume[INDEX2(q,e,numQuad)]=ABS(D)*QuadWeights[q];
+		 if (numQuad==1)
+		 {
+			for (s=0;s<3; s++) {
+			dTdX[INDEX4(s,0,0,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,0,numTest,LOCDIM)]*dvdX00+DTDv[INDEX3(s,1,0,numTest,LOCDIM)]*dvdX10;
+			dTdX[INDEX4(s,1,0,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,0,numTest,LOCDIM)]*dvdX01+DTDv[INDEX3(s,1,0,numTest,LOCDIM)]*dvdX11;
+	
+			}
+			volume[INDEX2(0,e,numQuad)]=ABS(D)*quadweight;
+		 }
+		 else	// numQuad==3
+		 {
+		    for (q=0;q<3;++q)	// relying on unroll loops here
+		    {
+			for (s=0;s<3; s++) {
+			dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10;
+			dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11;
+	
+			}
+			volume[INDEX2(q,e,numQuad)]=ABS(D)*quadweight;	
+		    }
+		}
            }
-       }
-
+	}
      }
      #undef DIM 
      #undef LOCDIM 
+
+     #undef COMPDXDV0
+     #undef COMPDXDV1
 }
 /**************************************************************/
 /*                                                            */
