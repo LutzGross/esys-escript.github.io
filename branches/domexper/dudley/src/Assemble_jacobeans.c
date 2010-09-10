@@ -44,45 +44,6 @@ double* volume[numQuad*numElements]
 
 /**************************************************************/
 /*                                                            */
-/*  Jacobean 1D                                               */
-/*                                                            */
-void Assemble_jacobeans_1D(double* coordinates, dim_t numQuad,double* QuadWeights,
-                           dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                           double* DSDv, dim_t numTest, double* DTDv, 
-                           double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 1
-     #define LOCDIM 1
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     #pragma omp parallel 
-     {
-       register double D,invD, X0_loc;
-       #pragma omp for private(e,q,s,D,invD,X0_loc) schedule(static) 
-       for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
-              D=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc=coordinates[INDEX2(0,nodes[INDEX2(s,e,numNodes)],DIM)];
-                 D+=X0_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-              }
-              if (D==0.) {
-                  sprintf(error_msg,"Assemble_jacobeans_1D: element %d (id %d) has length zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD=1./D;
-                 for (s=0;s<numTest; s++) dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*invD;
-              }
-	      volume[INDEX2(q,e,numQuad)]=ABS(D)*QuadWeights[q];
-           }
-       }
-
-     }
-     #undef DIM 
-     #undef LOCDIM 
-
-}
-/**************************************************************/
-/*                                                            */
 /*  Jacobean 2D with area element                             */
 /*                                                            */
 void Assemble_jacobeans_2D(double* coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t* nodes,
@@ -168,43 +129,53 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements                */
 /*                                                            */
-void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,double* QuadWeights,
-                                   dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                                   double* DSDv, dim_t numTest, double* DTDv, 
+void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,/*double* bogus_QuadWeights,
+                                   dim_t bogus_numShape,*/ dim_t numElements, dim_t numNodes, index_t* nodes,
+                                   /*double* bogus_DSDv, dim_t bogus_numTest, double* DTDv,*/ 
                                    double* dTdX, double* volume, index_t* element_id) {
      #define DIM 2
      #define LOCDIM 1
-     register int e,q,s;
+     register int e;
      char error_msg[LenErrorMsg_MAX];
+     const dim_t numTest=2;
+     double quadweight=(numQuad==1)?1.0:0.5;
+// numQuad is 1 or 2
      #pragma omp parallel 
      {
-       register double dXdv00,dXdv10,dvdX00,dvdX01,D,invD,
-                       X0_loc, X1_loc;
+       register double dXdv00,dXdv10,dvdX00,dvdX01,D,invD;
        #pragma omp for private(e,q,s,dXdv00,dXdv10,dvdX00,dvdX01,D,invD,X0_loc, X1_loc) schedule(static) 
        for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
               dXdv00=0;
               dXdv10=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc=coordinates[INDEX2(0,nodes[INDEX2(s,e,numNodes)],DIM)];
-                 X1_loc=coordinates[INDEX2(1,nodes[INDEX2(s,e,numNodes)],DIM)];
-                 dXdv00+=X0_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10+=X1_loc*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-              }
+	      dXdv00+=coordinates[INDEX2(0,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1.)+coordinates[INDEX2(0,nodes[INDEX2(1,e,numNodes)],DIM)];
+	      dXdv00+=coordinates[INDEX2(1,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1.)+coordinates[INDEX2(1,nodes[INDEX2(1,e,numNodes)],DIM)];
               D=dXdv00*dXdv00+dXdv10*dXdv10;
-              if (D==0.) {
+               if (D==0.) {
                   sprintf(error_msg,"Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
                   Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
+              } else {         
                  invD=1./D;
                  dvdX00=dXdv00*invD;
                  dvdX01=dXdv10*invD;
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(s,0,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00;
-                   dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01;
-                 }
-	         volume[INDEX2(q,e,numQuad)]=sqrt(D)*QuadWeights[q];
-              }
+		 // The number of quad points is 1 or 2
+
+
+                   dTdX[INDEX4(0,0,0,e,numTest,DIM,numQuad)]=-1*dvdX00;
+                   dTdX[INDEX4(0,1,0,e,numTest,DIM,numQuad)]=-1*dvdX01;
+                   dTdX[INDEX4(1,0,0,e,numTest,DIM,numQuad)]=-1*dvdX00;
+                   dTdX[INDEX4(1,1,0,e,numTest,DIM,numQuad)]=-1*dvdX01;
+	         volume[INDEX2(0,e,numQuad)]=sqrt(D)*quadweight;
+
+		if (numQuad==2)
+		{
+
+                   dTdX[INDEX4(0,0,1,e,numTest,DIM,numQuad)]=dvdX00;
+                   dTdX[INDEX4(0,1,1,e,numTest,DIM,numQuad)]=dvdX01;
+                   dTdX[INDEX4(1,0,1,e,numTest,DIM,numQuad)]=dvdX00;
+                   dTdX[INDEX4(1,1,1,e,numTest,DIM,numQuad)]=dvdX01;
+	         volume[INDEX2(1,e,numQuad)]=sqrt(D)*quadweight;
+
+		}
            }
        }
 
@@ -213,67 +184,6 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,double* Qu
      #undef LOCDIM 
 }
 
-/**************************************************************/
-/*                                                            */
-/*  Jacobean 1D manifold in 2D and 1D elements woth contact   */
-/*                                                            */
-void Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
-                                   dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                                   double* DSDv, dim_t numTest, double* DTDv, 
-                                   double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 2
-     #define LOCDIM 1
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     #pragma omp parallel 
-     {
-       register double dXdv00_0,dXdv10_0,dvdX00_0,dvdX01_0,D_0,invD_0,
-                       dXdv00_1,dXdv10_1,dvdX00_1,dvdX01_1,D_1,invD_1,
-                       X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dvdX00_0,dvdX01_0,D_0,invD_0,dXdv00_1,dXdv10_1,dvdX00_1,dvdX01_1,D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1) schedule(static) 
-       for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
-              dXdv00_0=0;
-              dXdv10_0=0;
-              dXdv00_1=0;
-              dXdv10_1=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc_0=coordinates[INDEX2(0,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X1_loc_0=coordinates[INDEX2(1,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X0_loc_1=coordinates[INDEX2(0,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X1_loc_1=coordinates[INDEX2(1,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 dXdv00_0+=X0_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_0+=X1_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv00_1+=X0_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_1+=X1_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-              }
-              D_0=dXdv00_0*dXdv00_0+dXdv10_0*dXdv10_0;
-              D_1=dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1;
-              if (D_0 == 0.  || D_1 == 0.) {
-                  sprintf(error_msg,"Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD_0=1./D_0;
-                 dvdX00_0=dXdv00_0*invD_0;
-                 dvdX01_0=dXdv10_0*invD_0;
-                 invD_1=1./D_1;
-                 dvdX00_1=dXdv00_1*invD_1;
-                 dvdX01_1=dXdv10_1*invD_1;
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(        s,0,q,e,2*numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_0;
-                   dTdX[INDEX4(        s,1,q,e,2*numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_0;
-                   dTdX[INDEX4(numTest+s,0,q,e,2*numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_1;
-                   dTdX[INDEX4(numTest+s,1,q,e,2*numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_1;
-                 }
-	         volume[INDEX2(q,e,numQuad)]=(sqrt(D_0)+sqrt(D_1))/2.*QuadWeights[q];
-              }
-           }
-       }
-
-     }
-     #undef DIM 
-     #undef LOCDIM 
-}
 /**************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 2D elements                */
@@ -330,83 +240,7 @@ void Assemble_jacobeans_2D_M1D_E2D(double* coordinates, dim_t numQuad,double* Qu
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
-/*                                                            */
-/*  Jacobean 1D manifold in 2D and 2D elements with contact   */
-/*                                                            */
-void Assemble_jacobeans_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
-                                     dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                                     double* DSDv, dim_t numTest,double* DTDv,
-                                     double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 2
-     #define LOCDIM 2
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     #pragma omp parallel 
-     {
-       register double dXdv00_0,dXdv10_0,dXdv01_0,dXdv11_0,dvdX00_0,dvdX10_0,dvdX01_0,dvdX11_0, D_0,invD_0,
-                       dXdv00_1,dXdv10_1,dXdv01_1,dXdv11_1,dvdX00_1,dvdX10_1,dvdX01_1,dvdX11_1, D_1,invD_1,
-                       X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv01_0,dXdv11_0,dvdX00_0,dvdX10_0,dvdX01_0,dvdX11_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv01_1,dXdv11_1,dvdX00_1,dvdX10_1,dvdX01_1,dvdX11_1, D_1,invD_1,X0_loc_0, X1_loc_0, X0_loc_1, X1_loc_1) schedule(static) 
-       for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
-              dXdv00_0=0;
-              dXdv10_0=0;
-              dXdv01_0=0;
-              dXdv11_0=0;
-              dXdv00_1=0;
-              dXdv10_1=0;
-              dXdv01_1=0;
-              dXdv11_1=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc_0=coordinates[INDEX2(0,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X1_loc_0=coordinates[INDEX2(1,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X0_loc_1=coordinates[INDEX2(0,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X1_loc_1=coordinates[INDEX2(1,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 dXdv00_0+=X0_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_0+=X1_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_0+=X0_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_0+=X1_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv00_1+=X0_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_1+=X1_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_1+=X0_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_1+=X1_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-              }
-              D_0  =  dXdv00_0*dXdv11_0 - dXdv01_0*dXdv10_0;
-              D_1  =  dXdv00_1*dXdv11_1 - dXdv01_1*dXdv10_1;
-              if ( (D_0 ==0.) || (D_1 ==0.) ) {
-                  sprintf(error_msg,"Assemble_jacobeans_2D_E2D_C: element %d (id %d) has area zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD_0=1./D_0;
-                 dvdX00_0= dXdv11_0*invD_0;
-                 dvdX10_0=-dXdv10_0*invD_0;
-                 dvdX01_0=-dXdv01_0*invD_0;
-                 dvdX11_0= dXdv00_0*invD_0;
-                 invD_1=1./D_1;
-                 dvdX00_1= dXdv11_1*invD_1;
-                 dvdX10_1=-dXdv10_1*invD_1;
-                 dvdX01_1=-dXdv01_1*invD_1;
-                 dvdX11_1= dXdv00_1*invD_1;
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(        s,0,q,e,2*numTest,DIM,numQuad)]=
-                                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_0;
-                   dTdX[INDEX4(        s,1,q,e,2*numTest,DIM,numQuad)]=
-                                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_0;
-                   dTdX[INDEX4(numTest+s,0,q,e,2*numTest,DIM,numQuad)]=
-                                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_1;
-                   dTdX[INDEX4(numTest+s,1,q,e,2*numTest,DIM,numQuad)]=
-                                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_1;
-                 }
-              }
-	      volume[INDEX2(q,e,numQuad)]=(sqrt(dXdv00_0*dXdv00_0+dXdv10_0*dXdv10_0)+sqrt(dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1))/2.*QuadWeights[q];
-           }
-       }
 
-     }
-     #undef DIM 
-     #undef LOCDIM 
-}
 /**************************************************************/
 /*                                                            */
 /*  Jacobean 3D                                               */
@@ -562,129 +396,6 @@ void Assemble_jacobeans_3D_M2D_E3D(double* coordinates, dim_t numQuad,double* Qu
 }
 /**************************************************************/
 /*                                                            */
-/*  Jacobean 2D manifold in 3D with 3D elements on contact    */
-/*                                                            */
-void Assemble_jacobeans_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
-                                     dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                                     double* DSDv, dim_t numTest,double* DTDv,
-                                     double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 3
-     #define LOCDIM 3
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     #pragma omp parallel 
-     {
-       register double dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,dXdv02_0,dXdv12_0,dXdv22_0, m0_0, m1_0, m2_0,
-                       dvdX00_0,dvdX10_0,dvdX20_0,dvdX01_0,dvdX11_0,dvdX21_0,dvdX02_0,dvdX12_0,dvdX22_0, D_0,invD_0,
-                       dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,dXdv02_1,dXdv12_1,dXdv22_1, m0_1, m1_1, m2_1,
-                       dvdX00_1,dvdX10_1,dvdX20_1,dvdX01_1,dvdX11_1,dvdX21_1,dvdX02_1,dvdX12_1,dvdX22_1, D_1,invD_1,
-                       X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,dXdv02_0,dXdv12_0,dXdv22_0, m0_0, m1_0, m2_0,dvdX00_0,dvdX10_0,dvdX20_0,dvdX01_0,dvdX11_0,dvdX21_0,dvdX02_0,dvdX12_0,dvdX22_0, D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,dXdv02_1,dXdv12_1,dXdv22_1, m0_1, m1_1, m2_1,dvdX00_1,dvdX10_1,dvdX20_1,dvdX01_1,dvdX11_1,dvdX21_1,dvdX02_1,dvdX12_1,dvdX22_1, D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1) schedule(static) 
-       for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
-              dXdv00_0=0;
-              dXdv10_0=0;
-              dXdv20_0=0;
-              dXdv01_0=0;
-              dXdv11_0=0;
-              dXdv21_0=0;
-              dXdv02_0=0;
-              dXdv12_0=0;
-              dXdv22_0=0;
-              dXdv00_1=0;
-              dXdv10_1=0;
-              dXdv20_1=0;
-              dXdv01_1=0;
-              dXdv11_1=0;
-              dXdv21_1=0;
-              dXdv02_1=0;
-              dXdv12_1=0;
-              dXdv22_1=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc_0=coordinates[INDEX2(0,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X1_loc_0=coordinates[INDEX2(1,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X2_loc_0=coordinates[INDEX2(2,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X0_loc_1=coordinates[INDEX2(0,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X1_loc_1=coordinates[INDEX2(1,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X2_loc_1=coordinates[INDEX2(2,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 dXdv00_0+=X0_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_0+=X1_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv20_0+=X2_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_0+=X0_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_0+=X1_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv21_0+=X2_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv02_0+=X0_loc_0*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-                 dXdv12_0+=X1_loc_0*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-                 dXdv22_0+=X2_loc_0*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-                 dXdv00_1+=X0_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_1+=X1_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv20_1+=X2_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_1+=X0_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_1+=X1_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv21_1+=X2_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv02_1+=X0_loc_1*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-                 dXdv12_1+=X1_loc_1*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-                 dXdv22_1+=X2_loc_1*DSDv[INDEX3(s,2,q,numShape,LOCDIM)];
-              }
-
-              D_0=dXdv00_0*(dXdv11_0*dXdv22_0-dXdv12_0*dXdv21_0)+dXdv01_0*(dXdv20_0*dXdv12_0-dXdv10_0*dXdv22_0)+dXdv02_0*(dXdv10_0*dXdv21_0-dXdv20_0*dXdv11_0);
-              D_1=dXdv00_1*(dXdv11_1*dXdv22_1-dXdv12_1*dXdv21_1)+dXdv01_1*(dXdv20_1*dXdv12_1-dXdv10_1*dXdv22_1)+dXdv02_1*(dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1);
-              if ( (D_0==0.) || (D_1 == 0.)) {
-                  sprintf(error_msg,"Assemble_jacobeans_3D_C: element %d (id %d) has volume zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD_0=1./D_0;
-                 dvdX00_0=(dXdv11_0*dXdv22_0-dXdv12_0*dXdv21_0)*invD_0;
-                 dvdX10_0=(dXdv20_0*dXdv12_0-dXdv10_0*dXdv22_0)*invD_0;
-                 dvdX20_0=(dXdv10_0*dXdv21_0-dXdv20_0*dXdv11_0)*invD_0;
-                 dvdX01_0=(dXdv02_0*dXdv21_0-dXdv01_0*dXdv22_0)*invD_0;
-                 dvdX11_0=(dXdv00_0*dXdv22_0-dXdv20_0*dXdv02_0)*invD_0;
-                 dvdX21_0=(dXdv01_0*dXdv20_0-dXdv00_0*dXdv21_0)*invD_0;
-                 dvdX02_0=(dXdv01_0*dXdv12_0-dXdv02_0*dXdv11_0)*invD_0;
-                 dvdX12_0=(dXdv02_0*dXdv10_0-dXdv00_0*dXdv12_0)*invD_0;
-                 dvdX22_0=(dXdv00_0*dXdv11_0-dXdv01_0*dXdv10_0)*invD_0;
-                 invD_1=1./D_1;
-                 dvdX00_1=(dXdv11_1*dXdv22_1-dXdv12_1*dXdv21_1)*invD_1;
-                 dvdX10_1=(dXdv20_1*dXdv12_1-dXdv10_1*dXdv22_1)*invD_1;
-                 dvdX20_1=(dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1)*invD_1;
-                 dvdX01_1=(dXdv02_1*dXdv21_1-dXdv01_1*dXdv22_1)*invD_1;
-                 dvdX11_1=(dXdv00_1*dXdv22_1-dXdv20_1*dXdv02_1)*invD_1;
-                 dvdX21_1=(dXdv01_1*dXdv20_1-dXdv00_1*dXdv21_1)*invD_1;
-                 dvdX02_1=(dXdv01_1*dXdv12_1-dXdv02_1*dXdv11_1)*invD_1;
-                 dvdX12_1=(dXdv02_1*dXdv10_1-dXdv00_1*dXdv12_1)*invD_1;
-                 dvdX22_1=(dXdv00_1*dXdv11_1-dXdv01_1*dXdv10_1)*invD_1;
-
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(        s,0,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_0+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX20_0;
-                   dTdX[INDEX4(        s,1,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_0+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX21_0;
-                   dTdX[INDEX4(        s,2,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX02_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12_0+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX22_0;
-                   dTdX[INDEX4(numTest+s,0,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_1+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX20_1;
-                   dTdX[INDEX4(numTest+s,1,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_1+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX21_1;
-                   dTdX[INDEX4(numTest+s,2,q,e,2*numTest,DIM,numQuad)]=
-                      DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX02_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12_1+DTDv[INDEX3(s,2,q,numTest,LOCDIM)]*dvdX22_1;
-                 }
-              }
-              m0_0=dXdv10_0*dXdv21_0-dXdv20_0*dXdv11_0;
-              m1_0=dXdv20_0*dXdv01_0-dXdv00_0*dXdv21_0;
-              m2_0=dXdv00_0*dXdv11_0-dXdv10_0*dXdv01_0;
-              m0_1=dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1;
-              m1_1=dXdv20_1*dXdv01_1-dXdv00_1*dXdv21_1;
-              m2_1=dXdv00_1*dXdv11_1-dXdv10_1*dXdv01_1;
-	      volume[INDEX2(q,e,numQuad)]=(sqrt(m0_0*m0_0+m1_0*m1_0+m2_0*m2_0)+sqrt(m0_1*m0_1+m1_1*m1_1+m2_1*m2_1))/2.*QuadWeights[q];
-           }
-       }
-
-     }
-     #undef DIM 
-     #undef LOCDIM 
-}
-/**************************************************************/
-/*                                                            */
 /*  Jacobean 2D manifold in 3D with 2D elements               */
 /*                                                            */
 void Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,double* QuadWeights,
@@ -741,109 +452,6 @@ void Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,double* Qu
                    dTdX[INDEX4(s,2,q,e,numTest,DIM,numQuad)]=DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX02+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12;
                  }
 	         volume[INDEX2(q,e,numQuad)]=sqrt(D)*QuadWeights[q];
-              }
-           }
-       }
-
-     }
-     #undef DIM 
-     #undef LOCDIM 
-}
-/**************************************************************/
-/*                                                            */
-/*  Jacobean 2D manifold in 3D with 2D elements  with contact */
-/*                                                            */
-void Assemble_jacobeans_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
-                                     dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
-                                     double* DSDv, dim_t numTest,double* DTDv,
-                                     double* dTdX, double* volume, index_t* element_id) {
-     #define DIM 3
-     #define LOCDIM 2
-     register int e,q,s;
-     char error_msg[LenErrorMsg_MAX];
-     #pragma omp parallel 
-     {
-       register double dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,m00_0,m01_0,m11_0,
-                       dvdX00_0,dvdX01_0,dvdX02_0,dvdX10_0,dvdX11_0,dvdX12_0,D_0,invD_0,
-                       dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,m00_1,m01_1,m11_1,
-                       dvdX00_1,dvdX01_1,dvdX02_1,dvdX10_1,dvdX11_1,dvdX12_1,D_1,invD_1,
-                       X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1;
-       #pragma omp for private(e,q,s,dXdv00_0,dXdv10_0,dXdv20_0,dXdv01_0,dXdv11_0,dXdv21_0,m00_0,m01_0,m11_0,dvdX00_0,dvdX01_0,dvdX02_0,dvdX10_0,dvdX11_0,dvdX12_0,D_0,invD_0,dXdv00_1,dXdv10_1,dXdv20_1,dXdv01_1,dXdv11_1,dXdv21_1,m00_1,m01_1,m11_1,dvdX00_1,dvdX01_1,dvdX02_1,dvdX10_1,dvdX11_1,dvdX12_1,D_1,invD_1,X0_loc_0, X1_loc_0, X2_loc_0, X0_loc_1, X1_loc_1, X2_loc_1) schedule(static) 
-       for(e=0;e<numElements;e++){
-           for (q=0;q<numQuad;q++) {
-              dXdv00_0=0;
-              dXdv10_0=0;
-              dXdv20_0=0;
-              dXdv01_0=0;
-              dXdv11_0=0;
-              dXdv21_0=0;
-              dXdv00_1=0;
-              dXdv10_1=0;
-              dXdv20_1=0;
-              dXdv01_1=0;
-              dXdv11_1=0;
-              dXdv21_1=0;
-              for (s=0;s<numShape; s++) {
-                 X0_loc_0=coordinates[INDEX2(0,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X1_loc_0=coordinates[INDEX2(1,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X2_loc_0=coordinates[INDEX2(2,nodes[INDEX2(s         ,e,numNodes)],DIM)];
-                 X0_loc_1=coordinates[INDEX2(0,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X1_loc_1=coordinates[INDEX2(1,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 X2_loc_1=coordinates[INDEX2(2,nodes[INDEX2(s+numShape,e,numNodes)],DIM)];
-                 dXdv00_0+=X0_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_0+=X1_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv20_0+=X2_loc_0*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_0+=X0_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_0+=X1_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv21_0+=X2_loc_0*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv00_1+=X0_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv10_1+=X1_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv20_1+=X2_loc_1*DSDv[INDEX3(s,0,q,numShape,LOCDIM)];
-                 dXdv01_1+=X0_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv11_1+=X1_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-                 dXdv21_1+=X2_loc_1*DSDv[INDEX3(s,1,q,numShape,LOCDIM)];
-              }
-              m00_0=dXdv00_0*dXdv00_0+dXdv10_0*dXdv10_0+dXdv20_0*dXdv20_0;
-              m01_0=dXdv00_0*dXdv01_0+dXdv10_0*dXdv11_0+dXdv20_0*dXdv21_0;
-              m11_0=dXdv01_0*dXdv01_0+dXdv11_0*dXdv11_0+dXdv21_0*dXdv21_0;
-              D_0=m00_0*m11_0-m01_0*m01_0;
-              m00_1=dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1+dXdv20_1*dXdv20_1;
-              m01_1=dXdv00_1*dXdv01_1+dXdv10_1*dXdv11_1+dXdv20_1*dXdv21_1;
-              m11_1=dXdv01_1*dXdv01_1+dXdv11_1*dXdv11_1+dXdv21_1*dXdv21_1;
-              D_1=m00_1*m11_1-m01_1*m01_1;
-              if ( (D_0==0.) || (D_1 == 0.) ) {
-                  sprintf(error_msg,"Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.",e,element_id[e]);
-                  Dudley_setError(ZERO_DIVISION_ERROR,error_msg);
-              } else {
-                 invD_0=1./D_0;
-                 dvdX00_0=( m00_0*dXdv00_0-m01_0*dXdv01_0)*invD_0;
-                 dvdX01_0=( m00_0*dXdv10_0-m01_0*dXdv11_0)*invD_0;
-                 dvdX02_0=( m00_0*dXdv20_0-m01_0*dXdv21_0)*invD_0;
-                 dvdX10_0=(-m01_0*dXdv00_0+m11_0*dXdv01_0)*invD_0;
-                 dvdX11_0=(-m01_0*dXdv10_0+m11_0*dXdv11_0)*invD_0;
-                 dvdX12_0=(-m01_0*dXdv20_0+m11_0*dXdv21_0)*invD_0;
-                 invD_1=1./D_1;
-                 dvdX00_1=( m00_1*dXdv00_1-m01_1*dXdv01_1)*invD_1;
-                 dvdX01_1=( m00_1*dXdv10_1-m01_1*dXdv11_1)*invD_1;
-                 dvdX02_1=( m00_1*dXdv20_1-m01_1*dXdv21_1)*invD_1;
-                 dvdX10_1=(-m01_1*dXdv00_1+m11_1*dXdv01_1)*invD_1;
-                 dvdX11_1=(-m01_1*dXdv10_1+m11_1*dXdv11_1)*invD_1;
-                 dvdX12_1=(-m01_1*dXdv20_1+m11_1*dXdv21_1)*invD_1;
-                 for (s=0;s<numTest; s++) {
-                   dTdX[INDEX4(        s,0,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_0;
-                   dTdX[INDEX4(        s,1,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_0;
-                   dTdX[INDEX4(        s,2,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX02_0+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12_0;
-                   dTdX[INDEX4(numTest+s,0,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX00_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX10_1;
-                   dTdX[INDEX4(numTest+s,1,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX01_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX11_1;
-                   dTdX[INDEX4(numTest+s,2,q,e,2*numTest,DIM,numQuad)]=
-                                 DTDv[INDEX3(s,0,q,numTest,LOCDIM)]*dvdX02_1+DTDv[INDEX3(s,1,q,numTest,LOCDIM)]*dvdX12_1;
-                 }
-	         volume[INDEX2(q,e,numQuad)]=(sqrt(D_0)+sqrt(D_1))/2.*QuadWeights[q];
               }
            }
        }
