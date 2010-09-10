@@ -110,18 +110,10 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
              if (refElement->numLocalDim==0) {
 				 Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
-                  if (out->BasisFunctions->Type->numDim==2) {
-
-                        Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                      shape->dSdv,basis->Type->numShapes,dBdv,
-                                                      out->DSDX,out->volume,self->Id);
-                  }  else if (out->BasisFunctions->Type->numDim==1) {
-
-                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes,
-                                                      out->DSDX,out->volume,self->Id);
+		  if (out->BasisFunctions->Type->numDim==1) {
+                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes, out->DSDX,out->volume,self->Id);
                   } else {
-                    Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
+                    Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1.");
                   }
              } else if (refElement->numLocalDim==2) {
                      Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal, self->numElements,numNodes,self->Nodes,
@@ -148,9 +140,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
                   }
              } else if (refElement->numLocalDim==3) {
-                     Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                           shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                           shape->dSdv,basis->Type->numShapes,dBdv,
+                     Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,self->numElements,numNodes,self->Nodes,
                                            out->DSDX,out->volume,self->Id);
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
