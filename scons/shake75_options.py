@@ -64,7 +64,7 @@ boost_libs          = ['boost_python']
 # mkl_libs      = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
 
 # UMFPACK (requires AMD and BLAS)
-useumfpack    = 'yes'
+useumfpack      = 'yes'
 # ufc_path      = '/usr/include'
 # umf_path      = '/usr/include'
 # umf_lib_path  = '/usr/lib'
@@ -75,6 +75,12 @@ useumfpack    = 'yes'
 # blas_path     = '/usr/include'
 # blas_lib_path = '/usr/lib'
 # blas_libs     = ['blas']
+
+#Lapack
+uselapack       = 'yes'
+#lapack_path    = ''
+#lapack_lib_path= ''
+lapack_libs     = ['lapack_atlas']
 
 # Silo
 usesilo         = 'yes'
