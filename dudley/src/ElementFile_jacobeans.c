@@ -104,16 +104,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      if (! (Dudley_checkPtr(out->volume) || Dudley_checkPtr(out->DSDX)) ) {
           /*========================== dim = 1 ============================================== */
           if (out->numDim==1) {
-             if (refElement->numLocalDim==0) {
-		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
-             } else if (refElement->numLocalDim==1) {
-				       Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                            shape->dSdv,basis->Type->numShapes,dBdv, out->DSDX,out->volume,self->Id);
-
-             } else {
-                  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
-             }
+	     Dudley_setError(SYSTEM_ERROR, "Dudley does not support 1D domains.");
           /*========================== dim = 2 ============================================== */
           } else if (out->numDim==2) {
              if (refElement->numLocalDim==0) {
@@ -126,9 +117,8 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
                   }  else if (out->BasisFunctions->Type->numDim==1) {
-                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
-                                                      shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
-                                                      shape->dSdv,basis->Type->numShapes,dBdv,
+
+                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes,
                                                       out->DSDX,out->volume,self->Id);
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
