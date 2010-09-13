@@ -30,7 +30,7 @@ import time
 
 # ======================= Default Values ==================================================
 DIM=2                           # spatial dimension
-H=30.*U.m                     # height
+H=3.*U.m                     # height
 L=2*H                           # length
 NE_H=30                           # number of elements in H-direction. 
 NE_L=int(ceil(L*NE_H/H))
@@ -47,8 +47,8 @@ MU_0 = 30e9*U.Pa
 ALPHA_0 = 0
 RHO = 2800*U.kg/U.m**3
 G = 10*U.m/U.sec**2     *0
-DT=0.1*U.yr
-VMAX=-0.01*U.m/U.yr
+DT=1.*U.sec
+VMAX=-0.01*U.m/U.sec
 
 T_END=100000*U.yr                       # end time
 
@@ -60,8 +60,6 @@ VIS_DIR="results"               # name of the director for vis files
 ODE_TOL=0.01
 ODE_ITER_TOL=1.e-8
 ODE_ITER_MAX=15
-
-ABS_ALPHA=1.e-5
 
 #===================================
 S=0.5*XI_0*((2.*MU_0+3.*LAME_0)/(3.-XI_0**2) + LAME_0)
@@ -77,7 +75,7 @@ def solveODE(u0, a, b, dt):
     norm_du=1.
     norm_u=0.
     n=0
-    while norm_du > ODE_ITER_TOL * max(norm_u, ABS_ALPHA):
+    while norm_du > ODE_ITER_TOL * norm_u:
          H=-dt*a*exp(b*u)
          du=-(u-u0+H)/(1+b*H)
          u+=du
@@ -142,6 +140,10 @@ dt_old=None
 while t<T_END:
 
     print "start time step %d"%(n+1,)
+    if n>1:
+       print" eps :"
+       print sqI2**2
+       print 2*mu*(sqI2-gamma/(2*mu))*eps_e[1,1]-gamma*(sqI2-lame/gamma*I1)*sqI2
 
     I1=trace(eps_e)
     sqI2=length(eps_e)
@@ -153,31 +155,10 @@ while t<T_END:
     m=wherePositive(xi-XI_0)
     a=sqI2**2*(xi-XI_0)*(m*C_D + (1-m)* C_1)
     b=(1-m)*(1./C_2)
-    accepted = False
 
-    while not accepted:
+    alpha, alpha_old, alpha_oold =solveODE(alpha, a,b, dt), alpha, alpha_old
 
-        alpha=solveODE(alpha_old, a,b, dt)
- 
-        # estimate error:
-        if dt_old == None:
-            dt_new=dt
-            accepted=True
-        else:
-           dd_alpha=dt_old*(alpha-alpha_old)+(alpha_oold-alpha_old)*dt/(dt*dt_old*(dt_old+dt))
-           if Lsup(alpha) <ABS_ALPHA: 
-              fac=Lsup(dd_alpha)
-           else:
-              fac=Lsup(dd_alpha)/Lsup(alpha)
-           error=fac*0.5*dt**2
-           print "\testimated local error for time step size %e is %e"%(dt,error)
-           dt_new=sqrt(0.1*ODE_TOL*2/fac)
-           dt_new=min(max(dt_new,dt/5),dt*5) # avoid heavy oscillation
-           if error < ODE_TOL: 
-               accepted=True
-           else:
-               dt=dt_new
-               print "\tINFO: time step repeated with new step size %e"%dt
+
     # step size for the next time step:
 
     print "\talpha = [ %e, %e]"%(inf(alpha),sup(alpha))
@@ -219,6 +200,19 @@ while t<T_END:
       counter_vis+=1
       t_vis+=DT_VIS
       n_vis+=DN_VIS
-
+    # 
+    #   control time step size:
+    #
+    if dt_old == None:
+          dt_new=dt
+    else:
+          dd_alpha=2.*dt_old*(alpha-alpha_old)+(alpha_oold-alpha_old)*dt/(dt*dt_old*(dt_old+dt))
+          norm_alpha=Lsup(alpha)
+          fac=Lsup(dd_alpha)
+          if norm_alpha > 0: fac*=1./norm_alpha
+          error=fac*0.5*dt**2
+          print "\testimated local error for time step size %e is %e"%(dt,error)
+          dt_new=sqrt(2./3.*ODE_TOL*2/fac)
+          dt_new=min(max(dt_new,dt/5),dt*5) # avid rapit changes
+          print "\tINFO: new time step size %e"%dt_new
     dt, dt_old=dt_new, dt
-    alpha_old, alpha_oold=alpha, alpha_old
