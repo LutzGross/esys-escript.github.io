@@ -170,7 +170,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      out->AOffset1=NULL;
      out->solver=NULL;
      out->Smoother=NULL;
-     /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
      out->level=level;
      out->n=n;
      out->n_F=n+1;
@@ -189,8 +188,6 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
-         /*out->GS=Paso_Solver_getJacobi(A_p);*/
-         
          #ifdef MKL
                   out->AUnrolled=Paso_SparseMatrix_unroll(A_p);
                   out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->AUnrolled->pattern,1,1, FALSE);
@@ -516,7 +513,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
              Paso_UMFPACK1(&ptr,amg->AUnrolled,x,b,timing);
              amg->solver=(void*) ptr;
           #else      
-          Paso_Preconditioner_LocalSmoother_solve(amg->A, amg->Smoother->GS,x,b,1, FALSE);
+          Paso_Preconditioner_LocalSmoother_solve(amg->A, amg->Smoother,x,b,1, FALSE);
          #endif
        #endif
        }
