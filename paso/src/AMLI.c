@@ -174,7 +174,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
          #else
             #ifdef UMFPACK 
             #else
-            out->Smoother=LocalSmoother_alloc(A_p,TRUE,verbose);
+            out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
             #endif
          #endif
      } else {
