@@ -232,6 +232,16 @@ namespace finley {
                      TMPMEMFREE(mesh_p->Elements->Color);
                      throw DataException("get(Elements_Color)");
                    }
+		   // Now we need to adjust the maxColor
+		   index_t mc=mesh_p->Elements->Color[0];
+		   for (index_t i=1;i<num_Elements;++i)
+		   {
+			if (mc<mesh_p->Elements->Color[i])
+			{
+			   mc= mesh_p->Elements->Color[i];
+			}
+		   }
+		   mesh_p->Elements->maxColor=mc;
                    // Elements_Nodes
                    int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
@@ -295,6 +305,16 @@ namespace finley {
                      TMPMEMFREE(mesh_p->FaceElements->Color);
                      throw DataException("get(FaceElements_Color)");
                    }
+		   // Now we need to adjust the maxColor
+		   index_t mc=mesh_p->FaceElements->Color[0];
+		   for (index_t i=1;i<num_FaceElements;++i)
+		   {
+			if (mc<mesh_p->FaceElements->Color[i])
+			{
+			   mc= mesh_p->FaceElements->Color[i];
+			}
+		   }
+		   mesh_p->FaceElements->maxColor=mc;
                    // FaceElements_Nodes
                    int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
@@ -356,6 +376,16 @@ namespace finley {
                      TMPMEMFREE(mesh_p->ContactElements->Color);
                      throw DataException("get(ContactElements_Color)");
                    }
+		   // Now we need to adjust the maxColor
+		   index_t mc=mesh_p->ContactElements->Color[0];
+		   for (index_t i=1;i<num_ContactElements;++i)
+		   {
+			if (mc<mesh_p->ContactElements->Color[i])
+			{
+			   mc= mesh_p->ContactElements->Color[i];
+			}
+		   }
+		   mesh_p->ContactElements->maxColor=mc;
 	           // ContactElements_Nodes
 			   		int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
@@ -418,6 +448,16 @@ namespace finley {
                      TMPMEMFREE(mesh_p->Points->Color);
                      throw DataException("get(Points_Color)");
                    }
+		   // Now we need to adjust the maxColor
+		   index_t mc=mesh_p->Points->Color[0];
+		   for (index_t i=1;i<num_Points;++i)
+		   {
+			if (mc<mesh_p->Points->Color[i])
+			{
+			   mc= mesh_p->Points->Color[i];
+			}
+		   }
+		   mesh_p->Points->maxColor=mc;
 	           // Points_Nodes
 		   int *Points_Nodes = TMPMEMALLOC(num_Points,int);
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
