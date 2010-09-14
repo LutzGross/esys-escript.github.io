@@ -813,7 +813,6 @@ print ""
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.debug")))
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.mpi")))
 Execute(Delete(os.path.join(env['libinstall'],"Compiled.with.openmp")))
-Execute(Delete(os.path.join(env['libinstall'],"pyversion")))
 Execute(Delete(os.path.join(env['libinstall'],"buildvars")))
 if not env['usempi']: Execute(Delete(os.path.join(env['libinstall'],"pythonMPI")))
 
