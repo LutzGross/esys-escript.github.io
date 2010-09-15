@@ -32,7 +32,8 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFun
 	 out->numDim=0;
 	 out->numQuadTotal=0;
 	 out->numElements=0;
-     out->volume=NULL;
+     out->absD=NULL;
+     out->quadweight=0;
      out->DSDX=NULL;
      return out;
   }
@@ -44,8 +45,8 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans* in)
 {
   if (in!=NULL) {
 	Dudley_ShapeFunction_dealloc(in->BasisFunctions);  
-    MEMFREE(in->volume);
     MEMFREE(in->DSDX);
+    MEMFREE(in->absD);
     MEMFREE(in);
   }
 }
@@ -96,12 +97,12 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
            return NULL;
      }
 
-     if (out->volume==NULL) out->volume=MEMALLOC((out->numElements)*(out->numQuadTotal),double);
      if (out->DSDX==NULL) out->DSDX=MEMALLOC((out->numElements)
                                             *(out->numShapesTotal)
                                             *(out->numDim)
                                             *(out->numQuadTotal),double);
-     if (! (Dudley_checkPtr(out->volume) || Dudley_checkPtr(out->DSDX)) ) {
+     if (out->absD==NULL) out->absD=MEMALLOC(out->numElements,double);
+     if (! (Dudley_checkPtr(out->DSDX) || Dudley_checkPtr(out->absD)) ) {
           /*========================== dim = 1 ============================================== */
           if (out->numDim==1) {
 	     Dudley_setError(SYSTEM_ERROR, "Dudley does not support 1D domains.");
@@ -111,13 +112,13 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 				 Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
 		  if (out->BasisFunctions->Type->numDim==1) {
-                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes, out->DSDX,out->volume,self->Id);
+                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes, out->DSDX,out->absD, &(out->quadweight), self->Id);
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1.");
                   }
              } else if (refElement->numLocalDim==2) {
                      Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal, self->numElements,numNodes,self->Nodes,
-                                           out->DSDX, out->volume, self->Id);
+                                           out->DSDX, out->absD, &(out->quadweight), self->Id);
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
              }
@@ -128,13 +129,13 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
              } else if (refElement->numLocalDim==2) {
 		  if (out->BasisFunctions->Type->numDim==2) {
                         Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuadTotal,self->numElements,numNodes,self->Nodes,
-                                                      out->DSDX,out->volume,self->Id);
+                                                      out->DSDX,out->absD, &(out->quadweight), self->Id);
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 2.");
                   }
              } else if (refElement->numLocalDim==3) {
                      Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,self->numElements,numNodes,self->Nodes,
-                                           out->DSDX,out->volume,self->Id);
+                                           out->DSDX,out->absD, &(out->quadweight), self->Id);
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
              }

@@ -87,10 +87,10 @@ void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* 
 void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
 void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 
-void Assemble_jacobeans_2D(double*, dim_t, dim_t, dim_t, index_t*, double*, double*, index_t*);
-void Assemble_jacobeans_2D_M1D_E1D(double*, dim_t, dim_t, dim_t, index_t*, double*, double*, index_t*);
-void Assemble_jacobeans_3D(double*, dim_t, dim_t, dim_t, index_t*, double*, double*, index_t*);
-void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t, dim_t, dim_t, index_t*, double*, double*, index_t*);
+void Assemble_jacobeans_2D(double*, dim_t, dim_t, dim_t, index_t*, double*, double* abs_D, double* quadweight, index_t*);
+void Assemble_jacobeans_2D_M1D_E1D(double*, dim_t, dim_t, dim_t, index_t*, double*, double* abs_D, double* quadweight,index_t*);
+void Assemble_jacobeans_3D(double*, dim_t, dim_t, dim_t, index_t*, double*, double* abs_D, double* quadweight,index_t*);
+void Assemble_jacobeans_3D_M2D_E2D(double*, dim_t, dim_t, dim_t, index_t*, double*, double* abs_D, double* quadweight,index_t*);
 
 
 void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
