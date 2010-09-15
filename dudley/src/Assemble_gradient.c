@@ -27,14 +27,14 @@
 
 
 void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
-                              escriptDataC* grad_data,escriptDataC* data) {
-
+                              escriptDataC* grad_data,escriptDataC* data)
+{
   Dudley_ReferenceElement*  refElement=NULL;
   size_t localGradSize=0;
   register dim_t e,q,l,s,n;
   register __const double *data_array;
   register double *grad_data_e;
-  dim_t numNodes=0, numShapes=0, numShapesTotal=0, numComps, NN=0, numDim=0, numShapesTotal2=0, numQuad=0;
+  dim_t numNodes=0, numShapesTotal=0, numComps, NN=0, numDim=0, numShapesTotal2=0, numQuad=0;
   type_t data_type=getFunctionSpaceType(data);
   bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
   Dudley_ElementFile_Jacobeans* jac=NULL;
@@ -75,7 +75,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   if (Dudley_noError())
   {
 	numDim=jac->numDim;
-        numShapes=jac->BasisFunctions->Type->numShapes;
+//        numShapes=jac->BasisFunctions->Type->numShapes;
 	numShapesTotal=jac->numShapesTotal;
 	numQuad=jac->numQuadTotal;
 	localGradSize=sizeof(double)*numDim*numQuad*numComps;
@@ -90,259 +90,339 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: illegal number of components in gradient data object.");
       	}  else if (!isExpanded(grad_data)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: expanded Data object is expected for output data.");
-      	} else if (! (numShapes <= numShapesTotal)) {
-           Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
-      	} else if (! (numShapes <= numShapesTotal)) {
-           Dudley_setError(SYSTEM_ERROR,"Dudley_Assemble_gradient: offset test failed.");
-      	}
+	}
   }
   /* now we can start */
 
-  if (Dudley_noError()) {
-      requireWrite(grad_data);
-      #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
-      {
-
-         if (data_type==DUDLEY_NODES) {
-            if (numDim==1) {
-                #define DIM 1
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,n);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-                                      grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
+  if (Dudley_noError())
+  {
+    requireWrite(grad_data);
+    #pragma omp parallel private(e,q,l,s,n,data_array,grad_data_e)
+    {
+	if (data_type==DUDLEY_NODES)
+	{
+	    if (numDim==1)
+	    {
+		const dim_t numShapes=2;
+		#define DIM 1
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,n);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
                 #undef DIM
-            } else if (numDim==2) {
-                #define DIM 2
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,n);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-/*printf("data_array of l=%d = %e\n",l,data_array[l]); */
-								}
-							}
-                       }
-                }
-                #undef DIM
-            } else if (numDim==3) {
-                #define DIM 3
-                #pragma omp for private(e,grad_data_e,s,n,data_array,q,l) schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e); 
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,n);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
+	    }
+	    else if (numDim==2)
+	    {
+		const dim_t numShapes=3;
+		#define DIM 2
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,n);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
                 #undef DIM
             }
-         } else if (data_type==DUDLEY_REDUCED_NODES) {
-            if (numDim==1) {
-                #define DIM 1
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);            
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {								
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
+	    else if (numDim==3)
+	    {
+		const dim_t numShapes=4;
+		#define DIM 3
+		#pragma omp for private(e,grad_data_e,s,n,data_array,q,l) schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e); 
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,n);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++) 
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	} 
+	else if (data_type==DUDLEY_REDUCED_NODES)
+	{
+	    if (numDim==1)
+	    {
+		const dim_t numShapes=2;
+		#define DIM 1
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {	
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    } 
+	    else if (numDim==2)
+	    {
+		const dim_t numShapes=3;
+		#define DIM 2
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
                 #undef DIM
-            } else if (numDim==2) {
-                #define DIM 2
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
-                #undef DIM
-            } else if (numDim==3) {
-                #define DIM 3
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-                    	for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
-							for (q=0;q<numQuad;q++) {	
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
-                #undef DIM
-            }
-         } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
-
-            if (numDim==1) {
-                #define DIM 1
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-                }
-                #undef DIM
-            } else if (numDim==2) {
-                #define DIM 2
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-                           	        grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-					}
-				}
-                #undef DIM
-            } else if (numDim==3) {
-                #define DIM 3
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-					}
-				}
-                #undef DIM
-            }
-         } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            if (numDim==1) {
-                #define DIM 1
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-							}
-						}
-				}
-                #undef DIM
-            } else if (numDim==2) {
-                #define DIM 2
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-						}
-                    }
-                }
-                #undef DIM
-
-            } else if (numDim==3) {
-                #define DIM 3
-                #pragma omp for schedule(static)
-				for (e=0;e<elements->numElements;e++) {
-                    grad_data_e=getSampleDataRW(grad_data,e);
-                    memset(grad_data_e,0, localGradSize);
-						for (s=0;s<numShapes;s++) {
-							n=elements->Nodes[INDEX2(s,e, NN)];
-							data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-							for (q=0;q<numQuad;q++) {
-								#pragma ivdep
-								for (l=0;l<numComps;l++) {
-									grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
-									grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
-								}
-						}
-                    }
-                }
-                #undef DIM
-            }
-         }
-      } /* end parallel region */
+	    } 
+	    else if (numDim==3)
+	    {
+		const dim_t numShapes=4;
+		#define DIM 3
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{	
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	}
+	else if (data_type==DUDLEY_DEGREES_OF_FREEDOM)
+	{
+	    if (numDim==1)
+	    {
+		const dim_t numShapes=2;
+		#define DIM 1
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	    else if (numDim==2)
+	    {
+		const dim_t numShapes=3;
+		#define DIM 2
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	    else if (numDim==3)
+	    {
+		const dim_t numShapes=4;
+		#define DIM 3
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	} 
+	else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
+	{
+	    if (numDim==1)
+	    {
+		const dim_t numShapes=2;
+		#define DIM 1
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	    else if (numDim==2)
+	    {
+		const dim_t numShapes=3;
+		#define DIM 2
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	    else if (numDim==3)
+	    {
+		const dim_t numShapes=4;
+		#define DIM 3
+		#pragma omp for schedule(static)
+		for (e=0;e<elements->numElements;e++)
+		{
+		    grad_data_e=getSampleDataRW(grad_data,e);
+		    memset(grad_data_e,0, localGradSize);
+		    for (s=0;s<numShapes;s++)
+		    {
+			n=elements->Nodes[INDEX2(s,e, NN)];
+			data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+			for (q=0;q<numQuad;q++)
+			{
+			    #pragma ivdep
+			    for (l=0;l<numComps;l++)
+			    {
+				grad_data_e[INDEX4(l,0,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,0,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,1,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,1,q,0,e, numShapesTotal,DIM,numQuad,1)];
+				grad_data_e[INDEX4(l,2,q,0, numComps,DIM,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s,2,q,0,e, numShapesTotal,DIM,numQuad,1)];
+			    }
+			}
+		    }
+		}
+		#undef DIM
+	    }
+	}
+    } /* end parallel region */
   }
 }

@@ -117,6 +117,7 @@ headers = """
 	TriangularMesh.h
 	ReferenceElements.h
 	ShapeFunctions.h
+	ShapeTable.h
 	TagMap.h
 	Util.h
 	ReferenceElementSets.h

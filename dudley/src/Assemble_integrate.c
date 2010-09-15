@@ -66,8 +66,9 @@ void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
                        for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
                             data_array=getSampleDataRO(data,e);
+				double vol=jac->absD[e]*jac->quadweight;
                             for (q=0;q<numQuadTotal;q++) {
-                                  for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
+                                  for (i=0;i<numComps;i++) out_local[i]+=data_array[INDEX2(i,q,numComps)]*vol;
                             }
                          }
                        }
@@ -75,9 +76,10 @@ void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
                       #pragma omp for private(e) schedule(static)
                       for(e=0;e<elements->numElements;e++) {
                           if (elements->Owner[e] == my_mpi_rank) {
+				double vol=jac->absD[e]*jac->quadweight;
                            data_array=getSampleDataRO(data,e);
                            rtmp=0.;
-                           for (q=0;q<numQuadTotal;q++) rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];
+                           for (q=0;q<numQuadTotal;q++) rtmp+=vol;
                            for (i=0;i<numComps;i++) out_local[i]+=data_array[i]*rtmp;
                           }
                       }
