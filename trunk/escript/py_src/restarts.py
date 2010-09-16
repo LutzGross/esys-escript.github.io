@@ -82,6 +82,7 @@ class DataManager(object):
         self._time=0.
         self._restartdir=None
         self._N=-1
+        self._checkpointfreq=1
         self._myrank=getMPIRankWorld()
         self._exportformats=set(formats)
         self._restartprefix=restart_prefix
@@ -92,23 +93,24 @@ class DataManager(object):
             if not self.__initVisit(simFile, "Escript simulation"):
                 print "Warning: Could not initialize VisIt interface"
                 self._exportformats.remove(self.VISIT)
-        # find all restart directories
-        restart_folders = []
-        for f in os.listdir(self._workdir):
-            if f.startswith(self._restartprefix):
-                restart_folders.append(f)
-        # remove unneeded restart directories
-        if len(restart_folders)>0:
-            restart_folders.sort()
-            if do_restart:
-                self._restartdir=restart_folders[-1]
-                print "Restart from "+os.path.join(self._workdir, self._restartdir)
-                for f in restart_folders[:-1]:
-                    self.__removeDirectory(f)
-                self.__loadState()
-            else:
-                for f in restart_folders:
-                    self.__removeDirectory(f)
+        if self.RESTART in self._exportformats:
+            # find all restart directories
+            restart_folders = []
+            for f in os.listdir(self._workdir):
+                if f.startswith(self._restartprefix):
+                    restart_folders.append(f)
+            # remove unneeded restart directories
+            if len(restart_folders)>0:
+                restart_folders.sort()
+                if do_restart:
+                    self._restartdir=restart_folders[-1]
+                    print "Restart from "+os.path.join(self._workdir, self._restartdir)
+                    for f in restart_folders[:-1]:
+                        self.__removeDirectory(f)
+                    self.__loadState()
+                else:
+                    for f in restart_folders:
+                        self.__removeDirectory(f)
 
     def addData(self, **data):
         """
@@ -168,6 +170,13 @@ class DataManager(object):
         """
         return self._N
 
+    def setCheckpointFrequency(self, freq):
+        """
+        Sets the number of calls to export() before new restart files are
+        generated.
+        """
+        self._checkpointfreq=freq
+
     def setTime(self, time):
         """
         Sets the simulation timestamp.
@@ -215,9 +224,37 @@ class DataManager(object):
         if self._domain == None:
             return
 
-        idata = self.__interpolateData()
         self._N += 1
+        ds = None
         nameprefix=os.path.join(self._workdir, "dataset%04d"%(self._N))
+
+        for f in self._exportformats:
+            if f == self.SILO:
+                filename=nameprefix+".silo"
+                if ds == None:
+                    ds=self.__createDataset()
+                ds.saveSilo(filename)
+            elif f == self.VTK:
+                filename=nameprefix+".vtu"
+                if ds == None:
+                    ds=self.__createDataset()
+                ds.saveVTK(filename)
+            elif f == self.VISIT:
+                from esys.weipa.weipacpp import visitPublishData
+                if ds == None:
+                    ds=self.__createDataset()
+                visitPublishData(ds)
+            elif f == self.RESTART:
+                # only write checkpoint files with the requested frequency
+                if self._N % self._checkpointfreq==0:
+                    self.__saveState()
+            else:
+                raise ValueError, "export: Unknown export format "+str(f)
+
+        self.__clearData()
+
+    def __createDataset(self):
+        idata = self.__interpolateData()
 
         from esys.weipa.weipacpp import EscriptDataset
         ds=EscriptDataset()
@@ -228,24 +265,8 @@ class DataManager(object):
         ds.setMeshUnits(self._meshunits[0], self._meshunits[1], self._meshunits[2])
         for n,d in idata.items():
             ds.addData(d, n, "") #FIXME: data units are not supported yet
-
-        for f in self._exportformats:
-            if f == self.SILO:
-                filename=nameprefix+".silo"
-                ds.saveSilo(filename)
-            elif f == self.VTK:
-                filename=nameprefix+".vtu"
-                ds.saveVTK(filename)
-            elif f == self.VISIT:
-                from esys.weipa.weipacpp import visitPublishData
-                visitPublishData(ds)
-            elif f == self.RESTART:
-                self.__saveState()
-            else:
-                raise ValueError, "export: Unknown export format "+f
-
-        self.__clearData()
-
+        return ds
+    
     def __clearData(self):
         #print "Clearing all data"
         self._restartdir = None
