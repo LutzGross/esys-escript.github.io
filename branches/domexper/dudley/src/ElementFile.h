@@ -33,9 +33,8 @@ struct Dudley_ElementFile_Jacobeans {
 
   dim_t numShapesTotal;         /* total number of shape functions =  BasisFunctions->numShapes */
   dim_t numElements;            /* number of elements */
-//  double* volume;                       /* local volume */
-  double* absD;
-  double quadweight;
+  double* absD;			/* used to compute volume */
+  double quadweight;		/* used to compute volume */
   double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
 };
 
