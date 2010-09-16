@@ -341,7 +341,7 @@ class DataManager(object):
             var.dump(ff)
         print "Restart files saved in "+os.path.join(self._workdir, restartdir)
         # keep only one restart directory
-        old_restartdir = "%s_%04d"%(self._restartprefix, self._N-1)
+        old_restartdir = "%s_%04d"%(self._restartprefix, self._N-self._checkpointfreq)
         self.__removeDirectory(os.path.join(self._workdir, old_restartdir))
 
     def __removeDirectory(self, path):
