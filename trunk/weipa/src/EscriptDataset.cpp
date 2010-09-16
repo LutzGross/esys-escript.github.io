@@ -419,8 +419,9 @@ bool EscriptDataset::saveVTK(string fileName)
         string tmpName = varBlocks[0]->getMeshName();
         if (meshName != "") {
             if (meshName != tmpName) {
-                cerr << "VTK supports only one mesh! Skipping variable "
-                    << varBlocks[0]->getName() << " on " << tmpName << endl;
+                cerr << "VTK's single mesh already set to " << meshName
+                    << ". So skipping variable " << varBlocks[0]->getName()
+                    << " on " << tmpName << endl;
                 continue;
             }
         } else {
