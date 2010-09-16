@@ -18,6 +18,8 @@
 #include <omp.h>
 #endif
 
+// Unless the loops in here get complicated again, this file should be compiled with loop unrolling
+
 
 /* input: 
 
