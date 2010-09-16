@@ -29,6 +29,9 @@ omp_libs		= ['gomp']
 # ld_extra		= ''
 cc_extra = ' -std=c99'
 
+
+dudley_assemble_flags = '-funroll-loops'
+
 # Be picky about errors
 # usepedantic		= 'no'
 

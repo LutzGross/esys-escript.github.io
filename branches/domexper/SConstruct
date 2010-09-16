@@ -178,7 +178,9 @@ adder(
   ('share_paso', 'control static or dynamic paso lib', False),
   ('env_export','Environment variables to be passed to children',[]),
 #To enable passing function pointers through python
-  BoolVariable('iknowwhatimdoing','allow nonstandard C',False)
+  BoolVariable('iknowwhatimdoing','allow nonstandard C',False),
+#dudley_assemble_flags = -funroll-loops      to actually do something
+  ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', '')
 )
 
 

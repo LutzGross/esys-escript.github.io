@@ -18,6 +18,9 @@ Import('*')
 
 local_env = clone_env(env_mpi)
 py_wrapper_local_env = clone_env(env_mpi)
+local_unroll_env = clone_env(env_mpi)
+local_unroll_env.Append(CFLAGS = env_mpi['dudley_assemble_flags'])
+
 
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
 del py_wrapper_local_env['SHLIBPREFIX']
@@ -36,10 +39,8 @@ sources = """
 	Assemble_addToSystemMatrix.c
 	Assemble_getAssembleParameters.c
 	Assemble_getSize.c
-	Assemble_gradient.c
 	Assemble_integrate.c
 	Assemble_interpolate.c
-	Assemble_jacobeans.c
 	Assemble_setNormal.c
 	ElementFile.c
 	ElementFile_allocTable.c
@@ -104,6 +105,12 @@ sources = """
 	CPPAdapter/SystemMatrixAdapter.cpp
 	CPPAdapter/TransportProblemAdapter.cpp
 """.split()
+unroll_sources= """
+	Assemble_gradient.c
+	Assemble_jacobeans.c
+""".split()
+
+
 headers = """
 	Assemble.h
 	ElementFile.h
@@ -143,7 +150,9 @@ py_wrapper_local_env.Append(LIBS = ['dudley', 'escript', 'esysUtils', 'paso'] + 
 module_name = 'dudley'
 py_wrapper_name = module_name + 'cpp'
 
-lib = local_env.SharedLibrary(module_name, sources)
+un = [ local_unroll_env.SharedObject(x) for x in unroll_sources]
+
+lib = local_env.SharedLibrary(module_name, sources+un)
 env.Alias('target_dudley_so', lib)
 
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'CPPAdapter/dudleycpp.cpp')
