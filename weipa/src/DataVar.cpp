@@ -92,8 +92,9 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
 #ifndef VISIT_PLUGIN
     cleanup();
 
-    if (!escriptData.actsExpanded()) {
-        cerr << "WARNING: Only expanded data supported!" << endl;
+    if (!escriptData.isConstant() && !escriptData.actsExpanded()) {
+        cerr << "WARNING: Weipa only supports constant & expanded data, "
+            << "not initializing " << varName << endl;
         return false;
     }
 
@@ -140,11 +141,20 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
         size_t dataSize = dimSize * ptsPerSample;
         float* tempData = new float[dataSize*numSamples];
         float* destPtr = tempData;
-        for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
+        if (escriptData.isConstant()) {
             const escript::DataAbstract::ValueType::value_type* values =
-                escriptData.getSampleDataRO(sampleNo);
-            copy(values, values+dataSize, destPtr);
-            destPtr += dataSize;
+                escriptData.getSampleDataRO(0);
+            for (int pointNo=0; pointNo<numSamples*ptsPerSample; pointNo++) {
+                copy(values, values+dimSize, destPtr);
+                destPtr += dimSize;
+            }
+        } else {
+            for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
+                const escript::DataAbstract::ValueType::value_type* values =
+                    escriptData.getSampleDataRO(sampleNo);
+                copy(values, values+dataSize, destPtr);
+                destPtr += dataSize;
+            }
         }
 
         const float* srcPtr = tempData;
