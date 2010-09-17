@@ -160,6 +160,8 @@ private:
     void putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi);
     void putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
                          bool useMeshFile = false);
+    bool saveVTKsingle(const std::string& fileName,
+                       const std::string& meshName, const VarVector& vars);
     void writeVarToVTK(const VarInfo& varInfo, std::ostream& os);
 
     int cycle;
