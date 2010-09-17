@@ -69,8 +69,8 @@ void EscriptDatasetTestCase::testAll()
     assert(dataset->setDomain(dom.get()) == false);
 
     cout << "\tTest getConvertedDomain." << endl;
-    MeshBlocks blocks = dataset->getConvertedDomain();
-    assert(blocks.size() > 0);
+    DomainChunks chunks = dataset->getConvertedDomain();
+    assert(chunks.size() > 0);
 
     StringVec varfiles, varnames;
     varfiles.push_back("testvar%04d.nc");
@@ -79,7 +79,7 @@ void EscriptDatasetTestCase::testAll()
     assert(dataset->loadNetCDF("mesh%04d.nc", varfiles, varnames, 1) == false);
 
     cout << "\tTest bogus loadNetCDF call 2." << endl;
-    assert(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
+    assert(dataset->loadNetCDF(chunks, varfiles, varnames) == false);
 
     cout << "\tTest addData with valid data." << endl;
     assert(dataset->addData(data, "testvar", "cm") == true);

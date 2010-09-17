@@ -69,7 +69,7 @@ visit_handle VisItData::getSimMetaData()
         int numSamples = accumulate(vIt->sampleDistribution.begin(),
                 vIt->sampleDistribution.end(), 0);
         if (numSamples > 0 && vIt->valid) {
-            DataVar_ptr readerVar = vIt->dataBlocks[0];
+            DataVar_ptr readerVar = vIt->dataChunks[0];
             string meshName = readerVar->getMeshName();
             usedMeshes.insert(meshName);
             int centering = readerVar->isNodeCentered() ?
@@ -91,7 +91,7 @@ visit_handle VisItData::getSimMetaData()
         }
 
         const string& varName = vIt->varName;
-        DataVar_ptr readerVar = vIt->dataBlocks[0];
+        DataVar_ptr readerVar = vIt->dataChunks[0];
         string meshName = readerVar->getMeshName();
         usedMeshes.insert(meshName);
         int centering = readerVar->isNodeCentered() ?

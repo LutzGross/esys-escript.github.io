@@ -28,13 +28,13 @@ namespace escript {
 
 namespace weipa {
 
-typedef std::vector<DataVar_ptr>     DataBlocks;
-typedef std::vector<DomainChunk_ptr> MeshBlocks;
+typedef std::vector<DataVar_ptr>     DataChunks;
+typedef std::vector<DomainChunk_ptr> DomainChunks;
 
 struct VarInfo {
     std::string varName;
     std::string units;
-    DataBlocks dataBlocks;
+    DataChunks dataChunks;
     IntVec sampleDistribution;
     bool valid;
 };
@@ -84,22 +84,23 @@ public:
     bool addData(escript::Data& data, const std::string name,
                  const std::string units = "");
 
-    /// \brief Loads mesh and variables from escript NetCDF files.
+    /// \brief Loads domain and variables from escript NetCDF files.
     ///
-    /// \param meshFilePattern a printf-style pattern for the mesh file names
-    ///                        (e.g. "mesh.%02d.nc")
+    /// \param domainFilePattern a printf-style pattern for the domain file
+    ///                          names (e.g. "dom.%02d.nc")
     /// \param varFiles a vector of file name patterns for variables
     /// \param varNames a vector of variable names
-    /// \param nBlocks number of blocks/chunks to load
+    /// \param nChunks number of chunks to load
     ///
-    /// \note If MPI is enabled nBlocks must be equal to the size of the
+    /// \note If MPI is enabled nChunks must be equal to the size of the
     ///       communicator or this method fails.
-    bool loadNetCDF(const std::string meshFilePattern,
+    bool loadNetCDF(const std::string domainFilePattern,
                     const StringVec& varFiles, const StringVec& varNames,
-                    int nBlocks);
+                    int nChunks);
 
-    /// \brief Loads only variables from escript NetCDF files using given mesh.
-    bool loadNetCDF(const MeshBlocks& mesh, const StringVec& varFiles,
+    /// \brief Loads only variables from escript NetCDF files using the domain
+    ///        provided.
+    bool loadNetCDF(const DomainChunks& domain, const StringVec& varFiles,
                     const StringVec& varNames);
 
     /// \brief Sets the cycle number and time value for this dataset.
@@ -132,7 +133,7 @@ public:
     bool saveVTK(const std::string fileName);
 
     /// \brief Returns the dataset's converted domain so it can be reused.
-    MeshBlocks getConvertedDomain() { return meshBlocks; }
+    DomainChunks getConvertedDomain() { return domainChunks; }
 
     /// \brief Returns a vector with the dataset's variables.
     const VarVector& getVariables() const { return variables; }
@@ -148,8 +149,8 @@ public:
         getMPIComm() { return mpiComm; }
 
 private:
-    bool loadDomain(const std::string filePattern, int nBlocks);
-    bool setExternalDomain(const MeshBlocks& domain);
+    bool loadDomain(const std::string filePattern, int nChunks);
+    bool setExternalDomain(const DomainChunks& domain);
     bool loadData(const std::string filePattern, const std::string name,
                   const std::string units);
 
@@ -165,8 +166,8 @@ private:
     double time;
     std::string mdSchema, mdString;
     StringVec meshLabels, meshUnits;
-    bool externalMesh;
-    MeshBlocks meshBlocks;
+    bool externalDomain;
+    DomainChunks domainChunks;
     VarVector variables, meshVariables;
     int mpiRank, mpiSize;
 #if HAVE_MPI
