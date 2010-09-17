@@ -226,19 +226,17 @@ class DataManager(object):
 
         self._N += 1
         ds = None
-        nameprefix=os.path.join(self._workdir, "dataset%04d"%(self._N))
+        nameprefix=os.path.join(self._workdir, "dataset.%04d"%(self._N))
 
         for f in self._exportformats:
             if f == self.SILO:
-                filename=nameprefix+".silo"
                 if ds == None:
                     ds=self.__createDataset()
-                ds.saveSilo(filename)
+                ds.saveSilo(nameprefix)
             elif f == self.VTK:
-                filename=nameprefix+".vtu"
                 if ds == None:
                     ds=self.__createDataset()
-                ds.saveVTK(filename)
+                ds.saveVTK(nameprefix)
             elif f == self.VISIT:
                 from esys.weipa.weipacpp import visitPublishData
                 if ds == None:

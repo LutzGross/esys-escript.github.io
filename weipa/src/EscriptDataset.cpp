@@ -248,6 +248,10 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     PMPIO_baton_t* baton = NULL;
 #endif
 
+    if (fileName.compare(fileName.length()-5, 5,".silo") != 0) {
+        fileName+=".silo";
+    }
+
     if (mpiSize > 1) {
 #if HAVE_MPI
         baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE,
@@ -404,41 +408,96 @@ bool EscriptDataset::saveVTK(string fileName)
     if (domainChunks.size() == 0)
         return false;
 
-    string meshName;
+    map<string,VarVector> varsPerMesh;
 
-    // determine mesh type and variables to write
-    VarVector nodalVars, cellVars;
+    // determine meshes and variables to write
     VarVector::iterator viIt;
     for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
-        const DataChunks& varChunks = viIt->dataChunks;
         // skip empty variable
         int numSamples = accumulate(viIt->sampleDistribution.begin(),
                 viIt->sampleDistribution.end(), 0);
         if (numSamples == 0 || !viIt->valid) {
             continue;
         }
-        string tmpName = varChunks[0]->getMeshName();
-        if (meshName != "") {
-            if (meshName != tmpName) {
-                cerr << "VTK's single mesh already set to " << meshName
-                    << ". So skipping variable " << varChunks[0]->getName()
-                    << " on " << tmpName << endl;
-                continue;
-            }
+        string meshName = viIt->dataChunks[0]->getMeshName();
+        map<string,VarVector>::iterator it = varsPerMesh.find(meshName);
+        if (it != varsPerMesh.end()) {
+            it->second.push_back(*viIt);
         } else {
-            meshName = tmpName;
+            VarVector v;
+            v.push_back(*viIt);
+            varsPerMesh[meshName] = v;
         }
+    }
 
+    if (fileName.compare(fileName.length()-4, 4,".vtu") != 0) {
+        fileName+=".vtu";
+    }
+
+    bool ret = true;
+    if (varsPerMesh.empty()) {
+        // no valid variables so just write default mesh
+        ret = saveVTKsingle(fileName, "Elements", VarVector());
+    } else {
+        // write one file per required mesh
+        string newName(fileName);
+        string filePrefix(fileName.substr(0, fileName.length()-4));
+        bool prependMeshName=(varsPerMesh.size()>1);
+        map<string,VarVector>::const_iterator vpmIt;
+        for (vpmIt=varsPerMesh.begin(); vpmIt!=varsPerMesh.end(); vpmIt++) {
+            if (prependMeshName) {
+                newName=filePrefix+"_"+vpmIt->first+".vtu";
+            }
+            // attempt to write all files even if one fails
+            if (!saveVTKsingle(newName, vpmIt->first, vpmIt->second)) {
+                ret = false;
+            }
+        }
+    }
+    return ret;
+}
+
+//
+//
+//
+void EscriptDataset::setMeshLabels(const string x, const string y, const string z)
+{
+    meshLabels.clear();
+    meshLabels.push_back(x);
+    meshLabels.push_back(y);
+    if (z.length()>0)
+        meshLabels.push_back(z);
+}
+
+//
+//
+//
+void EscriptDataset::setMeshUnits(const string x, const string y, const string z)
+{
+    meshUnits.clear();
+    meshUnits.push_back(x);
+    meshUnits.push_back(y);
+    if (z.length()>0)
+        meshUnits.push_back(z);
+}
+
+//
+//
+//
+bool EscriptDataset::saveVTKsingle(const string& fileName,
+                                   const string& meshName,
+                                   const VarVector& vars)
+{
+    VarVector nodalVars, cellVars;
+    VarVector::const_iterator viIt;
+    for (viIt = vars.begin(); viIt != vars.end(); viIt++) {
+        const DataChunks& varChunks = viIt->dataChunks;
         if (varChunks[0]->isNodeCentered()) {
             nodalVars.push_back(*viIt);
         } else {
             cellVars.push_back(*viIt);
         }
     }
-
-    // no valid variables so use default mesh
-    if (meshName == "")
-        meshName = "Elements";
 
     // add mesh variables
     for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++) {
@@ -636,30 +695,6 @@ bool EscriptDataset::saveVTK(string fileName)
     fw->close();
     delete fw;
     return true;
-}
-
-//
-//
-//
-void EscriptDataset::setMeshLabels(const string x, const string y, const string z)
-{
-    meshLabels.clear();
-    meshLabels.push_back(x);
-    meshLabels.push_back(y);
-    if (z.length()>0)
-        meshLabels.push_back(z);
-}
-
-//
-//
-//
-void EscriptDataset::setMeshUnits(const string x, const string y, const string z)
-{
-    meshUnits.clear();
-    meshUnits.push_back(x);
-    meshUnits.push_back(y);
-    if (z.length()>0)
-        meshUnits.push_back(z);
 }
 
 //
