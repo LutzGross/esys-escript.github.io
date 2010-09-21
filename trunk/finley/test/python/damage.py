@@ -49,6 +49,7 @@ RHO = 2800*U.kg/U.m**3
 G = 10*U.m/U.sec**2     *0
 DT=1.*U.sec
 VMAX=-0.01*U.m/U.sec
+DT_MAX=0.1*U.sec
 
 T_END=100000*U.yr                       # end time
 
@@ -140,16 +141,16 @@ dt_old=None
 while t<T_END:
 
     print "start time step %d"%(n+1,)
-    if n>1:
-       print" eps :"
-       print sqI2**2
-       print 2*mu*(sqI2-gamma/(2*mu))*eps_e[1,1]-gamma*(sqI2-lame/gamma*I1)*sqI2
 
     I1=trace(eps_e)
     sqI2=length(eps_e)
     xi=safeDiv(I1,sqI2)
     i_xi=safeDiv(sqI2,I1)
     print "\txi = [ %e, %e]"%(inf(xi),sup(xi))
+
+    if n>1:
+       print" error:",Lsup((2*mu*sqI2-gamma*I1)*eps_e[1,1]-(gamma*sqI2-lame*I1)*sqI2)/Lsup(length(sigma)*sqI2)
+       print" error:",Lsup(sigma[1,1])/Lsup(length(sigma))
     
     # update damage parameter:
     m=wherePositive(xi-XI_0)
@@ -213,6 +214,6 @@ while t<T_END:
           error=fac*0.5*dt**2
           print "\testimated local error for time step size %e is %e"%(dt,error)
           dt_new=sqrt(2./3.*ODE_TOL*2/fac)
-          dt_new=min(max(dt_new,dt/5),dt*5) # avid rapit changes
+          dt_new=min(max(dt_new,dt/5),dt*5,DT_MAX) # avid rapit changes
           print "\tINFO: new time step size %e"%dt_new
     dt, dt_old=dt_new, dt

@@ -107,7 +107,7 @@ fi
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]
 	-n nn		number of nodes to use
-	-p np		number of MPI processes to spawn
+	-p np		number of MPI processes to spawn per node
 	-t nt		number of OpenMP threads to use
 	-f file		name of MPI hostfile
 	-c 		print compile information for escript and exit

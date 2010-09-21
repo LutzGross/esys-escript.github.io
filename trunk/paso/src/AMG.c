@@ -28,18 +28,17 @@
 #include "PasoUtil.h"
 #include "UMFPACK.h"
 #include "MKL.h"
-#include "SystemMatrix.h"
-#include "Pattern_coupling.h"
+#include "Coarsening.h"
 
 /**************************************************************/
 
 /* free all memory used by AMG                                */
 
-void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
+void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in) {
      if (in!=NULL) {
 	Paso_Preconditioner_LocalSmoother_free(in->Smoother);
 
-	
+	/*=========================*/
         Paso_SparseMatrix_free(in->A_FC);
         Paso_SparseMatrix_free(in->A_FF);
         Paso_SparseMatrix_free(in->W_FC);
@@ -68,7 +67,7 @@ void Paso_Solver_AMG_free(Paso_Solver_AMG * in) {
         MEMFREE(in->x_C);
         MEMFREE(in->b_C);
         in->solver=NULL;
-        Paso_Solver_AMG_free(in->AMG_of_Coarse);
+        Paso_Preconditioner_LocalAMG_free(in->AMG_of_Coarse);
         MEMFREE(in->b_C);
         MEMFREE(in);
      }
@@ -93,8 +92,8 @@ to
    then AMG is applied to S again until S becomes empty 
 
 */
-Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
-  Paso_Solver_AMG* out=NULL;
+Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
+  Paso_Preconditioner_LocalAMG* out=NULL;
   /*
    Paso_Pattern* temp1=NULL;
   Paso_Pattern* temp2=NULL;
@@ -102,8 +101,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   bool_t verbose=options->verbose;
   bool_t timing=0;
   
-  dim_t n=A_p->numRows;
-  dim_t n_block=A_p->row_block_size;
+  const dim_t n=A_p->numRows;
+  const dim_t n_block=A_p->row_block_size;
   
   
   index_t* mis_marker=NULL;  
@@ -138,7 +137,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      Paso_setError(TYPE_ERROR,"Paso_Solver_getAMG: AMG requires row block size 1.");
      return NULL;
   }*/
-  out=MEMALLOC(1,Paso_Solver_AMG);
+  out=MEMALLOC(1,Paso_Preconditioner_LocalAMG);
 
   
   /* identify independend set of rows/columns */
@@ -209,45 +208,18 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      } else {
          out->coarsest_level=FALSE;
 	 out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
- 
-         /* identify independend set of rows/columns */
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<n;++i) mis_marker[i]=-1;
 
-          /*mesuring coarsening time */
-          time0=Paso_timer();
-          
-         if (options->coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
-              Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
-         }
-         else if (options->coarsening_method == PASO_RUGE_STUEBEN_COARSENING) {
-              Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
-         }
-         else if (options->coarsening_method == PASO_AGGREGATION_COARSENING) {
-             Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
-        }
-        else if (options->coarsening_method == PASO_STANDARD_COARSENING) {
-             Paso_Pattern_Standard_Block(A_p,mis_marker,options->coarsening_threshold);
-        }
-        else {
-           /*Default coarseneing*/
-            Paso_Pattern_Standard_Block(A_p,mis_marker,options->coarsening_threshold);
-            /*Paso_Pattern_Read("Standard.spl",n,mis_marker);*/
-            /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
-            /*Paso_Pattern_greedy_Agg(A_p,mis_marker,options->coarsening_threshold);*/
-            /*Paso_Pattern_greedy(A_p->pattern,mis_marker);*/
-            /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
-            
-        }
-        
-        if (timing) fprintf(stdout,"timing: Profilining for level %d:\n",level);
-        
-        time0=Paso_timer()-time0;
-        if (timing) fprintf(stdout,"timing: Coarsening: %e\n",time0);
+         /* Start Coarsening : */
+         time0=Paso_timer();
+	 Paso_Coarsening_Local(mis_marker, A_p, options->coarsening_threshold, options->coarsening_method);
+         time0=Paso_timer()-time0;
+  	 if (timing) fprintf(stdout,"Level %d: timing: Coarsening: %e\n",level,time0);
 
         #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
-        
+        for (i = 0; i < n; ++i) {
+	   mis_marker[i]=(mis_marker[i]== PASO_COARSENING_IN_F);
+	   counter[i]=mis_marker[i];
+        }
         out->n_F=Paso_Util_cumsum(n,counter);
         
         if (out->n_F==0) {
@@ -283,7 +255,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
                     #pragma omp parallel for private(i) schedule(static)
                     for (i = 0; i < n; ++i) {
-                       if  (mis_marker[i]) {
+		       if  (mis_marker[i]) {
                               out->rows_in_F[counter[i]]=i;
                               out->mask_F[i]=counter[i];
                        } else {
@@ -321,7 +293,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                          for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
                          #pragma omp parallel for private(i) schedule(static)
                          for (i = 0; i < n; ++i) {
-                                  if  (! mis_marker[i]) {
+			    if  (! mis_marker[i]) {
                                       out->rows_in_C[counter[i]]=i;
                                       out->mask_C[i]=counter[i];
                                    } else {
@@ -406,7 +378,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     Paso_SparseMatrix_saveMM(A_c,filename);
                     */
                                          
-                    out->AMG_of_Coarse=Paso_Solver_getAMG(A_c,level-1,options);
+		    out->AMG_of_Coarse=Paso_Preconditioner_LocalAMG_alloc(A_c,level-1,options);
               }
 
               /* allocate work arrays for AMG application */
@@ -451,7 +423,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
      }
      return out;
   } else  {
-     Paso_Solver_AMG_free(out);
+     Paso_Preconditioner_LocalAMG_free(out);
      return NULL;
   }
 }
@@ -480,7 +452,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
 
 */
 
-void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
+void Paso_Preconditioner_LocalAMG_solve(Paso_Preconditioner_LocalAMG * amg, double * x, double * b) {
      dim_t i,j;
      double time0=0;
      double *r=NULL, *x0=NULL;
@@ -548,7 +520,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         if (timing) fprintf(stdout,"timing: Before next level: %e\n",time0);
         
         /* x_C=AMG(b_C)     */
-        Paso_Solver_solveAMG(amg->AMG_of_Coarse,amg->x_C,amg->b_C);
+	Paso_Preconditioner_LocalAMG_solve(amg->AMG_of_Coarse,amg->x_C,amg->b_C);
         
         time0=Paso_timer();
         
