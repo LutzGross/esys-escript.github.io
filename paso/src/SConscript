@@ -26,6 +26,7 @@ sources = """
 	BiCGStab.c
 	BlockOps.c
 	Coupler.c
+	Coarsening.c
 	Distribution.c
 	Functions.c
 	GMRES.c
@@ -42,7 +43,6 @@ sources = """
 	Pattern.c
 	Pattern_getSubpattern.c
 	Pattern_mis.c
-	Pattern_coupling.c
 	Pattern_reduceBandwidth.c
 	Pattern_unrollBlocks.c
 	SharedComponents.c
@@ -94,6 +94,7 @@ sources = """
 headers = """
 	Common.h
 	Coupler.h
+	Coarsening.h
 	Distribution.h
 	Functions.h
 	MKL.h
@@ -102,7 +103,6 @@ headers = """
 	PasoUtil.h
 	Paso_MPI.h
 	Pattern.h
-	Pattern_coupling.h
 	Preconditioner.h
 	SharedComponents.h
 	Solver.h

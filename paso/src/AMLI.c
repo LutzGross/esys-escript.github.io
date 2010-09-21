@@ -29,7 +29,7 @@
 #include "UMFPACK.h"
 #include "MKL.h"
 #include "SystemMatrix.h"
-#include "Pattern_coupling.h"
+#include "Coarsening.h"
 #include "BlockOps.h"
 
 /*************************************************************,amli->b_F*/
@@ -181,29 +181,14 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
          out->coarsest_level=FALSE;
 	 out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
  
-         /* identify independend set of rows/columns */
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<n;++i) mis_marker[i]=-1;
-
-         if (options->coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
-              Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
-         }
-         else if (options->coarsening_method == PASO_RUGE_STUEBEN_COARSENING) {
-              Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
-         }
-         else if (options->coarsening_method == PASO_AGGREGATION_COARSENING) {
-             Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);
-        }
-        else {
-           /*Default coarseneing*/
-            /*Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);*/
-            Paso_Pattern_RS(A_p,mis_marker,options->coarsening_threshold);
-            /*Paso_Pattern_Aggregiation(A_p,mis_marker,options->coarsening_threshold);*/
-            
-        }
-        
+	 Paso_Coarsening_Local(mis_marker,A_p, options->coarsening_threshold, options->coarsening_method);
+	         
         #pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
+        for (i = 0; i < n; ++i) {
+	   mis_marker[i]=(mis_marker[i]== PASO_COARSENING_IN_F);
+	   counter[i]=mis_marker[i];
+	    
+        }
         
         out->n_F=Paso_Util_cumsum(n,counter);
         

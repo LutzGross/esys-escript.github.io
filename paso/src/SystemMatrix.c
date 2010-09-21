@@ -321,13 +321,13 @@ void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* opti
 /* has to be called within a parallel reqion */
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
-   Paso_Solver_Preconditioner* prec=(Paso_Solver_Preconditioner*) A->solver;
+   Paso_Preconditioner* prec=(Paso_Preconditioner*) A->solver;
    Paso_Preconditioner_solve(prec, A,x,b);
 }
 void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A) {
-   Paso_Solver_Preconditioner* prec=NULL;
+   Paso_Preconditioner* prec=NULL;
    if (A!=NULL) {
-      prec=(Paso_Solver_Preconditioner*) A->solver;
+      prec=(Paso_Preconditioner*) A->solver;
       Paso_Preconditioner_free(prec);
       A->solver=NULL;
    }
