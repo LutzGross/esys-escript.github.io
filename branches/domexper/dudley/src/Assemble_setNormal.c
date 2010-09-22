@@ -37,27 +37,24 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   bool_t reduced_integration;
   const double* dSdv=0;
   if (nodes==NULL || elements==NULL) return;
+
+  int climit=1;
   switch (elements->numDim)
   {
-  case 2: dSdv=&(DTDV_2D[0][0]); break;
-  case 3: dSdv=&(DTDV_3D[0][0]); break;
+  case 2: dSdv=&(DTDV_2D_alt[0][0]);break;
+  case 3: dSdv=&(DTDV_3D[0][0]);break;
   default:
-	dSdv=&(DTDV_1D[0][0]); break;
+	dSdv=&(DTDV_1D[0][0]);break;
   }
   Dudley_resetError();
   reference_element=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, Dudley_Assemble_reducedIntegrationOrder(normal));
   NN=elements->numNodes;
   numDim=nodes->numDim;
   reduced_integration = Dudley_Assemble_reducedIntegrationOrder(normal);
-//  numQuad=reference_element->BasisFunctions->numQuadNodes;
   numQuad=(!reduced_integration)?(elements->numDim+1):1;
-//  numDim_local=reference_element->BasisFunctions->Type->numDim;
   numDim_local=elements->numDim;
-//  NS=reference_element->BasisFunctions->Type->numShapes;
   NS=elements->numDim+1;
-//fprintf(stderr,"\nnumQuad=%d,%d numDim_local=%d,%d NS=%d,%d\n", numQuad, ((!reduced_integration)?(elements->numDim+1):1), numDim_local, elements->numDim, NS, numQuad);
 
-  
   /* set some parameters */
 
   sign=1;
@@ -90,7 +87,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 						  /* gather local coordinates of nodes into local_X: */
 						  Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,local_X);
 						  /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
-						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,reference_element->BasisFunctions->dSdv);
+						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,/*reference_element->BasisFunctions->*/dSdv);
 						  /* get normalized vector:	 */
 						  normal_array=getSampleDataRW(normal,e);
 						  Dudley_NormalVector(numQuad,numDim,numDim_local,dVdv,normal_array);
