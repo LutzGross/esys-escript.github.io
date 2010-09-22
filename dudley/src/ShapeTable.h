@@ -23,12 +23,22 @@ This file is not to be included in .h files - only .c files should have any use 
 
 #include "paso/Common.h"	// I just want the types not all the includes that get dragged in - fix that
 
-
+// These are constructed from dsdv in ShapeFunction.c in finley
 // The first two are just there for functions that want a pointer
 static const double DTDV_0D[1][1]={{0}};
-static const double DTDV_1D[2][2]={{0,0},{0,0}};
+static const double DTDV_1D[2][2]={{-1.,1},{-1.,1.}};
 static const double DTDV_2D[3][2]={{-1,-1}, {1,0}, {0,1}};
 static const double DTDV_3D[4][3]={{-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+
+
+// If these appear to be in a different order to finley it is because finley uses macros to hide Fortran array ordering
+static const double DTDV_2D_alt[3*3][2]={{-1,1}, {0,-1.}, {0,1},
+{-1,1}, {0,-1.}, {0,1},
+{-1,1}, {0,-1.}, {0,1}
+};
+// the repetition is a hack
+// Why didn't I just reorder DTDV_2D?   Well some code apparently depends on the order as written.
+// should probably fix that
 
 
 // [0] is reduced quadrature, [1] is full quadrature
