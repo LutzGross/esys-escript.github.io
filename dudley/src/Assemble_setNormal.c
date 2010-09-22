@@ -24,6 +24,8 @@
 #include <omp.h>
 #endif
 
+#include "ShapeTable.h"
+
 /**************************************************************/
 
 
@@ -32,19 +34,31 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   index_t sign;
   Dudley_ReferenceElement* reference_element=NULL;
   dim_t e,q, NN, NS, numDim, numQuad, numDim_local;
+  bool_t reduced_integration;
+  const double* dSdv=0;
   if (nodes==NULL || elements==NULL) return;
+  switch (elements->numDim)
+  {
+  case 2: dSdv=&(DTDV_2D[0][0]); break;
+  case 3: dSdv=&(DTDV_3D[0][0]); break;
+  default:
+	dSdv=&(DTDV_1D[0][0]); break;
+  }
   Dudley_resetError();
   reference_element=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, Dudley_Assemble_reducedIntegrationOrder(normal));
   NN=elements->numNodes;
   numDim=nodes->numDim;
-
-  numQuad=reference_element->BasisFunctions->numQuadNodes;
-  numDim_local=reference_element->BasisFunctions->Type->numDim;
-  NS=reference_element->BasisFunctions->Type->numShapes;
-
+  reduced_integration = Dudley_Assemble_reducedIntegrationOrder(normal);
+//  numQuad=reference_element->BasisFunctions->numQuadNodes;
+  numQuad=(!reduced_integration)?(elements->numDim+1):1;
+//  numDim_local=reference_element->BasisFunctions->Type->numDim;
+  numDim_local=elements->numDim;
+//  NS=reference_element->BasisFunctions->Type->numShapes;
+  NS=elements->numDim+1;
+//fprintf(stderr,"\nnumQuad=%d,%d numDim_local=%d,%d NS=%d,%d\n", numQuad, ((!reduced_integration)?(elements->numDim+1):1), numDim_local, elements->numDim, NS, numQuad);
 
   
-  /* set some parameter */
+  /* set some parameters */
 
   sign=1;
   /* check the dimensions of normal */

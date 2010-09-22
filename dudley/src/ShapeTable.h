@@ -21,9 +21,28 @@ This file is not to be included in .h files - only .c files should have any use 
 #ifndef SHAPETABLE_DUDLEY
 #define SHAPETABLE_DUDLEY
 
-/* This optimisation assumes that loop unrolling is enabled for this file */
+#include "paso/Common.h"	// I just want the types not all the includes that get dragged in - fix that
+
+
+// The first two are just there for functions that want a pointer
+static const double DTDV_0D[1][1]={{0}};
+static const double DTDV_1D[2][2]={{0,0},{0,0}};
 static const double DTDV_2D[3][2]={{-1,-1}, {1,0}, {0,1}};
 static const double DTDV_3D[4][3]={{-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+
+
+// [0] is reduced quadrature, [1] is full quadrature
+// in order the positions are POINT, LINE, TRI, TET
+static const double QuadWeight[4][2]={{0, 0}, {1., 0.5}, {0.5, 1./6}, {1./6, 1./24}};
+
+static const dim_t QuadNums[4][2] ={{0,0}, {1,2}, {1,3}, {1,4}};
+
+//shape functions at quadrature nodes
+bool_t getQuadShape(dim_t sim, bool_t reduced, const double** shapearr);
+
+
+
+
 
 
 

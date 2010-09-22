@@ -95,6 +95,7 @@ sources = """
 	Quadrature.c
 	ReferenceElements.c
 	ShapeFunctions.c
+	ShapeTable.c
 	TagMap.c
 	Util.c
 	ReferenceElementSets.c
