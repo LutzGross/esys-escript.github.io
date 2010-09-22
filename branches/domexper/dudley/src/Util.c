@@ -86,7 +86,7 @@ void Dudley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,do
 
 /*          A(1:A1,1:A2)=B(1:A1,1:B2)*C(1:B2,1:A2) */
 
-void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C) {
     dim_t i,j,s;
     register double rtmp;
        for (i=0;i<A1;i++) {
@@ -102,7 +102,7 @@ void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, 
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
 
-void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C) {
     dim_t q,i,j,s;
     register double rtmp;
     for (q=0;q<len;q++) {
@@ -119,7 +119,7 @@ void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
 
-void Dudley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
+void Dudley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C) {
     dim_t q,i,j,s;
     register double rtmp;
     for (q=0;q<len;q++) {

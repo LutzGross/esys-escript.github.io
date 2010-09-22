@@ -28,9 +28,9 @@
 void Dudley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in,double * out);
 void Dudley_Util_Gather_int(dim_t len,index_t* index,dim_t numData,index_t* in,index_t * out);
 void Dudley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t bound);
-void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
-void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
-void Dudley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
+void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C);
+void Dudley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C);
+void Dudley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, const double*B, const double* C);
 void Dudley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det);
 void Dudley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A,double* det);
 void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal);

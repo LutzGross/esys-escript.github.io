@@ -70,6 +70,7 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
      return NULL;
   }
   out->numNodes=out->referenceElementSet->numNodes;
+  out->numDim=referenceElementSet->referenceElement->BasisFunctions->Type->numDim;
   return out;
 }
 

@@ -18,6 +18,7 @@
 #include <omp.h>
 #endif
 
+#include "ShapeTable.h"
 
 /**************************************************************/
 
@@ -57,7 +58,7 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans* in)
 Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile* self, Dudley_NodeFile* nodes, 
                                                                  bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
   Dudley_ElementFile_Jacobeans *out = NULL;
-  Dudley_ShapeFunction *shape=NULL, *basis;
+  Dudley_ShapeFunction /* *shape=NULL, */ *basis;
   Dudley_ReferenceElement*  refElement=NULL;
   double *dBdv;
   
@@ -74,11 +75,12 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
   if (out->status < nodes->status)
   {
      basis=out->BasisFunctions;
-     shape=Dudley_ReferenceElementSet_borrowParametrization(self->referenceElementSet, reducedIntegrationOrder);
+//     shape=Dudley_ReferenceElementSet_borrowParametrization(self->referenceElementSet, reducedIntegrationOrder);
      refElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet, reducedIntegrationOrder);
 
      out->numDim=nodes->numDim;
-     out->numQuadTotal=shape->numQuadNodes; 
+//     out->numQuadTotal=shape->numQuadNodes; 
+     out->numQuadTotal=QuadNums[self->numDim][!reducedIntegrationOrder]; 
      out->numShapesTotal=basis->Type->numShapes; 
      out->numElements=self->numElements;
      
