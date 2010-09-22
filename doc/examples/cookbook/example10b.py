@@ -25,7 +25,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 ############################################################FILE HEADER
 # example10a.py
-# Model of gravitational Potential.
+# Model of gravitational Potential for a Gravity Well.
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.

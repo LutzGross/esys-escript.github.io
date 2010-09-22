@@ -62,7 +62,14 @@ lam=3.462e9 #lames constant
 mu=3.462e9  #bulk modulus
 rho=1154.   #density
 # Time related variables.
-tend=0.5    # end time
+testing=True
+if testing:
+	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print "Try changing testing to False for more iterations."
+	tend=0.001
+else:
+	tend=0.5    # end time
+
 h=0.0001    # time step
 # data recording times
 rtime=0.0 # first time to record

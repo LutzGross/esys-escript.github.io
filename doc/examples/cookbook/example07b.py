@@ -61,7 +61,14 @@ ystep=my/ndy # calculate the size of delta y
 c=380.0*m/sec # velocity of sound in air
 csq=c*c #square of c
 # Time related variables.
-tend=1.5    # end time
+testing=True
+if testing:
+	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print "Try changing testing to False for more iterations."
+	tend=0.004
+else:
+	tend=1.5    # end time
+
 h=0.005     # time step
 # data recording times
 rtime=0.0 # first time to record
