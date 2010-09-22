@@ -25,7 +25,6 @@ from esys.pycad.gmsh import Design
 from esys.finley import MakeDomain
 from esys.escript.unitsSI import *
 from math import tan
-import os
 
 #
 #   input data:
@@ -37,11 +36,11 @@ fault_w_front=200*m
 fault_w_back=200*m
 fault_mid_front=2*km
 fault_mid_back=4*km
-fault_dip_front=45*DEG
-fault_dip_back=40*DEG
+fault_dip_front=30*DEG
+fault_dip_back=30*DEG
 
-layers_left_at_front=[ [ 'limestone' ,  1100*m ] , [  'xx' , 150*m ] , ['shale',250*m] , [ 'limestone' ] ]
-layers_right_at_front=[ [ 'limestone' , 500*m ], [ 'xx' , 150*m ], ['shale',250*m], ['limestone' ] ]
+layers_left_at_front=[ [ 'limestone' ,  1100*m ] , [  'xx' , 150*m ] ,['shale',300*m],  [ 'limestone' ] ]
+layers_right_at_front=[ [ 'limestone' , 500*m ], [ 'xx' , 150*m ],['shale',300*m], ['limestone' ] ]
 slop=2*DEG
 #
 # ====================================================================================
@@ -176,11 +175,10 @@ FF.append(-PlaneSurface(CurveLoop(*tuple([ -fault_line_top_back,fault_line_bot_b
 
 
 # war 120
-des=Design(dim=3, order=1, element_size = 200*m, keep_files=True)
+des=Design(dim=3, order=1, element_size = 40*m, keep_files=True)
 des.addItems(*tuple(PS.values()))
 des.addItems(PropertySet("fault",Volume(SurfaceLoop( *tuple(FF)))))
-des.setScriptFileName(os.path.join("data","example10","fault.geo"))
-des.setMeshFileName(os.path.join("data","example10","fault.msh"))
+des.setMeshFileName("fault.msh")
 dom=MakeDomain(des)
-dom.write(os.path.join("data","example10","fault.fly"))
+dom.write("fault.fly")
 

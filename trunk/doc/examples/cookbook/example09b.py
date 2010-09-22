@@ -67,7 +67,14 @@ mu2=vel2**2.*rho2/4.;  mu1=vel1**2.*rho1/4.  #bulk modulus
 lam2=vel2**2.*rho2/2.; lam1=vel1**2.*rho1/2.  #lames constant
 
 # Time related variables.
-tend=0.1    # end time
+testing=True
+if testing:
+	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print "Try changing testing to False for more iterations."
+	tend=0.001
+else:
+	tend=0.1    # end time
+
 h=0.00005    # time step
 # data recording times
 rtime=0.0 # first time to record

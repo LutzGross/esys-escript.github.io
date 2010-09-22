@@ -25,7 +25,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 ############################################################FILE HEADER
 # example10a.py
-# Model of gravitational Potential.
+# Model of gravitational Potential for a gravity POLE.
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
@@ -84,8 +84,8 @@ mypde.setSymmetryOn()
 sol=mypde.getSolution()
 
 g_field=grad(sol) #The graviational accelleration g.
-g_fieldz=g_field*[0,1] #
-gz=length(g_fieldz)
+g_fieldz=g_field*[0,1] #The vertical component of the g field.
+gz=length(g_fieldz) #The magnitude of the vertical component.
 # Save the output to file.
 saveVTK(os.path.join(save_path,"ex10a.vtu"),\
         grav_pot=sol,g_field=g_field,g_fieldz=g_fieldz,gz=gz)

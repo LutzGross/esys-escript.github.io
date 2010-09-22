@@ -70,4 +70,5 @@ saveVTK(os.path.join(save_path,"ex10c.vtu"),\
         grav_pot=sol,\
         g_field=-grad(sol),\
         g_fieldz=-grad(sol)*[0,0,1],\
-        gz=length(-grad(sol)*[0,0,1]))
+        gz=length(-grad(sol)*[0,0,1]),\
+        fault=rho)
