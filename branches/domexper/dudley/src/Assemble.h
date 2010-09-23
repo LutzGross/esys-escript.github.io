@@ -46,9 +46,6 @@ struct Assemble_Parameters {
    dim_t numComp;
    index_t * col_DOF;
    dim_t col_DOF_UpperBound;
-   Dudley_ElementFile_Jacobeans* col_jac;
-   dim_t col_numShapesTotal;
-   dim_t col_numShapes;
 
    const double* shapeFns;
    bool_t reducedIntegrationOrder;	// can we get rid of this one?

@@ -87,11 +87,11 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		   parm->col_DOF=nodes->degreesOfFreedomMapping->target;
-		   parm->col_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+		   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
       } else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-           parm->col_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
       } else {
            Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
       }
@@ -114,11 +114,11 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       if (S==NULL) {
            parm->col_DOF_UpperBound=parm->row_DOF_UpperBound;
            parm->col_DOF=parm->row_DOF;
-           parm->col_jac=parm->row_jac;
+           parm->row_jac=parm->row_jac;
       } 
   }
 
-  if ( parm->row_jac->numDim !=parm->col_jac->numDim) {
+  if ( parm->row_jac->numDim !=parm->row_jac->numDim) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
   
@@ -131,10 +131,10 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   if ( parm->row_jac->numElements !=elements->numElements) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for row is wrong.");
   }
-  if ( parm->col_jac->numElements !=elements->numElements) {
+  if ( parm->row_jac->numElements !=elements->numElements) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for column is wrong.");
   }
-  if ( parm->row_jac->numQuadTotal !=parm->col_jac->numQuadTotal) {
+  if ( parm->row_jac->numQuadTotal !=parm->row_jac->numQuadTotal) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
   }
   
@@ -143,9 +143,8 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   parm->numElements=elements->numElements;
   parm->numDim=parm->row_jac->numDim;
   parm->row_numShapesTotal=parm->row_jac->numShapesTotal;
-  parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
-  parm->col_numShapesTotal=parm->col_jac->numShapesTotal;
-  parm->col_numShapes=parm->col_jac->BasisFunctions->Type->numShapes;
+//  parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
+  parm->row_numShapes=parm->row_numShapesTotal;
 	
 
 }

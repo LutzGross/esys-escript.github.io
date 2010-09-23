@@ -64,7 +64,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
     double *S = p.row_jac->BasisFunctions->S;
-    dim_t len_EM_S = p.row_numShapesTotal * p.col_numShapesTotal;
+    dim_t len_EM_S = p.row_numShapesTotal * p.row_numShapesTotal;
     dim_t len_EM_F = p.row_numShapesTotal;
 
 #pragma omp parallel private(color, EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q, row_index, q, s,r,rtmp,add_EM_F, add_EM_S)
@@ -112,7 +112,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				A_q = &(A_p[INDEX4(0, 0, 0, 0, DIM, DIM, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -129,7 +129,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -153,7 +153,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				B_q = &(B_p[INDEX3(0, 0, 0, DIM, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -169,7 +169,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -193,7 +193,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				C_q = &(C_p[INDEX3(0, 0, 0, DIM, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -209,7 +209,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -233,7 +233,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				D_q = &(D_p[INDEX2(0, 0, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -249,7 +249,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -329,7 +329,7 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 						   p.row_DOF_UpperBound);
 			if (add_EM_S)
 			    Dudley_Assemble_addToSystemMatrix(Mat, p.row_numShapesTotal, row_index, p.numEqu,
-							      p.col_numShapesTotal, row_index, p.numComp, EM_S);
+							      p.row_numShapesTotal, row_index, p.numComp, EM_S);
 
 		    }		/* end color check */
 		}		/* end element loop */
