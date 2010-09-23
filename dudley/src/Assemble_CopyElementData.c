@@ -24,7 +24,7 @@
 #include <omp.h>
 #endif
 /******************************************************************************************************/
-
+#include "ShapeTable.h"
 
 void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad;
@@ -41,9 +41,12 @@ void Dudley_Assemble_CopyElementData(Dudley_ElementFile* elements,escriptDataC* 
 
     numElements=elements->numElements;
     if (Dudley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+//       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+	numQuad=QuadNums[elements->numDim][0];
     } else {
-       numQuad=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+//       numQuad=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+	numQuad=QuadNums[elements->numDim][1];
+
     }
 
     /* check out and in */

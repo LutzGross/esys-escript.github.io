@@ -25,11 +25,13 @@
 #endif
 /******************************************************************************************************/
 
+#include "ShapeTable.h"
+
 
 void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
     dim_t n,q, numElements, numQuad_in, numQuad_out, i;
     __const double *in_array;
-    double *out_array, vol, volinv, *wq;
+    double *out_array, vol, volinv, wq;
     register double rtmp;
     dim_t numComps=getDataPointSize(out);
     size_t numComps_size;
@@ -42,16 +44,25 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
 
     numElements=elements->numElements;
     if (Dudley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
-       wq=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadWeights;
+//       numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+	numQuad_in=QuadNums[elements->numDim][0];
+//       wq=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadWeights;
+wq=QuadWeight[elements->numDim][0];
+
     } else {
-       numQuad_in=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
-       wq=elements->referenceElementSet->referenceElement->BasisFunctions->QuadWeights;
+	numQuad_in=QuadNums[elements->numDim][1];
+//       numQuad_in=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+//       wq=elements->referenceElementSet->referenceElement->BasisFunctions->QuadWeights;
+wq=QuadWeight[elements->numDim][1];
     }
     if (Dudley_Assemble_reducedIntegrationOrder(out)) {
-       numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+	numQuad_out=QuadNums[elements->numDim][0];
+
+//       numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
     } else {
-       numQuad_out=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+//       numQuad_out=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+	numQuad_out=QuadNums[elements->numDim][1];
+
     }
 
     /* check out and in */
@@ -70,7 +81,7 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
     if (Dudley_noError()) {
          if (isExpanded(in)) {
 			 vol=0;
-			 for (q=0; q< numQuad_in;++q) vol+=wq[q];
+			 for (q=0; q< numQuad_in;++q) vol+=wq;
 			 volinv=1./vol;
 			 requireWrite(out);
 			 #pragma omp parallel private(n, i, rtmp, q, in_array, out_array)
@@ -81,7 +92,7 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
 					 out_array=getSampleDataRW(out,n);
 					 for (i=0; i<numComps; ++i) {
 						 rtmp=0;
-						 for (q=0; q< numQuad_in;++q) rtmp+=in_array[INDEX2(i,q,numComps)]*wq[q];
+						 for (q=0; q< numQuad_in;++q) rtmp+=in_array[INDEX2(i,q,numComps)]*wq;
 						 rtmp*=volinv;
 						 for (q=0; q< numQuad_out;++q) out_array[INDEX2(i,q,numComps)]=rtmp;
 					 }
