@@ -81,7 +81,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      out->numDim=nodes->numDim;
 //     out->numQuadTotal=shape->numQuadNodes; 
      out->numQuadTotal=QuadNums[self->numDim][!reducedIntegrationOrder]; 
-     out->numShapesTotal=basis->Type->numShapes; 
+     out->numShapes=basis->Type->numShapes; 
      out->numElements=self->numElements;
      
      if (reducedShapefunction) {
@@ -100,7 +100,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      }
 
      if (out->DSDX==NULL) out->DSDX=MEMALLOC((out->numElements)
-                                            *(out->numShapesTotal)
+                                            *(out->numShapes)
                                             *(out->numDim)
                                             *(out->numQuadTotal),double);
      if (out->absD==NULL) out->absD=MEMALLOC(out->numElements,double);
