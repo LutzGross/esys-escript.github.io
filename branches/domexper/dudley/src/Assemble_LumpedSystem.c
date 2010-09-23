@@ -106,7 +106,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
   if (Dudley_noError()) {
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
-    len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
+    len_EM_lumpedMat=p.numShapes*p.numEqu;
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     
     expandedD=isExpanded(D);
@@ -123,7 +123,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
 #endif
     {
        EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
-       row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
+       row_index=THREAD_MEMALLOC(p.numShapes,index_t);
        if ( !Dudley_checkPtr(EM_lumpedMat) && !Dudley_checkPtr(row_index) ) {
           if (p.numEqu == 1) { /* single equation */
              if (expandedD) {	/* with expanded D */	     
@@ -140,29 +140,29 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                    for (q=0;q<p.numQuadTotal;q++) m_t+=vol*D_p[INDEX2(q, 0,p.numQuadTotal) ];
                           
                                    diagS=0; /* diagonal sum: S */
-                                   for (s=0;s<p.row_numShapes;s++) {
+                                   for (s=0;s<p.numShapes;s++) {
                                       rtmp=0;
-                                      for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX2(q, 0, p.numQuadTotal)]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                      for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX2(q, 0, p.numQuadTotal)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                       diagS+=rtmp;
                                    }
                                    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
 				   rtmp=m_t/diagS;
-                                   for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
+                                   for (s=0;s<p.numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
                           
                                #else /* row-sum lumping */
-                                   for (s=0;s<p.row_numShapes;s++)
+                                   for (s=0;s<p.numShapes;s++)
 				   {
                                        rtmp=0;
-                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)]*D_p[INDEX2(q, 0, p.numQuadTotal)];
+                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX2(q, 0, p.numQuadTotal)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                    }
                                #endif
-                               for (q=0;q<p.row_numShapesTotal;q++)
+                               for (q=0;q<p.numShapes;q++)
 			       {
 				 row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
 			       }
-                               Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+                               Dudley_Util_AddScatter(p.numShapes,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */	       
                     } /* end element loop */
                   } /* end color loop */
@@ -179,27 +179,27 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                    m_t=0; /* mass of the element: m_t */
                                    for (q=0;q<p.numQuadTotal;q++) m_t+=vol;
                                    diagS=0; /* diagonal sum: S */
-                                   for (s=0;s<p.row_numShapes;s++) {
+                                   for (s=0;s<p.numShapes;s++) {
                                       rtmp=0;
                                       for (q=0;q<p.numQuadTotal;q++)
 				      {
-					rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+					rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
 				      }
                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                       diagS+=rtmp;
                                    }
                                    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
 				   rtmp=m_t/diagS*D_p[0];
-                                   for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
+                                   for (s=0;s<p.numShapes;s++) EM_lumpedMat[INDEX2(0,s,p.numEqu)]*=rtmp;
                                #else /* row-sum lumping */
-                                   for (s=0;s<p.row_numShapes;s++) {
+                                   for (s=0;s<p.numShapes;s++) {
                                        rtmp=0;
-                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)];
+                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp*D_p[0];
                                    }
                                #endif
-                               for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
-                               Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+                               for (q=0;q<p.numShapes;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
+                               Dudley_Util_AddScatter(p.numShapes,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */ 
                     } /* end element loop */
                   } /* end color loop */
@@ -221,27 +221,27 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                       for (q=0;q<p.numQuadTotal;q++) m_t+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)];
                                                    
                                       diagS=0; /* diagonal sum: S */
-                                      for (s=0;s<p.row_numShapes;s++) {
+                                      for (s=0;s<p.numShapes;s++) {
                                           rtmp=0;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
                                           EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                           diagS+=rtmp;
                                        }
 				       /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
 				       rtmp=m_t/diagS;
-				       for (s=0;s<p.row_numShapes;s++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=rtmp;
+				       for (s=0;s<p.numShapes;s++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=rtmp;
 				    }				  
 				#else /* row-sum lumping */
-                              	  for (s=0;s<p.row_numShapes;s++) {
+                              	  for (s=0;s<p.numShapes;s++) {
                                       for (k=0;k<p.numEqu;k++) {
                                          rtmp=0.;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)]*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)];
+                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)];
                                            EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                        }
 				  }
 				  #endif
-				  for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
-				  Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+				  for (q=0;q<p.numShapes;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
+				  Dudley_Util_AddScatter(p.numShapes,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */
                     } /* end element loop */
                 } /* end color loop */
@@ -257,28 +257,28 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                       m_t=0; /* mass of the element: m_t */
                                       for (q=0;q<p.numQuadTotal;q++) m_t+=vol; 
                                       diagS=0; /* diagonal sum: S */
-                                      for (s=0;s<p.row_numShapes;s++) {
+                                      for (s=0;s<p.numShapes;s++) {
                                           rtmp=0;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(s,q,p.row_numShapes)];
+                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
 					  for (k=0;k<p.numEqu;k++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                           diagS+=rtmp;
                                       }
 				      /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
 				      rtmp=m_t/diagS;
-				      for (s=0;s<p.row_numShapes;s++) {
+				      for (s=0;s<p.numShapes;s++) {
 					    for (k=0;k<p.numEqu;k++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]*=rtmp*D_p[k];
 				      }
 			       #else /* row-sum lumping */
-                             	 for (s=0;s<p.row_numShapes;s++) {
+                             	 for (s=0;s<p.numShapes;s++) {
 				    for (k=0;k<p.numEqu;k++) {
                                         rtmp=0.;
-                                        for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.row_numShapes)];
+                                        for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
                                         EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp*D_p[k];
                                      }
 				 }
 			      #endif
-			      for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
-			      Dudley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
+			      for (q=0;q<p.numShapes;q++) row_index[q]=p.row_DOF[elements->Nodes[INDEX2(q,e,p.NN)]];
+			      Dudley_Util_AddScatter(p.numShapes,row_index,p.numEqu,EM_lumpedMat,lumpedMat_p, p.row_DOF_UpperBound);
                        } /* end color check */
                     } /* end element loop */
                 } /* end color loop */

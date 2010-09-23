@@ -122,10 +122,10 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: spacial dimension for row and column shape function must match.");
   }
   
-  if (elements->numNodes < parm->row_jac->numShapesTotal) {
+  if (elements->numNodes < parm->row_jac->numShapes) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by row.");  
   }
-  if (elements->numNodes < parm->row_jac->numShapesTotal) {
+  if (elements->numNodes < parm->row_jac->numShapes) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by col.");  
   }
   if ( parm->row_jac->numElements !=elements->numElements) {
@@ -142,9 +142,8 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   parm->NN=elements->numNodes;
   parm->numElements=elements->numElements;
   parm->numDim=parm->row_jac->numDim;
-  parm->row_numShapesTotal=parm->row_jac->numShapesTotal;
-//  parm->row_numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
-  parm->row_numShapes=parm->row_numShapesTotal;
+  parm->numShapes=parm->row_jac->numShapes;
+//  parm->numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
 	
 
 }

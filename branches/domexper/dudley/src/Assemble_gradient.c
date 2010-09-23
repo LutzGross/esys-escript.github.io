@@ -78,7 +78,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   {
 	numDim=jac->numDim;
 //        numShapes=jac->BasisFunctions->Type->numShapes;
-	numShapesTotal=jac->numShapesTotal;
+	numShapesTotal=jac->numShapes;
 	numQuad=jac->numQuadTotal;
 	localGradSize=sizeof(double)*numDim*numQuad*numComps;
 	numShapesTotal2=refElement->BasisFunctions->Type->numShapes;

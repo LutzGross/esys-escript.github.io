@@ -40,8 +40,9 @@ struct Assemble_Parameters {
    index_t* row_DOF;
    dim_t row_DOF_UpperBound;
    Dudley_ElementFile_Jacobeans* row_jac;
-   dim_t row_numShapesTotal;
-   dim_t row_numShapes;
+//   dim_t row_numShapesTotal;
+//   dim_t row_numShapes;
+   dim_t numShapes;
  
    dim_t numComp;
    index_t * col_DOF;
