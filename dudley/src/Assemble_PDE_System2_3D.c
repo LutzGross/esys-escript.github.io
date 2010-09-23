@@ -63,7 +63,8 @@ void Dudley_Assemble_PDE_System2_3D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedX = isExpanded(X);
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
-    double *S = p.row_jac->BasisFunctions->S;
+//    double *S = p.row_jac->BasisFunctions->S;
+    const double* S=p.shapeFns;
     dim_t len_EM_S = p.row_numShapesTotal * p.col_numShapesTotal * p.numEqu * p.numComp;
     dim_t len_EM_F = p.row_numShapesTotal * p.numEqu;
 

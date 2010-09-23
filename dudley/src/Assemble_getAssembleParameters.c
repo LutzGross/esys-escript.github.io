@@ -19,16 +19,23 @@
 /**************************************************************/
 
 #include "Assemble.h"
+#include "ShapeTable.h"
 
 /**************************************************************/
 
 void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
   Dudley_resetError();
-  
+  parm->reducedIntegrationOrder=reducedIntegrationOrder;
+  parm->shapeFns=NULL;
   if (!isEmpty(F) && !isExpanded(F) ) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");
       return;
+  }
+
+  if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &(parm->shapeFns)))
+  {
+	Dudley_setError(TYPE_ERROR, "Assemble_getAssembleParameters: Can not locate shape functions.");
   }
   /*  check the dimensions of S and F */
   if (S!=NULL && !isEmpty(F)) {

@@ -65,7 +65,7 @@ void Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedX = isExpanded(X);
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
-    double *S = p.row_jac->BasisFunctions->S;
+    const double *S = p.shapeFns;
     dim_t len_EM_S = p.row_numShapesTotal * p.col_numShapesTotal;
     dim_t len_EM_F = p.row_numShapesTotal;
 
@@ -94,7 +94,6 @@ void Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			X_p = getSampleDataRO(X, e);
 			Y_p = getSampleDataRO(Y, e);
 
-//                     Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadTotal,1)]);
 			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
 
 			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.row_numShapesTotal, DIM, p.numQuadTotal, 1)]);
@@ -120,22 +119,6 @@ void Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
 					{
-/*
-                                   rtmp+=Vol[q]*(DTDV_2D[s][0]*A_q[INDEX3(0,0,q,DIM,DIM)]*DTDV_2D[r][0] 
-                                               + DTDV_2D[s][0]*A_q[INDEX3(0,1,q,DIM,DIM)]*DTDV_2D[r][1] 
-                                               + DTDV_2D[s][1]*A_q[INDEX3(1,0,q,DIM,DIM)]*DTDV_2D[r][0] 
-                                               + DSDX[INDEX3(s,1,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(1,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)] );
-*/
-
-					    if (0 /*s==0 */ )
-					    {
-						fprintf(stderr, "\nVVV=%d T=%f M=%f\n",
-							INDEX3(s, 0, q, p.row_numShapesTotal, DIM),
-							DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)],
-							DTDV_2D[s][0]);
-
-					    }
-
 					    rtmp +=
 						vol * (DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
 						       A_q[INDEX3(0, 0, q, DIM, DIM)] *
