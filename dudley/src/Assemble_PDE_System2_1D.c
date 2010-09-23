@@ -64,14 +64,14 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
     double *S = p.row_jac->BasisFunctions->S;
-    dim_t len_EM_S = p.row_numShapesTotal * p.col_numShapesTotal * p.numEqu * p.numComp;
-    dim_t len_EM_F = p.row_numShapesTotal * p.numEqu;
+    dim_t len_EM_S = p.row_numShapes * p.row_numShapes * p.numEqu * p.numComp;
+    dim_t len_EM_F = p.row_numShapes * p.numEqu;
 
 #pragma omp parallel private(color, EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index, q, s,r,k,m,rtmp,add_EM_F, add_EM_S)
     {
 	EM_S = THREAD_MEMALLOC(len_EM_S, double);
 	EM_F = THREAD_MEMALLOC(len_EM_F, double);
-	row_index = THREAD_MEMALLOC(p.row_numShapesTotal, index_t);
+	row_index = THREAD_MEMALLOC(p.row_numShapes, index_t);
 
 	if (!Dudley_checkPtr(EM_S) && !Dudley_checkPtr(EM_F) && !Dudley_checkPtr(row_index))
 	{
@@ -93,7 +93,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			Y_p = getSampleDataRO(Y, e);
 			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
 			Vol = &(p.row_jac->volume[INDEX3(0, 0, e, p.numQuadTotal, 1)]);
-			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.row_numShapesTotal, DIM, p.numQuadTotal, 1)]);
+			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.row_numShapes, DIM, p.numQuadTotal, 1)]);
 			for (q = 0; q < len_EM_S; ++q)
 			    EM_S[q] = 0;
 			for (q = 0; q < len_EM_F; ++q)
@@ -113,7 +113,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				A_q = &(A_p[INDEX6(0, 0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, DIM, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					for (k = 0; k < p.numEqu; k++)
 					{
@@ -122,11 +122,11 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 						rtmp = 0.;
 						for (q = 0; q < p.numQuadTotal; q++)
 						{
-						    rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
+						    rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)] *
 							A_q[INDEX5(k, 0, m, 0, q, p.numEqu, DIM, p.numComp, DIM)] *
-							DSDX[INDEX3(r, 0, q, p.row_numShapesTotal, DIM)];
+							DSDX[INDEX3(r, 0, q, p.row_numShapes, DIM)];
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp;
 					    }
 					}
@@ -136,18 +136,18 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
 					    rtmp +=
-						vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
-						DSDX[INDEX3(r, 0, q, p.row_numShapesTotal, DIM)];
+						vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)] *
+						DSDX[INDEX3(r, 0, q, p.row_numShapes, DIM)];
 					for (k = 0; k < p.numEqu; k++)
 					{
 					    for (m = 0; m < p.numComp; m++)
 					    {
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp * A_p[INDEX4(k, 0, m, 0, p.numEqu, DIM, p.numComp)];
 					    }
 					}
@@ -167,7 +167,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				B_q = &(B_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					for (k = 0; k < p.numEqu; k++)
 					{
@@ -176,11 +176,11 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 						rtmp = 0.;
 						for (q = 0; q < p.numQuadTotal; q++)
 						{
-						    rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
+						    rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)] *
 							B_q[INDEX4(k, 0, m, q, p.numEqu, DIM, p.numComp)] *
 							S[INDEX2(r, q, p.row_numShapes)];
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp;
 					    }
 					}
@@ -190,18 +190,18 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
 					    rtmp +=
-						vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
+						vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)] *
 						S[INDEX2(r, q, p.row_numShapes)];
 					for (k = 0; k < p.numEqu; k++)
 					{
 					    for (m = 0; m < p.numComp; m++)
 					    {
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp * B_p[INDEX3(k, 0, m, p.numEqu, DIM)];
 					    }
 					}
@@ -221,7 +221,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				C_q = &(C_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, p.numComp, DIM, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					for (k = 0; k < p.numEqu; k++)
 					{
@@ -233,9 +233,9 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 						    rtmp +=
 							vol * S[INDEX2(s, q, p.row_numShapes)] *
 							C_q[INDEX4(k, m, 0, q, p.numEqu, p.numComp, DIM)] *
-							DSDX[INDEX3(r, 0, q, p.row_numShapesTotal, DIM)];
+							DSDX[INDEX3(r, 0, q, p.row_numShapes, DIM)];
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp;
 					    }
 					}
@@ -245,18 +245,18 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
 					    rtmp +=
 						vol * S[INDEX2(s, q, p.row_numShapes)] *
-						DSDX[INDEX3(r, 0, q, p.row_numShapesTotal, DIM)];
+						DSDX[INDEX3(r, 0, q, p.row_numShapes, DIM)];
 					for (k = 0; k < p.numEqu; k++)
 					{
 					    for (m = 0; m < p.numComp; m++)
 					    {
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp * C_p[INDEX3(k, m, 0, p.numEqu, p.numComp)];
 					    }
 					}
@@ -276,7 +276,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				D_q = &(D_p[INDEX4(0, 0, 0, 0, p.numEqu, p.numComp, p.numQuadTotal)]);
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					for (k = 0; k < p.numEqu; k++)
 					{
@@ -290,7 +290,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 							D_q[INDEX3(k, m, q, p.numEqu, p.numComp)] *
 							S[INDEX2(r, q, p.row_numShapes)];
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp;
 
 					    }
@@ -301,7 +301,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			    {
 				for (s = 0; s < p.row_numShapes; s++)
 				{
-				    for (r = 0; r < p.col_numShapes; r++)
+				    for (r = 0; r < p.row_numShapes; r++)
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
@@ -312,7 +312,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 					{
 					    for (m = 0; m < p.numComp; m++)
 					    {
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapesTotal)] +=
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.row_numShapes)] +=
 						    rtmp * D_p[INDEX2(k, m, p.numEqu)];
 					    }
 					}
@@ -337,7 +337,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 					rtmp = 0;
 					for (q = 0; q < p.numQuadTotal; q++)
 					    rtmp +=
-						vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)] *
+						vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)] *
 						X_q[INDEX3(k, 0, q, p.numEqu, DIM)];
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp;
 				    }
@@ -348,7 +348,7 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 				{
 				    rtmp = 0;
 				    for (q = 0; q < p.numQuadTotal; q++)
-					rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapesTotal, DIM)];
+					rtmp += vol * DSDX[INDEX3(s, 0, q, p.row_numShapes, DIM)];
 				    for (k = 0; k < p.numEqu; k++)
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp * X_p[INDEX2(k, 0, p.numEqu)];
 				}
@@ -391,15 +391,15 @@ void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			/* add the element matrices onto the matrix and right hand side                                */
 		       /***********************************************************************************************/
 
-			for (q = 0; q < p.row_numShapesTotal; q++)
+			for (q = 0; q < p.row_numShapes; q++)
 			    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
 
 			if (add_EM_F)
-			    Dudley_Util_AddScatter(p.row_numShapesTotal, row_index, p.numEqu, EM_F, F_p,
+			    Dudley_Util_AddScatter(p.row_numShapes, row_index, p.numEqu, EM_F, F_p,
 						   p.row_DOF_UpperBound);
 			if (add_EM_S)
-			    Dudley_Assemble_addToSystemMatrix(Mat, p.row_numShapesTotal, row_index, p.numEqu,
-							      p.col_numShapesTotal, row_index, p.numComp, EM_S);
+			    Dudley_Assemble_addToSystemMatrix(Mat, p.row_numShapes, row_index, p.numEqu,
+							      p.row_numShapes, row_index, p.numComp, EM_S);
 
 		    }		/* end color check */
 		}		/* end element loop */
