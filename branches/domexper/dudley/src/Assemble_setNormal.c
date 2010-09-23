@@ -38,7 +38,6 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   const double* dSdv=0;
   if (nodes==NULL || elements==NULL) return;
 
-  int climit=1;
   switch (elements->numDim)
   {
   case 2: dSdv=&(DTDV_2D_alt[0][0]);break;

@@ -24,6 +24,8 @@
 #include <omp.h>
 #endif
 
+#include "ShapeTable.h"
+
 /**************************************************************/
 
 
@@ -36,6 +38,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   Dudley_ShapeFunction *basis=NULL;
   dim_t numComps=getDataPointSize(data);
   index_t *map=NULL;
+  const double* shapeFns=0;
   type_t data_type=getFunctionSpaceType(data);
   type_t type;
   size_t numComps_size;
@@ -84,10 +87,14 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   return;
   }
 
-  numQuad=basis->numQuadNodes;
+//  numQuad=basis->numQuadNodes;
+  numQuad=reduced_integration?1:(elements->numDim+1);
   numShapesTotal2=basis->Type->numShapes;
-  NS_DOF=basis->Type->numShapes;
-  
+//  NS_DOF=basis->Type->numShapes;
+  NS_DOF=elements->numDim+1;
+
+//fprintf(stderr,"\nnumQuad=%d,%d DOF=%d %d RI=%d\n",numQuad, reduced_integration?1:(elements->numDim+1),  NS_DOF,elements->numDim+1 , reduced_integration);
+
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
@@ -100,7 +107,65 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: expanded Data object is expected for output data.");
   }
 
+  if (Dudley_noError() && !getQuadShape(elements->numDim, reduced_integration, &shapeFns))
+  {
+	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_interpolate: unable to locate shape function.");
+  }
+
+
   /* now we can start */
+
+
+//fprintf(stderr,"\nrange=%d elements->numDim=%d %d %d\n",INDEX2(NS_DOF,numQuad,NS_DOF), elements->numDim, NS_DOF, numQuad) ;
+
+/*
+fprintf(stderr,"\nQQ %d", elements->numDim);
+for (int j=0;j<numQuad;++j)
+{
+for (int s=0;s<NS_DOF;++s)
+{
+dim_t ind=INDEX2(s,j,NS_DOF);
+fprintf(stderr," [%d]%f", ind,basis->S[ind]);
+}
+
+}
+fprintf(stderr,"\n");
+*/
+
+/*
+bool_t f=0;
+for (int j=0;j<numQuad;++j)
+{
+for (int s=0;s<NS_DOF;++s)
+{
+dim_t ind=INDEX2(s,j,NS_DOF);
+dim_t ind2=ind%(numQuad*numQuad);
+if (fabs(basis->S[ind]-shapeFns[ind2])>0.0001)
+{
+   f=1;
+   break;
+}
+
+}
+
+}
+
+if (f)
+{
+
+for (int j=0;j<numQuad;++j)
+{
+for (int s=0;s<NS_DOF;++s)
+{
+dim_t ind=INDEX2(s,j,NS_DOF);
+fprintf(stderr, "\nZZ %d %d %f %f\n",elements->numDim, ind, basis->S[ind],shapeFns[ind%(numQuad*numQuad)]);
+}
+
+}
+
+
+}
+*/
 
   if (Dudley_noError())
   {
@@ -125,7 +190,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 			}
 			/*  calculate interpolated_data=local_data*S */
 			Dudley_Util_SmallMatSetMult1(1, numComps, numQuad, getSampleDataRW(interpolated_data,e),
-				 NS_DOF,local_data,basis->S);
+				 NS_DOF,local_data, /*basis->S*/ shapeFns);
 		} /* end of element loop */
 	    }
 	    THREAD_MEMFREE(local_data);
