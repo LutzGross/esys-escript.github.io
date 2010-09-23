@@ -52,38 +52,44 @@ arr[0][0]=1.;				// point
 arr[1]=arr[0];
 arr[2]=malloc(4*sizeof(double));	// Line Single
 arr[3]=malloc(4*sizeof(double));	// Line 2
-arr[4]=malloc(4*sizeof(double));	// Tri single
+
 
 for (int i=0;i<2;++i)	
 {
 arr[2][2*i]=1-_dudley_V[0][i];
 arr[3][2*i]=1-_dudley_V[1][i];
-arr[4][2*i]=1-_dudley_V[2][i];
 
 arr[2][2*i+1]=_dudley_V[0][i];
 arr[3][2*i+1]=_dudley_V[1][i];
-arr[4][2*i+1]=_dudley_V[2][i];
 }
+
+arr[4]=malloc(3*sizeof(double));	// Tri single
+arr[4][0]=1.-_dudley_V[2][0]-_dudley_V[2][1];
+arr[4][1]=_dudley_V[2][0];
+arr[4][2]=_dudley_V[2][1];
 
 arr[5]=malloc(9*sizeof(double));		// Tri 3
 for (int i=0;i<3;++i)
 {
-arr[5][3*i]=1-_dudley_V[3][3*i] -_dudley_V[2][3*i+1];
-arr[5][3*i+1]=_dudley_V[3][3*i];
-arr[5][3*i+2]=_dudley_V[3][3*i+1];
+arr[5][3*i]=1-_dudley_V[3][2*i] -_dudley_V[3][2*i+1];
+arr[5][3*i+1]=_dudley_V[3][2*i];
+arr[5][3*i+2]=_dudley_V[3][2*i+1];
+
+
+fprintf(stderr, "\nGG 3 (%d)%f (%d)%f (%d)%f\n", 3*i,arr[5][3*i],  3*i+1, arr[5][3*i+1], 3*i+2, arr[5][3*i+2]);
 }
-arr[6]=malloc(3*sizeof(double));	// Tet single
-arr[6][0]=1-_dudley_V[4][0] -_dudley_V[2][1] -_dudley_V[2][2];
+arr[6]=malloc(4*sizeof(double));	// Tet single
+arr[6][0]=1-_dudley_V[4][0] -_dudley_V[4][1] -_dudley_V[4][2];
 arr[6][1]=_dudley_V[4][0];
 arr[6][2]= _dudley_V[4][1];
 arr[6][3]=_dudley_V[4][2];
 
-arr[7]=malloc(16*sizeof(double));
+arr[7]=malloc(16*sizeof(double));	// Tet 4
 for (int i=0;i<4;++i)
 {
-  double x=_dudley_V[5][0];
-  double y=_dudley_V[5][1];
-  double z=_dudley_V[5][2];
+  double x=_dudley_V[5][3*i];
+  double y=_dudley_V[5][3*i+1];
+  double z=_dudley_V[5][3*i+2];
   arr[7][4*i]=1-x-y-z;
   arr[7][4*i+1]=x;
   arr[7][4*i+2]=y;
