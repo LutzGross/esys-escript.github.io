@@ -28,6 +28,7 @@
 #include <omp.h>
 #endif
 
+#include "ShapeTable.h"
 
 /* Disabled until the tests pass */
 /* #define NEW_LUMPING */ 
@@ -44,7 +45,8 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
   type_t funcspace;
   index_t color,*row_index=NULL;
   __const double *D_p=NULL;
-  double *S=NULL, *EM_lumpedMat=NULL, *lumpedMat_p=NULL;
+  const double* S=NULL;
+  double *EM_lumpedMat=NULL, *lumpedMat_p=NULL;
   register double rtmp;
   size_t len_EM_lumpedMat_size;
 #ifdef NEW_LUMPING
@@ -108,7 +110,11 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     
     expandedD=isExpanded(D);
-    S=p.row_jac->BasisFunctions->S;
+//    S=p.row_jac->BasisFunctions->S;
+    if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
+    {
+	Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: Unable to locate shape function.");
+    }
 
 #ifdef NEW_LUMPING
     #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)

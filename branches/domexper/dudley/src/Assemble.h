@@ -49,6 +49,10 @@ struct Assemble_Parameters {
    Dudley_ElementFile_Jacobeans* col_jac;
    dim_t col_numShapesTotal;
    dim_t col_numShapes;
+
+   const double* shapeFns;
+   bool_t reducedIntegrationOrder;	// can we get rid of this one?
+
 };
 
 typedef struct Assemble_Parameters Assemble_Parameters;
