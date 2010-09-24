@@ -111,7 +111,7 @@ void Dudley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
 void Dudley_ElementFile_setTags(Dudley_ElementFile* ,const int, escriptDataC*);
 Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFunction* );
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans*);
-Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile*, Dudley_NodeFile*, bool_t, bool_t);
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile*, Dudley_NodeFile*, bool_t);
 void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile* in);
 
 

@@ -137,42 +137,10 @@ int  Dudley_Mesh_getStatus(Dudley_Mesh* in) {
 
 void Mesh_setOrders(Dudley_Mesh *in) 
 {
-   const dim_t order_max=9999999;
-   dim_t locals[3];
-   #ifdef PASO_MPI
-       dim_t globals[3];
-   #endif
-   locals[0]=order_max; locals[1]=order_max; locals[2]=order_max;
-
-  if ( in->Elements!=NULL) {
-     if (in->Elements->numElements > 0) {
-         locals[0]=MIN(locals[0], in->Elements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
-         locals[1]=MIN(locals[1], in->Elements->referenceElementSet->referenceElement->integrationOrder);
-         locals[2]=MIN(locals[2], in->Elements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
-     }
-  }
-  if ( in->FaceElements!=NULL) {
-     if (in->FaceElements->numElements > 0) {
-         locals[0]=MIN(locals[0], in->FaceElements->referenceElementSet->referenceElement->BasisFunctions->Type->numOrder);
-         locals[1]=MIN(locals[1], in->FaceElements->referenceElementSet->referenceElement->integrationOrder);
-         locals[2]=MIN(locals[2], in->FaceElements->referenceElementSet->referenceElementReducedQuadrature->integrationOrder);
-     }
-
-
-  }
-
-   #ifdef PASO_MPI
-       MPI_Allreduce( locals, globals, 3, MPI_INT, MPI_MIN, in->MPIInfo->comm );
-       in->approximationOrder=(globals[0] < order_max ? globals[0] : -1 );
-       in->reducedApproximationOrder=in->approximationOrder;
-       in->integrationOrder=(globals[1] < order_max ? globals[1] : -1 );
-       in->reducedIntegrationOrder=(globals[2] < order_max ? globals[2] : -1 );
-   #else
-       in->approximationOrder=(locals[0] < order_max ? locals[0] : -1 );
-       in->reducedApproximationOrder=(locals[0] < order_max ? locals[0] : -1 );
-       in->integrationOrder=(locals[1] < order_max ? locals[1] : -1 );
-       in->reducedIntegrationOrder=(locals[2] < order_max ? locals[2] : -1 );
-   #endif
+   in->approximationOrder=1;	// order of shapeFunctions is always 1 in Dudley
+   in->reducedApproximationOrder=1;
+   in->integrationOrder=2;
+   in->reducedIntegrationOrder=0;
 
 
 }

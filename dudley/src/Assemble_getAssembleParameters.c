@@ -74,12 +74,12 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } 
       else if ( Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } else {
            Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
       }
@@ -87,11 +87,11 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		   parm->col_DOF=nodes->degreesOfFreedomMapping->target;
-		   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+		   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
            parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } else {
            Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
       }
@@ -102,12 +102,12 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
       if (numSamplesEqual(F,1, Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
            parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,reducedIntegrationOrder);
+           parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } 
       else if (numSamplesEqual(F,1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))) {
            parm->row_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
            parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,TRUE,reducedIntegrationOrder);
+	   parm->row_jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
       } else {
            Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
       }

@@ -38,7 +38,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   register double *grad_data_e;
   dim_t numNodes=0, numShapesTotal=0, numComps, NN=0, numDim=0, numShapesTotal2=0, numQuad=0;
   type_t data_type=getFunctionSpaceType(data);
-  bool_t reducedShapefunction=FALSE, reducedIntegrationOrder=FALSE;
+  bool_t reducedIntegrationOrder=FALSE;
   Dudley_ElementFile_Jacobeans* jac=NULL;
   
   Dudley_resetError();
@@ -48,30 +48,26 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
   reducedIntegrationOrder=Dudley_Assemble_reducedIntegrationOrder(grad_data);
 
   if (data_type==DUDLEY_NODES) {
-       reducedShapefunction=FALSE;
        numNodes=nodes->nodesMapping->numTargets;
   } else if (data_type==DUDLEY_REDUCED_NODES) { 
-       reducedShapefunction=TRUE;
        numNodes=nodes->reducedNodesMapping->numTargets;
   } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
        if (elements->MPIInfo->size>1) {
           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
           return;
        }
-       reducedShapefunction=FALSE;
        numNodes=nodes->degreesOfFreedomMapping->numTargets;
   } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
        if (elements->MPIInfo->size>1) {
           Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
           return;
        }
-       reducedShapefunction=TRUE;
        numNodes=nodes->reducedDegreesOfFreedomMapping->numTargets;
   } else {
        Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
   }
 
-  jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedShapefunction,reducedIntegrationOrder);
+  jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
   refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reducedIntegrationOrder);
   
   if (Dudley_noError())

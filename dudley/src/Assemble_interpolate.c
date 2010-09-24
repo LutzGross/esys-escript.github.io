@@ -33,9 +33,9 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   __const double *data_array;
   double* local_data=NULL; 
   bool_t reduced_integration=FALSE;
-  dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0, numShapesTotal2;
-  Dudley_ReferenceElement* reference_element=NULL;
-  Dudley_ShapeFunction *basis=NULL;
+  dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0;
+//  Dudley_ReferenceElement* reference_element=NULL;
+//  Dudley_ShapeFunction *basis=NULL;
   dim_t numComps=getDataPointSize(data);
   index_t *map=NULL;
   const double* shapeFns=0;
@@ -49,19 +49,19 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
   reduced_integration = Dudley_Assemble_reducedIntegrationOrder(interpolated_data);
-  reference_element= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reduced_integration);
+//  reference_element= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reduced_integration);
   NN=elements->numNodes;
   
   /* set some parameter */
 
   if (data_type==DUDLEY_NODES) {
 	   type=NODES;
-	   basis=reference_element->BasisFunctions;
+//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
-	   basis=reference_element->BasisFunctions;
+//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedNodes(nodes);
   } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
@@ -70,7 +70,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=DOF;
-	   basis=reference_element->BasisFunctions;	
+//	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
   } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -79,7 +79,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=REDUCED_DOF;
-	   basis=reference_element->BasisFunctions;
+//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
    } else {
@@ -89,7 +89,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 
 //  numQuad=basis->numQuadNodes;
   numQuad=reduced_integration?1:(elements->numDim+1);
-  numShapesTotal2=basis->Type->numShapes;
+//  numShapesTotal2=basis->Type->numShapes;
 //  NS_DOF=basis->Type->numShapes;
   NS_DOF=elements->numDim+1;
 

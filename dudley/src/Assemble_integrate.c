@@ -37,7 +37,7 @@ void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
     if (nodes==NULL || elements==NULL) return;
     my_mpi_rank = nodes->MPIInfo->rank;
     /* set some parameter */
-    jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Dudley_Assemble_reducedIntegrationOrder(data));
+    jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,Dudley_Assemble_reducedIntegrationOrder(data));
     if (Dudley_noError()) {
 		numQuadTotal=jac->numQuad;
         /* check the shape of the data  */
