@@ -31,7 +31,7 @@
 #include "paso/SystemMatrix.h"
 
 struct Assemble_Parameters {
-   dim_t numQuadTotal; /* total number of quadrature nodes */
+   dim_t numQuad; /* number of quadrature nodes */
    dim_t numDim;  /* spatial dimension */ 
    dim_t NN;     /* leading dimension of element node table */
    dim_t numElements; /* number of elements */

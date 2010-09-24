@@ -81,8 +81,8 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
   if (! Dudley_noError()) return;
  
   /* check if all function spaces are the same */
-  if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(D,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
@@ -132,17 +132,17 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){              
 			if (elements->Color[e]==color) {
-//                               Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadTotal,1)]);
+//                               Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuad,1)]);
 				double vol=p.row_jac->absD[e]*p.row_jac->quadweight;
                                D_p=getSampleDataRO(D,e);                          
 			       #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
-                                   for (q=0;q<p.numQuadTotal;q++) m_t+=vol*D_p[INDEX2(q, 0,p.numQuadTotal) ];
+                                   for (q=0;q<p.numQuad;q++) m_t+=vol*D_p[INDEX2(q, 0,p.numQuad) ];
                           
                                    diagS=0; /* diagonal sum: S */
                                    for (s=0;s<p.numShapes;s++) {
                                       rtmp=0;
-                                      for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX2(q, 0, p.numQuadTotal)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
+                                      for (q=0;q<p.numQuad;q++) rtmp+=vol*D_p[INDEX2(q, 0, p.numQuad)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
                                       EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                       diagS+=rtmp;
                                    }
@@ -154,7 +154,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                    for (s=0;s<p.numShapes;s++)
 				   {
                                        rtmp=0;
-                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX2(q, 0, p.numQuadTotal)];
+                                       for (q=0;q<p.numQuad;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX2(q, 0, p.numQuad)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp;
                                    }
                                #endif
@@ -177,11 +177,11 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                D_p=getSampleDataRO(D,e);                          
 			       #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
-                                   for (q=0;q<p.numQuadTotal;q++) m_t+=vol;
+                                   for (q=0;q<p.numQuad;q++) m_t+=vol;
                                    diagS=0; /* diagonal sum: S */
                                    for (s=0;s<p.numShapes;s++) {
                                       rtmp=0;
-                                      for (q=0;q<p.numQuadTotal;q++)
+                                      for (q=0;q<p.numQuad;q++)
 				      {
 					rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
 				      }
@@ -194,7 +194,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                                #else /* row-sum lumping */
                                    for (s=0;s<p.numShapes;s++) {
                                        rtmp=0;
-                                       for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
+                                       for (q=0;q<p.numQuad;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
                                        EM_lumpedMat[INDEX2(0,s,p.numEqu)]=rtmp*D_p[0];
                                    }
                                #endif
@@ -218,12 +218,12 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                               #ifdef NEW_LUMPING /* HRZ lumping */
                                   for (k=0;k<p.numEqu;k++) {
                                       m_t=0; /* mass of the element: m_t */
-                                      for (q=0;q<p.numQuadTotal;q++) m_t+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)];
+                                      for (q=0;q<p.numQuad;q++) m_t+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuad)];
                                                    
                                       diagS=0; /* diagonal sum: S */
                                       for (s=0;s<p.numShapes;s++) {
                                           rtmp=0;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
+                                          for (q=0;q<p.numQuad;q++) rtmp+=vol*D_p[INDEX3(k,q,0,p.numEqu,p.numQuad)]*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
                                           EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                           diagS+=rtmp;
                                        }
@@ -235,7 +235,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                               	  for (s=0;s<p.numShapes;s++) {
                                       for (k=0;k<p.numEqu;k++) {
                                          rtmp=0.;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX3(k,q,0,p.numEqu,p.numQuadTotal)];
+                                          for (q=0;q<p.numQuad;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*D_p[INDEX3(k,q,0,p.numEqu,p.numQuad)];
                                            EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                        }
 				  }
@@ -255,11 +255,11 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
 			  
                               #ifdef NEW_LUMPING /* HRZ lumping */
                                       m_t=0; /* mass of the element: m_t */
-                                      for (q=0;q<p.numQuadTotal;q++) m_t+=vol; 
+                                      for (q=0;q<p.numQuad;q++) m_t+=vol; 
                                       diagS=0; /* diagonal sum: S */
                                       for (s=0;s<p.numShapes;s++) {
                                           rtmp=0;
-                                          for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
+                                          for (q=0;q<p.numQuad;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)]*S[INDEX2(s,q,p.numShapes)];
 					  for (k=0;k<p.numEqu;k++) EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp;
                                           diagS+=rtmp;
                                       }
@@ -272,7 +272,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                              	 for (s=0;s<p.numShapes;s++) {
 				    for (k=0;k<p.numEqu;k++) {
                                         rtmp=0.;
-                                        for (q=0;q<p.numQuadTotal;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
+                                        for (q=0;q<p.numQuad;q++) rtmp+=vol*S[INDEX2(s,q,p.numShapes)];
                                         EM_lumpedMat[INDEX2(k,s,p.numEqu)]=rtmp*D_p[k];
                                      }
 				 }
