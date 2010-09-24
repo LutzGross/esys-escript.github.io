@@ -28,7 +28,7 @@
 struct Dudley_ElementFile_Jacobeans {
   Dudley_Status_t status;               /* status of mesh when jacobeans where updated last time */
   dim_t numDim;                         /* spatial dimension */
-  Dudley_ShapeFunction* BasisFunctions; /* basis function used */
+//  Dudley_ShapeFunction* BasisFunctions; /* basis function used */
 //  dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobeans */
   dim_t numQuad;
   dim_t numShapes;

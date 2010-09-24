@@ -29,7 +29,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFun
      return NULL;
   } else {
      out->status=DUDLEY_INITIAL_STATUS-1;
-     out->BasisFunctions=Dudley_ShapeFunction_reference(BasisFunctions);
+//     out->BasisFunctions=Dudley_ShapeFunction_reference(BasisFunctions);
 	 out->numDim=0;
 	 out->numQuad=0;
 	 out->numElements=0;
@@ -45,7 +45,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFun
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans* in)
 {
   if (in!=NULL) {
-	Dudley_ShapeFunction_dealloc(in->BasisFunctions);  
+//	Dudley_ShapeFunction_dealloc(in->BasisFunctions);  
     MEMFREE(in->DSDX);
     MEMFREE(in->absD);
     MEMFREE(in);
@@ -58,7 +58,7 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans* in)
 Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile* self, Dudley_NodeFile* nodes, 
                                                                  bool_t reducedIntegrationOrder) {
   Dudley_ElementFile_Jacobeans *out = NULL;
-  Dudley_ShapeFunction /* *shape=NULL, */ *basis;
+//  Dudley_ShapeFunction /* *shape=NULL, */ *basis;
   Dudley_ReferenceElement*  refElement=NULL;
   double *dBdv;
   
@@ -74,12 +74,13 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
   }
   if (out->status < nodes->status)
   {
-     basis=out->BasisFunctions;
+//     basis=out->BasisFunctions;
      refElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet, reducedIntegrationOrder);
 
      out->numDim=nodes->numDim;
      out->numQuad=QuadNums[self->numDim][!reducedIntegrationOrder]; 
-     out->numShapes=basis->Type->numShapes; 
+//     out->numShapes=basis->Type->numShapes; 
+     out->numShapes=self->numDim+1;
      out->numElements=self->numElements;
      
 //      if (reducedShapefunction) {
@@ -88,10 +89,10 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
         dBdv=refElement->DBasisFunctionDv;
 //      }
      
-     if (out->numQuad != basis->numQuadNodes) {
-        Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
-        return NULL;
-     }
+//      if (out->numQuad != basis->numQuadNodes) {
+//         Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
+//         return NULL;
+//      }
      if (refElement->numNodes> numNodes) {
            Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Too many nodes expected.");
            return NULL;
