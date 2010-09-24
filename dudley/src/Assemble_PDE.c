@@ -133,33 +133,33 @@ void Dudley_Assemble_PDE(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Pas
 
   /* check if all function spaces are the same */
 
-  if (! numSamplesEqual(A,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(A,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(B,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(B,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(C,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(C,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(D,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(X,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(X,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 
-  if (! numSamplesEqual(Y,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+  if (! numSamplesEqual(Y,p.numQuad,elements->numElements) ) {
+        sprintf(error_msg,"Dudley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuad,elements->numElements);
         Dudley_setError(TYPE_ERROR,error_msg);
   }
 

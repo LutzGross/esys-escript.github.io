@@ -39,7 +39,7 @@ void Dudley_Assemble_integrate(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
     /* set some parameter */
     jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Dudley_Assemble_reducedIntegrationOrder(data));
     if (Dudley_noError()) {
-		numQuadTotal=jac->numQuadTotal;
+		numQuadTotal=jac->numQuad;
         /* check the shape of the data  */
         if (! numSamplesEqual(data,numQuadTotal,elements->numElements)) {
            Dudley_setError(TYPE_ERROR,"Dudley_Assemble_integrate: illegal number of samples of integrant kernel Data object");

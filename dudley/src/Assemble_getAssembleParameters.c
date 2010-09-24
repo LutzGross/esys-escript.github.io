@@ -125,25 +125,16 @@ void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* e
   if (elements->numNodes < parm->row_jac->numShapes) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by row.");  
   }
-  if (elements->numNodes < parm->row_jac->numShapes) {
-      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: too many nodes are expected by col.");  
-  }
   if ( parm->row_jac->numElements !=elements->numElements) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for row is wrong.");
   }
-  if ( parm->row_jac->numElements !=elements->numElements) {
-      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of elements for column is wrong.");
-  }
-  if ( parm->row_jac->numQuadTotal !=parm->row_jac->numQuadTotal) {
-      Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: number of quadrature points for row and column shape functions must match.");
-  }
+
   
-  parm->numQuadTotal=parm->row_jac->numQuadTotal; 
+  parm->numQuad=parm->row_jac->numQuad; 
   parm->NN=elements->numNodes;
   parm->numElements=elements->numElements;
   parm->numDim=parm->row_jac->numDim;
   parm->numShapes=parm->row_jac->numShapes;
-//  parm->numShapes=parm->row_jac->BasisFunctions->Type->numShapes;
 	
 
 }

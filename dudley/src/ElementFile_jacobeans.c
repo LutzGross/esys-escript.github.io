@@ -31,7 +31,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFun
      out->status=DUDLEY_INITIAL_STATUS-1;
      out->BasisFunctions=Dudley_ShapeFunction_reference(BasisFunctions);
 	 out->numDim=0;
-	 out->numQuadTotal=0;
+	 out->numQuad=0;
 	 out->numElements=0;
      out->absD=NULL;
      out->quadweight=0;
@@ -75,12 +75,10 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
   if (out->status < nodes->status)
   {
      basis=out->BasisFunctions;
-//     shape=Dudley_ReferenceElementSet_borrowParametrization(self->referenceElementSet, reducedIntegrationOrder);
      refElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet, reducedIntegrationOrder);
 
      out->numDim=nodes->numDim;
-//     out->numQuadTotal=shape->numQuadNodes; 
-     out->numQuadTotal=QuadNums[self->numDim][!reducedIntegrationOrder]; 
+     out->numQuad=QuadNums[self->numDim][!reducedIntegrationOrder]; 
      out->numShapes=basis->Type->numShapes; 
      out->numElements=self->numElements;
      
@@ -90,7 +88,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
         dBdv=refElement->DBasisFunctionDv;
      }
      
-     if (out->numQuadTotal != basis->numQuadNodes) {
+     if (out->numQuad != basis->numQuadNodes) {
         Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: Incorrect total number of quadrature points.");
         return NULL;
      }
@@ -102,7 +100,7 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
      if (out->DSDX==NULL) out->DSDX=MEMALLOC((out->numElements)
                                             *(out->numShapes)
                                             *(out->numDim)
-                                            *(out->numQuadTotal),double);
+                                            *(out->numQuad),double);
      if (out->absD==NULL) out->absD=MEMALLOC(out->numElements,double);
      if (! (Dudley_checkPtr(out->DSDX) || Dudley_checkPtr(out->absD)) ) {
           /*========================== dim = 1 ============================================== */
@@ -114,12 +112,12 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 				 Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
 		  if (out->BasisFunctions->Type->numDim==1) {
-                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuadTotal, self->numElements, numNodes,self->Nodes, out->DSDX,out->absD, &(out->quadweight), self->Id);
+                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,self->Nodes, out->DSDX,out->absD, &(out->quadweight), self->Id);
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1.");
                   }
              } else if (refElement->numLocalDim==2) {
-                     Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal, self->numElements,numNodes,self->Nodes,
+                     Assemble_jacobeans_2D(nodes->Coordinates,out->numQuad, self->numElements,numNodes,self->Nodes,
                                            out->DSDX, out->absD, &(out->quadweight), self->Id);
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
@@ -130,13 +128,13 @@ Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		  Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: 3D does not support local dimension 0.");
              } else if (refElement->numLocalDim==2) {
 		  if (out->BasisFunctions->Type->numDim==2) {
-                        Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuadTotal,self->numElements,numNodes,self->Nodes,
+                        Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuad,self->numElements,numNodes,self->Nodes,
                                                       out->DSDX,out->absD, &(out->quadweight), self->Id);
                   } else {
                     Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 2.");
                   }
              } else if (refElement->numLocalDim==3) {
-                     Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,self->numElements,numNodes,self->Nodes,
+                     Assemble_jacobeans_3D(nodes->Coordinates,out->numQuad,self->numElements,numNodes,self->Nodes,
                                            out->DSDX,out->absD, &(out->quadweight), self->Id);
              } else {
                Dudley_setError(SYSTEM_ERROR,"Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");

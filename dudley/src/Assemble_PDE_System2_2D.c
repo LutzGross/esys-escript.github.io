@@ -94,7 +94,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			X_p = getSampleDataRO(X, e);
 			Y_p = getSampleDataRO(Y, e);
 			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuadTotal, 1)]);
+			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)]);
 			for (q = 0; q < len_EM_S; ++q)
 			    EM_S[q] = 0;
 			for (q = 0; q < len_EM_F; ++q)
@@ -111,7 +111,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_S = TRUE;
 			    if (extendedA)
 			    {
-				A_q = &(A_p[INDEX6(0, 0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, DIM, p.numQuadTotal)]);
+				A_q = &(A_p[INDEX6(0, 0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, DIM, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (r = 0; r < p.numShapes; r++)
@@ -121,7 +121,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					    for (m = 0; m < p.numComp; m++)
 					    {
 						rtmp = 0;
-						for (q = 0; q < p.numQuadTotal; q++)
+						for (q = 0; q < p.numQuad; q++)
 						{
 						    rtmp +=
 							vol * (DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -153,7 +153,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					rtmp01 = 0;
 					rtmp10 = 0;
 					rtmp11 = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					{
 					    rtmp0 = vol * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
 					    rtmp1 = vol * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
@@ -186,7 +186,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_S = TRUE;
 			    if (extendedB)
 			    {
-				B_q = &(B_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, p.numQuadTotal)]);
+				B_q = &(B_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, DIM, p.numComp, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (r = 0; r < p.numShapes; r++)
@@ -196,7 +196,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					    for (m = 0; m < p.numComp; m++)
 					    {
 						rtmp = 0;
-						for (q = 0; q < p.numQuadTotal; q++)
+						for (q = 0; q < p.numQuad; q++)
 						{
 						    rtmp += vol * S[INDEX2(r, q, p.numShapes)] *
 							(DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -218,7 +218,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				    {
 					rtmp0 = 0;
 					rtmp1 = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					{
 					    rtmp = vol * S[INDEX2(r, q, p.numShapes)];
 					    rtmp0 += rtmp * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
@@ -246,7 +246,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_S = TRUE;
 			    if (extendedC)
 			    {
-				C_q = &(C_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, p.numComp, DIM, p.numQuadTotal)]);
+				C_q = &(C_p[INDEX5(0, 0, 0, 0, 0, p.numEqu, p.numComp, DIM, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (r = 0; r < p.numShapes; r++)
@@ -256,7 +256,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					    for (m = 0; m < p.numComp; m++)
 					    {
 						rtmp = 0;
-						for (q = 0; q < p.numQuadTotal; q++)
+						for (q = 0; q < p.numQuad; q++)
 						{
 						    rtmp += vol * S[INDEX2(s, q, p.numShapes)] *
 							(C_q[INDEX4(k, m, 0, q, p.numEqu, p.numComp, DIM)] *
@@ -278,7 +278,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				    {
 					rtmp0 = 0;
 					rtmp1 = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					{
 					    rtmp = vol * S[INDEX2(s, q, p.numShapes)];
 					    rtmp0 += rtmp * DSDX[INDEX3(r, 0, q, p.numShapes, DIM)];
@@ -306,7 +306,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_S = TRUE;
 			    if (extendedD)
 			    {
-				D_q = &(D_p[INDEX4(0, 0, 0, 0, p.numEqu, p.numComp, p.numQuadTotal)]);
+				D_q = &(D_p[INDEX4(0, 0, 0, 0, p.numEqu, p.numComp, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (r = 0; r < p.numShapes; r++)
@@ -316,7 +316,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					    for (m = 0; m < p.numComp; m++)
 					    {
 						rtmp = 0;
-						for (q = 0; q < p.numQuadTotal; q++)
+						for (q = 0; q < p.numQuad; q++)
 						{
 						    rtmp +=
 							vol * S[INDEX2(s, q, p.numShapes)] *
@@ -336,7 +336,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				    for (r = 0; r < p.numShapes; r++)
 				    {
 					rtmp = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					    rtmp +=
 						vol * S[INDEX2(s, q, p.numShapes)] *
 						S[INDEX2(r, q, p.numShapes)];
@@ -361,13 +361,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_F = TRUE;
 			    if (extendedX)
 			    {
-				X_q = &(X_p[INDEX4(0, 0, 0, 0, p.numEqu, DIM, p.numQuadTotal)]);
+				X_q = &(X_p[INDEX4(0, 0, 0, 0, p.numEqu, DIM, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (k = 0; k < p.numEqu; k++)
 				    {
 					rtmp = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					{
 					    rtmp +=
 						vol * (DSDX[INDEX3(s, 0, q, p.numShapes, DIM)] *
@@ -384,7 +384,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				{
 				    rtmp0 = 0;
 				    rtmp1 = 0;
-				    for (q = 0; q < p.numQuadTotal; q++)
+				    for (q = 0; q < p.numQuad; q++)
 				    {
 					rtmp0 += vol * DSDX[INDEX3(s, 0, q, p.numShapes, DIM)];
 					rtmp1 += vol * DSDX[INDEX3(s, 1, q, p.numShapes, DIM)];
@@ -404,13 +404,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    add_EM_F = TRUE;
 			    if (extendedY)
 			    {
-				Y_q = &(Y_p[INDEX3(0, 0, 0, p.numEqu, p.numQuadTotal)]);
+				Y_q = &(Y_p[INDEX3(0, 0, 0, p.numEqu, p.numQuad)]);
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    for (k = 0; k < p.numEqu; k++)
 				    {
 					rtmp = 0;
-					for (q = 0; q < p.numQuadTotal; q++)
+					for (q = 0; q < p.numQuad; q++)
 					    rtmp +=
 						vol * S[INDEX2(s, q, p.numShapes)] * Y_q[INDEX2(k, q, p.numEqu)];
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp;
@@ -421,7 +421,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				for (s = 0; s < p.numShapes; s++)
 				{
 				    rtmp = 0;
-				    for (q = 0; q < p.numQuadTotal; q++)
+				    for (q = 0; q < p.numQuad; q++)
 					rtmp += vol * S[INDEX2(s, q, p.numShapes)];
 				    for (k = 0; k < p.numEqu; k++)
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp * Y_p[k];
