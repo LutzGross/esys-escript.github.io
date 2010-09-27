@@ -35,14 +35,14 @@
 #define MAX_numNodes 64
 
 typedef enum {
-  Point1,
-  Line2,
-  Tri3,
-  Tet4,
-  Line2Face,
-  Tri3Face,
-  Tet4Face, 
-  NoRef   /* marks end of list */
+  Point1=0,
+  Line2=1,
+  Tri3=2,
+  Tet4=3,
+  Line2Face=4,
+  Tri3Face=5,
+  Tet4Face=6, 
+  NoRef=7   /* marks end of list */
 } ElementTypeId;
 
 /**************************************************************/

@@ -32,7 +32,7 @@ void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in) {
      index_t *index=NULL;
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
-        NN=(*in)->referenceElementSet->numNodes;
+        NN=(*in)->/*referenceElementSet->*/numNodes;
         item_list=TMPMEMALLOC((*in)->numElements,Dudley_Util_ValueAndIndex);
         index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Dudley_checkPtr(item_list) || Dudley_checkPtr(index)) ) {

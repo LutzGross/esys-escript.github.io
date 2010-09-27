@@ -22,6 +22,7 @@
 /**************************************************************/
 
 #include "ElementFile.h"
+#include "ShapeTable.h"
 
 /**************************************************************/
 
@@ -69,8 +70,11 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
      Dudley_ElementFile_free(out);
      return NULL;
   }
+  out->etype=referenceElementSet->referenceElement->Type->TypeId;
   out->numNodes=out->referenceElementSet->numNodes;
   out->numDim=referenceElementSet->referenceElement->BasisFunctions->Type->numDim;
+  out->numLocalDim=localDims[out->etype];
+  out->numShapes=out->jacobeans->numShapes;
   return out;
 }
 
