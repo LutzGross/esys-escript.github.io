@@ -23,6 +23,8 @@
 #include "Util.h"
 #include "Mesh.h"
 
+#include "ShapeTable.h"
+
 /**************************************************************/
 
 static double  Dudley_Mesh_lockingGridSize=0;
@@ -57,24 +59,25 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
       _dist_=0; \
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       } 
-	Dudley_ReferenceElement*  refElement=NULL;
+//	Dudley_ReferenceElement*  refElement=NULL;
     char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;   
     Dudley_Mesh_findMatchingFaces_center *center;
-    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL, *shiftNodes=NULL, *reverseNodes=NULL ;
+    index_t e_0,e_1,*a1=NULL,*a2=NULL,*perm=NULL,*perm_tmp=NULL,*itmp_ptr=NULL;
+    const index_t *shiftNodes=NULL, *reverseNodes=NULL ;
     dim_t e,i,i0,i1,n,NN,numNodesOnFace;
 	
 	dim_t numDim=nodes->numDim;
 
-	refElement= Dudley_ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
+//	refElement= Dudley_ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
     NN=faces->numNodes;
 	
-	numNodesOnFace=refElement->Type->numNodesOnFace;
-	shiftNodes=refElement->Type->shiftNodes;
-	reverseNodes=refElement->Type->reverseNodes;
+	numNodesOnFace=numNodesOnFaceMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->numNodesOnFace;
+	shiftNodes=shiftNodesMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->shiftNodes;
+	reverseNodes=reverseNodesMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->reverseNodes;
 	
 	if (numNodesOnFace<=0) {
-     sprintf(error_msg,"Dudley_Mesh_findMatchingFaces: matching faces cannot be applied to face elements of type %s",refElement->Type->Name);
+     sprintf(error_msg,"Dudley_Mesh_findMatchingFaces: matching faces cannot be applied to face elements of type %s",getElementName(faces->etype));
      Dudley_setError(TYPE_ERROR,error_msg);
      return;
     }

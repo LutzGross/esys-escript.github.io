@@ -84,7 +84,10 @@ struct Dudley_ElementFile {
 
   Dudley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
   Dudley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
-  dim_t numDim;
+  dim_t numDim;		/* spatial dimension of the domain */
+  dim_t numLocalDim;	/* dimension of the element eg 2 for A line in 2D or 3D */
+  ElementTypeId etype;  
+  dim_t numShapes;
 };
 
 typedef struct Dudley_ElementFile Dudley_ElementFile;

@@ -23,6 +23,8 @@ This file is not to be included in .h files - only .c files should have any use 
 
 #include "paso/Common.h"	// I just want the types not all the includes that get dragged in - fix that
 
+#include "ReferenceElements.h"   // This is just for the elementTypes
+
 // These are constructed from dsdv in ShapeFunction.c in finley
 // The first two are just there for functions that want a pointer
 static const double DTDV_0D[1][1]={{0}};
@@ -40,6 +42,17 @@ static const double DTDV_2D_alt[3*3][2]={{-1,1}, {0,-1.}, {0,1},
 // Why didn't I just reorder DTDV_2D?   Well some code apparently depends on the order as written.
 // should probably fix that
 
+// Index by ElementTypeID
+// The number of local dimensions (as opposed to dimension of the embedding space)
+static const dim_t localDims[8]={0,1,2,3,0,1,2,0};
+
+/* the following lists are only used for face elements defined by numNodesOnFace>0 */
+static const dim_t numNodesOnFaceMap[8]={1,2,3,4,1,2,4,-1}; /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes defining the face */
+static const dim_t shiftNodesMap[8][4]={{0}, { 1, 0 }, { 1, 2, 0 }, {-1}, { 0, 1, 2}, { 1, 0, 2 }, {1, 2, 0, 3 }, {0}};/* defines a permutation of the nodes which rotates the nodes on the face */
+static const dim_t reverseNodesMap[8][4]={{-1}, {-1 }, { 0, 2, 1}, {-1}, {-1}, {-1}, { 0, 2, 1, 3 }, {0}};/* reverses the order of the nodes on a face. the permutation has keep 0 fixed. */
+                                              /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
+
+
 
 // [0] is reduced quadrature, [1] is full quadrature
 // in order the positions are POINT, LINE, TRI, TET
@@ -50,12 +63,8 @@ static const dim_t QuadNums[4][2] ={{0,0}, {1,2}, {1,3}, {1,4}};
 //shape functions at quadrature nodes
 bool_t getQuadShape(dim_t sim, bool_t reduced, const double** shapearr);
 
-
-
-
-
-
-
+const char* getElementName(ElementTypeId id);
+ 
 #endif 
 
 

@@ -26,11 +26,11 @@
 
 void Dudley_ElementFile_markNodes(index_t* mask,index_t offset,dim_t numNodes,Dudley_ElementFile* in,bool_t useLinear) {
     dim_t i,NN,e;
-    Dudley_ReferenceElement* refElement=NULL;
+//    Dudley_ReferenceElement* refElement=NULL;
    
     if (in!=NULL)
     {
-	refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
+//	refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
 	NN=in->numNodes;
 	#pragma omp parallel for private(e,i) schedule(static)
 	for (e=0;e<in->numElements;e++)
@@ -47,12 +47,12 @@ void Dudley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
 {
     dim_t i,NN,e,j;
     index_t color;
-    Dudley_ReferenceElement* refElement=NULL;
+//    Dudley_ReferenceElement* refElement=NULL;
     register index_t k;
    
     if (in!=NULL)
     {
-	refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
+//	refElement=Dudley_ReferenceElementSet_borrowReferenceElement(in->referenceElementSet, FALSE);	   
 	NN=in->numNodes;
 	for (color=in->minColor;color<=in->maxColor;color++)
 	{

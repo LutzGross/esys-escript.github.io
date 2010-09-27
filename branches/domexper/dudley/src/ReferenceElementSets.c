@@ -46,7 +46,6 @@ Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_alloc(ElementTypeId id, i
                if (reduced_order<0) reduced_order=MAX(2*(bf_info->numOrder-1),0);
 	       out->referenceElementReducedQuadrature=Dudley_ReferenceElement_alloc(id,  reduced_order);
         }
-
 	if (Dudley_noError()) {
 	     if (! (Dudley_ReferenceElement_getNumNodes(out->referenceElement) == Dudley_ReferenceElement_getNumNodes(out->referenceElementReducedQuadrature) ) ) {
 		Dudley_setError(VALUE_ERROR,"Dudley_ReferenceElementSet_alloc: numNodes in referenceElement  and referenceElementReducedQuadrature don't match.");

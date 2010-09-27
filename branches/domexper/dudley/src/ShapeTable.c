@@ -105,3 +105,23 @@ for (int i=0;i<4;++i)
     *shapearr=0;
     return 0;
 }
+
+
+const char* getElementName(ElementTypeId id)
+{
+  switch(id)
+  {
+case Point1: return "Point1";
+case Line2: return "Line2";
+case Tri3: return "Tri3";
+case Tet4: return "Tet4";
+case Line2Face: return "Line2Face";
+case Tri3Face: return "Tri3Face";
+case Tet4Face: return "Tet4Face";
+   default:
+	return "noElement";
+  }
+}
+ 
+
+
