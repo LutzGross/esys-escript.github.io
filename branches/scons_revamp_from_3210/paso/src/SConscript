@@ -120,7 +120,7 @@ headers = """
 	performance.h
 """.split()
 
-if IS_WINDOWS_PLATFORM :
+if IS_WINDOWS:
   local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
 if local_env['share_paso'] :
