@@ -95,8 +95,8 @@ boost_prefix = ['/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/inclu
 boost_libs = ['boost_python-gcc41-mt']
 
 # Whether to use the netCDF library for dump file support
-# DEFAULT: True
-#netcdf = False
+# DEFAULT: False
+netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
 netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2'

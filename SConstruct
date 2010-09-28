@@ -109,7 +109,7 @@ adder(
   ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
   ('boost_libs', 'Boost libraries to link with', ['boost_python']),
 # Optional libraries
-  BoolVariable('netcdf', 'Enable netCDF file support', True),
+  BoolVariable('netcdf', 'Enable netCDF file support', False),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
   BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
