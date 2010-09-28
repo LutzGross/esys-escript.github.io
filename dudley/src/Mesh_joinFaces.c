@@ -21,6 +21,7 @@
 /**************************************************************/
 
 #include "Mesh.h"
+#include "ShapeTable.h"
 
 /**************************************************************/
 
@@ -39,10 +40,10 @@ void Dudley_Mesh_joinFaces(Dudley_Mesh* self,double safety_factor,double toleran
    if (self->FaceElements==NULL) return;
    faceRefElement= Dudley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
 
-   NN=self->FaceElements->numNodes;
+   NN=self->FaceElements->numNodes/*self->FaceElements->numNodes*/;
 
-   if (faceRefElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Dudley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+   if (numNodesOnFaceMap[self->FaceElements->etype]/*faceRefElement->Type->numNodesOnFace*/<=0) {
+     sprintf(error_msg,"Dudley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",getElementName(self->FaceElements->etype)/*faceRefElement->Type->Name*/);
      Dudley_setError(TYPE_ERROR,error_msg);
      return;
    }

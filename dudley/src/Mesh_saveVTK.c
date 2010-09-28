@@ -86,6 +86,8 @@ void create_MPIInfo(MPI_Info& info)
 #endif /* PASO_MPI */
 
 
+#include "ShapeTable.h"
+
 /* Returns one if the node given by coords and idx is within the quadrant
  * indexed by q and if the element type is Rec9 or Hex27, zero otherwise */
 int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
@@ -115,7 +117,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     char errorMsg[LenErrorMsg_MAX], *txtBuffer;
     char tmpBuffer[LEN_TMP_BUFFER];
     size_t txtBufferSize, txtBufferInUse, maxNameLen;
-    double *quadNodes_p = NULL;
+    const double *quadNodes_p = NULL;
     dim_t dataIdx, nDim;
     dim_t numCells=0, globalNumCells=0, numVTKNodesPerElement=0;
     dim_t myNumPoints=0, globalNumPoints=0;
@@ -294,15 +296,21 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             myNumCells = Dudley_ElementFile_getMyNumElements(elements);
             myFirstCell = Dudley_ElementFile_getFirstElement(elements);
             NN = elements->numNodes;
-            if (hasReducedElements) {
+	if (!getQuadShape(elements->numLocalDim, hasReducedElements, &quadNodes_p))
+	{
+		Dudley_setError(TYPE_ERROR, "Unable to locate shape function.");
+	}
+
+/*            if (hasReducedElements) {
+
                 quadNodes_p=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadNodes;
             } else {
                 quadNodes_p=elements->referenceElementSet->referenceElement->BasisFunctions->QuadNodes;
-            }
+            }*/
             if (nodeType==DUDLEY_REDUCED_NODES) {
-                typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
+                typeId = elements->etype;//referenceElementSet->referenceElement->Type->TypeId;
             } else {
-                typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
+                typeId = elements->etype;//referenceElementSet->referenceElement->Type->TypeId;
             }
             switch (typeId) {
                 case Point1:
@@ -329,7 +337,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
                 break;
 
                 default:
-                    sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->referenceElementSet->referenceElement->Type->Name);
+                    sprintf(errorMsg, "saveVTK: Element type %s is not supported by VTK.", elements->ename/*referenceElementSet->referenceElement->Type->Name*/);
                     Dudley_setError(VALUE_ERROR, errorMsg);
             }
         }
@@ -358,7 +366,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 	int flag1=0;
         if (DUDLEY_REDUCED_NODES == nodeType) {
             flag1=1;
-        } else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
+        } else if (numVTKNodesPerElement  !=  elements->numNodes/*referenceElementSet->referenceElement->Type->numNodes*/) {
             flag1=1;
         } 
         if (strlen(metadata)>0) {

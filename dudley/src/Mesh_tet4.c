@@ -78,16 +78,16 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Dudley_ReferenceElementSet_alloc(Tet4,order,reduced_order);
-  refFaceElements=Dudley_ReferenceElementSet_alloc(Tri3, order, reduced_order);
-  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+//  refElements= Dudley_ReferenceElementSet_alloc(Tet4,order,reduced_order);
+//  refFaceElements=Dudley_ReferenceElementSet_alloc(Tri3, order, reduced_order);
+//  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
   
  
   if ( Dudley_noError()) {
   
-	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(refPoints, mpi_info));
-	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(refFaceElements, mpi_info));
-	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(refElements, mpi_info));
+	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(Point1, mpi_info));
+	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(Tri3, mpi_info));
+	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(Tet4, mpi_info));
 
 	  /* work out the largest dimension */
 	  if (N2==MAX3(N0,N1,N2)) {

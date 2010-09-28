@@ -139,7 +139,7 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
   }
 
   /* map dudley element type to DX element type */
-  TypeId = elements->referenceElementSet->referenceElement->Type->TypeId;
+  TypeId = elements->etype;
   numDXNodesPerElement=0;
   numCells = elements->numElements;
   if (TypeId==Line2 ) {
@@ -163,7 +163,7 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
      resortIndex=resort[4];
      strcpy(elemTypeStr, "cubes");*/
    } else {
-     sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->referenceElementSet->referenceElement->Type->Name);
+     sprintf(error_msg,"saveDX: Element type %s is not supported by DX",elements->ename);
      Dudley_setError(VALUE_ERROR,error_msg);
      MEMFREE(isCellCentered);
      fclose(fileHandle_p);
@@ -202,9 +202,11 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
          }
          if (isCellCentered[i_data]) {
              if (Dudley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
-                numPointsPerSample=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+		numPointsPerSample=(elements->numLocalDim==0)?0:1;
+//                numPointsPerSample=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
              } else {
-                numPointsPerSample=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+		  numPointsPerSample=(elements->numLocalDim==0)?0:(elements->numLocalDim+1);
+//                numPointsPerSample=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
              }
              if (numPointsPerSample>0) {
                 fprintf(fileHandle_p, "items %d data follows\n", numCells);

@@ -53,8 +53,8 @@ void Dudley_Mesh_print(Dudley_Mesh *in) {
 
   if (in->Elements!=NULL) {
     printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-                       in->Elements->referenceElementSet->referenceElement->Type->Name,in->Elements->numElements,in->Elements->minColor,in->Elements->maxColor);
-    NN=in->Elements->referenceElementSet->referenceElement->Type->numNodes;
+                       in->Elements->ename,in->Elements->numElements,in->Elements->minColor,in->Elements->maxColor);
+    NN=in->Elements->numNodes;
     NN2=in->Elements->numNodes;
 	if (in->Elements->numElements>0) {
        printf("Id,Tag,Owner,Color,Nodes\n");
@@ -71,8 +71,8 @@ void Dudley_Mesh_print(Dudley_Mesh *in) {
 
   if (in->FaceElements!=NULL) {
     printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-               in->FaceElements->referenceElementSet->referenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->minColor,in->FaceElements->maxColor);
-    NN=in->FaceElements->referenceElementSet->referenceElement->Type->numNodes;
+               in->FaceElements->ename,in->FaceElements->numElements,in->FaceElements->minColor,in->FaceElements->maxColor);
+    NN=in->FaceElements->numNodes;
 	NN2=in->FaceElements->numNodes;
     if (in->FaceElements->numElements>0) {
        printf("Id,Tag,Owner,Color,Nodes\n");
@@ -88,8 +88,8 @@ void Dudley_Mesh_print(Dudley_Mesh *in) {
   /*  write points: */
   if (in->Points!=NULL) {
     printf( "=== %s:\nnumber of elements=%d\ncolor range=[%d,%d]\n",
-                       in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements,in->Points->minColor,in->Points->maxColor);
-    NN=in->Points->referenceElementSet->referenceElement->Type->numNodes;
+                       in->Points->ename,in->Points->numElements,in->Points->minColor,in->Points->maxColor);
+    NN=in->Points->numNodes;
 	NN2=in->Points->numNodes;
     if (in->Points->numElements>0) {
        printf("Id,Tag,Owner,Color,Nodes\n");

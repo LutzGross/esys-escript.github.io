@@ -41,7 +41,7 @@ from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_ass
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
-from esys.dudley import Rectangle,Brick,JoinFaces, ReadMesh
+from esys.dudley import Rectangle,Brick, ReadMesh
 import sys
 
 

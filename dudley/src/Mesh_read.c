@@ -221,9 +221,9 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     /* Allocate the ElementFile */
     if (Dudley_noError()) {
-	refElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-	mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
-	numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+//	refElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+	mesh_p->Elements=Dudley_ElementFile_alloc(typeID, mpi_info);
+	numNodes = mesh_p->Elements->numNodes; /* New meaning for numNodes: num nodes per element */
     }
 
     /* *************************** Read the element data *******************************************************************/
@@ -328,9 +328,9 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	if (Dudley_noError())
 	{
 		/* Allocate the ElementFile */
-		refFaceElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-		mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
-		numNodes = mesh_p->FaceElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+//		refFaceElements= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+		mesh_p->FaceElements=Dudley_ElementFile_alloc(typeID, mpi_info);
+		numNodes = mesh_p->FaceElements->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
     }
     /* ********************** Read the face element data ********************************************************* */
@@ -441,9 +441,9 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     if (Dudley_noError())
     {
 	/* Allocate the ElementFile */
-	refPoints= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
-	mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
-	numNodes = mesh_p->Points->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+//	refPoints= Dudley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+	mesh_p->Points=Dudley_ElementFile_alloc(typeID,  mpi_info);
+	numNodes = mesh_p->Points->numNodes; /* New meaning for numNodes: num nodes per element */
     }	
     /**********************************  Read the nodal element data **************************************************/
     if (Dudley_noError())

@@ -135,43 +135,15 @@ namespace dudley {
                                       int useFullElementOrder=0,
                                       int optimize=0);
 
-  /**
-     \brief
-     Merges a list of meshes into one list.
-     \param meshList Input - The list of meshes.
-  */
-  DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
-  escript::Domain_ptr meshMerge(const boost::python::list& meshList);
-  /**
-     \brief
-     Detects matching faces in the mesh, removes them from the mesh 
-     and joins the elements touched by the face elements.
-     \param meshList Input - The list of meshes.
-     \param safetyFactor Input - ??
-     \param tolerance Input - ??
-     \param optimize Input - switches on the optimization of node labels 
-  */
-  DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* glueFaces(const boost::python::list& meshList,
-  escript::Domain_ptr glueFaces(const boost::python::list& meshList,
-			   double safetyFactor=0.2, 
-			   double tolerance=1.e-8,
-                           int optimize=0);
-  /**
-     \brief
-     Detects matching faces in the mesh and replaces them by joint elements.
-     \param meshList Input - The list of meshes.
-     \param safetyFactor Input - ??
-     \param tolerance Input - ??
-     \param optimize Input - switches on the optimization of node labels 
-  */
-  DUDLEY_DLL_API
-//   escript::AbstractContinuousDomain* joinFaces(const boost::python::list& meshList,
-  escript::Domain_ptr joinFaces(const boost::python::list& meshList,
-			double safetyFactor=0.2, 
-			double tolerance=1.e-8,
-                        int optimize=0);
+//  /**
+//     \brief
+//     Merges a list of meshes into one list.
+//     \param meshList Input - The list of meshes.
+//  */
+//  DUDLEY_DLL_API
+// //   escript::AbstractContinuousDomain* meshMerge(const boost::python::list& meshList);
+//  escript::Domain_ptr meshMerge(const boost::python::list& meshList);
+
  
 } // end of namespace
 #endif

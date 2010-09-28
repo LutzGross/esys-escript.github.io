@@ -243,12 +243,12 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                     final_face_element_type=Tri3;
                  }
               }
-			  refElements= Dudley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
-			  refFaceElements=Dudley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
-			  refPoints= Dudley_ReferenceElementSet_alloc(Point1,order, reduced_order);
-              mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
-              mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
-              mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
+//			  refElements= Dudley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
+//			  refFaceElements=Dudley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
+//			  refPoints= Dudley_ReferenceElementSet_alloc(Point1,order, reduced_order);
+              mesh_p->Elements=Dudley_ElementFile_alloc(final_element_type, mpi_info);
+              mesh_p->FaceElements=Dudley_ElementFile_alloc(final_face_element_type, mpi_info);
+              mesh_p->Points=Dudley_ElementFile_alloc(Point1, mpi_info);
               if (Dudley_noError()) {
                   Dudley_ElementFile_allocTable(mesh_p->Elements, numElements);
                   Dudley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);
@@ -268,8 +268,8 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                             mesh_p->Elements->Tag[numElements]=tag[e];
                             mesh_p->Elements->Color[numElements]=numElements;
                             mesh_p->Elements->Owner[numElements]=0;
-                            for (j = 0; j<  mesh_p->Elements->referenceElementSet->numNodes; ++j)  {
-                                  mesh_p->Elements->Nodes[INDEX2(j, numElements, mesh_p->Elements->referenceElementSet->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            for (j = 0; j<  mesh_p->Elements->/*referenceElementSet->*/numNodes; ++j)  {
+                                  mesh_p->Elements->Nodes[INDEX2(j, numElements, mesh_p->Elements->/*referenceElementSet->*/numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
                             }
                             numElements++;
                          } else if (element_type[e] == final_face_element_type) {
@@ -277,8 +277,8 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                             mesh_p->FaceElements->Tag[numFaceElements]=tag[e];
                             mesh_p->FaceElements->Color[numFaceElements]=numFaceElements;
                             mesh_p->FaceElements->Owner[numFaceElements]=0;
-                            for (j = 0; j<  mesh_p->FaceElements->referenceElementSet->numNodes; ++j) {
-                                     mesh_p->FaceElements->Nodes[INDEX2(j, numFaceElements, mesh_p->FaceElements->referenceElementSet->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
+                            for (j = 0; j<  mesh_p->FaceElements->/*referenceElementSet->*/numNodes; ++j) {
+                                     mesh_p->FaceElements->Nodes[INDEX2(j, numFaceElements, mesh_p->FaceElements->/*referenceElementSet->*/numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
                             }
                             numFaceElements++;
                          }

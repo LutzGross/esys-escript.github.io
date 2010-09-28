@@ -26,7 +26,7 @@
 
 /**************************************************************/
 
-Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo)
+Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *MPIInfo)
 {
   Dudley_ElementFile *out;
   
@@ -37,7 +37,7 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
   
   out=MEMALLOC(1,Dudley_ElementFile);
   if (Dudley_checkPtr(out)) return NULL;
-  out->referenceElementSet=Dudley_ReferenceElementSet_reference(referenceElementSet);
+//  out->referenceElementSet=Dudley_ReferenceElementSet_reference(referenceElementSet);
   out->numElements=0;
   out->Id=NULL;
   out->Nodes=NULL;
@@ -56,8 +56,8 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
 
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
  
-  out->jacobeans=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
-  out->jacobeans_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
+  out->jacobeans=Dudley_ElementFile_Jacobeans_alloc(0/*referenceElementSet->referenceElement->BasisFunctions*/);
+  out->jacobeans_reducedQ=Dudley_ElementFile_Jacobeans_alloc(0/*referenceElementSet->referenceElementReducedQuadrature->BasisFunctions*/);
 /*
   out->jacobeans_reducedS=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
   out->jacobeans_reducedS_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
@@ -70,11 +70,18 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
      Dudley_ElementFile_free(out);
      return NULL;
   }
-  out->etype=referenceElementSet->referenceElement->Type->TypeId;
-  out->numNodes=out->referenceElementSet->numNodes;
-  out->numDim=referenceElementSet->referenceElement->BasisFunctions->Type->numDim;
+  out->etype=etype;
+
+
+//need to extract these fields without using the reference element
+
+//  out->numNodes=out->referenceElementSet->numNodes;
+//  out->numDim=referenceElementSet->referenceElement->BasisFunctions->Type->numDim;
+  out->numDim=Dims[out->etype];
+  out->numNodes=out->numDim+1;
   out->numLocalDim=localDims[out->etype];
-  out->numShapes=out->jacobeans->numShapes;
+  out->numShapes=out->numLocalDim+1;
+  out->ename=getElementName(out->etype);
   return out;
 }
 
@@ -83,7 +90,7 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referen
 void Dudley_ElementFile_free(Dudley_ElementFile* in) {
   if (in!=NULL) {
      Dudley_ElementFile_freeTable(in);   
-     Dudley_ReferenceElementSet_dealloc(in->referenceElementSet);
+//     Dudley_ReferenceElementSet_dealloc(in->referenceElementSet);
      Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
 /*
      Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
