@@ -16,7 +16,7 @@ import os
 Import('*')
 
 local_env = clone_env(env_mpi)
-if local_env['usesilo']:
+if local_env['silo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])
 

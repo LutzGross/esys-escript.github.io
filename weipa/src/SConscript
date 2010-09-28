@@ -45,18 +45,18 @@ headers = """
     weipa.h
 """.split()
 
-if local_env['usevisit']:
+if local_env['visit']:
     sources.append(['VisItData.cpp'])
     headers.append(['VisItData.h'])
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     local_env.AppendUnique(LIBS = ['simV2'])
 
 local_env.AppendUnique(LIBS = ['esysUtils', 'finley', 'escript'] + env['sys_libs'])
-if local_env['usesilo']:
+if local_env['silo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])
 
-if IS_WINDOWS_PLATFORM :
+if IS_WINDOWS:
   local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
 
 module_name = 'weipa'
@@ -105,7 +105,7 @@ Export('dep_lib')
 # files in the same build directory twice. The plugin is currently only for
 # Linux anyway. Correct fix is probably a second SConscript file with different
 # build_dir setting.
-if not IS_WINDOWS_PLATFORM:
+if not IS_WINDOWS:
     visitplugin_env = clone_env(env_mpi)
     plugin_sources = """
         DataVar.cpp

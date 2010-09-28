@@ -11,10 +11,25 @@
 #
 ########################################################
 
+# This is a template configuration file for escript/finley on Linux.
+# Copy this file to <hostname>_options.py, where <hostname> is your machine's
+# short hostname, then customize to your needs.
+
+# PREFIXES:
+# There are two ways to specify where to find dependent headers and libraries
+# (via the <dependency>_prefix):
+# 1) If your installation follows the general scheme where headers are located
+#    in <prefix>/include[32,64], and libraries in <prefix>/lib[32,64] then
+#    it is sufficient to specify this prefix, e.g. boost_prefix='/usr'
+# 2) Otherwise provide a list with two elements, where the first one is the
+#    include path, and the second the library path, e.g.
+#    boost_prefix=['/usr/include/boost1_44', '/usr/lib']
+# All <dependency>_prefix settings default to '/usr'
+
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+#escript_opts_version = 200
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -35,7 +50,7 @@ escript_opts_version = 200
 
 # Additional compiler (optimization) flags for non-debug builds
 # DEFAULT: compiler-dependent
-cc_optim = '-O3 -mmmx -msse'
+#cc_optim = '-O3 -mmmx -msse'
 
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
@@ -67,7 +82,7 @@ cc_optim = '-O3 -mmmx -msse'
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = True
+#openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -80,13 +95,13 @@ openmp = True
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/usr/lib/openmpi'
+#mpi_prefix = '/usr/lib/openmpi'
 
 # MPI libraries to link against
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
 #boost_prefix = '/usr/local'
@@ -106,7 +121,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
-parmetis = True
+#parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
 #parmetis_prefix = '/usr/local'
@@ -140,10 +155,10 @@ parmetis = True
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
-umfpack = True
+#umfpack = True
 
 # Prefix or paths to UMFPACK headers and libraries. See note above.
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
+#umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
 #umfpack_libs = ['umfpack']
@@ -151,30 +166,30 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-lapack = 'clapack'
+#lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 #lapack_prefix = '/usr/local'
 
 # LAPACK library/libraries to link against
-lapack_libs = ['lapack_atlas']
+#lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/usr/local'
+#silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-silo_libs = ['siloh5', 'hdf5']
+#silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-visit = True
+#visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+#visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']

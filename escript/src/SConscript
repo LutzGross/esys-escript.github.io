@@ -109,7 +109,7 @@ dodgy_sources = """
 local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 local_dodgy.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
 
-if IS_WINDOWS_PLATFORM :
+if IS_WINDOWS:
   local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
   local_dodgy.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
 
