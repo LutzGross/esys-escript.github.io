@@ -106,8 +106,8 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_libs = ['boost_python']
 
 # Whether to use the netCDF library for dump file support
-# DEFAULT: True
-#netcdf = False
+# DEFAULT: False
+#netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
 netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']

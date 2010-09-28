@@ -106,8 +106,8 @@ boost_prefix = ['/usr/local/include/boost-1_38', '/usr/local/lib']
 boost_libs = ['boost_python-xgcc40-mt']
 
 # Whether to use the netCDF library for dump file support
-# DEFAULT: True
-#netcdf = False
+# DEFAULT: False
+netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
 netcdf_prefix = '/opt/local'
