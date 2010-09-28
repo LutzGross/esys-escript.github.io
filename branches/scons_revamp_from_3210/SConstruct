@@ -15,6 +15,7 @@ EnsurePythonVersion(2,5)
 
 import sys, os, platform, re
 from distutils import sysconfig
+from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
@@ -58,15 +59,6 @@ def CallSConscript(obj, **kw):
             kw['build_dir']=kw['variant_dir']
             del kw['variant_dir']
     obj.SConscript(**kw)
-
-# Make a copy of an environment
-# scons <= 0.98: env.Copy()
-# scons >  0.98: env.Clone()
-def clone_env(env):
-    if 'Clone' in dir(env):
-        return env.Clone()
-    else:
-        return env.Copy()
 
 # Prepare user-settable variables
 # scons <= 0.98.0: Options
@@ -164,10 +156,9 @@ adder(
 # Intel's compiler uses regular expressions improperly and emits a warning
 # about failing to find the compilers. This warning can be safely ignored.
 
-if ARGUMENTS.get('tools_names', 'default') == 'default':
-    env = Environment(tools = ['default'], options = vars)
-else:
-    env = Environment(tools = ['default']+env['tools_names'], options = vars)
+env = Environment(tools = ['default'], options = vars)
+if env['tools_names'] != 'default':
+    env = Environment(tools = ['default'] + env['tools_names'], options = vars)
 
 if options_file:
     opts_valid=False
@@ -331,7 +322,8 @@ if IS_WINDOWS:
 else:
     LD_LIBRARY_PATH_KEY='LD_LIBRARY_PATH'
 
-# the following env variables are exported for the unit tests
+# the following env variables are exported for the unit tests, PATH is needed
+# so the compiler/linker is found if they are not in default locations.
 
 for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
     try:
@@ -340,7 +332,7 @@ for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
         env['ENV'][key] = 1
 
 env_export=env['env_export']
-env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY'])
+env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH'])
 
 for key in set(env_export):
     try:
@@ -381,7 +373,7 @@ env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 ############################ Dependency checks ###############################
 
 # Create a Configure() environment to check for compilers and python
-conf = Configure(env)
+conf = Configure(clone_env(env))
 
 ######## Test that the compilers work
 

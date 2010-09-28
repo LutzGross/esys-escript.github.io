@@ -21,9 +21,8 @@ __url__="https://launchpad.net/escript-finley"
 
 import sys, os, time, glob, fnmatch, types, py_compile, re
 
-from SCons.Script.SConscript import SConsEnvironment
-
 def findLibWithHeader(env, libs, header, paths, lang='c'):
+    from SCons.Script.SConscript import Configure
     inc_path=''
     lib_path=''
     # 'paths' may be a prefix, so look for lib and include subdirectories
@@ -56,17 +55,28 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
             raise RuntimeError('%s is not a valid path.'%paths[1])
 
     # now try the library
-    conf=Configure(env)
+    conf=Configure(clone_env(env))
     conf.env.AppendUnique(CPPPATH = [inc_path])
     conf.env.AppendUnique(LIBPATH = [lib_path])
     if type(libs)==str: libs=[libs]
-    for lib in libs:
-        if not conf.CheckLibWithHeader(lib, header, lang):
-            conf.Finish()
-            raise RuntimeError('%s not found in %s, %s'%(lib,inc_path,lib_path))
+    # we can't check for each library by itself since they may depend on each
+    # other, so we add all libraries to the link line and check only for one
+    conf.env.AppendUnique(LIBS = libs)
+    if not conf.CheckLibWithHeader(libs[0], header, lang):
+        conf.Finish()
+        raise RuntimeError('Unable to link against %s (paths: %s, %s)'%(libs,inc_path,lib_path))
 
     conf.Finish()
     return inc_path, lib_path
+
+# Make a copy of an environment
+# scons <= 0.98: env.Copy()
+# scons >  0.98: env.Clone()
+def clone_env(env):
+    if 'Clone' in dir(env):
+        return env.Clone()
+    else:
+        return env.Copy()
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
