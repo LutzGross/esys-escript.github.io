@@ -400,7 +400,8 @@ if conf.CheckFunc('gethostname'):
 
 python_inc_path=sysconfig.get_python_inc()
 python_lib_path=sysconfig.get_config_var('LIBDIR')
-python_libs=[sysconfig.get_config_var('LDLIBRARY')]
+#python_libs=[sysconfig.get_config_var('LDLIBRARY')] #not on darwin
+python_libs=['python'+sysconfig.get_python_version()]
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
