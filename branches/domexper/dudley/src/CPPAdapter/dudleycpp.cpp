@@ -152,28 +152,6 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def("Merge",dudley::meshMerge,args("meshList")
-//       ,return_value_policy<manage_new_object>());
-,"Merges a list of meshes into one mesh.\n\n:rtype: `Domain`"
-  );
-
-  def("GlueFaces",dudley::glueFaces,
-      (arg("meshList"),arg("safetyFactor")=0.2,
-      arg("tolerance")=1.e-8,
-      arg("optimize")=true)
-//       ,return_value_policy<manage_new_object>());
-,"Detects matching faces in the mesh, removes them from the mesh and joins the elements touched by the face elements."
-	);
-
-  def("JoinFaces",dudley::joinFaces,
-      (arg("meshList"), arg("safetyFactor")=0.2,
-      arg("tolerance")=1.e-8,
-      arg("optimize")=true)
-//       ,return_value_policy<manage_new_object>());
-,"Detects matching faces in the mesh and replaces them by joint elements."
-	);
-
-
   class_<dudley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
       ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Dudley_Mesh*> >())
       .def(init<const dudley::MeshAdapter&>())

@@ -77,15 +77,15 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Dudley_ReferenceElementSet_alloc(Tri3,order,reduced_order);
-  refFaceElements=Dudley_ReferenceElementSet_alloc(Line2, order, reduced_order);
-  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+//  refElements= Dudley_ReferenceElementSet_alloc(Tri3,order,reduced_order);
+//  refFaceElements=Dudley_ReferenceElementSet_alloc(Line2, order, reduced_order);
+//  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
   
   if ( Dudley_noError()) {
   
-	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(refPoints, mpi_info));
-	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(refFaceElements, mpi_info));
-	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(refElements, mpi_info));
+	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(Point1, mpi_info));
+	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(Line2, mpi_info));
+	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(Tri3, mpi_info));
 
 //printf("N0=%d, N1=%d\n",N0,N1);
  

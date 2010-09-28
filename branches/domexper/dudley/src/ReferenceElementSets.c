@@ -57,6 +57,11 @@ Dudley_ReferenceElementSet* Dudley_ReferenceElementSet_alloc(ElementTypeId id, i
 		return NULL;
 	} else {
 		out->numNodes=Dudley_ReferenceElement_getNumNodes(out->referenceElement);
+
+
+
+fprintf(stderr, "\nCreated with type %d - dim=%d\n", id, out->referenceElement->BasisFunctions->Type->numDim);
+
 		return Dudley_ReferenceElementSet_reference(out);
 	}
 }

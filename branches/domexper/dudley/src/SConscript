@@ -63,10 +63,7 @@ sources = """
 	Mesh_distributeByRankOfDOF.c
 	Mesh_findMatchingFaces.c
 	Mesh_getPattern.c
-	Mesh_glueFaces.c
-	Mesh_joinFaces.c
 	Mesh_markNodes.c
-	Mesh_merge.c
 	Mesh_optimizeDOFDistribution.c
 	Mesh_optimizeDOFLabeling.c
 	Mesh_prepare.c

@@ -25,7 +25,7 @@ from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noG
 from test_symbols import Test_symbols
 
 from esys.escript import *
-from esys.dudley import Rectangle,Brick,JoinFaces,ReadMesh
+from esys.dudley import Rectangle,Brick,ReadMesh
 import sys
 import os
 

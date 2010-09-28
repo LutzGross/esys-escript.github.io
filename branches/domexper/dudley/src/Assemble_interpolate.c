@@ -98,6 +98,11 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
+
+//escript::Data* temp=(escript::Data*)(interpolated_data->m_dataPtr);
+
+//fprintf(stderr, "\ndpps=%d %d numq=%d %d\n",temp->getNumDataPointsPerSample(),temp->getNumSamples(),numQuad,  elements->numElements);
+
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of input Data object");

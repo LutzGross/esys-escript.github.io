@@ -37,7 +37,7 @@ void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile** in) {
         index=TMPMEMALLOC((*in)->numElements,index_t);
         if (! (Dudley_checkPtr(item_list) || Dudley_checkPtr(index)) ) {
 
-           out=Dudley_ElementFile_alloc((*in)->referenceElementSet, (*in)->MPIInfo);
+           out=Dudley_ElementFile_alloc((*in)->etype/*referenceElementSet*/, (*in)->MPIInfo);
            if (Dudley_noError()) {
                Dudley_ElementFile_allocTable(out,(*in)->numElements);
                if (Dudley_noError()) {

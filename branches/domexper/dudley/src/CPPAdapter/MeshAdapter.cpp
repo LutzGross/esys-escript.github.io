@@ -630,24 +630,24 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
    case(Elements):
    if (mesh->Elements!=NULL) {
       numSamples=mesh->Elements->numElements;
-      numDataPointsPerSample=mesh->Elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+      numDataPointsPerSample=mesh->Elements->numLocalDim+1/*referenceElementSet->referenceElement->BasisFunctions->numQuadNodes*/;
    }
    break;
    case(ReducedElements):
    if (mesh->Elements!=NULL) {
       numSamples=mesh->Elements->numElements;
-      numDataPointsPerSample=mesh->Elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+      numDataPointsPerSample=(mesh->Elements->numLocalDim==0)?0:1;
    }
    break;
    case(FaceElements):
    if (mesh->FaceElements!=NULL) {
-      numDataPointsPerSample=mesh->FaceElements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
+      numDataPointsPerSample=mesh->FaceElements->numLocalDim+1/*referenceElementSet->referenceElement->BasisFunctions->numQuadNodes*/;
       numSamples=mesh->FaceElements->numElements;
    }
    break;
    case(ReducedFaceElements):
    if (mesh->FaceElements!=NULL) {
-      numDataPointsPerSample=mesh->FaceElements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
+      numDataPointsPerSample=(mesh->FaceElements->numLocalDim==0)?0:1/*referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes*/;
       numSamples=mesh->FaceElements->numElements;
    }
    break;

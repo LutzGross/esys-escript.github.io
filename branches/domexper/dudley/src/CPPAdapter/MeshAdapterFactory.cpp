@@ -578,6 +578,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
+/*
   Domain_ptr meshMerge(const boost::python::list& meshList)
   {
     Dudley_Mesh* fMesh=0;
@@ -601,6 +602,9 @@ namespace dudley {
 
     return temp->getPtr();
   }
+*/
+
+/*
 
   Domain_ptr  glueFaces(const boost::python::list& meshList,
                  	               double safety_factor, 
@@ -642,6 +646,8 @@ namespace dudley {
     checkDudleyError();
     return merged_meshes->getPtr();
   }
+*/
+
 
   // end of namespace
 
