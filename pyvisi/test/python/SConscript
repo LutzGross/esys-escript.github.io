@@ -76,12 +76,11 @@ env.Alias('build_py_tests', test_pyc)
 #
 # only run tests if VTK is enabled:
 #
-if env['usevtk']:
+if env['pyvisi']:
     VTK_AVAILABLE = True
 else:
     VTK_AVAILABLE = False
-    print "Warning: VTK disabled, skipping pyvisi tests."
-       
+    print "Skipping pyvisi tests."
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
