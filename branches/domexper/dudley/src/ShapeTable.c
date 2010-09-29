@@ -75,9 +75,6 @@ for (int i=0;i<3;++i)
 arr[5][3*i]=1-_dudley_V[3][2*i] -_dudley_V[3][2*i+1];
 arr[5][3*i+1]=_dudley_V[3][2*i];
 arr[5][3*i+2]=_dudley_V[3][2*i+1];
-
-
-fprintf(stderr, "\nGG 3 (%d)%f (%d)%f (%d)%f\n", 3*i,arr[5][3*i],  3*i+1, arr[5][3*i+1], 3*i+2, arr[5][3*i+2]);
 }
 arr[6]=malloc(4*sizeof(double));	// Tet single
 arr[6][0]=1-_dudley_V[4][0] -_dudley_V[4][1] -_dudley_V[4][2];

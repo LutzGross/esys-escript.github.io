@@ -92,7 +92,7 @@ void Dudley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, const doub
        for (i=0;i<A1;i++) {
           for (j=0;j<A2;j++) {
              rtmp=0;
-             for (s=0;s<B2;s++) rtmp+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
+             for (s=0;s<B2;s++) {rtmp+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];}
 			 A[INDEX2(i,j,A1)]=rtmp;
           }
        }

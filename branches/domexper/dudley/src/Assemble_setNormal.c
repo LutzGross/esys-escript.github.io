@@ -39,7 +39,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 
   switch (elements->numDim)
   {
-  case 2: dSdv=&(DTDV_2D_alt[0][0]);break;
+  case 2: dSdv=&(DTDV_2D[0][0]);break;
   case 3: dSdv=&(DTDV_3D[0][0]);break;
   default:
 	dSdv=&(DTDV_1D[0][0]);break;
@@ -49,7 +49,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
   numDim=nodes->numDim;
   reduced_integration = Dudley_Assemble_reducedIntegrationOrder(normal);
   numQuad=(!reduced_integration)?(elements->numDim+1):1;
-  numDim_local=elements->numDim;
+  numDim_local=elements->numLocalDim;
   NS=elements->numDim+1;
 
   /* set some parameters */
@@ -84,7 +84,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 						  /* gather local coordinates of nodes into local_X: */
 						  Dudley_Util_Gather_double(NS,&(elements->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,local_X);
 						  /*  calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q) */
-						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,/*reference_element->BasisFunctions->*/dSdv);
+						  Dudley_Util_SmallMatMult(numDim,numDim_local*numQuad,dVdv,NS,local_X,dSdv);
 						  /* get normalized vector:	 */
 						  normal_array=getSampleDataRW(normal,e);
 						  Dudley_NormalVector(numQuad,numDim,numDim_local,dVdv,normal_array);

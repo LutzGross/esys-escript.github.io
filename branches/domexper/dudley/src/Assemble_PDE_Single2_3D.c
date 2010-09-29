@@ -63,7 +63,6 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedX = isExpanded(X);
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
-//    double *S = p.row_jac->BasisFunctions->S;
     const double* S = p.shapeFns;
     dim_t len_EM_S = p.numShapes * p.numShapes;
     dim_t len_EM_F = p.numShapes;
@@ -93,7 +92,6 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 			X_p = getSampleDataRO(X, e);
 			Y_p = getSampleDataRO(Y, e);
 
-//                      Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuad,1)]);
 			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
 			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)]);
 			for (q = 0; q < len_EM_S; ++q)
