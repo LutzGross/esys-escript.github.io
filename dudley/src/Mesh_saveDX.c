@@ -203,10 +203,8 @@ void Dudley_Mesh_saveDX(const char * filename_p, Dudley_Mesh *mesh_p, const dim_
          if (isCellCentered[i_data]) {
              if (Dudley_Assemble_reducedIntegrationOrder(data_pp[i_data])) {
 		numPointsPerSample=(elements->numLocalDim==0)?0:1;
-//                numPointsPerSample=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
              } else {
 		  numPointsPerSample=(elements->numLocalDim==0)?0:(elements->numLocalDim+1);
-//                numPointsPerSample=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
              }
              if (numPointsPerSample>0) {
                 fprintf(fileHandle_p, "items %d data follows\n", numCells);

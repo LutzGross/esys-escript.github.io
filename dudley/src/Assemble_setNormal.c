@@ -32,7 +32,6 @@
 void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* elements, escriptDataC* normal) {
   double *local_X=NULL, *dVdv=NULL,*normal_array;
   index_t sign;
-//  Dudley_ReferenceElement* reference_element=NULL;
   dim_t e,q, NN, NS, numDim, numQuad, numDim_local;
   bool_t reduced_integration;
   const double* dSdv=0;
@@ -46,7 +45,6 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile* nodes, Dudley_ElementFile* eleme
 	dSdv=&(DTDV_1D[0][0]);break;
   }
   Dudley_resetError();
-//  reference_element=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, Dudley_Assemble_reducedIntegrationOrder(normal));
   NN=elements->numNodes;
   numDim=nodes->numDim;
   reduced_integration = Dudley_Assemble_reducedIntegrationOrder(normal);

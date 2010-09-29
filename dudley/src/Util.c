@@ -418,7 +418,6 @@ index_t Dudley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
          for (j=0;j<N;j++) {
              for (i=0;i<dim;i++) 
 {
-//printf("%d,%d,%d[%d] %d\n",i,j,dim,INDEX2(i,j,dim),  values[INDEX2(i,j,dim)]);
 out_local=MAX(out_local,values[INDEX2(i,j,dim)]);
 
 }

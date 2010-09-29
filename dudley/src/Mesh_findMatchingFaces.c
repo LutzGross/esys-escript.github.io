@@ -59,7 +59,6 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
       _dist_=0; \
       for (i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)])); \
       } 
-//	Dudley_ReferenceElement*  refElement=NULL;
     char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;   
     Dudley_Mesh_findMatchingFaces_center *center;
@@ -69,12 +68,11 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *nodes, Dudley_ElementFile *f
 	
 	dim_t numDim=nodes->numDim;
 
-//	refElement= Dudley_ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
     NN=faces->numNodes;
 	
-	numNodesOnFace=numNodesOnFaceMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->numNodesOnFace;
-	shiftNodes=shiftNodesMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->shiftNodes;
-	reverseNodes=reverseNodesMap[faces->etype/*refElement->Type->TypeId*/];//refElement->Type->reverseNodes;
+	numNodesOnFace=numNodesOnFaceMap[faces->etype];
+	shiftNodes=shiftNodesMap[faces->etype];
+	reverseNodes=reverseNodesMap[faces->etype];
 	
 	if (numNodesOnFace<=0) {
      sprintf(error_msg,"Dudley_Mesh_findMatchingFaces: matching faces cannot be applied to face elements of type %s",getElementName(faces->etype));

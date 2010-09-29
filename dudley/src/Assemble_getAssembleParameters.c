@@ -26,7 +26,6 @@
 void Assemble_getAssembleParameters(Dudley_NodeFile* nodes,Dudley_ElementFile* elements,Paso_SystemMatrix* S, 
                                         escriptDataC* F, bool_t reducedIntegrationOrder, Assemble_Parameters *parm) {
   Dudley_resetError();
-  parm->reducedIntegrationOrder=reducedIntegrationOrder;
   parm->shapeFns=NULL;
   if (!isEmpty(F) && !isExpanded(F) ) {
       Dudley_setError(TYPE_ERROR,"Assemble_getAssembleParameters: Right hand side is not expanded.");

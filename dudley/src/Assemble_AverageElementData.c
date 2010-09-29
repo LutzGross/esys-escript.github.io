@@ -44,23 +44,16 @@ void Dudley_Assemble_AverageElementData(Dudley_ElementFile* elements,escriptData
 
     numElements=elements->numElements;
     if (Dudley_Assemble_reducedIntegrationOrder(in)) {
-//       numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
 	numQuad_in=QuadNums[elements->numDim][0];
-//       wq=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->QuadWeights;
 wq=QuadWeight[elements->numDim][0];
 
     } else {
 	numQuad_in=QuadNums[elements->numDim][1];
-//       numQuad_in=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
-//       wq=elements->referenceElementSet->referenceElement->BasisFunctions->QuadWeights;
 wq=QuadWeight[elements->numDim][1];
     }
     if (Dudley_Assemble_reducedIntegrationOrder(out)) {
 	numQuad_out=QuadNums[elements->numDim][0];
-
-//       numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->BasisFunctions->numQuadNodes;
     } else {
-//       numQuad_out=elements->referenceElementSet->referenceElement->BasisFunctions->numQuadNodes;
 	numQuad_out=QuadNums[elements->numDim][1];
 
     }

@@ -37,7 +37,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
   dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,Nstride0=0, Nstride1=0,Nstride2=0, local_NE0, local_NE1, local_NE2, local_N0=0, local_N1=0, local_N2=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NDOF2=0,NFaceElements=0, NN;
   index_t node0, myRank, e_offset2, e_offset1, e_offset0=0, offset1=0, offset2=0, offset0=0, global_i0, global_i1, global_i2;
-//  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
   Dudley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
@@ -78,11 +77,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-//  refElements= Dudley_ReferenceElementSet_alloc(Tet4,order,reduced_order);
-//  refFaceElements=Dudley_ReferenceElementSet_alloc(Tri3, order, reduced_order);
-//  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
-  
- 
   if ( Dudley_noError()) {
   
 	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(Point1, mpi_info));
@@ -183,13 +177,9 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
            out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0) 
                                                +Nstride1*(global_i1%NDOF1) 
                                                +Nstride2*(global_i2%NDOF2);
-// 	   printf("N=%d: %f,%f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
-// 		out->Nodes->Coordinates[INDEX2(1,k,DIM)],
-// 		out->Nodes->Coordinates[INDEX2(2,k,DIM)]);
          }
        }
      }
-// printf("Now listing elements\n");
      /*   set the elements: */
 
      int global_adjustment=(offset0+offset1+offset2)%2;	// If we are not the only rank we may need to shift our pattern to match neighbours
@@ -216,7 +206,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   The bottom face (anticlockwise= 0,1,3,2), top face (anticlockwise 4,5,7,6)*/
 	   if ((global_adjustment+i0+i1+i2)%2==0)
 	   {
-// printf("Type0 %d, %d, %d\n",i0,i1,i2);
 	   v[0]=node0;
 	   v[1]=node0+Nstride0;
 	   v[2]=node0+Nstride1;
@@ -228,7 +217,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   }
 	   else
 	   {
-// printf("Type1 %d, %d, %d\n",i0,i1,i2);
 	   // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
 
 	   v[0]=node0+Nstride1;			// node 0 ends up in position 2
@@ -241,22 +229,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   v[7]=node0+Nstride0+Nstride2;	// node 7 -> pos 5
 	   v[5]=node0+Nstride0;			// node 5 -> pos 1
 	   }
-
-// for (int z=0;z<8;++z)
-// {
-//     printf("z[%d]=%d\n", z, v[z]);
-// 
-// }
-
-
-// 	   index_t a=node0, b=node0+Nstride0, c=node0+Nstride1+Nstride0, d=node0+Nstride1;
-// 	   index_t e=node0+Nstride2, f=node0+Nstride2+Nstride0, g=node0+Nstride2+Nstride1+Nstride0,
-// 		 h=node0+Nstride2+Nstride1;
-// 	   
-// 
-// 
-// 	   a=0, b=1, c=3, d=2
-// 	   e=4, f=5, g=7, h=6
 
 	   // elements nodes are numbered: centre, x, y, z
 
@@ -286,44 +258,14 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
 	   out->Elements->Nodes[INDEX2(1,k+4,NN)] =v[0];
 	   out->Elements->Nodes[INDEX2(2,k+4,NN)] =v[6];
 	   out->Elements->Nodes[INDEX2(3,k+4,NN)] =v[3];
-
-
-// for (int z=0;z<5;++z)
-// {
-// printf("E %d:",z);
-//    for (int q=0;q<4;++q)
-//    {
-// 	index_t id=out->Elements->Nodes[INDEX2(q,z,NN)];
-// 	printf("   %d = %f, %f, %f\n", id, out->Nodes->Coordinates[INDEX2(0,id,DIM)],
-// 		out->Nodes->Coordinates[INDEX2(1,id,DIM)], out->Nodes->Coordinates[INDEX2(2,id,DIM)]);
-//    }
-// printf("\n");}
-
-
-/*
-for (int j=0;j<4;++j)
-{
-
-  printf("Elt %d",j);
-  for (int m=0;m<4;++m)
-  {
-     printf(" %d",out->Elements->Nodes[INDEX2(m,k+j,NN)]);
-  }
-  printf("\n");
-}*/
-
-
-
          }
 
        }
      } /* end for */
      /* face elements */
-// printf("Starting face elements\n");
      NN=out->FaceElements->numNodes;
      totalNECount=5*NE0*NE1*NE2;
      faceNECount=0;
-//printf("Bottom\n");
      /*   these are the quadrilateral elements on boundary 1 (x3=0): */
      if (local_NE2>0) 
      {
@@ -374,20 +316,12 @@ for (int j=0;j<4;++j)
 
 
 	      }
-// printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-// printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);
-
             }
           }
-// printf("\n");
           faceNECount+=2*local_NE1*local_NE0;
        }
        totalNECount+=2*NE1*NE0;
-
-//printf("Top\n");
-       /* **  elements on boundary 200 (x3=1) */
+       /* **  elements on boundary 200 (x3=1) - Top*/
        if (local_NE2+e_offset2 == NE2) {
           #pragma omp parallel for private(i0,i1,k,node0) 
           for (i1=0;i1<local_NE1;i1++) {
@@ -430,22 +364,14 @@ for (int j=0;j<4;++j)
 	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n7;
 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n6;
 	      }
-
-// printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-// printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);
-
             }
           }
-/*printf("\n");*/
           faceNECount+=2*local_NE1*local_NE0;
        }
        totalNECount+=2*NE1*NE0;
      }
-//printf("Left\n");
      if (local_NE0>0) {
-        /* **  elements on boundary 001 (x1=0): */
+        /* **  elements on boundary 001 (x1=0): - Left*/
      
         if (e_offset0 == 0) {
            #pragma omp parallel for private(i1,i2,k,node0) 
@@ -453,8 +379,6 @@ for (int j=0;j<4;++j)
              for (i1=0;i1<local_NE1;i1++) {
       
                k=2*(i1+local_NE1*i2)+faceNECount;
-
-//printf("%d, %d ",k,k+1);
                node0=Nstride1*N_PER_E*(i1+e_offset1)+Nstride2*N_PER_E*(i2+e_offset2);
 	       index_t res=2*((i1+e_offset1)+NE1*(i2+e_offset2))+totalNECount;
                out->FaceElements->Id[k]=res;
@@ -491,25 +415,18 @@ for (int j=0;j<4;++j)
 	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n6;
 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n2;
 	   }
-// printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-// printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);
              }
            }
            faceNECount+=2*local_NE1*local_NE2;
         }
-/*printf("\n");*/
-//printf("Right\n");
         totalNECount+=2*NE1*NE2;
-        /* **  elements on boundary 002 (x1=1): */
+        /* **  elements on boundary 002 (x1=1): - Right*/
         if (local_NE0+e_offset0 == NE0) {
            #pragma omp parallel for private(i1,i2,k,node0) 
            for (i2=0;i2<local_NE2;i2++) {
              for (i1=0;i1<local_NE1;i1++) {
                k=2*(i1+local_NE1*i2)+faceNECount;
 
-//printf("%d, %d ",k,k+1);
                node0=Nstride0*N_PER_E*(NE0-1)+Nstride1*N_PER_E*(i1+e_offset1)+Nstride2*N_PER_E*(i2+e_offset2);
 	       index_t res=2*((i1+e_offset1)+NE1*(i2+e_offset2))+totalNECount;
                out->FaceElements->Id[k]=res;
@@ -545,28 +462,20 @@ for (int j=0;j<4;++j)
 	        out->FaceElements->Nodes[INDEX2(1,k+1,NN)]=n3;
 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n7;
 	   }
-// printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-// printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-// out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);
-
              }
            }
            faceNECount+=2*local_NE1*local_NE2;
          }
          totalNECount+=2*NE1*NE2;
      }
-//printf("\n");
-//printf("Front\n");
      if (local_NE1>0) {
-        /* **  elements on boundary 010 (x2=0): */
+        /* **  elements on boundary 010 (x2=0): -Front*/
         if (e_offset1 == 0) {
            #pragma omp parallel for private(i0,i2,k,node0) 
            for (i2=0;i2<local_NE2;i2++) {
              for (i0=0;i0<local_NE0;i0++) {
                k=2*(i0+local_NE0*i2)+faceNECount;
                node0=Nstride0*N_PER_E*(i0+e_offset0)+Nstride2*N_PER_E*(i2+e_offset2);
-//printf("%d, %d ",k,k+1);         
 	       index_t res=2*((i2+e_offset2)+NE2*(e_offset0+i0))+totalNECount;
                out->FaceElements->Id[k]=res;
                out->FaceElements->Tag[k]=FRONTTAG;
@@ -605,25 +514,18 @@ for (int j=0;j<4;++j)
 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n4;
 
 	   }
-/*printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
              }
            }
            faceNECount+=2*local_NE0*local_NE2;
         }
-// printf("\n");
         totalNECount+=2*NE0*NE2;
-//printf("Back\n");
-        /* **  elements on boundary 020 (x2=1): */
+        /* **  elements on boundary 020 (x2=1): - Back*/
         if (local_NE1+e_offset1 == NE1) {
            #pragma omp parallel for private(i0,i2,k,node0) 
            for (i2=0;i2<local_NE2;i2++) {
              for (i0=0;i0<local_NE0;i0++) {
                k=2*(i0+local_NE0*i2)+faceNECount;
                node0=Nstride0*N_PER_E*(i0+e_offset0)+Nstride1*N_PER_E*(NE1-1)+Nstride2*N_PER_E*(i2+e_offset2);
-// printf("%d, %d ",k,k+1);   
 	       index_t res=2*((i2+e_offset2)+NE2*(i0+e_offset0))+totalNECount;
                out->FaceElements->Id[k]=res;
                out->FaceElements->Tag[k]=BACKTAG;
@@ -661,10 +563,6 @@ out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
 	        out->FaceElements->Nodes[INDEX2(2,k+1,NN)]=n3;
 
 	   }
-/*printf("%d: %d, %d, %d\n", k,out->FaceElements->Nodes[INDEX2(0,k,NN)],  out->FaceElements->Nodes[INDEX2(1,k,NN)],
-out->FaceElements->Nodes[INDEX2(2,k,NN)]);
-printf("%d: %d, %d, %d\n", k+1,out->FaceElements->Nodes[INDEX2(0,k+1,NN)],  out->FaceElements->Nodes[INDEX2(1,k+1,NN)],
-out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
              }
            }
            faceNECount+=2*local_NE0*local_NE2;
@@ -672,7 +570,6 @@ out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
         totalNECount+=2*NE0*NE2;
      }
   }
-// printf("\n");
   if (Dudley_noError()) {
      /* add tag names */
      Dudley_Mesh_addTagMap(out,"top", TOPTAG);
@@ -694,9 +591,6 @@ out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
       Dudley_Mesh_free(out);
   }
     /* free up memory */
-//  Dudley_ReferenceElementSet_dealloc(refPoints);
-//  Dudley_ReferenceElementSet_dealloc(refFaceElements);
-//  Dudley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
 
   return out;

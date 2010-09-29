@@ -36,7 +36,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
   dim_t N0,N1,NE0,NE1,i0,i1, Nstride0=0,Nstride1=0, local_NE0, local_NE1, local_N0=0, local_N1=0;
   index_t offset0=0, offset1=0, e_offset0=0, e_offset1=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements;
-//  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
   index_t myRank;
   Dudley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
@@ -77,58 +76,22 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
       Paso_MPIInfo_free( mpi_info );
       return NULL;
   }
-//  refElements= Dudley_ReferenceElementSet_alloc(Tri3,order,reduced_order);
-//  refFaceElements=Dudley_ReferenceElementSet_alloc(Line2, order, reduced_order);
-//  refPoints=Dudley_ReferenceElementSet_alloc(Point1, order, reduced_order);
-  
   if ( Dudley_noError()) {
   
 	  Dudley_Mesh_setPoints(out,Dudley_ElementFile_alloc(Point1, mpi_info));
 	  Dudley_Mesh_setFaceElements(out,Dudley_ElementFile_alloc(Line2, mpi_info));
 	  Dudley_Mesh_setElements(out,Dudley_ElementFile_alloc(Tri3, mpi_info));
-
-//printf("N0=%d, N1=%d\n",N0,N1);
- 
-  	/* work out the largest dimension */
-// 	if (N1==MAX(N0,N1)) {
-// 	    Nstride0=1;
-//      	    Nstride1=N0;
-//      	    local_NE0=NE0;
-//     	    e_offset0=0;
-//     	    Paso_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
-// printf("local_NE0=%d, local_NE1=%d, e_offset0=%d, e_offset1=%d\n", local_NE0, local_NE1, e_offset0, e_offset1);
-// 
-//   	} else {
-// 	    Nstride0=N1;
-//      	    Nstride1=1;
-//      	    Paso_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
-//      	    local_NE1=NE1;
-//     	    e_offset1=0;
-// 
-// printf("local_NE0=%d, local_NE1=%d, e_offset0=%d, e_offset1=%d\n", local_NE0, local_NE1, e_offset0, e_offset1);
-// 
-//   	}
-
-
-	// I'm trying this with always walking the same way
 	Nstride0=1;
 	Nstride1=N0;
 	if (N1==MAX(N0,N1)) {
      	    local_NE0=NE0;
     	    e_offset0=0;
     	    Paso_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
-//printf("local_NE0=%d, local_NE1=%d, e_offset0=%d, e_offset1=%d\n", local_NE0, local_NE1, e_offset0, e_offset1);
-
   	} else {
      	    Paso_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
      	    local_NE1=NE1;
     	    e_offset1=0;
-
-//printf("local_NE0=%d, local_NE1=%d, e_offset0=%d, e_offset1=%d\n", local_NE0, local_NE1, e_offset0, e_offset1);
-
   	}
-
-//printf("Nstride0=%d, Nstride1=%d\n", Nstride0, Nstride1);
   	offset0=e_offset0*N_PER_E;
 	offset1=e_offset1*N_PER_E;
 	local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
@@ -156,9 +119,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
 
 
 	Dudley_NodeFile_allocTable(out->Nodes,local_N0*local_N1);	
-/* 	Dudley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1);
- 	Dudley_ElementFile_allocTable(out->FaceElements,NFaceElements);
-*/
 
 	/* This code was oringinally copied from Finley's rec4 generator 
 	   We double these numbers because each "rectangle" will be split into
@@ -184,14 +144,8 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
            out->Nodes->Tag[k]=0;
            out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0) 
                                                +Nstride1*(global_i1%NDOF1);
-
-
-// 	   printf("N=%d: %f,%f\n", k, out->Nodes->Coordinates[INDEX2(0,k,DIM)],
-// 		out->Nodes->Coordinates[INDEX2(1,k,DIM)]);
-
        }
      }
-//printf("Now listing elements\n");
      /*   set the elements: */
      dim_t NN=out->Elements->numNodes;
      index_t global_adjustment=(offset0+offset1)%2;
@@ -213,11 +167,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
 
 	   /* a,b,c,d gives the nodes in the rectangle in clockwise order*/
 	   index_t a=node0,b=node0+Nstride0,c=node0+Nstride1+Nstride0,d=node0+Nstride1;
-
-// printf("node0=%d, Nstride0=%d, Nstride1=%d\n", node0, Nstride0, Nstride1);
-// printf("a=%d, b=%d, c=%d, d=%d\n",a,b,c,d);
-
-
 	   /* For a little bit of variety  */
 	   if ((global_adjustment+node0)%2)
 	   {
@@ -237,17 +186,8 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
 		out->Elements->Nodes[INDEX2(1,k+1,NN)]=c;
 		out->Elements->Nodes[INDEX2(2,k+1,NN)]=d;
 	   }
-
-// for (int q=k;q<k+2;++q)
-// {
-// printf("E=%d: %d, %d, %d\n", q, out->Elements->Nodes[INDEX2(0,q,NN)],
-// out->Elements->Nodes[INDEX2(1,q,NN)],
-// out->Elements->Nodes[INDEX2(2,q,NN)]);
-// }
-
-         }
+        }
      }
-//printf("Starting face elements\n");
      /* face elements */
      NN=out->FaceElements->numNodes;
      totalNECount=2*NE0*NE1;	/* because we have split the rectangles */
@@ -267,11 +207,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
                out->FaceElements->Owner[k]=myRank;
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0+Nstride1;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0;
-
-
-
-// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE1;
         }
@@ -288,9 +223,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
                out->FaceElements->Owner[k]=myRank;
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0+Nstride0;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+Nstride1+Nstride0;
-
-// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE1;
          }
@@ -310,9 +242,6 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
        
                out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0;
                out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+Nstride0;
-
-// printf("E=%d: %d=%d %d=%d\n",k,INDEX2(0,k,NN),out->FaceElements->Nodes[INDEX2(0,k,NN)], 
-// INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); 
            }
            faceNECount+=local_NE0;
         }
@@ -354,9 +283,6 @@ INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
   }
 
   /* free up memory */
-//  Dudley_ReferenceElementSet_dealloc(refPoints);
-//  Dudley_ReferenceElementSet_dealloc(refFaceElements);
-//  Dudley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
 
   return out;
