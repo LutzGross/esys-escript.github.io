@@ -11,6 +11,10 @@
 #
 ########################################################
 
+# This is a template configuration file for escript/finley on Windows.
+# Copy this file to <hostname>_options.py, where <hostname> is your machine's
+# short hostname, then customize to your needs.
+
 # PREFIXES:
 # There are two ways to specify where to find dependent headers and libraries
 # (via the <dependency>_prefix):
@@ -26,7 +30,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+#escript_opts_version = 200
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -67,7 +71,7 @@ escript_opts_version = 200
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-werror = False
+#werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
@@ -75,7 +79,7 @@ werror = False
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
-verbose = True
+#verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
@@ -101,10 +105,10 @@ verbose = True
 #mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = ['C:/Temp/boost_1_33', 'C:/Temp/boost_1_33/windows_binary/lib']
+#boost_prefix = 'C:/boost'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-vc71-mt-1_33']
+#boost_libs = ['boost_python-vc71-mt-1_39']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
