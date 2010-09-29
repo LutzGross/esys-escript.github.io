@@ -33,12 +33,10 @@ void Dudley_IndexList_insertElements(Dudley_IndexList* index_list, Dudley_Elemen
 {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
   index_t color;
-//  Dudley_ReferenceElement*refElement; 
   dim_t e, kr, kc, NN_row, NN_col, icol, irow, NN;
   if (elements!=NULL)
   {
     NN=elements->numNodes;
-//    refElement= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, FALSE);
     NN_col=(elements->numShapes);
     NN_row=(elements->numShapes) ;
 

@@ -37,8 +37,6 @@ void Dudley_ElementFile_setTags(Dudley_ElementFile* self,const int newTag, escri
 	numElements=self->numElements;
 
 	numQuad=Dudley_Assemble_reducedIntegrationOrder(mask)?1:(self->numDim+1);
-//Dudley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet,Dudley_Assemble_reducedIntegrationOrder(mask))->BasisFunctions->numQuadNodes;
-	
 	if (1!=getDataPointSize(mask)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_ElementFile_setTags: number of components of mask is 1.");
 	} else if (!numSamplesEqual(mask,numQuad,numElements)) {

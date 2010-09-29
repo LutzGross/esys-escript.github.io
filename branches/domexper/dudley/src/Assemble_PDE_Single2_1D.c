@@ -93,7 +93,6 @@ void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters p, Dudley_ElementFile * 
 			Y_p = getSampleDataRO(Y, e);
 
 			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-//                      Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuadTotal,1)]);
 			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.row_numShapesTotal, DIM, p.numQuadTotal, 1)]);
 			for (q = 0; q < len_EM_S; ++q)
 			    EM_S[q] = 0;

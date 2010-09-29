@@ -31,7 +31,6 @@
 void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
                               escriptDataC* grad_data,escriptDataC* data)
 {
-//  Dudley_ReferenceElement*  refElement=NULL;
   size_t localGradSize=0;
   register dim_t e,q,l,s,n;
   register __const double *data_array;
@@ -67,17 +66,14 @@ void Dudley_Assemble_gradient(Dudley_NodeFile* nodes, Dudley_ElementFile* elemen
        Dudley_setError(TYPE_ERROR,"Dudley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
   }
 
-  jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);
-//  refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reducedIntegrationOrder);
-  
+  jac=Dudley_ElementFile_borrowJacobeans(elements,nodes,reducedIntegrationOrder);  
   if (Dudley_noError())
   {
 	numDim=jac->numDim;
-//        numShapes=jac->BasisFunctions->Type->numShapes;
 	numShapesTotal=jac->numShapes;
 	numQuad=jac->numQuad;
 	localGradSize=sizeof(double)*numDim*numQuad*numComps;
-	numShapesTotal2=elements->numShapes;/*refElement->BasisFunctions->Type->numShapes;*/
+	numShapesTotal2=elements->numShapes;
       /* check the dimensions of data */
 
       	if (! numSamplesEqual(grad_data,numQuad,elements->numElements)) {

@@ -37,7 +37,6 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
   
   out=MEMALLOC(1,Dudley_ElementFile);
   if (Dudley_checkPtr(out)) return NULL;
-//  out->referenceElementSet=Dudley_ReferenceElementSet_reference(referenceElementSet);
   out->numElements=0;
   out->Id=NULL;
   out->Nodes=NULL;
@@ -62,12 +61,6 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
      return NULL;
   }
   out->etype=etype;
-
-
-//need to extract these fields without using the reference element
-
-//  out->numNodes=out->referenceElementSet->numNodes;
-//  out->numDim=referenceElementSet->referenceElement->BasisFunctions->Type->numDim;
   out->numDim=Dims[out->etype];
   out->numNodes=out->numDim+1;
   out->numLocalDim=localDims[out->etype];
@@ -81,15 +74,8 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
 void Dudley_ElementFile_free(Dudley_ElementFile* in) {
   if (in!=NULL) {
      Dudley_ElementFile_freeTable(in);   
-//     Dudley_ReferenceElementSet_dealloc(in->referenceElementSet);
      Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
-/*
-     Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
-*/
      Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
-/*
-     Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
-*/
      Paso_MPIInfo_free( in->MPIInfo );
      MEMFREE(in);      
   }

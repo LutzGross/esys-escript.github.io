@@ -105,7 +105,6 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 			DTDXSET(0,0);
 			DTDXSET(1,0);
 		    }
-//		    volume[INDEX2(0,e,1)]=ABS(D)*(*quadweight);
 		}
 		else	// numQuad==3
 		{
@@ -116,7 +115,6 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 			    DTDXSET(0,q);
 			    DTDXSET(1,q);
 			}
-//			volume[INDEX2(q,e,3)]=ABS(D)*(*quadweight);	
 		    }
 		}
 	    }
@@ -167,7 +165,6 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,
 		dTdX[INDEX4(0,1,0,e,numTest,DIM,numQuad)]=-1*dvdX01;
 		dTdX[INDEX4(1,0,0,e,numTest,DIM,numQuad)]=-1*dvdX00;
 		dTdX[INDEX4(1,1,0,e,numTest,DIM,numQuad)]=-1*dvdX01;
-//		volume[INDEX2(0,e,numQuad)]=sqrt(D)*(*quadweight);
 		absD[e]=sqrt(D);
 		if (numQuad==2)
 		{
@@ -175,7 +172,6 @@ void Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,
 		    dTdX[INDEX4(0,1,1,e,numTest,DIM,numQuad)]=dvdX01;
 		    dTdX[INDEX4(1,0,1,e,numTest,DIM,numQuad)]=dvdX00;
 		    dTdX[INDEX4(1,1,1,e,numTest,DIM,numQuad)]=dvdX01;
-//		    volume[INDEX2(1,e,numQuad)]=sqrt(D)*(*quadweight);
 		}
 	    }
 	}
@@ -256,7 +252,6 @@ void Assemble_jacobeans_3D(double* coordinates, dim_t numQuad, dim_t numElements
 			dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDV_3D[s][0]*dvdX01+DTDV_3D[s][1]*dvdX11+DTDV_3D[s][2]*dvdX21;
 			dTdX[INDEX4(s,2,q,e,numTest,DIM,numQuad)]=DTDV_3D[s][0]*dvdX02+DTDV_3D[s][1]*dvdX12+DTDV_3D[s][2]*dvdX22;
 		    }
-//		    volume[INDEX2(q,e,numQuad)]=ABS(D)*(*quadweight);
                 }
 	    }
 	}
@@ -331,7 +326,6 @@ void Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad, dim_t num
 			dTdX[INDEX4(s,1,q,e,numTest,DIM,numQuad)]=DTDV[s][0]*dvdX01+DTDV[s][1]*dvdX11;
 			dTdX[INDEX4(s,2,q,e,numTest,DIM,numQuad)]=DTDV[s][0]*dvdX02+DTDV[s][1]*dvdX12;
 		    }
-//		    volume[INDEX2(q,e,numQuad)]=sqrt(D)*(*quadweight);
 		}
 	    }
 	}

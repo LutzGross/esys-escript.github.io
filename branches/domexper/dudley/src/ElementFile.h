@@ -17,7 +17,6 @@
 
 #include "Dudley.h"
 #include "NodeFile.h"
-//#include "ReferenceElementSets.h"
 #include "ElementType.h"
 #include "escript/DataC.h"
 
@@ -29,11 +28,8 @@
 struct Dudley_ElementFile_Jacobeans {
   Dudley_Status_t status;               /* status of mesh when jacobeans where updated last time */
   dim_t numDim;                         /* spatial dimension */
-//  Dudley_ShapeFunction* BasisFunctions; /* basis function used */
-//  dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobeans */
-  dim_t numQuad;
-  dim_t numShapes;
-//  dim_t numShapesTotal;         /* total number of shape functions =  BasisFunctions->numShapes */
+  dim_t numQuad;	/* number of quadrature nodes used to calculate jacobeans */
+  dim_t numShapes;	/* number of shape functions */
   dim_t numElements;            /* number of elements */
   double* absD;			/* used to compute volume */
   double quadweight;		/* used to compute volume */
@@ -45,8 +41,6 @@ typedef struct Dudley_ElementFile_Jacobeans Dudley_ElementFile_Jacobeans;
 struct Dudley_ElementFile {
   Paso_MPIInfo *MPIInfo;
   Paso_MPI_rank *Owner;
-
-//  Dudley_ReferenceElementSet *referenceElementSet; /* the reference element to be used */
 
   dim_t numElements;                             /* number of elements. */
   
@@ -87,13 +81,12 @@ struct Dudley_ElementFile {
   Dudley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
   dim_t numDim;		/* spatial dimension of the domain */
   dim_t numLocalDim;	/* dimension of the element eg 2 for A line in 2D or 3D */
-  ElementTypeId etype;
-  const char* ename;  
-  dim_t numShapes;
+  ElementTypeId etype;	/* element type */
+  const char* ename;    /* name of element type */
+  dim_t numShapes;	/* number of shape functions */
 };
 
 typedef struct Dudley_ElementFile Dudley_ElementFile;
-//Dudley_ElementFile* Dudley_ElementFile_alloc(Dudley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo);
 Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *MPIInfo);
 void Dudley_ElementFile_free(Dudley_ElementFile*);
 void Dudley_ElementFile_allocTable(Dudley_ElementFile*,dim_t);

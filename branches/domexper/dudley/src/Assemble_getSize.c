@@ -47,10 +47,6 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   // now we look up what type of elements we need based on the function space of element_size
   // if it is DUDLEY_REDUCED_ELEMENTS or DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point
 
-//  refElement=Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet,Dudley_Assemble_reducedIntegrationOrder(element_size));
-//  shape= refElement->BasisFunctions;
-//  numQuad=shape->numQuadNodes;
-
   if (Dudley_Assemble_reducedIntegrationOrder(element_size))
   {
 	numQuad=1;
@@ -61,11 +57,8 @@ void Dudley_Assemble_getSize(Dudley_NodeFile* nodes, Dudley_ElementFile* element
   }
 
   NN=elements->numNodes;
-//  NS=refElement->BasisFunctions->Type->numShapes;
   NS=elements->numDim+1;
-//  NVertices=refElement->BasisFunctions->Type->numVertices;
   NVertices=elements->numDim+1;
-  
   
   /* check the dimensions of element_size */
 

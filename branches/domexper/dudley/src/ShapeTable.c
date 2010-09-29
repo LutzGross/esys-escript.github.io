@@ -13,12 +13,13 @@
 #include "ShapeTable.h"
 #include <stdlib.h>
 
-// Joel Fenwick - derived from info in Finley's Quadrature and shape files
+/* Joel Fenwick - derived from info in Finley's Quadrature and shape files
 
-// This method is not threadsafe unless the initial call has completed
-// Evaluates the shape functions at nodes (This is the S value from the finley ShapeFunctions
-// The dim argument is the dimension of the element not the dimension of the embedding space.
-// the reduced arg is whether the elements are reduced or not
+This method is not threadsafe unless the initial call has completed
+Evaluates the shape functions at nodes (This is the S value from the finley ShapeFunctions
+The dim argument is the dimension of the element not the dimension of the embedding space.
+the reduced arg is whether the elements are reduced or not
+*/
 bool_t getQuadShape(dim_t dim, bool_t reduced, const double** shapearr)
 {
 #define _dudley_s_alpha 0.58541019662496852

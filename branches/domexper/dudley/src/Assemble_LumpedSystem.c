@@ -110,7 +110,6 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
     len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     
     expandedD=isExpanded(D);
-//    S=p.row_jac->BasisFunctions->S;
     if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
     {
 	Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: Unable to locate shape function.");
@@ -132,13 +131,11 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile* nodes,Dudley_ElementFile* ele
                     #pragma omp for private(e) schedule(static)
                     for(e=0;e<elements->numElements;e++){              
 			if (elements->Color[e]==color) {
-//                               Vol=&(p.row_jac->volume[INDEX3(0,0,e, p.numQuad,1)]);
 				double vol=p.row_jac->absD[e]*p.row_jac->quadweight;
                                D_p=getSampleDataRO(D,e);                          
 			       #ifdef NEW_LUMPING /* HRZ lumping */
                                    m_t=0; /* mass of the element: m_t */
                                    for (q=0;q<p.numQuad;q++) m_t+=vol*D_p[INDEX2(q, 0,p.numQuad) ];
-                          
                                    diagS=0; /* diagonal sum: S */
                                    for (s=0;s<p.numShapes;s++) {
                                       rtmp=0;

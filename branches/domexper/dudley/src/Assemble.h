@@ -23,7 +23,6 @@
 
 /**************************************************************/
 
-//#include "ReferenceElements.h"
 #include "Dudley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
@@ -40,8 +39,6 @@ struct Assemble_Parameters {
    index_t* row_DOF;
    dim_t row_DOF_UpperBound;
    Dudley_ElementFile_Jacobeans* row_jac;
-//   dim_t row_numShapesTotal;
-//   dim_t row_numShapes;
    dim_t numShapes;
  
    dim_t numComp;
@@ -49,8 +46,6 @@ struct Assemble_Parameters {
    dim_t col_DOF_UpperBound;
 
    const double* shapeFns;
-   bool_t reducedIntegrationOrder;	// can we get rid of this one?
-
 };
 
 typedef struct Assemble_Parameters Assemble_Parameters;

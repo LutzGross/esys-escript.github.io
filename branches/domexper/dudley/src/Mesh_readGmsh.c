@@ -40,7 +40,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   char line[LenString_MAX+1];
   char error_msg[LenErrorMsg_MAX];
   double rtmp0, rtmp1;
-//  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
 #ifdef Dudley_TRACE
   double time0=Dudley_timer();
 #endif
@@ -243,9 +242,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                     final_face_element_type=Tri3;
                  }
               }
-//			  refElements= Dudley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
-//			  refFaceElements=Dudley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
-//			  refPoints= Dudley_ReferenceElementSet_alloc(Point1,order, reduced_order);
               mesh_p->Elements=Dudley_ElementFile_alloc(final_element_type, mpi_info);
               mesh_p->FaceElements=Dudley_ElementFile_alloc(final_face_element_type, mpi_info);
               mesh_p->Points=Dudley_ElementFile_alloc(Point1, mpi_info);
@@ -319,9 +315,6 @@ Dudley_Mesh* Dudley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
      /* rearrange elements: */
      if (Dudley_noError()) Dudley_Mesh_prepare(mesh_p, optimize);
 	 /* free up memory */
-// 	 Dudley_ReferenceElementSet_dealloc(refPoints);
-// 	 Dudley_ReferenceElementSet_dealloc(refFaceElements);
-// 	 Dudley_ReferenceElementSet_dealloc(refElements);
 	 Paso_MPIInfo_free( mpi_info );
 	 if (! Dudley_noError()) {
         Dudley_Mesh_free(mesh_p);

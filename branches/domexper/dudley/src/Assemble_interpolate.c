@@ -34,8 +34,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   double* local_data=NULL; 
   bool_t reduced_integration=FALSE;
   dim_t q, i, NS_DOF, NN, numNodes=0, e, numQuad=0;
-//  Dudley_ReferenceElement* reference_element=NULL;
-//  Dudley_ShapeFunction *basis=NULL;
   dim_t numComps=getDataPointSize(data);
   index_t *map=NULL;
   const double* shapeFns=0;
@@ -49,19 +47,16 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
   #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
   reduced_integration = Dudley_Assemble_reducedIntegrationOrder(interpolated_data);
-//  reference_element= Dudley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reduced_integration);
   NN=elements->numNodes;
   
   /* set some parameter */
 
   if (data_type==DUDLEY_NODES) {
 	   type=NODES;
-//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetNodes(nodes);
   } else if (data_type==DUDLEY_REDUCED_NODES) {
 	   type=REDUCED_NODES;
-//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedNodes(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedNodes(nodes);
   } else if (data_type==DUDLEY_DEGREES_OF_FREEDOM) {
@@ -70,7 +65,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=DOF;
-//	   basis=reference_element->BasisFunctions;	
 	   numNodes=Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
   } else if (data_type==DUDLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -79,7 +73,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 		  return;
 	   }
 	   type=REDUCED_DOF;
-//	   basis=reference_element->BasisFunctions;
 	   numNodes=Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	   map=Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
    } else {
@@ -87,22 +80,12 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 	   return;
   }
 
-//  numQuad=basis->numQuadNodes;
   numQuad=reduced_integration?1:(elements->numDim+1);
-//  numShapesTotal2=basis->Type->numShapes;
-//  NS_DOF=basis->Type->numShapes;
   NS_DOF=elements->numDim+1;
-
-//fprintf(stderr,"\nnumQuad=%d,%d DOF=%d %d RI=%d\n",numQuad, reduced_integration?1:(elements->numDim+1),  NS_DOF,elements->numDim+1 , reduced_integration);
 
   /* check the dimensions of interpolated_data and data */
 
   if (! numSamplesEqual(interpolated_data,numQuad,elements->numElements)) {
-
-//escript::Data* temp=(escript::Data*)(interpolated_data->m_dataPtr);
-
-//fprintf(stderr, "\ndpps=%d %d numq=%d %d\n",temp->getNumDataPointsPerSample(),temp->getNumSamples(),numQuad,  elements->numElements);
-
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {
 	   Dudley_setError(TYPE_ERROR,"Dudley_Assemble_interpolate: illegal number of samples of input Data object");
@@ -119,58 +102,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile *nodes, Dudley_ElementFile* ele
 
 
   /* now we can start */
-
-
-//fprintf(stderr,"\nrange=%d elements->numDim=%d %d %d\n",INDEX2(NS_DOF,numQuad,NS_DOF), elements->numDim, NS_DOF, numQuad) ;
-
-/*
-fprintf(stderr,"\nQQ %d", elements->numDim);
-for (int j=0;j<numQuad;++j)
-{
-for (int s=0;s<NS_DOF;++s)
-{
-dim_t ind=INDEX2(s,j,NS_DOF);
-fprintf(stderr," [%d]%f", ind,basis->S[ind]);
-}
-
-}
-fprintf(stderr,"\n");
-*/
-
-/*
-bool_t f=0;
-for (int j=0;j<numQuad;++j)
-{
-for (int s=0;s<NS_DOF;++s)
-{
-dim_t ind=INDEX2(s,j,NS_DOF);
-dim_t ind2=ind%(numQuad*numQuad);
-if (fabs(basis->S[ind]-shapeFns[ind2])>0.0001)
-{
-   f=1;
-   break;
-}
-
-}
-
-}
-
-if (f)
-{
-
-for (int j=0;j<numQuad;++j)
-{
-for (int s=0;s<NS_DOF;++s)
-{
-dim_t ind=INDEX2(s,j,NS_DOF);
-fprintf(stderr, "\nZZ %d %d %f %f\n",elements->numDim, ind, basis->S[ind],shapeFns[ind%(numQuad*numQuad)]);
-}
-
-}
-
-
-}
-*/
 
   if (Dudley_noError())
   {
