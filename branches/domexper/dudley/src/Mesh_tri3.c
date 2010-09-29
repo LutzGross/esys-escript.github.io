@@ -36,7 +36,7 @@ Dudley_Mesh* Dudley_TriangularMesh_Tri3(dim_t* numElements,
   dim_t N0,N1,NE0,NE1,i0,i1, Nstride0=0,Nstride1=0, local_NE0, local_NE1, local_N0=0, local_N1=0;
   index_t offset0=0, offset1=0, e_offset0=0, e_offset1=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements;
-  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
+//  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
   index_t myRank;
   Dudley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
@@ -354,9 +354,9 @@ INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
   }
 
   /* free up memory */
-  Dudley_ReferenceElementSet_dealloc(refPoints);
-  Dudley_ReferenceElementSet_dealloc(refFaceElements);
-  Dudley_ReferenceElementSet_dealloc(refElements);
+//  Dudley_ReferenceElementSet_dealloc(refPoints);
+//  Dudley_ReferenceElementSet_dealloc(refFaceElements);
+//  Dudley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
 
   return out;

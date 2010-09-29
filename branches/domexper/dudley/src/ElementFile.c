@@ -47,8 +47,6 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
   out->maxColor=-1;
   out->jacobeans=NULL;
   out->jacobeans_reducedQ=NULL;
-//  out->jacobeans_reducedS=NULL;
-//  out->jacobeans_reducedS_reducedQ=NULL;
 
   out->Owner=NULL;                
   out->numTagsInUse=0;
@@ -56,16 +54,9 @@ Dudley_ElementFile* Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
 
   out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
  
-  out->jacobeans=Dudley_ElementFile_Jacobeans_alloc(0/*referenceElementSet->referenceElement->BasisFunctions*/);
-  out->jacobeans_reducedQ=Dudley_ElementFile_Jacobeans_alloc(0/*referenceElementSet->referenceElementReducedQuadrature->BasisFunctions*/);
-/*
-  out->jacobeans_reducedS=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
-  out->jacobeans_reducedS_reducedQ=Dudley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
-*/
+  out->jacobeans=Dudley_ElementFile_Jacobeans_alloc();
+  out->jacobeans_reducedQ=Dudley_ElementFile_Jacobeans_alloc();
 
-
-//  out->jacobeans_reducedS=out->jacobeans;
-//  out->jacobeans_reducedS_reducedQ=out->jacobeans_reducedQ;
   if (! Dudley_noError()) {
      Dudley_ElementFile_free(out);
      return NULL;

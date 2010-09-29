@@ -29,7 +29,7 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     Paso_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;
     Dudley_Mesh *mesh_p=NULL;
-    Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
+//    Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
@@ -195,7 +195,7 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	{
 		scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 		FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
-		typeID=Dudley_ReferenceElement_getTypeId(element_type);
+		typeID=eltTypeFromString(element_type);
 	}
 	#ifdef PASO_MPI
 	if (mpi_info->size > 1)
@@ -307,7 +307,7 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	{
 		scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 		FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
-		typeID=Dudley_ReferenceElement_getTypeId(element_type);
+		typeID=eltTypeFromString(element_type);
 	}
 	#ifdef PASO_MPI
 	if (mpi_info->size > 1)
@@ -419,7 +419,7 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	{
 		scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 		FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")
-		typeID=Dudley_ReferenceElement_getTypeId(element_type);
+		typeID=eltTypeFromString(element_type);
 	}
 	#ifdef PASO_MPI
 	if (mpi_info->size > 1)
@@ -626,9 +626,9 @@ Dudley_Mesh* Dudley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	Dudley_Mesh_free(mesh_p);
     }
     /* free up memory */
-    Dudley_ReferenceElementSet_dealloc(refPoints);
-    Dudley_ReferenceElementSet_dealloc(refFaceElements);
-    Dudley_ReferenceElementSet_dealloc(refElements);
+//    Dudley_ReferenceElementSet_dealloc(refPoints);
+//    Dudley_ReferenceElementSet_dealloc(refFaceElements);
+//    Dudley_ReferenceElementSet_dealloc(refElements);
     Paso_MPIInfo_free( mpi_info );
     return mesh_p;
 }

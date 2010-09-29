@@ -23,7 +23,7 @@ This file is not to be included in .h files - only .c files should have any use 
 
 #include "paso/Common.h"	// I just want the types not all the includes that get dragged in - fix that
 
-#include "ReferenceElements.h"   // This is just for the elementTypes
+#include "ElementType.h"
 
 // These are constructed from dsdv in ShapeFunction.c in finley
 // The first two are just there for functions that want a pointer

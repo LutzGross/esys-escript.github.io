@@ -701,6 +701,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
 };
 
+/*
 // Do not use this class. It is a convenience wrapper for the dataexporter.
 class DUDLEY_DLL_API ReferenceElementSetWrapper {
  public:
@@ -713,7 +714,7 @@ class DUDLEY_DLL_API ReferenceElementSetWrapper {
  private:
   Dudley_ReferenceElementSet* m_refSet;
 };
-
+*/
 
 } // end of namespace
 
