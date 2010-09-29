@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 
 /*   Dudley: Mesh: NodeFile */
@@ -25,27 +24,33 @@
 
 /**************************************************************/
 
+void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, escriptDataC * newX)
+{
+    char error_msg[LenErrorMsg_MAX];
+    size_t numDim_size;
+    int n;
+    if (getDataPointSize(newX) != self->numDim)
+    {
+	sprintf(error_msg, "Dudley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.", self->numDim);
+	Dudley_setError(VALUE_ERROR, error_msg);
+    }
+    else if (!numSamplesEqual(newX, 1, self->numNodes))
+    {
+	sprintf(error_msg, "Dudley_NodeFile_setCoordinates: number of given nodes must to be %d.", self->numNodes);
+	Dudley_setError(VALUE_ERROR, error_msg);
+    }
+    else
+    {
+	numDim_size = self->numDim * sizeof(double);
+	Dudley_increaseStatus(self);
+#pragma omp parallel private(n)
+	{
 
-void Dudley_NodeFile_setCoordinates(Dudley_NodeFile* self,escriptDataC* newX) {
-  char error_msg[LenErrorMsg_MAX];
-  size_t numDim_size;
-  int n;
-   if (getDataPointSize(newX)!=self->numDim)  {
-      sprintf(error_msg,"Dudley_NodeFile_setCoordinates: dimension of new coordinates has to be %d.",self->numDim);
-      Dudley_setError(VALUE_ERROR,error_msg);
-   } else if (! numSamplesEqual(newX,1,self->numNodes)) {
-         sprintf(error_msg,"Dudley_NodeFile_setCoordinates: number of given nodes must to be %d.",self->numNodes);
-         Dudley_setError(VALUE_ERROR,error_msg);
-   } else {
-          numDim_size=self->numDim*sizeof(double);
-          Dudley_increaseStatus(self);
-	  #pragma omp parallel private(n)
-	  {
-
-             #pragma omp for schedule(static)
-             for (n=0;n<self->numNodes;n++) {
-            	memcpy(&(self->Coordinates[INDEX2(0,n,self->numDim)]), getSampleDataROFast(newX,n), numDim_size);
-             }
-	  }
-   }
+#pragma omp for schedule(static)
+	    for (n = 0; n < self->numNodes; n++)
+	    {
+		memcpy(&(self->Coordinates[INDEX2(0, n, self->numDim)]), getSampleDataROFast(newX, n), numDim_size);
+	    }
+	}
+    }
 }

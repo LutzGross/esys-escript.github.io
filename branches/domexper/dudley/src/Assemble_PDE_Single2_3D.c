@@ -63,7 +63,7 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedX = isExpanded(X);
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
-    const double* S = p.shapeFns;
+    const double *S = p.shapeFns;
     dim_t len_EM_S = p.numShapes * p.numShapes;
     dim_t len_EM_F = p.numShapes;
 
@@ -149,7 +149,8 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -213,13 +214,13 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 						 B_q[INDEX2(0, q, DIM)] +
 						 DSDX[INDEX3(s, 1, q, p.numShapes, DIM)] *
 						 B_q[INDEX2(1, q, DIM)] +
-						 DSDX[INDEX3(s, 2, q, p.numShapes, DIM)] *
-						 B_q[INDEX2(2, q, DIM)]);
+						 DSDX[INDEX3(s, 2, q, p.numShapes, DIM)] * B_q[INDEX2(2, q, DIM)]);
 					}
 					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -262,13 +263,13 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 						 DSDX[INDEX3(r, 0, q, p.numShapes, DIM)] +
 						 C_q[INDEX2(1, q, DIM)] *
 						 DSDX[INDEX3(r, 1, q, p.numShapes, DIM)] +
-						 C_q[INDEX2(2, q, DIM)] *
-						 DSDX[INDEX3(r, 2, q, p.numShapes, DIM)]);
+						 C_q[INDEX2(2, q, DIM)] * DSDX[INDEX3(r, 2, q, p.numShapes, DIM)]);
 					}
 					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -311,7 +312,8 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -319,11 +321,8 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuad; q++)
-					    rtmp +=
-						vol * S[INDEX2(s, q, p.numShapes)] *
-						S[INDEX2(r, q, p.numShapes)];
-					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] +=
-					    rtmp * D_p[0];
+					    rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(r, q, p.numShapes)];
+					EM_S[INDEX4(0, 0, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp * D_p[0];
 				    }
 				}
 			    }
@@ -347,12 +346,12 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 						   X_q[INDEX2(0, q, DIM)] +
 						   DSDX[INDEX3(s, 1, q, p.numShapes, DIM)] *
 						   X_q[INDEX2(1, q, DIM)] +
-						   DSDX[INDEX3(s, 2, q, p.numShapes, DIM)] *
-						   X_q[INDEX2(2, q, DIM)]);
+						   DSDX[INDEX3(s, 2, q, p.numShapes, DIM)] * X_q[INDEX2(2, q, DIM)]);
 				    }
 				    EM_F[INDEX2(0, s, p.numEqu)] += rtmp;
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -385,7 +384,8 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 					rtmp += vol * S[INDEX2(s, q, p.numShapes)] * Y_q[q];
 				    EM_F[INDEX2(0, s, p.numEqu)] += rtmp;
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -404,8 +404,7 @@ void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters p, Dudley_ElementFile * 
 			    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
 
 			if (add_EM_F)
-			    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_F, F_p,
-						   p.row_DOF_UpperBound);
+			    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_F, F_p, p.row_DOF_UpperBound);
 			if (add_EM_S)
 			    Dudley_Assemble_addToSystemMatrix(Mat, p.numShapes, row_index, p.numEqu,
 							      p.numShapes, row_index, p.numComp, EM_S);

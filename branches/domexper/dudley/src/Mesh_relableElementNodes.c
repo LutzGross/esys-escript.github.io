@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 
 /*   Dudley: Mesh */
@@ -26,8 +25,9 @@
 
 /**************************************************************/
 
-void Dudley_Mesh_relableElementNodes(index_t* newNode,index_t offset,Dudley_Mesh* in) {
-      Dudley_ElementFile_relableNodes(newNode,offset,in->Elements);
-      Dudley_ElementFile_relableNodes(newNode,offset,in->FaceElements);
-      Dudley_ElementFile_relableNodes(newNode,offset,in->Points);
+void Dudley_Mesh_relableElementNodes(index_t * newNode, index_t offset, Dudley_Mesh * in)
+{
+    Dudley_ElementFile_relableNodes(newNode, offset, in->Elements);
+    Dudley_ElementFile_relableNodes(newNode, offset, in->FaceElements);
+    Dudley_ElementFile_relableNodes(newNode, offset, in->Points);
 }

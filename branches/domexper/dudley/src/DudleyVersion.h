@@ -11,10 +11,9 @@
 *
 *******************************************************/
 
-
 #ifndef INC_DUDLEYVERSION
 #define INC_DUDLEYVERSION
 
-char Dudley_Version[]="$Revision$";
+char Dudley_Version[] = "$Revision$";
 
-#endif 
+#endif

@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 
 /*   Dudley: Mesh: sets new coordinates for nodes */
@@ -22,10 +21,11 @@
 
 /**************************************************************/
 
-
-void Dudley_Mesh_setCoordinates(Dudley_Mesh* self,escriptDataC* newX) {
-  Dudley_NodeFile_setCoordinates(self->Nodes,newX);
+void Dudley_Mesh_setCoordinates(Dudley_Mesh * self, escriptDataC * newX)
+{
+    Dudley_NodeFile_setCoordinates(self->Nodes, newX);
 }
+
 /*
 * $Log$
 */
