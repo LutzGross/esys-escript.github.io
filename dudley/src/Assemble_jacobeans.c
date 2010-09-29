@@ -98,23 +98,27 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 		dvdX11= dXdv00*invD;
 		if (numQuad==1)
 		{
-		    for (s=0;s<3; s++)
-		    {
-#define DTDXSET(P,Q) dTdX[INDEX4(s,P,Q,e,numTest,DIM,numQuad)] = DTDV_2D[s][0]*dvdX0##P+DTDV_2D[s][1]*dvdX1##P
+dTdX[INDEX4(0,0,0,e,numTest,DIM,numQuad)] = DTDV_2D[0][0]*dvdX00+DTDV_2D[1][1]*dvdX10;
+dTdX[INDEX4(1,0,0,e,numTest,DIM,numQuad)] = DTDV_2D[0][1]*dvdX00+DTDV_2D[1][0]*dvdX10;
+dTdX[INDEX4(2,0,0,e,numTest,DIM,numQuad)] = DTDV_2D[2][0]*dvdX00+DTDV_2D[2][1]*dvdX10;
 
-			DTDXSET(0,0);
-			DTDXSET(1,0);
-		    }
+dTdX[INDEX4(0,1,0,e,numTest,DIM,numQuad)] = DTDV_2D[0][0]*dvdX01+DTDV_2D[1][1]*dvdX11;
+dTdX[INDEX4(1,1,0,e,numTest,DIM,numQuad)] = DTDV_2D[0][1]*dvdX01+DTDV_2D[1][0]*dvdX11;
+dTdX[INDEX4(2,1,0,e,numTest,DIM,numQuad)] = DTDV_2D[2][0]*dvdX01+DTDV_2D[2][1]*dvdX11;
+
 		}
 		else	// numQuad==3
 		{
 		    for (q=0;q<numTest;++q)	// relying on unroll loops to optimise this
 		    {
-			for (s=0;s<3; s++)
-			{
-			    DTDXSET(0,q);
-			    DTDXSET(1,q);
-			}
+dTdX[INDEX4(0,0,q,e,numTest,DIM,numQuad)] = DTDV_2D[0][0]*dvdX00+DTDV_2D[1][1]*dvdX10;
+dTdX[INDEX4(1,0,q,e,numTest,DIM,numQuad)] = DTDV_2D[0][1]*dvdX00+DTDV_2D[1][0]*dvdX10;
+dTdX[INDEX4(2,0,q,e,numTest,DIM,numQuad)] = DTDV_2D[2][0]*dvdX00+DTDV_2D[2][1]*dvdX10;
+
+dTdX[INDEX4(0,1,q,e,numTest,DIM,numQuad)] = DTDV_2D[0][0]*dvdX01+DTDV_2D[1][1]*dvdX11;
+dTdX[INDEX4(1,1,q,e,numTest,DIM,numQuad)] = DTDV_2D[0][1]*dvdX01+DTDV_2D[1][0]*dvdX11;
+dTdX[INDEX4(2,1,q,e,numTest,DIM,numQuad)] = DTDV_2D[2][0]*dvdX01+DTDV_2D[2][1]*dvdX11;
+
 		    }
 		}
 	    }

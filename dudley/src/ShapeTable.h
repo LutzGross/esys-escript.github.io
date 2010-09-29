@@ -29,20 +29,14 @@ This file is not to be included in .h files - only .c files should have any use 
 // The first two are just there for functions that want a pointer
 static const double DTDV_0D[1][1]={{0}};
 static const double DTDV_1D[2][2]={{-1.,1},{-1.,1.}};
-static const double DTDV_2D[3][2]={{-1,-1}, {1,0}, {0,1}};
-static const double DTDV_3D[4][3]={{-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-
-
-// If these appear to be in a different order to finley it is because finley uses macros to hide Fortran array ordering
-static const double DTDV_2D_alt[3*3][2]={{-1,1}, {0,-1.}, {0,1},
+// The repetition here is a hack to prevent out of bounds access
+static const double DTDV_2D[3*3][2]={{-1,1}, {0,-1.}, {0,1},
 {-1,1}, {0,-1.}, {0,1},
 {-1,1}, {0,-1.}, {0,1}
 };
-// the repetition is a hack
-// Why didn't I just reorder DTDV_2D?   Well some code apparently depends on the order as written.
-// should probably fix that
+static const double DTDV_3D[4][3]={{-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
-// Index by ElementTypeID
+// Index by the following by ElementTypeID
 // The number of local dimensions (as opposed to dimension of the embedding space)
 static const dim_t localDims[8]={0,1,2,3,0,1,2,0};
 static const dim_t Dims[8]={0,1,2,3,1,2,3,0};
