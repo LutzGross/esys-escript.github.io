@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 
 /*   Dudley: ElementFile */
@@ -26,16 +25,20 @@
 
 /**************************************************************/
 
-void Dudley_ElementFile_relableNodes(index_t* newNode,index_t offset,Dudley_ElementFile* in) {
-   dim_t i,j,NN;
+void Dudley_ElementFile_relableNodes(index_t * newNode, index_t offset, Dudley_ElementFile * in)
+{
+    dim_t i, j, NN;
 
-   if (in!=NULL) {
-     NN=in->numNodes;
-     #pragma omp parallel for private(j,i) schedule(static)
-     for (j=0;j<in->numElements;j++) {
-       for (i=0;i<NN;i++) {
-         in->Nodes[INDEX2(i,j,NN)]=newNode[in->Nodes[INDEX2(i,j,NN)]-offset];
-       }
-     }
-   }
+    if (in != NULL)
+    {
+	NN = in->numNodes;
+#pragma omp parallel for private(j,i) schedule(static)
+	for (j = 0; j < in->numElements; j++)
+	{
+	    for (i = 0; i < NN; i++)
+	    {
+		in->Nodes[INDEX2(i, j, NN)] = newNode[in->Nodes[INDEX2(i, j, NN)] - offset];
+	    }
+	}
+    }
 }

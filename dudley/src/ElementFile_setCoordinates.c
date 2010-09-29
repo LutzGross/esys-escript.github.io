@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 
 /*   Dudley: Mesh: sets new coordinates for elements */
@@ -22,13 +21,14 @@
 
 /**************************************************************/
 
-
-void Dudley_ElementFile_setCoordinates(Dudley_ElementFile* self,escriptDataC* newX) {
-  /* self->volume_is_valid=FALSE;   
-  self->DSDV_is_valid=FALSE;    
-  self->DSLinearDV_is_valid=FALSE; 
-  self->X_is_valid=FALSE;          */
+void Dudley_ElementFile_setCoordinates(Dudley_ElementFile * self, escriptDataC * newX)
+{
+    /* self->volume_is_valid=FALSE;   
+       self->DSDV_is_valid=FALSE;    
+       self->DSLinearDV_is_valid=FALSE; 
+       self->X_is_valid=FALSE;          */
 }
+
 /*
 * $Log$
 */

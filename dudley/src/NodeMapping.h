@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /*                                                                                                                     */
 /* NodeMapping provides a mapping from the local nodes typically to the degrees of freedom,                            */
 /*    the reduced degrees of freedom or the reduced node set                                                           */
@@ -22,19 +21,18 @@
 
 #include "paso/Paso_MPI.h"
 
-
 struct Dudley_NodeMapping {
-  dim_t numNodes; /* number of FEM nodes */
-  index_t *target; /* target[i] defines the target if FEM  node i =0,...,numNodes */
-  index_t unused;  /* target[i]=unused defines that no target is defined for FEM  node i */
-  dim_t numTargets; /* number of targets */
-  index_t *map;  /* maps the target nodes back to the FEM nodes: target[map[i]]=i */
-  dim_t reference_counter;
+    dim_t numNodes;		/* number of FEM nodes */
+    index_t *target;		/* target[i] defines the target if FEM  node i =0,...,numNodes */
+    index_t unused;		/* target[i]=unused defines that no target is defined for FEM  node i */
+    dim_t numTargets;		/* number of targets */
+    index_t *map;		/* maps the target nodes back to the FEM nodes: target[map[i]]=i */
+    dim_t reference_counter;
 };
 typedef struct Dudley_NodeMapping Dudley_NodeMapping;
 
-Dudley_NodeMapping* Dudley_NodeMapping_alloc(dim_t numNodes, index_t* target, index_t unused);
-void Dudley_NodeMapping_free(Dudley_NodeMapping*);
-Dudley_NodeMapping*  NodeMapping_getReference(Dudley_NodeMapping *in );
+Dudley_NodeMapping *Dudley_NodeMapping_alloc(dim_t numNodes, index_t * target, index_t unused);
+void Dudley_NodeMapping_free(Dudley_NodeMapping *);
+Dudley_NodeMapping *NodeMapping_getReference(Dudley_NodeMapping * in);
 
 #endif

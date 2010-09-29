@@ -11,7 +11,6 @@
 *
 *******************************************************/
 
-
 /**************************************************************/
 /*                                                                                            */
 /*   Dudley: ElementFile                                                                      */
@@ -26,12 +25,16 @@
 
 /**************************************************************/
 
-void Dudley_ElementFile_setNodeRange(index_t* min_id,index_t* max_id,Dudley_ElementFile* in) {
-   if (in!=NULL) {
-      *min_id=Dudley_Util_getMinInt(in->numNodes, in->numElements,in->Nodes);
-      *max_id=Dudley_Util_getMaxInt(in->numNodes, in->numElements,in->Nodes);
-   } else {
-       *min_id=INDEX_T_MAX;
-       *max_id=-INDEX_T_MAX;
-   }
+void Dudley_ElementFile_setNodeRange(index_t * min_id, index_t * max_id, Dudley_ElementFile * in)
+{
+    if (in != NULL)
+    {
+	*min_id = Dudley_Util_getMinInt(in->numNodes, in->numElements, in->Nodes);
+	*max_id = Dudley_Util_getMaxInt(in->numNodes, in->numElements, in->Nodes);
+    }
+    else
+    {
+	*min_id = INDEX_T_MAX;
+	*max_id = -INDEX_T_MAX;
+    }
 }

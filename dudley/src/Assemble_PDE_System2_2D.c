@@ -63,7 +63,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
     bool_t extendedX = isExpanded(X);
     bool_t extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
-    const double* S = p.shapeFns; 
+    const double *S = p.shapeFns;
     dim_t len_EM_S = p.numShapes * p.numShapes * p.numEqu * p.numComp;
     dim_t len_EM_F = p.numShapes * p.numEqu;
 
@@ -136,13 +136,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 							       A_q[INDEX5(k, 1, m, 1, q, p.numEqu, DIM, p.numComp, DIM)]
 							       * DSDX[INDEX3(r, 1, q, p.numShapes, DIM)]);
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] +=
-						    rtmp;
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 					    }
 					}
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -203,13 +203,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 							 DSDX[INDEX3(s, 1, q, p.numShapes, DIM)] *
 							 B_q[INDEX4(k, 1, m, q, p.numEqu, DIM, p.numComp)]);
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] +=
-						    rtmp;
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 					    }
 					}
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -263,13 +263,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 							 C_q[INDEX4(k, m, 1, q, p.numEqu, p.numComp, DIM)] *
 							 DSDX[INDEX3(r, 1, q, p.numShapes, DIM)]);
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] +=
-						    rtmp;
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 					    }
 					}
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -322,13 +322,13 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 							D_q[INDEX3(k, m, q, p.numEqu, p.numComp)] *
 							S[INDEX2(r, q, p.numShapes)];
 						}
-						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] +=
-						    rtmp;
+						EM_S[INDEX4(k, m, s, r, p.numEqu, p.numComp, p.numShapes)] += rtmp;
 					    }
 					}
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -336,9 +336,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuad; q++)
-					    rtmp +=
-						vol * S[INDEX2(s, q, p.numShapes)] *
-						S[INDEX2(r, q, p.numShapes)];
+					    rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(r, q, p.numShapes)];
 					for (k = 0; k < p.numEqu; k++)
 					{
 					    for (m = 0; m < p.numComp; m++)
@@ -377,7 +375,8 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -410,12 +409,12 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 				    {
 					rtmp = 0;
 					for (q = 0; q < p.numQuad; q++)
-					    rtmp +=
-						vol * S[INDEX2(s, q, p.numShapes)] * Y_q[INDEX2(k, q, p.numEqu)];
+					    rtmp += vol * S[INDEX2(s, q, p.numShapes)] * Y_q[INDEX2(k, q, p.numEqu)];
 					EM_F[INDEX2(k, s, p.numEqu)] += rtmp;
 				    }
 				}
-			    } else
+			    }
+			    else
 			    {
 				for (s = 0; s < p.numShapes; s++)
 				{
@@ -434,8 +433,7 @@ void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters p, Dudley_ElementFile * 
 			    row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
 
 			if (add_EM_F)
-			    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_F, F_p,
-						   p.row_DOF_UpperBound);
+			    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_F, F_p, p.row_DOF_UpperBound);
 			if (add_EM_S)
 			    Dudley_Assemble_addToSystemMatrix(Mat, p.numShapes, row_index, p.numEqu,
 							      p.numShapes, row_index, p.numComp, EM_S);

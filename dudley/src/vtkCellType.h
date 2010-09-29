@@ -68,5 +68,3 @@
 #define VTK_PARAMETRIC_HEX_REGION   56
 
 #endif
-
-
