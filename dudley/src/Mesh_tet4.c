@@ -37,7 +37,7 @@ Dudley_Mesh* Dudley_TriangularMesh_Tet4(dim_t* numElements,
   dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,Nstride0=0, Nstride1=0,Nstride2=0, local_NE0, local_NE1, local_NE2, local_N0=0, local_N1=0, local_N2=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NDOF2=0,NFaceElements=0, NN;
   index_t node0, myRank, e_offset2, e_offset1, e_offset0=0, offset1=0, offset2=0, offset0=0, global_i0, global_i1, global_i2;
-  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
+//  Dudley_ReferenceElementSet *refPoints=NULL, *refFaceElements=NULL, *refElements=NULL;
   Dudley_Mesh* out;
   Paso_MPIInfo *mpi_info = NULL;
   char name[50];
@@ -694,9 +694,9 @@ out->FaceElements->Nodes[INDEX2(2,k+1,NN)]);*/
       Dudley_Mesh_free(out);
   }
     /* free up memory */
-  Dudley_ReferenceElementSet_dealloc(refPoints);
-  Dudley_ReferenceElementSet_dealloc(refFaceElements);
-  Dudley_ReferenceElementSet_dealloc(refElements);
+//  Dudley_ReferenceElementSet_dealloc(refPoints);
+//  Dudley_ReferenceElementSet_dealloc(refFaceElements);
+//  Dudley_ReferenceElementSet_dealloc(refElements);
   Paso_MPIInfo_free( mpi_info );  
 
   return out;

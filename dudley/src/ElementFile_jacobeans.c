@@ -22,7 +22,7 @@
 
 /**************************************************************/
 
-Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFunction* BasisFunctions)
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(void)
 {
   Dudley_ElementFile_Jacobeans* out=MEMALLOC(1,Dudley_ElementFile_Jacobeans);
   if (Dudley_checkPtr(out)) {

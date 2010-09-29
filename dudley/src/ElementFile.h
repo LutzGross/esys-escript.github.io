@@ -17,7 +17,8 @@
 
 #include "Dudley.h"
 #include "NodeFile.h"
-#include "ReferenceElementSets.h"
+//#include "ReferenceElementSets.h"
+#include "ElementType.h"
 #include "escript/DataC.h"
 
 #ifdef PASO_MPI
@@ -114,7 +115,7 @@ void Dudley_ElementFile_copyTable(dim_t,Dudley_ElementFile*,dim_t,dim_t,Dudley_E
 void Dudley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Dudley_ElementFile*in ,bool_t useLinear);
 
 void Dudley_ElementFile_setTags(Dudley_ElementFile* ,const int, escriptDataC*);
-Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(Dudley_ShapeFunction* );
+Dudley_ElementFile_Jacobeans* Dudley_ElementFile_Jacobeans_alloc(void);
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans*);
 Dudley_ElementFile_Jacobeans* Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile*, Dudley_NodeFile*, bool_t);
 void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile* in);

@@ -56,6 +56,7 @@ sources = """
 	ElementFile_setCoordinates.c
 	ElementFile_setNodeRange.c
 	ElementFile_setTags.c
+	ElementType.c
 	Dudley.c
 	IndexList.c
 	Mesh.c
@@ -89,13 +90,9 @@ sources = """
 	NodeFile_setIdRange.c
 	NodeFile_setTags.c
 	NodeMapping.c
-	Quadrature.c
-	ReferenceElements.c
-	ShapeFunctions.c
 	ShapeTable.c
 	TagMap.c
 	Util.c
-	ReferenceElementSets.c
 	CPPAdapter/DudleyAdapterException.cpp
 	CPPAdapter/DudleyError.cpp
 	CPPAdapter/MeshAdapter.cpp
@@ -111,21 +108,18 @@ unroll_sources= """
 
 headers = """
 	Assemble.h
-	ElementFile.h
 	Dudley.h
 	DudleyVersion.h
+	ElementFile.h
+	ElementType.h
 	IndexList.h
 	Mesh.h
 	NodeFile.h
 	NodeMapping.h
-	Quadrature.h
 	TriangularMesh.h
-	ReferenceElements.h
-	ShapeFunctions.h
 	ShapeTable.h
 	TagMap.h
 	Util.h
-	ReferenceElementSets.h
 	vtkCellType.h
 """.split()
 cppadapter_headers = """
