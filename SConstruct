@@ -239,9 +239,9 @@ elif cc_name[:3] == 'gcc':
     sysheaderopt = "-isystem"
 elif cc_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = "/EHsc /GR /MD /wd4068 -D_USE_MATH_DEFINES -DDLL_NETCDF"
-    cc_optim     = "/O2 /Op /MT /W3"
-    cc_debug     = "/Od /RTCcsu /MTd /ZI -DBOUNDS_CHECK"
+    cc_flags     = "/EHsc /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
+    cc_optim     = "/O2 /Op /W3"
+    cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
 elif cc_name == 'icl':
     # Intel C on Windows
@@ -399,9 +399,15 @@ if conf.CheckFunc('gethostname'):
 ######## Python headers & library (required)
 
 python_inc_path=sysconfig.get_python_inc()
-python_lib_path=sysconfig.get_config_var('LIBDIR')
-#python_libs=[sysconfig.get_config_var('LDLIBRARY')] #not on darwin
-python_libs=['python'+sysconfig.get_python_version()]
+if IS_WINDOWS:
+    python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+else:
+    python_lib_path=sysconfig.get_config_var('LIBDIR')
+#python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
+if IS_WINDOWS:
+    python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+else:
+    python_libs=['python'+sysconfig.get_python_version()]
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
