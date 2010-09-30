@@ -62,7 +62,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
   /* allocations: */  
 /*  printf("n_block= %d, n= %d\n", n_block, n); */
   Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
-  if (Paso_checkPtr(out)) return NULL;
+  if (Esys_checkPtr(out)) return NULL;
   out->colorOf=MEMALLOC(n,index_t);
   out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
   /*out->diag=MEMALLOC(A->len,double);*/
@@ -72,15 +72,15 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
   out->n_block=n_block;
   out->n=n;
 
-  if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
-    time0=Paso_timer();
+  if ( !(Esys_checkPtr(out->colorOf) || Esys_checkPtr(out->main_iptr) || Esys_checkPtr(out->factors)) ) {
+    time0=Esys_timer();
     Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
-    time_color=Paso_timer()-time0;
+    time_color=Esys_timer()-time0;
 
-    if (Paso_noError()) {
-       time0=Paso_timer();
+    if (Esys_noError()) {
+       time0=Esys_timer();
 
-       if (! (Paso_checkPtr(out->diag))) {
+       if (! (Esys_checkPtr(out->diag))) {
              if (n_block==1) {
                 #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
@@ -93,7 +93,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                            if (ABS(A->val[iPtr]) > 0.) {
                                 out->diag[i]=1./(A->val[iPtr]);
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -124,7 +124,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                                 out->diag[i*4+2]= -A12*D;
                                 out->diag[i*4+3]=  A11*D;
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -170,7 +170,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                                   out->diag[i*9+7]= (A13*A21-A11*A23)*D;
                                   out->diag[i*9+8]= (A11*A22-A12*A21)*D;
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -180,10 +180,10 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
              }
        }
 
-       time_fac=Paso_timer()-time0;
+       time_fac=Esys_timer()-time0;
      }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose) {
          printf("GS_MPI: %d color used \n",out->num_colors);
          printf("timing: GS_MPI: coloring/elemination : %e/%e\n",time_color,time_fac);

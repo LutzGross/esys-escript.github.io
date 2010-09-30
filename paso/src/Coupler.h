@@ -33,7 +33,7 @@ typedef struct Paso_Connector {
   Paso_SharedComponents* send;
   Paso_SharedComponents* recv;
   dim_t reference_counter;
-  Paso_MPIInfo *mpi_info;
+  Esys_MPIInfo *mpi_info;
 
 } Paso_Connector;
 typedef struct Paso_Coupler {
@@ -54,7 +54,7 @@ typedef struct Paso_Coupler {
  #endif
   
   dim_t reference_counter;
-  Paso_MPIInfo *mpi_info;
+  Esys_MPIInfo *mpi_info;
 
 } Paso_Coupler;
 

@@ -20,6 +20,8 @@ local_env = clone_env(env_mpi)
 sources = """
 	EsysAssertException.cpp
 	EsysException.cpp
+	Esys_MPI.c
+	error.c
 	esysExceptionTranslator.cpp
         blocktimer.c
 """.split()
@@ -28,10 +30,16 @@ headers = """
 	EsysAssertException.h
 	EsysException.h
 	EsysTypes.h
+	Esys_MPI.h
+	error.h
 	esys_malloc.h
 	esysExceptionTranslator.h
         blocktimer.h
+	mem.h
+	index.h
+	maths.h
 	system_dep.h
+	types.h
 """.split()
 
 lib_name = 'esysUtils'

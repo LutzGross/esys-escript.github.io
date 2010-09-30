@@ -55,11 +55,11 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
   bool_t flag;
   dim_t n=pattern_p->numOutput;
   if (pattern_p->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
     return;
   }
   value=TMPMEMALLOC(n,double);
-  if (!Paso_checkPtr(value)) {
+  if (!Esys_checkPtr(value)) {
 
    
      /* is there any vertex available ?*/
@@ -124,7 +124,7 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
   index_t out=0, *mis_marker=NULL,i;
   dim_t n=pattern->numOutput;
   mis_marker=TMPMEMALLOC(n,index_t);
-  if ( !Paso_checkPtr(mis_marker) ) {
+  if ( !Esys_checkPtr(mis_marker) ) {
     /* get coloring */
     #pragma omp parallel for private(i) schedule(static)
     for (i = 0; i < n; ++i) {
@@ -132,7 +132,7 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
         mis_marker[i]=-1;
     }
 
-    while (Paso_Util_isAny(n,colorOf,-1) && Paso_noError()) {
+    while (Paso_Util_isAny(n,colorOf,-1) && Esys_noError()) {
        /*#pragma omp parallel for private(i) schedule(static)
        for (i = 0; i < n; ++i) mis_marker[i]=colorOf[i];*/
        Paso_Pattern_mis(pattern,mis_marker);

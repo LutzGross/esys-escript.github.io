@@ -90,7 +90,7 @@ struct Dudley_Mesh {
     Paso_SystemMatrixPattern *FullReducedPattern;
     Paso_SystemMatrixPattern *ReducedFullPattern;
     Paso_SystemMatrixPattern *ReducedReducedPattern;
-    Paso_MPIInfo *MPIInfo;
+    Esys_MPIInfo *MPIInfo;
 };
 
 typedef struct Dudley_Mesh Dudley_Mesh;
@@ -106,7 +106,7 @@ typedef struct Dudley_Mesh_findMatchingFaces_center Dudley_Mesh_findMatchingFace
 /**************************************************************/
 
 /*  interfaces: */
-Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Paso_MPIInfo * mpi_info);
+Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info);
 Dudley_Mesh *Dudley_Mesh_reference(Dudley_Mesh *);
 dim_t Dudley_Mesh_getDim(Dudley_Mesh *);
 void Dudley_Mesh_free(Dudley_Mesh *);

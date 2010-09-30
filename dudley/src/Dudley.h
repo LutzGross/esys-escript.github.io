@@ -20,8 +20,10 @@
 
 /**************************************************************/
 
-#include "paso/Paso.h"
-#include "paso/Paso_MPI.h"
+#include "esysUtils/types.h"
+//#include "paso/Paso.h"
+#include "esysUtils/Esys_MPI.h"
+#include "esysUtils/error.h"
 
 /**************************************************************/
 /*#define Dudley_TRACE */
@@ -51,7 +53,7 @@ typedef int Dudley_Status_t;
 
 /* error codes */
 
-typedef Paso_ErrorCodeType Dudley_ErrorCodeType;
+typedef Esys_ErrorCodeType Dudley_ErrorCodeType;
 
 /* interfaces */
 
@@ -63,8 +65,8 @@ bool_t Dudley_noError(void);
 Dudley_ErrorCodeType Dudley_getErrorType(void);
 char *Dudley_getErrorMessage(void);
 void Dudley_convertPasoError(void);
-bool_t Dudley_MPI_noError(Paso_MPIInfo * mpi_info);
+bool_t Dudley_MPI_noError(Esys_MPIInfo * mpi_info);
 void Dudley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t * numTagsInUse, index_t ** tagsInUse,
-			 Paso_MPIInfo * mpiinfo);
+			 Esys_MPIInfo * mpiinfo);
 
 #endif				/* #ifndef INC_DUDLEY */

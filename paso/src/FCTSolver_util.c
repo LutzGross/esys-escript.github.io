@@ -59,7 +59,7 @@ void Paso_FCTSolver_setLowOrderOperator(Paso_TransportProblem * fc) {
                                                    fc->transport_matrix->col_block_size, TRUE);
   }
 
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       pattern=fc->iteration_matrix->pattern;
       n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
       #pragma omp parallel for private(i,sum,iptr_ij,j,iptr_ji,rtmp1, rtmp2,d_ij)  schedule(static)

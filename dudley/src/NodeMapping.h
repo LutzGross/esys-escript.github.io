@@ -19,7 +19,7 @@
 #ifndef INC_DUDLEY_NODEMAPPING
 #define INC_DUDLEY_NODEMAPPING
 
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 
 struct Dudley_NodeMapping {
     dim_t numNodes;		/* number of FEM nodes */

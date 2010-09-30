@@ -56,7 +56,7 @@ void Paso_MKL_free(Paso_SystemMatrix* A) {
                    &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
                    iparm, &msglvl,&ddum, &ddum, &error);
           MEMFREE(A->solver);
-          if (error != MKL_ERROR_NO) Paso_setError(TYPE_ERROR,"memory release in paradiso library failed.");
+          if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in paradiso library failed.");
      }
 #endif
 }
@@ -72,7 +72,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
      index_t i;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Paso_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
+        Esys_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
         return;
      }
      options->converged=FALSE;
@@ -117,10 +117,10 @@ void Paso_MKL(Paso_SystemMatrix* A,
      if (pt==NULL) {
         /* allocate address pointer */
         pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
-        if (Paso_checkPtr(pt)) return;
+        if (Esys_checkPtr(pt)) return;
         A->solver=(void*) pt;
         for (i=0;i<64;++i) pt[i]=NULL;
-        time0=Paso_timer();
+        time0=Esys_timer();
         /* symbolic factorization */
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
@@ -128,7 +128,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
              if (options->verbose) printf("MKL: symbolic factorization factorization failed.\n");
-             Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
+             Esys_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
              Paso_MKL_free(A);
         } else {
            /* LDU factorization */
@@ -138,18 +138,18 @@ void Paso_MKL(Paso_SystemMatrix* A,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
              if (options->verbose) printf("MKL: LDU factorization failed.\n");
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
+             Esys_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
              Paso_MKL_free(A);
            }
            if (options->verbose) printf("MKL: LDU factorization completed.\n");
         }
-        options->set_up_time=Paso_timer()-time0;
+        options->set_up_time=Esys_timer()-time0;
      } else {
         options->set_up_time=0;
      }
      /* forward backward substitution\ */
-     if (Paso_noError())  {
-        time0=Paso_timer();
+     if (Esys_noError())  {
+        time0=Esys_timer();
         phase = MKL_PHASE_SOLVE;
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                  &n, A->mainBlock->val, A->mainBlock->pattern->ptr, A->mainBlock->pattern->index, &idum, &nrhs,
@@ -157,7 +157,7 @@ void Paso_MKL(Paso_SystemMatrix* A,
         if (options->verbose) printf("MKL: solve completed.\n");
         if (error != MKL_ERROR_NO) {
               if (options->verbose) printf("MKL: forward/backward substitution failed.\n");
-              Paso_setError(VALUE_ERROR,"forward/backward substitution in paradiso library failed. Most likely the matrix is singular.");
+              Esys_setError(VALUE_ERROR,"forward/backward substitution in paradiso library failed. Most likely the matrix is singular.");
         } else {
             if (options->verbose) printf("MKL: forward/backward substitution completed.\n");
             options->residual_norm=0.;
@@ -166,11 +166,11 @@ void Paso_MKL(Paso_SystemMatrix* A,
             options->num_inner_iter=0;
             options->converged=TRUE;
         }
-        options->time=Paso_timer()-time0 + options->set_up_time;
+        options->time=Esys_timer()-time0 + options->set_up_time;
      }
      Performance_stopMonitor(pp,PERFORMANCE_ALL);
 #else
-    Paso_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
+    Esys_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
 #endif
 }
 
@@ -196,7 +196,7 @@ void Paso_MKL_free1(Paso_SparseMatrix* A) {
                    &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                    iparm, &msglvl,&ddum, &ddum, &error);
           MEMFREE(A->solver);
-          if (error != MKL_ERROR_NO) Paso_setError(TYPE_ERROR,"memory release in paradiso library failed.");
+          if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in paradiso library failed.");
      }
 #endif
 }
@@ -210,7 +210,7 @@ void Paso_MKL1(Paso_SparseMatrix* A,
      index_t i;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Paso_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
+        Esys_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
         return;
      }
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
@@ -248,7 +248,7 @@ void Paso_MKL1(Paso_SparseMatrix* A,
      if (pt==NULL) {
         /* allocate address pointer */
         pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
-        if (Paso_checkPtr(pt)) return;
+        if (Esys_checkPtr(pt)) return;
         A->solver=(void*) pt;
         for (i=0;i<64;++i) pt[i]=NULL;
         /* symbolic factorization */
@@ -257,7 +257,7 @@ void Paso_MKL1(Paso_SparseMatrix* A,
                  &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
-             Paso_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
+             Esys_setError(VALUE_ERROR,"symbolic factorization in paradiso library failed.");
              Paso_MKL_free1(A);
         } else {
            /* LDU factorization */
@@ -266,25 +266,25 @@ void Paso_MKL1(Paso_SparseMatrix* A,
                 &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
+             Esys_setError(ZERO_DIVISION_ERROR,"factorization in paradiso library failed. Most likely the matrix is singular.");
              Paso_MKL_free1(A);
            }
            if (verbose) printf("MKL: LDU factorization completed.\n");
         }
      }
      /* forward backward substitution\ */
-     if (Paso_noError())  {
+     if (Esys_noError())  {
         phase = MKL_PHASE_SOLVE;
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                  &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (verbose) printf("MKL: solve completed.\n");
         if (error != MKL_ERROR_NO) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
+              Esys_setError(VALUE_ERROR,"forward/backward substition in paradiso library failed. Most likely the matrix is singular.");
         }
      }
 #else
-    Paso_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
+    Esys_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
 #endif
 }
 /*

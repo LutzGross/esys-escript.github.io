@@ -35,9 +35,7 @@ sources = """
 	Options_getSolver.c
 	Options_setDefaults.c
 	PCG.c
-	Paso.c
 	PasoUtil.c
-	Paso_MPI.c
 	Pattern.c
 	Pattern_getSubpattern.c
 	Pattern_mis.c
@@ -101,7 +99,6 @@ headers = """
 	Options.h
 	Paso.h
 	PasoUtil.h
-	Paso_MPI.h
 	Pattern.h
 	Pattern_coupling.h
 	SharedComponents.h

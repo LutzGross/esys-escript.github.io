@@ -28,7 +28,7 @@
 
 /**************************************************************/
 
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info) {
+index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info) {
   index_t out=PASO_PASO;
   if (package==PASO_DEFAULT) {
       if (solver==PASO_DIRECT) {
@@ -60,7 +60,7 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
   } else if (package==PASO_TRILINOS) {
       out=PASO_TRILINOS;
   } else {
-      Paso_setError(VALUE_ERROR,"Unidentified package.");
+      Esys_setError(VALUE_ERROR,"Unidentified package.");
   }
   return out;
 }

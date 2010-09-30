@@ -38,7 +38,7 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            Paso_SystemMatrix_free(in->transport_matrix);
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
-           Paso_MPIInfo_free(in->mpi_info);
+           Esys_MPIInfo_free(in->mpi_info);
            Paso_Coupler_free(in->u_coupler);
            MEMFREE(in->constraint_weights);
            MEMFREE(in->reactive_matrix);
@@ -80,7 +80,7 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
      dim_t n,i;
 
      out=MEMALLOC(1,Paso_TransportProblem);
-     if (Paso_checkPtr(out)) return NULL;
+     if (Esys_checkPtr(out)) return NULL;
      out->reference_counter=0;
      out->useBackwardEuler=useBackwardEuler;
      out->dt_max=LARGE_POSITIVE_FLOAT;
@@ -98,14 +98,14 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
      out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
      out->iteration_matrix=NULL;
      out->constraint_weights=NULL;
-     out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
+     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
 
      out->lumped_mass_matrix=NULL;
      out->main_diagonal_low_order_transport_matrix=NULL;
      out->reactive_matrix=NULL;
      out->main_diagonal_mass_matrix=NULL;
 
-     if (Paso_noError()) {
+     if (Esys_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
          transport_pattern=out->transport_matrix->pattern;
          out->constraint_weights=MEMALLOC(n,double);
@@ -115,9 +115,9 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
          out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double);
          out->u_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(out),block_size);
 
-         if ( ! (Paso_checkPtr(out->constraint_weights) || 
-	         Paso_checkPtr(out->reactive_matrix) || Paso_checkPtr(out->main_diagonal_mass_matrix) || 
-                 Paso_checkPtr(out->lumped_mass_matrix) || Paso_checkPtr(out->main_diagonal_low_order_transport_matrix)) && Paso_noError()  ) 
+         if ( ! (Esys_checkPtr(out->constraint_weights) || 
+	         Esys_checkPtr(out->reactive_matrix) || Esys_checkPtr(out->main_diagonal_mass_matrix) || 
+                 Esys_checkPtr(out->lumped_mass_matrix) || Esys_checkPtr(out->main_diagonal_low_order_transport_matrix)) && Esys_noError()  ) 
 	 {
                  #pragma omp parallel for schedule(static) private(i)
                  for (i = 0; i < n; ++i) {
@@ -126,7 +126,7 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
                  }
 	 }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
      out->reference_counter=1;
      return out;
   } else {
@@ -153,7 +153,7 @@ Paso_Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProble
    return in->transport_matrix->pattern->col_connector;
 }
 
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Paso_MPIInfo *mpi_info) 
+index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info) 
 {
    return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
 }
@@ -168,11 +168,11 @@ void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const d
    const index_t* main_iptr=Paso_SparseMatrix_borrowMainDiagonalPointer(fctp->mass_matrix->mainBlock);
    
    if ( fctp->valid_matrices ) {
-      Paso_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: you must not insert a constraint is a valid system.");
+      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: you must not insert a constraint is a valid system.");
       return;
    }
    if (factor<=0) {
-      Paso_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: constraint_factor needs to be positive.");
+      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: constraint_factor needs to be positive.");
       return;
    }
 

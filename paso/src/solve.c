@@ -44,16 +44,16 @@ void Paso_solve(Paso_SystemMatrix* A,
 
   Paso_Performance pp;
   index_t package;
-  Paso_resetError();
+  Esys_resetError();
   if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)
                 || A->col_block_size!=A->row_block_size) {
-       Paso_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
+       Esys_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
   /* Paso_Options_show(options); */
   Performance_open(&pp,options->verbose);
   package=Paso_Options_getPackage(options->method,options->package,options->symmetric, A->mpi_info);
-  if (Paso_noError()) {
+  if (Esys_noError()) {
      switch(package) {
 
         case PASO_PASO:
@@ -64,7 +64,7 @@ void Paso_solve(Paso_SystemMatrix* A,
         #ifdef MKL
         case PASO_MKL:
           if (A->mpi_info->size>1) {
-              Paso_setError(VALUE_ERROR,"Paso_solve: MKL package does not support MPI.");
+              Esys_setError(VALUE_ERROR,"Paso_solve: MKL package does not support MPI.");
               return;
           }
           Paso_MKL(A,out,in,options,&pp);
@@ -75,7 +75,7 @@ void Paso_solve(Paso_SystemMatrix* A,
         #ifdef UMFPACK
         case PASO_UMFPACK:
           if (A->mpi_info->size>1) {
-              Paso_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
+              Esys_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
               return;
           }
           Paso_UMFPACK(A,out,in,options,&pp);
@@ -84,7 +84,7 @@ void Paso_solve(Paso_SystemMatrix* A,
         #endif
 
         default:
-           Paso_setError(VALUE_ERROR,"Paso_solve: unknown package code");
+           Esys_setError(VALUE_ERROR,"Paso_solve: unknown package code");
            break;
      }
   }
@@ -92,8 +92,8 @@ void Paso_solve(Paso_SystemMatrix* A,
        cancel divergence errors
   */
   if (options->accept_failed_convergence) {
-         if (Paso_getErrorType() == DIVERGED) {
-             Paso_resetError();
+         if (Esys_getErrorType() == DIVERGED) {
+             Esys_resetError();
              if (options->verbose) printf("PASO: failed convergence error has been canceled requested.\n");
          } 
   }

@@ -24,19 +24,19 @@ Paso_Function * Paso_FCTSolver_Function_alloc(PasoTransportProblem *tp, Paso_Opt
 {
     Paso_Function * out=NULL;
     Paso_Solver_setPreconditioner(tp->iteration_matrix,options);
-    if (! Paso_noError()) return NULL;
+    if (! Esys_noError()) return NULL;
     out=MEMALLOC(1,Paso_Function);
-    if (! Paso_checkPtr(out)) {
+    if (! Esys_checkPtr(out)) {
         out->kind=FCT;
-        out->mpi_info=Paso_MPIInfo_getReference(A->mpi_info);
+        out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
         out->n=Paso_SystemMatrix_getTotalNumRows(fctp->iteration_matrix);
 
         out->more=(void*)Paso_SystemMatrix_getReference(A);
         out->b=NULL;
         out->tmp=MEMALLOC(out->n, double);
-        Paso_checkPtr(out->tmp);
+        Esys_checkPtr(out->tmp);
     }
-    if (Paso_noError()) {
+    if (Esys_noError()) {
         return out;
     } else {
         Paso_Function_FCTSolver_free(out);
@@ -46,7 +46,7 @@ Paso_Function * Paso_FCTSolver_Function_alloc(PasoTransportProblem *tp, Paso_Opt
 void Paso_Function_FCTSolver_free(Paso_Function * F) 
 {
    if (F!=NULL) {
-       Paso_MPIInfo_free(F->mpi_info);
+       Esys_MPIInfo_free(F->mpi_info);
        Paso_SystemMatrix_free((Paso_SystemMatrix*)(F->more));
        MEMFREE(F->tmp);
        MEMFREE(F);

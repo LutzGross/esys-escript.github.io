@@ -47,12 +47,12 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
     FILE *fileHandle_p = NULL;
     ElementTypeId *element_type = NULL;
 
-    Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc(MPI_COMM_WORLD);
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
     Dudley_resetError();
     if (mpi_info->size > 1)
     {
 	Dudley_setError(IO_ERROR, "reading GMSH with MPI is not supported yet.");
-	Paso_MPIInfo_free(mpi_info);
+	Esys_MPIInfo_free(mpi_info);
 	return NULL;
     }
     else
@@ -70,7 +70,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 	{
 	    sprintf(error_msg, "Opening Gmsh file %s for reading failed.", fname);
 	    Dudley_setError(IO_ERROR, error_msg);
-	    Paso_MPIInfo_free(mpi_info);
+	    Esys_MPIInfo_free(mpi_info);
 	    return NULL;
 	}
 
@@ -395,7 +395,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 	if (Dudley_noError())
 	    Dudley_Mesh_prepare(mesh_p, optimize);
 	/* free up memory */
-	Paso_MPIInfo_free(mpi_info);
+	Esys_MPIInfo_free(mpi_info);
 	if (!Dudley_noError())
 	{
 	    Dudley_Mesh_free(mesh_p);

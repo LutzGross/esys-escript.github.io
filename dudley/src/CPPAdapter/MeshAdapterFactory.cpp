@@ -539,7 +539,6 @@ namespace dudley {
     return temp->getPtr();
   }
 
-/*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
   Domain_ptr  rectangle(int n0,int n1,int order,
                         double l0, double l1,
                         int periodic0,int periodic1,
@@ -577,77 +576,6 @@ namespace dudley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     return temp->getPtr();
   }
-
-/*
-  Domain_ptr meshMerge(const boost::python::list& meshList)
-  {
-    Dudley_Mesh* fMesh=0;
-    //
-    // extract the meshes from meshList
-    int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
-    Dudley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Dudley_Mesh*) : (Dudley_Mesh**)NULL;
-    for (int i=0;i<numMsh;++i) {
-         AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
-         const MeshAdapter* dudley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
-         mshes[i]=dudley_meshListMember->getDudley_Mesh();
-    }
-    //
-    // merge the meshes:
-    fMesh=Dudley_Mesh_merge(numMsh,mshes);
-	  TMPMEMFREE(mshes);
-    //
-    // Convert any dudley errors into a C++ exception
-    checkDudleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-
-    return temp->getPtr();
-  }
-*/
-
-/*
-
-  Domain_ptr  glueFaces(const boost::python::list& meshList,
-                 	               double safety_factor, 
-			               double tolerance,
-                                       int optimize)
-  {
-    Dudley_Mesh* fMesh=0;
-    //
-    // merge the meshes:
-    Domain_ptr merged_meshes=meshMerge(meshList);
-
-    //
-    // glue the faces:
-    const MeshAdapter* merged_dudley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_dudley_meshes->getDudley_Mesh();
-    Dudley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimize ? TRUE : FALSE));
-
-    //
-    // Convert any dudley errors into a C++ exception
-    checkDudleyError();
-    return merged_meshes->getPtr();
-  }
-  Domain_ptr  joinFaces(const boost::python::list& meshList,
-			double safety_factor, 
-			double tolerance,
-                        int optimize)
-  {
-    Dudley_Mesh* fMesh=0;
-    //
-    // merge the meshes:
-    Domain_ptr merged_meshes=meshMerge(meshList);
-    //
-    // join the faces:
-    const MeshAdapter* merged_dudley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
-    fMesh=merged_dudley_meshes->getDudley_Mesh();
-    Dudley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimize ? TRUE : FALSE));
-    //
-    // Convert any dudley errors into a C++ exception
-    checkDudleyError();
-    return merged_meshes->getPtr();
-  }
-*/
-
 
   // end of namespace
 

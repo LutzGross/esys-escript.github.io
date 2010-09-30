@@ -16,12 +16,17 @@
 /*   Some utility routines: */
 
 /**************************************************************/
-
+#include "esysUtils/maths.h"
 #include "Util.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+#include "esysUtils/index.h"
+#include "esysUtils/mem.h"
+#include <limits.h>
+#include "string.h"  /* for memcpy*/
 
 /**************************************************************/
 
@@ -644,7 +649,7 @@ index_t Dudley_Util_cumsum(dim_t N, index_t * array)
 }
 
 void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, dim_t * numValuesInUse,
-				index_t ** valuesInUse, Paso_MPIInfo * mpiinfo)
+				index_t ** valuesInUse, Esys_MPIInfo * mpiinfo)
 {
     dim_t i;
     index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse = NULL;

@@ -37,8 +37,8 @@ struct Dudley_ElementFile_Jacobeans {
 typedef struct Dudley_ElementFile_Jacobeans Dudley_ElementFile_Jacobeans;
 
 struct Dudley_ElementFile {
-    Paso_MPIInfo *MPIInfo;
-    Paso_MPI_rank *Owner;
+    Esys_MPIInfo *MPIInfo;
+    Esys_MPI_rank *Owner;
 
     dim_t numElements;		/* number of elements. */
 
@@ -84,7 +84,7 @@ struct Dudley_ElementFile {
 };
 
 typedef struct Dudley_ElementFile Dudley_ElementFile;
-Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo * MPIInfo);
+Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Esys_MPIInfo * MPIInfo);
 void Dudley_ElementFile_free(Dudley_ElementFile *);
 void Dudley_ElementFile_allocTable(Dudley_ElementFile *, dim_t);
 void Dudley_ElementFile_freeTable(Dudley_ElementFile *);
@@ -92,7 +92,7 @@ void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * 
 dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile * in);
 dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile * in);
 index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile * in);
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Paso_MPI_rank * mpiRankOfDOF, index_t * Id);
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MPI_rank * mpiRankOfDOF, index_t * Id);
 
 void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, dim_t * degreeOfFreedom);
 void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in);

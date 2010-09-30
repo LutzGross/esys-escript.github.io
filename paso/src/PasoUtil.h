@@ -27,7 +27,7 @@
 /**************************************************************/
 
 #include "Common.h"
-#include "Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -39,12 +39,12 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value);
 void Paso_zeroes(const dim_t n, double* x);
 void Paso_Update(const dim_t n, const double a, double* x, const double b, const double* y);
 void Paso_LinearCombination(const dim_t n, double*z, const double a,const double* x, const double b, const double* y);
-double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Paso_MPIInfo* mpiinfo);
-double Paso_l2(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
+double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MPIInfo* mpiinfo);
+double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
 void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* s);
 void Paso_Copy(const dim_t n, double* out, const double* in);
 bool_t Paso_fileExists( const char* filename );
-double Paso_lsup(const dim_t n, const double* x, Paso_MPIInfo* mpiinfo);
+double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
 
 #define Paso_copyShortDouble(n, source, target)  memcpy(target,source,sizeof(double)*(size_t)n)
 

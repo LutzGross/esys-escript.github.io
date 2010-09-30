@@ -80,7 +80,7 @@ Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp)
 {
     Paso_ReactiveSolver* out=NULL;
     out=MEMALLOC(1,Paso_ReactiveSolver);
-    if (Paso_checkPtr(out)) return NULL;
+    if (Esys_checkPtr(out)) return NULL;
     return out;
 }
 
@@ -99,7 +99,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      dim_t i;
      const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
      register double d_ii,m_i;
-     if (Paso_noError()) {
+     if (Esys_noError()) {
         /*
          *  calculate time step size:                                           
         */
@@ -136,7 +136,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	}
         #endif
         if (fail < 0 ) {
-	   Paso_setError(VALUE_ERROR, "Paso_ReactiveSolver_getSafeTimeStepSize: negative mass term detected.");
+	   Esys_setError(VALUE_ERROR, "Paso_ReactiveSolver_getSafeTimeStepSize: negative mass term detected.");
 	   return -1;
 	} else {
 	    if (dt_max < LARGE_POSITIVE_FLOAT ) {

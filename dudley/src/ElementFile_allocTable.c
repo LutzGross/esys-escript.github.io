@@ -29,13 +29,13 @@
 void Dudley_ElementFile_allocTable(Dudley_ElementFile * in, dim_t numElements)
 {
     index_t *Id2 = NULL, *Nodes2 = NULL, *Tag2 = NULL, *Color2 = NULL;
-    Paso_MPI_rank *Owner2 = NULL;
+    Esys_MPI_rank *Owner2 = NULL;
     dim_t numNodes, e, i;
 
     Dudley_resetError();
     /*  allocate memory: */
     numNodes = in->numNodes;
-    Owner2 = MEMALLOC(numElements, Paso_MPI_rank);
+    Owner2 = MEMALLOC(numElements, Esys_MPI_rank);
     Id2 = MEMALLOC(numElements, index_t);
     Nodes2 = MEMALLOC(numElements * in->numNodes, index_t);
     Tag2 = MEMALLOC(numElements, index_t);

@@ -53,7 +53,7 @@ void Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numElements
 {
 #define DIM 2
 #define LOCDIM 2
-    register int e, q, s;
+    register int e, q;
     char error_msg[LenErrorMsg_MAX];
     *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;	/* numQuad is 1 or 3 */
     const dim_t numTest = 3;	// hoping this is used in constant folding

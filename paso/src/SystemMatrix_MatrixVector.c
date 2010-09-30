@@ -38,11 +38,11 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
                                      double* out) {
 
   /*double *snd_buffer=NULL, *rcv_buffer=NULL;*/
-  Paso_MPIInfo *mpi_info=A->mpi_info;
+  Esys_MPIInfo *mpi_info=A->mpi_info;
 
   if (A->type & MATRIX_FORMAT_CSC) {
      if ( mpi_info->size>1) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSC is not supported by MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSC is not supported by MPI.");
            return;
      } else {
        if (A->type & MATRIX_FORMAT_OFFSET1) {
@@ -52,18 +52,18 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
        }
      }
   } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: TRILINOS is not supported with MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: TRILINOS is not supported with MPI.");
            return;
   } else {
      if (A->type & MATRIX_FORMAT_OFFSET1) {
            if ( mpi_info->size>1) {
-              Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSR with index 1 is not supported by MPI.");
+              Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSR with index 1 is not supported by MPI.");
               return;
            } else {
               Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(alpha,A->mainBlock,in,beta,out);
            }
      } else {
-         if (Paso_noError()) {
+         if (Esys_noError()) {
             Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(alpha,A,in,beta,out);
          }
      }

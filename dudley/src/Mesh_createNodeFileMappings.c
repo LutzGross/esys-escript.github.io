@@ -28,12 +28,12 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
     index_t min_DOF, max_DOF, *shared = NULL, *offsetInShared = NULL, *locDOFMask =
 	NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;
     dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes, *rcv_len = NULL, *snd_len = NULL, count;
-    Paso_MPI_rank myRank, p, p_min, p_max, *neighbor = NULL;
+    Esys_MPI_rank myRank, p, p_min, p_max, *neighbor = NULL;
     Paso_SharedComponents *rcv_shcomp = NULL, *snd_shcomp = NULL;
     Dudley_NodeMapping *this_mapping = NULL;
     Paso_Connector *this_connector = NULL;
     Paso_Distribution *dof_distribution;
-    Paso_MPIInfo *mpi_info = in->MPIInfo;
+    Esys_MPIInfo *mpi_info = in->MPIInfo;
 #ifdef PASO_MPI
     MPI_Request *mpi_requests = NULL;
     MPI_Status *mpi_stati = NULL;
@@ -97,7 +97,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
 #endif
     wanted_DOFs = TMPMEMALLOC(numNodes, index_t);
     nodeMask = TMPMEMALLOC(numNodes, index_t);
-    neighbor = TMPMEMALLOC(mpiSize, Paso_MPI_rank);
+    neighbor = TMPMEMALLOC(mpiSize, Esys_MPI_rank);
     shared = TMPMEMALLOC(numNodes * (p_max - p_min + 1), index_t);
     offsetInShared = TMPMEMALLOC(mpiSize + 1, index_t);
     locDOFMask = TMPMEMALLOC(len_loc_dof, index_t);
@@ -355,7 +355,7 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	NULL, *maskMyReducedNodes = NULL, *indexMyReducedNodes = NULL;
     dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF, i,
 	mpiSize;
-    Paso_MPI_rank myRank;
+    Esys_MPI_rank myRank;
 
     mpiSize = in->Nodes->MPIInfo->size;
     myRank = in->Nodes->MPIInfo->rank;

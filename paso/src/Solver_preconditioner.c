@@ -61,7 +61,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
         /* allocate structure to hold preconditioner */
         prec=MEMALLOC(1,Paso_Solver_Preconditioner);
 
-        if (Paso_checkPtr(prec)) return;
+        if (Esys_checkPtr(prec)) return;
         
         prec->type=UNKNOWN;
         prec->rilu=NULL;
@@ -108,7 +108,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               prec->amg=Paso_Solver_getAMG(A->mainBlock,options->level_max,options);  
 	      /*
               prec->amgSystem=MEMALLOC(1,Paso_Solver_AMG_System);
-	      if (Paso_checkPtr(prec->amgSystem)) return;
+	      if (Esys_checkPtr(prec->amgSystem)) return;
 	      prec->amgSystem->block_size=A->row_block_size;
 	      for (i=0;i<A->row_block_size;++i) {
 		prec->amgSystem->amgblock[i]=NULL;
@@ -134,7 +134,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
             case PASO_AMLI:
 	      
 	      prec->amliSystem=MEMALLOC(1,Paso_Solver_AMLI_System);
-              if (Paso_checkPtr(prec->amliSystem)) return;
+              if (Esys_checkPtr(prec->amliSystem)) return;
                 
               prec->amliSystem->block_size=A->row_block_size;
               
@@ -159,7 +159,7 @@ void Paso_Solver_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
               break;
  
         }
-        if (! Paso_MPIInfo_noError(A->mpi_info ) ){
+        if (! Esys_MPIInfo_noError(A->mpi_info ) ){
             Paso_Preconditioner_free(prec);
             A->solver=NULL;
         }
@@ -178,7 +178,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
     
     xx=MEMALLOC(A->row_block_size,double*);
     bb=MEMALLOC(A->row_block_size,double*);
-    if (Paso_checkPtr(xx) || Paso_checkPtr(bb)) return;
+    if (Esys_checkPtr(xx) || Esys_checkPtr(bb)) return;
 
     switch (prec->type) {
         default:
@@ -249,7 +249,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                  for (i=0;i<A->row_block_size;i++) {
                     xx[i]=MEMALLOC(n,double);
                     bb[i]=MEMALLOC(n,double);
-                    if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
+                    if (Esys_checkPtr(xx[i]) && Esys_checkPtr(bb[i])) return;
                 }
                 
                 for (i=0;i<n;i++) {
@@ -288,7 +288,7 @@ void Paso_Solver_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
                  for (i=0;i<A->row_block_size;i++) {
                     xx[i]=MEMALLOC(n,double);
                     bb[i]=MEMALLOC(n,double);
-                    if (Paso_checkPtr(xx[i]) && Paso_checkPtr(bb[i])) return;
+                    if (Esys_checkPtr(xx[i]) && Esys_checkPtr(bb[i])) return;
                 }
                 
                 /*#pragma omp parallel for private(i,j) schedule(static)*/

@@ -35,10 +35,10 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
   index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
   dim_t i;
-  Paso_resetError();
+  Esys_resetError();
 
   if (type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_alloc: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_alloc: symmetric matrix pattern is not supported yet");
     return NULL;
   }
   if (ptr!=NULL && index != NULL) {
@@ -80,12 +80,12 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
         }
     }
     if ( (min_index<index_offset) || (max_index>=numInput+index_offset) ) {
-      Paso_setError(TYPE_ERROR,"Paso_Pattern_alloc: Pattern index out of range.");
+      Esys_setError(TYPE_ERROR,"Paso_Pattern_alloc: Pattern index out of range.");
       return NULL;
     }
   }
   out=MEMALLOC(1,Paso_Pattern);
-  if (! Paso_checkPtr(out)) {
+  if (! Esys_checkPtr(out)) {
       out->type=type;
       out->reference_counter=1;
       out->numOutput=numOutput;
@@ -165,7 +165,7 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
   Paso_IndexList* index_list=NULL;
 
   index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
-  if (! Paso_checkPtr(index_list)) {
+  if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -212,7 +212,7 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
   Paso_IndexList* index_list=NULL;
 
  index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -278,7 +278,7 @@ void Paso_IndexList_insertIndex(Paso_IndexList* in, index_t index) {
      /* if in->index is full check the extension */
      if (in->extension==NULL) {
         in->extension=TMPMEMALLOC(1,Paso_IndexList);
-        if (Paso_checkPtr(in->extension)) return;
+        if (Esys_checkPtr(in->extension)) return;
         in->extension->n=0;
         in->extension->extension=NULL;
      }
@@ -344,7 +344,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
    Paso_Pattern* out=NULL;
 
    ptr=MEMALLOC(n+1-n0,index_t);
-   if (! Paso_checkPtr(ptr) ) {
+   if (! Esys_checkPtr(ptr) ) {
        /* get the number of connections per row */
        #pragma omp parallel for private(i) schedule(static)
        for(i=n0;i<n;++i) {
@@ -360,7 +360,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
        ptr[n-n0]=s;
        /* fill index */
        index=MEMALLOC(ptr[n-n0],index_t);
-       if (! Paso_checkPtr(index)) {
+       if (! Esys_checkPtr(index)) {
               #pragma omp parallel for private(i) schedule(static) 
               for(i=n0;i<n;++i) {
                   Paso_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
@@ -368,7 +368,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
               out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
        }
   }
-  if (! Paso_noError()) {
+  if (! Esys_noError()) {
         MEMFREE(ptr);
         MEMFREE(index);
         Paso_Pattern_free(out);
@@ -384,7 +384,7 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
     
      if (A->main_iptr == NULL) {
          A->main_iptr=MEMALLOC(n,index_t);
-         if (! Paso_checkPtr(A->main_iptr) ) {
+         if (! Esys_checkPtr(A->main_iptr) ) {
 	     #pragma omp parallel 
              {
                  /* identify the main diagonals */

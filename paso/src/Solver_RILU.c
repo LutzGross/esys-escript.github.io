@@ -98,14 +98,14 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   out->x_C=NULL;
   out->b_C=NULL;
 
-  if ( !(Paso_checkPtr(mis_marker) || Paso_checkPtr(out) || Paso_checkPtr(counter) ) ) {
+  if ( !(Esys_checkPtr(mis_marker) || Esys_checkPtr(out) || Esys_checkPtr(counter) ) ) {
      /* identify independend set of rows/columns */
-     time0=Paso_timer();
+     time0=Esys_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
      Paso_Pattern_mis(A_p->pattern,mis_marker);
-     time2=Paso_timer()-time0;
-     if (Paso_noError()) {
+     time2=Esys_timer()-time0;
+     if (Esys_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
         out->n=n;
@@ -115,7 +115,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
         out->rows_in_F=MEMALLOC(out->n_F,index_t);
         out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
         out->A_FF_pivot=NULL; /* later use for block size>3 */
-        if (! (Paso_checkPtr(out->mask_F) || Paso_checkPtr(out->inv_A_FF) || Paso_checkPtr(out->rows_in_F) ) ) {
+        if (! (Esys_checkPtr(out->mask_F) || Esys_checkPtr(out->inv_A_FF) || Esys_checkPtr(out->rows_in_F) ) ) {
            #pragma omp parallel 
            {
               /* creates an index for F from mask */
@@ -141,7 +141,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                                         sizeof(index_t),
                                         Paso_comparIndex);
                 if (where_p==NULL) {
-                    Paso_setError(VALUE_ERROR, "Paso_Solver_getRILU: main diagonal element missing.");
+                    Esys_setError(VALUE_ERROR, "Paso_Solver_getRILU: main diagonal element missing.");
                 } else {
                     iPtr+=(index_t)(where_p-index);
                     /* get inverse of A_FF block: */
@@ -149,7 +149,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                        if (ABS(A_p->val[iPtr])>0.) {
                             out->inv_A_FF[i]=1./A_p->val[iPtr];
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                     } else if (n_block==2) {
                        A11=A_p->val[iPtr*4];
@@ -164,7 +164,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                             out->inv_A_FF[i*4+2]=-A12*D;
                             out->inv_A_FF[i*4+3]= A11*D;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                     } else if (n_block==3) {
                        A11=A_p->val[iPtr*9  ];
@@ -189,20 +189,20 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                             out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
                             out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                    }
                 }
               }
            } /* end parallel region */
 
-           if( Paso_noError()) {
+           if( Esys_noError()) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
               if (out->n_C>0) {
                    out->rows_in_C=MEMALLOC(out->n_C,index_t);
                    out->mask_C=MEMALLOC(n,index_t);
-                   if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
+                   if (! (Esys_checkPtr(out->mask_C) || Esys_checkPtr(out->rows_in_C) ) ) {
                        /* creates an index for C from mask */
                        #pragma omp parallel for private(i) schedule(static)
                        for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
@@ -223,28 +223,28 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                       } /* end parallel region */
                       /* get A_CF block: */
                       out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
-                      if (Paso_noError()) {
+                      if (Esys_noError()) {
                          /* get A_FC block: */
                          out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
                          /* get A_FF block: */
-                         if (Paso_noError()) {
+                         if (Esys_noError()) {
                             schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
-                            time0=Paso_timer()-time0;
-                            if (Paso_noError()) {
-                                time1=Paso_timer();
+                            time0=Esys_timer()-time0;
+                            if (Esys_noError()) {
+                                time1=Esys_timer();
                                 /* update A_CC block to get Schur complement and then apply RILU to it */
                                 Paso_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                                time1=Paso_timer()-time1;
+                                time1=Esys_timer()-time1;
                                 out->RILU_of_Schur=Paso_Solver_getRILU(schur,verbose);
                                 Paso_SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for RILU application */
-                            if (Paso_noError()) {
+                            if (Esys_noError()) {
                               out->x_F=MEMALLOC(n_block*out->n_F,double);
                               out->b_F=MEMALLOC(n_block*out->n_F,double);
                               out->x_C=MEMALLOC(n_block*out->n_C,double);
                               out->b_C=MEMALLOC(n_block*out->n_C,double);
-                              if (! (Paso_checkPtr(out->x_F) || Paso_checkPtr(out->b_F) || Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {
+                              if (! (Esys_checkPtr(out->x_F) || Esys_checkPtr(out->b_F) || Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {
                                   #pragma omp parallel 
                                   {
                                     #pragma omp for private(i,k) schedule(static)
@@ -274,7 +274,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   }
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
-  if (Paso_noError()) {
+  if (Esys_noError()) {
 /*
       if (verbose) {
          printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);

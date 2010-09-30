@@ -53,7 +53,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
     #endif
     
     if (A->type!=MATRIX_FORMAT_DEFAULT) {		/* We only support CSR matricies here */
-        Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
+        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
     }
     
     #ifdef PASO_MPI
@@ -123,9 +123,9 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     int i,j,k, retry;
     char done=1;
     double seed=Paso_Pattern_mis_seed;
-    Paso_resetError();
+    Esys_resetError();
     border=Paso_SparseMatrix_getBorderNodes(A, &count);
-    if (!Paso_noError()) {
+    if (!Esys_noError()) {
         *set=NULL;
 	return 0;
     }
@@ -212,7 +212,7 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     MEMFREE(weights);
     MEMFREE(inborder);
     if (done==0) {
-        Paso_setError(NO_PROGRESS_ERROR,"Error in MIS - no progress.");
+        Esys_setError(NO_PROGRESS_ERROR,"Error in MIS - no progress.");
 	MEMFREE(mis);
 	*set=NULL;
 	return 0;
