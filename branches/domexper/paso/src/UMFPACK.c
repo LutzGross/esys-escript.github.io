@@ -66,17 +66,17 @@ void Paso_UMFPACK(Paso_SystemMatrix* A,
      options->converged=FALSE;
 
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Paso_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
+        Esys_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
         return;
      }
      Performance_startMonitor(pp,PERFORMANCE_ALL);
      pt = (Paso_UMFPACK_Handler *)(A->solver);
 
-     time0=Paso_timer();
+     time0=Esys_timer();
      Paso_UMFPACK1(&pt, A->mainBlock, out, in, 2);
      options->set_up_time=0;
-     options->time=Paso_timer()-time0;
-     if (!Paso_noError()) {
+     options->time=Esys_timer()-time0;
+     if (!Esys_noError()) {
          Paso_UMFPACK_free(A);
      } else {
         if (options->verbose) printf("UMFPACK: solve completed.\n");
@@ -99,32 +99,32 @@ void Paso_UMFPACK1(Paso_UMFPACK_Handler** pt, Paso_SparseMatrix* A, double* out,
      if (*pt==NULL) {
         int n = A->numRows;
         *pt=(MEMALLOC(1,Paso_UMFPACK_Handler));
-        if (Paso_checkPtr(*pt)) return;
+        if (Esys_checkPtr(*pt)) return;
         /* call LDU symbolic factorization: */
         error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&((*pt)->symbolic),control,info);
         if (error != UMFPACK_OK) {
-             Paso_setError(VALUE_ERROR,"symbolic factorization failed.");
+             Esys_setError(VALUE_ERROR,"symbolic factorization failed.");
              return;
         } else {
             /* call LDU factorization: */
             error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,(*pt)->symbolic,&((*pt)->numeric),control,info);
            if (error != UMFPACK_OK) {
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
+             Esys_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
              return;
            }
         }
      }
-     if (Paso_noError())  {
+     if (Esys_noError())  {
         /* call forward backward substitution: */
         control[UMFPACK_IRSTEP]=refines; /* number of refinement steps */
         error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,(*pt)->numeric,control,info);
         if (error != UMFPACK_OK) {
-              Paso_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
+              Esys_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
               return;
         }
      }
 #else
-    Paso_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
+    Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
 #endif
 
 }

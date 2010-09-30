@@ -57,7 +57,7 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
   double time0=0,time_color=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
-  if (Paso_checkPtr(out)) return NULL;
+  if (Esys_checkPtr(out)) return NULL;
   out->colorOf=MEMALLOC(n,index_t);
   out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
   /*out->diag=MEMALLOC(A->len,double);*/
@@ -67,15 +67,15 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
   out->n_block=n_block;
   out->n=n;
  
-  if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
-    time0=Paso_timer();
+  if ( !(Esys_checkPtr(out->colorOf) || Esys_checkPtr(out->main_iptr) || Esys_checkPtr(out->factors)) ) {
+    time0=Esys_timer();
     Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
-    time_color=Paso_timer()-time0;
+    time_color=Esys_timer()-time0;
 
-    if (Paso_noError()) {
-       time0=Paso_timer();
+    if (Esys_noError()) {
+       time0=Esys_timer();
 
-          if (! (Paso_checkPtr(out->diag))) {
+          if (! (Esys_checkPtr(out->diag))) {
              if (n_block==1) {
                 #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
@@ -146,10 +146,10 @@ Paso_Solver_GS* Paso_Solver_getGS(Paso_SparseMatrix * A,bool_t verbose) {
              }
            }
 
-     time_fac=Paso_timer()-time0;
+     time_fac=Esys_timer()-time0;
      }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose) {
          printf("GS: %d color used \n",out->num_colors);
          printf("timing: GS: coloring/elemination : %e/%e\n",time_color,time_fac);
@@ -233,7 +233,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           x[2*i  ]=S11*S1+S12*S2;
                           x[2*i+1]=S21*S1+S22*S2;
                      } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
                        }
                    }
 
@@ -284,7 +284,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           x[3*i+1]=S21*S1+S22*S2+S23*S3;
                           x[3*i+2]=S31*S1+S32*S2+S33*S3;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
                        }
                 }
               }
@@ -347,7 +347,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           x[2*i  ]=S11*S1+S12*S2;
                           x[2*i+1]=S21*S1+S22*S2;
                      } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
                        }
  
                     }
@@ -400,7 +400,7 @@ void Paso_Solver_solveGS(Paso_Solver_GS * gs, double * x, double * b) {
                           x[3*i+1]=S21*S1+S22*S2+S23*S3;
                           x[3*i+2]=S31*S1+S32*S2+S33*S3;
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGS: non-regular main diagonal block.");
                        }
                    }
               }

@@ -29,7 +29,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     register index_t k;
     dim_t mpiSize, myNumVertices, len, p, i;
     Paso_Pattern *pattern = NULL;
-    Paso_MPI_rank myRank, dest, source, current_rank;
+    Esys_MPI_rank myRank, dest, source, current_rank;
     Dudley_IndexList *index_list = NULL;
 #ifdef PASO_MPI
     MPI_Status status;
@@ -91,7 +91,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 
 	Paso_Pattern_free(pattern);
     }
-    Paso_MPIInfo_noError(in->MPIInfo);
+    Esys_MPIInfo_noError(in->MPIInfo);
     if (Dudley_noError())
     {
 	/* shift new labeling to create a global id */
@@ -100,8 +100,8 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 	    newGlobalDOFID[i] += myFirstVertex;
 
 	/* distribute new labeling to other processors */
-	dest = Paso_MPIInfo_mod(mpiSize, myRank + 1);
-	source = Paso_MPIInfo_mod(mpiSize, myRank - 1);
+	dest = Esys_MPIInfo_mod(mpiSize, myRank + 1);
+	source = Esys_MPIInfo_mod(mpiSize, myRank - 1);
 	current_rank = myRank;
 	for (p = 0; p < mpiSize; ++p)
 	{
@@ -125,7 +125,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 				     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
 #endif
 		in->MPIInfo->msg_tag_counter++;
-		current_rank = Paso_MPIInfo_mod(mpiSize, current_rank - 1);
+		current_rank = Esys_MPIInfo_mod(mpiSize, current_rank - 1);
 	    }
 	}
     }

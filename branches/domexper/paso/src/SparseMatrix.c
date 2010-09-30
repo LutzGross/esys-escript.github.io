@@ -109,13 +109,13 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
   bool_t unroll=FALSE;
 
   if (type & MATRIX_FORMAT_SYM) {
-     Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: symmetric matrix pattern are not supported.");
+     Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: symmetric matrix pattern are not supported.");
      return NULL;
   }
 
   if (patternIsUnrolled) {
      if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
-         Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
+         Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
   }
@@ -132,9 +132,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
 
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
 
-  Paso_resetError();
+  Esys_resetError();
   out=MEMALLOC(1,Paso_SparseMatrix);
-  if (! Paso_checkPtr(out)) {  
+  if (! Esys_checkPtr(out)) {  
      out->pattern=NULL;  
      out->val=NULL;  
      out->reference_counter=1;
@@ -156,7 +156,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
            }
-           if (Paso_noError()) {
+           if (Esys_noError()) {
               out->numRows = out->pattern->numInput;
               out->numCols = out->pattern->numOutput;
            }
@@ -175,21 +175,21 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
            }
-           if (Paso_noError()) {
+           if (Esys_noError()) {
                out->numRows = out->pattern->numOutput;
                out->numCols = out->pattern->numInput;
            }
      }
-     if (Paso_noError()) {
+     if (Esys_noError()) {
          out->block_size=out->row_block_size*out->col_block_size;
          out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
     
          out->val=MEMALLOC(out->len,double);
-         if (! Paso_checkPtr(out->val)) Paso_SparseMatrix_setValues(out,DBLE(0));
+         if (! Esys_checkPtr(out->val)) Paso_SparseMatrix_setValues(out,DBLE(0));
      }
   }
   /* all done: */
-  if (Paso_noError()) {
+  if (Esys_noError()) {
     return out;
   } else {
     Paso_SparseMatrix_free(out);
@@ -231,27 +231,27 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	Paso_SparseMatrix *out = NULL;
 	int i, curr_row, scan_ret;
 	MM_typecode matrixCode;
-        Paso_resetError();
+        Esys_resetError();
 
 	/* open the file */
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Cannot read file for reading.");
+		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Cannot read file for reading.");
 		return NULL;
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Error processing MM banner.");
+		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Error processing MM banner.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
 
-		Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
+		Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -259,7 +259,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not parse matrix size");
+		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not parse matrix size");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -273,7 +273,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
-		Paso_setError(MEMORY_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not allocate memory" );
+		Esys_setError(MEMORY_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not allocate memory" );
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -327,28 +327,28 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
   MM_typecode matcode;                        
 
   if (A_p->col_block_size !=A_p->row_block_size) {
-    Paso_setError(TYPE_ERROR, "Paso_SparseMatrix_saveMM: currently only square blocks are supported.");
+    Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_saveMM: currently only square blocks are supported.");
     return;
   }
   if (A_p->row_block_size>3) {
-       Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM: currently only block size 3 is supported.\n");
+       Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM: currently only block size 3 is supported.\n");
        return;
   }
 
   if (A_p->type & MATRIX_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support symmetric storage scheme");
+    Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support symmetric storage scheme");
     return;
   }
   
   /* open the file */
   fileHandle_p = fopen(fileName_p, "w");
   if (fileHandle_p==NULL) {
-    Paso_setError(IO_ERROR,"file could not be opened for writing");
+    Esys_setError(IO_ERROR,"file could not be opened for writing");
     return;
   }
 
   if (A_p->type & MATRIX_FORMAT_CSC) {
-    Paso_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support CSC yet.");
+    Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support CSC yet.");
   } else {
     mm_initialize_typecode(&matcode);
     mm_set_matrix(&matcode);

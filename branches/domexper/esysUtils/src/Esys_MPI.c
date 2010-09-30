@@ -17,13 +17,16 @@
 #include <string.h>
 
 
-#include "Paso_MPI.h"
+#include "Esys_MPI.h"
+#include "index.h"
+#include "mem.h"
+#include "error.h"
 
 
 /* allocate memory for an mpi_comm, and find the communicator details */
 Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
 {
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
     int error;
   #endif
 
@@ -33,10 +36,10 @@ Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
   
   out->reference_counter = 0;
   out->msg_tag_counter = 0;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
      error = MPI_Comm_rank( comm, &out->rank )==MPI_SUCCESS && MPI_Comm_size( comm, &out->size )==MPI_SUCCESS;
      if( !error ) {
-       Esys_setError( PASO_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+       Paso_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
      }
   
      out->comm = comm;
@@ -129,16 +132,7 @@ bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 {
   int errorLocal = Esys_noError() ? 0 : 1;
   int errorGlobal = errorLocal;
-#if 0
-#ifdef PASO_MPI
-  if (mpi_info->size>1) {
-     MPI_Allreduce( &errorLocal, &errorGlobal, 1, MPI_INT, MPI_MAX, mpi_info->comm  );
-  }
-  if( (errorLocal==0) && (errorGlobal==1) ) {
-     Esys_setError( PASO_MPI_ERROR, "Paso_MPI_noError() : there was an error on another MPI process" );
-  }
-#endif
-#endif
+
   return (errorGlobal==0);
 }
 
@@ -148,11 +142,11 @@ bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 
 int Esys_MPIInfo_initialized( void )
 {
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
      int error=0, initialised=0;
      error = MPI_Initialized( &initialised );
      if( error!=MPI_SUCCESS )
-         Esys_setError( PASO_MPI_ERROR, "mpi_initialised : MPI error" );
+         Paso_setError( ESYS_MPI_ERROR, "mpi_initialised : MPI error" );
      return initialised;
   #else
      return TRUE;
@@ -160,7 +154,7 @@ int Esys_MPIInfo_initialized( void )
 }
 
 /* Append MPI rank to file name if multiple MPI processes */
-char *Paso_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
+char *Esys_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
   /* Make plenty of room for the mpi_rank number and terminating '\0' */
   char *newFileName = TMPMEMALLOC(strlen(fileName)+20,char);
   strncpy(newFileName, fileName, strlen(fileName)+1);

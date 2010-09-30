@@ -55,20 +55,20 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   double time0=0,time_color=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_ILU* out=MEMALLOC(1,Paso_Solver_ILU);
-  if (Paso_checkPtr(out)) return NULL;
+  if (Esys_checkPtr(out)) return NULL;
   out->colorOf=MEMALLOC(n,index_t);
   out->factors=MEMALLOC(A->len,double);
   out->main_iptr=MEMALLOC(n,index_t);
   out->pattern=Paso_Pattern_getReference(A->pattern);
   out->n_block=n_block;
   out->n=n;
-  if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
-    time0=Paso_timer();
+  if ( !(Esys_checkPtr(out->colorOf) || Esys_checkPtr(out->main_iptr) || Esys_checkPtr(out->factors)) ) {
+    time0=Esys_timer();
     Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
-    time_color=Paso_timer()-time0;
+    time_color=Esys_timer()-time0;
 
-    if (Paso_noError()) {
-       time0=Paso_timer();
+    if (Esys_noError()) {
+       time0=Esys_timer();
        /* find main diagonal and copy matrix values */ 
        #pragma omp parallel for schedule(static) private(i,iptr,iptr_main,k)
        for (i = 0; i < n; ++i) {
@@ -79,13 +79,13 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                }
                out->main_iptr[i]=iptr_main;
                if (iptr_main==A->pattern->ptr[0]-1)  {
-                  Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: no main diagonal");
+                  Esys_setError(VALUE_ERROR, "Paso_Solver_getILU: no main diagonal");
                }
        }
        /* start factorization */
    
        #pragma omp barrier
-       for (color=0;color<out->num_colors && Paso_noError();++color) {
+       for (color=0;color<out->num_colors && Esys_noError();++color) {
               if (n_block==1) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,j,iptr_ij,A11,iptr_main,D)
                  for (i = 0; i < n; ++i) {
@@ -125,7 +125,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -194,7 +194,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -305,19 +305,19 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
               } else {
-                 Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
+                 Esys_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
               }       
               #pragma omp barrier
        }
-       time_fac=Paso_timer()-time0;
+       time_fac=Esys_timer()-time0;
      }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose) {
          printf("ILU: %d color used \n",out->num_colors);
          printf("timing: ILU: coloring/elemination : %e/%e\n",time_color,time_fac);

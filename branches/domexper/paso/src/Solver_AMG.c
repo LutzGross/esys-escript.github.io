@@ -159,7 +159,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
-  if ( !( Paso_checkPtr(mis_marker) || Paso_checkPtr(counter) || Paso_checkPtr(out)) ) {
+  if ( !( Esys_checkPtr(mis_marker) || Esys_checkPtr(counter) || Esys_checkPtr(out)) ) {
      out->AMG_of_Coarse=NULL;
      out->A_FF=NULL;
      out->A_FC=NULL;
@@ -238,7 +238,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
          for (i=0;i<n;++i) mis_marker[i]=-1;
 
           /*mesuring coarsening time */
-          time0=Paso_timer();
+          time0=Esys_timer();
           
          if (options->coarsening_method == PASO_YAIR_SHAPIRA_COARSENING) {
               Paso_Pattern_YS(A_p,mis_marker,options->coarsening_threshold);
@@ -265,7 +265,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
         
         if (timing) fprintf(stdout,"timing: Profilining for level %d:\n",level);
         
-        time0=Paso_timer()-time0;
+        time0=Esys_timer()-time0;
         if (timing) fprintf(stdout,"timing: Coarsening: %e\n",time0);
 
         #pragma omp parallel for private(i) schedule(static)
@@ -291,7 +291,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
             }
         } else {
      
-              if (Paso_noError()) {
+              if (Esys_noError()) {
                  
                  /*#pragma omp parallel for private(i) schedule(static)
                  for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -300,7 +300,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                  
                  out->mask_F=MEMALLOC(n,index_t);
                  out->rows_in_F=MEMALLOC(out->n_F,index_t);
-                 if (! (Paso_checkPtr(out->mask_F) || Paso_checkPtr(out->rows_in_F) ) ) {
+                 if (! (Esys_checkPtr(out->mask_F) || Esys_checkPtr(out->rows_in_F) ) ) {
                     /* creates an index for F from mask */
                     #pragma omp parallel for private(i) schedule(static)
                     for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
@@ -331,11 +331,11 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     level=1;
                 }
              
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                     out->n_C=n-out->n_F;
                     out->rows_in_C=MEMALLOC(out->n_C,index_t);
                     out->mask_C=MEMALLOC(n,index_t);
-                    if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
+                    if (! (Esys_checkPtr(out->mask_C) || Esys_checkPtr(out->rows_in_C) ) ) {
                          /* creates an index for C from mask */
                          #pragma omp parallel for private(i) schedule(static)
                          for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
@@ -353,7 +353,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                          }
                     }
               } 
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                       /* get A_FF block: */
                       /*
                        out->A_FF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_F,out->rows_in_F,out->mask_F);
@@ -372,9 +372,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                                   printf("##mis_marker[%d]=%d\n",i,mis_marker[i]);
                        }
                       */                   
-                      time0=Paso_timer();
+                      time0=Esys_timer();
                       Paso_SparseMatrix_updateWeights(A_p,out->W_FC,mis_marker);
-                      time0=Paso_timer()-time0;
+                      time0=Esys_timer()-time0;
                       if (timing) fprintf(stdout,"timing: updateWeights: %e\n",time0);
         
                       /*
@@ -383,9 +383,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       */
                       
                       /* get Prolongation and Restriction */
-                      time0=Paso_timer();
+                      time0=Esys_timer();
                       out->P=Paso_SparseMatrix_getProlongation(out->W_FC,mis_marker);
-                      time0=Paso_timer()-time0;
+                      time0=Esys_timer()-time0;
                       if (timing) fprintf(stdout,"timing: getProlongation: %e\n",time0);
                       /*out->P=Paso_SparseMatrix_loadMM_toCSR("P1.mtx");*/
                       
@@ -394,9 +394,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       Paso_SparseMatrix_saveMM(out->P,filename);
                       */
                       
-                      time0=Paso_timer();
+                      time0=Esys_timer();
                       out->R=Paso_SparseMatrix_getRestriction(out->P);
-                      time0=Paso_timer()-time0;
+                      time0=Esys_timer()-time0;
                       if (timing) fprintf(stdout,"timing: getRestriction: %e\n",time0);
                       /*out->R=Paso_SparseMatrix_loadMM_toCSR("R1.mtx");*/
                       
@@ -406,9 +406,9 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                       */
                      
               }
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                     
-                    time0=Paso_timer();
+                    time0=Esys_timer();
                     
                     Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
                     
@@ -419,7 +419,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                     Paso_SparseMatrix_free(Atemp);
                     
                     /*A_c=Paso_Solver_getCoarseMatrix(A_p,out->R,out->P);*/
-                    time0=Paso_timer()-time0;
+                    time0=Esys_timer()-time0;
                     if (timing) fprintf(stdout,"timing: getCoarseMatrix: %e\n",time0);
                     
                                         
@@ -433,7 +433,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
               }
 
               /* allocate work arrays for AMG application */
-              if (Paso_noError()) {
+              if (Esys_noError()) {
                          /*
                           out->x_F=MEMALLOC(n_block*out->n_F,double);
                          out->b_F=MEMALLOC(n_block*out->n_F,double);
@@ -441,8 +441,8 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
                          out->x_C=MEMALLOC(n_block*out->n_C,double);
                          out->b_C=MEMALLOC(n_block*out->n_C,double);
       
-                         /*if (! (Paso_checkPtr(out->x_F) || Paso_checkPtr(out->b_F) || Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {*/
-                         if ( ! ( Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {
+                         /*if (! (Esys_checkPtr(out->x_F) || Esys_checkPtr(out->b_F) || Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {*/
+                         if ( ! ( Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {
                              
                              /*
                               #pragma omp parallel for private(i) schedule(static)
@@ -468,7 +468,7 @@ Paso_Solver_AMG* Paso_Solver_getAMG(Paso_SparseMatrix *A_p,dim_t level,Paso_Opti
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
 
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose && level>0 && !out->coarsest_level) {
          printf("AMG: level: %d: %d unknowns eliminated. %d left.\n",level, out->n_F,out->n_C);
      }
@@ -521,7 +521,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
      
      if (amg->coarsest_level) {
       
-      time0=Paso_timer();
+      time0=Esys_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
 
       if (amg->n_F==0 || amg->n_F==amg->n) {
@@ -547,12 +547,12 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
        #endif
        }
       
-       time0=Paso_timer()-time0;
+       time0=Esys_timer()-time0;
        if (timing) fprintf(stdout,"timing: DIRECT SOLVER: %e\n",time0);
        
      } else {
         /* presmoothing */
-         time0=Paso_timer();
+         time0=Esys_timer();
          if(amg->Smoother->ID==PASO_JACOBI)
             Paso_Solver_solveJacobi(amg->Smoother->Jacobi,x,b);
         else if (amg->Smoother->ID==PASO_GS)    
@@ -590,11 +590,11 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         }
          /***********/
          
-         time0=Paso_timer()-time0;
+         time0=Esys_timer()-time0;
          if (timing) fprintf(stdout,"timing: Presmooting: %e\n",time0);
          /* end of presmoothing */
         
-         time0=Paso_timer();
+         time0=Esys_timer();
           #pragma omp parallel for private(i,j) schedule(static)
            for (i=0;i<amg->n;++i) {
             for (j=0;j<amg->n_block;++j) {
@@ -608,13 +608,13 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         /* b_c = R*r  */
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,r,0.,amg->b_C);
         
-        time0=Paso_timer()-time0;
+        time0=Esys_timer()-time0;
         if (timing) fprintf(stdout,"timing: Before next level: %e\n",time0);
         
         /* x_C=AMG(b_C)     */
         Paso_Solver_solveAMG(amg->AMG_of_Coarse,amg->x_C,amg->b_C);
         
-        time0=Paso_timer();
+        time0=Esys_timer();
         
         /* x_0 = P*x_c */
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,0.,x0);
@@ -629,7 +629,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         
       /*postsmoothing*/
 
-      time0=Paso_timer();
+      time0=Esys_timer();
        #pragma omp parallel for private(i,j) schedule(static)
            for (i=0;i<amg->n;++i) {
             for (j=0;j<amg->n_block;++j) {
@@ -678,7 +678,7 @@ void Paso_Solver_solveAMG(Paso_Solver_AMG * amg, double * x, double * b) {
         }
         /**************/
       
-      time0=Paso_timer()-time0;
+      time0=Esys_timer()-time0;
       if (timing) fprintf(stdout,"timing: Postsmoothing: %e\n",time0);
  
       /*end of postsmoothing*/

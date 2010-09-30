@@ -62,7 +62,7 @@ void Dudley_NodeFile_gather(index_t * index, Dudley_NodeFile * in, Dudley_NodeFi
 void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley_NodeFile * out)
 {
     index_t min_id, max_id, undefined_node;
-    Paso_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     index_t *Id_buffer = NULL, *Tag_buffer = NULL, *globalDegreesOfFreedom_buffer = NULL;
     double *Coordinates_buffer = NULL;
     dim_t p, buffer_len, n;
@@ -80,7 +80,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     if (!Dudley_checkPtr(distribution))
     {
 	/* distribute the range of node ids */
-	buffer_len = Paso_MPIInfo_setDistribution(in->MPIInfo, min_id, max_id, distribution);
+	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_id, max_id, distribution);
 	/* allocate buffers */
 	Id_buffer = TMPMEMALLOC(buffer_len, index_t);
 	Tag_buffer = TMPMEMALLOC(buffer_len, index_t);
@@ -95,8 +95,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 		Id_buffer[n] = undefined_node;
 
 	    /* fill the buffer by sending portions around in a circle */
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -118,7 +118,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 #endif
 		    in->MPIInfo->msg_tag_counter += 4;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		Dudley_NodeFile_scatterEntries(in->numNodes, in->Id,
 					       distribution[buffer_rank], distribution[buffer_rank + 1],
 					       Id_buffer, in->Id,
@@ -127,8 +127,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 					       out->numDim, Coordinates_buffer, in->Coordinates);
 	    }
 	    /* now entries are collected from the buffer again by sending the entries around in a circle */
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -156,7 +156,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 #endif
 		    in->MPIInfo->msg_tag_counter += 4;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	    /* check if all nodes are set: */
 #pragma omp parallel for private(n) schedule(static)
@@ -179,5 +179,5 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     }
     TMPMEMFREE(distribution);
     /* make sure that the error is global */
-    Paso_MPIInfo_noError(in->MPIInfo);
+    Esys_MPIInfo_noError(in->MPIInfo);
 }

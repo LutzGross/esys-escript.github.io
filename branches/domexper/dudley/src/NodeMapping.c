@@ -13,6 +13,7 @@
 
 #include "NodeMapping.h"
 #include "Util.h"
+#include "esysUtils/mem.h"
 
 Dudley_NodeMapping *Dudley_NodeMapping_alloc(dim_t numNodes, index_t * target, index_t unused)
 {

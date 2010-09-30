@@ -24,10 +24,10 @@
 
 /**************************************************************/
 
-void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Paso_MPI_rank * mpiRankOfDOF, index_t * Id)
+void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MPI_rank * mpiRankOfDOF, index_t * Id)
 {
     size_t size_size;
-    Paso_MPI_rank myRank, p, *Owner_buffer = NULL, loc_proc_mask_max;
+    Esys_MPI_rank myRank, p, *Owner_buffer = NULL, loc_proc_mask_max;
     dim_t e, j, i, size, *send_count = NULL, *recv_count = NULL, *newOwner = NULL, *loc_proc_mask =
 	NULL, *loc_send_count = NULL, newNumElements, numElementsInBuffer, numNodes, numRequests, NN;
     index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
@@ -56,7 +56,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Paso_MP
 	   and define a new element owner as the processor with the largest number of DOFs and the smallest id */
 	send_count = TMPMEMALLOC(size, dim_t);
 	recv_count = TMPMEMALLOC(size, dim_t);
-	newOwner = TMPMEMALLOC(self->numElements, Paso_MPI_rank);
+	newOwner = TMPMEMALLOC(self->numElements, Esys_MPI_rank);
 	if (!(Dudley_checkPtr(send_count) || Dudley_checkPtr(recv_count) || Dudley_checkPtr(newOwner)))
 	{
 	    memset(send_count, 0, size_size);
@@ -120,7 +120,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Paso_MP
 	    /* allocate buffers */
 	    Id_buffer = TMPMEMALLOC(numElementsInBuffer, index_t);
 	    Tag_buffer = TMPMEMALLOC(numElementsInBuffer, index_t);
-	    Owner_buffer = TMPMEMALLOC(numElementsInBuffer, Paso_MPI_rank);
+	    Owner_buffer = TMPMEMALLOC(numElementsInBuffer, Esys_MPI_rank);
 	    Nodes_buffer = TMPMEMALLOC(numElementsInBuffer * NN, index_t);
 	    send_offset = TMPMEMALLOC(size, index_t);
 	    recv_offset = TMPMEMALLOC(size, index_t);

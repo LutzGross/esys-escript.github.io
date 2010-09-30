@@ -23,21 +23,22 @@
 /**************************************************************/
 
 #include "Distribution.h"
+#include "esysUtils/error.h"  /* For checkPtr */
 
-Paso_Distribution* Paso_Distribution_alloc( Paso_MPIInfo *mpi_info, 
+Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, 
                                             index_t *first_component,
                                             index_t m, index_t b) 
 {
   int i;
   Paso_Distribution *out=NULL;
   out = MEMALLOC( 1, Paso_Distribution );
-  if (Paso_checkPtr(out)) return NULL;
-  out->mpi_info = Paso_MPIInfo_getReference(mpi_info);
+  if (Esys_checkPtr(out)) return NULL;
+  out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
   out->reference_counter = 0;
   out->first_component=NULL;
 
   out->first_component = MEMALLOC( (mpi_info->size)+1, index_t );
-  if (Paso_checkPtr(out->first_component)) {
+  if (Esys_checkPtr(out->first_component)) {
        Paso_Distribution_free(out);
        return NULL;
   }
@@ -51,7 +52,7 @@ void Paso_Distribution_free( Paso_Distribution *in )
   if (in != NULL) {
     --(in->reference_counter);
     if (in->reference_counter<=0) {
-      Paso_MPIInfo_free( in->mpi_info );
+      Esys_MPIInfo_free( in->mpi_info );
       MEMFREE( in->first_component );
       MEMFREE( in );
     } 

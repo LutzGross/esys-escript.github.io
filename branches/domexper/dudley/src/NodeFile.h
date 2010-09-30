@@ -22,8 +22,8 @@
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 
-struct Dudley_NodeFile {
-    Paso_MPIInfo *MPIInfo;	/* MPI information */
+typedef struct {
+    Esys_MPIInfo *MPIInfo;	/* MPI information */
 
     dim_t numNodes;		/* number of nodes */
     dim_t numDim;		/* spatial dimension */
@@ -64,11 +64,10 @@ struct Dudley_NodeFile {
     int status;			/* the status counts the updates done on the node coordinates */
     /* the value of status is increased by when the node coordinates are updated. */
 
-};
+}Dudley_NodeFile;
 
-typedef struct Dudley_NodeFile Dudley_NodeFile;
 
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, Paso_MPIInfo * MPIInfo);
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, Esys_MPIInfo * MPIInfo);
 index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in);
 index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in);
 dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in);
@@ -119,7 +118,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 					      const index_t * dof_distribution);
 dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
 dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask);
-void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Paso_MPI_rank * mpiRankOfDOF, index_t * distribution);
+void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Esys_MPI_rank * mpiRankOfDOF, index_t * distribution);
 void Dudley_NodeFile_gather(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gather_global(index_t *, Dudley_NodeFile *, Dudley_NodeFile *);
 void Dudley_NodeFile_gatherEntries(dim_t, index_t *, index_t, index_t, index_t *, index_t *, index_t *, index_t *,

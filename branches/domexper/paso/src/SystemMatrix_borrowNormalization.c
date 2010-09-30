@@ -37,10 +37,10 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
    register double fac;
    if (!A->normalizer_is_valid) {
       if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_SYM) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_borrowNormalization: No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
+        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_borrowNormalization: No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
       } else {
-          if (Paso_checkPtr(A->normalizer)) {
-              Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_borrowNormalization: no memory alloced for normalizer.");
+          if (Esys_checkPtr(A->normalizer)) {
+              Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_borrowNormalization: no memory alloced for normalizer.");
 
           } else {
              nrow=A->mainBlock->numRows*A->row_block_size;
@@ -70,12 +70,12 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
                 irow_failed=irow_failed_local;
              }
              if (irow_failed>=0) {
-                Paso_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
+                Esys_setError(ZERO_DIVISION_ERROR,"There is a row containing zero entries only.");
              }
              A->normalizer_is_valid=TRUE;
           }
       }
-      Paso_MPIInfo_noError(A->mpi_info );
+      Esys_MPIInfo_noError(A->mpi_info );
    }
    return A->normalizer;
 }

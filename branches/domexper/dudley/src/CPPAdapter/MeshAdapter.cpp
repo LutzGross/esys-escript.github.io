@@ -2101,14 +2101,4 @@ bool MeshAdapter::supportsContactElements() const
     return false;
 }
 
-// ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)
-// {
-//   m_refSet = Dudley_ReferenceElementSet_alloc(id, order, reducedOrder);
-// }
-// 
-// ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
-// {
-//   Dudley_ReferenceElementSet_dealloc(m_refSet);
-// }
-
 }  // end of namespace

@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo * MPIInfo)
+Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Esys_MPIInfo * MPIInfo)
 {
     Dudley_ElementFile *out;
 
@@ -51,7 +51,7 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Paso_MPIInfo *
     out->numTagsInUse = 0;
     out->tagsInUse = NULL;
 
-    out->MPIInfo = Paso_MPIInfo_getReference(MPIInfo);
+    out->MPIInfo = Esys_MPIInfo_getReference(MPIInfo);
 
     out->jacobeans = Dudley_ElementFile_Jacobeans_alloc();
     out->jacobeans_reducedQ = Dudley_ElementFile_Jacobeans_alloc();
@@ -79,7 +79,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 	Dudley_ElementFile_freeTable(in);
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
-	Paso_MPIInfo_free(in->MPIInfo);
+	Esys_MPIInfo_free(in->MPIInfo);
 	MEMFREE(in);
     }
 }
@@ -87,7 +87,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * distribution)
 {
     dim_t local_num_elements, e, num_elements = 0, size;
-    Paso_MPI_rank myRank;
+    Esys_MPI_rank myRank;
     if (in == NULL)
     {
 	distribution[0] = num_elements;

@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2010 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -12,18 +12,8 @@
 *******************************************************/
 
 
-/**************************************************************/
-
-/*    Paso finite element solver */
-
-/**************************************************************/
-
-/*   Copyrights by ACcESS Australia, 2003 */
-/*   Version: $Id$ */
-
-/**************************************************************/
-
-#include "Paso.h"
+#include <string.h>
+#include "error.h"
 
 #ifdef _OPENMP 
 #include <omp.h>
@@ -35,28 +25,34 @@
 #include <time.h>
 #endif
 
-Paso_ErrorCodeType Paso_ErrorCode_=NO_ERROR;
-char Paso_ErrorMsg_[LenErrorMsg_MAX]={'\0'};
+
+
+#define MIN(X,Y) ((X)<(Y)?(X):(Y))
+
+
+
+Esys_ErrorCodeType Esys_ErrorCode_=NO_ERROR;
+char Esys_ErrorMsg_[LenErrorMsg_MAX]={'\0'};
 
 /* reset the error to NO_ERROR */
 void Esys_resetError(void) {
-  Paso_ErrorCode_=NO_ERROR;
+  Esys_ErrorCode_=NO_ERROR;
 }
                                                                                                                                                                                                      
 /* sets an error */
-void Esys_setError(Paso_ErrorCodeType err,__const char* msg) {
+void Esys_setError(Esys_ErrorCodeType err,__const char* msg) {
   size_t lenMsg=strlen(msg);
   if (Esys_noError()) {
 /* printf("error set = %d %s\n",err,msg); */
-     Paso_ErrorCode_=err;
-     strncpy(Paso_ErrorMsg_,msg,MIN(LenErrorMsg_MAX,lenMsg));
-     Paso_ErrorMsg_[MIN(LenErrorMsg_MAX,lenMsg)]='\0';
+     Esys_ErrorCode_=err;
+     strncpy(Esys_ErrorMsg_,msg,MIN(LenErrorMsg_MAX,lenMsg));
+     Esys_ErrorMsg_[MIN(LenErrorMsg_MAX,lenMsg)]='\0';
   }
 }
                                                                                                                                                                                                      
 /* checks if there is no error */
 bool_t Esys_noError(void) {
-   Paso_ErrorCodeType err=Paso_getErrorType();
+   Esys_ErrorCodeType err=Esys_getErrorType();
    /* return (err==NO_ERROR ||  err==WARNING);*/
    return (err==NO_ERROR);
 }
@@ -73,7 +69,7 @@ bool_t Esys_checkPtr(void* ptr) {
 } 
 
 /* This function returns a timer */
-double Paso_timer(void) {
+double Esys_timer(void) {
   double out;
 
 #ifdef PASO_MPI
@@ -95,12 +91,12 @@ int omp_get_max_threads(void) {
 
 
 /* return the error code */
-Paso_ErrorCodeType Paso_getErrorType(void) {
-   return Paso_ErrorCode_;
+Esys_ErrorCodeType Esys_getErrorType(void) {
+   return Esys_ErrorCode_;
 }
 
 /* return the error message */
-char* Paso_getErrorMessage(void) {
-   return Paso_ErrorMsg_;
+char* Esys_getErrorMessage(void) {
+   return Esys_ErrorMsg_;
 }
 /**************************************************************/

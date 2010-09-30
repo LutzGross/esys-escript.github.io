@@ -27,56 +27,7 @@
 #define INC_PASO
 
 #include "Common.h"
+#include "esysUtils/error.h"
 
-/**************************************************************/
-
-enum Paso_ErrorCodeType {
-  NO_ERROR,
-  WARNING,
-  DIVERGED,
-  VALUE_ERROR,
-  TYPE_ERROR,
-  MEMORY_ERROR,
-  IO_ERROR,
-  ZERO_DIVISION_ERROR,
-  EOF_ERROR,
-  FLOATING_POINT_ERROR,
-  INDEX_ERROR,
-  OS_ERROR,
-  OVERFLOW_ERROR,
-  SYSTEM_ERROR,
-  PASO_MPI_ERROR,
-  NO_PROGRESS_ERROR
-};
-
-typedef enum Paso_ErrorCodeType Paso_ErrorCodeType;
-
-/* interfaces */
-
-
-PASO_DLL_API
-double Paso_timer(void);
-
-PASO_DLL_API
-bool_t Paso_checkPtr(void*);
-
-PASO_DLL_API
-void Paso_resetError(void);
-
-PASO_DLL_API
-void Paso_setError(Paso_ErrorCodeType err,__const char* msg);
-
-PASO_DLL_API
-bool_t Paso_noError(void);
-
-PASO_DLL_API
-Paso_ErrorCodeType Paso_getErrorType(void);
-
-PASO_DLL_API
-char* Paso_getErrorMessage(void);
-
-#ifndef _OPENMP 
-int omp_get_max_threads(void);
-#endif
 
 #endif /* #ifndef INC_PASO */

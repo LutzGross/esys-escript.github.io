@@ -40,14 +40,14 @@ namespace dudley {
   }
   void checkPasoError() 
   {
-    if (Paso_noError()) {
+    if (Esys_noError()) {
       return;
     } else {
       //
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
-      Paso_resetError();
-      throw DudleyAdapterException(Paso_getErrorMessage());
+      Esys_resetError();
+      throw DudleyAdapterException(Esys_getErrorMessage());
     }
   }
 

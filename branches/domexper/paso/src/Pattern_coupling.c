@@ -60,14 +60,14 @@ void Paso_Pattern_Read(char *fileName,dim_t n,index_t* mis_marker) {
     fileHandle_p = fopen( fileName, "r" );
     if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "Paso_Pattern_Read: Cannot open file for reading.");
+		Esys_setError(IO_ERROR, "Paso_Pattern_Read: Cannot open file for reading.");
 		return;
 	}
     
     for (i=0;i<n;++i) {    
         scan_ret=fscanf( fileHandle_p, "%d\n", &mis_marker[i]);
         if (scan_ret!=1) {
-            Paso_setError(IO_ERROR, "Paso_Pattern_Read: Cannot read line from file.");
+            Esys_setError(IO_ERROR, "Paso_Pattern_Read: Cannot read line from file.");
 	    return;
         }
     }
@@ -88,7 +88,7 @@ void Paso_Pattern_Write(char *fileName,dim_t n,index_t* mis_marker) {
     fileHandle_p = fopen( fileName, "w+" );
     if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "Paso_Pattern_Write: Cannot open file for writing.");
+		Esys_setError(IO_ERROR, "Paso_Pattern_Write: Cannot open file for writing.");
 		return;
 	}
     
@@ -116,7 +116,7 @@ void Paso_Pattern_YS(Paso_SparseMatrix* A, index_t* mis_marker, double threshold
 
 
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
     return;
   }
    
@@ -235,7 +235,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
   Paso_IndexList* index_list=NULL;
 
  index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->pattern->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -246,7 +246,7 @@ void Paso_Pattern_RS(Paso_SparseMatrix* A, index_t* mis_marker, double theta)
   
   n=A->numRows;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
     /*#pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j,fnorm,bi) schedule(static)*/
@@ -327,7 +327,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
   diags=MEMALLOC(n,double);
 
   index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->pattern->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -336,7 +336,7 @@ void Paso_Pattern_Aggregiation(Paso_SparseMatrix* A, index_t* mis_marker, double
     }
     
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_Aggregiation: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_Aggregiation: symmetric matrix pattern is not supported yet");
     return;
   }
 
@@ -417,7 +417,7 @@ void Paso_Pattern_greedy(Paso_Pattern* pattern, index_t* mis_marker) {
   dim_t n=pattern->numOutput;
 
   if (pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
     return;
   }
    
@@ -475,7 +475,7 @@ void Paso_Pattern_greedy_color(Paso_Pattern* pattern, index_t* mis_marker) {
   colorOf=MEMALLOC(n,index_t);
 
   if (pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_greedy: symmetric matrix pattern is not supported yet");
     return;
   }
    
@@ -553,7 +553,7 @@ void Paso_Pattern_greedy_diag(Paso_SparseMatrix* A, index_t* mis_marker, double 
   
 
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
     return;
   }
    
@@ -647,7 +647,7 @@ void Paso_Pattern_YS_plus(Paso_SparseMatrix* A, index_t* mis_marker, double alph
   rsum=MEMALLOC(n,double);
 
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_coup: symmetric matrix pattern is not supported yet");
     return;
   }
   
@@ -673,7 +673,7 @@ void Paso_Pattern_YS_plus(Paso_SparseMatrix* A, index_t* mis_marker, double alph
                                 sizeof(index_t),
                                 Paso_comparIndex);
         if (where_p==NULL) {
-            Paso_setError(VALUE_ERROR, "Paso_Pattern_coup: main diagonal element missing.");
+            Esys_setError(VALUE_ERROR, "Paso_Pattern_coup: main diagonal element missing.");
         } else {
                 diagptr[i]+=(index_t)(where_p-index);
         }
@@ -797,7 +797,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
   /*dim_t lk;*/
 
   index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->pattern->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -808,11 +808,11 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
   
   n=A->numRows;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
   
-    time0=Paso_timer();
+    time0=Esys_timer();
    k=0;
     /*S_i={j \in N_i; i strongly coupled to j}*/
     #pragma omp parallel for private(i,iptr,max_offdiagonal,threshold,j) schedule(static)
@@ -838,7 +838,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
   S=Paso_IndexList_createPattern(0, A->pattern->numOutput,index_list,0,A->pattern->numInput,0);
   ST=Paso_Pattern_getTranspose(S);
     
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: RS filtering and pattern creation: %e\n",time0);
   
   lambda=TMPMEMALLOC(n,dim_t);
@@ -868,7 +868,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
   k=0;
   maxlambda=0;
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
@@ -884,10 +884,10 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
     }
  
   k=0;
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Lambdas computations at the begining: %e\n",time0);
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   /*Paso_Pattern_getReport(n,mis_marker);*/
   
@@ -958,7 +958,7 @@ void Paso_Pattern_Standard(Paso_SparseMatrix* A, index_t* mis_marker, double the
    index_maxlambda=arg_max(n,lambda, IS_NOT_AVAILABLE);
   }
   
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Loop : %e\n",time0);
 
   /*Paso_Pattern_getReport(n,mis_marker);*/
@@ -1131,7 +1131,7 @@ Paso_Pattern* Paso_Pattern_getTranspose(Paso_Pattern* P){
   index_t iptr;
 
   index_list=TMPMEMALLOC(C,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<C;++i) {
              index_list[i].extension=NULL;
@@ -1186,7 +1186,7 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
   /*dim_t lk;*/
 
   index_list=TMPMEMALLOC(A->pattern->numOutput,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<A->pattern->numOutput;++i) {
              index_list[i].extension=NULL;
@@ -1197,11 +1197,11 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
   
   n=A->numRows;
   if (A->pattern->type & PATTERN_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
+    Esys_setError(TYPE_ERROR,"Paso_Pattern_RS: symmetric matrix pattern is not supported yet");
     return;
   }
   
-    time0=Paso_timer();
+    time0=Esys_timer();
    k=0;
    /*Paso_Pattern_getReport(n,mis_marker);*/
    /*printf("Blocks %d %d\n",n_block,A->len);*/
@@ -1246,7 +1246,7 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
   
   /*printf("Patterns len %d %d\n",S->len,ST->len);*/
     
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: RS filtering and pattern creation: %e\n",time0);
   
   lambda=TMPMEMALLOC(n,dim_t);
@@ -1276,7 +1276,7 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
   k=0;
   maxlambda=0;
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
     for (i=0;i<n;++i) {
       if(mis_marker[i]==IS_AVAILABLE) {
@@ -1292,10 +1292,10 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
     }
  
   k=0;
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Lambdas computations at the begining: %e\n",time0);
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   /*Paso_Pattern_getReport(n,mis_marker);*/
   
@@ -1366,7 +1366,7 @@ void Paso_Pattern_Standard_Block(Paso_SparseMatrix* A, index_t* mis_marker, doub
    index_maxlambda=arg_max(n,lambda, IS_NOT_AVAILABLE);
   }
   
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Loop : %e\n",time0);
 
   /*Paso_Pattern_getReport(n,mis_marker);*/

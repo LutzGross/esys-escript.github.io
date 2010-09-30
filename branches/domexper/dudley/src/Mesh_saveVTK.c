@@ -110,7 +110,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     MPI_Request mpi_req;
     MPI_Info mpi_info = MPI_INFO_NULL;
 #endif
-    Paso_MPI_rank my_mpi_rank;
+    Esys_MPI_rank my_mpi_rank;
     FILE *fileHandle_p = NULL;
     char errorMsg[LenErrorMsg_MAX], *txtBuffer;
     char tmpBuffer[LEN_TMP_BUFFER];
@@ -193,7 +193,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 	    Dudley_setError(IO_ERROR, errorMsg);
 	}
     }
-    if (!Paso_MPIInfo_noError(mesh_p->Nodes->MPIInfo))
+    if (!Esys_MPIInfo_noError(mesh_p->Nodes->MPIInfo))
 	return;
 
     /* General note: From this point if an error occurs Dudley_setError is

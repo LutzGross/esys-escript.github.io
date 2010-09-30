@@ -27,7 +27,7 @@
 dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 {
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
-    Paso_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, new_numGlobalDOFs = 0, myNewDOFs;
     bool_t *set_new_DOF = NULL;
 #ifdef PASO_MPI
@@ -47,7 +47,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 	 || Dudley_checkPtr(set_new_DOF)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Paso_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
+	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	DOF_buffer = TMPMEMALLOC(buffer_len, index_t);
@@ -59,8 +59,8 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		DOF_buffer[n] = unset_dof;
 
 	    /* fill the buffer by sending portions around in a circle */
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -73,7 +73,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 #endif
 		    in->MPIInfo->msg_tag_counter++;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		dof_0 = distribution[buffer_rank];
 		dof_1 = distribution[buffer_rank + 1];
 #pragma omp parallel for private(n,k) schedule(static)
@@ -121,8 +121,8 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		for (n = 0; n < in->numNodes; ++n)
 		    set_new_DOF[n] = TRUE;
 	    }
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -147,7 +147,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 #endif
 		    in->MPIInfo->msg_tag_counter += 1;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
 	TMPMEMFREE(DOF_buffer);
@@ -159,11 +159,11 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
     return new_numGlobalDOFs;
 }
 
-void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Paso_MPI_rank * mpiRankOfDOF, index_t * distribution)
+void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Esys_MPI_rank * mpiRankOfDOF, index_t * distribution)
 {
     index_t min_DOF, max_DOF, k;
     dim_t n;
-    Paso_MPI_rank p, p_min = in->MPIInfo->size, p_max = -1;
+    Esys_MPI_rank p, p_min = in->MPIInfo->size, p_max = -1;
     /* first we calculate the min and max dof on this processor to reduce costs for seraching */
     Dudley_NodeFile_setDOFRange(&min_DOF, &max_DOF, in);
 
@@ -192,7 +192,7 @@ void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Paso_MPI_rank * m
 dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask)
 {
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
-    Paso_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, globalNumReducedDOFs = 0, myNewDOFs;
 #ifdef PASO_MPI
     MPI_Status status;
@@ -208,7 +208,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Paso_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
+	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	DOF_buffer = TMPMEMALLOC(buffer_len, index_t);
@@ -220,8 +220,8 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 		DOF_buffer[n] = unset_dof;
 
 	    /* fill the buffer by sending portions around in a circle */
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -234,7 +234,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 #endif
 		    in->MPIInfo->msg_tag_counter++;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		dof_0 = distribution[buffer_rank];
 		dof_1 = distribution[buffer_rank + 1];
 #pragma omp parallel for private(n,k) schedule(static)
@@ -282,8 +282,8 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 #pragma omp parallel for private(n) schedule(static)
 	    for (n = 0; n < in->numNodes; ++n)
 		in->globalReducedDOFIndex[n] = loc_offsets[0] - 1;
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -308,7 +308,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 #endif
 		    in->MPIInfo->msg_tag_counter += 1;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
 	TMPMEMFREE(DOF_buffer);
@@ -325,13 +325,13 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     index_t myFirstDOF, myLastDOF, max_id, min_id, loc_max_id, loc_min_id, dof, id, itmp, nodeID_0, nodeID_1, dof_0,
 	dof_1, *Node_buffer = NULL;
     dim_t n, my_buffer_len, buffer_len, globalNumNodes = 0, myNewNumNodes;
-    Paso_MPI_rank p, dest, source, buffer_rank;
+    Esys_MPI_rank p, dest, source, buffer_rank;
     const index_t unset_nodeID = -1, set_nodeID = 1;
     const dim_t header_len = 2;
 #ifdef PASO_MPI
     MPI_Status status;
 #endif
-    Paso_MPI_rank myRank = in->MPIInfo->rank;
+    Esys_MPI_rank myRank = in->MPIInfo->rank;
 
     /* find the range of node ids controled by me */
 
@@ -422,8 +422,8 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 	    Node_buffer[n + header_len] += itmp;
 
 	/* now we send this buffer around to assign global node index: */
-	dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	Node_buffer[0] = min_id;
 	Node_buffer[1] = max_id;
 	buffer_rank = in->MPIInfo->rank;
@@ -453,7 +453,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 #endif
 		in->MPIInfo->msg_tag_counter += 1;
 	    }
-	    buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+	    buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	}
     }
     TMPMEMFREE(Node_buffer);
@@ -463,7 +463,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask)
 {
     index_t min_node, max_node, unset_node = -1, set_node = 1, node_0, node_1, *Nodes_buffer = NULL, k;
-    Paso_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myNodes, *offsets = NULL, *loc_offsets = NULL, globalNumReducedNodes = 0, myNewNodes;
 #ifdef PASO_MPI
     MPI_Status status;
@@ -479,7 +479,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Paso_MPIInfo_setDistribution(in->MPIInfo, min_node, max_node, distribution);
+	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_node, max_node, distribution);
 	myNodes = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	Nodes_buffer = TMPMEMALLOC(buffer_len, index_t);
@@ -491,8 +491,8 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 		Nodes_buffer[n] = unset_node;
 
 	    /* fill the buffer by sending portions around in a circle */
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -505,7 +505,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 #endif
 		    in->MPIInfo->msg_tag_counter++;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		node_0 = distribution[buffer_rank];
 		node_1 = distribution[buffer_rank + 1];
 #pragma omp parallel for private(n,k) schedule(static)
@@ -553,8 +553,8 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 #pragma omp parallel for private(n) schedule(static)
 	    for (n = 0; n < in->numNodes; ++n)
 		in->globalReducedNodesIndex[n] = loc_offsets[0] - 1;
-	    dest = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = Paso_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -579,7 +579,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 #endif
 		    in->MPIInfo->msg_tag_counter += 1;
 		}
-		buffer_rank = Paso_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
 	TMPMEMFREE(Nodes_buffer);

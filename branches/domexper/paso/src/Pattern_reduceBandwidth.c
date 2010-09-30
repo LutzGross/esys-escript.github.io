@@ -139,7 +139,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
    index_t root, *AssignedLevel=NULL, *VerticesInTree=NULL, *firstVertexInLevel=NULL,k, *oldLabel=NULL;
    /* check input */
    if (N != pattern->numInput) {
-      Paso_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
+      Esys_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
    } else if (N > 0) {
 /* printf("relabeling of %d DOFs started.\n",N); */
       degAndIdx=TMPMEMALLOC(N,Paso_DegreeAndIdx);
@@ -147,7 +147,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
       AssignedLevel=TMPMEMALLOC(N,index_t);
       VerticesInTree=TMPMEMALLOC(N,index_t);
       firstVertexInLevel=TMPMEMALLOC(N+1,index_t);
-      if (! ( Paso_checkPtr(degAndIdx) || Paso_checkPtr(oldLabel) || Paso_checkPtr(AssignedLevel) || Paso_checkPtr(VerticesInTree) || Paso_checkPtr(firstVertexInLevel) ) ) {
+      if (! ( Esys_checkPtr(degAndIdx) || Esys_checkPtr(oldLabel) || Esys_checkPtr(AssignedLevel) || Esys_checkPtr(VerticesInTree) || Esys_checkPtr(firstVertexInLevel) ) ) {
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
          for (i=0;i<N;++i) oldToNew[i]=i; 

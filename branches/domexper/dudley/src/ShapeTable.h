@@ -20,7 +20,7 @@ This file is not to be included in .h files - only .c files should have any use 
 #ifndef SHAPETABLE_DUDLEY
 #define SHAPETABLE_DUDLEY
 
-#include "paso/Common.h"	// I just want the types not all the includes that get dragged in - fix that
+#include "esysUtils/types.h"	// I just want the types not all the includes that get dragged in - fix that
 
 #include "ElementType.h"
 

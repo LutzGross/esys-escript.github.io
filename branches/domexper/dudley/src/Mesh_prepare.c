@@ -44,7 +44,7 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
 
 	/* create a distribution of the global DOFs and determine
 	   the MPI_rank controling the DOFs on this processor      */
-	Paso_MPIInfo_setDistribution(in->MPIInfo, 0, newGlobalNumDOFs - 1, distribution);
+	Esys_MPIInfo_setDistribution(in->MPIInfo, 0, newGlobalNumDOFs - 1, distribution);
 
 	/* now the mesh is re-distributed according to the mpiRankOfDOF vector */
 	/* this will redistribute the Nodes and Elements including overlap and will create an element coloring 

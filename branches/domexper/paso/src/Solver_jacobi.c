@@ -52,23 +52,23 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p) {
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   /* check matrix is square */
   if (A_p->col_block_size !=A_p->row_block_size) {
-    Paso_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Jacobi preconditioner square block size.");
+    Esys_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Jacobi preconditioner square block size.");
     return NULL;
   }
   /* check matrix is square */
   if (n_block>3) {
-    Paso_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Right now the Jacobi preconditioner supports block size less than 4 only");
+    Esys_setError(TYPE_ERROR, "Paso_Solver_getJacobi: Right now the Jacobi preconditioner supports block size less than 4 only");
     return NULL;
   }
   /* allocate vector to hold main diagonal entries: */
   out=MEMALLOC(1,Paso_Solver_Jacobi);
-  if (! Paso_checkPtr(out)) {
+  if (! Esys_checkPtr(out)) {
       /* allocate vector to hold main diagonal entries: */
       out->n_block=n_block;
       out->n=n;
       out->values = MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
       out->pivot = NULL; /* later use */
-      if (! (Paso_checkPtr(out->values))) {
+      if (! (Esys_checkPtr(out->values))) {
         if (n_block==1) {
            #pragma omp parallel for private(i, iPtr) schedule(static)
            for (i = 0; i < A_p->pattern->numOutput; i++) {
@@ -151,7 +151,7 @@ Paso_Solver_Jacobi* Paso_Solver_getJacobi(Paso_SparseMatrix * A_p) {
         }
       }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
      return out;
   } else {
      Paso_Solver_Jacobi_free(out);

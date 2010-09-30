@@ -38,14 +38,14 @@ void Performance_open(Paso_Performance* pp,int verbose) {
          /* Initialize the PAPI library */
          int retval = PAPI_library_init(PAPI_VER_CURRENT);
          if (retval != PAPI_VER_CURRENT && retval > 0) {
-           Paso_setError(SYSTEM_ERROR,"Paso_performance: PAPI library version mismatch.");
+           Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI library version mismatch.");
          } else if (retval < 0) {
-           Paso_setError(SYSTEM_ERROR,"Paso_performance: PAPI initialization error.");
+           Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI initialization error.");
          } else {
             if (PAPI_create_eventset(&(pp->event_set)) != PAPI_OK) 
-               Paso_setError(SYSTEM_ERROR,"Paso_performance: PAPI event set set up failed.");
+               Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI event set set up failed.");
          }
-         if (Paso_noError()) {
+         if (Esys_noError()) {
             /* try to add various monitors */
             pp->num_events=0;
             if (PAPI_add_event(pp->event_set, PAPI_FP_OPS) == PAPI_OK) {
@@ -91,7 +91,7 @@ void Performance_close(Paso_Performance* pp,int verbose) {
       long_long values[PERFORMANCE_NUM_EVENTS];
       #pragma omp single
       {
-        if (Paso_noError() && verbose) {
+        if (Esys_noError() && verbose) {
            int i;
            int i_ops=Performance_getEventIndex(pp,PAPI_FP_OPS);
            int i_l1_miss=Performance_getEventIndex(pp,PAPI_L1_DCM);

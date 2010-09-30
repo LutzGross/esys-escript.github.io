@@ -36,16 +36,16 @@
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value) {
  
   double* remote_values;
-  /*Paso_MPIInfo *mpi_info=A->mpi_info;*/
+  /*Esys_MPIInfo *mpi_info=A->mpi_info;*/
   if (A ->col_block_size==1 && A ->row_block_size ==1) {
        if (A->type & MATRIX_FORMAT_CSC) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
            return;
        } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
            return;
        } else {
-         if (Paso_noError()) {
+         if (Esys_noError()) {
             Paso_SystemMatrix_startRowCollect(A,mask_row);
             Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->mainBlock,mask_row,main_diagonal_value);
             Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->col_coupleBlock,mask_row,0.); 
@@ -55,13 +55,13 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
        }
   } else {
        if (A->type & MATRIX_FORMAT_CSC) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
            return;
        } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-           Paso_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
+           Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
            return;
        } else {
-         if (Paso_noError()) {
+         if (Esys_noError()) {
             Paso_SystemMatrix_startRowCollect(A,mask_row);
             Paso_SparseMatrix_nullifyRows_CSR(A->mainBlock,mask_row,main_diagonal_value);
             Paso_SparseMatrix_nullifyRows_CSR(A->col_coupleBlock,mask_row,0.);
