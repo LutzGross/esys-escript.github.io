@@ -11,37 +11,32 @@
 #
 ########################################################
 
-
-import os, re
+import re
 Import('*')
+local_env = env_mpi.Clone()
 
-local_env = clone_env(env_mpi)
+# get the test source file names
+sources = Glob('*.cpp')+Glob('*.c')
+testname='escript_UnitTest'
 
-src_dir = local_env.Dir('.').srcnode().abspath
-
-# get the relevant file names:
-src_dir = local_env.Dir('.').srcnode().abspath
-filenames = [ x for x in os.listdir(src_dir) if os.path.splitext(x)[1] in [".h", ".c", ".cpp"] ]
-
-sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
-
-local_env.Append(LIBS= ['escript', 'esysUtils', 'CppUnitTest'] + local_env['sys_libs'] )
-local_env['CCFLAGS'] = re.sub("-O[0-9]", "-g", str(local_env['CCFLAGS']))	# Some of these test files are too large to optimize
-
-program = local_env.Program('escript_UnitTest', sources)
-
-#Add Unit Test to target alias
-
-local_env.Alias('build_tests', program)
+# build the executable
+local_env.Append(LIBS=['escript', 'esysUtils', 'CppUnitTest'])
+# some of these test files are too large to optimize
+local_env['CCFLAGS'] = re.sub('-O[0-9]', '-g', str(local_env['CCFLAGS']))
+program = local_env.Program(testname, sources)
 
 # run the tests - but only if test_targets are stale
-local_env.RunUnitTest('escript_UnitTest')
-test_targets = os.path.splitext('escript_UnitTest')[0]+'.passed'
-Alias("run_tests", test_targets)
+local_env.RunUnitTest(testname)
 
-# Add a group of tests
+# add unit test to target alias
+Alias('build_tests', program)
+Alias("run_tests", testname+'.passed')
+
+# configure python unit tests
+local_env.SConscript(dirs = ['#/escript/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+
+# add a group of tests
 from grouptest import *
-tgroup=GroupTest("$BINRUNNER ", (),"","$BUILD_DIR/escript/test",('./escript_UnitTest',))
+tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/escript/test", ('./'+testname,))
 TestGroups.append(tgroup)
 
-CallSConscript(local_env,dirs = ['#/escript/test/python'], variant_dir='python', duplicate=0)
