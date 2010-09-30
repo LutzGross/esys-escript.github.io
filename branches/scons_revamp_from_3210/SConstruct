@@ -10,7 +10,7 @@
 #
 ########################################################
 
-EnsureSConsVersion(0,96,91)
+EnsureSConsVersion(0,98,1)
 EnsurePythonVersion(2,5)
 
 import sys, os, platform, re
@@ -44,47 +44,14 @@ if not os.path.isfile(options_file):
     print("subdirectory and customize it to your needs.\n")
     options_file = None
 
-######################## SCons compatibility stuff ###########################
-
-# Call additional SConscript
-# scons <  0.98: build_dir, BuildDir()
-# scons >= 0.98: variant_dir, VariantDir()
-import SCons
-scons_ver=SCons.__version__.split('.')
-cantusevariantdir=float(scons_ver[0]+'.'+scons_ver[1])<0.98
-
-def CallSConscript(obj, **kw):
-    if cantusevariantdir:
-        if 'variant_dir' in kw:
-            kw['build_dir']=kw['variant_dir']
-            del kw['variant_dir']
-    obj.SConscript(**kw)
-
-# Prepare user-settable variables
-# scons <= 0.98.0: Options
-# scons >= 0.98.1: Variables
-unknown_vars=None
-try:
-    vars = Variables(options_file, ARGUMENTS)
-    adder = vars.AddVariables
-    unknown_vars = vars.UnknownVariables
-except:
-    vars = Options(options_file, ARGUMENTS)
-    adder = vars.AddOptions
-    if 'UnknownOptions' in dir(vars):
-        unknown_vars = vars.UnknownOptions
-    BoolVariable = BoolOption
-    EnumVariable = EnumOption
-    PackageVariable = PackageOption
-    PathVariable = PathOption
-
 ############################### build options ################################
 
 default_prefix='/usr'
 mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 lapack_flavours=('none', 'clapack', 'mkl')
 
-adder(
+vars = Variables(options_file, ARGUMENTS)
+vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
   PathVariable('prefix', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
@@ -176,10 +143,9 @@ if options_file:
 # Generate help text (scons -h)
 Help(vars.GenerateHelpText(env))
 
-# Check for superfluous options if scons supports it
-if unknown_vars:
-    for k in unknown_vars():
-        print("WARNING: Ignoring unknown option '%s'" % k)
+# Check for superfluous options
+for k in vars.UnknownVariables():
+    print("WARNING: Ignoring unknown option '%s'" % k)
 
 #################### Make sure install directories exist #####################
 
@@ -298,6 +264,9 @@ else:
 # always add cc_flags
 env.Append(CCFLAGS = env['cc_flags'])
 
+# add system libraries
+env.AppendUnique(LIBS = env['sys_libs'])
+
 # Get the global Subversion revision number for the getVersion() method
 try:
     global_revision = os.popen('svnversion -n .').read()
@@ -333,7 +302,7 @@ for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
         env['ENV'][key] = 1
 
 env_export=env['env_export']
-env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH'])
+env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH','HOME'])
 
 for key in set(env_export):
     try:
@@ -346,12 +315,13 @@ try:
 except KeyError:
     pass
 
-#for key in 'PATH','C_INCLUDE_PATH','CPLUS_INCLUDE_PATH','LIBRARY_PATH':
+# these shouldn't be needed
+#for key in 'C_INCLUDE_PATH','CPLUS_INCLUDE_PATH','LIBRARY_PATH':
 #    try:
 #        env['ENV'][key] = os.environ[key]
 #    except KeyError:
 #        pass
-#
+
 try:
     env['ENV']['PYTHONPATH'] = os.environ['PYTHONPATH']
 except KeyError:
@@ -374,7 +344,7 @@ env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 ############################ Dependency checks ###############################
 
 # Create a Configure() environment to check for compilers and python
-conf = Configure(clone_env(env))
+conf = Configure(env.Clone())
 
 ######## Test that the compilers work
 
@@ -394,7 +364,7 @@ else:
         Exit(1)
 
 if conf.CheckFunc('gethostname'):
-  conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
+    conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
 ######## Python headers & library (required)
 
@@ -557,7 +527,7 @@ if env['visit']:
 env['usempi'] = env['mpi']!='none'
 
 # Create a modified environment for MPI programs (identical to env if mpi=none)
-env_mpi = clone_env(env)
+env_mpi = env.Clone()
 
 mpi_inc_path=''
 mpi_lib_path=''
@@ -646,7 +616,7 @@ from grouptest import *
 TestGroups=[]
 
 # keep an environment without warnings-as-errors
-dodgy_env=clone_env(env_mpi)
+dodgy_env=env_mpi.Clone()
 
 # now add warnings-as-errors flags. This needs to be done after configuration
 # because the scons test files have warnings in them
@@ -657,29 +627,25 @@ if ((fatalwarning != '') and (env['werror'])):
 Export(
   ['env',
    'env_mpi',
-   'clone_env',
    'dodgy_env',
    'IS_WINDOWS',
-   'TestGroups',
-   'CallSConscript',
-   'cantusevariantdir'
+   'TestGroups'
   ]
 )
 
-CallSConscript(env, dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-CallSConscript(env, dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
-CallSConscript(env, dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
-CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
-CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
-CallSConscript(env, dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
-CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
-CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
-CallSConscript(env, dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
-CallSConscript(env, dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
-CallSConscript(env, dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
-CallSConscript(env, dirs = ['pythonMPI/src'], variant_dir='build/$PLATFORM/pythonMPI', duplicate=0)
-CallSConscript(env, dirs = ['scripts'], variant_dir='build/$PLATFORM/scripts', duplicate=0)
-CallSConscript(env, dirs = ['paso/profiling'], variant_dir='build/$PLATFORM/paso/profiling', duplicate=0)
+env.SConscript(dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
+env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
+env.SConscript(dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
+env.SConscript(dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
+env.SConscript(dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
+env.SConscript(dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
+env.SConscript(dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
+env.SConscript(dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
+env.SConscript(dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
+env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
+env.SConscript(dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
+env.SConscript(dirs = ['pythonMPI/src'], variant_dir='build/$PLATFORM/pythonMPI', duplicate=0)
+env.SConscript(dirs = ['paso/profiling'], variant_dir='build/$PLATFORM/paso/profiling', duplicate=0)
 
 ######################## Populate the buildvars file #########################
 
@@ -731,23 +697,23 @@ env.Alias('target_init', [target_init])
 
 # The headers have to be installed prior to build in order to satisfy
 # #include <paso/Common.h>
-env.Alias('build_esysUtils', ['target_install_esysUtils_headers', 'target_esysUtils_a'])
-env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a'])
+env.Alias('build_esysUtils', ['install_esysUtils_headers', 'build_esysUtils_lib'])
+env.Alias('install_esysUtils', ['build_esysUtils', 'install_esysUtils_lib'])
 
-env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
-env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
+env.Alias('build_paso', ['install_paso_headers', 'build_paso_lib'])
+env.Alias('install_paso', ['build_paso', 'install_paso_lib'])
 
-env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
-env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
+env.Alias('build_escript', ['install_escript_headers', 'build_escript_lib', 'build_escriptcpp_lib'])
+env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_escriptcpp_lib', 'install_escript_py'])
 
-env.Alias('build_finley', ['target_install_finley_headers', 'target_finley_so', 'target_finleycpp_so'])
-env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target_install_finleycpp_so', 'target_install_finley_py'])
+env.Alias('build_finley', ['install_finley_headers', 'build_finley_lib', 'build_finleycpp_lib'])
+env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finleycpp_lib', 'install_finley_py'])
 
-env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
-env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
+env.Alias('build_weipa', ['install_weipa_headers', 'build_weipa_lib', 'build_weipacpp_lib'])
+env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacpp_lib', 'install_weipa_py'])
 
-env.Alias('build_escriptreader', ['target_install_weipa_headers', 'target_escriptreader_a'])
-env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escriptreader_a'])
+env.Alias('build_escriptreader', ['install_weipa_headers', 'build_escriptreader_lib'])
+env.Alias('install_escriptreader', ['build_escriptreader', 'install_escriptreader_lib'])
 
 # Now gather all the above into some easy targets: build_all and install_all
 build_all_list = []
@@ -757,8 +723,8 @@ build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 build_all_list += ['build_weipa']
 build_all_list += ['build_escriptreader']
-if env['usempi']:   build_all_list += ['target_pythonMPI_exe']
-build_all_list += ['target_escriptconvert']
+if env['usempi']:   build_all_list += ['build_pythonMPI']
+build_all_list += ['build_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -769,11 +735,11 @@ install_all_list += ['install_escript']
 install_all_list += ['install_finley']
 install_all_list += ['install_weipa']
 install_all_list += ['install_escriptreader']
-install_all_list += ['target_install_pyvisi_py']
-install_all_list += ['target_install_modellib_py']
-install_all_list += ['target_install_pycad_py']
-if env['usempi']:   install_all_list += ['target_install_pythonMPI_exe']
-install_all_list += ['target_install_escriptconvert']
+install_all_list += ['install_pyvisi_py']
+install_all_list += ['install_modellib_py']
+install_all_list += ['install_pycad_py']
+if env['usempi']:   install_all_list += ['install_pythonMPI']
+install_all_list += ['install_escriptconvert']
 env.Alias('install_all', install_all_list)
 
 # Default target is install
@@ -781,10 +747,10 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-env.Alias('build_cppunittest', ['target_install_cppunittest_headers', 'target_cppunittest_a'])
-env.Alias('install_cppunittest', ['build_cppunittest', 'target_install_cppunittest_a'])
-env.Alias('run_tests', ['install_all', 'target_install_cppunittest_a'])
-env.Alias('all_tests', ['install_all', 'target_install_cppunittest_a', 'run_tests', 'py_tests'])
+env.Alias('build_cppunittest', ['install_cppunittest_headers', 'build_cppunittest_lib'])
+env.Alias('install_cppunittest', ['build_cppunittest', 'install_cppunittest_lib'])
+env.Alias('run_tests', ['install_all', 'install_cppunittest_lib'])
+env.Alias('all_tests', ['install_all', 'install_cppunittest_lib', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 env.Alias('build_PasoTests','build/$PLATFORM/paso/profiling/PasoTests')
 

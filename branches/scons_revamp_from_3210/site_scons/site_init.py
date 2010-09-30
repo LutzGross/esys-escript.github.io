@@ -55,7 +55,7 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
             raise RuntimeError('%s is not a valid path.'%paths[1])
 
     # now try the library
-    conf=Configure(clone_env(env))
+    conf=Configure(env.Clone())
     conf.env.AppendUnique(CPPPATH = [inc_path])
     conf.env.AppendUnique(LIBPATH = [lib_path])
     if type(libs)==str: libs=[libs]
@@ -68,15 +68,6 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
 
     conf.Finish()
     return inc_path, lib_path
-
-# Make a copy of an environment
-# scons <= 0.98: env.Copy()
-# scons >  0.98: env.Clone()
-def clone_env(env):
-    if 'Clone' in dir(env):
-        return env.Clone()
-    else:
-        return env.Copy()
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
