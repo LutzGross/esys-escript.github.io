@@ -767,7 +767,7 @@ if not IS_WINDOWS:
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()
-        Chmod('utest.sh', 0755)
+        Execute(Chmod('utest.sh', 0755))
         print("Generated utest.sh.")
     except IOError:
         print("Error attempting to write unittests file.")
