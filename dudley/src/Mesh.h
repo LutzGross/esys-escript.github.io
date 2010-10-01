@@ -63,8 +63,8 @@
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
-#ifdef PASO_MPI
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 
 /**************************************************************/

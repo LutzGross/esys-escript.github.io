@@ -112,7 +112,6 @@ headers = """
 	SystemMatrixPattern.h
 	UMFPACK.h
 	mmio.h
-	mpi_C.h
 	performance.h
 """.split()
 

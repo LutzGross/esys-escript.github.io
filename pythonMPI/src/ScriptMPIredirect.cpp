@@ -13,21 +13,21 @@
 
 
 #include <Python.h>
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #include <iostream>
 #include <stdexcept>
 
 extern "C"{
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 
 int main( int argc, char **argv ) {
   int status = 0;
   int provided;
-  Paso_MPIInfo *mpi_info=NULL;
+  Esys_MPIInfo *mpi_info=NULL;
   try
   {
     /*
@@ -39,7 +39,7 @@ int main( int argc, char **argv ) {
       std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
       return status;
     }
-    mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+    mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
 
     if( mpi_info->rank )
     {
@@ -81,7 +81,7 @@ int main( int argc, char **argv ) {
         MPI_Finalize();
     }
 
-    Paso_MPIInfo_free( mpi_info );
+    Esys_MPIInfo_free( mpi_info );
   }
   catch (std::runtime_error &e)
   {
@@ -107,7 +107,7 @@ int main( int argc, char **argv ) {
 
 #else
 int main( int argc, char **argv ) {
-	printf( "Esys must be compiled with PASO_MPI defined to make the MPI version available\n\n" );
+	printf( "Esys must be compiled with ESYS_MPI defined to make the MPI version available\n\n" );
 	return 0;
 }
 #endif

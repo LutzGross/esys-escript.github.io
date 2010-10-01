@@ -148,7 +148,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
       out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
       out->reference_counter=1;
       
-      #ifdef PASO_MPI
+      #ifdef ESYS_MPI
          out->mpi_requests=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Request);
          out->mpi_stati=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Status);
          Esys_checkPtr(out->mpi_requests);
@@ -210,7 +210,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      /* start reveiving input */
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
-            #ifdef PASO_MPI
+            #ifdef ESYS_MPI
             MPI_Irecv(&(coupler->recv_buffer[coupler->connector->recv->offsetInShared[i] *  block_size]),
                       (coupler->connector->recv->offsetInShared[i+1]- coupler->connector->recv->offsetInShared[i])*block_size,
                       MPI_DOUBLE,
@@ -235,7 +235,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      /* send buffer out */
      {
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
-             #ifdef PASO_MPI
+             #ifdef ESYS_MPI
              MPI_Issend(&(coupler->send_buffer[coupler->connector->send->offsetInShared[i] *  block_size]),
                         (coupler->connector->send->offsetInShared[i+1]- coupler->connector->send->offsetInShared[i])*block_size,
                         MPI_DOUBLE,
@@ -255,7 +255,7 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
   Esys_MPIInfo *mpi_info = coupler->mpi_info;  
   if ( mpi_info->size>1) {
      /* wait for receive */
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
         MPI_Waitall(coupler->connector->recv->numNeighbors+coupler->connector->send->numNeighbors,
                     coupler->mpi_requests,
                     coupler->mpi_stati);

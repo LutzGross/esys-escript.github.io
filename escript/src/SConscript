@@ -97,7 +97,6 @@ headers = """
 	UtilC.h
 	Utils.h
 	WrappedArray.h
-	esysmpi.h
 	system_dep.h
 """.split()
 	# blocktimer.h

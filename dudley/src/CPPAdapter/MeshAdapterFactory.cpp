@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #ifdef USE_NETCDF
@@ -56,12 +56,12 @@ namespace dudley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
     AbstractContinuousDomain* temp;
     Dudley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
-    char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
+    char *fName = Esys_MPI_appendRankToFileName(fileName.c_str(),
                                                 mpi_info->size,
                                                 mpi_info->rank);
 
@@ -79,7 +79,7 @@ namespace dudley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening file NetCDF %s for reading failed.", fName);
       Dudley_setError(IO_ERROR,error_msg);
-      Paso_MPIInfo_free( mpi_info );
+      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -87,8 +87,6 @@ namespace dudley {
     int mpi_size			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_size");
     int mpi_rank			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"mpi_rank");
     int numDim				= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numDim");
-    int order				= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"order");
-    int reduced_order			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"reduced_order");
     int numNodes			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"numNodes");
     int num_Elements			= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_Elements");
     int num_FaceElements		= NetCDF_Get_Int_Attribute(&dataFile, fName, (char *)"num_FaceElements");
@@ -195,11 +193,9 @@ namespace dudley {
 
         /* read elements */
         if (Dudley_noError()) {
-		  Dudley_ReferenceElementSet  *refElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
 		  if (Dudley_noError())  {
-			  mesh_p->Elements=Dudley_ElementFile_alloc(refElements, mpi_info);
+			  mesh_p->Elements=Dudley_ElementFile_alloc((ElementTypeId)Elements_TypeId, mpi_info);
 		  }
-		  Dudley_ReferenceElementSet_dealloc(refElements);
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
 		  if (Dudley_noError()) {
 			  mesh_p->Elements->minColor=0;
@@ -258,11 +254,9 @@ namespace dudley {
 
         /* get the face elements */
         if (Dudley_noError()) {
-		  Dudley_ReferenceElementSet *refFaceElements=	Dudley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,order, reduced_order);
 		  if (Dudley_noError())  {
-			  mesh_p->FaceElements=Dudley_ElementFile_alloc(refFaceElements, mpi_info);
+			  mesh_p->FaceElements=Dudley_ElementFile_alloc((ElementTypeId)FaceElements_TypeId, mpi_info);
 		  }
-		  Dudley_ReferenceElementSet_dealloc(refFaceElements);	
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
 		  if (Dudley_noError()) {
 			  mesh_p->FaceElements->minColor=0;
@@ -319,11 +313,9 @@ namespace dudley {
 
         /* get the Points (nodal elements) */
         if (Dudley_noError()) {
-		  Dudley_ReferenceElementSet *refPoints=	Dudley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
 		  if (Dudley_noError())  {
-			  mesh_p->Points=Dudley_ElementFile_alloc(refPoints, mpi_info);
+			  mesh_p->Points=Dudley_ElementFile_alloc((ElementTypeId)Points_TypeId, mpi_info);
 		  }
-		  Dudley_ReferenceElementSet_dealloc(refPoints);
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Points, num_Points);
 		  if (Dudley_noError()) {
 			  mesh_p->Points->minColor=0;

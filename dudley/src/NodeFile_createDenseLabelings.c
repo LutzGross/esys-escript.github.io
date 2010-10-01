@@ -30,7 +30,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
     Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, new_numGlobalDOFs = 0, myNewDOFs;
     bool_t *set_new_DOF = NULL;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -66,7 +66,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 	    {
 		if (p > 0)
 		{		/* the initial send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -99,7 +99,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 	    }
 	    memset(loc_offsets, 0, in->MPIInfo->size * sizeof(dim_t));
 	    loc_offsets[in->MPIInfo->rank] = myNewDOFs;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Allreduce(loc_offsets, offsets, in->MPIInfo->size, MPI_INT, MPI_SUM, in->MPIInfo->comm);
 	    new_numGlobalDOFs = 0;
 	    for (n = 0; n < in->MPIInfo->size; ++n)
@@ -140,7 +140,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		}
 		if (p < in->MPIInfo->size - 1)
 		{		/* the last send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -194,7 +194,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
     Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, globalNumReducedDOFs = 0, myNewDOFs;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -227,7 +227,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 	    {
 		if (p > 0)
 		{		/* the initial send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -263,7 +263,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 	    }
 	    memset(loc_offsets, 0, in->MPIInfo->size * sizeof(dim_t));
 	    loc_offsets[in->MPIInfo->rank] = myNewDOFs;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Allreduce(loc_offsets, offsets, in->MPIInfo->size, MPI_INT, MPI_SUM, in->MPIInfo->comm);
 	    globalNumReducedDOFs = 0;
 	    for (n = 0; n < in->MPIInfo->size; ++n)
@@ -301,7 +301,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 		}
 		if (p < in->MPIInfo->size - 1)
 		{		/* the last send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(DOF_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -328,7 +328,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     Esys_MPI_rank p, dest, source, buffer_rank;
     const index_t unset_nodeID = -1, set_nodeID = 1;
     const dim_t header_len = 2;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
     Esys_MPI_rank myRank = in->MPIInfo->rank;
@@ -363,7 +363,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     /* allocate a buffer */
     my_buffer_len = max_id >= min_id ? max_id - min_id + 1 : 0;
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Allreduce(&my_buffer_len, &buffer_len, 1, MPI_INT, MPI_MAX, in->MPIInfo->comm);
 #else
     buffer_len = my_buffer_len;
@@ -400,7 +400,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 	    }
 	}
 	/* make the local number of nodes globally available */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	MPI_Allgather(&myNewNumNodes, 1, MPI_INT, node_distribution, 1, MPI_INT, in->MPIInfo->comm);
 #else
 	node_distribution[0] = myNewNumNodes;
@@ -446,7 +446,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 	    }
 	    if (p < in->MPIInfo->size - 1)
 	    {			/* the last send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		MPI_Sendrecv_replace(Node_buffer, buffer_len + header_len, MPI_INT,
 				     dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 				     in->MPIInfo->comm, &status);
@@ -465,7 +465,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
     index_t min_node, max_node, unset_node = -1, set_node = 1, node_0, node_1, *Nodes_buffer = NULL, k;
     Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
     dim_t p, buffer_len, n, myNodes, *offsets = NULL, *loc_offsets = NULL, globalNumReducedNodes = 0, myNewNodes;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -498,7 +498,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 	    {
 		if (p > 0)
 		{		/* the initial send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(Nodes_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -534,7 +534,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 	    }
 	    memset(loc_offsets, 0, in->MPIInfo->size * sizeof(dim_t));
 	    loc_offsets[in->MPIInfo->rank] = myNewNodes;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Allreduce(loc_offsets, offsets, in->MPIInfo->size, MPI_INT, MPI_SUM, in->MPIInfo->comm);
 	    globalNumReducedNodes = 0;
 	    for (n = 0; n < in->MPIInfo->size; ++n)
@@ -572,7 +572,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 		}
 		if (p < in->MPIInfo->size - 1)
 		{		/* the last send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(Nodes_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);

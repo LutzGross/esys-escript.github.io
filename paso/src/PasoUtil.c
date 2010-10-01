@@ -247,7 +247,7 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MP
             my_out+=local_out;
         }
    }
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
       #pragma omp single
       {
           MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_SUM, mpiinfo->comm);
@@ -281,7 +281,7 @@ double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
             my_out=MAX(my_out,local_out);
         }
    }
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
       #pragma omp single
       {
           MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_MAX, mpiinfo->comm);
@@ -315,7 +315,7 @@ double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
             my_out+=local_out;
         }
    }
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
       #pragma omp single
       {
           MPI_Allreduce(&my_out,&out, 1, MPI_DOUBLE, MPI_SUM, mpiinfo->comm);

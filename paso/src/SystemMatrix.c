@@ -256,7 +256,7 @@ index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p)
     int fail=0;
     out=Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
     if (out==NULL) fail=1;
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     {
          int fail_loc = fail;
          MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);

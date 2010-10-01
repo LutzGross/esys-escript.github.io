@@ -21,7 +21,7 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 
@@ -185,7 +185,7 @@ load(const std::string fileName,
    NcError err(NcError::silent_nonfatal);
    int mpi_iam=0, mpi_num=1;
    // Create the file.
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
 #endif

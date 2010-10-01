@@ -45,7 +45,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    double norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local;
    double norm_max_of_residual_local,norm_max_of_residual;
    double last_norm_max_of_residual,*scaling;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    double loc_norm;
 #endif
    dim_t i,totIter=0,cntIter,method;
@@ -120,7 +120,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                 }
            }
            /* TODO: use one call */
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
            {
                loc_norm = norm2_of_b;
                MPI_Allreduce(&loc_norm,&norm2_of_b, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
@@ -212,7 +212,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                        }
                     }
                     /* TODO: use one call */
-                    #ifdef PASO_MPI
+                    #ifdef ESYS_MPI
                         loc_norm = norm2_of_residual;
                         MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                         loc_norm = norm_max_of_residual;

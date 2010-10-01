@@ -36,6 +36,7 @@ headers = """
 	esysExceptionTranslator.h
         blocktimer.h
 	mem.h
+	mpi_C.h
 	index.h
 	maths.h
 	system_dep.h

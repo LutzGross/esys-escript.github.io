@@ -111,7 +111,7 @@ void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * 
 #pragma omp critical
 		num_elements += local_num_elements;
 	    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Allgather(&num_elements, 1, MPI_INT, distribution, 1, MPI_INT, in->MPIInfo->comm);
 #else
 	    distribution[0] = num_elements;

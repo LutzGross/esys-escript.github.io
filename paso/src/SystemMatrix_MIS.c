@@ -48,7 +48,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
     index_t k=0;
     int mpi_iam = 0;	/* rank within world */
     int mpi_num = 1;	/* size of the world */
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     double *remote_values=NULL;
     #endif
     
@@ -56,7 +56,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
     }
     
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
     #endif
@@ -77,7 +77,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 	        }     /* if avail */
 	     }   /* walk border */
 	} /* if not me */
-	#ifdef PASO_MPI
+	#ifdef ESYS_MPI
 	/* Now we set the weights using the coupler */
   	remote_values=NULL;
 	  /* start exchange */

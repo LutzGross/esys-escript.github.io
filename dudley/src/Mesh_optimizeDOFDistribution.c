@@ -77,7 +77,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     float *xyz = NULL;
     int c;
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -220,7 +220,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		}
 		THREAD_MEMFREE(loc_partition_count);
 	    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    /* recvbuf will be the concatenation of each CPU's contribution to new_distribution */
 	    MPI_Allgather(new_distribution, mpiSize, MPI_INT, recvbuf, mpiSize, MPI_INT, in->MPIInfo->comm);
 #else
@@ -274,7 +274,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 
 		if (p < mpiSize - 1)
 		{		/* the final send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter,
 					 source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);

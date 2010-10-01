@@ -46,7 +46,7 @@ bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
 void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, dim_t * numValuesInUse,
 				index_t ** valuesInUse, Esys_MPIInfo * mpiinfo);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 void Dudley_printDoubleArray(FILE * fid, dim_t n, double *array, char *name);
 void Dudley_printIntArray(FILE * fid, dim_t n, int *array, char *name);
 void Dudley_printMaskArray(FILE * fid, dim_t n, int *array, char *name);

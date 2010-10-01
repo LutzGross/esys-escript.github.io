@@ -29,7 +29,7 @@ const int TestDomainFS=1;		// Null domains only support 1 functionspace type.
 TestDomain::TestDomain(int pointspersample, int numsamples)
 	: m_samples(numsamples), m_dpps(pointspersample)
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     int world=getMPISizeWorld();
     int rank=getMPIRankWorld();
     m_samples/=world;

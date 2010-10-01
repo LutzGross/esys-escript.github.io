@@ -27,14 +27,14 @@
 void Dudley_NodeFile_setGlobalIdRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
     index_t min_id_local, max_id_local;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t global_id_range[2], id_range[2];
 #endif
 
     min_id_local = Dudley_Util_getMinInt(1, in->numNodes, in->Id);
     max_id_local = Dudley_Util_getMaxInt(1, in->numNodes, in->Id);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     id_range[0] = -min_id_local;
     id_range[1] = max_id_local;
     MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);
@@ -65,14 +65,14 @@ void Dudley_NodeFile_setIdRange(index_t * min_id, index_t * max_id, Dudley_NodeF
 void Dudley_NodeFile_setGlobalDOFRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
     index_t min_id_local, max_id_local;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t global_id_range[2], id_range[2];
 #endif
 
     min_id_local = Dudley_Util_getMinInt(1, in->numNodes, in->globalDegreesOfFreedom);
     max_id_local = Dudley_Util_getMaxInt(1, in->numNodes, in->globalDegreesOfFreedom);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     id_range[0] = -min_id_local;
     id_range[1] = max_id_local;
     MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);
@@ -128,14 +128,14 @@ index_t Dudley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Dudley_NodeFile * i
 void Dudley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
     index_t min_id_local, max_id_local;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t global_id_range[2], id_range[2];
 #endif
 
     min_id_local = Dudley_Util_getFlaggedMaxInt(1, in->numNodes, in->globalReducedDOFIndex, -1);
     max_id_local = Dudley_Util_getFlaggedMinInt(1, in->numNodes, in->globalReducedDOFIndex, -1);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     id_range[0] = -min_id_local;
     id_range[1] = max_id_local;
     MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);
@@ -162,14 +162,14 @@ index_t Dudley_NodeFile_maxGlobalNodeIDIndex(Dudley_NodeFile * in)
 void Dudley_NodeFile_setGlobalNodeIDIndexRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
     index_t min_id_local, max_id_local;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t global_id_range[2], id_range[2];
 #endif
 
     max_id_local = Dudley_Util_getMaxInt(1, in->numNodes, in->globalNodesIndex);
     min_id_local = Dudley_Util_getMinInt(1, in->numNodes, in->globalNodesIndex);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     id_range[0] = -min_id_local;
     id_range[1] = max_id_local;
     MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);
@@ -196,14 +196,14 @@ index_t Dudley_NodeFile_maxGlobalReducedNodeIDIndex(Dudley_NodeFile * in)
 void Dudley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t * min_id, index_t * max_id, Dudley_NodeFile * in)
 {
     index_t min_id_local, max_id_local;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t global_id_range[2], id_range[2];
 #endif
 
     max_id_local = Dudley_Util_getFlaggedMaxInt(1, in->numNodes, in->globalReducedNodesIndex, -1);
     min_id_local = Dudley_Util_getFlaggedMinInt(1, in->numNodes, in->globalReducedNodesIndex, -1);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     id_range[0] = -min_id_local;
     id_range[1] = max_id_local;
     MPI_Allreduce(id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm);

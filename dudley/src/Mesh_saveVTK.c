@@ -41,7 +41,7 @@ do {\
     dest_in_use += strlen(chunk);\
 } while(0)
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 /* writes buffer to file catching the empty buffer case which causes problems
  * with some MPI versions */
 #define MPI_WRITE_ORDERED(BUF) \
@@ -85,7 +85,7 @@ void create_MPIInfo(MPI_Info & info)
 #define MPI_WRITE_ORDERED(A)
 #define MPI_RANK0_WRITE_SHARED(A)
 
-#endif				/* PASO_MPI */
+#endif				/* ESYS_MPI */
 
 #include "ShapeTable.h"
 
@@ -104,7 +104,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 			 const dim_t num_data,
 			 char **names_p, escriptDataC ** data_pp, const char *metadata, const char *metadata_schema)
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_File mpi_fileHandle_p;
     MPI_Status mpi_status;
     MPI_Request mpi_req;
@@ -164,7 +164,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
      */
     if (mpi_size > 1)
     {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	const int amode = MPI_MODE_CREATE | MPI_MODE_WRONLY | MPI_MODE_UNIQUE_OPEN;
 	int ierr;
 	if (my_mpi_rank == 0 && Paso_fileExists(filename_p))
@@ -182,7 +182,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 	    ierr = MPI_File_set_view(mpi_fileHandle_p, MPI_DISPLACEMENT_CURRENT,
 				     MPI_CHAR, MPI_CHAR, "native", mpi_info);
 	}
-#endif				/* PASO_MPI */
+#endif				/* ESYS_MPI */
     }
     else
     {
@@ -1073,7 +1073,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 
     if (mpi_size > 1)
     {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	MPI_File_close(&mpi_fileHandle_p);
 	MPI_Barrier(mesh_p->Nodes->MPIInfo->comm);
 #endif

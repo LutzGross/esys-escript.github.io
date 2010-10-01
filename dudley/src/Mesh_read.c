@@ -55,7 +55,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    /* get the number of nodes */
 	    scan_ret = fscanf(fileHandle_p, "%1d%*s %d\n", &numDim, &numNodes);
     FSCANF_CHECK(scan_ret, "Dudley_Mesh_read")}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     /* MPI Broadcast numDim, numNodes, name if there are multiple MPI procs */
     if (mpi_info->size > 1)
     {
@@ -143,7 +143,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 				    "Dudley_Mesh_read: error reading chunks of mesh, data too large for message size");
 		    return NULL;
 		}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		/* Eventually we'll send chunkSize nodes to each CPU numbered 1 ... mpi_info->size-1, here goes one of them */
 		if (nextCPU < mpi_info->size)
 		{
@@ -160,7 +160,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	}			/* End master */
 	else			/* Worker */
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    /* Each worker receives two messages */
 	    MPI_Status status;
 	    MPI_Recv(tempInts, chunkSize * 3 + 1, MPI_INT, 0, 81720, mpi_info->comm, &status);
@@ -198,7 +198,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 	    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") typeID = eltTypeFromString(element_type);
 	}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	if (mpi_info->size > 1)
 	{
 	    int temp1[2], mpi_error;
@@ -207,7 +207,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    mpi_error = MPI_Bcast(temp1, 2, MPI_INT, 0, mpi_info->comm);
 	    if (mpi_error != MPI_SUCCESS)
 	    {
-		Dudley_setError(PASO_MPI_ERROR, "Dudley_Mesh_read: broadcast of Element typeID failed");
+		Dudley_setError(ESYS_MPI_ERROR, "Dudley_Mesh_read: broadcast of Element typeID failed");
 		return NULL;
 	    }
 	    typeID = (ElementTypeId) temp1[0];
@@ -257,7 +257,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") totalEle++;
 		    chunkEle++;
 		}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 		if (nextCPU < mpi_info->size)
 		{
@@ -273,7 +273,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	}			/* End master */
 	else
 	{			/* Worker */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    /* Each worker receives one message */
 	    MPI_Status status;
 	    MPI_Recv(tempInts, chunkSize * (2 + numNodes) + 1, MPI_INT, 0, 81722, mpi_info->comm, &status);
@@ -313,7 +313,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 	    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") typeID = eltTypeFromString(element_type);
 	}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	if (mpi_info->size > 1)
 	{
 	    int temp1[2];
@@ -366,7 +366,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") totalEle++;
 		    chunkEle++;
 		}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 		if (nextCPU < mpi_info->size)
 		{
@@ -382,7 +382,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	}			/* End master */
 	else			/* Worker */
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    /* Each worker receives one message */
 	    MPI_Status status;
 	    MPI_Recv(tempInts, chunkSize * (2 + numNodes) + 1, MPI_INT, 0, 81723, mpi_info->comm, &status);
@@ -422,7 +422,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
 	    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") typeID = eltTypeFromString(element_type);
 	}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	if (mpi_info->size > 1)
 	{
 	    int temp1[2];
@@ -474,7 +474,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		    FSCANF_CHECK(scan_ret, "Dudley_Mesh_read") totalEle++;
 		    chunkEle++;
 		}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 		if (nextCPU < mpi_info->size)
 		{
@@ -490,7 +490,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	}			/* End master */
 	else			/* Worker */
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    /* Each worker receives one message */
 	    MPI_Status status;
 	    MPI_Recv(tempInts, chunkSize * (2 + numNodes) + 1, MPI_INT, 0, 81725, mpi_info->comm, &status);
@@ -526,7 +526,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     {
 	char *remainder = 0, *ptr;
 	size_t len = 0;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	int len_i;
 #endif
 	int tag_key;
@@ -587,7 +587,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    len = strlen(remainder);
 	    TMPMEMREALLOC(remainder, remainder, len + 1, char);
 	}			/* Master */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 
 	len_i = (int)len;
 	MPI_Bcast(&len_i, 1, MPI_INT, 0, mpi_info->comm);
@@ -598,7 +598,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    remainder[0] = 0;
 	}
 	if (MPI_Bcast(remainder, len + 1, MPI_CHAR, 0, mpi_info->comm) != MPI_SUCCESS)
-	    Dudley_setError(PASO_MPI_ERROR, "Dudley_Mesh_read: broadcast of remainder failed");
+	    Dudley_setError(ESYS_MPI_ERROR, "Dudley_Mesh_read: broadcast of remainder failed");
 #endif
 
 	if (remainder[0])

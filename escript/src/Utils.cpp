@@ -27,7 +27,7 @@
 #include <omp.h>
 #endif
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 
@@ -85,7 +85,7 @@ void printParallelThreadCnt()
   strcpy(hname, "unknown host");
 #endif
 
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
   #endif
@@ -124,7 +124,7 @@ int getNumberOfThreads()
 
 ESCRIPT_DLL_API int getMPISizeWorld() {
   int mpi_num = 1;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
   #endif
   return mpi_num;
@@ -132,14 +132,14 @@ ESCRIPT_DLL_API int getMPISizeWorld() {
 
 ESCRIPT_DLL_API int getMPIRankWorld() {
   int mpi_iam = 0;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
   #endif
   return mpi_iam;
 }
 
 ESCRIPT_DLL_API int getMPIWorldMax(const int val) {
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   int val2 = val;
   int out = val;
   MPI_Allreduce( &val2, &out, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
@@ -150,7 +150,7 @@ ESCRIPT_DLL_API int getMPIWorldMax(const int val) {
 }
 
 ESCRIPT_DLL_API int getMPIWorldSum(const int val) {
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   int val2 = val;
   int out = 0;
   MPI_Allreduce( &val2, &out, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
@@ -167,7 +167,7 @@ ESCRIPT_DLL_API double getMaxFloat() {
    return DBL_MAX;
 }
 ESCRIPT_DLL_API void MPIBarrierWorld() {
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   MPI_Barrier(MPI_COMM_WORLD );
   #endif
 }
@@ -406,11 +406,11 @@ bool append)
     } catch (...)
     {
 	error=1;
-#ifndef PASO_MPI
+#ifndef ESYS_MPI
 	throw;
 #endif
     }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Comm com=data[0].getDomain()->getMPIComm();
     int rerror=0;
     MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, com );
@@ -422,7 +422,7 @@ bool append)
 #endif
 
     // at this point os will contain the text to be written
-#ifndef PASO_MPI
+#ifndef ESYS_MPI
 
     std::ofstream ofs;
     if (append)

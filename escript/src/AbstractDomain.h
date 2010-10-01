@@ -22,7 +22,7 @@
 #include <map>
 #include <boost/python/dict.hpp>
 #include <boost/python/list.hpp>
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 
 
 #include "Pointers.h"
@@ -141,7 +141,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   */
   ESCRIPT_DLL_API
   virtual
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int

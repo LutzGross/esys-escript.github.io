@@ -119,7 +119,7 @@ class InputOutput(unittest.TestCase):
 
      def test_data_dump_to_NetCDF_brick(self):
 	if loadIsConfigured():
-	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
 	  d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
 	  d1.expand()
 	  d1.dump("tempfile.dump.nc")
@@ -135,7 +135,7 @@ class InputOutput(unittest.TestCase):
 
      def test_mesh_dump_to_NetCDF_brick(self):
 	if loadIsConfigured():
-	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
 	  mydomain1.dump("tempfile.mesh.nc")
 	  mydomain2=LoadMesh("tempfile.mesh.nc")
           self.domainsEqual(mydomain1, mydomain2)

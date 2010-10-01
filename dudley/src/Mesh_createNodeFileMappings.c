@@ -34,7 +34,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
     Paso_Connector *this_connector = NULL;
     Paso_Distribution *dof_distribution;
     Esys_MPIInfo *mpi_info = in->MPIInfo;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Request *mpi_requests = NULL;
     MPI_Status *mpi_stati = NULL;
 #else
@@ -88,7 +88,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
     }
     rcv_len = TMPMEMALLOC(mpiSize, dim_t);
     snd_len = TMPMEMALLOC(mpiSize, dim_t);
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     mpi_requests = MEMALLOC(mpiSize * 2, MPI_Request);
     mpi_stati = MEMALLOC(mpiSize * 2, MPI_Status);
 #else
@@ -233,7 +233,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
 	/*
 	 *    now we build the sender
 	 */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	MPI_Alltoall(rcv_len, 1, MPI_INT, snd_len, 1, MPI_INT, mpi_info->comm);
 #else
 	for (p = 0; p < mpiSize; ++p)
@@ -242,7 +242,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
 	count = 0;
 	for (p = 0; p < rcv_shcomp->numNeighbors; p++)
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]),
 		      rcv_shcomp->offsetInShared[p + 1] - rcv_shcomp->offsetInShared[p], MPI_INT,
 		      rcv_shcomp->neighbor[p], mpi_info->msg_tag_counter + myRank, mpi_info->comm,
@@ -256,7 +256,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
 	{
 	    if (snd_len[p] > 0)
 	    {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		MPI_Irecv(&(shared[n]), snd_len[p],
 			  MPI_INT, p, mpi_info->msg_tag_counter + p, mpi_info->comm, &mpi_requests[count]);
 #endif
@@ -269,7 +269,7 @@ void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_eleme
 	}
 	mpi_info->msg_tag_counter += mpi_info->size;
 	offsetInShared[numNeighbors] = n;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	MPI_Waitall(count, mpi_requests, mpi_stati);
 #endif
 	/* map global ids to local id's */
@@ -410,7 +410,7 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	    myNumReducedNodes = Dudley_Util_packMask(myNumNodes, maskMyReducedNodes, indexMyReducedNodes);
 	    myNumReducedDOF = Dudley_Util_packMask(myNumDOF, maskMyReducedDOF, indexMyReducedDOF);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Allgather(&myNumReducedNodes, 1, MPI_INT, reduced_nodes_first_component, 1, MPI_INT,
 			  in->Nodes->MPIInfo->comm);
 	    MPI_Allgather(&myNumReducedDOF, 1, MPI_INT, reduced_dof_first_component, 1, MPI_INT,
