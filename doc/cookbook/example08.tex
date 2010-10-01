@@ -35,7 +35,7 @@ waves, $\mu$ is the propagation materials shear modulus.
 In a similar process to the previous chapter, we will use the acceleration
 solution to solve this PDE. By substituting $a$ directly for
 $\frac{\partial^{2}u\hackscore{i}}{\partial t^2}$ we can derive the
-displacement solution. Using $a$ we can see that \refEq{eqn:wav} becomes
+displacement solution. Using $a$ we can see that \autoref{eqn:wav} becomes
 \begin{equation} \label{eqn:wava} 
 \rho a\hackscore{i} - \frac{\partial
 \sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
@@ -53,11 +53,11 @@ distinct terms:
 \mu (u\hackscore{i,j} + u\hackscore{j,i})
 \end{equation}
 \end{subequations}
-One simply recognizes in \ref{eqn:sigtrace} that $u\hackscore{k,k}$ is the
+One simply recognizes in \autoref{eqn:sigtrace} that $u\hackscore{k,k}$ is the
 trace of the displacement solution and that $\delta\hackscore{ij}$ is the
 kronecker delta function with dimensions equivalent to $u$. The second term
-\ref{eqn:sigtrans} is the sum of $u$ with its own transpose. Putting these facts
-together we see that the spatial differential of the stress is given by the
+\autoref{eqn:sigtrans} is the sum of $u$ with its own transpose. Putting these
+facts together we see that the spatial differential of the stress is given by the
 gradient of $u$ and the aforementioned opperations. This value is then submitted
 to the \esc PDE as $X$.
 \begin{python}
@@ -109,8 +109,8 @@ $escript -t 4 example08a.py
 \end{verbatim}
 would call the script in this section and solve it using 4 threads.
 
-The computation times on an increasing number of cores is outlines in Table
-\ref{tab:wpcores}
+The computation times on an increasing number of cores is outlines in
+\autoref{tab:wpcores}.
 
 \begin{table}[ht]
 \begin{center}
@@ -222,7 +222,7 @@ It is quite
 simple to implement a source which is smooth in time. In addition to the
 original source function the only extra requirement is a time function. For
 this example the time variant source will be the derivative of a gausian curve
-defined by the required dominant frequency (Figure \ref{fig:tvsource}).
+defined by the required dominant frequency (\autoref{fig:tvsource}).
 \begin{python}
 #Creating the time function of the source.
 dfeq=50 #Dominant Frequency
@@ -285,9 +285,7 @@ It is inpractical to calculate the solution for an infinite model and thus ABCs
 allow us the create an approximate solution with small to zero boundary effects
 on a model with a solvable size. 
 
-To dampen the waves, the method of Cerjan(1985)
-\footnote{\textit{A nonreflecting boundary condition for discrete acoustic and
-elastic wave equations}, 1985, Cerjan C, Geophysics 50, doi:10.1190/1.1441945}
+To dampen the waves, the method of \citet{Cerjan1985}
 where the solution and the stress are multiplied by a damping function defined
 on $n$ nodes of the domain adjacent to the boundary, given by;
 \begin{equation}
@@ -340,8 +338,8 @@ abc=abcleft*abcright*abcbottom
 Note that the boundary conditions are not applied to the surface, as this is
 effectively a free surface where normal reflections would be experienced.
 Special conditions can be introduced at this surface if they are known. The
-resulting boundary damping function can be viewed in Figure
-\ref{fig:abconds}.
+resulting boundary damping function can be viewed in
+\autoref{fig:abconds}.
 
 \section{Second order Meshing}
 For stiff problems like the wave equation it is often prudent to implement
@@ -392,7 +390,7 @@ the mesh by half.
 \sslist{example08c.py}
 To make the problem more interesting we will now introduce an interface to the
 middle of the domain. Infact we will use the same domain as we did for heat flux
-in Chapter \ref{CHAP HEAT 2}. The domain contains a syncline with two set of
+in \autoref{CHAP HEAT 2}. The domain contains a syncline with two set of
 material properties on either side of the interface.
 
 \begin{figure}[ht]
