@@ -64,10 +64,10 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
     Dudley_resetError();
 
     {
-#ifdef Paso_MPI
+#ifdef ESYS_MPI
 	int iam, numCPUs;
-	iam = elements->elementDistribution->MPIInfo->rank;
-	numCPUs = elements->elementDistribution->MPIInfo->size;
+	iam = elements->MPIInfo->rank;
+	numCPUs = elements->MPIInfo->size;
 #endif
     }
 

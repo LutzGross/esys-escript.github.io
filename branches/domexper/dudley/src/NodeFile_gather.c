@@ -67,7 +67,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     double *Coordinates_buffer = NULL;
     dim_t p, buffer_len, n;
     char error_msg[100];
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -102,7 +102,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 	    {
 		if (p > 0)
 		{		/* the initial send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
@@ -140,7 +140,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 					      out->numDim, out->Coordinates, Coordinates_buffer);
 		if (p < in->MPIInfo->size - 1)
 		{		/* the last send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		    MPI_Sendrecv_replace(Id_buffer, buffer_len, MPI_INT,
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);

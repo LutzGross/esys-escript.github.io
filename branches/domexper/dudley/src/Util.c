@@ -680,7 +680,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 	    }
 
 	}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	local_minFoundValue = minFoundValue;
 	MPI_Allreduce(&local_minFoundValue, &minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm);
 #endif
@@ -708,7 +708,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
     *numValuesInUse = nv;
 }
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 void Dudley_printDoubleArray(FILE * fid, dim_t n, double *array, char *name)
 {
     index_t i;

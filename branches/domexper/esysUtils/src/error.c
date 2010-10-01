@@ -19,7 +19,7 @@
 #include <omp.h>
 #endif
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include "mpi_C.h"
 #else
 #include <time.h>
@@ -72,7 +72,7 @@ bool_t Esys_checkPtr(void* ptr) {
 double Esys_timer(void) {
   double out;
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   out = MPI_Wtime();
 #else
 #ifdef _OPENMP 

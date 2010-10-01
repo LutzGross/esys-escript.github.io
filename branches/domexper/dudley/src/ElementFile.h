@@ -19,11 +19,11 @@
 #include "ElementType.h"
 #include "escript/DataC.h"
 
-#ifdef PASO_MPI
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 
-struct Dudley_ElementFile_Jacobeans {
+typedef struct {
     Dudley_Status_t status;	/* status of mesh when jacobeans where updated last time */
     dim_t numDim;		/* spatial dimension */
     dim_t numQuad;		/* number of quadrature nodes used to calculate jacobeans */
@@ -32,9 +32,7 @@ struct Dudley_ElementFile_Jacobeans {
     double *absD;		/* used to compute volume */
     double quadweight;		/* used to compute volume */
     double *DSDX;		/* derivatives of shape functions in global coordinates at quadrature points */
-};
-
-typedef struct Dudley_ElementFile_Jacobeans Dudley_ElementFile_Jacobeans;
+} Dudley_ElementFile_Jacobeans;
 
 struct Dudley_ElementFile {
     Esys_MPIInfo *MPIInfo;

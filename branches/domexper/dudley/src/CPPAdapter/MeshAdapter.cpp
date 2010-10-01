@@ -18,9 +18,8 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef PASO_MPI
-#include <mpi.h>
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 extern "C" {
 #include "esysUtils/blocktimer.h"
@@ -81,7 +80,7 @@ int MeshAdapter::getMPIRank() const
 }
 void MeshAdapter::MPIBarrier() const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Barrier(m_dudleyMesh.get()->MPIInfo->comm);
 #endif
    return;
@@ -92,14 +91,14 @@ bool MeshAdapter::onMasterProcessor() const
 }
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int
 #endif
 MeshAdapter::getMPIComm() const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	return m_dudleyMesh->MPIInfo->comm;
 #else
 	return 0;
@@ -143,16 +142,16 @@ void MeshAdapter::dump(const string& fileName) const
    int num_Points			= mesh->Points->numElements;
    int num_Elements_numNodes		= mesh->Elements->numNodes;
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Status status;
 #endif
 
 /* Incoming token indicates it's my turn to write */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    if (mpi_rank>0) MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, mesh->MPIInfo->comm, &status);
 #endif
 
-   char *newFileName = Paso_MPI_appendRankToFileName(fileName.c_str(),
+   char *newFileName = Esys_MPI_appendRankToFileName(fileName.c_str(),
                                                      mpi_size, mpi_rank);
 
    /* Figure out how much storage is required for tags */
@@ -224,11 +223,11 @@ void MeshAdapter::dump(const string& fileName) const
       throw DataException(msgPrefix+"add_att(num_Elements_numNodes)");
    if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
       throw DataException(msgPrefix+"add_att(num_FaceElements_numNodes)");
-   if (!dataFile.add_att("Elements_TypeId", mesh->Elements->referenceElementSet->referenceElement->Type->TypeId) )
+   if (!dataFile.add_att("Elements_TypeId", mesh->Elements->etype) )
       throw DataException(msgPrefix+"add_att(Elements_TypeId)");
-   if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->referenceElementSet->referenceElement->Type->TypeId) )
+   if (!dataFile.add_att("FaceElements_TypeId", mesh->FaceElements->etype) )
       throw DataException(msgPrefix+"add_att(FaceElements_TypeId)");
-   if (!dataFile.add_att("Points_TypeId", mesh->Points->referenceElementSet->referenceElement->Type->TypeId) )
+   if (!dataFile.add_att("Points_TypeId", mesh->Points->etype) )
       throw DataException(msgPrefix+"add_att(Points_TypeId)");
    if (!dataFile.add_att("num_Tags", num_Tags) )
       throw DataException(msgPrefix+"add_att(num_Tags)");
@@ -471,7 +470,7 @@ void MeshAdapter::dump(const string& fileName) const
    }
 
 /* Send token to next MPI process so he can take his turn */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    if (mpi_rank<mpi_size-1) MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, mesh->MPIInfo->comm);
 #endif
 
@@ -1368,7 +1367,7 @@ void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t myFirstNode=0, myLastNode=0, k=0;
     index_t* globalNodeIndex=0;
     Dudley_Mesh* mesh_p=m_dudleyMesh.get();

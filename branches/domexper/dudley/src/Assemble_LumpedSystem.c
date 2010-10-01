@@ -139,9 +139,9 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	    Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: Unable to locate shape function.");
 	}
 #ifdef NEW_LUMPING
-#pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t)
+#pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp, diagS, m_t)
 #else
-#pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp)
+#pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp)
 #endif
 	{
 	    EM_lumpedMat = THREAD_MEMALLOC(len_EM_lumpedMat, double);

@@ -39,7 +39,7 @@ Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
   #ifdef ESYS_MPI
      error = MPI_Comm_rank( comm, &out->rank )==MPI_SUCCESS && MPI_Comm_size( comm, &out->size )==MPI_SUCCESS;
      if( !error ) {
-       Paso_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+       Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
      }
   
      out->comm = comm;
@@ -146,7 +146,7 @@ int Esys_MPIInfo_initialized( void )
      int error=0, initialised=0;
      error = MPI_Initialized( &initialised );
      if( error!=MPI_SUCCESS )
-         Paso_setError( ESYS_MPI_ERROR, "mpi_initialised : MPI error" );
+         Esys_setError( ESYS_MPI_ERROR, "mpi_initialised : MPI error" );
      return initialised;
   #else
      return TRUE;

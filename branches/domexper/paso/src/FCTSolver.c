@@ -145,7 +145,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 		  fail=MIN(fail, fail_loc);
                }
         }
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
         {
 	       double rtmp_loc[2], rtmp[2];
                rtmp_loc[0]=dt_max;

@@ -1294,7 +1294,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 	memcpy(tmpData,&(getDataAtOffsetRO(offset)),length*sizeof(double));
      }
   }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   // broadcast the data to all other processes
   MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
 #endif
@@ -1344,7 +1344,7 @@ Data::integrateWorker() const
   {				
     throw DataException("Can not integrate over non-continuous domains.");
   }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   dom->setToIntegrals(integrals_local,*this);
   // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
   double *tmp = new double[dataPointSize];
@@ -1557,7 +1557,7 @@ Data::Lsup()
 	}
 	else
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    return lazyAlgWorker<AbsMax>(0,MPI_MAX);
 #else
 	    return lazyAlgWorker<AbsMax>(0);
@@ -1588,7 +1588,7 @@ Data::sup()
 	}
 	else
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1, MPI_MAX);
 #else
 	    return lazyAlgWorker<FMax>(numeric_limits<double>::max()*-1);
@@ -1619,7 +1619,7 @@ Data::inf()
 	}
 	else
 	{
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    return lazyAlgWorker<FMin>(numeric_limits<double>::max(), MPI_MIN);
 #else
 	    return lazyAlgWorker<FMin>(numeric_limits<double>::max());
@@ -1631,7 +1631,7 @@ Data::inf()
 
 template <class BinaryOp>
 double
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 Data::lazyAlgWorker(double init, MPI_Op mpiop_type)
 #else
 Data::lazyAlgWorker(double init)
@@ -1675,7 +1675,7 @@ Data::lazyAlgWorker(double init)
 	#pragma omp critical
 	val=operation(val,localtot);
    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    double globalValue;
    MPI_Allreduce( &localval, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
    if (globalValue!=0)
@@ -1687,7 +1687,7 @@ Data::lazyAlgWorker(double init)
    {
 	return makeNaN();
    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Allreduce( &val, &globalValue, 1, MPI_DOUBLE, mpiop_type, MPI_COMM_WORLD );
    return globalValue;
 #else
@@ -1702,7 +1702,7 @@ Data::LsupWorker() const
   bool haveNaN=getReady()->hasNaN();
   double localValue=0;
   
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   if (haveNaN)
   {
 	localValue=1.0;
@@ -1726,7 +1726,7 @@ Data::LsupWorker() const
   AbsMax abs_max_func;
   localValue = algorithm(abs_max_func,0);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
@@ -1741,7 +1741,7 @@ Data::supWorker() const
   bool haveNaN=getReady()->hasNaN();
   double localValue=0;
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   if (haveNaN)
   {
 	localValue=1.0;
@@ -1763,7 +1763,7 @@ Data::supWorker() const
   // set the initial maximum value to min possible double
   FMax fmax_func;
   localValue = algorithm(fmax_func,numeric_limits<double>::infinity()*-1);
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -1777,7 +1777,7 @@ Data::infWorker() const
   bool haveNaN=getReady()->hasNaN();
   double localValue=0;
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   if (haveNaN)
   {
 	localValue=1.0;
@@ -1798,7 +1798,7 @@ Data::infWorker() const
   // set the initial minimum value to max possible double
   FMin fmin_func;
   localValue = algorithm(fmin_func,numeric_limits<double>::infinity());
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
   return globalValue;
 #else
@@ -2122,7 +2122,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double local_val, local_min;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   double next[2];
   #endif
   int local_lowi=0,local_lowj=0;	
@@ -2149,7 +2149,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     }
   }
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   // determine the processor on which the minimum occurs
   next[0] = min;
   next[1] = numSamples;
@@ -2210,7 +2210,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   int numDPPSample=temp.getNumDataPointsPerSample();
 
   double local_val, local_max;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   double next[2];
   #endif
   int local_highi=0,local_highj=0;	
@@ -2236,7 +2236,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
       highj=local_highj;
     }
   }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   // determine the processor on which the maximum occurs
   next[0] = max;
   next[1] = numSamples;
@@ -2430,7 +2430,7 @@ Data::matrixInverse() const
   Data out(0.,getDataPointShape(),getFunctionSpace());
   out.typeMatchRight(*this);
   int errcode=m_data->matrixInverse(out.getReadyPtr().get());
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   int globalval=0;
   MPI_Allreduce( &errcode, &globalval, 1, MPI_INT, MPI_MAX, get_MPIComm() );
   errcode=globalval;
@@ -3153,7 +3153,7 @@ Data::toString() const
 {
 
     int localNeedSummary=0;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     int globalNeedSummary=0;
 #endif
     if (!m_data->isEmpty() &&
@@ -3163,7 +3163,7 @@ Data::toString() const
 	localNeedSummary=1;
     }
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Allreduce( &localNeedSummary, &globalNeedSummary, 1, MPI_INT, MPI_MAX, get_MPIComm() );
     localNeedSummary=globalNeedSummary;
 #endif
@@ -3357,7 +3357,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 		  } // if (!error)
 	    }	// parallelised for
 	} // if !haserror
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	int rerror=0;
 	MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
 	error=rerror;
@@ -3546,7 +3546,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 	    }  // if (!haserror)
 	}	// parallel for
      } // !error
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
      int rerror=0;
      MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
      error=rerror;
@@ -3608,7 +3608,7 @@ int
 Data::get_MPISize() const
 {
 	int size;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	int error;
 	error = MPI_Comm_size( get_MPIComm(), &size );
 #else
@@ -3621,7 +3621,7 @@ int
 Data::get_MPIRank() const
 {
 	int rank;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	int error;
 	error = MPI_Comm_rank( get_MPIComm(), &rank );
 #else
@@ -3633,7 +3633,7 @@ Data::get_MPIRank() const
 MPI_Comm
 Data::get_MPIComm() const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	return MPI_COMM_WORLD;
 #else
 	return -1;
@@ -3799,7 +3799,7 @@ escript::applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple 
     {
 	throw DataException("applyBinaryCFunction: Unsupported combination of inputs.");
     }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     int global;
     MPI_Allreduce(&err, &global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
     err=global;

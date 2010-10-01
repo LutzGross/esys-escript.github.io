@@ -19,13 +19,13 @@
 using namespace CppUnitTest;
 
 extern "C"{
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 }
 
 int main(int argc, char* argv[])
 {
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
         int status = MPI_Init(&argc, &argv);
         if (status != MPI_SUCCESS) {
           std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         // actually run the unit tests.
         runner.run (argc, argv);
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
         MPI_Finalize();
 #endif
 

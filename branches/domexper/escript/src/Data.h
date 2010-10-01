@@ -37,7 +37,7 @@ extern "C" {
 #include <omp.h>
 #endif
 
-#include "esysmpi.h"
+#include "esysUtils/Esys_MPI.h"
 #include <string>
 #include <algorithm>
 #include <sstream>
@@ -1518,7 +1518,7 @@ instead of manually manipulating process and point IDs.
 
 template <class BinaryOp>
   double 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   lazyAlgWorker(double init, MPI_Op mpiop_type);
 #else
   lazyAlgWorker(double init);

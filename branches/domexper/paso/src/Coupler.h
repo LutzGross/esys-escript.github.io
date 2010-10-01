@@ -45,7 +45,7 @@ typedef struct Paso_Coupler {
   double *data; /* unmanaged pointer to data be send */
   double *send_buffer;
   double *recv_buffer;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
     MPI_Request* mpi_requests;
     MPI_Status* mpi_stati;
  #else

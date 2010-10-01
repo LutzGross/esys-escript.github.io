@@ -22,7 +22,7 @@ extern "C" {
 #include "dudley/Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/Transport.h"
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 }
 
 #include "DudleyError.h"
@@ -151,7 +151,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual bool onMasterProcessor() const;
 
   DUDLEY_DLL_API
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int

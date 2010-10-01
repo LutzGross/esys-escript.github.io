@@ -25,7 +25,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include "mpi.h"
 #endif
 
@@ -172,7 +172,7 @@ double
 blocktimer_time()
 {
   double out=0.0;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   out = MPI_Wtime();
 #else
 #ifdef _OPENMP

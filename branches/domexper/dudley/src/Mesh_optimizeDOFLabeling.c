@@ -31,7 +31,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     Paso_Pattern *pattern = NULL;
     Esys_MPI_rank myRank, dest, source, current_rank;
     Dudley_IndexList *index_list = NULL;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Status status;
 #endif
 
@@ -119,7 +119,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 
 	    if (p < mpiSize - 1)
 	    {			/* the final send can be skipped */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		MPI_Sendrecv_replace(newGlobalDOFID, len, MPI_INT,
 				     dest, in->MPIInfo->msg_tag_counter,
 				     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);

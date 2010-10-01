@@ -63,7 +63,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
 	    u[i]=u_i;
 	}
     }
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     {
         index_t fail_loc = fail;
         MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
@@ -125,7 +125,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 		  fail=MIN(fail, fail_loc);
                }
         }
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
         {
 	       double rtmp_loc[2], rtmp[2];
                rtmp_loc[0]=dt_max;

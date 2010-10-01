@@ -28,11 +28,11 @@
 
 /**************************************************************/
 
-#include "mpi_C.h"
+
 #include "Paso.h"
 #include "PasoUtil.h"
 #include "Pattern.h"
-
+#include "esysUtils/mpi_C.h"
 
 /* used to generate pseudo random numbers: */
 

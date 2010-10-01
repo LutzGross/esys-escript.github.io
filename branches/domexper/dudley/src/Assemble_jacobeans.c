@@ -60,7 +60,7 @@ void Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numElements
 #pragma omp parallel
     {
 	register double dXdv00, dXdv10, dXdv01, dXdv11, dvdX00, dvdX10, dvdX01, dvdX11, D, invD;
-#pragma omp for private(e,q,s,dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD,X0_loc, X1_loc) schedule(static)
+#pragma omp for private(e,q, dXdv00,dXdv10,dXdv01,dXdv11,dvdX00,dvdX10,dvdX01,dvdX11, D,invD) schedule(static)
 	for (e = 0; e < numElements; e++)
 	{
 #define COMPDXDV0(P)  coordinates[INDEX2(P,nodes[INDEX2(0,e,numNodes)],DIM)]*(-1)+\
@@ -152,7 +152,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 #pragma omp parallel
     {
 	register double dXdv00, dXdv10, dvdX00, dvdX01, D, invD;
-#pragma omp for private(e,q,s,dXdv00,dXdv10,dvdX00,dvdX01,D,invD,X0_loc, X1_loc) schedule(static)
+#pragma omp for private(e,dXdv00,dXdv10,dvdX00,dvdX01,D,invD) schedule(static)
 	for (e = 0; e < numElements; e++)
 	{
 	    dXdv00 = 0;

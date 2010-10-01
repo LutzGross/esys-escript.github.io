@@ -32,7 +32,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	NULL, *loc_send_count = NULL, newNumElements, numElementsInBuffer, numNodes, numRequests, NN;
     index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
     bool_t *proc_mask = NULL;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_Request *mpi_requests = NULL;
     MPI_Status *mpi_stati = NULL;
 #endif
@@ -45,7 +45,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
     NN = self->numNodes;
     if (size > 1)
     {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	mpi_requests = TMPMEMALLOC(8 * size, MPI_Request);
 	mpi_stati = TMPMEMALLOC(8 * size, MPI_Status);
 	Dudley_checkPtr(mpi_requests);
@@ -102,7 +102,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		THREAD_MEMFREE(loc_proc_mask);
 		THREAD_MEMFREE(loc_send_count);
 	    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	    MPI_Alltoall(send_count, 1, MPI_INT, recv_count, 1, MPI_INT, self->MPIInfo->comm);
 #else
 	    for (p = 0; p < size; ++p)
@@ -171,7 +171,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		{
 		    if (recv_count[p] > 0)
 		    {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 			MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p],
 				  MPI_INT, p, self->MPIInfo->msg_tag_counter + myRank,
 				  self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -196,7 +196,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		{
 		    if (send_count[p] > 0)
 		    {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 			MPI_Issend(&(Id_buffer[send_offset[p]]), send_count[p],
 				   MPI_INT, p, self->MPIInfo->msg_tag_counter + p,
 				   self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -219,7 +219,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		}
 		self->MPIInfo->msg_tag_counter += 4 * size;
 		/* wait for the requests to be finalized */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 		MPI_Waitall(numRequests, mpi_requests, mpi_stati);
 #endif
 	    }
@@ -232,7 +232,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	    TMPMEMFREE(recv_offset);
 	    TMPMEMFREE(proc_mask);
 	}
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	TMPMEMFREE(mpi_requests);
 	TMPMEMFREE(mpi_stati);
 #endif

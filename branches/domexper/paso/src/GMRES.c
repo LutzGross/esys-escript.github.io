@@ -361,7 +361,7 @@ err_t Paso_Solver_GMRES(
                   }
                }
          }
-         #ifdef PASO_MPI
+         #ifdef ESYS_MPI
                 MPI_Allreduce(loc_dots, dots, order+1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 R_PRES_dot_P_PRES[0]=dots[0];
                 memcpy(P_PRES_dot_AP,&dots[1],sizeof(double)*order);
@@ -554,7 +554,7 @@ err_t Paso_Solver_GMRES(
                        loc_dots[1]+=SC2;
                   }
               }
-              #ifdef PASO_MPI
+              #ifdef ESYS_MPI
                   MPI_Allreduce(loc_dots, dots, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                   SC1=dots[0];
                   SC2=dots[1];
@@ -581,7 +581,7 @@ err_t Paso_Solver_GMRES(
                        loc_dots[2]+=L2_R;
                   }
               }
-              #ifdef PASO_MPI
+              #ifdef ESYS_MPI
                   MPI_Allreduce(&loc_dots[2], &dots[2], 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                   L2_R=dots[2];
               #else

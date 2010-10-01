@@ -23,7 +23,7 @@
 #include <omp.h>
 #endif
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 

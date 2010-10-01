@@ -18,7 +18,7 @@
     Ensures that no C++ stuff leaks into Paso/Finley from mpi.h
 */
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 
 /*
 #ifndef MPI_NO_CPPBIND
@@ -29,8 +29,8 @@
   #include <mpi.h>
 #endif
 */
-#ifndef PASO_MPI_C
-#define PASO_MPI_C
+#ifndef ESYS_MPI_C
+#define ESYS_MPI_C
 
 #define OMPI_SKIP_MPICXX
 #define MPICH_SKIP_MPICXX
@@ -38,7 +38,7 @@
 #undef MPICH_SKIP_MPICXX
 #undef OMPI_SKIP_MPICXX
 
-#endif /* PASO_MPI_C */
+#endif /* ESYS_MPI_C */
 
-#endif /* PASO_MPI */
+#endif /* ESYS_MPI */
 

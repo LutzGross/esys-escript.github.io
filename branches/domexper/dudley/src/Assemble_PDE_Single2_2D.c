@@ -69,7 +69,7 @@ void Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters p, Dudley_ElementFile * 
     dim_t len_EM_S = p.numShapes * p.numShapes;
     dim_t len_EM_F = p.numShapes;
 
-#pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1,add_EM_F, add_EM_S)
+#pragma omp parallel private(color,EM_S, EM_F, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,rtmp00, rtmp01, rtmp10, rtmp11, rtmp, rtmp0, rtmp1,add_EM_F, add_EM_S)
     {
 	EM_S = THREAD_MEMALLOC(len_EM_S, double);
 	EM_F = THREAD_MEMALLOC(len_EM_F, double);

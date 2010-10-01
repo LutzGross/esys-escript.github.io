@@ -725,7 +725,7 @@ if env_mpi['usempi'] and not conf.CheckCHeader('mpi.h'): env_mpi['usempi'] = 0
 # Add MPI to environment env_mpi if it was found
 if env_mpi['usempi']:
   env_mpi = conf.Finish()
-  env_mpi.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
+  env_mpi.Append(CPPDEFINES = ['ESYS_MPI', 'MPI_NO_CPPBIND', env_mpi['MPICH_IGNORE_CXX_SEEK']])
   # NetCDF 4.1 defines MPI_Comm et al. if MPI_INCLUDED is not defined!
   # On the other hand MPT and OpenMPI don't define the latter so we have to
   # do that here
