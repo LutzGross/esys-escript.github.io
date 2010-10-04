@@ -43,7 +43,7 @@
 void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options) {
    const double reduction_after_divergence_factor = 0.5;
    const dim_t num_failures_max=50;
-   const double increase_after_convergence_factor = 1.1; /* has not much of an impact if substepping is beeing used */
+   /* const double increase_after_convergence_factor = 1.1;  has not much of an impact if substepping is beeing used */
    
    Paso_Performance pp;  
    Paso_Function *fctfunction=NULL;
@@ -55,6 +55,8 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
    err_t errorCode=SOLVER_NO_ERROR;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
+   options->time_step_backtracking_used=FALSE;
+   options->num_iter=0;
 
 
    if (dt<=0.) {
@@ -130,17 +132,20 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
              if (errorCode == SOLVER_NO_ERROR) {
                     num_failures=0;
                     i_substeps++;
-                    if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
+/*
+		    if (fctp->dt_max < LARGE_POSITIVE_FLOAT) {
                        fctp->dt_max=MIN3(dt_max, dt3*increase_after_convergence_factor ,fctp->dt_failed/increase_after_convergence_factor);
                     } else {
                        fctp->dt_max=MIN(dt3*increase_after_convergence_factor ,fctp->dt_failed/increase_after_convergence_factor);
                     }
+ */
 	     } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
                     /* if num_failures_max failures in a row: give up */
 		    fctp->dt_failed=MIN(fctp->dt_failed, dt3);
                     if (num_failures >= num_failures_max) {
                        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: No convergence after time step reductions.");
                     } else {
+                       options->time_step_backtracking_used=TRUE;
                        if (options->verbose) printf("Paso_TransportProblem_solve: no convergence. Time step size is reduced.\n");
                        dt2=dt3*reduction_after_divergence_factor;
                        num_failures++;

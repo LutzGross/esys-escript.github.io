@@ -168,7 +168,7 @@ err_t Paso_Solver_GMRES(
          /***                                                                 
          *** calculate new search direction P from R_PRES
          ***/
-         Paso_Solver_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
+	 Paso_SystemMatrix_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
          /***                                                                 
          *** apply A to P to get AP 
          ***/

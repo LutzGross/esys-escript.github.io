@@ -40,10 +40,10 @@
 *  Arguments
 *  =========
 *
-*  r       (input) DOUBLE PRECISION array, dimension N.
+*  R      (input) DOUBLE PRECISION array, dimension N.
 *          On entry, residual of inital guess x
 *
-*  x       (input/output) DOUBLE PRECISION array, dimension N.
+*  X       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess.
 *
 *  ITER    (input/output) INT
@@ -61,213 +61,151 @@
 *  ==============================================================
 */
 
-/* #define PASO_DYNAMIC_SCHEDULING_MVM */
 
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
-#define USE_DYNAMIC_SCHEDULING
-#endif
 
 err_t Paso_Solver_MINRES(
     Paso_SystemMatrix * A,
-    double * r,
-    double * x,
+    double * R,
+    double * X,
     dim_t *iter,
     double * tolerance,
-    Paso_Performance* pp) {
+    Paso_Performance* pp) 
+{
 
-  /* Local variables */
-  
-  dim_t num_iter=0,maxit;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
-  err_t status = SOLVER_NO_ERROR;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
-  double  *w=NULL, *w1=NULL, *w2=NULL, *r1=NULL, *r2=NULL, *y=NULL, *v=NULL;
+   double    delta,gamma=0.,gamma_old=0.,eta=0.,dp0=0., c=1.0,c_old=1.0,c_ancient=1.,s=0.0,s_old=0.0,s_ancient, norm_of_residual=0., rnorm_prec=1;
+   double tol=1., norm_scal=1.;
+    const dim_t maxit = *iter;
+    double    alpha_0,alpha_1,alpha_2,alpha_3,dp = 0.0;
+    dim_t     num_iter = 0;
+    double    *Z=NULL, *W=NULL, *AZ=NULL, *R_old=NULL, *R_ancient=NULL, *W_old=NULL, *W_ancient=NULL, *ZNEW=NULL;
+    const dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+    bool_t convergeFlag=FALSE;
+    err_t status = SOLVER_NO_ERROR;
+/*                                                                 
+ *                                                                 
+ *   Start of Calculation :                                        
+ *   ---------------------                                         
+ *                                                                 
+ *                                                                 */
+   
 
-  double Anorm,Arnorm,ynorm,oldb,dbar,epsln,phibar,rhs1,rhs2,rnorm,tnorm2,ynorm2,cs,sn,eps,s,alfa,denom,z,beta1,beta;
-  double gmax,gmin,oldeps,delta,gbar,gamma,phi,root,epsx;
- 
-  double norm_of_residual=0;
-  
-/*                                                                 */
-/*-----------------------------------------------------------------*/
-/*                                                                 */
-/*   Start of Calculation :                                        */
-/*   ---------------------                                         */
-/*                                                                 */
-/*                                                                 */
-  w=TMPMEMALLOC(n,double);
-  w1=TMPMEMALLOC(n,double);
-  w2=TMPMEMALLOC(n,double);
-  r1=TMPMEMALLOC(n,double);
-  r2=TMPMEMALLOC(n,double);
-  y=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  
- 
- if (w ==NULL || w1== NULL || w2== NULL || r1 == NULL || r2== NULL || y==NULL || v==NULL ) {
-     status=SOLVER_MEMORY_ERROR;
-  }
- 
-    maxit = *iter;
+   /*     Test the input parameters. */
+   if (n < 0 || maxit<=0 ) {
+      status=SOLVER_INPUT_ERROR;
+   }
+   
+   ZNEW       = TMPMEMALLOC(n,double);
+   Z       = TMPMEMALLOC(n,double);
+   AZ    = TMPMEMALLOC(n,double);
+   W       = TMPMEMALLOC(n,double);
+   R_old    = TMPMEMALLOC(n,double);
+   W_old    = TMPMEMALLOC(n,double);
+   R_ancient   = TMPMEMALLOC(n,double);
+   W_ancient   = TMPMEMALLOC(n,double);
+   
+   if (R_ancient==NULL || Z==NULL || W==NULL || AZ==NULL || R_old==NULL || W_old==NULL || W_ancient==NULL || ZNEW==NULL) {
+      status=SOLVER_MEMORY_ERROR;
+   }
+      
+   if (status ==SOLVER_NO_ERROR) { 
+      
+      Paso_SystemMatrix_solvePreconditioner(A, Z, R); /*     z  <- Prec*r       */
+      /* gamma <- r'*z */
+          dp=Paso_InnerProduct(n, R ,Z,A->mpi_info); /* gamma <- r'*z */
+	  dp0=dp;
+      if (dp<0) {
+	 status=SOLVER_NEGATIVE_NORM_ERROR;
+      } else if (! ABS(dp)>0) {
+	    convergeFlag = TRUE;            /* happy break down */
+      } else {
+            gamma   = sqrt(dp); /*  gamma <- sqrt(r'*z)  */
+            eta  = gamma;
+            rnorm_prec = gamma;
+            norm_of_residual=Paso_l2(n, R, A->mpi_info);
+            norm_scal=rnorm_prec/norm_of_residual;
+            tol=(*tolerance)*norm_scal;
+      }
+   }
+   while (!(convergeFlag || (status !=SOLVER_NO_ERROR) ))
+   {
+        /*    z <- z / gamma     */
+           Paso_Scale(n, Z,1./gamma);        
 
- /*     Test the input parameters. */
-  if (n < 0 || maxit<=0 ) {
-    status=SOLVER_INPUT_ERROR;
-  }
-  
-  Paso_Copy(n,r1,r);
-  
-  Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_Solver_solvePreconditioner(A,y,r1);
-  Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  
-  beta1=Paso_InnerProduct(n,r1,y,A->mpi_info);
-  if (beta1<0) {
-    status=SOLVER_NEGATIVE_NORM_ERROR;
-  }
-  
-  if (beta1>0) {
-     beta1=sqrt(beta1);
-  }
-  
-  Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-  
-  Paso_zeroes(n,w);
-  Paso_zeroes(n,w2);
-  
-    Paso_zeroes(n,x);
-  
-  Paso_Copy(n,r2,r1);
-  
-  Anorm = 0;
-  ynorm = 0;
-  oldb   = 0;
-  beta   = beta1;
-  dbar   = 0;
-  epsln  = 0;
-  phibar = beta1;
-  rhs1   = beta1;
-  rhs2   = 0;
-  rnorm  = phibar;
-  tnorm2 = 0;
-  ynorm2 = 0;
-  cs     = -1;
-  sn     = 0;
-  eps    = 0.000001;
- 
-  while (!(convergeFlag || (status !=SOLVER_NO_ERROR) ))
-  {
-          
-     s=1/beta;
-     Paso_Update(n, 0., v, s, y);
-     
-     Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-     Performance_startMonitor(pp,PERFORMANCE_MVM);
-     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, v,PASO_ZERO,y);
-     Performance_stopMonitor(pp,PERFORMANCE_MVM);
-     Performance_startMonitor(pp,PERFORMANCE_SOLVER);
-    
-     if (num_iter >= 1) {
-        Paso_Update(n, 1., y, -(beta/oldb), r1);
-     }
+        /*      Az <- A*z   */
+           Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z,PASO_ZERO,AZ); 
 
-     alfa = Paso_InnerProduct(n,v,y,A->mpi_info);
-     Paso_Update(n, 1., y, (-alfa/beta), r2);
-     Paso_Copy(n,r1,r2);
-     Paso_Copy(n,r2,y);
+	/*  delta <- Az'.z */
+	    delta=Paso_InnerProduct(n,AZ,Z,A->mpi_info); 
 
-     Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-     Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     Paso_Solver_solvePreconditioner(A,y,r2);
-     Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+       /*  r_new <- Az-delta/gamma * r - gamma/gamma_old r_old */
+          if (num_iter>0) Paso_Copy(n, R_ancient, R_old);   /*  r__ancient <- r_old */
+          Paso_Copy(n, R_old, R);       /*  r_old <- r */
+          Paso_Copy(n, R, AZ);       /*  r <- Az */
+	  Paso_AXPY(n, R, -delta/gamma, R_old);     /*  r <- r - delta/gamma v     */
+	  if (num_iter>0) Paso_AXPY(n, R, -gamma/gamma_old, R_ancient);   /*  r <- r - gamma/gamma_old r__ancient  */
 
-     oldb   = beta;                         
-     beta   = Paso_InnerProduct(n,y,r2,A->mpi_info);           
-     if (beta<0) {
-        status=SOLVER_NEGATIVE_NORM_ERROR;
-     }
-
-    beta   = sqrt( beta );
-    tnorm2 = tnorm2 + alfa*alfa + oldb*oldb + beta*beta;
+	/*  z <- prec*r   */
+	  Paso_SystemMatrix_solvePreconditioner(A, ZNEW, R); 
         
-    if (num_iter==0) {
-        gmax   = ABS(alfa);      
-        gmin   = gmax;
-    }
+	
+	 dp=Paso_InnerProduct(n,R,ZNEW,A->mpi_info);
+	 if (dp < 0.) {
+		  status=SOLVER_NEGATIVE_NORM_ERROR;
+	 } else if (ABS(dp) == 0.) {
+		  convergeFlag = TRUE;            /* happy break down */
+	 } else if (ABS(dp) > 0.e-13 * ABS(dp0) ) {
+	       /*  gamma <- sqrt(r'*z)   */
+		gamma_old=gamma;
+	        gamma = sqrt(dp);                             
+	       /*    QR factorisation    */
+	 
+	       c_ancient = c_old; c_old = c; 
+               s_ancient = s_old; s_old = s;
+	 
+	       alpha_0 = c_old * delta - c_ancient * s_old * gamma_old;
+	       alpha_1 = sqrt(alpha_0*alpha_0 + gamma*gamma);
+	       alpha_2 = s_old * delta + c_ancient * c_old * gamma_old;
+	       alpha_3 = s_ancient * gamma_old;
+	 
+	       /*     Givens rotation    */
+	 
+	       c = alpha_0 / alpha_1;
+	       s = gamma / alpha_1;
 
-     /* Apply previous rotation Qk-1 to get
-       [deltak epslnk+1] = [cs  sn][dbark    0   ]
-       [gbar k dbar k+1]   [sn -cs][alfak betak+1]. */
-    
-     oldeps = epsln;
-     delta  = cs * dbar  +  sn * alfa ; 
-     gbar   = sn * dbar  -  cs * alfa ; 
-     epsln  =               sn * beta ; 
-     dbar   =            -  cs * beta;
-     
-     root   = sqrt(gbar*gbar+dbar*dbar) ;
-     Arnorm = phibar*root;
-     
-     gamma  = sqrt(gbar*gbar+beta*beta) ;
-     gamma  = MAX(gamma,eps) ;
-     cs     = gbar / gamma ;            
-     sn     = beta / gamma ;            
-     phi    = cs * phibar ;             
-     phibar = sn * phibar ;             
+               rnorm_prec = rnorm_prec * s;
 
-     /* Update  x. */
-
-     denom = 1/gamma ;
-     Paso_Copy(n,w1,w2);
-     Paso_Copy(n,w2,w);
-     
-     Paso_LinearCombination(n,w,denom,v,-(denom*oldeps),w1);
-     Paso_Update(n, 1., w, -(delta*denom), w2) ;
-     Paso_Update(n, 1., x, phi, w) ;
-
-     /* Go round again. */
-
-     gmax   = MAX(gmax,gamma);
-     gmin   = MIN(gmin,gamma);
-     z      = rhs1 / gamma;
-     ynorm2 = z*z  +  ynorm2;
-     rhs1   = rhs2 -  delta*z;
-     rhs2   =      -  epsln*z;
-
-     Anorm  = sqrt( tnorm2 ) ;
-     ynorm  = sqrt( ynorm2 ) ;
-
-     rnorm  = phibar;
-     epsx   = Anorm*ynorm*eps;
-     
-     
-     if (status==SOLVER_NO_ERROR) {   
-        maxIterFlag = (num_iter > maxit);
-        norm_of_residual=rnorm;
-        convergeFlag=((norm_of_residual/(Anorm*ynorm))<(*tolerance) || 1+(norm_of_residual/(Anorm*ynorm)) <=1);
-        if (maxIterFlag) {
-            status = SOLVER_MAXITER_REACHED;
-        } else if (breakFlag) {
-            status = SOLVER_BREAKDOWN;
-        }
-     }
-    ++(num_iter);
-  }
-    /* end of iteration */
-    
-    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-    TMPMEMFREE(w);
-    TMPMEMFREE(w1);
-    TMPMEMFREE(w2); 
-    TMPMEMFREE(r1);
-    TMPMEMFREE(r2);
-    TMPMEMFREE(y); 
-    TMPMEMFREE(v); 
-  
-    *iter=num_iter;
-    *tolerance=norm_of_residual;
-    
-  /*     End of MINRES */
-  return status;
+               /* w_new <- (z-alpha_3 w - alpha_2 w_old)/alpha_1 */
+	 
+	             if (num_iter>1) Paso_Copy(n, W_ancient, W_old);     /*  w__ancient <- w_old      */
+	             if (num_iter>0) Paso_Copy(n, W_old, W);         /*  w_old  <- w          */
+	 
+	             Paso_Copy(n, W, Z);
+	             if (num_iter>1) Paso_AXPY(n, W,- alpha_3,W_ancient); /*  w <- w - alpha_3 w__ancient */
+	             if (num_iter>0) Paso_AXPY(n, W,- alpha_2,W_old);  /*  w <- w - alpha_2 w_old  */
+   	             Paso_Scale(n, W, 1.0 / alpha_1);      /*  w <- w / alpha_1        */
+               /*                                                        */
+	       Paso_AXPY(n, X,c * eta,W);      /*  x <- x + c eta w     */ 
+	       eta = - s * eta;
+	       convergeFlag = rnorm_prec <= tol;
+	 } else {
+		   status=SOLVER_BREAKDOWN;
+	 }
+         Paso_Copy(n, Z, ZNEW);       
+	 ++(num_iter);
+	 if ( !convergeFlag && (num_iter>=maxit)) status = SOLVER_MAXITER_REACHED;
+   }
+   TMPMEMFREE(Z);
+   TMPMEMFREE(ZNEW);
+   TMPMEMFREE(AZ);
+   TMPMEMFREE(R_old);
+   TMPMEMFREE(R_ancient);
+   TMPMEMFREE(W);
+   TMPMEMFREE(W_old);
+   TMPMEMFREE(W_ancient);
+      
+   *iter=num_iter;
+   *tolerance=rnorm_prec/norm_scal;
+      
+   /*     End of MINRES */
+   return status;
 }

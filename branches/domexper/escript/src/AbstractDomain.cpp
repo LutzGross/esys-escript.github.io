@@ -313,7 +313,7 @@ int AbstractDomain::getApproximationOrder(const int functionSpaceCode) const
 
 bool AbstractDomain::supportsContactElements() const
 {
-  throwStandardException("AbstractDomain::supportsConactElements");
+  throwStandardException("AbstractDomain::supportsContactElements");
   return false;
 }
 

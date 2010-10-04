@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -665,7 +666,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setMinCoarseMatrixSize(1000)
         self.failUnless(so.getMinCoarseMatrixSize() == 1000, "Minimum Coarse Matrix Size is wrong.")
 
-        self.failUnless(so.getNumSweeps() == 2, "initial  Sweeps is wrong.")
+        self.failUnless(so.getNumSweeps() == 1, "initial  Sweeps is wrong.")
         self.failUnlessRaises(ValueError,so.setNumSweeps,-1)
         so.setNumSweeps(3)
         self.failUnless(so.getNumSweeps() == 3, "Sweeps is wrong.")
@@ -813,8 +814,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getSolverMethod() == 5, "CGS is not set.")
         so.setSolverMethod(so.BICGSTAB)
         self.failUnless(so.getSolverMethod() == 6, "BICGSTAB is not set.")
-        so.setSolverMethod(so.SSOR)
-        self.failUnless(so.getSolverMethod() == 7, "SSOR is not set.")
         so.setSolverMethod(so.GMRES)
         self.failUnless(so.getSolverMethod() == 11, "GMRES is not set.")
         so.setSolverMethod(so.PRES20)
@@ -823,8 +822,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getSolverMethod() == 13, "LUMPING is not set.")
         so.setSolverMethod(so.ITERATIVE)
         self.failUnless(so.getSolverMethod() == 20, "ITERATIVE is not set.")
-        so.setSolverMethod(so.AMG)
-        self.failUnless(so.getSolverMethod() == 22, "AMG is not set.")
         so.setSolverMethod(so.NONLINEAR_GMRES)
         self.failUnless(so.getSolverMethod() == 25, "NONLINEAR_GMRES is not set.")
         so.setSolverMethod(so.TFQMR)
@@ -838,8 +835,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnlessRaises(ValueError,so.setPreconditioner,-1)
         so.setPreconditioner(so.ILU0)
         self.failUnless(so.getPreconditioner() == 8, "ILU0 is not set.")
-        so.setPreconditioner(so.SSOR)
-        self.failUnless(so.getPreconditioner() == 7, "SSOR is not set.")
         so.setPreconditioner(so.ILUT)
         self.failUnless(so.getPreconditioner() == 9, "ILUT is not set.")
         so.setPreconditioner(so.JACOBI)
@@ -852,6 +847,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.failUnless(so.getPreconditioner() == 28, "GAUSS_SEIDEL is not set.")
         so.setPreconditioner(so.RILU)
         self.failUnless(so.getPreconditioner() == 29, "RILU is not set.")
+        so.setPreconditioner(so.AMLI)
+        self.failUnless(so.getPreconditioner() == 38, "AMLI is not set.")
         so.setPreconditioner(so.NO_PRECONDITIONER)
         self.failUnless(so.getPreconditioner() == 36, "NO_PRECONDITIONER is not set.")        
 

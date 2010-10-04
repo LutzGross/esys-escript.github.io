@@ -97,8 +97,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_CGS;
        case  ESCRIPT_BICGSTAB:
           return PASO_BICGSTAB;
-       case  ESCRIPT_SSOR:
-          return PASO_SSOR;
        case  ESCRIPT_ILU0:
           return PASO_ILU0;
        case  ESCRIPT_ILUT:
@@ -141,8 +139,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_MINRES;
        case  ESCRIPT_GAUSS_SEIDEL:
           return PASO_GAUSS_SEIDEL;
-       case  ESCRIPT_GAUSS_SEIDEL_MPI:
-          return PASO_GAUSS_SEIDEL_MPI;
        case  ESCRIPT_RILU:
           return PASO_RILU;
        case  ESCRIPT_DEFAULT_REORDERING:
@@ -161,8 +157,6 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AGGREGATION_COARSENING;
        case  ESCRIPT_NO_PRECONDITIONER:
           return PASO_NO_PRECONDITIONER;
-       case  ESCRIPT_MIN_COARSE_MATRIX_SIZE:
-          return PASO_MIN_COARSE_MATRIX_SIZE;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -308,6 +302,7 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("net_time", net_time, double);
    SET("residual_norm", residual_norm, double);
    SET("converged",converged, bool);
+   SET("time_step_backtracking_used", time_step_backtracking_used,bool);
 #undef SET
 }
 void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
@@ -342,7 +337,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT_OPTION("getCoarsening", coarsening_method, index_t);
    EXTRACT_OPTION("getSmoother", smoother, index_t); 
    EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
-  
+   EXTRACT("useLocalPreconditioner", use_local_preconditioner, bool_t);
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

@@ -122,7 +122,7 @@ err_t Paso_Solver_TFQMR(
   Paso_zeroes(n,x);
   
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_Solver_solvePreconditioner(A,res,r);
+  Paso_SystemMatrix_solvePreconditioner(A,res,r);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
@@ -143,7 +143,7 @@ err_t Paso_Solver_TFQMR(
   
   Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_Solver_solvePreconditioner(A,v,temp_vector);
+  Paso_SystemMatrix_solvePreconditioner(A,v,temp_vector);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
   
@@ -182,7 +182,7 @@ err_t Paso_Solver_TFQMR(
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-          Paso_Solver_solvePreconditioner(A,u2,temp_vector);
+	  Paso_SystemMatrix_solvePreconditioner(A,u2,temp_vector);
           Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
          } 
@@ -218,7 +218,7 @@ err_t Paso_Solver_TFQMR(
      Performance_stopMonitor(pp,PERFORMANCE_MVM);
      
      Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     Paso_Solver_solvePreconditioner(A,u1,temp_vector);
+     Paso_SystemMatrix_solvePreconditioner(A,u1,temp_vector);
      Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
      
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);

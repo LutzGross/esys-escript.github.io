@@ -1138,7 +1138,8 @@ class Test_pdetools(Test_pdetools_noLumping):
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=x
-      td=p(td_ref.interpolate(Function(self.domain)))
+      res=td_ref.interpolate(Function(self.domain))
+      td=p(res)
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
     def testProjector_rank2_fast_reduced(self):

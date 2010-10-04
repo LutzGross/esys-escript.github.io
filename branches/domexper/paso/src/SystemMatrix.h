@@ -67,6 +67,7 @@ typedef struct Paso_SystemMatrix {
 
   Paso_Coupler* col_coupler;
   Paso_Coupler* row_coupler;
+
   /* this comes into play when PASO is used */
   Paso_SparseMatrix* mainBlock;                      /* main block */
   Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */
@@ -122,6 +123,10 @@ void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double
 void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
 void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
 void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
+
+void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b);
+void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
+void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A);
 
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */

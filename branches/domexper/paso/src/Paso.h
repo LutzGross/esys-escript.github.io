@@ -29,5 +29,7 @@
 #include "Common.h"
 #include "esysUtils/error.h"
 
+#define PASO_ONE (double)(1.0)
+#define PASO_ZERO (double)(0.0)
 
 #endif /* #ifndef INC_PASO */

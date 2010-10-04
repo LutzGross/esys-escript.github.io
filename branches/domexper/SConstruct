@@ -156,6 +156,10 @@ adder(
   ('silo_path', 'Path to Silo includes', '/usr/include'),
   ('silo_lib_path', 'Path to Silo libs', usr_lib),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
+# VisIt
+  BoolVariable('usevisit', 'switch on/off the usage of the VisIt sim library', 'no'),
+  ('visit_path', 'Path to VisIt libsim includes', '/usr/include'),
+  ('visit_lib_path', 'Path to VisIt sim library', usr_lib),
 # AMD (used by UMFPACK)
   ('amd_path', 'Path to AMD includes', '/usr/include/suitesparse'),
   ('amd_lib_path', 'Path to AMD libs', usr_lib),
@@ -263,7 +267,7 @@ omp_libs = []
 if env["CC"] == "icc":
   # Intel compilers
   cc_flags		= "-std=c99 -fPIC -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
-  cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias"
+  cc_optim		= "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -ip"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
   omp_optim		= "-openmp -openmp_report0"
   omp_debug		= "-openmp -openmp_report0"
@@ -273,7 +277,7 @@ if env["CC"] == "icc":
   sysheaderopt		= ""
 elif env["CC"][:3] == "gcc":
   # GNU C on any system
-  cc_flags		= "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
+  cc_flags		= "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
 #the long long warning occurs on the Mac
   cc_optim		= "-O3"
   cc_debug		= "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
@@ -653,6 +657,12 @@ if env['usesilo']:
   env.AppendUnique(CPPPATH = [env['silo_path']])
   env.AppendUnique(LIBPATH = [env['silo_lib_path']])
 
+############ VisIt (optional) ###################################
+
+if env['usevisit']:
+  env.AppendUnique(CPPPATH = [env['visit_path']])
+  env.AppendUnique(LIBPATH = [env['visit_lib_path']])
+
 ########### Lapack (optional) ##################################
 
 if env['uselapack']:
@@ -775,6 +785,8 @@ if env['usenetcdf']: print "	Using NetCDF"
 else: print "	Not using NetCDF"
 if env['usevtk']: print "	Using VTK"
 else: print "	Not using VTK"
+if env['usevisit']: print "	Using VisIt"
+else: print "	Not using VisIt"
 if env['usemkl']: print "	Using MKL"
 else: print "	Not using MKL"
 if env['useumfpack']: print "	Using UMFPACK"
@@ -840,15 +852,16 @@ Export(
   )
 
 CallSConscript(env, dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
+CallSConscript(env, dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
 CallSConscript(env, dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
-#CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
+CallSConscript(env, dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
 CallSConscript(env, dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
 CallSConscript(env, dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
-#CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
 CallSConscript(env, dirs = ['dudley/src'], variant_dir='build/$PLATFORM/dudley', duplicate=0)
-#CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
+CallSConscript(env, dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
+CallSConscript(env, dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
 CallSConscript(env, dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
-#CallSConscript(env, dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
+CallSConscript(env, dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
 CallSConscript(env, dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
 CallSConscript(env, dirs = ['pythonMPI/src'], variant_dir='build/$PLATFORM/pythonMPI', duplicate=0)
 CallSConscript(env, dirs = ['scripts'], variant_dir='build/$PLATFORM/scripts', duplicate=0)
@@ -877,7 +890,7 @@ if not IS_WINDOWS_PLATFORM:
 
   versionstring="Python "+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
 #  if sys.version_info[4] >0 : versionstring+="rc%s"%sys.version_info[4]
-  
+
 ############## Populate the buildvars file #####################
 
 buildvars=open(os.path.join(env['libinstall'],'buildvars'),'w')
@@ -922,6 +935,11 @@ if env['usesilo']:
    out+="y"
 else:
    out+="n"
+out+="\nusevisit="
+if env['usevisit']:
+   out+="y"
+else:
+   out+="n"
 buildvars.write(out+"\n")
 buildvars.close()
 
@@ -938,8 +956,9 @@ env.Alias('install_esysUtils', ['build_esysUtils', 'target_install_esysUtils_a']
 env.Alias('build_paso', ['target_install_paso_headers', 'target_paso_a'])
 env.Alias('install_paso', ['build_paso', 'target_install_paso_a'])
 
-#env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
-#env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
+env.Alias('build_weipa', ['target_install_weipa_headers', 'target_weipa_so', 'target_weipacpp_so'])
+env.Alias('install_weipa', ['build_weipa', 'target_install_weipa_so', 'target_install_weipacpp_so', 'target_install_weipa_py'])
+
 
 env.Alias('build_escriptreader', ['target_install_weipa_headers', 'target_escriptreader_a'])
 env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escriptreader_a'])
@@ -947,32 +966,39 @@ env.Alias('install_escriptreader', ['build_escriptreader', 'target_install_escri
 env.Alias('build_escript', ['target_install_escript_headers', 'target_escript_so', 'target_escriptcpp_so'])
 env.Alias('install_escript', ['build_escript', 'target_install_escript_so', 'target_install_escriptcpp_so', 'target_install_escript_py'])
 
+env.Alias('build_finley', ['target_install_finley_headers', 'target_finley_so', 'target_finleycpp_so'])
+env.Alias('install_finley', ['build_finley', 'target_install_finley_so', 'target_install_finleycpp_so', 'target_install_finley_py'])
+
 env.Alias('build_dudley', ['target_install_dudley_headers', 'target_dudley_so', 'target_dudleycpp_so'])
-env.Alias('install_dudley', ['build_dudley', 'target_install_dudley_so', 'target_install_dudleycpp_so', 'target_install_dudley_py'])
+env.Alias('install_dudley', ['build_dudley', 'target_install_dudley_so', 'target_install_dudleycpp_so', 'target_dudley_finley_py'])
+
 
 # Now gather all the above into a couple easy targets: build_all and install_all
 build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
-#build_all_list += ['build_weipa']
+build_all_list += ['build_weipa']
 build_all_list += ['build_escript']
 build_all_list += ['build_dudley']
+build_all_list += ['build_finley']
 if env['usempi']:		build_all_list += ['target_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	build_all_list += ['target_escript_wrapper']
+build_all_list += ['target_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
 install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
-#install_all_list += ['install_weipa']
+install_all_list += ['install_weipa']
 install_all_list += ['install_escript']
-install_all_list += ['install_dudley']
-#install_all_list += ['target_install_pyvisi_py']
-#install_all_list += ['target_install_modellib_py']
+install_all_list += ['install_finley']
+install_all_list += ['target_install_pyvisi_py']
+install_all_list += ['target_install_modellib_py']
 install_all_list += ['target_install_pycad_py']
 if env['usempi']:		install_all_list += ['target_install_pythonMPI_exe']
 #if not IS_WINDOWS_PLATFORM:	install_all_list += ['target_install_escript_wrapper']
+if env['usesilo']:	install_all_list += ['target_install_escriptconvert']
 install_all_list += ['remember_options']
 env.Alias('install_all', install_all_list)
 

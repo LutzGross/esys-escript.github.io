@@ -64,6 +64,8 @@ typedef struct Paso_SparseMatrix {
 
 Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,dim_t,dim_t,const bool_t);
 Paso_SparseMatrix* Paso_SparseMatrix_getReference(Paso_SparseMatrix*);
+dim_t Paso_SparseMatrix_getNumColors(Paso_SparseMatrix*);
+index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
@@ -100,6 +102,8 @@ void Paso_SparseMatrix_copyFromMainDiagonal(Paso_SparseMatrix * A_p, double* out
 void Paso_SparseMatrix_copyToMainDiagonal(Paso_SparseMatrix * A_p, const double* in);
 void Paso_SparseMatrix_copyBlockFromMainDiagonal(Paso_SparseMatrix * A_p, double* out);
 void Paso_SparseMatrix_copyBlockToMainDiagonal(Paso_SparseMatrix * A_p, const double* in);
+void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_diag, int* pivot, double*x, double *b);
+void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* pivot);
 /*
 void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR(char *);

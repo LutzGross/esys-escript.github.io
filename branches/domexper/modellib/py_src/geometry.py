@@ -30,7 +30,7 @@ class DudleyReader(ParameterSet):
           """
           initializes the object
           """
-          super(FinleyReader,self).__init__(**kwargs)
+          super(DudleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
                                 dim=None,
                                 optimizeLabeling=True,
@@ -59,6 +59,7 @@ class DudleyReader(ParameterSet):
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
+		
 class RectangularDomain(ParameterSet):
        """
        Generates a mesh over a rectangular domain dudley.
