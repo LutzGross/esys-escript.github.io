@@ -124,6 +124,7 @@ class Test_CSVOnDudley(Test_saveCSV):
        self.domain =Rectangle(NE,NE+1)
        self.linecount1=31		#see test_save1 for the meaning of these params
        self.linecount2=25
+       self.line_expected=[0.25, 0., 0.25]
        
    def tearDown(self):
        del self.domain

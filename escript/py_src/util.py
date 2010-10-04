@@ -6009,10 +6009,10 @@ def meanValue(arg):
     """
     fs=arg.getFunctionSpace()
     d=fs.getDomain()
-    if fs == Solution(d) or fs == ContinuousFunction(d):
-       fs=Function(d)
-    if fs == ReducedSolution(d) or fs == ReducedContinuousFunction(d):
-       fs=ReducedFunction(d)
+    if fs == escript.Solution(d) or fs == escript.ContinuousFunction(d):
+       fs=escript.Function(d)
+    if fs == escript.ReducedSolution(d) or fs == escript.ReducedContinuousFunction(d):
+       fs=escript.ReducedFunction(d)
     a=vol(fs)
     if a == 0:
         raise ValueError,"FunctionSpace %s with zero volume."%str(fs)
@@ -6287,5 +6287,4 @@ def condEval(f, tval, fval):
     if not isinstance(fval, Data):
 	return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
     return _condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
-
 

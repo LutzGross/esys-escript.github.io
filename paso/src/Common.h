@@ -41,5 +41,14 @@
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX
 
+#ifdef USE_LAPACK
+
+   #ifdef MKL_LAPACK
+     #include <mkl_lapack.h>
+   #else	/* assuming clapack */
+     #include <clapack.h>
+   #endif
+   
+#endif
 
 #endif /* #ifndef INC_PASO_COMMON */

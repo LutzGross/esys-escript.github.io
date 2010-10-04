@@ -179,9 +179,8 @@ class Test_saveCSV(unittest.TestCase):
 	line=f.readline()
 	self.failUnless(line=='U/0|U/1|V\n')
 	line=f.readline()
-	line_expected=[0.25, 0., 0.25]
 	line_got=[float(elt) for elt in line.split('|')]
-	self.failUnless(line_expected==line_got)
+	self.failUnless(self.line_expected==line_got)
 	linecount=1
 	while line!='':
 		linecount+=1

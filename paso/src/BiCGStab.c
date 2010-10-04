@@ -168,7 +168,7 @@ err_t Paso_Solver_BiCGStab(
    
 	/*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
-        Paso_Solver_solvePreconditioner(A,&phat[0], &p[0]);
+	Paso_SystemMatrix_solvePreconditioner(A,&phat[0], &p[0]);
 	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0],PASO_ZERO, &v[0]);
    
         #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
@@ -200,7 +200,7 @@ err_t Paso_Solver_BiCGStab(
 	     breakFlag = FALSE;
 	   } else {
 	     /*           Compute stabilizer vector SHAT and scalar OMEGA. */
-             Paso_Solver_solvePreconditioner(A,&shat[0], &s[0]);
+	     Paso_SystemMatrix_solvePreconditioner(A,&shat[0], &s[0]);
 	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
    
              #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)

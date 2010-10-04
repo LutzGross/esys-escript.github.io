@@ -12,8 +12,8 @@
 *******************************************************/
 
 #include <weipa/DataVar.h>
+#include <weipa/DomainChunk.h>
 #include <weipa/ElementData.h>
-#include <weipa/FinleyMesh.h>
 #include <weipa/NodeData.h>
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
@@ -27,21 +27,18 @@
 #include <silo.h>
 #endif
 
+#include <numeric> // for accumulate
+
 using namespace std;
 
 namespace weipa {
     
-enum {
-    NODE_CENTERED = 1,
-    ZONE_CENTERED = 2
-};
-
 //
 // Constructor
 //
 DataVar::DataVar(const string& name) :
     initialized(false), varName(name),
-    numSamples(0), rank(0), ptsPerSample(0), centering(0)
+    numSamples(0), rank(0), ptsPerSample(0)
 {
 }
 
@@ -49,10 +46,10 @@ DataVar::DataVar(const string& name) :
 // Copy constructor
 //
 DataVar::DataVar(const DataVar& d) :
-    initialized(d.initialized), finleyMesh(d.finleyMesh),
+    initialized(d.initialized), domain(d.domain),
     varName(d.varName), numSamples(d.numSamples),
-    rank(d.rank), ptsPerSample(d.ptsPerSample), centering(d.centering),
-    funcSpace(d.funcSpace), shape(d.shape), sampleID(d.sampleID)
+    rank(d.rank), ptsPerSample(d.ptsPerSample), funcSpace(d.funcSpace),
+    centering(d.centering), shape(d.shape), sampleID(d.sampleID)
 {
     if (numSamples > 0) {
         CoordArray::const_iterator it;
@@ -90,35 +87,31 @@ void DataVar::cleanup()
 //
 //
 //
-bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
+bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr dom)
 {
 #ifndef VISIT_PLUGIN
     cleanup();
 
-    if (!escriptData.actsExpanded()) {
-        cerr << "WARNING: Only expanded data supported!" << endl;
+    if (!escriptData.isConstant() && !escriptData.actsExpanded()) {
+        cerr << "WARNING: Weipa only supports constant & expanded data, "
+            << "not initializing " << varName << endl;
         return false;
     }
 
-    finleyMesh = mesh;
+    domain = dom;
     rank = escriptData.getDataPointRank();
     ptsPerSample = escriptData.getNumDataPointsPerSample();
     shape = escriptData.getDataPointShape();
     funcSpace = escriptData.getFunctionSpace().getTypeCode();
     numSamples = escriptData.getNumSamples();
-
-    if (funcSpace == FINLEY_REDUCED_NODES || funcSpace == FINLEY_NODES) {
-        centering = NODE_CENTERED;
-    } else {
-        centering = ZONE_CENTERED;
-    }
+    centering = domain->getCenteringForFunctionSpace(funcSpace);
 
 #ifdef _DEBUG
     cout << varName << ":\t" << numSamples << " samples,  "
         << ptsPerSample << " pts/s,  rank: " << rank << endl;
 #endif
 
-    NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
+    NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
     if (nodes == NULL)
         return false;
 
@@ -148,11 +141,20 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
         size_t dataSize = dimSize * ptsPerSample;
         float* tempData = new float[dataSize*numSamples];
         float* destPtr = tempData;
-        for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
+        if (escriptData.isConstant()) {
             const escript::DataAbstract::ValueType::value_type* values =
-                escriptData.getSampleDataRO(sampleNo);
-            copy(values, values+dataSize, destPtr);
-            destPtr += dataSize;
+                escriptData.getSampleDataRO(0);
+            for (int pointNo=0; pointNo<numSamples*ptsPerSample; pointNo++) {
+                copy(values, values+dimSize, destPtr);
+                destPtr += dimSize;
+            }
+        } else {
+            for (int sampleNo=0; sampleNo<numSamples; sampleNo++) {
+                const escript::DataAbstract::ValueType::value_type* values =
+                    escriptData.getSampleDataRO(sampleNo);
+                copy(values, values+dataSize, destPtr);
+                destPtr += dataSize;
+            }
         }
 
         const float* srcPtr = tempData;
@@ -173,52 +175,20 @@ bool DataVar::initFromEscript(escript::Data& escriptData, FinleyMesh_ptr mesh)
 }
 
 //
-// Initialise with mesh data
+// Initialise with domain data
 //
-bool DataVar::initFromMesh(FinleyMesh_ptr mesh)
+bool DataVar::initFromMeshData(const_DomainChunk_ptr dom, const IntVec& data,
+        int fsCode, Centering c, NodeData_ptr nodes, const IntVec& id)
 {
     cleanup();
     
-    finleyMesh = mesh;
+    domain = dom;
     rank = 0;
     ptsPerSample = 1;
-    NodeData_ptr nodes;
-
-    if (varName.find("ContactElements_") != varName.npos) {
-        funcSpace = FINLEY_CONTACT_ELEMENTS_1;
-        centering = ZONE_CENTERED;
-        string elementName = varName.substr(0, varName.find('_'));
-        ElementData_ptr elements = mesh->getElementsByName(elementName);
-        nodes = elements->getNodeMesh();
-        sampleID = elements->getIDs();
-    } else if (varName.find("FaceElements_") != varName.npos) {
-        funcSpace = FINLEY_FACE_ELEMENTS;
-        centering = ZONE_CENTERED;
-        string elementName = varName.substr(0, varName.find('_'));
-        ElementData_ptr elements = mesh->getElementsByName(elementName);
-        nodes = elements->getNodeMesh();
-        sampleID = elements->getIDs();
-    } else if (varName.find("Elements_") != varName.npos) {
-        funcSpace = FINLEY_ELEMENTS;
-        centering = ZONE_CENTERED;
-        string elementName = varName.substr(0, varName.find('_'));
-        ElementData_ptr elements = mesh->getElementsByName(elementName);
-        nodes = elements->getNodeMesh();
-        sampleID = elements->getIDs();
-    } else if (varName.find("Nodes_") != varName.npos) {
-        funcSpace = FINLEY_NODES;
-        centering = NODE_CENTERED;
-        nodes = mesh->getNodes();
-        sampleID = nodes->getNodeIDs();
-    } else {
-        cerr << "WARNING: Unrecognized mesh variable '" << varName << "'\n";
-        return false;
-    }
-
+    centering = c;
+    sampleID = id;
     meshName = nodes->getName();
     siloMeshName = nodes->getFullSiloName();
-
-    const IntVec& data = mesh->getVarDataByName(varName);
     numSamples = data.size();
 
     if (numSamples > 0) {
@@ -234,9 +204,9 @@ bool DataVar::initFromMesh(FinleyMesh_ptr mesh)
 }
 
 //
-// Reads variable data from NetCDF file
+// Reads variable data from dump file
 //
-bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
+bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 {
     cleanup();
     
@@ -269,11 +239,7 @@ bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
     att = input->get_att("function_space_type");
     funcSpace = att->as_int(0);
 
-    if (funcSpace == FINLEY_REDUCED_NODES || funcSpace == FINLEY_NODES) {
-        centering = NODE_CENTERED;
-    } else {
-        centering = ZONE_CENTERED;
-    }
+    centering = domain->getCenteringForFunctionSpace(funcSpace);
 
     dim = input->get_dim("num_samples");
     numSamples = dim->size();
@@ -283,8 +249,8 @@ bool DataVar::initFromNetCDF(const string& filename, FinleyMesh_ptr mesh)
         << ptsPerSample << " pts/s,  rank: " << rank << endl;
 #endif
 
-    finleyMesh = mesh;
-    NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
+    domain = dom;
+    NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
     if (nodes == NULL) {
         delete input;
         return false;
@@ -368,7 +334,7 @@ float* DataVar::averageData(const float* src, size_t stride)
         for (int i=0; i<numSamples; i++, src+=stride)
             *dest++ = *src;
     } else {
-        ElementData_ptr cells = finleyMesh->getElementsForFinleyFS(funcSpace);
+        ElementData_ptr cells = domain->getElementsForFunctionSpace(funcSpace);
         int cellFactor = cells->getElementFactor();
         res = new float[cellFactor * numSamples];
         float* dest = res;
@@ -417,11 +383,11 @@ bool DataVar::reorderSamples()
     int cellFactor = 1;
 
     if (centering == NODE_CENTERED) {
-        NodeData_ptr nodes = finleyMesh->getMeshForFinleyFS(funcSpace);
+        NodeData_ptr nodes = domain->getMeshForFunctionSpace(funcSpace);
         requiredIDs = &nodes->getNodeIDs();
         requiredNumSamples = nodes->getNumNodes();
     } else {
-        ElementData_ptr cells = finleyMesh->getElementsForFinleyFS(funcSpace);
+        ElementData_ptr cells = domain->getElementsForFunctionSpace(funcSpace);
         if (cells == NULL)
             return false;
 
@@ -473,6 +439,44 @@ bool DataVar::reorderSamples()
 //
 //
 //
+int DataVar::getNumberOfComponents() const
+{
+    return (rank == 0 ? 1 : accumulate(shape.begin(), shape.end(), 0));
+}
+
+//
+//
+//
+float* DataVar::getDataFlat() const
+{
+    int totalSize = numSamples * getNumberOfComponents();
+    float* res = new float[totalSize];
+    if (rank == 0) {
+        copy(dataArray[0], dataArray[0]+numSamples, res);
+    } else if (rank == 1) {
+        float *dest = res;
+        for (size_t c=0; c<numSamples; c++) {
+            for (size_t i=0; i<shape[0]; i++) {
+                *dest++ = dataArray[i][c];
+            }
+        }
+    } else if (rank == 2) {
+        float *dest = res;
+        for (size_t c=0; c<numSamples; c++) {
+            for (int i=0; i<shape[1]; i++) {
+                for (int j=0; j<shape[0]; j++) {
+                    *dest++ = dataArray[i*shape[0]+j][c];
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+//
+//
+//
 void DataVar::sampleToStream(ostream& os, int index)
 {
     if (rank == 0) {
@@ -514,9 +518,9 @@ void DataVar::writeToVTK(ostream& os, int ownIndex)
     if (isNodeCentered()) {
         // data was reordered in reorderSamples() but for VTK we write the
         // original node mesh and thus need the original ordering...
-        const IntVec& requiredIDs = finleyMesh->getNodes()->getNodeIDs();
-        const IntVec& nodeGNI = finleyMesh->getNodes()->getGlobalNodeIndices();
-        const IntVec& nodeDist = finleyMesh->getNodes()->getNodeDistribution();
+        const IntVec& requiredIDs = domain->getNodes()->getNodeIDs();
+        const IntVec& nodeGNI = domain->getNodes()->getGlobalNodeIndices();
+        const IntVec& nodeDist = domain->getNodes()->getNodeDistribution();
         int firstId = nodeDist[ownIndex];
         int lastId = nodeDist[ownIndex+1];
         IndexMap sampleID2idx = buildIndexMap();
@@ -529,8 +533,7 @@ void DataVar::writeToVTK(ostream& os, int ownIndex)
     } else {
         // cell data: ghost cells have been removed so do not write ghost
         // samples (which are the last elements in the arrays)
-        int toWrite =
-            finleyMesh->getElementsByName(meshName)->getNumElements();
+        int toWrite = domain->getElementsByName(meshName)->getNumElements();
         for (int i=0; i<toWrite; i++) {
             sampleToStream(os, i);
         }
@@ -587,10 +590,10 @@ string DataVar::getTensorDef() const
 
 //
 // Writes the data to given Silo file under the virtual path provided.
-// The corresponding mesh must have been written already and made known
-// to this variable by a call to setMesh().
+// The corresponding mesh must have been written already.
 //
-bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
+bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath,
+                          const string& units)
 {
 #if USE_SILO
     if (!initialized)
@@ -609,10 +612,14 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
  
     char* siloMesh = const_cast<char*>(siloMeshName.c_str());
     int dcenter = (centering == NODE_CENTERED ? DB_NODECENT : DB_ZONECENT);
+    DBoptlist* optList = DBMakeOptlist(2);
+    if (units.length()>0) {
+        DBAddOption(optList, DBOPT_UNITS, (void*)units.c_str());
+    }
 
     if (rank == 0) {
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMesh, dataArray[0],
-                numSamples, NULL, 0, DB_FLOAT, dcenter, NULL);
+                numSamples, NULL, 0, DB_FLOAT, dcenter, optList);
     }
     else if (rank == 1) {
         const string comps[3] = {
@@ -624,14 +631,13 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
 
         ret = DBPutUcdvar(dbfile, varName.c_str(), siloMesh, shape[0],
                 (char**)varnames, &dataArray[0], numSamples, NULL,
-                0, DB_FLOAT, dcenter, NULL);
+                0, DB_FLOAT, dcenter, optList);
     }
     else {
         string tensorDir = varName+string("_comps/");
         ret = DBMkdir(dbfile, tensorDir.c_str());
         if (ret == 0) {
             int one = 1;
-            DBoptlist* optList = DBMakeOptlist(1);
             DBAddOption(optList, DBOPT_HIDE_FROM_GUI, &one);
 
             for (int i=0; i<shape[1]; i++) {
@@ -645,10 +651,10 @@ bool DataVar::writeToSilo(DBfile* dbfile, const string& siloPath)
                 }
                 if (ret != 0) break;
             }
-            DBFreeOptlist(optList);
         } // ret==0
     } // rank
 
+    DBFreeOptlist(optList);
     DBSetDir(dbfile, "/");
     return (ret == 0);
 

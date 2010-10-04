@@ -25,6 +25,9 @@
 
 /*   some useful functions: */
 
+#include <limits.h>
+
+
 #define FALSE 0
 #define TRUE 1
 #define UNKNOWN -1
@@ -49,5 +52,8 @@
                                 _a1_=s; \
                                }
 #define XNOR(_a0_,_a1_) ( ( (_a0_) && (_a1_) ) || ( !(_a0_) && !(_a1_) ) )
+
+#define INDEX_T_MAX INT_MAX
+#define INDEX_T_MIN -INT_MAX
 
 #endif 

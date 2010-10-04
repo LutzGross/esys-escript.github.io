@@ -24,7 +24,9 @@ lib_name = 'paso'
 
 sources = """
 	BiCGStab.c
+	BlockOps.c
 	Coupler.c
+	Coarsening.c
 	Distribution.c
 	Functions.c
 	GMRES.c
@@ -39,7 +41,6 @@ sources = """
 	Pattern.c
 	Pattern_getSubpattern.c
 	Pattern_mis.c
-	Pattern_coupling.c
 	Pattern_reduceBandwidth.c
 	Pattern_unrollBlocks.c
 	SharedComponents.c
@@ -50,16 +51,13 @@ sources = """
 	FCTSolver_util.c
 	ReactiveSolver.c
 	Solver_Function.c
-	Solver_GS.c
-        Solver_GSMPI.c
-	Solver_ILU.c
-	Solver_RILU.c
-	Solver_AMG.c
-	Solver_AMLI.c
-	Solver_SchurComplement.c
-	Solver_applyBlockDiagonalMatrix.c
-	Solver_jacobi.c
-	Solver_preconditioner.c
+	Smoother.c
+	ILU.c
+	RILU.c
+	AMG.c
+	AMLI.c
+	SchurComplement.c
+	Preconditioner.c
 	SparseMatrix.c
 	SparseMatrix_MatrixVector.c
 	SparseMatrix_addAbsRow.c
@@ -69,6 +67,7 @@ sources = """
 	SparseMatrix_nullifyRowsAndCols.c
 	SparseMatrix_saveHB.c
 	SparseMatrix_setValues.c
+        SparseMatrix_invMain.c
 	SystemMatrix.c
 	SystemMatrixPattern.c
 	SystemMatrixPattern_unrollBlocks.c
@@ -93,6 +92,7 @@ sources = """
 headers = """
 	Common.h
 	Coupler.h
+	Coarsening.h
 	Distribution.h
 	Functions.h
 	MKL.h
@@ -100,7 +100,7 @@ headers = """
 	Paso.h
 	PasoUtil.h
 	Pattern.h
-	Pattern_coupling.h
+	Preconditioner.h
 	SharedComponents.h
 	Solver.h
 	Transport.h
@@ -112,6 +112,7 @@ headers = """
 	SystemMatrixPattern.h
 	UMFPACK.h
 	mmio.h
+	BlockOps.h
 	performance.h
 """.split()
 

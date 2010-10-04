@@ -41,6 +41,8 @@ typedef struct Paso_Pattern {
   index_t* ptr;		/* ptr[n] to ptr[n+1] lists indicies (in index) of non-zeros in row n*/
   index_t* index;	/* Non-major indicies of non-zeros (in CSR this will be col numbers) */ 
   index_t *main_iptr;  /* pointer to main diagonal entry */
+  dim_t numColors;    /* number of colors */
+  index_t* coloring;     /* coloring index: input with the same color are not connected */
   dim_t reference_counter;
 } Paso_Pattern;
 
@@ -108,6 +110,10 @@ void Paso_IndexList_free(Paso_IndexList*);
 PASO_DLL_API
 Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
 
+PASO_DLL_API
+dim_t Paso_Pattern_getNumColors(Paso_Pattern* A);
 
+PASO_DLL_API
+index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A);
 
-#endif /* #ifndef INC_PASO_SYSTEMPATTERN */
+#endif /* #ifndef INC_PASO_PATTERN */

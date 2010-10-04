@@ -47,8 +47,7 @@
   #define IS_NAN(__VAL__) (0)
 #endif
 
-#define INDEX_T_MAX INT_MAX
-#define INDEX_T_MIN -INT_MAX
+
 #define EPSILON DBL_EPSILON
 #define LARGE_POSITIVE_FLOAT DBL_MAX
 #define SMALL_NEGATIVE_FLOAT -DBL_MAX
