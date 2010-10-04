@@ -34,6 +34,9 @@ import os
 from esys.escript.pdetools import Projector, Locator
 from esys.escript.unitsSI import *
 import numpy as np
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+
 import pylab as pl
 import matplotlib.cm as cm
 from esys.escript.linearPDEs import LinearPDE
@@ -51,16 +54,23 @@ mkDir(savepath)
 #Geometric and material property related variables.
 mx = 1000. # model lenght
 my = 1000. # model width
-ndx = 500 # steps in x direction 
-ndy = 500 # steps in y direction
+ndx = 300 # steps in x direction 
+ndy = 300 # steps in y direction
 xstep=mx/ndx # calculate the size of delta x
 ystep=abs(my/ndy) # calculate the size of delta y
 lam=3.462e9 #lames constant
 mu=3.462e9  #bulk modulus
 rho=1154.   #density
 # Time related variables.
-tend=0.5    # end time
-h=0.0005    # time step
+testing=True
+if testing:
+	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print "Try changing testing to False for more iterations."
+	tend=0.001
+else:
+	tend=0.5    # end time
+
+h=0.0001    # time step
 # data recording times
 rtime=0.0 # first time to record
 rtime_inc=tend/50.0 # time increment to record
@@ -114,7 +124,7 @@ x=domain.getX() # get the locations of the nodes in the domani
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=kmat*rho) #set the general form value D
 
@@ -169,12 +179,12 @@ abc=abcleft*abcright*abcbottom
 src_length = 40; print "src_length = ",src_length
 # set initial values for first two time steps with source terms
 y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
-src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
+src_dir=numpy.array([0.,1.]) # defines direction of point source as down
 y=y*src_dir
 mypde.setValue(y=y) #set the source as a function on the boundary
 # initial value of displacement at point source is constant (U0=0.01)
 # for first two time steps
-u=[0.0,0.0]*whereNegative(x)
+u=[0.0,0.0]*wherePositive(x)
 u_m1=u
 
 ####################################################ITERATION VARIABLES
@@ -183,8 +193,8 @@ t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
 	# get current stress
-    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))*abc
-    mypde.setValue(X=-stress) # set PDE values
+    g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
+    mypde.setValue(X=-stress*abc) # set PDE values
     accel = mypde.getSolution() #get PDE solution for accelleration
     u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement
     u_p1=u_p1*abc  		# apply boundary conditions

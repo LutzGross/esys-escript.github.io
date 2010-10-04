@@ -41,6 +41,9 @@ from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector
 from cblib import toRegGrid, subsample
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+
 import pylab as pl #Plotting package
 import numpy as np
 
@@ -81,7 +84,14 @@ lam2=mu2*6.; lam1=mu1*6. #lames constant
 
 
 # Time related variables.
-tend=0.5    # end time
+testing=True
+if testing:
+	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print "Try changing testing to False for more iterations."
+	tend=0.001
+else:
+	tend=0.5    # end time
+
 h=0.0001    # time step
 # data recording times
 rtime=0.0 # first time to record
@@ -112,12 +122,8 @@ for it in range(0,ls):
     tt = t-t0
     dum1 = np.exp(-a * tt * tt)
     source[it] = -2. * a * tt * dum1
-#   source[it] = exp(-a * tt * tt)    !gaussian
     if (abs(source[it]) > ampmax):
         ampmax = abs(source[it])
-    #source[t]=np.exp(g*t)*U0*np.sin(2.*np.pi*t/(0.75*ls))*(np.exp(-.1*g*t)-1)
-    #decay1[t]=np.exp(g*t)
-    #decay2[t]=(np.exp(-.1*g*t)-1)
     time[t]=t*h
 
 ####################################################DOMAIN CONSTRUCTION
@@ -196,7 +202,7 @@ mypde.setValue(D=rho*kmat) #set the general form value D
 
 ##########################################################ESTABLISH ABC
 # Define where the boundary decay will be applied.
-bn=50.
+bn=20.
 bleft=xstep*bn; bright=width-(xstep*bn); bbot=depth-(ystep*bn)
 # btop=ystep*bn # don't apply to force boundary!!!
 

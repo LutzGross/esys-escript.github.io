@@ -32,6 +32,9 @@ from cblib1 import wavesolver2d
 # smoothing operator 
 from esys.escript.pdetools import Projector
 import numpy as np
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+
 import pylab as pl
 import matplotlib.cm as cm
 
