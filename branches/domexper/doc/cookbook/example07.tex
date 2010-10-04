@@ -35,7 +35,7 @@ example $p$. Thus we can write;
 	\frac{\partial^2 p}{\partial x^2\hackscore{i}}
  \label{eqn:laplacian}
 \end{equation}
-For the two dimensional case in Cartesian coordinates \refEq{eqn:laplacian}
+For the two dimensional case in Cartesian coordinates \autoref{eqn:laplacian}
 becomes;
 \begin{equation}
  \nabla^2 p = \frac{\partial^2 p}{\partial x^2} 
@@ -66,14 +66,14 @@ pressure field which acts in the directions $p \hackscore{0}$ and $p
 \label{eqn:gradrank1}
 \end{equation}
 
-\refEq{eqn:grad} corresponds to the Linear PDE general form value
+\autoref{eqn:grad} corresponds to the Linear PDE general form value
 $X$. Notice however that the general form contains the term $X
 \hackscore{i,j}$\footnote{This is the first derivative in the $j^{th}$
 direction for the $i^{th}$ component of the solution.},
 hence for a rank 0 object there is no need to do more than calculate the
 gradient and submit it to the solver. In the case of the rank 1 or greater
 object, it is nesscary to calculate the trace also. This is the sum of the
-diagonal in \refeq{eqn:gradrank1}. 
+diagonal in \autoref{eqn:gradrank1}. 
 
 Thus when solving for equations containing the Laplacian one of two things must
 be completed. If the object \verb!p! is less than rank 1 the gradient is
@@ -148,8 +148,8 @@ second derivative;
  f''(x) \approx \frac{f(x+h - 2f(x) + f(x-h)}{h^2}
 \label{eqn:centdiff}
 \end{equation}
-substituting \refEq{eqn:centdiff} for $\frac{\partial ^2 p }{\partial t ^2}$
-in \refEq{eqn:acswave};
+substituting \autoref{eqn:centdiff} for $\frac{\partial ^2 p }{\partial t ^2}$
+in \autoref{eqn:acswave};
 \begin{equation}
  \nabla ^2 p - \frac{1}{c^2h^2} \left[p\hackscore{(t+1)} - 2p\hackscore{(t)} +
 p\hackscore{(t-1)} \right]
@@ -270,7 +270,7 @@ the \verb!Locator! function.
 
 An alternative method is to solve for the acceleration $\frac{\partial ^2
 p}{\partial t^2}$ directly, and derive the displacement solution from the
-PDE solution. \refEq{eqn:waveu} is thus modified;
+PDE solution. \autoref{eqn:waveu} is thus modified;
 \begin{equation}
   \nabla ^2 p - \frac{1}{c^2} a = 0
 \label{eqn:wavea}
@@ -309,16 +309,16 @@ of the model is $c=380.0ms^{-1}$ then the source
 frequency is $f\hackscore{r} = \frac{380.0}{5} = 76.0 Hz$. This is a worst case
 scenario with a small source and the models maximum velocity. 
 
-Furthermore, we know from \refSec{sec:nsstab}, that the spatial sampling
+Furthermore, we know from \autoref{sec:nsstab}, that the spatial sampling
 frequency must be at least twice this value to ensure stability. If we assume
 the model mesh is a square equispaced grid,
 then the sampling interval is the side length divided by the number of samples,
 given by $\Delta x = \frac{1000.0m}{400} = 2.5m$ and the maximum sampling
 frequency capable at this interval is
 $f\hackscore{s}=\frac{380.0ms^{-1}}{2.5m}=152Hz$ this is just equal to the
-required rate satisfying \refeq{eqn:samptheorem}. 
+required rate satisfying \autoref{eqn:samptheorem}. 
 
-\reffig{fig:ex07sampth} depicts three examples where the grid has been
+\autoref{fig:ex07sampth} depicts three examples where the grid has been
 undersampled, sampled correctly, and over sampled. The grids used had
 200, 400 and 800 nodes per side respectively. Obviously, the oversampled grid
 retains the best resolution of the modelled wave.

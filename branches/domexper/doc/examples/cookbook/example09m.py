@@ -31,6 +31,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 #
 #######################################################EXTERNAL MODULES
 from esys.pycad import * #domain constructor
+from esys.pycad.extras import layer_cake
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.dudley import MakeDomain #Converter for escript
 from esys.escript import mkDir, getMPISizeWorld
@@ -42,16 +43,16 @@ if getMPISizeWorld() > 1:
 	sys.exit(0)
 
 # make sure path exists 
-save_path= os.path.join("data","example09") 
+save_path= os.path.join("data","example09m") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
-xwidth=1000.0   #x width of model
-ywidth=1000.0   #y width of model
-depth=200.0   #depth of model
+xwidth=200.0   #x width of model
+ywidth=200.0   #y width of model
+depth=100.0   #depth of model
 intf=depth/2.   #Depth of the interface.
-element_size=5.0
+element_size=4.0
 
 ####################################################DOMAIN CONSTRUCTION
 # Domain Corners
@@ -118,19 +119,14 @@ sintf=PlaneSurface(CurveLoop(*tuple(linhe_ar)))
 vintfa=Volume(SurfaceLoop(stop,-sintf,*tuple(sintfa_ar)))
 vintfb=Volume(SurfaceLoop(sbot,sintf,*tuple(sintfb_ar)))
 
-# Create the volume.
-#sloop=SurfaceLoop(stop,sbot,*tuple(sintfa_ar+sintfb_ar))
-#model=Volume(sloop)
-
-
 #############################################EXPORTING MESH FOR ESCRIPT
 # Create a Design which can make the mesh
-d=Design(dim=3, element_size=5.0, order=2)
+d=Design(dim=3, element_size=element_size, order=2)
 
 d.addItems(PropertySet('vintfa',vintfa))
 d.addItems(PropertySet('vintfb',vintfb))
 d.addItems(PropertySet('stop',stop))
-d.addItems(PropertySet('sbpt',sbot))
+d.addItems(PropertySet('sbot',sbot))
 
 d.setScriptFileName(os.path.join(save_path,"example09m.geo"))
 d.setMeshFileName(os.path.join(save_path,"example09m.msh"))
@@ -142,16 +138,15 @@ domain=MakeDomain(d)
 # mesh=ReadMesh(fileName)
 domain.write(os.path.join(save_path,"example09m.fly"))
 
-from esys.pycad import layer_cake
 intfaces=[10,30,50,55,80,100,200,250,400,500]
 
 # Specify the domain.
-domaindes=Design(dim=3,element_size=element_size,order=2)
-cmplx_domain=layer_cake.LayerCake(domaindes,xwidth,ywidth,intfaces)
-cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
-cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
-dcmplx=MakeDomain(cmplx_domain)
-dcmplx.write(os.path.join(save_path,"example09lc.fly"))
+#domaindes=Design(dim=3,element_size=element_size,order=2)
+#cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
+#cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
+#cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+#dcmplx=MakeDomain(cmplx_domain)
+#dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 
 
 

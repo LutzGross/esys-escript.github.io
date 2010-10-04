@@ -41,7 +41,7 @@ else
   else
       # name does not contain / therefore we are using 
       tscriptdir=`which $0`
-      if [ $? != 0 ]
+      if [ $? -ne 0 ]
       then
           echo "Error! Unable to determine script directory. Exiting."
           exit 1
@@ -58,10 +58,15 @@ else
 fi
 ##### End finding ESCRIPT_ROOT  ########
 
-if [ ! -r $ESCRIPT_ROOT/lib/buildvars ]; then
+BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
+if [ ! -r $BUILDINFO_FILE ]; then
     echo "Error! Unable to read escript build information. Exiting."
     exit 1
 fi
+
+function get_buildvar {
+    echo `grep $1 $BUILDINFO_FILE |cut -d= -f2`
+}
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
@@ -84,12 +89,25 @@ then
     EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
 
-
+#
+#   Add VisIt paths if required
+#
+WITH_VISIT=`get_buildvar usevisit`
+if [ "$WITH_VISIT" = "y" ]; then
+    VISIT_BIN=`which visit`
+    if [ $? -eq 0 ]; then
+        VISIT_PY_PATH=`$VISIT_BIN -env | grep LIBPATH | cut -d= -f2`
+        EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
+        EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$VISIT_PY_PATH
+    elif [ ! -z $ESCRIPT_VERBOSE ]; then
+        echo "VisIt module enabled but VisIt not in path!"
+    fi
+fi
 
 HELP_TEXT="
 Usage: escript [options] script.py [arguments...]
 	-n nn		number of nodes to use
-	-p np		number of MPI processes to spawn
+	-p np		number of MPI processes to spawn per node
 	-t nt		number of OpenMP threads to use
 	-f file		name of MPI hostfile
 	-c 		print compile information for escript and exit
@@ -131,7 +149,7 @@ do
 	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
 		exit 0
 		;;
-	  "V")	echo "escript-development(build "`grep svn_revision $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`")"
+	  "V")	echo "escript-development(build "`get_buildvar svn_revision`")"
 		exit 0
 		;;
 	  "h")  echo "$HELPTEXT"
@@ -163,10 +181,10 @@ done
 shift `expr $OPTIND - 1`
 #==============================================
 #
-#   Read the MPI_FLAVOUR from the buildvars
+#   Read MPI_FLAVOUR and WITH_OPENMP from the buildvars
 #
-MPI_FLAVOUR=`grep mpi_flavour $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
-WITH_OPENMP=`grep useopenmp $ESCRIPT_ROOT/lib/buildvars |cut -d= -f2`
+MPI_FLAVOUR=`get_buildvar mpi_flavour`
+WITH_OPENMP=`get_buildvar useopenmp`
 
 if [ ! -z $ESCRIPT_VERBOSE ]; then
     echo "MPI flavour is $MPI_FLAVOUR."
@@ -216,8 +234,7 @@ else
     # use the PBS_NODEFILE if not otherwise specified
     if [[ ( ! -z $PBS_NODEFILE ) && ( -z $ESCRIPT_HOSTFILE ) ]]
     then
-	ESCRIPT_HOSTFILE=$PBS_NODEFILE
-
+        ESCRIPT_HOSTFILE=$PBS_NODEFILE
     fi
 
     if [ ! -z $ESCRIPT_HOSTFILE ] 
@@ -246,18 +263,18 @@ else
 
     if [ -z $ESCRIPT_NUM_NODES ]
     then
-      ESCRIPT_NUM_NODES=1
+        ESCRIPT_NUM_NODES=1
     fi
 
     if [ -z $ESCRIPT_NUM_PROCS ]
     then
-      ESCRIPT_NUM_PROCS=1
+        ESCRIPT_NUM_PROCS=1
     fi
 
     if [ ! -z $ESCRIPT_VERBOSE ]
     then 
-          echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
-          echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
+        echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
+        echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
     fi
 fi
 
@@ -288,8 +305,8 @@ fi
 (( TOTPROC=$ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS))
 if [ $? -ne 0 ]		#Some compute error 
 then			#This could happen if the args were not a number
-  echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
-  exit 1
+    echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
+    exit 1
 fi
 
 #
@@ -297,18 +314,18 @@ fi
 #
 if [[ ( ( ! -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
 then
-  echo "Interactive mode cannot be used with more than one process"
-  exit 1
+    echo "Interactive mode cannot be used with more than one process"
+    exit 1
 fi
 
 if [ $TOTPROC -gt 1 ] 
 then
-   if [ "$ESCRIPT_CREATESTDFILES" = "yes" ]
-   then
-       PYTHON_MPI=$PYTHON_MPI_REDIRECT
-   else
-       PYTHON_MPI=$PYTHON_MPI_NULL
-   fi
+    if [ "$ESCRIPT_CREATESTDFILES" = "yes" ]
+    then
+        PYTHON_MPI=$PYTHON_MPI_REDIRECT
+    else
+        PYTHON_MPI=$PYTHON_MPI_NULL
+    fi
 else
     PYTHON_MPI=$PYTHON_MPI_NULL
 fi
@@ -316,21 +333,13 @@ fi
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]
 then
-  if [ ! -z $DOBINARY ]
-  then
-    echo "No program to run was specified. Exiting."
-    exit 1
-  fi
-fi
-if [ -z "$@" ]
-then
-   if [ ! -z $DOBINARY ]
-   then
-       echo "Program must be given."
-       exit 1
-   else
-      DOINTERACTIVE="yes"
-   fi
+    if [ ! -z $DOBINARY ]
+    then
+        echo "No program to run was specified. Exiting."
+        exit 1
+    else
+        DOINTERACTIVE="yes"
+    fi
 fi
 
 #=========================================================================================================
@@ -338,29 +347,26 @@ if [ ! -z $DOBINARY ]
 then
     EXEC_CMD="$@"
 else
+    # Check to see if the python version we were compiled with matches the
+    # one of PYTHON_CMD.
+    compversion=`get_buildvar python`
+    intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d.%d"%(sys.version_info[0], sys.version_info[1], sys.version_info[2])'`
+    if [ "$compversion" != "$intversion" ]
+    then
+        echo "Python versions do not match. Escript was compiled for "$compversion"."
+        echo "Current version of Python appears to be "$intversion"."
+        exit 1
+    fi
     if [ "$MPI_FLAVOUR" = "none" ]
     then
-        # Check to see if the python version we were compiled with matches the one of EXEC_CMD
-        # We should only do this check if they are running a python script
-        if [ -f $ESCRIPT_ROOT/lib/pyversion ]
-        then
-           compversion=`cat $ESCRIPT_ROOT/lib/buildvars | grep python= | cut -f2 -d=`
-           intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d.%d"%(sys.version_info[0], sys.version_info[1], sys.version_info[2])'`
-           if [ "$compversion" != "$intversion" ]
-           then
-              echo "Python versions do not match. Escript was compiled for "$compversion"."
-              echo "Current version of Python appears to be "$intversion"."
-              exit 1
-           fi
-        fi
-	if [ ! -z $DOINTERACTIVE ]
+        if [ ! -z $DOINTERACTIVE ]
         then
            EXEC_CMD="$PYTHON_CMD -i $@"
         else
            EXEC_CMD="$PYTHON_CMD $@"
         fi
     else
-	if [ ! -z $DOINTERACTIVE ]
+        if [ ! -z $DOINTERACTIVE ]
         then
            EXEC_CMD="$PYTHON_MPI -i $@"
         else
