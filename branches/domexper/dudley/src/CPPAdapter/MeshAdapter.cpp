@@ -916,7 +916,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
       } else {
@@ -926,7 +926,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
    
@@ -936,7 +936,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
       } else {
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
@@ -973,7 +973,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
       } else {
@@ -983,7 +983,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
       } else {
@@ -992,7 +992,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
       } else {
@@ -1029,7 +1029,7 @@ void MeshAdapter::setToX(escript::Data& arg) const
       escriptDataC _arg=arg.getDataC();
       Dudley_Assemble_NodeCoordinates(mesh->Nodes,&_arg);
    } else {
-      escript::Data tmp_data=Vector(0.0,continuousFunction(asAbstractContinuousDomain()),true);
+      escript::Data tmp_data=Vector(0.0,continuousFunction(*this),true);
       escriptDataC _tmp_data=tmp_data.getDataC();
       Dudley_Assemble_NodeCoordinates(mesh->Nodes,&_tmp_data);
       // this is then interpolated onto arg:
@@ -1115,12 +1115,12 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    escriptDataC _arg=arg.getDataC();
    switch(arg.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedNodes):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1140,12 +1140,12 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    throw DudleyAdapterException("Error - Integral of data on points is not supported.");
    break;
    case(DegreesOfFreedom):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedDegreesOfFreedom):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Dudley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1177,10 +1177,10 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    escript::Data temp;
    if (getMPISize()>1) {
       if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
-         temp=escript::Data( arg,  continuousFunction(asAbstractContinuousDomain()) );
+         temp=escript::Data( arg,  continuousFunction(*this) );
          nodeDataC = temp.getDataC();
       } else if( arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom ) {
-         temp=escript::Data( arg,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         temp=escript::Data( arg,  reducedContinuousFunction(*this) );
          nodeDataC = temp.getDataC();
       } else {
          nodeDataC = arg.getDataC();
@@ -1279,11 +1279,11 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
    const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
    if (newDomain!=*this) 
       throw DudleyAdapterException("Error - Illegal domain of new point locations");
-   if ( new_x.getFunctionSpace() == continuousFunction(asAbstractContinuousDomain()) ) {
+   if ( new_x.getFunctionSpace() == continuousFunction(*this) ) {
        tmp = new_x.getDataC();
        Dudley_Mesh_setCoordinates(mesh,&tmp);
    } else {
-       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(asAbstractContinuousDomain()) );
+       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
        tmp = new_x_inter.getDataC();
        Dudley_Mesh_setCoordinates(mesh,&tmp);
    }
@@ -1794,17 +1794,17 @@ int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, 
 
 escript::Data MeshAdapter::getX() const
 {
-   return continuousFunction(asAbstractContinuousDomain()).getX();
+   return continuousFunction(*this).getX();
 }
 
 escript::Data MeshAdapter::getNormal() const
 {
-   return functionOnBoundary(asAbstractContinuousDomain()).getNormal();
+   return functionOnBoundary(*this).getNormal();
 }
 
 escript::Data MeshAdapter::getSize() const
 {
-   return escript::function(asAbstractContinuousDomain()).getSize();
+   return escript::function(*this).getSize();
 }
 
 const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const

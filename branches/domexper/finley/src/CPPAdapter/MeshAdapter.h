@@ -160,24 +160,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     return this as an AbstractContinuousDomain.
-  */
-  inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 
-  {
-     return *(static_cast<const AbstractContinuousDomain*>(this));
-  }
-
-  /**
-     \brief
-     return this as an AbstractDomain.
-  */
-  inline const AbstractDomain& asAbstractDomain() const 
-  {
-     return *(static_cast<const AbstractDomain*>(this));
-  }
-
-  /**
-     \brief
      Write the current mesh to a file with the given name.
      \param fileName Input - The name of the file to write to.
   */

@@ -133,13 +133,6 @@ int AbstractContinuousDomain::getTransportTypeId(const int solver, const int pre
    return 0;
 }
 
-// const AbstractContinuousDomain& AbstractContinuousDomain::asAbstractContinuousDomain(const AbstractDomain& domain)
-// {
-//   return dynamic_cast<const AbstractContinuousDomain&>(domain);
-// }
-
-
-
 void AbstractContinuousDomain::addPDEToSystem(
                      AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
