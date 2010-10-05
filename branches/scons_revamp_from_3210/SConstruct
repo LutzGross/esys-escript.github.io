@@ -205,7 +205,7 @@ elif cc_name[:3] == 'gcc':
     sysheaderopt = "-isystem"
 elif cc_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = "/EHsc /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
+    cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
     cc_optim     = "/O2 /Op /W3"
     cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
