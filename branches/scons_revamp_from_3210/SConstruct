@@ -722,7 +722,7 @@ build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_finley']
 build_all_list += ['build_weipa']
-build_all_list += ['build_escriptreader']
+if not IS_WINDOWS: build_all_list += ['build_escriptreader']
 if env['usempi']:   build_all_list += ['build_pythonMPI']
 build_all_list += ['build_escriptconvert']
 env.Alias('build_all', build_all_list)
