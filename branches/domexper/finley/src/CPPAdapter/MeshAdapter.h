@@ -605,7 +605,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
   FINLEY_DLL_API
-  SystemMatrixAdapter newSystemMatrix(
+  escript::ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
@@ -618,7 +618,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
 
   FINLEY_DLL_API
-  TransportProblemAdapter newTransportProblem(
+  escript::ATP_ptr newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,

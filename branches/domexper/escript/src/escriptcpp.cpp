@@ -169,7 +169,77 @@ args("solver", "preconditioner", "package", "symmetry"),
 "when a particular solver package and symmetric matrix is used.\n"
 ":rtype: int")
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId,
-args("solver", "preconditioner", "package", "symmetry"));
+args("solver", "preconditioner", "package", "symmetry"))
+
+      .def("addPDEToSystem",&escript::AbstractContinuousDomain::addPDEToSystem,
+args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
+":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
+":param A:\n:type A: `Data`\n"
+":param B:\n:type B: `Data`\n"
+":param C:\n:type C: `Data`\n"
+":param D:\n:type D: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param d:\n:type d: `Data`\n"
+":param d_contact:\n:type d_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`\n"
+)
+      .def("addPDEToRHS",&escript::AbstractContinuousDomain::addPDEToRHS, 
+args("rhs", "X", "Y", "y", "y_contact"),
+"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
+":param rhs:\n:type rhs: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param y:\n:type y: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
+)
+      .def("addPDEToTransportProblem",&escript::AbstractContinuousDomain::addPDEToTransportProblem,
+args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+":param tp:\n:type tp: `TransportProblemAdapter`\n"
+":param source:\n:type source: `Data`\n"
+":param M:\n:type M: `Data`\n"
+":param A:\n:type A: `Data`\n"
+":param B:\n:type B: `Data`\n"
+":param C:\n:type C: `Data`\n"
+":param D:\n:type D: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param d:\n:type d: `Data`\n"
+":param y:\n:type y: `Data`\n"
+":param d_contact:\n:type d_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`\n"
+)
+      .def("newOperator",&escript::AbstractContinuousDomain::newSystemMatrix,
+args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
+"creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+":param row_blocksize:\n:type row_blocksize: ``int``\n"
+":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
+":param column_blocksize:\n:type column_blocksize: ``int``\n"
+":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
+":param type:\n:type type: ``int``\n"
+)
+      .def("newTransportProblem",&escript::AbstractContinuousDomain::newTransportProblem,
+args("theta", "blocksize", "functionspace", "type"),
+"creates a TransportProblemAdapter\n\n"
+":param theta:\n:type theta: ``float``\n"
+":param blocksize:\n:type blocksize: ``int``\n"
+":param functionspace:\n:type functionspace: `FunctionSpace`\n"
+":param type:\n:type type: ``int``\n"
+)
+      .def("getDataShape",&escript::AbstractContinuousDomain::getDataShape, args("functionSpaceCode"),
+":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
+      .def("print_mesh_info",&escript::AbstractContinuousDomain::Print_Mesh_Info,(arg("full")=false),
+":param full:\n:type full: ``bool``")
+      .def("getDescription",&escript::AbstractContinuousDomain::getDescription,
+":return: a description for this domain\n:rtype: ``string``")
+      .def("setX",&escript::AbstractContinuousDomain::setNewX,
+args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
+      .def("getNumDataPointsGlobal",&escript::AbstractContinuousDomain::getNumDataPointsGlobal,
+":return: the number of data points summed across all MPI processes\n"
+":rtype: ``int``");
+
+
 
 
   //
@@ -500,7 +570,7 @@ args("solver", "preconditioner", "package", "symmetry"));
   //
   // Interface for AbstractSystemMatrix
   //
-  class_<escript::AbstractSystemMatrix>("Operator","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractSystemMatrix,escript::ASM_ptr>("Operator","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty,":rtype: ``bool``\n"
 ":return: True if matrix is empty")
      .def("solve",&escript::AbstractSystemMatrix::solve, args("in","options"),
@@ -516,7 +586,7 @@ args("solver", "preconditioner", "package", "symmetry"));
   //
   // Interface for AbstractTransportProblem
   //
-  class_<escript::AbstractTransportProblem>("TransportProblem","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractTransportProblem, escript::ATP_ptr>("TransportProblem","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty,":rtype: ``int``")
      .def("solve",&escript::AbstractTransportProblem::solve, args("u0","source","dt", "options"),
 "returns the solution *u* for a time step *dt>0* with initial value u0\n\n:rtype: `Data`\n"

@@ -652,29 +652,29 @@ class EarthTriangulation:
         os.remove("%s.1.node" % self.fn)
         os.remove("%s.1.ele" % self.fn)
 
-    def getDudleyDomain(self):
-        from esys.dudley import ReadMesh
-        dudley_file = open("%s.msh" % self.fn, "w")
-        dudley_file.writelines("%s\n2D-Nodes %d\n" % (self.fn,
+    def getFinleyDomain(self):
+        from esys.finley import ReadMesh
+        finley_file = open("%s.msh" % self.fn, "w")
+        finley_file.writelines("%s\n2D-Nodes %d\n" % (self.fn,
                                len(self.node_coordinates)))
         for i in range(len(self.node_coordinates)):
-            dudley_file.writelines("%s %s %s %e %e\n" % (self.node_ids[i],
+            finley_file.writelines("%s %s %s %e %e\n" % (self.node_ids[i],
                                    self.node_ids[i],self.node_tags[i],
                                    self.node_coordinates[i][0],
                                    self.node_coordinates[i][1]))
 
-        dudley_file.writelines("Tri3 %d\n" % len(self.triangles_nodes))
+        finley_file.writelines("Tri3 %d\n" % len(self.triangles_nodes))
         for i in range(len(self.triangles_nodes)):
-            dudley_file.writelines("%s 0 %s %s %s\n" % (
+            finley_file.writelines("%s 0 %s %s %s\n" % (
                                    self.triangles_id[i],
                                    self.triangles_nodes[i][0],
                                    self.triangles_nodes[i][1],
                                    self.triangles_nodes[i][2]))
-        dudley_file.writelines("Line2 0\n")
-        dudley_file.writelines("Line2_Contact 0\n")
-        dudley_file.writelines("Point1 0\n")
-        dudley_file.close()
-        # read the mesh with dudley
+        finley_file.writelines("Line2 0\n")
+        finley_file.writelines("Line2_Contact 0\n")
+        finley_file.writelines("Point1 0\n")
+        finley_file.close()
+        # read the mesh with finley
         out=ReadMesh("%s.msh" % self.fn)
         os.remove("%s.msh" % self.fn)
         return out
@@ -840,7 +840,7 @@ class OceanRegion(Model):
                                 west_south_is_water=d[1]<=0,
                                 east_north_is_water=d[2]<=0,
                                 west_north_is_water=d[3]<=0
-                      ).getDudleyDomain()
+                      ).getFinleyDomain()
         self.domain.dump(os.path.join(WORKDIR, "coastline.nc"))
         self.bathymetry = maximum(-self.bathymetry_data.interpolate(Function(self.domain).getX()),0.)
 
