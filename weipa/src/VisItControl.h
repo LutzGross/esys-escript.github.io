@@ -24,8 +24,10 @@ namespace weipa {
 
 namespace VisItControl {
 
+    WEIPA_DLL_API
     bool initialize(const std::string& simFile, const std::string& comment);
 
+    WEIPA_DLL_API
     void publishData(EscriptDataset_ptr dataset);
 
 } // namespace VisItControl
