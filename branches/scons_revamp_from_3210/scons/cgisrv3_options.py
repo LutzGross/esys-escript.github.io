@@ -105,10 +105,10 @@ mpi_libs = ['mpi']
 dotdot = os.path.realpath('..')
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = [os.path.join(dotdot, 'boost_1_39_0'), os.path.join(dotdot, 'boost_1_39_0','stage','lib')]
+boost_prefix = [os.path.join(dotdot, 'boost_1_41_0'), os.path.join(dotdot, 'boost_1_41_0','windows_binary','lib')]
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-vc71-mt-1_39']
+boost_libs = ['boost_python-vc71-mt-1_41']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
