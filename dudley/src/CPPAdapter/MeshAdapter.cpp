@@ -1394,7 +1394,7 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 //
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
 //
-SystemMatrixAdapter MeshAdapter::newSystemMatrix(
+ASM_ptr MeshAdapter::newSystemMatrix(
                                                  const int row_blocksize,
                                                  const escript::FunctionSpace& row_functionspace,
                                                  const int column_blocksize,
@@ -1441,13 +1441,14 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
    }
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
+   SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace, column_blocksize,column_functionspace);
+   return ASM_ptr(sma);
 }
 
 //
 // creates a TransportProblemAdapter
 //
-TransportProblemAdapter MeshAdapter::newTransportProblem(
+ATP_ptr MeshAdapter::newTransportProblem(
                                                          const bool useBackwardEuler,
                                                          const int blocksize,
                                                          const escript::FunctionSpace& functionspace,
@@ -1474,7 +1475,8 @@ TransportProblemAdapter MeshAdapter::newTransportProblem(
    transportProblem=Paso_TransportProblem_alloc(useBackwardEuler,fsystemMatrixPattern,blocksize);
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   return TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   return ATP_ptr(atp);
 }
 
 //

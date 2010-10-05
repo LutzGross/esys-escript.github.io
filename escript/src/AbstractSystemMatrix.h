@@ -19,11 +19,13 @@
 #include "FunctionSpace.h"
 #include "SystemMatrixException.h"
 #include <boost/python/object.hpp>
+
+
+namespace escript {
+
 //
 // Forward declaration
 class Data;
-
-namespace escript {
 
 /**
    \brief
@@ -184,7 +186,7 @@ class AbstractSystemMatrix {
 
 ESCRIPT_DLL_API Data operator*(const AbstractSystemMatrix& left,const Data& right) ;
 
-
+typedef boost::shared_ptr<AbstractSystemMatrix> ASM_ptr;
 
 } // end of namespace
 #endif

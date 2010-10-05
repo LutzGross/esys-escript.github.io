@@ -138,4 +138,84 @@ int AbstractContinuousDomain::getTransportTypeId(const int solver, const int pre
 //   return dynamic_cast<const AbstractContinuousDomain&>(domain);
 // }
 
+
+
+void AbstractContinuousDomain::addPDEToSystem(
+                     AbstractSystemMatrix& mat, escript::Data& rhs,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C, 
+                     const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact, const escript::Data& y_contact) const
+{
+  throwStandardException("AbstractContinuousDomain::addPDEToSystem");
+  return;
+}
+
+void AbstractContinuousDomain::addPDEToRHS(escript::Data& rhs,
+                     const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& y, const escript::Data& y_contact) const
+{
+  throwStandardException("AbstractContinuousDomain::addPDEToRHS");
+  return;
+}
+
+void AbstractContinuousDomain::addPDEToTransportProblem(
+                     AbstractTransportProblem& tp, escript::Data& source, 
+                     const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
+                     const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact,const escript::Data& y_contact) const
+{
+  throwStandardException("AbstractContinuousDomain::addPDEToTransportProblem");
+  return;
+}
+
+ASM_ptr AbstractContinuousDomain::newSystemMatrix(
+                      const int row_blocksize,
+                      const escript::FunctionSpace& row_functionspace,
+                      const int column_blocksize,
+                      const escript::FunctionSpace& column_functionspace,
+                      const int type) const
+{
+  throwStandardException("AbstractContinuousDomain::newSystemMatrix");
+  return ASM_ptr();
+}
+
+ATP_ptr AbstractContinuousDomain::newTransportProblem(
+                      const bool useBackwardEuler,
+                      const int blocksize,
+                      const escript::FunctionSpace& functionspace,
+                      const int type) const
+{
+  throwStandardException("AbstractContinuousDomain::newTransportProblem");
+  return ATP_ptr();
+}
+
+int AbstractContinuousDomain::getNumDataPointsGlobal() const
+{
+  throwStandardException("AbstractContinuousDomain::getNumDataPointsGlobal");
+  return 1;
+}
+
+std::pair<int,int> AbstractContinuousDomain::getDataShape(int functionSpaceCode) const
+{
+  throwStandardException("AbstractContinuousDomain::getDataShape");
+  return std::pair<int,int>(0,0);
+}
+
+void AbstractContinuousDomain::setNewX(const escript::Data& arg)
+{
+  throwStandardException("AbstractContinuousDomain::setNewX");
+  return;
+}
+
+void AbstractContinuousDomain::Print_Mesh_Info(const bool full) const
+{
+  throwStandardException("AbstractContinuousDomain::Print_Mesh_Info");
+  return;
+}
+
+
+
 }  // end of namespace
