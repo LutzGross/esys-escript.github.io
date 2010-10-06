@@ -125,7 +125,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *, bool_t);
 Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
-void Mesh_setOrders(Finley_Mesh *in);
+void Finley_Mesh_setOrders(Finley_Mesh *in);
 
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);

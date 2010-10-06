@@ -75,9 +75,9 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
     if (Dudley_noError())
     {
 
-	Dudley_Mesh_setPoints(out, Dudley_ElementFile_alloc(Point1, mpi_info));
-	Dudley_Mesh_setFaceElements(out, Dudley_ElementFile_alloc(Line2, mpi_info));
-	Dudley_Mesh_setElements(out, Dudley_ElementFile_alloc(Tri3, mpi_info));
+	Dudley_Mesh_setPoints(out, Dudley_ElementFile_alloc(Dudley_Point1, mpi_info));
+	Dudley_Mesh_setFaceElements(out, Dudley_ElementFile_alloc(Dudley_Line2, mpi_info));
+	Dudley_Mesh_setElements(out, Dudley_ElementFile_alloc(Dudley_Tri3, mpi_info));
 	Nstride0 = 1;
 	Nstride1 = N0;
 	if (N1 == MAX(N0, N1))

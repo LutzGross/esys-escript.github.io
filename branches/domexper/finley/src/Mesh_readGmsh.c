@@ -45,7 +45,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   double time0=Finley_timer();
 #endif
   FILE * fileHandle_p = NULL;
-  ElementTypeId* element_type=NULL;
+  Finley_ElementTypeId* element_type=NULL;
 
 
   Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
@@ -125,9 +125,9 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
        else if(!strncmp(&line[1], "ELM", 3) ||
    	    !strncmp(&line[1], "Elements", 8)) {
    
-         ElementTypeId final_element_type = NoRef;
-         ElementTypeId final_face_element_type = NoRef;
-         ElementTypeId contact_element_type = NoRef;
+         Finley_ElementTypeId final_element_type = Finley_NoRef;
+         Finley_ElementTypeId final_face_element_type = Finley_NoRef;
+         Finley_ElementTypeId contact_element_type = Finley_NoRef;
          numElements=0;
          numFaceElements=0;
          scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
@@ -137,7 +137,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          tag=TMPMEMALLOC(totalNumElements,index_t);
    
    
-         element_type=TMPMEMALLOC(totalNumElements,ElementTypeId);
+         element_type=TMPMEMALLOC(totalNumElements,Finley_ElementTypeId);
          vertices=TMPMEMALLOC(totalNumElements*MAX_numNodes_gmsh,index_t);
          if (! (Finley_checkPtr(id) || Finley_checkPtr(tag) || Finley_checkPtr(element_type) || Finley_checkPtr(vertices) ) ) {
             /* read all in */
@@ -146,88 +146,88 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 	      FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
               switch (gmsh_type) {
                   case 1:  /* line order 1 */
-                      element_type[e]=Line2;
+                      element_type[e]=Finley_Line2;
                       element_dim=1;
                       numNodesPerElement=2;  
                       break;
                   case 2:  /* traingle order 1 */
-                      element_type[e]=Tri3;
+                      element_type[e]=Finley_Tri3;
                       numNodesPerElement= 3;
                       element_dim=2;
                       break;
                   case 3:  /* quadrilateral order 1 */
-                      element_type[e]=Rec4;
+                      element_type[e]=Finley_Rec4;
                       numNodesPerElement= 4;
                       element_dim=2;
                       break;
                   case 4:  /* tetrahedron order 1 */
-                      element_type[e]=Tet4;
+                      element_type[e]=Finley_Tet4;
                       numNodesPerElement= 4;
                       element_dim=3;
                       break;
                   case 5:  /* hexahedron order 1 */
-                      element_type[e]=Hex8;
+                      element_type[e]=Finley_Hex8;
                       numNodesPerElement= 8;
                       element_dim=3;
                       break;
                   case 8:  /* line order 2 */
                       if (useMacroElements) {
-                          element_type[e]=Line3Macro;
+                          element_type[e]=Finley_Line3Macro;
                       } else {
-                          element_type[e]=Line3;
+                          element_type[e]=Finley_Line3;
                       }
                       numNodesPerElement= 3;
                       element_dim=1;
                       break;
                   case 9:  /* traingle order 2 */
                       if (useMacroElements) {
-                           element_type[e]=Tri6Macro;
+                           element_type[e]=Finley_Tri6Macro;
                       } else {
-                           element_type[e]=Tri6;
+                           element_type[e]=Finley_Tri6;
                       }
                       numNodesPerElement= 6;
                       element_dim=2;
                       break;
                   case 10:  /* quadrilateral order 2 */
                       if (useMacroElements) {
-                          element_type[e]=Rec9Macro;
+                          element_type[e]=Finley_Rec9Macro;
                       } else {
-                          element_type[e]=Rec9;
+                          element_type[e]=Finley_Rec9;
                       }
                       numNodesPerElement= 9;
                       element_dim=2;
                       break;
                   case 11:  /* tetrahedron order 2 */
                       if (useMacroElements) {
-                          element_type[e]=Tet10Macro;
+                          element_type[e]=Finley_Tet10Macro;
                       } else {
-                          element_type[e]=Tet10;
+                          element_type[e]=Finley_Tet10;
                       }
                       numNodesPerElement= 10;
                       element_dim=3;
                       break;
                   case 16:  /* rectangular order 2 */
-                      element_type[e]=Rec8;
+                      element_type[e]=Finley_Rec8;
                       numNodesPerElement= 8;
                       element_dim=2;
                       break;
                   case 17:  /* hexahedron order 2 */
-                      element_type[e]=Hex20;
+                      element_type[e]=Finley_Hex20;
                       numNodesPerElement= 20;
                       element_dim=3;
                       break;
                   case 15 :  /* point */
-                      element_type[e]=Point1;
+                      element_type[e]=Finley_Point1;
                       numNodesPerElement= 1;
                       element_dim=0;
                       break;
                   default:
-                     element_type[e]=NoRef;
+                     element_type[e]=Finley_NoRef;
                      sprintf(error_msg,"Unexected gmsh element type %d in mesh file %s.",gmsh_type,fname);
                      Finley_setError(IO_ERROR,error_msg);
               }
               if (element_dim == numDim) {
-                 if (final_element_type == NoRef) {
+                 if (final_element_type == Finley_NoRef) {
                     final_element_type = element_type[e];
                  } else if (final_element_type != element_type[e]) {
                      sprintf(error_msg,"Finley can handle a single type of internal elements only.");
@@ -236,7 +236,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                  }
                  numElements++;
               } else if (element_dim == numDim-1) {
-                 if (final_face_element_type == NoRef) {
+                 if (final_face_element_type == Finley_NoRef) {
                     final_face_element_type = element_type[e];
                  } else if (final_face_element_type != element_type[e]) {
                      sprintf(error_msg,"Finley can handle a single type of face elements only.");
@@ -278,7 +278,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 	        FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
 	      }
               /* for tet10 the last two nodes need to be swapped */
-              if ((element_type[e]==Tet10) || (element_type[e]==Tet10Macro)) {
+              if ((element_type[e]==Finley_Tet10) || (element_type[e]==Finley_Tet10Macro)) {
                    itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];
                    vertices[INDEX2(9,e,MAX_numNodes_gmsh)]=vertices[INDEX2(8,e,MAX_numNodes_gmsh)];
                    vertices[INDEX2(8,e,MAX_numNodes_gmsh)]=itmp;
@@ -288,39 +288,39 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
         
             if (Finley_noError()) {
               /* first we have to identify the elements to define Elementis and FaceElements */
-              if (final_element_type == NoRef) {
+              if (final_element_type == Finley_NoRef) {
                  if (numDim==1) {
-                    final_element_type=Line2;
+                    final_element_type=Finley_Line2;
                  } else if (numDim==2) {
-                    final_element_type=Tri3;
+                    final_element_type=Finley_Tri3;
                  } else if (numDim==3) {
-                    final_element_type=Tet4;
+                    final_element_type=Finley_Tet4;
                  }
               }
-              if (final_face_element_type == NoRef) {
+              if (final_face_element_type == Finley_NoRef) {
                  if (numDim==1) {
-                    final_face_element_type=Point1;
+                    final_face_element_type=Finley_Point1;
                  } else if (numDim==2) {
-                    final_face_element_type=Line2;
+                    final_face_element_type=Finley_Line2;
                  } else if (numDim==3) {
-                    final_face_element_type=Tri3;
+                    final_face_element_type=Finley_Tri3;
                  }
               }
-              if (final_face_element_type == Line2) {
-                  contact_element_type=Line2_Contact;
-              } else  if ( (final_face_element_type == Line3) || (final_face_element_type == Line3Macro) ) {
-                  contact_element_type=Line3_Contact;
-              } else  if (final_face_element_type == Tri3) {
-                  contact_element_type=Tri3_Contact;
-              } else  if ( (final_face_element_type == Tri6) || (final_face_element_type == Tri6Macro)) {
-                  contact_element_type=Tri6_Contact;
+              if (final_face_element_type == Finley_Line2) {
+                  contact_element_type=Finley_Line2_Contact;
+              } else  if ( (final_face_element_type == Finley_Line3) || (final_face_element_type == Finley_Line3Macro) ) {
+                  contact_element_type=Finley_Line3_Contact;
+              } else  if (final_face_element_type == Finley_Tri3) {
+                  contact_element_type=Finley_Tri3_Contact;
+              } else  if ( (final_face_element_type == Finley_Tri6) || (final_face_element_type == Finley_Tri6Macro)) {
+                  contact_element_type=Finley_Tri6_Contact;
               } else {
-                  contact_element_type=Point1_Contact;
+                  contact_element_type=Finley_Point1_Contact;
               }
 			  refElements= Finley_ReferenceElementSet_alloc(final_element_type,order, reduced_order);
 			  refFaceElements=Finley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
 			  refContactElements= Finley_ReferenceElementSet_alloc(contact_element_type,order, reduced_order);
-			  refPoints= Finley_ReferenceElementSet_alloc(Point1,order, reduced_order);
+			  refPoints= Finley_ReferenceElementSet_alloc(Finley_Point1,order, reduced_order);
               mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
               mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
               mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);

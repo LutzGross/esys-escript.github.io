@@ -69,15 +69,15 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
       Esys_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Finley_ReferenceElementSet_alloc(Hex8,order,reduced_order);
+  refElements= Finley_ReferenceElementSet_alloc(Finley_Hex8,order,reduced_order);
   if (useElementsOnFace) {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Hex8Face, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Hex8Face_Contact, order, reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Hex8Face, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Hex8Face_Contact, order, reduced_order);
   } else {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Rec4, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Rec4_Contact, order, reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Rec4, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec4_Contact, order, reduced_order);
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+  refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1, order, reduced_order);
   
  
   if ( Finley_noError()) {

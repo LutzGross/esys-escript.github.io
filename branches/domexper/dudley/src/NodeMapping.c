@@ -87,9 +87,10 @@ void Dudley_NodeMapping_free(Dudley_NodeMapping * in)
     }
 }
 
-Dudley_NodeMapping *NodeMapping_getReference(Dudley_NodeMapping * in)
+Dudley_NodeMapping *Dudley_NodeMapping_getReference(Dudley_NodeMapping * in)
 {
     if (in != NULL)
 	in->reference_counter++;
     return in;
 }
+

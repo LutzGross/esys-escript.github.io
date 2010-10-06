@@ -30,7 +30,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     char name[LenString_MAX], element_type[LenString_MAX], frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
-    ElementTypeId typeID = NoRef;
+    Dudley_ElementTypeId typeID = Dudley_NoRef;
     int scan_ret;
 
     Dudley_resetError();
@@ -210,11 +210,11 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		Dudley_setError(ESYS_MPI_ERROR, "Dudley_Mesh_read: broadcast of Element typeID failed");
 		return NULL;
 	    }
-	    typeID = (ElementTypeId) temp1[0];
+	    typeID = (Dudley_ElementTypeId) temp1[0];
 	    numEle = temp1[1];
 	}
 #endif
-	if (typeID == NoRef)
+	if (typeID == Dudley_NoRef)
 	{
 	    sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
 	    Dudley_setError(VALUE_ERROR, error_msg);
@@ -320,11 +320,11 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    temp1[0] = (int)typeID;
 	    temp1[1] = numEle;
 	    MPI_Bcast(temp1, 2, MPI_INT, 0, mpi_info->comm);
-	    typeID = (ElementTypeId) temp1[0];
+	    typeID = (Dudley_ElementTypeId) temp1[0];
 	    numEle = temp1[1];
 	}
 #endif
-	if (typeID == NoRef)
+	if (typeID == Dudley_NoRef)
 	{
 	    sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
 	    Dudley_setError(VALUE_ERROR, error_msg);
@@ -429,11 +429,11 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    temp1[0] = (int)typeID;
 	    temp1[1] = numEle;
 	    MPI_Bcast(temp1, 2, MPI_INT, 0, mpi_info->comm);
-	    typeID = (ElementTypeId) temp1[0];
+	    typeID = (Dudley_ElementTypeId) temp1[0];
 	    numEle = temp1[1];
 	}
 #endif
-	if (typeID == NoRef)
+	if (typeID == Dudley_NoRef)
 	{
 	    sprintf(error_msg, "Dudley_Mesh_read: Unidentified element type %s", element_type);
 	    Dudley_setError(VALUE_ERROR, error_msg);

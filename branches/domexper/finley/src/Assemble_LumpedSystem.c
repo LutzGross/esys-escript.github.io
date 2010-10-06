@@ -39,7 +39,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 
   bool_t reducedIntegrationOrder=FALSE, expandedD;
   char error_msg[LenErrorMsg_MAX];
-  Assemble_Parameters p;
+  Finley_Assemble_Parameters p;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s, isub;
   type_t funcspace;
   index_t color,*row_index=NULL;
@@ -56,7 +56,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   if (nodes==NULL || elements==NULL) return;
   if (isEmpty(lumpedMat) || isEmpty(D)) return;
   if (isEmpty(lumpedMat) && !isEmpty(D)) { 
-        Finley_setError(TYPE_ERROR,"Assemble_LumpedSystem: coefficients are non-zero but no lumped matrix is given.");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_LumpedSystem: coefficients are non-zero but no lumped matrix is given.");
         return;
   }
   funcspace=getFunctionSpaceType(D);
@@ -70,17 +70,17 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
        reducedIntegrationOrder=TRUE;
   } else {
-       Finley_setError(TYPE_ERROR,"Assemble_LumpedSystem: assemblage failed because of illegal function space.");
+       Finley_setError(TYPE_ERROR,"Finley_Assemble_LumpedSystem: assemblage failed because of illegal function space.");
   }
   if (! Finley_noError()) return;
 
   /* set all parameters in p*/
-  Assemble_getAssembleParameters(nodes,elements,NULL,lumpedMat, reducedIntegrationOrder, &p);
+  Finley_Assemble_getAssembleParameters(nodes,elements,NULL,lumpedMat, reducedIntegrationOrder, &p);
   if (! Finley_noError()) return;
  
   /* check if all function spaces are the same */
   if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
-        sprintf(error_msg,"Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuadSub,elements->numElements);
+        sprintf(error_msg,"Finley_Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)",p.numQuadSub,elements->numElements);
         Finley_setError(TYPE_ERROR,error_msg);
   }
 
@@ -88,7 +88,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   if (p.numEqu==1) {
     if (!isEmpty(D)) {
        if (!isDataPointShapeEqual(D,0,dimensions)) {
-          Finley_setError(TYPE_ERROR,"Assemble_LumpedSystem: coefficient D, rank 0 expected.");
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_LumpedSystem: coefficient D, rank 0 expected.");
        }
 
     }
@@ -96,7 +96,7 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     if (!isEmpty(D)) {
       dimensions[0]=p.numEqu;
       if (!isDataPointShapeEqual(D,1,dimensions)) {
-          sprintf(error_msg,"Assemble_LumpedSystem: coefficient D, expected shape (%d,)",dimensions[0]);
+          sprintf(error_msg,"Finley_Assemble_LumpedSystem: coefficient D, expected shape (%d,)",dimensions[0]);
           Finley_setError(TYPE_ERROR,error_msg);
       }
     }

@@ -48,7 +48,7 @@ double* volume[numQuad*numElements]
 /*                                                            */
 /*  Jacobean 2D with area element                             */
 /*                                                            */
-void Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
+void Dudley_Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
 			   double *dTdX, double *absD, double *quadweight, index_t * element_id)
 {
 #define DIM 2
@@ -83,7 +83,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 	    absD[e] = ABS(D);
 	    if (D == 0.)
 	    {
-		sprintf(error_msg, "Assemble_jacobeans_2D: element %d (id %d) has area zero.", e, element_id[e]);
+		sprintf(error_msg, "Dudley_Assemble_jacobeans_2D: element %d (id %d) has area zero.", e, element_id[e]);
 		Dudley_setError(ZERO_DIVISION_ERROR, error_msg);
 	    }
 	    else
@@ -138,7 +138,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements                */
 /*                                                            */
-void Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
+void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 				   dim_t numElements, dim_t numNodes, index_t * nodes,
 				   double *dTdX, double *absD, double *quadweight, index_t * element_id)
 {
@@ -166,7 +166,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 	    D = dXdv00 * dXdv00 + dXdv10 * dXdv10;
 	    if (D == 0.)
 	    {
-		sprintf(error_msg, "Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.", e,
+		sprintf(error_msg, "Dudley_Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.", e,
 			element_id[e]);
 		Dudley_setError(ZERO_DIVISION_ERROR, error_msg);
 	    }
@@ -199,7 +199,7 @@ void Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 /*                                                            */
 /*  Jacobean 3D                                               */
 /*                                                            */
-void Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
+void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes, index_t * nodes,
 			   double *dTdX, double *absD, double *quadweight, index_t * element_id)
 {
 #define DIM 3
@@ -246,7 +246,7 @@ void Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numElements
 	    absD[e] = ABS(D);
 	    if (D == 0.)
 	    {
-		sprintf(error_msg, "Assemble_jacobeans_3D: element %d (id %d) has volume zero.", e, element_id[e]);
+		sprintf(error_msg, "Dudley_Assemble_jacobeans_3D: element %d (id %d) has volume zero.", e, element_id[e]);
 		Dudley_setError(ZERO_DIVISION_ERROR, error_msg);
 	    }
 	    else
@@ -284,7 +284,7 @@ void Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numElements
 /*                                                            */
 /*  Jacobean 2D manifold in 3D with 2D elements               */
 /*                                                            */
-void Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes,
+void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t numElements, dim_t numNodes,
 				   index_t * nodes, double *dTdX, double *absD, double *quadweight,
 				   index_t * element_id)
 {
@@ -328,7 +328,7 @@ void Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, dim_t num
 	    absD[e] = sqrt(D);
 	    if (D == 0.)
 	    {
-		sprintf(error_msg, "Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.", e, element_id[e]);
+		sprintf(error_msg, "Dudley_Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.", e, element_id[e]);
 		Dudley_setError(ZERO_DIVISION_ERROR, error_msg);
 	    }
 	    else

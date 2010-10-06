@@ -40,10 +40,10 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   dim_t i;
   index_t order, reduced_order;
   dim_t numDim;
-  ElementTypeId elementTypeId=NoRef ;
-  ElementTypeId faceElementTypeId=NoRef ;
-  ElementTypeId pointTypeId=NoRef ;
-  ElementTypeId contactTypeId=NoRef ;
+  Finley_ElementTypeId elementTypeId=Finley_NoRef;
+  Finley_ElementTypeId faceElementTypeId=Finley_NoRef;
+  Finley_ElementTypeId pointTypeId=Finley_NoRef;
+  Finley_ElementTypeId contactTypeId=Finley_NoRef;
   index_t maxNodeID=0;
   index_t maxDOF=0;
   index_t maxElementID=0;
@@ -77,7 +77,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 	   if (msh[i]->Elements!=NULL) {
 		  numElements+=msh[i]->Elements->numElements;
-		  if (elementTypeId==NoRef ) {
+		  if (elementTypeId==Finley_NoRef) {
 			 elementTypeId=msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId;
 		  } else {
 			 if (elementTypeId!=msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -88,7 +88,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 	   if (msh[i]->FaceElements!=NULL) {
 		  numFaceElements+=msh[i]->FaceElements->numElements;
-		  if (faceElementTypeId==NoRef ) {
+		  if (faceElementTypeId==Finley_NoRef) {
 			 faceElementTypeId=msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId;
 		  } else {
 			 if (faceElementTypeId!=msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -99,7 +99,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 	   if (msh[i]->ContactElements!=NULL) {
 		  numContactElements+=msh[i]->ContactElements->numElements;
-		  if (contactTypeId==NoRef ) {
+		  if (contactTypeId==Finley_NoRef) {
 			 contactTypeId=msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId;
 		  } else {
 			 if (contactTypeId!=msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -110,7 +110,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
 	   if (msh[i]->Points!=NULL) {
 		  numPoints+=msh[i]->Points->numElements;
-		  if (pointTypeId==NoRef ) {
+		  if (pointTypeId==Finley_NoRef) {
 			 pointTypeId=msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId;
 		  } else {
 			 if (pointTypeId!=msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId ) {

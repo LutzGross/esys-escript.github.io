@@ -213,10 +213,11 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
         }
         int typeId = static_cast<FinleyElements*>(result.get())
             ->getFinleyTypeId();
-        if (typeId != Rec9 && typeId != Rec9Macro && typeId != Hex27 &&
-                typeId != Hex27Macro && typeId != Tri6 &&
-                typeId != Tri6Macro && typeId != Tet10 &&
-                typeId != Tet10Macro) {
+        if (typeId != Finley_Rec9 && typeId != Finley_Rec9Macro &&
+                typeId != Finley_Hex27 &&
+                typeId != Finley_Hex27Macro && typeId != Finley_Tri6 &&
+                typeId != Finley_Tri6Macro && typeId != Finley_Tet10 &&
+                typeId != Finley_Tet10Macro) {
             if (result->getReducedElements())
                 result = result->getReducedElements();
         }

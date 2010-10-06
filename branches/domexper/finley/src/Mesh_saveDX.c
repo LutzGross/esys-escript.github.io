@@ -41,7 +41,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   double rtmp;
   bool_t *isCellCentered=NULL;
   Finley_ElementFile* elements=NULL;
-  ElementTypeId TypeId;
+  Finley_ElementTypeId TypeId;
   /* open the file  and check handel */
 
   /* if there is no mesh we just return */
@@ -173,23 +173,23 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   TypeId = elements->referenceElementSet->referenceElement->Type->TypeId;
   numDXNodesPerElement=0;
   numCells = elements->numElements;
-  if (TypeId==Line2 || TypeId==Line3 || TypeId==Line4 || TypeId==Line3Macro ) {
+  if (TypeId==Finley_Line2 || TypeId==Finley_Line3 || TypeId==Finley_Line4 || TypeId==Finley_Line3Macro ) {
      numDXNodesPerElement=2;
      resortIndex=resort[0];
      strcpy(elemTypeStr, "lines");
-   } else if (TypeId==Tri3 || TypeId==Tri6 || TypeId==Tri9 || TypeId==Tri10 ) {
+   } else if (TypeId==Finley_Tri3 || TypeId==Finley_Tri6 || TypeId==Finley_Tri9 || TypeId==Finley_Tri10 ) {
      numDXNodesPerElement = 3;
      resortIndex=resort[1];
      strcpy(elemTypeStr, "triangles");
-   } else if (TypeId==Rec4 || TypeId==Rec8 || TypeId==Rec9 || TypeId==Rec12 || TypeId==Rec16 || TypeId==Rec9Macro ) {
+   } else if (TypeId==Finley_Rec4 || TypeId==Finley_Rec8 || TypeId==Finley_Rec9 || TypeId==Finley_Rec12 || TypeId==Finley_Rec16 || TypeId==Finley_Rec9Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[3];
      strcpy(elemTypeStr, "quads");
-   } else if (TypeId==Tet4 || TypeId==Tet10 || TypeId==Tet16 || TypeId==Tet10Macro ) {
+   } else if (TypeId==Finley_Tet4 || TypeId==Finley_Tet10 || TypeId==Finley_Tet16 || TypeId==Finley_Tet10Macro ) {
      numDXNodesPerElement = 4;
      resortIndex=resort[2];
      strcpy(elemTypeStr, "tetrahedra");
-   } else if (TypeId==Hex8 || TypeId==Hex20 || TypeId==Hex32 ) {
+   } else if (TypeId==Finley_Hex8 || TypeId==Finley_Hex20 || TypeId==Finley_Hex32 ) {
      numDXNodesPerElement = 8;
      resortIndex=resort[4];
      strcpy(elemTypeStr, "cubes");

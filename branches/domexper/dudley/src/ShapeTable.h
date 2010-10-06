@@ -36,7 +36,7 @@ static const double DTDV_2D[3 * 3][2] = { {-1, 1}, {0, -1.}, {0, 1},
 };
 static const double DTDV_3D[4][3] = { {-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
 
-// Index by the following by ElementTypeID
+// Index by the following by Dudley_ElementTypeID
 // The number of local dimensions (as opposed to dimension of the embedding space)
 static const dim_t localDims[8] = { 0, 1, 2, 3, 0, 1, 2, 0 };
 static const dim_t Dims[8] = { 0, 1, 2, 3, 1, 2, 3, 0 };
@@ -58,6 +58,6 @@ static const dim_t QuadNums[4][2] = { {0, 0}, {1, 2}, {1, 3}, {1, 4} };
 //shape functions at quadrature nodes
 bool_t getQuadShape(dim_t sim, bool_t reduced, const double **shapearr);
 
-const char *getElementName(ElementTypeId id);
+const char *getElementName(Dudley_ElementTypeId id);
 
 #endif

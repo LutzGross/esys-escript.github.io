@@ -38,7 +38,7 @@ typedef struct Finley_ReferenceElementSet {
 
 
 
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order);
+Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeId id, index_t order, index_t reduced_order);
 void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in);
 Finley_ReferenceElementSet* Finley_ReferenceElementSet_reference(Finley_ReferenceElementSet* in);
 Finley_ShapeFunction* Finley_ReferenceElementSet_borrowBasisFunctions(Finley_ReferenceElementSet* in, bool_t reducedShapefunction, bool_t reducedIntegrationOrder);

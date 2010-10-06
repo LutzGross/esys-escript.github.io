@@ -2406,7 +2406,7 @@ bool MeshAdapter::supportsContactElements() const
   return true;
 }
 
-ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)
+ReferenceElementSetWrapper::ReferenceElementSetWrapper(Finley_ElementTypeId id, index_t order, index_t reducedOrder)
 {
   m_refSet = Finley_ReferenceElementSet_alloc(id, order, reducedOrder);
 }

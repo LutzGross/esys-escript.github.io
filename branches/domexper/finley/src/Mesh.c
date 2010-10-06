@@ -142,7 +142,7 @@ int  Finley_Mesh_getStatus(Finley_Mesh* in) {
    }
 }
 
-void Mesh_setOrders(Finley_Mesh *in) 
+void Finley_Mesh_setOrders(Finley_Mesh *in) 
 {
    const dim_t order_max=9999999;
    dim_t locals[4];

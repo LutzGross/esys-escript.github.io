@@ -156,7 +156,7 @@ int Dudley_Mesh_getStatus(Dudley_Mesh * in)
     }
 }
 
-void Mesh_setOrders(Dudley_Mesh * in)
+void Dudley_Mesh_setOrders(Dudley_Mesh * in)
 {
     in->approximationOrder = 1;	// order of shapeFunctions is always 1 in Dudley
     in->reducedApproximationOrder = 1;

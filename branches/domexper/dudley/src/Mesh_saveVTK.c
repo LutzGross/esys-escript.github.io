@@ -89,16 +89,6 @@ void create_MPIInfo(MPI_Info & info)
 
 #include "ShapeTable.h"
 
-/* Returns one if the node given by coords and idx is within the quadrant
- * indexed by q and if the element type is Rec9 or Hex27, zero otherwise */
-int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
-{
-#define INSIDE_1D(_X_,_C_,_R_) ( ABS((_X_)-(_C_)) <= (_R_) )
-#define INSIDE_2D(_X_,_Y_,_CX_,_CY_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_))
-#define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
-    return 1;
-}
-
 void Dudley_Mesh_saveVTK(const char *filename_p,
 			 Dudley_Mesh * mesh_p,
 			 const dim_t num_data,
@@ -127,7 +117,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     int mpi_size, i, j, l;
     int cellType = 0, nodeType = DUDLEY_NODES, elementType = DUDLEY_UNKNOWN;
     Dudley_ElementFile *elements = NULL;
-    ElementTypeId typeId = NoRef;
+    Dudley_ElementTypeId typeId = Dudley_NoRef;
 
     const char *vtkHeader =
 	"<?xml version=\"1.0\"?>\n"
@@ -359,25 +349,25 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 	    }
 	    switch (typeId)
 	    {
-	    case Point1:
-	    case Line2Face:
+	    case Dudley_Point1:
+	    case Dudley_Line2Face:
 		cellType = VTK_VERTEX;
 		numVTKNodesPerElement = 1;
 		break;
 
-	    case Line2:
-	    case Tri3Face:
+	    case Dudley_Line2:
+	    case Dudley_Tri3Face:
 		cellType = VTK_LINE;
 		numVTKNodesPerElement = 2;
 		break;
 
-	    case Tri3:
-	    case Tet4Face:
+	    case Dudley_Tri3:
+	    case Dudley_Tet4Face:
 		cellType = VTK_TRIANGLE;
 		numVTKNodesPerElement = 3;
 		break;
 
-	    case Tet4:
+	    case Dudley_Tet4:
 		cellType = VTK_TETRA;
 		numVTKNodesPerElement = 4;
 		break;
@@ -762,14 +752,11 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 				    sampleAvg[k] = 0;
 				for (j = 0; j < numPointsPerSample; j++)
 				{
-				    if (nodeInQuadrant(quadNodes_p, typeId, j, l))
-				    {
 					hits++;
 					for (k = 0; k < nCompUsed; k++)
 					{
 					    sampleAvg[k] += values[INDEX2(k, j, nComp)];
 					}
-				    }
 				}
 				for (k = 0; k < nCompUsed; k++)
 				    sampleAvg[k] /= MAX(hits, 1);

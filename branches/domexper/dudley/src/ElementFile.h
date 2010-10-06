@@ -76,13 +76,13 @@ struct Dudley_ElementFile {
     Dudley_ElementFile_Jacobeans *jacobeans_reducedQ;	/* jacobeans of the shape function used for solution approximation for reduced integration order */
     dim_t numDim;		/* spatial dimension of the domain */
     dim_t numLocalDim;		/* dimension of the element eg 2 for A line in 2D or 3D */
-    ElementTypeId etype;	/* element type */
+    Dudley_ElementTypeId etype;	/* element type */
     const char *ename;		/* name of element type */
     dim_t numShapes;		/* number of shape functions */
 };
 
 typedef struct Dudley_ElementFile Dudley_ElementFile;
-Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Esys_MPIInfo * MPIInfo);
+Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, Esys_MPIInfo * MPIInfo);
 void Dudley_ElementFile_free(Dudley_ElementFile *);
 void Dudley_ElementFile_allocTable(Dudley_ElementFile *, dim_t);
 void Dudley_ElementFile_freeTable(Dudley_ElementFile *);

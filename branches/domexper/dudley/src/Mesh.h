@@ -123,7 +123,7 @@ void Dudley_PrintMesh_Info(Dudley_Mesh *, bool_t);
 Dudley_Mesh *Dudley_Mesh_load(char *fname);
 Dudley_Mesh *Dudley_Mesh_read(char *, index_t, index_t, bool_t);
 Dudley_Mesh *Dudley_Mesh_readGmsh(char *, index_t, index_t, index_t, bool_t, bool_t);
-void Mesh_setOrders(Dudley_Mesh * in);
+void Dudley_Mesh_setOrders(Dudley_Mesh * in);
 
 void Dudley_Mesh_setCoordinates(Dudley_Mesh *, escriptDataC *);
 void Dudley_Mesh_setElements(Dudley_Mesh * self, Dudley_ElementFile * elements);

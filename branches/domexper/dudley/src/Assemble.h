@@ -28,7 +28,7 @@
 #include "escript/DataC.h"
 #include "paso/SystemMatrix.h"
 
-struct Assemble_Parameters {
+struct Dudley_Assemble_Parameters {
     dim_t numQuad;		/* number of quadrature nodes */
     dim_t numDim;		/* spatial dimension */
     dim_t NN;			/* leading dimension of element node table */
@@ -47,7 +47,7 @@ struct Assemble_Parameters {
     const double *shapeFns;
 };
 
-typedef struct Assemble_Parameters Assemble_Parameters;
+typedef struct Dudley_Assemble_Parameters Dudley_Assemble_Parameters;
 
 #define Dudley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == DUDLEY_REDUCED_FACE_ELEMENTS) )
 
@@ -56,25 +56,25 @@ void Dudley_Assemble_PDE(Dudley_NodeFile *, Dudley_ElementFile *, Paso_SystemMat
 			 escriptDataC *);
 void Dudley_Assemble_LumpedSystem(Dudley_NodeFile *, Dudley_ElementFile *, escriptDataC *, escriptDataC *);
 
-void Assemble_getAssembleParameters(Dudley_NodeFile *, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
-				    bool_t, Assemble_Parameters *);
-void Dudley_Assemble_PDE_System2_3D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile *, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+				    bool_t, Dudley_Assemble_Parameters *);
+void Dudley_Assemble_PDE_System2_3D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
-void Dudley_Assemble_PDE_System2_2D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_PDE_System2_2D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
-void Dudley_Assemble_PDE_System2_1D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
 
-void Dudley_Assemble_PDE_Single2_3D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_PDE_Single2_3D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
-void Dudley_Assemble_PDE_Single2_2D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
-void Dudley_Assemble_PDE_Single2_1D(Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
+void Dudley_Assemble_PDE_Single2_1D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
 
@@ -89,13 +89,13 @@ void Dudley_Assemble_CopyElementData(Dudley_ElementFile * elements, escriptDataC
 void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escriptDataC * out, escriptDataC * in);
 void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix *, dim_t, index_t *, dim_t, dim_t, index_t *, dim_t, double *);
 
-void Assemble_jacobeans_2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
+void Dudley_Assemble_jacobeans_2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
 			   index_t *);
-void Assemble_jacobeans_2D_M1D_E1D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
+void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
 				   double *quadweight, index_t *);
-void Assemble_jacobeans_3D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
+void Dudley_Assemble_jacobeans_3D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
 			   index_t *);
-void Assemble_jacobeans_3D_M2D_E2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
+void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D,
 				   double *quadweight, index_t *);
 
 void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * lumpedMat,

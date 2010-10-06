@@ -688,7 +688,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 // Do not use this class. It is a convenience wrapper for the dataexporter.
 class FINLEY_DLL_API ReferenceElementSetWrapper {
  public:
-  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
+  ReferenceElementSetWrapper(Finley_ElementTypeId id, index_t order,
                              index_t reducedOrder);
   ~ReferenceElementSetWrapper();
 

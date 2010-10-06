@@ -74,7 +74,7 @@ void Finley_NodeMapping_free(Finley_NodeMapping* in) {
      }
   }
 }
-Finley_NodeMapping* NodeMapping_getReference(Finley_NodeMapping *in ) 
+Finley_NodeMapping* Finley_NodeMapping_getReference(Finley_NodeMapping *in) 
 {
   if (in != NULL) 
     in->reference_counter++;

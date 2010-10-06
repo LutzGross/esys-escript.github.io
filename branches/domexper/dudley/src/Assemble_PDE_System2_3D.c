@@ -40,7 +40,7 @@
 
 /**************************************************************/
 
-void Dudley_Assemble_PDE_System2_3D(Assemble_Parameters p, Dudley_ElementFile * elements,
+void Dudley_Assemble_PDE_System2_3D(Dudley_Assemble_Parameters p, Dudley_ElementFile * elements,
 				    Paso_SystemMatrix * Mat, escriptDataC * F,
 				    escriptDataC * A, escriptDataC * B, escriptDataC * C, escriptDataC * D,
 				    escriptDataC * X, escriptDataC * Y)

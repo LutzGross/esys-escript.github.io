@@ -73,34 +73,34 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
   if (generateAllNodes) {
      /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      if (useMacroElements) {
-		  refElements= Finley_ReferenceElementSet_alloc(Rec9Macro,order,reduced_order);
+		  refElements= Finley_ReferenceElementSet_alloc(Finley_Rec9Macro,order,reduced_order);
      } else {
-		  refElements=Finley_ReferenceElementSet_alloc(Rec9, order,reduced_order);
+		  refElements=Finley_ReferenceElementSet_alloc(Finley_Rec9, order,reduced_order);
      }
      if (useElementsOnFace) {
-         Finley_setError(SYSTEM_ERROR,"rich elements for Rec9 elements is not supported yet.");
+         Finley_setError(SYSTEM_ERROR,"rich elements for Finley_Rec9 elements is not supported yet.");
      } else {
          if (useMacroElements) { 
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Line3Macro, order, reduced_order);
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Line3Macro, order, reduced_order);
          } else {
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Line3, order, reduced_order);
+			 refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Line3, order, reduced_order);
          }
-		 refContactElements=Finley_ReferenceElementSet_alloc(Line3_Contact, order, reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Line3_Contact, order, reduced_order);
      }
 
   } else  {
-     refElements= Finley_ReferenceElementSet_alloc(Rec8,order,reduced_order);
+     refElements= Finley_ReferenceElementSet_alloc(Finley_Rec8,order,reduced_order);
      if (useElementsOnFace) {
-		 refFaceElements= Finley_ReferenceElementSet_alloc(Rec8Face ,order,reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Rec8Face_Contact, order, reduced_order);
+		 refFaceElements= Finley_ReferenceElementSet_alloc(Finley_Rec8Face ,order,reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec8Face_Contact, order, reduced_order);
 
      } else {
-		 refFaceElements= Finley_ReferenceElementSet_alloc(Line3 ,order,reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Line3_Contact, order, reduced_order);
+		 refFaceElements= Finley_ReferenceElementSet_alloc(Finley_Line3 ,order,reduced_order);
+		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Line3_Contact, order, reduced_order);
 
      }
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+  refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1, order, reduced_order);
 
 
   if ( Finley_noError()) {

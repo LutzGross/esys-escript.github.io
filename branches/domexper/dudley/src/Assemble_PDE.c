@@ -55,7 +55,7 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 
     bool_t reducedIntegrationOrder = FALSE;
     char error_msg[LenErrorMsg_MAX];
-    Assemble_Parameters p;
+    Dudley_Assemble_Parameters p;
     double time0;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
     type_t funcspace;
@@ -151,7 +151,7 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 	return;
 
     /* set all parameters in p */
-    Assemble_getAssembleParameters(nodes, elements, S, F, reducedIntegrationOrder, &p);
+    Dudley_Assemble_getAssembleParameters(nodes, elements, S, F, reducedIntegrationOrder, &p);
     if (!Dudley_noError())
 	return;
 

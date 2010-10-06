@@ -40,7 +40,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 
     bool_t reducedIntegrationOrder = FALSE, expandedD;
     char error_msg[LenErrorMsg_MAX];
-    Assemble_Parameters p;
+    Dudley_Assemble_Parameters p;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s;
     type_t funcspace;
     index_t color, *row_index = NULL;
@@ -61,7 +61,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	return;
     if (isEmpty(lumpedMat) && !isEmpty(D))
     {
-	Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficients are non-zero but no lumped matrix is given.");
+	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: coefficients are non-zero but no lumped matrix is given.");
 	return;
     }
     funcspace = getFunctionSpaceType(D);
@@ -84,20 +84,20 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     }
     else
     {
-	Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
+	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: assemblage failed because of illegal function space.");
     }
     if (!Dudley_noError())
 	return;
 
     /* set all parameters in p */
-    Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat, reducedIntegrationOrder, &p);
+    Dudley_Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat, reducedIntegrationOrder, &p);
     if (!Dudley_noError())
 	return;
 
     /* check if all function spaces are the same */
     if (!numSamplesEqual(D, p.numQuad, elements->numElements))
     {
-	sprintf(error_msg, "Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)", p.numQuad,
+	sprintf(error_msg, "Dudley_Assemble_LumpedSystem: sample points of coefficient D don't match (%d,%d)", p.numQuad,
 		elements->numElements);
 	Dudley_setError(TYPE_ERROR, error_msg);
     }
@@ -109,7 +109,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	{
 	    if (!isDataPointShapeEqual(D, 0, dimensions))
 	    {
-		Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
+		Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: coefficient D, rank 0 expected.");
 	    }
 
 	}
@@ -121,7 +121,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	    dimensions[0] = p.numEqu;
 	    if (!isDataPointShapeEqual(D, 1, dimensions))
 	    {
-		sprintf(error_msg, "Assemble_LumpedSystem: coefficient D, expected shape (%d,)", dimensions[0]);
+		sprintf(error_msg, "Dudley_Assemble_LumpedSystem: coefficient D, expected shape (%d,)", dimensions[0]);
 		Dudley_setError(TYPE_ERROR, error_msg);
 	    }
 	}
@@ -136,7 +136,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	expandedD = isExpanded(D);
 	if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
 	{
-	    Dudley_setError(TYPE_ERROR, "Assemble_LumpedSystem: Unable to locate shape function.");
+	    Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: Unable to locate shape function.");
 	}
 #ifdef NEW_LUMPING
 #pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp, diagS, m_t)
