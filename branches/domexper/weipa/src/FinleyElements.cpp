@@ -15,6 +15,7 @@
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
+#include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
 #endif
 
@@ -132,6 +133,59 @@ FinleyElements::FinleyElements(const FinleyElements& e)
     if (e.reducedElements)
         reducedElements = FinleyElements_ptr(
                 new FinleyElements(*e.reducedElements));
+}
+
+//
+//
+//
+bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
+{
+#ifndef VISIT_PLUGIN
+    numElements = dudleyFile->numElements;
+
+    if (numElements > 0) {
+        nodesPerElement = dudleyFile->numNodes;
+
+        int* iPtr;
+   
+        iPtr = dudleyFile->Nodes;
+        nodes.clear();
+        nodes.insert(nodes.end(), numElements*nodesPerElement, 0);
+        copy(iPtr, iPtr+numElements*nodesPerElement, nodes.begin());
+
+        iPtr = dudleyFile->Color;
+        color.clear();
+        color.insert(color.end(), numElements, 0);
+        copy(iPtr, iPtr+numElements, color.begin());
+
+        iPtr = dudleyFile->Id;
+        ID.clear();
+        ID.insert(ID.end(), numElements, 0);
+        copy(iPtr, iPtr+numElements, ID.begin());
+
+        iPtr = dudleyFile->Owner;
+        owner.clear();
+        owner.insert(owner.end(), numElements, 0);
+        copy(iPtr, iPtr+numElements, owner.begin());
+
+        iPtr = dudleyFile->Tag;
+        tag.clear();
+        tag.insert(tag.end(), numElements, 0);
+        copy(iPtr, iPtr+numElements, tag.begin());
+
+        FinleyElementInfo f = getDudleyTypeInfo(dudleyFile->etype);
+        type = f.elementType;
+        elementFactor = f.elementFactor;
+        if (elementFactor > 1 || f.reducedElementSize != nodesPerElement)
+            buildReducedElements(f);
+
+        buildMeshes();
+    }
+    return true;
+
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //
@@ -719,6 +773,51 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
 #else // !USE_SILO
     return false;
 #endif
+}
+
+//
+//
+//
+FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
+{
+    FinleyElementInfo ret;
+    ret.multiCellIndices = NULL;
+    ret.elementFactor = 1;
+    ret.useQuadNodes = false;
+    ret.quadDim = 0;
+
+    switch (typeId) {
+        case Dudley_Line2Face://untested
+        case Dudley_Point1://untested
+            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
+            ret.elementSize = 1;
+            ret.elementType = ZONETYPE_POLYGON;
+            break;
+
+        case Dudley_Tri3Face://untested
+            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
+        case Dudley_Line2:
+            ret.elementSize = ret.reducedElementSize = 2;
+            ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
+            break;
+
+        case Dudley_Tet4Face://untested
+            cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
+        case Dudley_Tri3:
+            ret.elementSize = ret.reducedElementSize = 3;
+            ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
+            break;
+
+        case Dudley_Tet4:
+            ret.elementSize = ret.reducedElementSize = 4;
+            ret.elementType = ret.reducedElementType = ZONETYPE_TET;
+            break;
+
+        default:
+            cerr << "WARNING: Unknown Dudley Type " << typeId << endl;
+            break;
+    }
+    return ret;
 }
 
 //

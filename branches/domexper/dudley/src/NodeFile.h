@@ -22,7 +22,7 @@
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 
-typedef struct {
+struct Dudley_NodeFile {
     Esys_MPIInfo *MPIInfo;	/* MPI information */
 
     dim_t numNodes;		/* number of nodes */
@@ -64,7 +64,9 @@ typedef struct {
     int status;			/* the status counts the updates done on the node coordinates */
     /* the value of status is increased by when the node coordinates are updated. */
 
-}Dudley_NodeFile;
+};
+
+typedef struct Dudley_NodeFile Dudley_NodeFile;
 
 
 Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, Esys_MPIInfo * MPIInfo);

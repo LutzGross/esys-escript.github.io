@@ -15,6 +15,8 @@
 
 #ifndef VISIT_PLUGIN
 extern "C" {
+#include <dudley/Mesh.h>
+#include <dudley/NodeFile.h>
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 }
@@ -117,6 +119,73 @@ FinleyNodes::~FinleyNodes()
     CoordArray::iterator it;
     for (it = coords.begin(); it != coords.end(); it++)
         delete[] *it;
+}
+
+//
+//
+//
+bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
+{
+#ifndef VISIT_PLUGIN
+    numDims = dudleyFile->numDim;
+    numNodes = dudleyFile->numNodes;
+
+    int mpisize = dudleyFile->MPIInfo->size;
+    int* iPtr = dudleyFile->nodesDistribution->first_component;
+    nodeDist.clear();
+    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
+    copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
+
+    CoordArray::iterator it;
+    for (it = coords.begin(); it != coords.end(); it++)
+        delete[] *it;
+    coords.clear();
+    nodeID.clear();
+    nodeTag.clear();
+    nodeGDOF.clear();
+    nodeGNI.clear();
+    nodeGRDFI.clear();
+    nodeGRNI.clear();
+
+    if (numNodes > 0) {
+        for (int i=0; i<numDims; i++) {
+            double* srcPtr = dudleyFile->Coordinates + i;
+            float* c = new float[numNodes];
+            coords.push_back(c);
+            for (int j=0; j<numNodes; j++, srcPtr+=numDims) {
+                *c++ = (float) *srcPtr;
+            }
+        }
+
+        iPtr = dudleyFile->Id;
+        nodeID.insert(nodeID.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeID.begin());
+
+        iPtr = dudleyFile->Tag;
+        nodeTag.insert(nodeTag.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeTag.begin());
+
+        iPtr = dudleyFile->globalDegreesOfFreedom;
+        nodeGDOF.insert(nodeGDOF.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGDOF.begin());
+
+        iPtr = dudleyFile->globalNodesIndex;
+        nodeGNI.insert(nodeGNI.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGNI.begin());
+
+        iPtr = dudleyFile->globalReducedDOFIndex;
+        nodeGRDFI.insert(nodeGRDFI.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGRDFI.begin());
+
+        iPtr = dudleyFile->globalReducedNodesIndex;
+        nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
+        copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
+
+    }
+    return true;
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

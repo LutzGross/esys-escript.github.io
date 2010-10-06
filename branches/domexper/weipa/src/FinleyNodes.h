@@ -18,6 +18,7 @@
 
 class DBfile;
 class NcFile;
+struct Dudley_NodeFile;
 struct Finley_NodeFile;
 
 namespace weipa {
@@ -44,6 +45,9 @@ public:
 
     /// \brief Virtual destructor
     virtual ~FinleyNodes();
+
+    /// \brief Initialises with dudley node file.
+    bool initFromDudley(const Dudley_NodeFile* dudleyFile);
 
     /// \brief Initialises with finley node file.
     bool initFromFinley(const Finley_NodeFile* finleyFile);
