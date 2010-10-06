@@ -26,7 +26,7 @@ omp_debug       = ''
 omp_libs        = []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx -msse'
+cc_extra        = '-Wall -mmmx -msse -std=c99'
 cxx_extra       = '-Wall -mmmx -msse'
 ld_extra        = '-fopenmp'
 

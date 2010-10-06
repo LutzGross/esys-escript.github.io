@@ -20,7 +20,7 @@
 #endif
 #ifdef ESYS_MPI
 #include <mpi.h>
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 #endif
 extern "C" {
 #include "esysUtils/blocktimer.h"
