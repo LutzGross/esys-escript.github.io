@@ -63,14 +63,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 
   Finley_resetError();
 
-  {
-#ifdef ESYS_MPI
-  int iam, numCPUs;
-  iam = elements->elementDistribution->MPIInfo->rank;
-  numCPUs = elements->elementDistribution->MPIInfo->size;
-#endif
-  }
-
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
 

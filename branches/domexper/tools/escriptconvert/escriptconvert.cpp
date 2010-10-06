@@ -12,7 +12,6 @@
 *******************************************************/
 
 #include <weipa/EscriptDataset.h>
-#include <weipa/FinleyMesh.h>
 #include <weipa/DataVar.h>
 
 #if USE_SILO
@@ -55,6 +54,13 @@ int usage()
     return -1;
 }
 
+void cleanup()
+{
+#if HAVE_MPI
+    MPI_Finalize();
+#endif
+}
+
 int main(int argc, char** argv)
 {
 #if HAVE_MPI
@@ -64,21 +70,24 @@ int main(int argc, char** argv)
     // turn off for debugging purposes
     bool writeMultiMesh = true;
 
-    // whether time-varying datasets should use the same mesh (from T=0)
+    // whether time-varying datasets should use the same domain (from T=0)
     // TODO: Add a command line option for this
-    bool writeMeshOnce = true;
+    bool writeDomainOnce = true;
     bool doVTK = false, doSilo = false;
     string esdFile;
 
 #if USE_SILO
-    if (argc != 3)
+    if (argc != 3) {
+        cleanup();
         return usage();
+    }
 
     if (!strcmp(argv[1], "-vtk")) {
         doVTK = true;
     } else if (!strcmp(argv[1], "-silo")) {
         doSilo = true;
     } else {
+        cleanup();
         return usage();
     }
     esdFile = string(argv[2]);
@@ -87,10 +96,13 @@ int main(int argc, char** argv)
     if (argc == 2) {
         esdFile = string(argv[1]);
     } else if (argc == 3) {
-        if (strcmp(argv[1], "-vtk"))
+        if (strcmp(argv[1], "-vtk")) {
+            cleanup();
             return usage();
+        }
         esdFile = string(argv[2]);
     } else {
+        cleanup();
         return usage();
     }
     doVTK = true;
@@ -99,6 +111,7 @@ int main(int argc, char** argv)
     ifstream in(esdFile.c_str());
     if (!in.is_open()) {
         cerr << "Could not open " << esdFile << "." << endl;
+        cleanup();
         return -1;
     }
 
@@ -109,11 +122,12 @@ int main(int argc, char** argv)
     if (sscanf(line, "#escript datafile V%d.%d", &major, &minor) != 2) {
         cerr << esdFile << " is not a valid escript datafile." << endl;
         in.close();
+        cleanup();
         return -1;
     }
 
     int nParts=0, nTimesteps=1, tsMultiplier=1;
-    string meshFile;
+    string domainFile;
     StringVec varFiles;
     StringVec varNames;
 
@@ -130,7 +144,7 @@ int main(int argc, char** argv)
         else if (sscanf(line, "DT=%d", &iVal) == 1)
             tsMultiplier = iVal;
         else if (sscanf(line, "M=%s", sVal) == 1)
-            meshFile = sVal;
+            domainFile = sVal;
         else if (sscanf(line, "V=%s", sVal) == 1 && strchr(sVal, ':')) {
             // split into filename and variable name
             char* colon = strchr(sVal, ':');
@@ -140,20 +154,22 @@ int main(int argc, char** argv)
         } else {
             cerr << esdFile << " is not a valid escript datafile." << endl;
             in.close();
+            cleanup();
             return -1;
         }
     }
 
     in.close();
     
-    if (nParts < 1 || meshFile == "" || nTimesteps < 1 || tsMultiplier < 1) {
+    if (nParts < 1 || domainFile == "" || nTimesteps < 1 || tsMultiplier < 1) {
         cerr << esdFile << " is not a valid escript datafile." << endl;
+        cleanup();
         return -1;
     }
 
     cout << "Converting " << esdFile << "..." << endl;
 
-    MeshBlocks meshFromTzero;
+    DomainChunks domainFromTzero;
 
     // load and save all timesteps
     for (int timeStep = 0; timeStep < nTimesteps; timeStep++) {
@@ -180,19 +196,19 @@ int main(int argc, char** argv)
         ds = new EscriptDataset();
 #endif
 
-        if (writeMeshOnce && timeStep > 0) {
-            if (!ds->loadNetCDF(meshFromTzero, varFilesTS, varNames)) {
+        if (writeDomainOnce && timeStep > 0) {
+            if (!ds->loadNetCDF(domainFromTzero, varFilesTS, varNames)) {
                 delete ds;
                 break;
             }
         } else {
-            string meshTS = insertTimestep(meshFile, timeStep, tsMultiplier);
+            string domainTS = insertTimestep(domainFile, timeStep, tsMultiplier);
             if (nParts > 1)
-                meshTS.append(".nc.%04d");
+                domainTS.append(".nc.%04d");
             else
-                meshTS.append(".nc");
+                domainTS.append(".nc");
 
-            if (!ds->loadNetCDF(meshTS, varFilesTS, varNames, nParts)) {
+            if (!ds->loadNetCDF(domainTS, varFilesTS, varNames, nParts)) {
                 delete ds;
                 break;
             }
@@ -217,22 +233,21 @@ int main(int argc, char** argv)
             ds->saveVTK(outFilename.str());
         }
 
-
-        // keep mesh from first timestep if it should be reused
-        if (writeMeshOnce && nTimesteps > 1 && timeStep == 0) {
-            meshFromTzero = ds->extractMesh();
-            meshFile = outFilename.str();
-            MeshBlocks::iterator meshIt;
+        // keep domain from first timestep if it should be reused
+        if (writeDomainOnce && nTimesteps > 1 && timeStep == 0) {
+            domainFromTzero = ds->getConvertedDomain();
+            domainFile = outFilename.str();
+            DomainChunks::iterator domIt;
             if (doSilo) {
-                for (meshIt = meshFromTzero.begin();
-                        meshIt != meshFromTzero.end();
-                        meshIt++)
+                for (domIt = domainFromTzero.begin();
+                        domIt != domainFromTzero.end();
+                        domIt++)
                 {
                     // Prepend Silo mesh paths with the filename of the mesh
                     // to be used
-                    string fullSiloPath = meshFile + string(":");
-                    fullSiloPath += (*meshIt)->getSiloPath();
-                    (*meshIt)->setSiloPath(fullSiloPath);
+                    string fullSiloPath = domainFile + string(":");
+                    fullSiloPath += (*domIt)->getSiloPath();
+                    (*domIt)->setSiloPath(fullSiloPath);
                 }
             }
         }
@@ -240,14 +255,8 @@ int main(int argc, char** argv)
         delete ds;
     }
     
-    // clean up
-    MeshBlocks::iterator meshIt;
-
     cout << "All done." << endl;
-
-#if HAVE_MPI
-    MPI_Finalize();
-#endif
+    cleanup();
 
     return 0;
 }
