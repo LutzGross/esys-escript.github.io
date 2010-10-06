@@ -18,12 +18,14 @@
 #include <weipa/FinleyNodes.h>
 
 extern "C" {
+#include <dudley/ElementType.h> // for Dudley_ElementTypeId
 #include <finley/ReferenceElements.h> // for Finley_ElementTypeId
 }
 
 class DBfile;
 class NcFile;
 
+struct Dudley_ElementFile;
 struct Finley_ElementFile;
 
 namespace weipa {
@@ -64,6 +66,9 @@ public:
 
     /// \brief Destructor
     virtual ~FinleyElements() {}
+
+    /// \brief Initialises with data from a Dudley_ElementFile instance.
+    bool initFromDudley(const Dudley_ElementFile* dudleyFile);
 
     /// \brief Initialises with data from a Finley_ElementFile instance.
     bool initFromFinley(const Finley_ElementFile* finleyFile);
@@ -137,6 +142,7 @@ public:
 
 private:
     FinleyElements() {}
+    FinleyElementInfo getDudleyTypeInfo(Dudley_ElementTypeId typeId);
     FinleyElementInfo getFinleyTypeInfo(Finley_ElementTypeId typeId);
     void buildMeshes();
     void buildReducedElements(const FinleyElementInfo& f);
