@@ -45,7 +45,8 @@
 
 /**************************************************************/
 
-void  Finley_Assemble_PDE_System2_3D(Assemble_Parameters p, Finley_ElementFile* elements,
+void  Finley_Assemble_PDE_System2_3D(Finley_Assemble_Parameters p,
+                                     Finley_ElementFile* elements,
                                      Paso_SystemMatrix* Mat, escriptDataC* F,
                                      escriptDataC* A, escriptDataC* B, escriptDataC* C, escriptDataC* D, escriptDataC* X, escriptDataC* Y) {
 

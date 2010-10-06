@@ -55,7 +55,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
 
   bool_t reducedIntegrationOrder=FALSE;
   char error_msg[LenErrorMsg_MAX];
-  Assemble_Parameters p;
+  Finley_Assemble_Parameters p;
   double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
   type_t funcspace;
@@ -128,7 +128,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (! Finley_noError()) return;
 
   /* set all parameters in p*/
-  Assemble_getAssembleParameters(nodes,elements,S,F, reducedIntegrationOrder, &p);
+  Finley_Assemble_getAssembleParameters(nodes,elements,S,F, reducedIntegrationOrder, &p);
   if (! Finley_noError()) return;
 
   /* check if all function spaces are the same */

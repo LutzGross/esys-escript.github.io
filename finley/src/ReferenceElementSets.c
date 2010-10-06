@@ -26,7 +26,7 @@
 /**************************************************************/
 
 
-Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(ElementTypeId id, index_t order, index_t reduced_order) {
+Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeId id, index_t order, index_t reduced_order) {
         Finley_ReferenceElementInfo* id_info=NULL;
         Finley_ShapeFunctionInfo* bf_info=NULL;
 	Finley_ReferenceElementSet *out=NULL;

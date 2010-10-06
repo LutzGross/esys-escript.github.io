@@ -35,6 +35,6 @@ typedef struct Finley_NodeMapping Finley_NodeMapping;
 
 Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, index_t unused);
 void Finley_NodeMapping_free(Finley_NodeMapping*);
-Finley_NodeMapping*  NodeMapping_getReference(Finley_NodeMapping *in );
+Finley_NodeMapping* Finley_NodeMapping_getReference(Finley_NodeMapping *in );
 
 #endif

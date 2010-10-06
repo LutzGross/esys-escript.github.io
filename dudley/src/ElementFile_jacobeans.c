@@ -97,18 +97,18 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		}
 		else if (self->numLocalDim == 1)
 		{
-		    Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
+		    Dudley_Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
 						  self->Nodes, out->DSDX, out->absD, &(out->quadweight), self->Id);
 		}
 		else if (self->numLocalDim == 2)
 		{
-		    Assemble_jacobeans_2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
+		    Dudley_Assemble_jacobeans_2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
 					  out->DSDX, out->absD, &(out->quadweight), self->Id);
 		}
 		else
 		{
 		    Dudley_setError(SYSTEM_ERROR,
-				    "Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
+				    "Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be 1 or 2.");
 		}
 	  /*========================== dim = 3 ============================================== */
 	    }
@@ -121,12 +121,12 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		}
 		else if (self->numLocalDim == 2)
 		{
-		    Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
+		    Dudley_Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates, out->numQuad, self->numElements, numNodes,
 						  self->Nodes, out->DSDX, out->absD, &(out->quadweight), self->Id);
 		}
 		else if (self->numLocalDim == 3)
 		{
-		    Assemble_jacobeans_3D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
+		    Dudley_Assemble_jacobeans_3D(nodes->Coordinates, out->numQuad, self->numElements, numNodes, self->Nodes,
 					  out->DSDX, out->absD, &(out->quadweight), self->Id);
 		}
 		else

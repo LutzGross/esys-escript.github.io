@@ -14,36 +14,36 @@
 #include <string.h>
 #include "ElementType.h"
 
-ElementTypeId eltTypeFromString(const char *s)
+Dudley_ElementTypeId eltTypeFromString(const char *s)
 {
     if (strcmp(s, "Point1") == 0)
     {
-	return Point1;
+	return Dudley_Point1;
     }
     else if (strcmp(s, "Line2") == 0)
     {
-	return Line2;
+	return Dudley_Line2;
     }
     else if (strcmp(s, "Tri3") == 0)
     {
-	return Tri3;
+	return Dudley_Tri3;
     }
     else if (strcmp(s, "Tet4") == 0)
     {
-	return Tet4;
+	return Dudley_Tet4;
     }
     else if (strcmp(s, "Line2Face") == 0)
     {
-	return Line2Face;
+	return Dudley_Line2Face;
     }
     else if (strcmp(s, "Tri3Face") == 0)
     {
-	return Tri3Face;
+	return Dudley_Tri3Face;
     }
     else if (strcmp(s, "Tet4Face") == 0)
     {
-	return Tet4Face;
+	return Dudley_Tet4Face;
     }
     else
-	return NoRef;
+	return Dudley_NoRef;
 }

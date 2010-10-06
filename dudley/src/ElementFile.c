@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-Dudley_ElementFile *Dudley_ElementFile_alloc(ElementTypeId etype, Esys_MPIInfo * MPIInfo)
+Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, Esys_MPIInfo * MPIInfo)
 {
     Dudley_ElementFile *out;
 

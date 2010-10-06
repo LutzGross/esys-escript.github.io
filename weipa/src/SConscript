@@ -51,7 +51,7 @@ if local_env['usevisit']:
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     local_env.AppendUnique(LIBS = ['simV2'])
 
-local_env.AppendUnique(LIBS = ['esysUtils', 'finley', 'escript'] + env['sys_libs'])
+local_env.AppendUnique(LIBS = ['esysUtils', 'dudley', 'finley', 'escript'] + env['sys_libs'])
 if local_env['usesilo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])

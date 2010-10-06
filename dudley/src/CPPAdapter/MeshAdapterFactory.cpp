@@ -194,7 +194,7 @@ namespace dudley {
         /* read elements */
         if (Dudley_noError()) {
 		  if (Dudley_noError())  {
-			  mesh_p->Elements=Dudley_ElementFile_alloc((ElementTypeId)Elements_TypeId, mpi_info);
+			  mesh_p->Elements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Elements_TypeId, mpi_info);
 		  }
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
 		  if (Dudley_noError()) {
@@ -255,7 +255,7 @@ namespace dudley {
         /* get the face elements */
         if (Dudley_noError()) {
 		  if (Dudley_noError())  {
-			  mesh_p->FaceElements=Dudley_ElementFile_alloc((ElementTypeId)FaceElements_TypeId, mpi_info);
+			  mesh_p->FaceElements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)FaceElements_TypeId, mpi_info);
 		  }
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
 		  if (Dudley_noError()) {
@@ -314,7 +314,7 @@ namespace dudley {
         /* get the Points (nodal elements) */
         if (Dudley_noError()) {
 		  if (Dudley_noError())  {
-			  mesh_p->Points=Dudley_ElementFile_alloc((ElementTypeId)Points_TypeId, mpi_info);
+			  mesh_p->Points=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Points_TypeId, mpi_info);
 		  }
           if (Dudley_noError()) Dudley_ElementFile_allocTable(mesh_p->Points, num_Points);
 		  if (Dudley_noError()) {

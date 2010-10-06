@@ -42,7 +42,7 @@ void Dudley_Mesh_saveDX(const char *filename_p, Dudley_Mesh * mesh_p, const dim_
     double rtmp;
     bool_t *isCellCentered = NULL;
     Dudley_ElementFile *elements = NULL;
-    ElementTypeId TypeId;
+    Dudley_ElementTypeId TypeId;
     /* open the file  and check handel */
 
     /* if there is no mesh we just return */
@@ -166,13 +166,13 @@ void Dudley_Mesh_saveDX(const char *filename_p, Dudley_Mesh * mesh_p, const dim_
     TypeId = elements->etype;
     numDXNodesPerElement = 0;
     numCells = elements->numElements;
-    if (TypeId == Line2)
+    if (TypeId == Dudley_Line2)
     {
 	numDXNodesPerElement = 2;
 	resortIndex = resort[0];
 	strcpy(elemTypeStr, "lines");
     }
-    else if (TypeId == Tri3)
+    else if (TypeId == Dudley_Tri3)
     {
 	numDXNodesPerElement = 3;
 	resortIndex = resort[1];
@@ -182,7 +182,7 @@ void Dudley_Mesh_saveDX(const char *filename_p, Dudley_Mesh * mesh_p, const dim_
      resortIndex=resort[3];
      strcpy(elemTypeStr, "quads");*/
     }
-    else if (TypeId == Tet4)
+    else if (TypeId == Dudley_Tet4)
     {
 	numDXNodesPerElement = 4;
 	resortIndex = resort[2];

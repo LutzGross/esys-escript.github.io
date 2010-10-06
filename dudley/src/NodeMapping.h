@@ -31,8 +31,8 @@ struct Dudley_NodeMapping {
 };
 typedef struct Dudley_NodeMapping Dudley_NodeMapping;
 
-Dudley_NodeMapping *Dudley_NodeMapping_alloc(dim_t numNodes, index_t * target, index_t unused);
+Dudley_NodeMapping *Dudley_NodeMapping_alloc(dim_t numNodes, index_t *target, index_t unused);
 void Dudley_NodeMapping_free(Dudley_NodeMapping *);
-Dudley_NodeMapping *NodeMapping_getReference(Dudley_NodeMapping * in);
+Dudley_NodeMapping *Dudley_NodeMapping_getReference(Dudley_NodeMapping *in);
 
 #endif

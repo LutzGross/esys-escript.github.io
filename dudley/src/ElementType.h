@@ -15,15 +15,15 @@
 #define DUDLEY_TYPEID_H
 
 typedef enum {
-    Point1 = 0,
-    Line2 = 1,
-    Tri3 = 2,
-    Tet4 = 3,
-    Line2Face = 4,
-    Tri3Face = 5,
-    Tet4Face = 6,
-    NoRef = 7			/* marks end of list */
-} ElementTypeId;
+    Dudley_Point1 = 0,
+    Dudley_Line2 = 1,
+    Dudley_Tri3 = 2,
+    Dudley_Tet4 = 3,
+    Dudley_Line2Face = 4,
+    Dudley_Tri3Face = 5,
+    Dudley_Tet4Face = 6,
+    Dudley_NoRef = 7			/* marks end of list */
+} Dudley_ElementTypeId;
 
-ElementTypeId eltTypeFromString(const char *s);
+Dudley_ElementTypeId eltTypeFromString(const char *s);
 #endif

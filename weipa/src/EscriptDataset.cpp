@@ -20,6 +20,7 @@
 
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
+#include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
 #endif
 
@@ -97,7 +98,9 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         mpiRank = domain->getMPIRank();
         mpiSize = domain->getMPISize();
 #endif
-        if (dynamic_cast<const finley::MeshAdapter*>(domain)) {
+        // FinleyDomain can handle both finley and dudley
+        if (dynamic_cast<const finley::MeshAdapter*>(domain)
+                || dynamic_cast<const dudley::MeshAdapter*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)

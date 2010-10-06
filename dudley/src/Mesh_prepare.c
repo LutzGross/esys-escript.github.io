@@ -30,7 +30,7 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
     if (in->Nodes == NULL)
 	return;
 
-    Mesh_setOrders(in);
+    Dudley_Mesh_setOrders(in);
 
     /* first step is to distribute the elements according to a global distribution of DOF */
 

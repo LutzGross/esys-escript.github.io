@@ -102,23 +102,23 @@ bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
     return 0;
 }
 
-const char *getElementName(ElementTypeId id)
+const char *getElementName(Dudley_ElementTypeId id)
 {
     switch (id)
     {
-    case Point1:
+    case Dudley_Point1:
 	return "Point1";
-    case Line2:
+    case Dudley_Line2:
 	return "Line2";
-    case Tri3:
+    case Dudley_Tri3:
 	return "Tri3";
-    case Tet4:
+    case Dudley_Tet4:
 	return "Tet4";
-    case Line2Face:
+    case Dudley_Line2Face:
 	return "Line2Face";
-    case Tri3Face:
+    case Dudley_Tri3Face:
 	return "Tri3Face";
-    case Tet4Face:
+    case Dudley_Tet4Face:
 	return "Tet4Face";
     default:
 	return "noElement";

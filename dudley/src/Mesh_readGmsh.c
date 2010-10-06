@@ -45,7 +45,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
     double time0 = Dudley_timer();
 #endif
     FILE *fileHandle_p = NULL;
-    ElementTypeId *element_type = NULL;
+    Dudley_ElementTypeId *element_type = NULL;
 
     Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
     Dudley_resetError();
@@ -140,8 +140,8 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 	    else if (!strncmp(&line[1], "ELM", 3) || !strncmp(&line[1], "Elements", 8))
 	    {
 
-		ElementTypeId final_element_type = NoRef;
-		ElementTypeId final_face_element_type = NoRef;
+		Dudley_ElementTypeId final_element_type = Dudley_NoRef;
+		Dudley_ElementTypeId final_face_element_type = Dudley_NoRef;
 		numElements = 0;
 		numFaceElements = 0;
 		scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
@@ -150,7 +150,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		id = TMPMEMALLOC(totalNumElements, index_t);
 		tag = TMPMEMALLOC(totalNumElements, index_t);
 
-		element_type = TMPMEMALLOC(totalNumElements, ElementTypeId);
+		element_type = TMPMEMALLOC(totalNumElements, Dudley_ElementTypeId);
 		vertices = TMPMEMALLOC(totalNumElements * MAX_numNodes_gmsh, index_t);
 		if (!
 		    (Dudley_checkPtr(id) || Dudley_checkPtr(tag) || Dudley_checkPtr(element_type)
@@ -164,33 +164,33 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 			switch (gmsh_type)
 			{
 			case 1:	/* line order 1 */
-			    element_type[e] = Line2;
+			    element_type[e] = Dudley_Line2;
 			    element_dim = 1;
 			    numNodesPerElement = 2;
 			    break;
-			case 2:	/* traingle order 1 */
-			    element_type[e] = Tri3;
+			case 2:	/* triangle order 1 */
+			    element_type[e] = Dudley_Tri3;
 			    numNodesPerElement = 3;
 			    element_dim = 2;
 			    break;
 			case 4:	/* tetrahedron order 1 */
-			    element_type[e] = Tet4;
+			    element_type[e] = Dudley_Tet4;
 			    numNodesPerElement = 4;
 			    element_dim = 3;
 			    break;
 			case 15:	/* point */
-			    element_type[e] = Point1;
+			    element_type[e] = Dudley_Point1;
 			    numNodesPerElement = 1;
 			    element_dim = 0;
 			    break;
 			default:
-			    element_type[e] = NoRef;
+			    element_type[e] = Dudley_NoRef;
 			    sprintf(error_msg, "Unexected gmsh element type %d in mesh file %s.", gmsh_type, fname);
 			    Dudley_setError(IO_ERROR, error_msg);
 			}
 			if (element_dim == numDim)
 			{
-			    if (final_element_type == NoRef)
+			    if (final_element_type == Dudley_NoRef)
 			    {
 				final_element_type = element_type[e];
 			    }
@@ -204,7 +204,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 			}
 			else if (element_dim == numDim - 1)
 			{
-			    if (final_face_element_type == NoRef)
+			    if (final_face_element_type == Dudley_NoRef)
 			    {
 				final_face_element_type = element_type[e];
 			    }
@@ -267,39 +267,39 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		    if (Dudley_noError())
 		    {
 			/* first we have to identify the elements to define Elementis and FaceElements */
-			if (final_element_type == NoRef)
+			if (final_element_type == Dudley_NoRef)
 			{
 			    if (numDim == 1)
 			    {
-				final_element_type = Line2;
+				final_element_type = Dudley_Line2;
 			    }
 			    else if (numDim == 2)
 			    {
-				final_element_type = Tri3;
+				final_element_type = Dudley_Tri3;
 			    }
 			    else if (numDim == 3)
 			    {
-				final_element_type = Tet4;
+				final_element_type = Dudley_Tet4;
 			    }
 			}
-			if (final_face_element_type == NoRef)
+			if (final_face_element_type == Dudley_NoRef)
 			{
 			    if (numDim == 1)
 			    {
-				final_face_element_type = Point1;
+				final_face_element_type = Dudley_Point1;
 			    }
 			    else if (numDim == 2)
 			    {
-				final_face_element_type = Line2;
+				final_face_element_type = Dudley_Line2;
 			    }
 			    else if (numDim == 3)
 			    {
-				final_face_element_type = Tri3;
+				final_face_element_type = Dudley_Tri3;
 			    }
 			}
 			mesh_p->Elements = Dudley_ElementFile_alloc(final_element_type, mpi_info);
 			mesh_p->FaceElements = Dudley_ElementFile_alloc(final_face_element_type, mpi_info);
-			mesh_p->Points = Dudley_ElementFile_alloc(Point1, mpi_info);
+			mesh_p->Points = Dudley_ElementFile_alloc(Dudley_Point1, mpi_info);
 			if (Dudley_noError())
 			{
 			    Dudley_ElementFile_allocTable(mesh_p->Elements, numElements);
