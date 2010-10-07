@@ -13,8 +13,8 @@
 import os
 Import('*')
 
-local_env = env_mpi.Clone()
-py_wrapper_local_env = env_mpi.Clone()
+local_env = env.Clone()
+py_wrapper_local_env = env.Clone()
 
 # Remove the shared library prefix on all platforms - we don't want 'lib'
 # mucking with our python modules
@@ -96,7 +96,7 @@ env.Alias('install_weipacpp_lib', mod_inst)
 # Linux anyway. Correct fix is probably a second SConscript file with different
 # build_dir setting.
 if not IS_WINDOWS:
-    visitplugin_env = env_mpi.Clone()
+    visitplugin_env = env.Clone()
     plugin_sources = """
         DataVar.cpp
         EscriptDataset.cpp

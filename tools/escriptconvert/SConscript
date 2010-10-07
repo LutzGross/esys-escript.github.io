@@ -13,7 +13,7 @@
 
 import os
 Import('*')
-local_env = env_mpi.Clone()
+local_env = env.Clone()
 
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
