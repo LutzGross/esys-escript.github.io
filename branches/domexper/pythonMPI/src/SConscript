@@ -16,8 +16,8 @@ Import('*')
 sources = ['ScriptMPI.cpp']
 sources_redirect = ['ScriptMPIredirect.cpp']
 
-local_env = env_mpi.Clone()
-local_env.Append(LIBS = ['paso'])
+local_env = env.Clone()
+local_env.Append(LIBS = ['esysUtils'])
 
 prog = local_env.Program('pythonMPI', sources)
 prog_redirect = local_env.Program('pythonMPIredirect', sources_redirect)

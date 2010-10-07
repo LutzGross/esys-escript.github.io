@@ -56,7 +56,7 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '--std=c99'
+#cc_extra = '--std=c99'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
