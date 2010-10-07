@@ -28,6 +28,7 @@
 #endif
 
 #include <numeric> // for accumulate
+#include <iostream> // for cerr
 
 using namespace std;
 

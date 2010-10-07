@@ -86,6 +86,7 @@ void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters p, Dudley_Element
 		{
 		    if (elements->Color[e] == color)
 		    {
+			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
 
 			A_p = getSampleDataRO(A, e);
 			B_p = getSampleDataRO(B, e);
@@ -94,7 +95,6 @@ void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters p, Dudley_Element
 			X_p = getSampleDataRO(X, e);
 			Y_p = getSampleDataRO(Y, e);
 
-			double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
 
 			DSDX = &(p.row_jac->DSDX[INDEX5(0, 0, 0, 0, e, p.numShapes, DIM, p.numQuad, 1)]);
 			for (q = 0; q < len_EM_S; ++q)

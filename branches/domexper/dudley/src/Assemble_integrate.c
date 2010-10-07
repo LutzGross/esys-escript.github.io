@@ -76,8 +76,8 @@ void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
 			{
 			    if (elements->Owner[e] == my_mpi_rank)
 			    {
-				data_array = getSampleDataRO(data, e);
 				double vol = jac->absD[e] * jac->quadweight;
+				data_array = getSampleDataRO(data, e);
 				for (q = 0; q < numQuadTotal; q++)
 				{
 				    for (i = 0; i < numComps; i++)

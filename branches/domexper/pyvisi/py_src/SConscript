@@ -11,24 +11,19 @@
 #
 ########################################################
 
-
-import os
 Import('*')
+local_env = env.Clone()
 
-local_env = clone_env(env)
+# get the source file names
+sources = Glob('*.py')
 
-src_dir = local_env.Dir('.').srcnode().abspath
+# compile
+pyc = local_env.PyCompile(sources)
 
-filenames = os.listdir(src_dir)
-python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+# install
+py_inst = local_env.Install(local_env['pyinstall']+'/pyvisi', pyc)
+env.Alias('install_pyvisi_py', py_inst)
 
-pyc = local_env.PyCompile(python_src)
-
-local_env.Depends(pyc, dep_lib)
-
-tmp1 = local_env.Install(local_env['pyinstall']+'/pyvisi', pyc)
-env.Alias('target_install_pyvisi_py', [tmp1])
-
-CallSConscript(local_env,dirs = ['#/pyvisi/test/python'], variant_dir='#/build/$PLATFORM/pyvisi/test/python', duplicate=0)
-
+# configure tests
+local_env.SConscript(dirs = ['#/pyvisi/test/python'], variant_dir='#/build/$PLATFORM/pyvisi/test/python', duplicate=0)
 

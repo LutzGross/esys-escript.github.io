@@ -19,7 +19,7 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 
-#ifdef ESYS_MPI
+#ifdef PASO_MPI
 #define HAVE_MPI 1
 #endif
 

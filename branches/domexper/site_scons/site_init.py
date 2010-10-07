@@ -21,7 +21,53 @@ __url__="https://launchpad.net/escript-finley"
 
 import sys, os, time, glob, fnmatch, types, py_compile, re
 
-from SCons.Script.SConscript import SConsEnvironment
+def findLibWithHeader(env, libs, header, paths, lang='c'):
+    from SCons.Script.SConscript import Configure
+    inc_path=''
+    lib_path=''
+    # 'paths' may be a prefix, so look for lib and include subdirectories
+    if type(paths)==str:
+        # find the header file first
+        for i in 'include','include64','include32','inc':
+            inc=os.path.join(paths, i)
+            if os.path.isfile(os.path.join(inc, header)):
+                inc_path=inc
+                break
+        if inc_path=='':
+            raise RuntimeError('%s not found under %s'%(header,paths))
+
+        # now try to find a lib directory
+        for l in 'lib','lib64','lib32':
+            lp=os.path.join(paths, l)
+            if os.path.isdir(lp):
+                lib_path=lp
+                break
+        if lib_path=='':
+            raise RuntimeError('No lib directory found under %s'%paths)
+    else:
+        if os.path.isfile(os.path.join(paths[0], header)):
+            inc_path=paths[0]
+        else:
+            raise RuntimeError('%s not found under %s'%(header,paths[0]))
+        if os.path.isdir(paths[1]):
+            lib_path=paths[1]
+        else:
+            raise RuntimeError('%s is not a valid path.'%paths[1])
+
+    # now try the library
+    conf=Configure(env.Clone())
+    conf.env.AppendUnique(CPPPATH = [inc_path])
+    conf.env.AppendUnique(LIBPATH = [lib_path])
+    if type(libs)==str: libs=[libs]
+    # we can't check for each library by itself since they may depend on each
+    # other, so we add all libraries to the link line and check only for one
+    conf.env.AppendUnique(LIBS = libs)
+    if not conf.CheckLibWithHeader(libs[0], header, lang):
+        conf.Finish()
+        raise RuntimeError('Unable to link against %s (paths: %s, %s)'%(libs,inc_path,lib_path))
+
+    conf.Finish()
+    return inc_path, lib_path
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
@@ -38,7 +84,7 @@ def runUnitTest(target, source, env):
   else:
       if env['usempi']:
           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-            "DUDLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
+            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
            app = "cd "+ pn +" & "+sn

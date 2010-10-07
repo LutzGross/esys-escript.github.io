@@ -11,6 +11,10 @@
 #
 ########################################################
 
+# This is a template configuration file for escript/finley on Linux.
+# Copy this file to <hostname>_options.py, where <hostname> is your machine's
+# short hostname, then customize to your needs.
+
 # PREFIXES:
 # There are two ways to specify where to find dependent headers and libraries
 # (via the <dependency>_prefix):
@@ -25,7 +29,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+#escript_opts_version = 200
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -34,8 +38,6 @@ escript_opts_version = 200
 # C compiler command name or full path.
 # DEFAULT: auto-detected
 #cc = 'gcc'
-
-dudley_assemble_flags = '-funroll-loops'
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
@@ -56,7 +58,7 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '--std=c99'
+#cc_extra = ''
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
@@ -96,10 +98,10 @@ cc_extra = '--std=c99'
 #mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/usr/lib/openmpi'
+#mpi_prefix = '/usr/lib/openmpi'
 
 # MPI libraries to link against
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
 #boost_prefix = '/usr/local'
@@ -112,14 +114,14 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
+#netcdf_prefix = '/usr/local'
 
 # netCDF library/libraries to link against
 #netcdf_libs = ['netcdf_c++', 'netcdf']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
-parmetis = True
+#parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
 #parmetis_prefix = '/usr/local'
@@ -164,13 +166,13 @@ parmetis = True
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-lapack = 'clapack'
+#lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 #lapack_prefix = '/usr/local'
 
 # LAPACK library/libraries to link against
-lapack_libs = ['lapack-3', 'blas-3']
+#lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False

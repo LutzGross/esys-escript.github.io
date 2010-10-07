@@ -22,7 +22,6 @@
 #ifndef INC_ESYS_ERROR
 #define INC_ESYS_ERROR
 
-//#include "Common.h"
 #include "system_dep.h"
 #include "types.h"
 

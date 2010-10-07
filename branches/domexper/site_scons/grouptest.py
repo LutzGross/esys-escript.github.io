@@ -82,7 +82,7 @@ class GroupTest:
         else:
 	    res=res+tt+"export PYTHONPATH=$OLD_PYTHON"+"\n"+tt+"cd "+self.working_dir+"\n"
 	for t in self.test_list:
-	    res=res+tt+"echo Starting "+t+"\n"
+	    res=res+tt+"echo Starting "+t+"\ndate\n"
 	    res=res+tt+self.exec_cmd+' '+t+' || failed '+t+'\n'
 	    res=res+tt+"echo Completed "+t+"\n"
         if self.single_processor_only:

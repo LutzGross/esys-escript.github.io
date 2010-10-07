@@ -21,7 +21,6 @@
 /**************************************************************/
 
 #include "esysUtils/types.h"
-//#include "paso/Paso.h"
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 
@@ -33,18 +32,10 @@
 #define DUDLEY_ELEMENTS 4
 #define DUDLEY_FACE_ELEMENTS 5
 #define DUDLEY_POINTS 6
-/*
-#define DUDLEY_CONTACT_ELEMENTS_1 7
-#define DUDLEY_CONTACT_ELEMENTS_2 8
-*/
 #define DUDLEY_REDUCED_DEGREES_OF_FREEDOM 2
 #define DUDLEY_REDUCED_NODES 14
 #define DUDLEY_REDUCED_ELEMENTS 10
 #define DUDLEY_REDUCED_FACE_ELEMENTS 11
-/*
-#define DUDLEY_REDUCED_CONTACT_ELEMENTS_1 12
-#define DUDLEY_REDUCED_CONTACT_ELEMENTS_2 13
-*/
 
 /* status stuff */
 typedef int Dudley_Status_t;
