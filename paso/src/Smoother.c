@@ -69,7 +69,7 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
      return NULL;
   }
 }
-Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, bool_t verbose)
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, const bool_t verbose)
 {
    
    dim_t n=A_p->numRows;
