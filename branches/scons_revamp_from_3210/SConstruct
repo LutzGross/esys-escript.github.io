@@ -44,7 +44,7 @@ if not os.path.isfile(options_file):
     print("subdirectory and customize it to your needs.\n")
     options_file = None
 
-############################### build options ################################
+############################### Build options ################################
 
 default_prefix='/usr'
 mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
@@ -70,12 +70,12 @@ vars.AddVariables(
   ('omp_flags', 'OpenMP compiler flags', 'default'),
   ('omp_ldflags', 'OpenMP linker flags', 'default'),
 # Mandatory libraries
+  ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
+  ('boost_libs', 'Boost libraries to link with', ['boost_python']),
+# Optional libraries and options
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
-  ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
-  ('boost_libs', 'Boost libraries to link with', ['boost_python']),
-# Optional libraries
   BoolVariable('netcdf', 'Enable netCDF file support', False),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
@@ -431,6 +431,7 @@ if env['pyvisi']:
         import vtk
         env['pyvisi'] = True
     except ImportError:
+        print("Cannot import vtk, disabling pyvisi.")
         env['pyvisi'] = False
 
 ######## netCDF (optional)
@@ -525,41 +526,34 @@ if env['visit']:
 ######## MPI (optional)
 
 env['usempi'] = env['mpi']!='none'
-
-# Create a modified environment for MPI programs (identical to env if mpi=none)
-env_mpi = env.Clone()
-
 mpi_inc_path=''
 mpi_lib_path=''
-if env_mpi['usempi']:
-    mpi_inc_path,mpi_lib_path=findLibWithHeader(env_mpi, env['mpi_libs'], 'mpi.h', env['mpi_prefix'], lang='c')
-    env_mpi.AppendUnique(CPPPATH = [mpi_inc_path])
-    env_mpi.AppendUnique(LIBPATH = [mpi_lib_path])
-    env_mpi.AppendUnique(LIBS = env['mpi_libs'])
-    env_mpi.PrependENVPath(LD_LIBRARY_PATH_KEY, mpi_lib_path)
-    env_mpi.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', 'MPICH_IGNORE_CXX_SEEK'])
+if env['usempi']:
+    mpi_inc_path,mpi_lib_path=findLibWithHeader(env, env['mpi_libs'], 'mpi.h', env['mpi_prefix'], lang='c')
+    env.AppendUnique(CPPPATH = [mpi_inc_path])
+    env.AppendUnique(LIBPATH = [mpi_lib_path])
+    env.AppendUnique(LIBS = env['mpi_libs'])
+    env.PrependENVPath(LD_LIBRARY_PATH_KEY, mpi_lib_path)
+    env.Append(CPPDEFINES = ['PASO_MPI', 'MPI_NO_CPPBIND', 'MPICH_IGNORE_CXX_SEEK'])
     # NetCDF 4.1 defines MPI_Comm et al. if MPI_INCLUDED is not defined!
     # On the other hand MPT and OpenMPI don't define the latter so we have to
     # do that here
-    if env['netcdf'] and env_mpi['mpi'] in ['MPT','OPENMPI']:
-        env_mpi.Append(CPPDEFINES = ['MPI_INCLUDED'])
-
+    if env['netcdf'] and env['mpi'] in ['MPT','OPENMPI']:
+        env.Append(CPPDEFINES = ['MPI_INCLUDED'])
 
 ######## ParMETIS (optional)
 
-if not env_mpi['usempi']: env_mpi['parmetis'] = False
+if not env['usempi']: env['parmetis'] = False
 
 parmetis_inc_path=''
 parmetis_lib_path=''
-if env_mpi['parmetis']:
-    parmetis_inc_path,parmetis_lib_path=findLibWithHeader(env_mpi, env['parmetis_libs'], 'parmetis.h', env['parmetis_prefix'], lang='c')
-    env_mpi.AppendUnique(CPPPATH = [parmetis_inc_path])
-    env_mpi.AppendUnique(LIBPATH = [parmetis_lib_path])
-    env_mpi.AppendUnique(LIBS = env_mpi['parmetis_libs'])
-    env_mpi.PrependENVPath(LD_LIBRARY_PATH_KEY, parmetis_lib_path)
-    env_mpi.Append(CPPDEFINES = ['USE_PARMETIS'])
-
-env['parmetis'] = env_mpi['parmetis']
+if env['parmetis']:
+    parmetis_inc_path,parmetis_lib_path=findLibWithHeader(env, env['parmetis_libs'], 'parmetis.h', env['parmetis_prefix'], lang='c')
+    env.AppendUnique(CPPPATH = [parmetis_inc_path])
+    env.AppendUnique(LIBPATH = [parmetis_lib_path])
+    env.AppendUnique(LIBS = env['parmetis_libs'])
+    env.PrependENVPath(LD_LIBRARY_PATH_KEY, parmetis_lib_path)
+    env.Append(CPPDEFINES = ['USE_PARMETIS'])
 
 ######################## Summarize our environment ###########################
 
@@ -569,15 +563,14 @@ env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 if not env['verbose']:
-    for e in env, env_mpi:
-        e['CCCOMSTR'] = "Compiling $TARGET"
-        e['CXXCOMSTR'] = "Compiling $TARGET"
-        e['SHCCCOMSTR'] = "Compiling $TARGET"
-        e['SHCXXCOMSTR'] = "Compiling $TARGET"
-        e['ARCOMSTR'] = "Linking $TARGET"
-        e['LINKCOMSTR'] = "Linking $TARGET"
-        e['SHLINKCOMSTR'] = "Linking $TARGET"
-        #Progress(['Checking -\r', 'Checking \\\r', 'Checking |\r', 'Checking /\r'], interval=17)
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['CXXCOMSTR'] = "Compiling $TARGET"
+    env['SHCCCOMSTR'] = "Compiling $TARGET"
+    env['SHCXXCOMSTR'] = "Compiling $TARGET"
+    env['ARCOMSTR'] = "Linking $TARGET"
+    env['LINKCOMSTR'] = "Linking $TARGET"
+    env['SHLINKCOMSTR'] = "Linking $TARGET"
+    #Progress(['Checking -\r', 'Checking \\\r', 'Checking |\r', 'Checking /\r'], interval=17)
 
 print("")
 print("*** Config Summary (see config.log and lib/buildvars for details) ***")
@@ -616,17 +609,15 @@ from grouptest import *
 TestGroups=[]
 
 # keep an environment without warnings-as-errors
-dodgy_env=env_mpi.Clone()
+dodgy_env=env.Clone()
 
 # now add warnings-as-errors flags. This needs to be done after configuration
 # because the scons test files have warnings in them
 if ((fatalwarning != '') and (env['werror'])):
     env.Append(CCFLAGS = fatalwarning)
-    env_mpi.Append(CCFLAGS = fatalwarning)
 
 Export(
   ['env',
-   'env_mpi',
    'dodgy_env',
    'IS_WINDOWS',
    'TestGroups'

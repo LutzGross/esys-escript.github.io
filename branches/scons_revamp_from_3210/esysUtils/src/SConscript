@@ -12,7 +12,7 @@
 ########################################################
 
 Import('*')
-local_env = env_mpi.Clone()
+local_env = env.Clone()
 
 sources = """
     blocktimer.c
