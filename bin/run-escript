@@ -65,7 +65,7 @@ if [ ! -r $BUILDINFO_FILE ]; then
 fi
 
 function get_buildvar {
-    echo `grep $1 $BUILDINFO_FILE |cut -d= -f2`
+    echo `grep "^$1=" $BUILDINFO_FILE |cut -d= -f2`
 }
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
@@ -92,8 +92,8 @@ fi
 #
 #   Add VisIt paths if required
 #
-WITH_VISIT=`get_buildvar usevisit`
-if [ "$WITH_VISIT" = "y" ]; then
+WITH_VISIT=`get_buildvar visit`
+if [ "$WITH_VISIT" = "1" ]; then
     VISIT_BIN=`which visit`
     if [ $? -eq 0 ]; then
         VISIT_PY_PATH=`$VISIT_BIN -env | grep LIBPATH | cut -d= -f2`
@@ -183,12 +183,12 @@ shift `expr $OPTIND - 1`
 #
 #   Read MPI_FLAVOUR and WITH_OPENMP from the buildvars
 #
-MPI_FLAVOUR=`get_buildvar mpi_flavour`
-WITH_OPENMP=`get_buildvar useopenmp`
+MPI_FLAVOUR=`get_buildvar mpi`
+WITH_OPENMP=`get_buildvar openmp`
 
 if [ ! -z $ESCRIPT_VERBOSE ]; then
     echo "MPI flavour is $MPI_FLAVOUR."
-    if [ "$WITH_OPENMP" = "y" ]; then echo "OpenMP enabled."; fi
+    if [ "$WITH_OPENMP" = "1" ]; then echo "OpenMP enabled."; fi
 fi
 
 #
@@ -349,7 +349,7 @@ then
 else
     # Check to see if the python version we were compiled with matches the
     # one of PYTHON_CMD.
-    compversion=`get_buildvar python`
+    compversion=`get_buildvar python_version`
     intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d.%d"%(sys.version_info[0], sys.version_info[1], sys.version_info[2])'`
     if [ "$compversion" != "$intversion" ]
     then

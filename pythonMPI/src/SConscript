@@ -11,25 +11,20 @@
 #
 ########################################################
 
-
-import os
 Import('*')
 
-local_env = clone_env(env_mpi)
+sources = ['ScriptMPI.cpp']
+sources_redirect = ['ScriptMPIredirect.cpp']
 
-sources = ["ScriptMPI.cpp"]
-sources_redirect = ["ScriptMPIredirect.cpp"]
-
-local_env.Append(LIBS = ["esysUtils"] + env['sys_libs'])
-
-include_path = Dir('pythonMPI', local_env['incinstall'])
+local_env = env_mpi.Clone()
+local_env.Append(LIBS = ['paso'])
 
 prog = local_env.Program('pythonMPI', sources)
 prog_redirect = local_env.Program('pythonMPIredirect', sources_redirect)
 
-env.Alias('target_pythonMPI_exe', [ prog, sources_redirect ] )
+lib_inst1 = local_env.Install(local_env['libinstall'], prog)
+lib_inst2 = local_env.Install(local_env['libinstall'], prog_redirect)
 
-tmp1 = local_env.Install(local_env['libinstall'], prog)
-tmp2 = local_env.Install(local_env['libinstall'], prog_redirect)
-env.Alias('target_install_pythonMPI_exe', [ tmp1, tmp2 ] )
+env.Alias('build_pythonMPI', [prog, prog_redirect])
+env.Alias('install_pythonMPI', [lib_inst1, lib_inst2])
 

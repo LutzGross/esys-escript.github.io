@@ -20,7 +20,7 @@
 
 #include <cstring>
 #include <iostream>
-#if HAVE_MPI
+#ifdef PASO_MPI
 #include <mpi.h>
 #endif
 
@@ -44,7 +44,7 @@ bool connected = false;
 // Helper function for processVisItCommand()
 static void broadcastSlaveCommand(int* command)
 {
-#if HAVE_MPI
+#ifdef PASO_MPI
     MPI_Bcast(command, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 }
@@ -91,7 +91,7 @@ static void slaveProcessCallback()
     broadcastSlaveCommand(&command);
 }
 
-#if HAVE_MPI
+#ifdef PASO_MPI
 static int broadcastIntCallback(int* value, int sender)
 {
     return MPI_Bcast(value, 1, MPI_INT, sender, MPI_COMM_WORLD);
@@ -171,7 +171,7 @@ bool initialize(const std::string& simFile, const std::string& comment)
     if (!VisItSetupEnvironment()) {
         std::cerr << "Error setting up VisIt environment" << std::endl;
     } else {
-#if HAVE_MPI
+#ifdef PASO_MPI
         MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
 
@@ -220,7 +220,7 @@ void publishData(EscriptDataset_ptr dataset)
             visitState = VisItDetectInput(blocking, -1);
         }
 
-#if HAVE_MPI
+#ifdef PASO_MPI
         MPI_Bcast(&visitState, 1, MPI_INT, 0, dataset->getMPIComm());
 #endif
 

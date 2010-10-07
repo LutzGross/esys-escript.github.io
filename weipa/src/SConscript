@@ -10,12 +10,11 @@
 #
 ########################################################
 
-
 import os
 Import('*')
 
-local_env = clone_env(env_mpi)
-py_wrapper_local_env = clone_env(env_mpi)
+local_env = env.Clone()
+py_wrapper_local_env = env.Clone()
 
 # Remove the shared library prefix on all platforms - we don't want 'lib'
 # mucking with our python modules
@@ -45,58 +44,49 @@ headers = """
     weipa.h
 """.split()
 
-if local_env['usevisit']:
+if local_env['visit']:
     sources.append(['VisItData.cpp'])
     headers.append(['VisItData.h'])
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     local_env.AppendUnique(LIBS = ['simV2'])
 
-local_env.AppendUnique(LIBS = ['esysUtils', 'dudley', 'finley', 'escript'] + env['sys_libs'])
-if local_env['usesilo']:
-  local_env.Append(CPPDEFINES = ['USE_SILO'])
-  local_env.AppendUnique(LIBS = [env['silo_libs']])
+local_env.Append(LIBS = ['finley', 'dudley','escript', 'esysUtils'])
+if local_env['silo']:
+    local_env.Append(CPPDEFINES = ['USE_SILO'])
+    local_env.AppendUnique(LIBS = env['silo_libs'])
 
-if IS_WINDOWS_PLATFORM :
-  local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
 
 module_name = 'weipa'
 
 lib = local_env.SharedLibrary(module_name, sources)
-env.Alias('target_weipa_so', lib)
+env.Alias('build_weipa_lib', lib)
 
 include_path = Dir('weipa', local_env['incinstall'])
 
-tmp = local_env.Install(include_path, headers)
-env.Alias('target_install_weipa_headers', [tmp])
+hdr_inst = local_env.Install(include_path, headers)
+env.Alias('install_weipa_headers', hdr_inst)
 
-tmp = local_env.Install(local_env['libinstall'], lib)
-env.Alias('target_install_weipa_so', tmp)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+env.Alias('install_weipa_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['weipa', 'escript'] + env['sys_libs'])
+py_wrapper_local_env.Append(LIBS = ['weipa', 'dudley','finley', 'escript', 'esysUtils'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
-env.Alias('target_weipacpp_so', py_wrapper_lib)
+env.Alias('build_weipacpp_lib', py_wrapper_lib)
 
-tmp_inst = os.path.join(local_env['pyinstall'], 'weipa')
-#windows specific mod
-if os.name == 'nt':
-  wrapper_postfix = '.pyd'
+tmp_inst = os.path.join(local_env['pyinstall'], module_name)
+if IS_WINDOWS:
+    wrapper_ext = '.pyd'
 else:
-  wrapper_postfix = '.so'
+    wrapper_ext = '.so'
 
-share_name = os.path.join(tmp_inst, py_wrapper_name + wrapper_postfix)
-tmp3 = py_wrapper_local_env.InstallAs(target=share_name,
-                                      source=py_wrapper_lib[0])
-env.Alias('target_install_weipacpp_so', tmp3)
-
-# export the lib target since tests will depend on it
-# the lib target is a list of file nodes (why? win32 produces more than one
-# output file: .lib, .dll, .pdb)
-# FIXME: This list handling produces the desired result but can this be done
-# directly with scons File nodes?
-dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
-Export('dep_lib')
+share_name = os.path.join(tmp_inst, py_wrapper_name+wrapper_ext)
+mod_inst = py_wrapper_local_env.InstallAs(target=share_name,
+                                          source=py_wrapper_lib[0])
+env.Alias('install_weipacpp_lib', mod_inst)
 
 ######################
 ### Plugin library ###
@@ -105,8 +95,8 @@ Export('dep_lib')
 # files in the same build directory twice. The plugin is currently only for
 # Linux anyway. Correct fix is probably a second SConscript file with different
 # build_dir setting.
-if not IS_WINDOWS_PLATFORM:
-    visitplugin_env = clone_env(env_mpi)
+if not IS_WINDOWS:
+    visitplugin_env = env.Clone()
     plugin_sources = """
         DataVar.cpp
         EscriptDataset.cpp
@@ -115,18 +105,18 @@ if not IS_WINDOWS_PLATFORM:
         FinleyNodes.cpp
     """.split()
 
-    visitplugin_env.AppendUnique(LIBS = ['esysUtils' ] + env['sys_libs'])
+    visitplugin_env.Append(LIBS = ['esysUtils' ])
     visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
 
     plugin_lib = visitplugin_env.StaticLibrary('escriptreader', plugin_sources)
-    env.Alias('target_escriptreader_a', plugin_lib)
+    env.Alias('build_escriptreader_lib', plugin_lib)
 
     tmp = local_env.Install(local_env['libinstall'], plugin_lib)
-    env.Alias('target_install_escriptreader_a', tmp)
+    env.Alias('install_escriptreader_lib', tmp)
 
-# Call the python SConscript
-CallSConscript(env,dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0)
+# configure python module
+local_env.SConscript(dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0, exports=['py_wrapper_lib'])
 
-# Call the unit tests SConscript
-CallSConscript(local_env,dirs = ['#/weipa/test'], variant_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
+# configure unit tests
+local_env.SConscript(dirs = ['#/weipa/test'], variant_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
 

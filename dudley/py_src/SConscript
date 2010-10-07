@@ -15,17 +15,15 @@
 import os
 Import('*')
 
-local_env = clone_env(env)
+local_env = env_mpi.Clone()
 
-src_dir = local_env.Dir('.').srcnode().abspath
+# get the source file names
+sources = Glob('*.py')
 
-filenames = os.listdir(src_dir)
-python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+# compile
+pyc = local_env.PyCompile(sources)
 
-pyc = local_env.PyCompile(python_src)
-
-local_env.Depends(pyc, dep_lib)
-
-tmp1 = local_env.Install(local_env['pyinstall']+'/dudley', pyc)
-env.Alias('target_install_dudley_py', [tmp1])
+# install
+py_inst = local_env.Install(local_env['pyinstall']+'/dudley', pyc)
+env.Alias('install_dudley_py', py_inst)
 

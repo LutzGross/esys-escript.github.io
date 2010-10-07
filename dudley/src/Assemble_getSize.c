@@ -42,8 +42,8 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 
     numDim = nodes->numDim;
 
-    // now we look up what type of elements we need based on the function space of element_size
-    // if it is DUDLEY_REDUCED_ELEMENTS or DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point
+    /* now we look up what type of elements we need based on the function space of element_size */
+    /* if it is DUDLEY_REDUCED_ELEMENTS or DUDLEY_REDUCED_FACE_ELEMENTS then we have single quad point */
 
     if (Dudley_Assemble_reducedIntegrationOrder(element_size))
     {

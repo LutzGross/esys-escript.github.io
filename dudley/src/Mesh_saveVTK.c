@@ -30,7 +30,7 @@
 /* strlen("-1.234567e+789 ") == 15 */
 #define LEN_TENSOR_FORMAT (unsigned int)(9*15+2)
 #define NEWLINE "\n"
-// This value is pulled from finley's ReferenceElements.h
+/* This value is pulled from finley's ReferenceElements.h */
 #define MAX_numNodes 64
 #define LEN_TMP_BUFFER LEN_TENSOR_FORMAT+(MAX_numNodes*LEN_INT_FORMAT+1)+2
 #define NCOMP_MAX (unsigned int)9

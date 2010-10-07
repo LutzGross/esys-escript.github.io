@@ -24,6 +24,7 @@
 #include <finley/CppAdapter/MeshAdapter.h>
 #endif
 
+#include <iostream>
 #include <numeric> // for std::accumulate
 #include <sstream> // for std::ostringstream
 

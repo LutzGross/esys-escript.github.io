@@ -17,6 +17,8 @@
 #ifndef VISIT_PLUGIN
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
+#else
+#define ABS(X) ((X)>0?(X):-(X))
 #endif
 
 #include <iostream>
@@ -28,6 +30,7 @@
 #if USE_SILO
 #include <silo.h>
 #endif
+
 
 using namespace std;
 
