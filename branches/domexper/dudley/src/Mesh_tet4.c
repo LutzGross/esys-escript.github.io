@@ -128,7 +128,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	{
 	    NDOF2 = N2;
 	    if (offset2 == 0)
-		NFaceElements += 2 * local_NE1 * local_NE0;	// each face is split
+		NFaceElements += 2 * local_NE1 * local_NE0;	/* each face is split */
 	    if (local_NE2 + e_offset2 == NE2)
 		NFaceElements += 2 * local_NE1 * local_NE0;
 	}
@@ -177,6 +177,8 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 
     if (Dudley_noError())
     {
+	int global_adjustment;
+
 	/* create nodes */
 
 #pragma omp parallel for private(i0,i1,i2,k,global_i0,global_i1,global_i2)
@@ -202,7 +204,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	}
 	/*   set the elements: */
 
-	int global_adjustment = (offset0 + offset1 + offset2) % 2;	// If we are not the only rank we may need to shift our pattern to match neighbours
+	global_adjustment = (offset0 + offset1 + offset2) % 2;	/* If we are not the only rank we may need to shift our pattern to match neighbours */
 
 	NN = out->Elements->numNodes;
 #pragma omp parallel for private(i0,i1,i2,k,node0)
@@ -212,21 +214,22 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	    {
 		for (i0 = 0; i0 < local_NE0; i0++)
 		{
-
+		    index_t res;
+		    index_t v[8];
+		    int j;
 		    k = 5 * (i0 + local_NE0 * i1 + local_NE0 * local_NE1 * i2);
 		    node0 =
 			Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (i1 + e_offset1) +
 			Nstride2 * N_PER_E * (i2 + e_offset2);
 
-		    index_t res = 5 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1) + NE0 * NE1 * (i2 + e_offset2));
-		    for (int j = 0; j < 5; ++j)
+		    res = 5 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1) + NE0 * NE1 * (i2 + e_offset2));
+		    for (j = 0; j < 5; ++j)
 		    {
 			out->Elements->Id[k + j] = res + j;
 			out->Elements->Tag[k + j] = 0;
 			out->Elements->Owner[k + j] = myRank;
 		    }
 
-		    index_t v[8];
 /*	   in non-rotated orientation the points are numbered as follows:
 	   The bottom face (anticlockwise= 0,1,3,2), top face (anticlockwise 4,5,7,6)*/
 		    if ((global_adjustment + i0 + i1 + i2) % 2 == 0)
@@ -242,20 +245,20 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		    }
 		    else
 		    {
-			// this form is rotated around the 0,2,4,6 face clockwise 90 degrees
+			/* this form is rotated around the 0,2,4,6 face clockwise 90 degrees */
 
-			v[0] = node0 + Nstride1;	// node 0 ends up in position 2
-			v[2] = node0 + Nstride1 + Nstride2;	// node 2 ends up in position 6
-			v[6] = node0 + Nstride2;	// node 6 ends up in position 4
-			v[4] = node0;	// node 4 ends up in position 0
+			v[0] = node0 + Nstride1;	/* node 0 ends up in position 2 */
+			v[2] = node0 + Nstride1 + Nstride2;	/* node 2 ends up in position 6 */
+			v[6] = node0 + Nstride2;	/* node 6 ends up in position 4 */
+			v[4] = node0;	/* node 4 ends up in position 0 */
 
-			v[1] = node0 + Nstride0 + Nstride1;	// node 1 -> pos 3
-			v[3] = node0 + Nstride2 + Nstride1 + Nstride0;	// node 3-> pos 7
-			v[7] = node0 + Nstride0 + Nstride2;	// node 7 -> pos 5
-			v[5] = node0 + Nstride0;	// node 5 -> pos 1
+			v[1] = node0 + Nstride0 + Nstride1;	/* node 1 -> pos 3 */
+			v[3] = node0 + Nstride2 + Nstride1 + Nstride0;	/* node 3-> pos 7 */
+			v[7] = node0 + Nstride0 + Nstride2;	/* node 7 -> pos 5 */
+			v[5] = node0 + Nstride0;	/* node 5 -> pos 1 */
 		    }
 
-		    // elements nodes are numbered: centre, x, y, z
+		    /* elements nodes are numbered: centre, x, y, z */
 
 		    out->Elements->Nodes[INDEX2(0, k, NN)] = v[4];
 		    out->Elements->Nodes[INDEX2(1, k, NN)] = v[5];
@@ -277,7 +280,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		    out->Elements->Nodes[INDEX2(2, k + 3, NN)] = v[3];
 		    out->Elements->Nodes[INDEX2(3, k + 3, NN)] = v[5];
 
-		    // I can't work out where the center is for this one
+		    /* I can't work out where the center is for this one */
 		    out->Elements->Nodes[INDEX2(0, k + 4, NN)] = v[5];
 		    out->Elements->Nodes[INDEX2(1, k + 4, NN)] = v[0];
 		    out->Elements->Nodes[INDEX2(2, k + 4, NN)] = v[6];
@@ -301,9 +304,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		{
 		    for (i0 = 0; i0 < local_NE0; i0++)
 		    {
+			index_t res, n0, n1, n2, n3;
 			k = 2 * (i0 + local_NE0 * i1) + faceNECount;
 			node0 = Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (i1 + e_offset1);
-			index_t res = 2 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1)) + totalNECount;
+			res = 2 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = BOTTOMTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -311,10 +315,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = BOTTOMTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n0 = node0;
-			index_t n1 = node0 + Nstride0;
-			index_t n2 = node0 + Nstride1;
-			index_t n3 = node0 + Nstride0 + Nstride1;
+			n0 = node0;
+			n1 = node0 + Nstride0;
+			n2 = node0 + Nstride1;
+			n3 = node0 + Nstride0 + Nstride1;
 
 			if ((global_adjustment + i0 + i1) % 2 == 0)
 			{
@@ -352,12 +356,13 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		    for (i0 = 0; i0 < local_NE0; i0++)
 		    {
 
+			index_t res, n4, n5, n6, n7;
 			k = 2 * (i0 + local_NE0 * i1) + faceNECount;
 			node0 =
 			    Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (i1 + e_offset1) +
 			    Nstride2 * N_PER_E * (NE2 - 1);
 
-			index_t res = 2 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1)) + totalNECount;
+			res = 2 * ((i0 + e_offset0) + NE0 * (i1 + e_offset1)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = TOPTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -365,10 +370,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = TOPTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n4 = node0 + Nstride2;
-			index_t n5 = node0 + Nstride0 + Nstride2;
-			index_t n6 = node0 + Nstride1 + Nstride2;
-			index_t n7 = node0 + Nstride1 + Nstride0 + Nstride2;
+			n4 = node0 + Nstride2;
+			n5 = node0 + Nstride0 + Nstride2;
+			n6 = node0 + Nstride1 + Nstride2;
+			n7 = node0 + Nstride1 + Nstride0 + Nstride2;
 
 			if ((global_adjustment + i0 + i1 + local_NE2 - 1) % 2 == 0)
 			{
@@ -409,9 +414,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		    for (i1 = 0; i1 < local_NE1; i1++)
 		    {
 
+			index_t res, n0, n2, n4, n6;
 			k = 2 * (i1 + local_NE1 * i2) + faceNECount;
 			node0 = Nstride1 * N_PER_E * (i1 + e_offset1) + Nstride2 * N_PER_E * (i2 + e_offset2);
-			index_t res = 2 * ((i1 + e_offset1) + NE1 * (i2 + e_offset2)) + totalNECount;
+			res = 2 * ((i1 + e_offset1) + NE1 * (i2 + e_offset2)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = LEFTTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -419,10 +425,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = LEFTTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n0 = node0;
-			index_t n2 = node0 + Nstride1;
-			index_t n4 = node0 + Nstride2;
-			index_t n6 = node0 + Nstride1 + Nstride2;
+			n0 = node0;
+			n2 = node0 + Nstride1;
+			n4 = node0 + Nstride2;
+			n6 = node0 + Nstride1 + Nstride2;
 
 			if ((global_adjustment + 0 + i1 + i2) % 2 == 0)
 			{
@@ -436,7 +442,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			}
 			else
 			{
-			    // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
+			    /* this form is rotated around the 0,2,4,6 face clockwise 90 degrees */
 
 			    out->FaceElements->Nodes[INDEX2(0, k, NN)] = n0;
 			    out->FaceElements->Nodes[INDEX2(1, k, NN)] = n4;
@@ -459,12 +465,13 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		{
 		    for (i1 = 0; i1 < local_NE1; i1++)
 		    {
+			index_t res, n1, n3, n5, n7;
 			k = 2 * (i1 + local_NE1 * i2) + faceNECount;
 
 			node0 =
 			    Nstride0 * N_PER_E * (NE0 - 1) + Nstride1 * N_PER_E * (i1 + e_offset1) +
 			    Nstride2 * N_PER_E * (i2 + e_offset2);
-			index_t res = 2 * ((i1 + e_offset1) + NE1 * (i2 + e_offset2)) + totalNECount;
+			res = 2 * ((i1 + e_offset1) + NE1 * (i2 + e_offset2)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = RIGHTTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -472,10 +479,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = RIGHTTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n1 = node0 + Nstride0;
-			index_t n3 = node0 + Nstride0 + Nstride1;
-			index_t n5 = node0 + Nstride0 + Nstride2;
-			index_t n7 = node0 + Nstride0 + Nstride1 + Nstride2;
+			n1 = node0 + Nstride0;
+			n3 = node0 + Nstride0 + Nstride1;
+			n5 = node0 + Nstride0 + Nstride2;
+			n7 = node0 + Nstride0 + Nstride1 + Nstride2;
 			if ((global_adjustment + local_NE0 - 1 + i1 + i2) % 2 == 0)
 			{
 			    out->FaceElements->Nodes[INDEX2(0, k, NN)] = n1;
@@ -488,7 +495,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			}
 			else
 			{
-			    // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
+			    /* this form is rotated around the 0,2,4,6 face clockwise 90 degrees */
 
 			    out->FaceElements->Nodes[INDEX2(0, k, NN)] = n1;
 			    out->FaceElements->Nodes[INDEX2(1, k, NN)] = n7;
@@ -514,9 +521,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		{
 		    for (i0 = 0; i0 < local_NE0; i0++)
 		    {
+			index_t res, n0, n1, n4, n5;
 			k = 2 * (i0 + local_NE0 * i2) + faceNECount;
 			node0 = Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride2 * N_PER_E * (i2 + e_offset2);
-			index_t res = 2 * ((i2 + e_offset2) + NE2 * (e_offset0 + i0)) + totalNECount;
+			res = 2 * ((i2 + e_offset2) + NE2 * (e_offset0 + i0)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = FRONTTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -524,10 +532,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = FRONTTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n0 = node0;
-			index_t n1 = node0 + Nstride0;
-			index_t n4 = node0 + Nstride2;
-			index_t n5 = node0 + Nstride0 + Nstride2;
+			n0 = node0;
+			n1 = node0 + Nstride0;
+			n4 = node0 + Nstride2;
+			n5 = node0 + Nstride0 + Nstride2;
 
 			if ((global_adjustment + i0 + 0 + i2) % 2 == 0)
 			{
@@ -542,7 +550,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			}
 			else
 			{
-			    // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
+			    /* this form is rotated around the 0,2,4,6 face clockwise 90 degrees */
 
 			    out->FaceElements->Nodes[INDEX2(0, k, NN)] = n0;
 			    out->FaceElements->Nodes[INDEX2(1, k, NN)] = n1;
@@ -566,11 +574,12 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 		{
 		    for (i0 = 0; i0 < local_NE0; i0++)
 		    {
+			index_t res, n2, n6, n7, n3;
 			k = 2 * (i0 + local_NE0 * i2) + faceNECount;
 			node0 =
 			    Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (NE1 - 1) +
 			    Nstride2 * N_PER_E * (i2 + e_offset2);
-			index_t res = 2 * ((i2 + e_offset2) + NE2 * (i0 + e_offset0)) + totalNECount;
+			res = 2 * ((i2 + e_offset2) + NE2 * (i0 + e_offset0)) + totalNECount;
 			out->FaceElements->Id[k] = res;
 			out->FaceElements->Tag[k] = BACKTAG;
 			out->FaceElements->Owner[k] = myRank;
@@ -578,10 +587,10 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			out->FaceElements->Tag[k + 1] = BACKTAG;
 			out->FaceElements->Owner[k + 1] = myRank;
 
-			index_t n2 = node0 + Nstride1;
-			index_t n6 = node0 + Nstride1 + Nstride2;
-			index_t n7 = node0 + Nstride0 + Nstride1 + Nstride2;
-			index_t n3 = node0 + Nstride0 + Nstride1;
+			n2 = node0 + Nstride1;
+			n6 = node0 + Nstride1 + Nstride2;
+			n7 = node0 + Nstride0 + Nstride1 + Nstride2;
+			n3 = node0 + Nstride0 + Nstride1;
 
 			if ((global_adjustment + i0 + local_NE1 - 1 + i2) % 2 == 0)
 			{
@@ -596,7 +605,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 			}
 			else
 			{
-			    // this form is rotated around the 0,2,4,6 face clockwise 90 degrees
+			    /* this form is rotated around the 0,2,4,6 face clockwise 90 degrees */
 			    out->FaceElements->Nodes[INDEX2(0, k, NN)] = n2;
 			    out->FaceElements->Nodes[INDEX2(1, k, NN)] = n6;
 			    out->FaceElements->Nodes[INDEX2(2, k, NN)] = n7;

@@ -199,7 +199,6 @@ if cc_name == 'icc':
 elif cc_name[:3] == 'gcc':
     # GNU C on any system
     cc_flags     = "-pedantic -Wall -fPIC -ffast-math -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
-    env.Append(CFLAGS = '-std=c99') # add this only to CFLAGS
     cc_optim     = "-O3"
     cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags    = "-fopenmp"

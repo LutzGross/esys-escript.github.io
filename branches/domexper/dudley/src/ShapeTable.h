@@ -37,8 +37,8 @@ static const double DTDV_2D[3 * 3][2] = { {-1, 1}, {0, -1.}, {0, 1},
 };
 static const double DTDV_3D[4][3] = { {-1, -1, -1}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
 
-// Index by the following by Dudley_ElementTypeID
-// The number of local dimensions (as opposed to dimension of the embedding space)
+/* Index by the following by Dudley_ElementTypeID
+ * The number of local dimensions (as opposed to dimension of the embedding space) */
 static const dim_t localDims[8] = { 0, 1, 2, 3, 0, 1, 2, 0 };
 static const dim_t Dims[8] = { 0, 1, 2, 3, 1, 2, 3, 0 };
 

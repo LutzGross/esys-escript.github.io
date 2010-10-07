@@ -21,7 +21,6 @@
 
 /**************************************************************/
 
-//#include "paso/Paso.h"
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 

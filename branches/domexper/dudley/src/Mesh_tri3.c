@@ -139,6 +139,8 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
     }
     if (Dudley_noError())
     {
+	dim_t NN;
+	index_t global_adjustment;
 	/* create nodes */
 #pragma omp parallel for private(i0,i1)
 	for (i1 = 0; i1 < local_N1; i1++)
@@ -156,13 +158,14 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 	    }
 	}
 	/*   set the elements: */
-	dim_t NN = out->Elements->numNodes;
-	index_t global_adjustment = (offset0 + offset1) % 2;
+	NN = out->Elements->numNodes;
+	global_adjustment = (offset0 + offset1) % 2;
 #pragma omp parallel for private(i0,i1)
 	for (i1 = 0; i1 < local_NE1; i1++)
 	{
 	    for (i0 = 0; i0 < local_NE0; i0++)
 	    {
+		index_t a, b, c, d;
 		/* we will split this "rectangle" into two triangles */
 		dim_t k = 2 * (i0 + local_NE0 * i1);
 		index_t node0 = Nstride0 * N_PER_E * (i0 + e_offset0) + Nstride1 * N_PER_E * (i1 + e_offset1);
@@ -175,7 +178,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 		out->Elements->Owner[k + 1] = myRank;
 
 		/* a,b,c,d gives the nodes in the rectangle in clockwise order */
-		index_t a = node0, b = node0 + Nstride0, c = node0 + Nstride1 + Nstride0, d = node0 + Nstride1;
+		a = node0; b = node0 + Nstride0; c = node0 + Nstride1 + Nstride0; d = node0 + Nstride1;
 		/* For a little bit of variety  */
 		if ((global_adjustment + node0) % 2)
 		{

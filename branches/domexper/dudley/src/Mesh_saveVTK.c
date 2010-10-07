@@ -341,11 +341,11 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
             }*/
 	    if (nodeType == DUDLEY_REDUCED_NODES)
 	    {
-		typeId = elements->etype;	//referenceElementSet->referenceElement->Type->TypeId;
+		typeId = elements->etype;	/*referenceElementSet->referenceElement->Type->TypeId;*/
 	    }
 	    else
 	    {
-		typeId = elements->etype;	//referenceElementSet->referenceElement->Type->TypeId;
+		typeId = elements->etype;	/*referenceElementSet->referenceElement->Type->TypeId;*/
 	    }
 	    switch (typeId)
 	    {

@@ -17,7 +17,7 @@
 #include <omp.h>
 #endif
 
-// Unless the loops in here get complicated again, this file should be compiled with loop unrolling
+/* Unless the loops in here get complicated again, this file should be compiled with loop unrolling */
 
 /* input: 
 
@@ -55,8 +55,8 @@ void Dudley_Assemble_jacobeans_2D(double *coordinates, dim_t numQuad, dim_t numE
 #define LOCDIM 2
     register int e, q;
     char error_msg[LenErrorMsg_MAX];
+    const dim_t numTest = 3;	/* hoping this is used in constant folding */
     *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;	/* numQuad is 1 or 3 */
-    const dim_t numTest = 3;	// hoping this is used in constant folding
 #pragma omp parallel
     {
 	register double dXdv00, dXdv10, dXdv01, dXdv11, dvdX00, dvdX10, dvdX01, dvdX11, D, invD;
@@ -104,9 +104,9 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 		    dTdX[INDEX4(2, 1, 0, e, numTest, DIM, numQuad)] = DTDV_2D[2][0] * dvdX01 + DTDV_2D[2][1] * dvdX11;
 
 		}
-		else		// numQuad==3
+		else		/* numQuad==3 */
 		{
-		    for (q = 0; q < numTest; ++q)	// relying on unroll loops to optimise this
+		    for (q = 0; q < numTest; ++q)	/* relying on unroll loops to optimise this */
 		    {
 			dTdX[INDEX4(0, 0, q, e, numTest, DIM, numQuad)] =
 			    DTDV_2D[0][0] * dvdX00 + DTDV_2D[1][1] * dvdX10;
@@ -126,7 +126,7 @@ coordinates[INDEX2(P,nodes[INDEX2(2,e,numNodes)],DIM)]*(1)
 		}
 	    }
 	}
-    }				// end parallel
+    }				/* end parallel */
 #undef DIM
 #undef LOCDIM
 #undef DTDXSET
@@ -148,7 +148,7 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
     char error_msg[LenErrorMsg_MAX];
     const dim_t numTest = 2;
     *quadweight = (numQuad == 1) ? 1.0 : 0.5;
-    // numQuad is 1 or 2
+    /* numQuad is 1 or 2 */
 #pragma omp parallel
     {
 	register double dXdv00, dXdv10, dvdX00, dvdX01, D, invD;
@@ -175,7 +175,7 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 		invD = 1. / D;
 		dvdX00 = dXdv00 * invD;
 		dvdX01 = dXdv10 * invD;
-		// The number of quad points is 1 or 2
+		/* The number of quad points is 1 or 2 */
 		dTdX[INDEX4(0, 0, 0, e, numTest, DIM, numQuad)] = -1 * dvdX00;
 		dTdX[INDEX4(0, 1, 0, e, numTest, DIM, numQuad)] = -1 * dvdX01;
 		dTdX[INDEX4(1, 0, 0, e, numTest, DIM, numQuad)] = -1 * dvdX00;
@@ -190,7 +190,7 @@ void Dudley_Assemble_jacobeans_2D_M1D_E1D(double *coordinates, dim_t numQuad,
 		}
 	    }
 	}
-    }				// end parallel
+    }				/* end parallel */
 #undef DIM
 #undef LOCDIM
 }
@@ -206,7 +206,7 @@ void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numE
 #define LOCDIM 3
     int e, q, s;
     char error_msg[LenErrorMsg_MAX];
-    // numQuad is 1 or 4
+    /* numQuad is 1 or 4 */
     const dim_t numShape = 4, numTest = 4;
     *quadweight = (numQuad == 1) ? 1. / 6 : 1. / 24;
 
@@ -275,7 +275,7 @@ void Dudley_Assemble_jacobeans_3D(double *coordinates, dim_t numQuad, dim_t numE
 		}
 	    }
 	}
-    }				// end parallel
+    }				/* end parallel */
 #undef DIM
 #undef LOCDIM
 }
@@ -292,10 +292,10 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
 #define LOCDIM 2
     register int e, q, s;
     char error_msg[LenErrorMsg_MAX];
-    // numQuad is 1 or 3
-    *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;
     const double DTDV[3][2] = { {-1., -1.}, {1., 0.}, {0., 1.} };
     const dim_t numShape = 3, numTest = 3;
+    /* numQuad is 1 or 3 */
+    *quadweight = (numQuad == 1) ? 1. / 2 : 1. / 6;
 #pragma omp parallel
     {
 	register double dXdv00, dXdv10, dXdv20, dXdv01, dXdv11, dXdv21, m00, m01, m11,
@@ -351,7 +351,7 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *coordinates, dim_t numQuad, di
 		}
 	    }
 	}
-    }				// end parallel section
+    }				/* end parallel section */
 #undef DIM
 #undef LOCDIM
 }
