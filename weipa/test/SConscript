@@ -19,7 +19,7 @@ sources = Glob('*.cpp')+Glob('*.c')
 testname='weipa_UnitTest'
 
 # build the executable
-local_env.Append(LIBS=['weipa', 'escript', 'dudley','finley', 'CppUnitTest'])
+local_env.Append(LIBS=['weipa', 'escript', 'dudley', 'finley', 'CppUnitTest'])
 if local_env['silo']:
   local_env.Append(CPPDEFINES = ['USE_SILO'])
   local_env.AppendUnique(LIBS = [env['silo_libs']])

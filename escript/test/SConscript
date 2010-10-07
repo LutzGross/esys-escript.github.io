@@ -13,7 +13,7 @@
 
 import re
 Import('*')
-local_env = env_mpi.Clone()
+local_env = env.Clone()
 
 # get the test source file names
 sources = Glob('*.cpp')+Glob('*.c')

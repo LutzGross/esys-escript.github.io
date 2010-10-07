@@ -12,7 +12,7 @@
 ########################################################
 
 Import('*')
-local_env = env_mpi.Clone()
+local_env = env.Clone()
 
 sources = """
 	EsysAssertException.cpp
@@ -20,7 +20,7 @@ sources = """
 	Esys_MPI.c
 	error.c
 	esysExceptionTranslator.cpp
-        blocktimer.c
+	blocktimer.c
 """.split()
 
 headers = """
@@ -32,7 +32,7 @@ headers = """
 	error.h
 	esys_malloc.h
 	esysExceptionTranslator.h
-        blocktimer.h
+	blocktimer.h
 	mem.h
 	mpi_C.h
 	index.h

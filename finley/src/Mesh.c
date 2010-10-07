@@ -146,7 +146,7 @@ void Finley_Mesh_setOrders(Finley_Mesh *in)
 {
    const dim_t order_max=9999999;
    dim_t locals[4];
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
        dim_t globals[4];
    #endif
    locals[0]=order_max; locals[1]=order_max; locals[2]=order_max; locals[3]=order_max;
@@ -179,7 +179,7 @@ void Finley_Mesh_setOrders(Finley_Mesh *in)
 
   }
 
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
        MPI_Allreduce( locals, globals, 4, MPI_INT, MPI_MIN, in->MPIInfo->comm );
        in->approximationOrder=(globals[0] < order_max ? globals[0] : -1 );
        in->reducedApproximationOrder=(globals[1] < order_max ? globals[1] : -1 );

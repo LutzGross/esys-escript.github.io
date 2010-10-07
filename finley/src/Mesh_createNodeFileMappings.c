@@ -24,7 +24,7 @@
 
 /**************************************************************/
 
-void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
+void Finley_Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
 {
   index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs=NULL;
   dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes,*rcv_len=NULL, *snd_len=NULL, count;
@@ -382,9 +382,9 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   }
   TMPMEMFREE(nodeMask);
   /* ==== mapping between nodes and DOFs + DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,FALSE);
+  if ( Finley_noError()) Finley_Mesh_createDOFMappingAndCoupling(in,FALSE);
   /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,TRUE);
+  if ( Finley_noError()) Finley_Mesh_createDOFMappingAndCoupling(in,TRUE);
 
   /* get the Ids for DOFs and reduced nodes */
   if (Finley_noError()) {

@@ -16,10 +16,10 @@
 import os
 Import('*')
 
-local_env = env_mpi.Clone()
-py_wrapper_local_env = env_mpi.Clone()
-local_unroll_env = env_mpi.Clone()
-local_unroll_env.Append(CFLAGS = env_mpi['dudley_assemble_flags'])
+local_env = env.Clone()
+py_wrapper_local_env = env.Clone()
+local_unroll_env = env.Clone()
+local_unroll_env.Append(CFLAGS = env['dudley_assemble_flags'])
 
 
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
@@ -176,3 +176,4 @@ local_env.SConscript(dirs = ['#/dudley/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
 local_env.SConscript(dirs = ['#/dudley/test'], variant_dir='#/build/$PLATFORM/dudley/test', duplicate=0, exports=['py_wrapper_lib'])
+

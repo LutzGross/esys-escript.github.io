@@ -23,7 +23,7 @@
 
 /**************************************************************/
 
-void Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_elements)
+void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_elements)
 {
     index_t min_DOF, max_DOF, *shared = NULL, *offsetInShared = NULL, *locDOFMask =
 	NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;
@@ -478,10 +478,10 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
     TMPMEMFREE(nodeMask);
     /* ==== mapping between nodes and DOFs + DOF connector ========== */
     if (Dudley_noError())
-	Mesh_createDOFMappingAndCoupling(in, FALSE);
+        Dudley_Mesh_createDOFMappingAndCoupling(in, FALSE);
     /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
     if (Dudley_noError())
-	Mesh_createDOFMappingAndCoupling(in, TRUE);
+        Dudley_Mesh_createDOFMappingAndCoupling(in, TRUE);
 
     /* get the Ids for DOFs and reduced nodes */
     if (Dudley_noError())

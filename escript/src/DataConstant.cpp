@@ -16,18 +16,15 @@
 #include "DataConstant.h"
 #include "DataException.h"
 #include "esysUtils/EsysAssert.h"
+#include "esysUtils/Esys_MPI.h"
 
 #include <iostream>
 #include <boost/python/extract.hpp>
+#include <boost/scoped_ptr.hpp>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
 
-#include <boost/python/extract.hpp>
-#include <boost/scoped_ptr.hpp>
 #include "DataMaths.h"
 
 // #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
