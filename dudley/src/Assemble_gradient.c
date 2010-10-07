@@ -24,7 +24,7 @@
 #endif
 /*****************************************************************/
 
-// Unless the loops in here get complicated again this file should be compiled for loop unrolling
+/* Unless the loops in here get complicated again this file should be compiled for loop unrolling */
 
 void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 			      escriptDataC * grad_data, escriptDataC * data)
