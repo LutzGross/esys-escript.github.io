@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 # generate domain:
 mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
 # define characteristic function of Gamma^D

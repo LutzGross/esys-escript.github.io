@@ -20,7 +20,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design
-from esys.dudley import MakeDomain
+from esys.finley import MakeDomain
 
 # A trapezoid
 p0=Point(0.0, 0.0, 0.0)

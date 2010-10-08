@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 import numpy
 import matplotlib
 
