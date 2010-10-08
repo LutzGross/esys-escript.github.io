@@ -15,7 +15,7 @@
 ## Newtonian fluid using StokesProblemCartesian class##
 
 from esys.escript import *
-import esys.dudley
+import esys.finley
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.models import StokesProblemCartesian
 
@@ -37,7 +37,7 @@ useUzawa='TRUE'
 H=2.0
 L=1.0
 W=1.0
-mesh = esys.dudley.Rectangle(l0=L, l1=H, order=-1, n0=20, n1=20) # use linear macro elements for pressure
+mesh = esys.finley.Rectangle(l0=L, l1=H, order=-1, n0=20, n1=20) # use linear macro elements for pressure
 coordinates = mesh.getX()
 
 #gravitational force

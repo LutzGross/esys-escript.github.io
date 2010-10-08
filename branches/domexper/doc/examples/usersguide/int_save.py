@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import saveDataCSV, sup
 import numpy
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 
 n=4		#Change this to whatever you like
 r=Rectangle(n,n)
