@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 
 #######################################################EXTERNAL MODULES
 from esys.escript import *
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 import sys
 import os
 # smoothing operator 

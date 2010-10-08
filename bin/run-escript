@@ -278,7 +278,7 @@ else
     fi
 fi
 
-if [ "$WITH_OPENMP" = "y" ]
+if [ "$WITH_OPENMP" = "1" ]
 then
    if [ -z $ESCRIPT_NUM_THREADS ]
    then
@@ -379,7 +379,7 @@ if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"
 #
 #   now we start to spwan things:
 #
-if [ "$WITH_OPENMP" = "y" ]
+if [ "$WITH_OPENMP" = "1" ]
 then
    export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
    EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
@@ -408,7 +408,7 @@ then
 elif [ "$MPI_FLAVOUR" = "INTELMPI" ]
 then
 
-   if [ "$WITH_OPENMP" = "y" ]
+   if [ "$WITH_OPENMP" = "1" ]
    then
        export I_MPI_PIN_DOMAIN=omp
        EXPORT_ENV="$EXPORT_ENV, I_MPI_PIN_DOMAIN"

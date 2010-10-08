@@ -31,7 +31,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 #######################################################EXTERNAL MODULES
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
-from esys.dudley import MakeDomain #Converter for escript
+from esys.finley import MakeDomain #Converter for escript
 import os #file path tool
 from math import * # math package
 from esys.escript import *
