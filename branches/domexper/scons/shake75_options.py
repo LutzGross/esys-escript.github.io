@@ -154,7 +154,7 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = '/usr/local'
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 
 # LAPACK library/libraries to link against
 lapack_libs = ['lapack_atlas']

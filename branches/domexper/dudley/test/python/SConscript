@@ -67,8 +67,6 @@ env.Alias('scalable_tests', [os.path.splitext(x)[0]+'.passed' for x in scalable_
 program = local_env.RunPyUnitTest(alltestruns)
 Depends(program, py_wrapper_lib)
 
-program = local_env.RunPyUnitTest(alltestruns)
-
 # Add a group of tests
 from grouptest import *
 tgroup=GroupTest("$PYTHONRUNNER ",(("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)

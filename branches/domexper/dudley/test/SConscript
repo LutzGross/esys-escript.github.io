@@ -33,9 +33,9 @@ Alias('build_tests', program)
 Alias("run_tests", testname+'.passed')
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/finley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/dudley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/finley/test", ('./'+testname,))
+tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/dudley/test", ('./'+testname,))
 TestGroups.append(tgroup)
