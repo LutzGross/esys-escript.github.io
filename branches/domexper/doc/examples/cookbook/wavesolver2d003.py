@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 # Importing all the necessary modules required.
 from esys.escript import *
-from esys.dudley import Rectangle
+from esys.finley import Rectangle
 import sys
 import os
 from cblib1 import wavesolver2d
