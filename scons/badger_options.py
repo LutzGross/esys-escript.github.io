@@ -167,10 +167,10 @@ parmetis = True
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = '/usr/local'
+lapack_prefix = ['/usr/include','/usr/lib/atlas']
 
 # LAPACK library/libraries to link against
-lapack_libs = ['lapack-3', 'blas-3']
+lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
