@@ -11,12 +11,7 @@
 #
 ########################################################
 
-
-# Configuration for Savanna (SGI ICE 8200 running SUSE Linux)
-
-
 # Use the default C/C++ flags but add something only for this host:
-
 
 # If you cannot use the default compiler flags set in SConstruct, then change them here
 # C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
@@ -29,7 +24,7 @@ omp_debug       = '-fopenmp'
 omp_libs        = []
 
 # Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx -msse -Winline -finline-functions'
+cc_extra        = '-Wall -mmmx -msse'
 ld_extra        = '-fopenmp'
 
 # Be picky about errors
@@ -79,11 +74,10 @@ useumfpack		= 'yes'
 # blas_libs		= ['blas']
 
 # OpenMP
-useopenmp		= 'yes'
+useopenmp		= 'no'
 
 # OPENMP
-usempi= 'yes'
-#usempi= 'no'
+usempi= 'no'
 mpi_path		= '/usr/include/mpi'
 mpi_lib_path		= '/usr/lib'
 mpi_libs                = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']

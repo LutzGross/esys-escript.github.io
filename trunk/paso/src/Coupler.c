@@ -13,6 +13,7 @@
 
 
 #include "Coupler.h"
+#include "esysUtils/error.h"
 
 /*************************************************************
  *
@@ -24,21 +25,21 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
                                      Paso_SharedComponents* recv)
 {
   Paso_Connector*out=NULL;
-  Paso_resetError();
+  Esys_resetError();
   out=MEMALLOC(1,Paso_Connector);
   if ( send->mpi_info != recv->mpi_info ) {
-     Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicator don't match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicator don't match.");
      return NULL;
   }
   if ( send->local_length != recv->local_length ) {
-     Paso_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: local length of send and recv Paso_SharedComponents must match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: local length of send and recv Paso_SharedComponents must match.");
      return NULL;
   }
   
-  if (!Paso_checkPtr(out)) {
+  if (!Esys_checkPtr(out)) {
       out->send=Paso_SharedComponents_getReference(send);
       out->recv= Paso_SharedComponents_getReference(recv);
-      out->mpi_info = Paso_MPIInfo_getReference(send->mpi_info);
+      out->mpi_info = Esys_MPIInfo_getReference(send->mpi_info);
       out->reference_counter=1;
 
 /*
@@ -53,7 +54,7 @@ out->send->offsetInShared[i],out->send->neighbor[i]);
 */
 
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
      return out;
   } else {
      Paso_Connector_free(out);
@@ -78,7 +79,7 @@ void Paso_Connector_free(Paso_Connector* in) {
      if (in->reference_counter<=0) {
         Paso_SharedComponents_free(in->send);
         Paso_SharedComponents_free(in->recv);
-        Paso_MPIInfo_free(in->mpi_info);
+        Esys_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
         #ifdef Paso_TRACE
         printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
@@ -94,7 +95,7 @@ Paso_Connector* Paso_Connector_copy(Paso_Connector* in) {
 Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
      Paso_SharedComponents *new_send_shcomp=NULL, *new_recv_shcomp=NULL;
      Paso_Connector *out=NULL;
-     if (Paso_noError()) {
+     if (Esys_noError()) {
         if (block_size>1) {
             new_send_shcomp=Paso_SharedComponents_alloc(in->send->local_length,
                                                         in->send->numNeighbors,
@@ -113,11 +114,11 @@ Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
             new_send_shcomp=Paso_SharedComponents_getReference(in->send);
             new_recv_shcomp=Paso_SharedComponents_getReference(in->recv);
         }
-        if (Paso_noError()) out=Paso_Connector_alloc(new_send_shcomp,new_recv_shcomp);
+        if (Esys_noError()) out=Paso_Connector_alloc(new_send_shcomp,new_recv_shcomp);
      }
      Paso_SharedComponents_free(new_send_shcomp);
      Paso_SharedComponents_free(new_recv_shcomp);
-     if (Paso_noError()) {
+     if (Esys_noError()) {
           return out;
      } else {
           Paso_Connector_free(out);
@@ -132,11 +133,11 @@ Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
 
 Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
 {
-  Paso_MPIInfo *mpi_info = connector->mpi_info;  
+  Esys_MPIInfo *mpi_info = connector->mpi_info;  
   Paso_Coupler*out=NULL;
-  Paso_resetError();
+  Esys_resetError();
   out=MEMALLOC(1,Paso_Coupler);
-  if (!Paso_checkPtr(out)) {
+  if (!Esys_checkPtr(out)) {
       out->data=NULL;
       out->block_size=block_size;
       out->connector=Paso_Connector_getReference(connector);
@@ -144,23 +145,23 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
       out->recv_buffer=NULL;
       out->mpi_requests=NULL;
       out->mpi_stati=NULL;
-      out->mpi_info = Paso_MPIInfo_getReference(mpi_info);
+      out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
       out->reference_counter=1;
       
-      #ifdef PASO_MPI
+      #ifdef ESYS_MPI
          out->mpi_requests=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Request);
          out->mpi_stati=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Status);
-         Paso_checkPtr(out->mpi_requests);
-         Paso_checkPtr(out->mpi_stati);
+         Esys_checkPtr(out->mpi_requests);
+         Esys_checkPtr(out->mpi_stati);
       #endif
       if (mpi_info->size>1) {
         out->send_buffer=MEMALLOC(connector->send->numSharedComponents * block_size,double);
         out->recv_buffer=MEMALLOC(connector->recv->numSharedComponents * block_size,double);
-        Paso_checkPtr(out->send_buffer);
-        Paso_checkPtr(out->recv_buffer);
+        Esys_checkPtr(out->send_buffer);
+        Esys_checkPtr(out->recv_buffer);
       }
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
      return out;
   } else {
      Paso_Coupler_free(out);
@@ -188,7 +189,7 @@ void Paso_Coupler_free(Paso_Coupler* in) {
         MEMFREE(in->recv_buffer);
         MEMFREE(in->mpi_requests);
         MEMFREE(in->mpi_stati);
-        Paso_MPIInfo_free(in->mpi_info);
+        Esys_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
         #ifdef Paso_TRACE
         printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
@@ -200,7 +201,7 @@ void Paso_Coupler_free(Paso_Coupler* in) {
 
 void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 {
-  Paso_MPIInfo *mpi_info = coupler->mpi_info;  
+  Esys_MPIInfo *mpi_info = coupler->mpi_info;  
   dim_t block_size=coupler->block_size;
   size_t block_size_size=block_size*sizeof(double);
   dim_t i;
@@ -209,7 +210,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      /* start reveiving input */
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
-            #ifdef PASO_MPI
+            #ifdef ESYS_MPI
             MPI_Irecv(&(coupler->recv_buffer[coupler->connector->recv->offsetInShared[i] *  block_size]),
                       (coupler->connector->recv->offsetInShared[i+1]- coupler->connector->recv->offsetInShared[i])*block_size,
                       MPI_DOUBLE,
@@ -234,7 +235,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      /* send buffer out */
      {
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
-             #ifdef PASO_MPI
+             #ifdef ESYS_MPI
              MPI_Issend(&(coupler->send_buffer[coupler->connector->send->offsetInShared[i] *  block_size]),
                         (coupler->connector->send->offsetInShared[i+1]- coupler->connector->send->offsetInShared[i])*block_size,
                         MPI_DOUBLE,
@@ -251,10 +252,10 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 
 double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 {
-  Paso_MPIInfo *mpi_info = coupler->mpi_info;  
+  Esys_MPIInfo *mpi_info = coupler->mpi_info;  
   if ( mpi_info->size>1) {
      /* wait for receive */
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
         MPI_Waitall(coupler->connector->recv->numNeighbors+coupler->connector->send->numNeighbors,
                     coupler->mpi_requests,
                     coupler->mpi_stati);

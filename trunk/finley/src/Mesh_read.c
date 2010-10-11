@@ -26,18 +26,18 @@
 
 Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize)
 {
-    Paso_MPIInfo *mpi_info = NULL;
+    Esys_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;
     Finley_Mesh *mesh_p=NULL;
     Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
-    ElementTypeId typeID=NoRef;
+    Finley_ElementTypeId typeID=Finley_NoRef;
     int scan_ret;
 
     Finley_resetError();
-    mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+    mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
 
     if (mpi_info->rank == 0) {
         /* get file handle */
@@ -45,7 +45,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         if (fileHandle_p==NULL) {
             sprintf(error_msg,"Finley_Mesh_read: Opening file %s for reading failed.",fname);
             Finley_setError(IO_ERROR,error_msg);
-            Paso_MPIInfo_free( mpi_info );
+            Esys_MPIInfo_free( mpi_info );
             return NULL;
         }
 
@@ -59,7 +59,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
     }
 
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
         /* MPI Broadcast numDim, numNodes, name if there are multiple MPI procs*/
         if (mpi_info->size > 1) {
             int temp1[3];
@@ -129,10 +129,10 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 					chunkNodes++; /* How many nodes do we actually have in this chunk? It may be smaller than chunkSize. */
 				}
 				if (chunkNodes > chunkSize) {
-					Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: error reading chunks of mesh, data too large for message size");
+					Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: error reading chunks of mesh, data too large for message size");
 					return NULL;
 				}
-				#ifdef PASO_MPI
+				#ifdef ESYS_MPI
 					/* Eventually we'll send chunkSize nodes to each CPU numbered 1 ... mpi_info->size-1, here goes one of them */
 					if (nextCPU < mpi_info->size) {
 						tempInts[chunkSize*3] = chunkNodes;   /* The message has one more int to send chunkNodes */
@@ -146,7 +146,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			} /* Infinite loop */
 		}   /* End master */
 		else {  /* Worker */
-			#ifdef PASO_MPI
+			#ifdef ESYS_MPI
 				/* Each worker receives two messages */
 				MPI_Status status;
 				MPI_Recv(tempInts, chunkSize*3+1, MPI_INT, 0, 81720, mpi_info->comm, &status);
@@ -182,21 +182,21 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
             typeID=Finley_ReferenceElement_getTypeId(element_type);
 		}
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
 			if (mpi_info->size > 1) {
 				int temp1[2], mpi_error;
 				temp1[0] = (int) typeID;
 				temp1[1] = numEle;
 				mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
 				if (mpi_error != MPI_SUCCESS) {
-					Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
+					Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
 					return NULL;
 				}
-				typeID = (ElementTypeId) temp1[0];
+				typeID = (Finley_ElementTypeId) temp1[0];
 				numEle = temp1[1];
 			}
 		#endif
-        if (typeID==NoRef) {
+        if (typeID==Finley_NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
           }
@@ -234,7 +234,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 					totalEle++;
 					chunkEle++;
 				}
-				#ifdef PASO_MPI
+				#ifdef ESYS_MPI
 					/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 					if (nextCPU < mpi_info->size) {
 						tempInts[chunkSize*(2+numNodes)] = chunkEle;
@@ -247,7 +247,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			} /* Infinite loop */
 		}   /* End master */
 		else {  /* Worker */
-			#ifdef PASO_MPI
+			#ifdef ESYS_MPI
 				/* Each worker receives one message */
 				MPI_Status status;
 				MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81722, mpi_info->comm, &status);
@@ -289,17 +289,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			 FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
 			 typeID=Finley_ReferenceElement_getTypeId(element_type);
 		}
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
 			if (mpi_info->size > 1) {
 				int temp1[2];
 				temp1[0] = (int) typeID;
 				temp1[1] = numEle;
 				MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-				typeID = (ElementTypeId) temp1[0];
+				typeID = (Finley_ElementTypeId) temp1[0];
 				numEle = temp1[1];
 			}
 		#endif
-        if (typeID==NoRef) {
+        if (typeID==Finley_NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
         }
@@ -337,7 +337,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 					totalEle++;
 					chunkEle++;
 				}
-				#ifdef PASO_MPI
+				#ifdef ESYS_MPI
 					/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 					if (nextCPU < mpi_info->size) {
 						tempInts[chunkSize*(2+numNodes)] = chunkEle;
@@ -350,7 +350,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			} /* Infinite loop */
 		}   /* End master */
 		else {  /* Worker */
-			#ifdef PASO_MPI
+			#ifdef ESYS_MPI
 				/* Each worker receives one message */
 				MPI_Status status;
 				MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81723, mpi_info->comm, &status);
@@ -391,17 +391,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
             typeID=Finley_ReferenceElement_getTypeId(element_type);
 		}
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
 	  		if (mpi_info->size > 1) {
 				int temp1[2];
 				temp1[0] = (int) typeID;
 				temp1[1] = numEle;
 				MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-				typeID = (ElementTypeId) temp1[0];
+				typeID = (Finley_ElementTypeId) temp1[0];
 				numEle = temp1[1];
 			}
 		#endif
-        if (typeID==NoRef) {
+        if (typeID==Finley_NoRef) {
 			sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
          }
@@ -437,7 +437,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 					totalEle++;
 					chunkEle++;
 				}
-				#ifdef PASO_MPI
+				#ifdef ESYS_MPI
 					/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 					if (nextCPU < mpi_info->size) {
 						tempInts[chunkSize*(2+numNodes)] = chunkEle;
@@ -450,7 +450,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			} /* Infinite loop */
 		}   /* End master */
 		else {  /* Worker */
-			#ifdef PASO_MPI
+			#ifdef ESYS_MPI
 				/* Each worker receives one message */
 				MPI_Status status;
 				MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81724, mpi_info->comm, &status);
@@ -488,17 +488,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
             typeID=Finley_ReferenceElement_getTypeId(element_type);
 		}
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
 			if (mpi_info->size > 1) {
 				int temp1[2];
 				temp1[0] = (int) typeID;
 				temp1[1] = numEle;
 				MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-				typeID = (ElementTypeId) temp1[0];
+				typeID = (Finley_ElementTypeId) temp1[0];
 				numEle = temp1[1];
 			}
 		#endif
-        if (typeID==NoRef) {
+        if (typeID==Finley_NoRef) {
 			sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
          }
@@ -535,7 +535,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 					totalEle++;
 					chunkEle++;
 				}
-				#ifdef PASO_MPI
+				#ifdef ESYS_MPI
 					/* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
 					if (nextCPU < mpi_info->size) {
 						tempInts[chunkSize*(2+numNodes)] = chunkEle;
@@ -548,7 +548,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			} /* Infinite loop */
 		}   /* End master */
 		else {  /* Worker */
-			#ifdef PASO_MPI
+			#ifdef ESYS_MPI
 				/* Each worker receives one message */
 				MPI_Status status;
 				MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81725, mpi_info->comm, &status);
@@ -582,7 +582,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	if (Finley_noError()) {
         char *remainder=0, *ptr;
         size_t len=0;
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
         	int len_i;
 		#endif
         int tag_key;
@@ -645,7 +645,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			len = strlen(remainder);
 			TMPMEMREALLOC(remainder,remainder,len+1,char);
         } /* Master */
-		#ifdef PASO_MPI
+		#ifdef ESYS_MPI
 
         	len_i=(int) len;
 			MPI_Bcast (&len_i, 1, MPI_INT,  0, mpi_info->comm);
@@ -656,7 +656,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 			}
 			if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
 				   	MPI_SUCCESS)
-				Finley_setError(PASO_MPI_ERROR, "Finley_Mesh_read: broadcast of remainder failed");
+				Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: broadcast of remainder failed");
 		#endif
 
 		if (remainder[0]) {
@@ -688,7 +688,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	Finley_ReferenceElementSet_dealloc(refContactElements);
 	Finley_ReferenceElementSet_dealloc(refFaceElements);
 	Finley_ReferenceElementSet_dealloc(refElements);
-	Paso_MPIInfo_free( mpi_info );
+	Esys_MPIInfo_free( mpi_info );
 	return mesh_p;
 }
 

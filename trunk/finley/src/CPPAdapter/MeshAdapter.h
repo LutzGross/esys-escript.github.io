@@ -22,7 +22,7 @@ extern "C" {
 #include "finley/Assemble.h"
 #include "paso/SystemMatrix.h"
 #include "paso/Transport.h"
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 }
 
 #include "FinleyError.h"
@@ -151,30 +151,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual bool onMasterProcessor() const;
 
   FINLEY_DLL_API
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int
 #endif
   getMPIComm() const;
-
-  /**
-     \brief
-     return this as an AbstractContinuousDomain.
-  */
-  inline const AbstractContinuousDomain& asAbstractContinuousDomain() const 
-  {
-     return *(static_cast<const AbstractContinuousDomain*>(this));
-  }
-
-  /**
-     \brief
-     return this as an AbstractDomain.
-  */
-  inline const AbstractDomain& asAbstractDomain() const 
-  {
-     return *(static_cast<const AbstractDomain*>(this));
-  }
 
   /**
      \brief
@@ -605,7 +587,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
   FINLEY_DLL_API
-  SystemMatrixAdapter newSystemMatrix(
+  escript::ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
@@ -618,7 +600,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
 
   FINLEY_DLL_API
-  TransportProblemAdapter newTransportProblem(
+  escript::ATP_ptr newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -684,6 +666,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual 
   int getApproximationOrder(const int functionSpaceCode) const;
 
+  FINLEY_DLL_API
+  bool supportsContactElements() const;
+
 
  protected:
 
@@ -703,7 +688,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 // Do not use this class. It is a convenience wrapper for the dataexporter.
 class FINLEY_DLL_API ReferenceElementSetWrapper {
  public:
-  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
+  ReferenceElementSetWrapper(Finley_ElementTypeId id, index_t order,
                              index_t reducedOrder);
   ~ReferenceElementSetWrapper();
 

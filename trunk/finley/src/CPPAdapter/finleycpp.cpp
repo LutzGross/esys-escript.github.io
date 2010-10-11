@@ -12,9 +12,8 @@
 *******************************************************/
 
 
-#ifdef PASO_MPI
-#include <mpi.h>
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 extern "C" {
 #include "../Finley.h"

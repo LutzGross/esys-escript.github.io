@@ -18,9 +18,9 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 #endif
 extern "C" {
 #include "esysUtils/blocktimer.h"
@@ -85,7 +85,7 @@ int MeshAdapter::getMPIRank() const
 }
 void MeshAdapter::MPIBarrier() const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Barrier(m_finleyMesh.get()->MPIInfo->comm);
 #endif
    return;
@@ -96,14 +96,14 @@ bool MeshAdapter::onMasterProcessor() const
 }
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int
 #endif
 MeshAdapter::getMPIComm() const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 	return m_finleyMesh->MPIInfo->comm;
 #else
 	return 0;
@@ -149,16 +149,16 @@ void MeshAdapter::dump(const string& fileName) const
    int num_Elements_numNodes		= mesh->Elements->numNodes;
    int num_FaceElements_numNodes	= mesh->FaceElements->numNodes;
    int num_ContactElements_numNodes	= mesh->ContactElements->numNodes;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Status status;
 #endif
 
 /* Incoming token indicates it's my turn to write */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    if (mpi_rank>0) MPI_Recv(&num_Tags, 0, MPI_INT, mpi_rank-1, 81800, mesh->MPIInfo->comm, &status);
 #endif
 
-   char *newFileName = Paso_MPI_appendRankToFileName(fileName.c_str(),
+   char *newFileName = Esys_MPI_appendRankToFileName(fileName.c_str(),
                                                      mpi_size, mpi_rank);
 
    /* Figure out how much storage is required for tags */
@@ -529,7 +529,7 @@ void MeshAdapter::dump(const string& fileName) const
    }
 
 /* Send token to next MPI process so he can take his turn */
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    if (mpi_rank<mpi_size-1) MPI_Send(&num_Tags, 0, MPI_INT, mpi_rank+1, 81800, mesh->MPIInfo->comm);
 #endif
 
@@ -1044,7 +1044,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
       } else {
@@ -1054,7 +1054,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
    
@@ -1064,7 +1064,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
       } else {
          Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
@@ -1075,7 +1075,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(ReducedContactElementsZero):
       case(ReducedContactElementsOne):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
       } else {
@@ -1113,7 +1113,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(Elements):
       case(ReducedElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
       } else {
@@ -1123,7 +1123,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(FaceElements):
       case(ReducedFaceElements):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
       } else {
@@ -1132,7 +1132,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
       } else {
@@ -1144,7 +1144,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       case(ReducedContactElementsZero):
       case(ReducedContactElementsOne):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         escript::Data temp=escript::Data( in,  reducedContinuousFunction(*this) );
          escriptDataC _in2 = temp.getDataC();
          Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
       } else {
@@ -1181,7 +1181,7 @@ void MeshAdapter::setToX(escript::Data& arg) const
       escriptDataC _arg=arg.getDataC();
       Finley_Assemble_NodeCoordinates(mesh->Nodes,&_arg);
    } else {
-      escript::Data tmp_data=Vector(0.0,continuousFunction(asAbstractContinuousDomain()),true);
+      escript::Data tmp_data=Vector(0.0,continuousFunction(*this),true);
       escriptDataC _tmp_data=tmp_data.getDataC();
       Finley_Assemble_NodeCoordinates(mesh->Nodes,&_tmp_data);
       // this is then interpolated onto arg:
@@ -1275,12 +1275,12 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    escriptDataC _arg=arg.getDataC();
    switch(arg.getFunctionSpace().getTypeCode()) {
    case(Nodes):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedNodes):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1312,12 +1312,12 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals,const escript::Data& 
    Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
    break;
    case(DegreesOfFreedom):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
    case(ReducedDegreesOfFreedom):
-   temp=escript::Data( arg, escript::function(asAbstractContinuousDomain()) );
+   temp=escript::Data( arg, escript::function(*this) );
    _temp=temp.getDataC();
    Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
    break;
@@ -1349,10 +1349,10 @@ void MeshAdapter::setToGradient(escript::Data& grad,const escript::Data& arg) co
    escript::Data temp;
    if (getMPISize()>1) {
       if( arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom ) {
-         temp=escript::Data( arg,  continuousFunction(asAbstractContinuousDomain()) );
+         temp=escript::Data( arg,  continuousFunction(*this) );
          nodeDataC = temp.getDataC();
       } else if( arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom ) {
-         temp=escript::Data( arg,  reducedContinuousFunction(asAbstractContinuousDomain()) );
+         temp=escript::Data( arg,  reducedContinuousFunction(*this) );
          nodeDataC = temp.getDataC();
       } else {
          nodeDataC = arg.getDataC();
@@ -1471,11 +1471,11 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
    const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
    if (newDomain!=*this) 
       throw FinleyAdapterException("Error - Illegal domain of new point locations");
-   if ( new_x.getFunctionSpace() == continuousFunction(asAbstractContinuousDomain()) ) {
+   if ( new_x.getFunctionSpace() == continuousFunction(*this) ) {
        tmp = new_x.getDataC();
        Finley_Mesh_setCoordinates(mesh,&tmp);
    } else {
-       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(asAbstractContinuousDomain()) );
+       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
        tmp = new_x_inter.getDataC();
        Finley_Mesh_setCoordinates(mesh,&tmp);
    }
@@ -1559,7 +1559,7 @@ void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     index_t myFirstNode=0, myLastNode=0, k=0;
     index_t* globalNodeIndex=0;
     Finley_Mesh* mesh_p=m_finleyMesh.get();
@@ -1586,7 +1586,7 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 //
 // creates a SystemMatrixAdapter stiffness matrix an initializes it with zeros
 //
-SystemMatrixAdapter MeshAdapter::newSystemMatrix(
+ASM_ptr MeshAdapter::newSystemMatrix(
                                                  const int row_blocksize,
                                                  const escript::FunctionSpace& row_functionspace,
                                                  const int column_blocksize,
@@ -1633,13 +1633,15 @@ SystemMatrixAdapter MeshAdapter::newSystemMatrix(
    }
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
+   SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
+   return ASM_ptr(sma);
+//   return SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace,column_blocksize,column_functionspace);
 }
 
 //
 // creates a TransportProblemAdapter
 //
-TransportProblemAdapter MeshAdapter::newTransportProblem(
+ATP_ptr MeshAdapter::newTransportProblem(
                                                          const bool useBackwardEuler,
                                                          const int blocksize,
                                                          const escript::FunctionSpace& functionspace,
@@ -1666,7 +1668,9 @@ TransportProblemAdapter MeshAdapter::newTransportProblem(
    transportProblem=Paso_TransportProblem_alloc(useBackwardEuler,fsystemMatrixPattern,blocksize);
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   return TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   TransportProblemAdapter* tpa=new TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   return ATP_ptr(tpa);
+//   return TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
 }
 
 //
@@ -2039,17 +2043,17 @@ int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, 
 
 escript::Data MeshAdapter::getX() const
 {
-   return continuousFunction(asAbstractContinuousDomain()).getX();
+   return continuousFunction(*this).getX();
 }
 
 escript::Data MeshAdapter::getNormal() const
 {
-   return functionOnBoundary(asAbstractContinuousDomain()).getNormal();
+   return functionOnBoundary(*this).getNormal();
 }
 
 escript::Data MeshAdapter::getSize() const
 {
-   return escript::function(asAbstractContinuousDomain()).getSize();
+   return escript::function(*this).getSize();
 }
 
 const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
@@ -2397,7 +2401,12 @@ int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
   return order;
 }
 
-ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id, index_t order, index_t reducedOrder)
+bool MeshAdapter::supportsContactElements() const
+{
+  return true;
+}
+
+ReferenceElementSetWrapper::ReferenceElementSetWrapper(Finley_ElementTypeId id, index_t order, index_t reducedOrder)
 {
   m_refSet = Finley_ReferenceElementSet_alloc(id, order, reducedOrder);
 }

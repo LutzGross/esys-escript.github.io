@@ -73,7 +73,7 @@ class Translation(Transformation):
        """
        return numpy.array(x,_TYPE)+self.__b
 
-class Rotation(Transformation):
+class Rotatation(Transformation):
     """
     Defines a rotation.
     """

@@ -11,25 +11,12 @@
 #
 ########################################################
 
-
-import os
+from os.path import splitext
 Import('*')
 
-local_env = clone_env(env)
+local_env = env.Clone()
 
-src_dir = local_env.Dir('.').srcnode().abspath
-filenames = os.listdir(src_dir)
-#
-# files defining tests but are not running by itself:
-#
-testfiles = [x for x in filenames if x.startswith('test_') and os.path.splitext(x)[1] in ['.py'] ]
-# 
-# directories defining test data
-# 
-testdata_dir = [x for x in filenames if x.startswith('data_') ]
-# 
 #  files defining test runs (passing in a release)
-# 
 testruns = []
 testruns += ['run_camera.py']
 testruns += ['run_carpet.py']
@@ -59,64 +46,50 @@ testruns += ['run_text.py']
 testruns += ['run_velocity.py']
 testruns += ['run_velocity_with_lazy_evaluation.py']
 
-#
 # files defining tests run locally (not as part of a release)
-#
-localtestruns = [x for x in filenames if not x.startswith('run_') and os.path.splitext(x)[1] in ['.py']]
-#
-# all test 
-#
+localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
+
+# all tests
 alltestruns = testruns + localtestruns
-#
-# test files are just compiled:
-#
-test_pyc = env.PyCompile(testfiles)
-env.Alias('build_py_tests', test_pyc)
 
-#
-# only run tests if VTK is enabled:
-#
-if env['usevtk']:
-    VTK_AVAILABLE = True
-else:
-    VTK_AVAILABLE = False
-    print "Warning: VTK disabled, skipping pyvisi tests."
-       
+# test files are just compiled - none of these in pyvisi
+#sources = Glob('test_*.py')
+#test_pyc = env.PyCompile(sources)
+#env.Alias('build_py_tests', test_pyc)
 
-#Add Unit Test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
-local_env['ENV']['PYVISI_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
-local_env['ENV']['PYVISI_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
+# only run tests if pyvisi enabled
+if env['pyvisi']:
+    # add unit test to target alias
+    local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
+    local_env['ENV']['PYVISI_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
+    local_env['ENV']['PYVISI_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
 
-if VTK_AVAILABLE: 
-   env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
-   env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
-   program = local_env.RunPyUnitTest(alltestruns)
- 
-   Depends(program, local_env['pyinstall'])
-   # Depends(program, dep_lib) 
-   Depends(program, 'build_py_tests') 
+    env.Alias('local_py_tests',[splitext(x)[0]+'.passed' for x in alltestruns])
+    env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
+    program = local_env.RunPyUnitTest(alltestruns)
+    Depends(program, 'build_py_tests')
 
-   from grouptest import *
-   tgroup=GroupTest("$PYTHONRUNNER ",(("PYVISI_TEST_DATA_ROOT","$BATCH_ROOT/pyvisi/test/python"),("PYVISI_WORKDIR","$BUILD_DIR/pyvisi/test/python")),"$BUILD_DIR/pyvisi/test/python","$BATCH_ROOT/pyvisi/test/python",testruns)
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/camera')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/carpet')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/contour')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/ellipsoid')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/escript')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/exporter')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/image')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/legend')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/light')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/logo')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/map')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/movie')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/rectangle')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/scene')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/streamline')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/text')
-   tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/velocity')
-   TestGroups.append(tgroup)
+    from grouptest import *
+    tgroup=GroupTest("$PYTHONRUNNER ",(("PYVISI_TEST_DATA_ROOT","$BATCH_ROOT/pyvisi/test/python"),("PYVISI_WORKDIR","$BUILD_DIR/pyvisi/test/python")),"$BUILD_DIR/pyvisi/test/python","$BATCH_ROOT/pyvisi/test/python",testruns)
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/camera')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/carpet')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/contour')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/ellipsoid')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/escript')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/exporter')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/image')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/legend')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/light')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/logo')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/map')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/movie')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/rectangle')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/scene')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/streamline')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/text')
+    tgroup.makeDir('$BUILD_DIR/pyvisi/test/python/data_sample_images/velocity')
+    TestGroups.append(tgroup)
+

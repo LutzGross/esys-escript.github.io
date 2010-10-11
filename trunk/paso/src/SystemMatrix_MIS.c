@@ -48,15 +48,15 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
     index_t k=0;
     int mpi_iam = 0;	/* rank within world */
     int mpi_num = 1;	/* size of the world */
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     double *remote_values=NULL;
     #endif
     
     if (A->type!=MATRIX_FORMAT_DEFAULT) {		/* We only support CSR matricies here */
-        Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
+        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
     }
     
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
     #endif
@@ -77,7 +77,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 	        }     /* if avail */
 	     }   /* walk border */
 	} /* if not me */
-	#ifdef PASO_MPI
+	#ifdef ESYS_MPI
 	/* Now we set the weights using the coupler */
   	remote_values=NULL;
 	  /* start exchange */
@@ -123,9 +123,9 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     int i,j,k, retry;
     char done=1;
     double seed=Paso_Pattern_mis_seed;
-    Paso_resetError();
+    Esys_resetError();
     border=Paso_SparseMatrix_getBorderNodes(A, &count);
-    if (!Paso_noError()) {
+    if (!Esys_noError()) {
         *set=NULL;
 	return 0;
     }
@@ -212,7 +212,7 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     MEMFREE(weights);
     MEMFREE(inborder);
     if (done==0) {
-        Paso_setError(NO_PROGRESS_ERROR,"Error in MIS - no progress.");
+        Esys_setError(NO_PROGRESS_ERROR,"Error in MIS - no progress.");
 	MEMFREE(mis);
 	*set=NULL;
 	return 0;

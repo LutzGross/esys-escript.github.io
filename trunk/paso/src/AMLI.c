@@ -127,18 +127,18 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
   
   /*Make sure we have block sizes 1*/
   if (A_p->col_block_size>1) {
-     Paso_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires column block size 1.");
+     Esys_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires column block size 1.");
      return NULL;
   }
   if (A_p->row_block_size>1) {
-     Paso_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires row block size 1.");
+     Esys_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires row block size 1.");
      return NULL;
   }
   out=MEMALLOC(1,Paso_Solver_AMLI);
   /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
-  if ( !( Paso_checkPtr(mis_marker) || Paso_checkPtr(counter) || Paso_checkPtr(out)) ) {
+  if ( !( Esys_checkPtr(mis_marker) || Esys_checkPtr(counter) || Esys_checkPtr(out)) ) {
      out->AMLI_of_Schur=NULL;
      out->inv_A_FF=NULL;
      out->A_FF_pivot=NULL;
@@ -210,7 +210,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
             }
         } else {
      
-              if (Paso_noError()) {
+              if (Esys_noError()) {
                  
                  /*#pragma omp parallel for private(i) schedule(static)
                  for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
@@ -228,7 +228,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                  out->rows_in_F=MEMALLOC(out->n_F,index_t);
                  out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
                  out->A_FF_pivot=NULL; /* later use for block size>3 */
-                 if (! (Paso_checkPtr(out->mask_F) || Paso_checkPtr(out->inv_A_FF) || Paso_checkPtr(out->rows_in_F) ) ) {
+                 if (! (Esys_checkPtr(out->mask_F) || Esys_checkPtr(out->inv_A_FF) || Esys_checkPtr(out->rows_in_F) ) ) {
                     /* creates an index for F from mask */
                     #pragma omp parallel for private(i) schedule(static)
                     for (i = 0; i < out->n_F; ++i) out->rows_in_F[i]=-1;
@@ -265,14 +265,14 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                     level=1;
                }
              
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                     /* if there are no nodes in the coarse level there is no more work to do */
                     out->n_C=n-out->n_F;
                    
                    /*if (out->n_F>500) */
                     out->rows_in_C=MEMALLOC(out->n_C,index_t);
                     out->mask_C=MEMALLOC(n,index_t);
-                    if (! (Paso_checkPtr(out->mask_C) || Paso_checkPtr(out->rows_in_C) ) ) {
+                    if (! (Esys_checkPtr(out->mask_C) || Esys_checkPtr(out->rows_in_C) ) ) {
                          /* creates an index for C from mask */
                          #pragma omp parallel for private(i) schedule(static)
                          for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
@@ -290,7 +290,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                          }
                     }
               } 
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                       /* get A_CF block: */
                       out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
                       /* get A_FC block: */
@@ -299,7 +299,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                       schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
       
               }
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                      /*find the pattern of the schur complement with fill in*/
                     temp1=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
                     temp2=Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
@@ -307,7 +307,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                     Paso_Pattern_free(temp1);
                     Paso_Pattern_free(temp2);
               }
-              if ( Paso_noError()) {
+              if ( Esys_noError()) {
                     /* copy values over*/ 
                     #pragma omp parallel for private(i,iPtr,j,iPtr_s,index,where_p) schedule(static)
                     for (i = 0; i < schur_withFillIn->numRows; ++i) {
@@ -329,13 +329,13 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                     out->AMLI_of_Schur=Paso_Solver_getAMLI(schur_withFillIn,level-1,options);
               }
               /* allocate work arrays for AMLI application */
-              if (Paso_noError()) {
+              if (Esys_noError()) {
                          out->x_F=MEMALLOC(n_block*out->n_F,double);
                          out->b_F=MEMALLOC(n_block*out->n_F,double);
                          out->x_C=MEMALLOC(n_block*out->n_C,double);
                          out->b_C=MEMALLOC(n_block*out->n_C,double);
       
-                         if (! (Paso_checkPtr(out->x_F) || Paso_checkPtr(out->b_F) || Paso_checkPtr(out->x_C) || Paso_checkPtr(out->b_C) ) ) {
+                         if (! (Esys_checkPtr(out->x_F) || Esys_checkPtr(out->b_F) || Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {
                              #pragma omp parallel for private(i) schedule(static)
                              for (i = 0; i < out->n_F; ++i) {
                                          out->x_F[i]=0.;
@@ -356,7 +356,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
   TMPMEMFREE(mis_marker);
   TMPMEMFREE(counter);
 
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose && level>0 && !out->coarsest_level) {
          printf("AMLI: level: %d: %d unknowns eliminated. %d left.\n",level, out->n_F,out->n_C);
      }
@@ -410,7 +410,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      
      if (amli->coarsest_level) {
       
-      time0=Paso_timer();
+      time0=Esys_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
       if (amli->n_F==0 || amli->n_F==amli->n) {
 	 Paso_Preconditioner_LocalSmoother_solve(amli->A, amli->Smoother,x,b,1,FALSE);
@@ -428,19 +428,19 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
          #endif
        #endif
        }
-       time0=Paso_timer()-time0;
+       time0=Esys_timer()-time0;
        if (verbose) fprintf(stderr,"timing: DIRECT SOLVER: %e\n",time0);
        
      } else {
         /* presmoothing */
-         time0=Paso_timer();
+         time0=Esys_timer();
 	 Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,pre_sweeps,FALSE);
-         time0=Paso_timer()-time0;
+         time0=Esys_timer()-time0;
          if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
         /* end of presmoothing */
         
         
-         time0=Paso_timer();
+         time0=Esys_timer();
          #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<amli->n;++i) r[i]=b[i];
          
@@ -461,13 +461,13 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         /* b_C=b_C-A_CF*x_F */
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_CF,amli->x_F,1.,amli->b_C);
         
-        time0=Paso_timer()-time0;
+        time0=Esys_timer()-time0;
         if (verbose) fprintf(stderr,"timing: Before next level: %e\n",time0);
         
         /* x_C=AMLI(b_C)     */
         Paso_Solver_solveAMLI(amli->AMLI_of_Schur,amli->x_C,amli->b_C);
         
-        time0=Paso_timer();
+        time0=Esys_timer();
         
         /* b_F=-A_FC*x_C */ 
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,0.,amli->b_F);
@@ -490,13 +490,13 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
             }
         }
         
-        time0=Paso_timer()-time0;
+        time0=Esys_timer()-time0;
         if (verbose) fprintf(stderr,"timing: After next level: %e\n",time0);
 
      /*postsmoothing*/
-     time0=Paso_timer();
+     time0=Esys_timer();
      Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,post_sweeps,TRUE);     
-     time0=Paso_timer()-time0;
+     time0=Esys_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
 
      /*end of postsmoothing*/

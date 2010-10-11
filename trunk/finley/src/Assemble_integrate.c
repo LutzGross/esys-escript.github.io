@@ -31,7 +31,7 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     dim_t numQuadTotal;
     dim_t numComps=getDataPointSize(data);
     Finley_ElementFile_Jacobeans* jac=NULL;
-    Paso_MPI_rank my_mpi_rank;
+    Esys_MPI_rank my_mpi_rank;
     
     Finley_resetError();
     if (nodes==NULL || elements==NULL) return;

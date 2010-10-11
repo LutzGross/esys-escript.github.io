@@ -21,31 +21,25 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.modelframe import Model,ParameterSet
-from esys import finley
+import esys.finley
 
-class FinleyReader(ParameterSet):
+class DomainReader(ParameterSet):
+#class DudleyReader(ParameterSet):
        """
-       reads finley mesh file.
-
-       :ivar source: mesh file in finley or gmsh format
-       :type source: ``DataSource``
-       :ivar intergrationOrder: integration order, default -1 (in).
-       :type intergrationOrder: ``int``
-       :ivar reducedIntegrationOrder: reduced integration order, default -1 (in).
-       :type reducedIntegrationOrder: ``int``
-       :ivar optimizeLabeling: switches on optimization of the labeling of the nodes
-       :type optimizeLabeling: ``bool``
        """
-       def __init__(self,**kwargs):
+       def __init__(self,domainmodule=None, **kwargs):
           """
           initializes the object
           """
-          super(FinleyReader,self).__init__(**kwargs)
+          super(DudleyReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
                                 dim=None,
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
+	  if domainmodule==None:
+  		domainmodule=esys.finley
+	  self.__domainModule=domainmodule
           self.__domain=None
 
 
@@ -58,20 +52,25 @@ class FinleyReader(ParameterSet):
           """
           if self.__domain == None:
              if  self.source.fileformat == "fly":
-                self.__domain=finley.ReadMesh(self.source.getLocalFileName(),self.integrationOrder) 
+                self.__domain=self.__domainmodule.ReadMesh(self.source.getLocalFileName(),self.integrationOrder)
              elif self.source.fileformat == "gmsh":
                 if self.dim==None:
                    dim=3
                 else:
                    dim=self.dim
-                self.__domain=finley.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling) 
+                self.__domain=self.__domainmodule.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling)
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
+		
+class FinleyReader(DomainReader):
+	def __init__(self, **kw):
+		super().__init__(esys.finley, kw)
+		
 class RectangularDomain(ParameterSet):
        """
-       Generates a mesh over a rectangular domain finley.
+       Generates a mesh over a rectangular domain.
 
        :ivar dim: spatial dimension, default =2 (in).
        :type dim: spatial dimension
@@ -86,7 +85,7 @@ class RectangularDomain(ParameterSet):
        :ivar intergrationOrder: integration order, default -1 (in).
        :type intergrationOrder: ``int``
        """
-       def __init__(self,**kwargs):
+       def __init__(self,domainmodule=None,**kwargs):
            """
            initializes the object
            """
@@ -98,6 +97,9 @@ class RectangularDomain(ParameterSet):
                                  periodic=[False,False,False],
                                  integrationOrder=-1)
            self.__domain=None
+	   self.__domainModule=domainmodule
+	   if self.__domainModule==None:
+		self.__domainModule=esys.finley
 
        def domain(self):
            """
@@ -108,7 +110,7 @@ class RectangularDomain(ParameterSet):
            """
            if self.__domain==None:
               if self.dim==2:
-                   self.__domain=finley.Rectangle(n0=self.n[0],\
+                   self.__domain=self.__domainModule.Rectangle(n0=self.n[0],\
                                                 n1=self.n[2],\
                                                 l0=self.l[0],\
                                                 l1=self.l[2],\
@@ -117,7 +119,7 @@ class RectangularDomain(ParameterSet):
                                                 periodic1=self.periodic[2], \
                                                 integrationOrder=self.integrationOrder)
               else:
-                   self.__domain=finley.Brick(n0=self.n[0],\
+                   self.__domain=self__domainModule.Brick(n0=self.n[0],\
                                             n1=self.n[1],\
                                             n2=self.n[2],\
                                             l0=self.l[0],\

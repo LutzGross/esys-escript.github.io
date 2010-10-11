@@ -20,7 +20,7 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 
@@ -663,11 +663,11 @@ DataExpanded::dump(const std::string fileName) const
    const DataTypes::ShapeType& shape = getShape();
    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
    int mpi_num=getFunctionSpace().getDomain()->getMPISize();
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    MPI_Status status;
 #endif
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    /* Serialize NetCDF I/O */
    if (mpi_iam>0) MPI_Recv(&ndims, 0, MPI_INT, mpi_iam-1, 81801, MPI_COMM_WORLD, &status);
 #endif
@@ -727,7 +727,7 @@ DataExpanded::dump(const std::string fileName) const
      if (! (var->put(d_ptr,dims)) )
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
    }
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);
 #endif
    #else

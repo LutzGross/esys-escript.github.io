@@ -11,74 +11,220 @@
 #
 ########################################################
 
+import os
 
-import sys, os
+# PREFIXES:
+# There are two ways to specify where to find dependent headers and libraries
+# (via the <dependency>_prefix):
+# 1) If your installation follows the general scheme where headers are located
+#    in <prefix>/include[32,64], and libraries in <prefix>/lib[32,64] then
+#    it is sufficient to specify this prefix, e.g. boost_prefix='C:/python'
+# 2) Otherwise provide a list with two elements, where the first one is the
+#    include path, and the second the library path, e.g.
+#    boost_prefix=['C:/boost/include/boost1_44', 'C:/boost/lib']
+# All <dependency>_prefix settings default to '/usr' so have to be set
+# manually on Windows.
 
-source_root = os.path.realpath('.')
+# The options file version. SCons will refuse to build if there have been
+# changes to the set of variables and your file has not been updated.
+# This setting is mandatory.
+escript_opts_version = 200
 
-pyinstall = os.path.join(source_root,'esys')
-incinstall = os.path.join(source_root,'include')
-libinstall = os.path.join(source_root,'lib')
-exinstall = os.path.join(source_root,'examples')
+# Installation prefix. Files will be installed in subdirectories underneath.
+# DEFAULT: '.' (current directory)
+#prefix = 'C:/escript'
 
-# locations of files for python
-py_vers = '%s%s'%(sys.version_info[0],sys.version_info[1])
-python_root = 'C:/python' + py_vers
-python_cmd = os.path.join(python_root,'python')
-python_path =  os.path.join(python_root,'include')
-python_lib_path = os.path.join(python_root,'libs')
-python_libs = ['python' + py_vers]
+# C compiler command name or full path.
+# DEFAULT: auto-detected
+#cc = 'cl'
 
-# locations of libraries for boost
-dotdot = os.path.realpath('..')
-boost_path = os.path.join(dotdot,'boost_1_39_0')
-boost_lib_path = os.path.join(boost_path,'windows_binary','lib')
-boost_libs = ['boost_python-vc90-mt-1_39']
+# C++ compiler command name or full path.
+# DEFAULT: auto-detected
+#cxx = 'cl'
 
-# locations of netcdf
-useNetCDF = "yes"
-netCDF_root = os.path.join(dotdot,"netcdf")
-netCDF_path = os.path.join(netCDF_root,"src","include")
-netCDF_lib_path = os.path.join(netCDF_root,'lib')
-netCDF_libs = ["netcdf", "netcdf_cpp" ]
+# Flags to use with both C and C++ compilers. Do not set unless you know
+# what you are doing - use cc_extra to specify additional flags!
+# DEFAULT: compiler-dependent
+cc_flags = '/EHsc /GR /wd4068 /MD'
 
-cc_defines = ['_USE_MATH_DEFINES']
-# c flags to use
-# /wd4068 - ignore unknown pragmas.
-# /EHsc - /EHsc Catch C++ exceptions only, assume C code does not throw.
-# /GR - enable RTTI.
-# /MD - link to DLL multithreaded RTL
-# /ZI - dont put the library name in the .obj file.
-# /Yd - Put debug info in .obj file.
-# /Y- - Ignore precompiled header options, we don't want them.
-# /RTCcsu - Stack frame, use of uninitialised variabe and truncation checks.
-cc_flags  = '/EHsc /GR /wd4068  /MD'
-#cc_optim  = '/O2 /Op /W3'
-cc_optim  = '/O2 /W3'
-cc_debug  = '/Od /RTCcsu /ZI /Yd /Y-'
+# Additional compiler (optimization) flags for non-debug builds
+# DEFAULT: compiler-dependent
+cc_optim = '/O2 /W3'
 
-# MPI version using MSMPI
-usempi = 'yes'
-mpi_path = 'C:/Program Files/Microsoft HPC Pack 2008 SDK/include'
-mpi_lib_path = 'C:/Program Files/Microsoft HPC Pack 2008 SDK/lib/i386'
-mpi_libs = ['msmpi']
-mpi_flavour = 'MPICH2'
+# Additional compiler flags for debug builds
+# DEFAULT: compiler-dependent
+cc_debug = '/Od /RTCcsu /ZI /Yd /Y-'
 
-# linker flags to use
-#link_flags = ''
-#link_flags_debug = '/debug /incremental:no /opt:ref /opt:icf'
-# Extra flags to enable compiling on VS 9.0 on the HPC platform
+# Additional flags to add to the C compiler only
+# DEFAULT: '' (empty)
+#cc_extra = ''
+
+# Additional flags to add to the C++ compiler only
+# DEFAULT: '' (empty)
+#cxx_extra = ''
+
+# Additional flags to add to the linker
+# DEFAULT: '' (empty)
 ld_extra = '/LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib" \
             /LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT" \
-	    /LIBPATH:"C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib" \
+	        /LIBPATH:"C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib" \
             /LIBPATH:"C:/Windows/winsxs/x86_microsoft.vc90.crt_1fc8b3b9a1e18e3b_9.0.21022.8_none_bcb86ed6ac711f91" \
-            /LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio .NET 2003/SDK/v1.1/Lib"' 
+            /LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio .NET 2003/SDK/v1.1/Lib"'
 
-# static library archiver flags to use
-#ar_flags = 'crus'
+# Whether to treat compiler warnings as errors
+# DEFAULT: True
+werror = False
 
-# system specific libraries to link with - this is only used after compilation of the
-# sources. Don't rely on it linking the correct libs for cleaning, testing etc (see ld_extra)
-#sys_libs = ["C:/Windows/winsxs/x86_microsoft.vc90.crt_1fc8b3b9a1e18e3b_9.0.21022.8_none_bcb86ed6ac711f91/msvcp90"]
-sys_libs = []
-tools_names = ['msvc']
+# Whether to build a debug version
+# DEFAULT: False
+#debug = True
+
+# Set to True to print the full compiler/linker command line
+# DEFAULT: False
+verbose = True
+
+# Set to True to add flags that enable OpenMP parallelization
+# DEFAULT: False
+#openmp = True
+
+# Additional compiler flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_flags = '/Qopenmp /Qparallel'
+
+# Additional linker flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_ldflags = '/Qopenmp /Qparallel'
+
+# Flavour of MPI implementation
+# Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
+# DEFAULT: 'none' (disable MPI)
+mpi = 'MPICH2'
+
+# Prefix or paths to MPI headers and libraries. See note above about prefixes.
+mpi_prefix = ['C:/Program Files/Microsoft HPC Pack 2008 SDK/include', 'C:/Program Files/Microsoft HPC Pack 2008 SDK/lib/i386']
+
+# MPI libraries to link against
+mpi_libs = ['msmpi']
+
+dotdot = os.path.realpath('..')
+
+# Prefix or paths to boost-python headers and libraries. See note above.
+boost_prefix = [os.path.join(dotdot, 'boost_1_39_0'), os.path.join(dotdot, 'boost_1_39_0','windows_binary','lib')]
+
+# boost-python library/libraries to link against
+boost_libs = ['boost_python-vc90-mt-1_39']
+
+# Whether to use the netCDF library for dump file support
+# DEFAULT: False
+netcdf = True
+
+# Prefix or paths to netCDF headers and libraries. See note above.
+netcdf_prefix = [os.path.join(dotdot, 'netcdf', 'src', 'include'), os.path.join(dotdot, 'netcdf', 'lib')]
+
+# netCDF library/libraries to link against
+netcdf_libs = ['netcdf_cpp', 'netcdf']
+
+# Whether to use the parMETIS library (only in conjunction with MPI)
+# DEFAULT: False
+#parmetis = True
+
+# Prefix or paths to parMETIS headers and libraries. See note above.
+#parmetis_prefix = 'C:/parmetis'
+
+# parMETIS library/libraries to link against
+#parmetis_libs = ['parmetis', 'metis']
+
+# Whether to use the Intel PAPI (Performance API) library
+# DEFAULT: False
+#papi = True
+
+# Prefix or paths to PAPI headers and libraries. See note above.
+#papi_prefix = 'C:/papi'
+
+# PAPI library/libraries to link against
+#papi_libs = ['papi']
+
+# Whether to use PAPI to instrument solver iterations
+# DEFAULT: False
+#papi_instrument_solver = True
+
+# Whether to use Intel MKL (Math Kernel Library)
+# DEFAULT: False
+#mkl = True
+
+# Prefix or paths to MKL headers and libraries. See note above.
+#mkl_prefix = 'C:/mkl'
+
+# MKL library/libraries to link against
+#mkl_libs = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide']
+
+# Whether to use UMFPACK (requires AMD and BLAS)
+# DEFAULT: False
+#umfpack = True
+
+# Prefix or paths to UMFPACK headers and libraries. See note above.
+#umfpack_prefix = 'C:/umfpack'
+
+# UMFPACK library/libraries to link against
+#umfpack_libs = ['umfpack']
+
+# Flavour of LAPACK implementation
+# Recognized values: 'none', 'clapack', 'mkl'
+# DEFAULT: 'none' (do not use LAPACK)
+#lapack = 'clapack'
+
+# Prefix or paths to LAPACK headers and libraries. See note above.
+#lapack_prefix = 'C:/lapack'
+
+# LAPACK library/libraries to link against
+#lapack_libs = ['lapack_atlas']
+
+# Whether to use LLNL's SILO library for Silo output file support in weipa
+# DEFAULT: False
+#silo = True
+
+# Prefix or paths to SILO headers and libraries. See note above.
+#silo_prefix = 'C:/silo'
+
+# SILO library/libraries to link against
+#silo_libs = ['siloh5', 'hdf5']
+
+# Whether to use LLNL's VisIt simulation interface (only version 2 supported)
+# DEFAULT: False
+#visit = True
+
+# Prefix or paths to VisIt's sim2 headers and libraries. See note above.
+#visit_prefix = 'C:/visit/2.1.0/linux-intel/libsim/V2'
+
+# Sim2 library/libraries to link against
+#visit_libs = ['simV2']
+
+# Whether to enable the deprecated PyVisi interface (requires the VTK python
+# modules)
+# DEFAULT: False
+#pyvisi = True
+
+
+### ADVANCED OPTIONS ###
+# Do not change the following options unless you know what they do
+
+# Extra libraries to link with
+sys_libs = ['C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32']
+
+# Additional environmental variables to export to the tools
+#env_export = []
+
+# Build a shared esysUtils library
+#share_esysutils = True
+
+# Build a shared paso library
+#share_paso = True
+
+#tools_names = ['msvc']
+
+#iknowwhatimdoing = False
+
+#forcelazy = 'leave_alone'
+
+#forcecollres = 'leave_alone'
+

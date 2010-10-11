@@ -22,9 +22,10 @@
 #include "escript/DataC.h"
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
+#include "esysUtils/Esys_MPI.h"
 
 struct Finley_NodeFile {
-  Paso_MPIInfo *MPIInfo;              /* MPI information */
+  Esys_MPIInfo *MPIInfo;              /* MPI information */
 
   dim_t numNodes;                      /* number of nodes */
   dim_t numDim;                        /* spatial dimension */
@@ -74,7 +75,7 @@ typedef struct Finley_NodeFile Finley_NodeFile;
 
 
 
-Finley_NodeFile* Finley_NodeFile_alloc(dim_t, Paso_MPIInfo *MPIInfo);
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t, Esys_MPIInfo *MPIInfo);
 index_t Finley_NodeFile_getFirstReducedNode(Finley_NodeFile* in);
 index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in);
 dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in);
@@ -125,7 +126,7 @@ dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
 dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution);
 dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
 dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
-void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Paso_MPI_rank* mpiRankOfDOF, index_t *distribution);
+void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Esys_MPI_rank* mpiRankOfDOF, index_t *distribution);
 void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_gather_global(index_t*,Finley_NodeFile*,Finley_NodeFile*);
 void Finley_NodeFile_gatherEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);

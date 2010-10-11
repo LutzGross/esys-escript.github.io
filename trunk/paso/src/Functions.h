@@ -17,7 +17,7 @@
 
 
 #include "Common.h"
-#include "Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 #include "performance.h"
 
 enum Paso_FunctionType {
@@ -30,7 +30,7 @@ typedef enum Paso_FunctionType Paso_FunctionType;
 typedef struct Paso_Function {
   Paso_FunctionType kind;
   dim_t n;
-  Paso_MPIInfo *mpi_info;
+  Esys_MPIInfo *mpi_info;
   double *b;
   double *tmp;
   void *more;

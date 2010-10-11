@@ -11,114 +11,200 @@
 #
 ########################################################
 
+# The options file version. SCons will refuse to build if there have been
+# changes to the set of variables and your file has not been updated.
+# This setting is mandatory.
+escript_opts_version = 200
 
-# Configuration for guineapig (64-bit Intel running Debian)
+# Installation prefix. Files will be installed in subdirectories underneath.
+# DEFAULT: '.' (current directory)
+#prefix = '/usr/local'
 
-# If you cannot use the default compiler flags set in SConstruct, then change them here
-# C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
-cc='gcc-4.4'
-cxx='g++-4.4'
-# cc_flags		= '-ansi'
-# cc_optim		= '-O2'
-# cc_debug		= '-g'
-omp_optim		= '-fopenmp'
-omp_debug		= '-fopenmp'
-omp_libs		= []
+# C compiler command name or full path.
+# DEFAULT: auto-detected
+#cc = 'gcc'
 
-# Use the default C/C++ flags but add something only for this host:
-#cc_extra		= '-Wall -pedantic -isystem /usr/include/boost/ -isystem /usr/include/python2.5/ -Wno-sign-compare -Wno-long-long'
-#cc_extra		= '-fopenmp'
-ld_extra		= '-fopenmp'
+# C++ compiler command name or full path.
+# DEFAULT: auto-detected
+#cxx = 'g++'
+
+# Flags to use with both C and C++ compilers. Do not set unless you know
+# what you are doing - use cc_extra to specify additional flags!
+# DEFAULT: compiler-dependent
+#cc_flags = ''
+
+# Additional compiler (optimization) flags for non-debug builds
+# DEFAULT: compiler-dependent
+#cc_optim = '-O3 -mmmx -msse'
+
+# Additional compiler flags for debug builds
+# DEFAULT: compiler-dependent
+#cc_debug = '-g'
+
+# Additional flags to add to the C compiler only
+# DEFAULT: '' (empty)
 cc_extra = '--std=c99 -isystem /usr/local/py2.6.2/silo4.7.2/include'
+
+# Additional flags to add to the C++ compiler only
+# DEFAULT: '' (empty)
 cxx_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 
-# Be picky about errors
-# usepedantic		= 'no'
+# Additional flags to add to the linker
+# DEFAULT: '' (empty)
+#ld_extra = ''
 
-# Extra libraries
-# sys_libs		= ['guide', 'pthread', 'stdc++']
+# Whether to treat compiler warnings as errors
+# DEFAULT: True
+#werror = False
 
-# Python libraries
-#python_path		= '/usr/local/python2.6.2/include/python2.6'	# For our local build
-#python_lib_path		= '/usr/local/python2.6.2/lib'		# For our local build
-python_path		= '/usr/include/python2.6'
-python_lib_path		= ''		# Its in the standard path
+# Whether to build a debug version
+# DEFAULT: False
+#debug = True
 
-python_libs		= 'python2.6'
-# python_cmd		= 'python'
+# Set to True to print the full compiler/linker command line
+# DEFAULT: False
+#verbose = True
 
-# Boost libraries
-#boost_path		= '/usr/local/py2.6.2/boost1.39.0/include/boost-1_39'	# For our local build
-#boost_lib_path		= '/usr/local/py2.6.2/boost1.39.0/lib'			# For our local build
-#boost_libs		= ['libboost_python-gcc44-mt']
-boost_libs		= ['libboost_python-mt-py26.so']
+# Set to True to add flags that enable OpenMP parallelization
+# DEFAULT: False
+openmp = True
 
-# Specify whether or not to use VTK
-usevtk          = 'no'
+# Additional compiler flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_flags = '-fopenmp'
 
-# NetCDF
-#usenetcdf		= 'yes'
-#netCDF_path		= '/usr/local/py2.6.2/netcdf4.0/include'
-#netCDF_lib_path		= '/usr/local/py2.6.2/netcdf4.0/lib'
-#netCDF_libs		= ['netcdf_c++', 'netcdf']
+# Additional linker flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_ldflags = '-fopenmp'
 
-# Silo
-usesilo         = 'yes'
-silo_path       = '/usr/local/py2.6.2/silo4.7.2/include'
-silo_lib_path   = '/usr/local/py2.6.2/silo4.7.2/lib'
-silo_libs       = ['siloh5', 'hdf5']
+# Flavour of MPI implementation
+# Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
+# DEFAULT: 'none' (disable MPI)
+mpi = 'OPENMPI'
 
-# MKL
-# usemkl		= 'yes'
-# mkl_path		= '/sw/sdev/cmkl/10.0.2.18/include'
-# mkl_lib_path		= '/sw/sdev/cmkl/10.0.2.18/lib/em64t'
-# mkl_libs		= ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
+# Prefix or paths to MPI headers and libraries. See note above about prefixes.
+mpi_prefix = '/usr/lib/openmpi'
 
-# UMFPACK (requires AMD and BLAS)
-useumfpack		= 'yes'
-ufc_path		= '/usr/include/suitesparse'
-umf_path		= '/usr/include/suitesparse'
-umf_lib_path		= '/usr/lib'
-umf_libs		= ['umfpack']
-amd_path		= '/usr/include/suitesparse'
-amd_lib_path		= '/usr/lib'
-amd_libs		= ['amd']
-blas_path		= '/usr/include'
-blas_lib_path		= '/usr/lib'
-blas_libs		= ['blas']
+# MPI libraries to link against
+mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
-# OpenMP
-useopenmp		= 'yes'
+# Prefix or paths to boost-python headers and libraries. See note above.
+#boost_prefix = '/usr/local'
 
-usempi 			= 'yes'
-mpi_flavour 		= 'OPENMPI'
-mpi_path		= '/usr/include/openmpi/'
-mpi_lib_path		= '/usr/lib/openmpi/lib/'
-mpi_libs		= ['libmpi','libmpi_cxx']
+# boost-python library/libraries to link against
+boost_libs = ['boost_python-mt-py26']
 
-# MPICH2 (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-# usempi		= 'no'
-# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
-# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
-# mpi_libs		= ['mpich', 'rt']
-# mpi_flavour		= "MPICH"
+# Whether to use the netCDF library for dump file support
+# DEFAULT: False
+netcdf = True
 
-# MPICH2 for jumpshot (to run Escript use: module load mpich2/gcc-4.1.2/mpich2-1.0.7)
-# mpi_path		= '/home/Work/InstallArea/mpich2-1.0.7/include'
-# mpi_lib_path		= '/home/Work/InstallArea/mpich2-1.0.7/lib'
-# mpi_libs		= ['lmpe', 'mpe', 'mpich', 'rt']
-# mpi_flavour		= "MPICH"
+# Prefix or paths to netCDF headers and libraries. See note above.
+#netcdf_prefix = '/usr/local'
 
-# ParMETIS (for use with MPI)
-# useparmetis		= 'yes'
-# parmetis_path		= '/home/Work/InstallArea/parmetis-3.1/include'
-# parmetis_lib_path	= '/home/Work/InstallArea/parmetis-3.1/lib'
-# parmetis_libs		= ['parmetis', 'metis']
+# netCDF library/libraries to link against
+#netcdf_libs = ['netcdf_c++', 'netcdf']
 
-# PAPI
-# usepapi		= 'no'
-# papi_path		= '/usr/include'
-# papi_lib_path		= '/usr/lib'
-# papi_libs		= ['papi']
-# papi_instrument_solver	= 'no'
+# Whether to use the parMETIS library (only in conjunction with MPI)
+# DEFAULT: False
+#parmetis = True
+
+# Prefix or paths to parMETIS headers and libraries. See note above.
+#parmetis_prefix = '/usr/local'
+
+# parMETIS library/libraries to link against
+#parmetis_libs = ['parmetis', 'metis']
+
+# Whether to use the Intel PAPI (Performance API) library
+# DEFAULT: False
+#papi = True
+
+# Prefix or paths to PAPI headers and libraries. See note above.
+#papi_prefix = '/usr/local'
+
+# PAPI library/libraries to link against
+#papi_libs = ['papi']
+
+# Whether to use PAPI to instrument solver iterations
+# DEFAULT: False
+#papi_instrument_solver = True
+
+# Whether to use Intel MKL (Math Kernel Library)
+# DEFAULT: False
+#mkl = True
+
+# Prefix or paths to MKL headers and libraries. See note above.
+#mkl_prefix = '/usr'
+
+# MKL library/libraries to link against
+#mkl_libs = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
+
+# Whether to use UMFPACK (requires AMD and BLAS)
+# DEFAULT: False
+umfpack = True
+
+# Prefix or paths to UMFPACK headers and libraries. See note above.
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
+
+# UMFPACK library/libraries to link against
+umfpack_libs = ['umfpack', 'amd', 'blas']
+
+# Flavour of LAPACK implementation
+# Recognized values: 'none', 'clapack', 'mkl'
+# DEFAULT: 'none' (do not use LAPACK)
+lapack = 'clapack'
+
+# Prefix or paths to LAPACK headers and libraries. See note above.
+#lapack_prefix = '/usr/local'
+
+# LAPACK library/libraries to link against
+lapack_libs = ['lapack_atlas']
+
+# Whether to use LLNL's SILO library for Silo output file support in weipa
+# DEFAULT: False
+silo = True
+
+# Prefix or paths to SILO headers and libraries. See note above.
+silo_prefix = '/usr/local/py2.6.2/silo4.7.2'
+
+# SILO library/libraries to link against
+silo_libs = ['siloh5', 'hdf5']
+
+# Whether to use LLNL's VisIt simulation interface (only version 2 supported)
+# DEFAULT: False
+#visit = True
+
+# Prefix or paths to VisIt's sim2 headers and libraries. See note above.
+#visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+
+# Sim2 library/libraries to link against
+#visit_libs = ['simV2']
+
+# Whether to enable the deprecated PyVisi interface (requires the VTK python
+# modules)
+# DEFAULT: False
+#pyvisi = True
+
+
+### ADVANCED OPTIONS ###
+# Do not change the following options unless you know what they do
+
+# Extra libraries to link with
+#sys_libs = []
+
+# Additional environmental variables to export to the tools
+#env_export = []
+
+# Build a shared esysUtils library
+#share_esysutils = True
+
+# Build a shared paso library
+#share_paso = True
+
+#tools_names = ['default']
+
+#iknowwhatimdoing = False
+
+#forcelazy = 'leave_alone'
+
+#forcecollres = 'leave_alone'
 

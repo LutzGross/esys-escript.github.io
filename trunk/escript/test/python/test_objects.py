@@ -25,8 +25,8 @@ Test suite for data objects. at the moment for dump and load only.
 The tests must be linked with some function space class object in the setUp method:
 to run the use:
 
-   from esys.finley import Brick
-   class Test_DumpOnFinley(Test_Dump):
+   from esys.dudley import Brick
+   class Test_DumpOnDudley(Test_Dump):
        def setUp(self):
           self.domain =Rectangle(NE,NE+1,2)
           self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
@@ -35,7 +35,7 @@ to run the use:
           self.filename_base="."
 
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_DumpOnFinley))
+   suite.addTest(unittest.makeSuite(Test_DumpOnDudley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author
@@ -153,7 +153,7 @@ class Test_saveCSV(unittest.TestCase):
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount!=self.linecount1*2)
+	self.failUnless(linecount==self.linecount1*2)
 	f.close()
 	#Now to other output
 	T2=Tensor(7,X.getFunctionSpace())
@@ -171,7 +171,7 @@ class Test_saveCSV(unittest.TestCase):
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount!=self.linecount1)
+	self.failUnless(linecount==self.linecount1)
 	f.close()	
 	#Now to test separators and mask
 	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
@@ -179,9 +179,8 @@ class Test_saveCSV(unittest.TestCase):
 	line=f.readline()
 	self.failUnless(line=='U/0|U/1|V\n')
 	line=f.readline()
-	line_expected=[0.125, 0., 0.125]
 	line_got=[float(elt) for elt in line.split('|')]
-	self.failUnless(line_expected==line_got)
+	self.failUnless(self.line_expected==line_got)
 	linecount=1
 	while line!='':
 		linecount+=1

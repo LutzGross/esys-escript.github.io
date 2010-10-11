@@ -22,7 +22,7 @@
 #include <omp.h>
 #endif
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 
@@ -88,7 +88,7 @@ err_t Paso_Solver_PCG(
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   double loc_sum[2], sum[2];
 #endif
   double norm_of_residual=0,norm_of_residual_global;
@@ -211,7 +211,7 @@ err_t Paso_Solver_PCG(
                      sum_1+=ss;
                   }
            }
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
 	        /* In case we have many MPI processes, each of which may have several OMP threads:
 	           OMP master participates in an MPI reduction to get global sum_1 */
 	        loc_sum[0] = sum_1;
@@ -282,7 +282,7 @@ err_t Paso_Solver_PCG(
                              sum_2+=ss;
                   }
            }
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
 	      loc_sum[0] = sum_2;
 	      MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
@@ -326,7 +326,7 @@ err_t Paso_Solver_PCG(
                      sum_4+=ss1;
                   }
                }
-               #ifdef PASO_MPI
+               #ifdef ESYS_MPI
 	           loc_sum[0] = sum_3;
 	           loc_sum[1] = sum_4;
 	           MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
@@ -367,7 +367,7 @@ err_t Paso_Solver_PCG(
                       sum_5+=ss;
                   }
                 }
-                #ifdef PASO_MPI
+                #ifdef ESYS_MPI
 	           loc_sum[0] = sum_5;
 	           MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 #endif

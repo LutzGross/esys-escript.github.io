@@ -20,6 +20,7 @@
 
 #include "Util.h"
 #include "Assemble.h"
+#include "esysUtils/Esys_MPI.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -177,7 +178,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
 	    requireWrite(out);
             if  (out_data_type == FINLEY_NODES) {
                coupler=Paso_Coupler_alloc(nodes->degreesOfFreedomConnector,numComps);
-               if (Paso_noError()) {
+               if (Esys_noError()) {
 		    /* It is not immediately clear whether coupler can be trusted with constant data so I'll assume RW */
 		    /* Also, it holds pointers so it might not be safe to use on lazy data anyway?*/
 		    requireWrite(in);
@@ -204,7 +205,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
                Paso_Coupler_free(coupler);
             } else if  (out_data_type == FINLEY_REDUCED_NODES) {
                coupler=Paso_Coupler_alloc(nodes->degreesOfFreedomConnector,numComps);
-               if (Paso_noError()) {
+               if (Esys_noError()) {
 		    requireWrite(in);	/* See comment above about coupler and const */
                     Paso_Coupler_startCollect(coupler,getDataRW(in));
                     recv_buffer=Paso_Coupler_finishCollect(coupler);
@@ -262,7 +263,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escr
              Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
            } else if (out_data_type == FINLEY_REDUCED_NODES) {
                coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
-               if (Paso_noError()) {
+               if (Esys_noError()) {
                     upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
 		    requireWrite(in);			/* See comment about coupler and const */
                     Paso_Coupler_startCollect(coupler,getDataRW(in));

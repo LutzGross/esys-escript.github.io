@@ -42,9 +42,9 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
    index_t* main_ptr=Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
    /* check matrix is square */
    if (m_block != n_block) {
-      Paso_setError(TYPE_ERROR, "Paso_SparseMatrix_invMain: square block size expected.");
+      Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_invMain: square block size expected.");
    }
-   if (Paso_noError()) {
+   if (Esys_noError()) {
          
       if (n_block==1) {
           #pragma omp parallel for private(i, iPtr, A11) schedule(static)
@@ -54,7 +54,7 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 	    if ( ABS(A11) > 0.) { 
 	        inv_diag[i]=1./A11;
 	    } else {
-	       Paso_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
+	       Esys_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
 	    }
          }
       } else if (n_block==2) {
@@ -73,7 +73,7 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 		 inv_diag[i*4+2]=-A12*D;
 		 inv_diag[i*4+3]= A11*D;
 	       } else {
-		  Paso_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
+		  Esys_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
 	       }
 	}
       } else if (n_block==3) {
@@ -102,7 +102,7 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 		 inv_diag[i*9+7]=(A13*A21-A11*A23)*D;
 		 inv_diag[i*9+8]=(A11*A22-A12*A21)*D;
 	      } else {
-		 Paso_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
+		 Esys_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
 	      }
           }
       } else {     
@@ -117,10 +117,10 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 	    
 	    dgetrf_(n_block, m_block, &(diag[i*block_size], n_block, pivot[i*n_block], info );
 	    if (INFO >0 ) {
-	       Paso_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
+	       Esys_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
           }
 	 */
-	 Paso_setError(TYPE_ERROR, "Paso_SparseMatrix_invMain: Right now there is support block size less than 4 only");
+	 Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_invMain: Right now there is support block size less than 4 only");
       }
    }
 }

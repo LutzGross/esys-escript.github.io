@@ -58,42 +58,42 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
   
   /* allocations: */  
   Paso_Preconditioner_Smoother* out=MEMALLOC(1,Paso_Preconditioner_Smoother);
-  if (! Paso_checkPtr(out)) {
+  if (! Esys_checkPtr(out)) {
      out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
      out->is_local=is_local;
   }
-  if (Paso_MPIInfo_noError(A_p->mpi_info)) {
+  if (Esys_MPIInfo_noError(A_p->mpi_info)) {
      return out;
   } else {
      Paso_Preconditioner_Smoother_free(out);
      return NULL;
   }
 }
-Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, const bool_t verbose)
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, bool_t verbose)
 {
    
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
    dim_t block_size=A_p->block_size;
    
-   double time0=Paso_timer();
+   double time0=Esys_timer();
    /* allocations: */  
    Paso_Preconditioner_LocalSmoother* out=MEMALLOC(1,Paso_Preconditioner_LocalSmoother);
-   if (! Paso_checkPtr(out)) {
+   if (! Esys_checkPtr(out)) {
       
       out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
       out->pivot=MEMALLOC( ((size_t) n) * ((size_t)  n_block), index_t);
       out->buffer=MEMALLOC( ((size_t) n) * ((size_t)  n_block), double);
       out->Jacobi=jacobi;
       
-      if ( ! ( Paso_checkPtr(out->diag) || Paso_checkPtr(out->pivot) ) ) {
+      if ( ! ( Esys_checkPtr(out->diag) || Esys_checkPtr(out->pivot) ) ) {
 	 Paso_SparseMatrix_invMain(A_p, out->diag, out->pivot );
       }
       
    }
-   time0=Paso_timer()-time0;
+   time0=Esys_timer()-time0;
    
-   if (Paso_noError()) {
+   if (Esys_noError()) {
       if (verbose) {
 	 if (jacobi) {
 	   printf("timing: Jacobi preparation: elemination : %e\n",time0);

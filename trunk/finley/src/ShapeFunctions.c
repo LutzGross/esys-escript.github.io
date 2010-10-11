@@ -19,6 +19,9 @@
 /**************************************************************/
 
 #include "ShapeFunctions.h"
+#include "esysUtils/mem.h"
+#include "esysUtils/index.h"
+#include <string.h>
 
 
 

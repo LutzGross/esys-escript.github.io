@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Brick
+from esys.dudley import Brick
 from numpy import identity,zeros,ones
 import matplotlib
 

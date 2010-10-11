@@ -36,7 +36,7 @@ string insertTimestep(const string& fString, int timeStep, int tsMultiplier)
             endpos++;
         string fmtStr = s.substr(pos, endpos-pos+1);
         char ts[255];
-        snprintf(ts, 255, fmtStr.c_str(), timeStep*tsMultiplier);
+        sprintf(ts, fmtStr.c_str(), timeStep*tsMultiplier);
         s.replace(pos, endpos-pos+1, ts);
     }
     return s;

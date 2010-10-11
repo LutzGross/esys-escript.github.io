@@ -25,14 +25,14 @@
 
 /**************************************************************/
 
-void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t* Id) {
+void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI_rank* mpiRankOfDOF, index_t* Id) {
      size_t size_size;
-     Paso_MPI_rank myRank, p, *Owner_buffer=NULL, loc_proc_mask_max;
+     Esys_MPI_rank myRank, p, *Owner_buffer=NULL, loc_proc_mask_max;
      dim_t e, j, i, size, *send_count=NULL, *recv_count=NULL, *newOwner=NULL, *loc_proc_mask=NULL, *loc_send_count=NULL,
            newNumElements, numElementsInBuffer, numNodes, numRequests, NN;
      index_t *send_offset=NULL, *recv_offset=NULL, *Id_buffer=NULL, *Tag_buffer=NULL, *Nodes_buffer=NULL, k;
      bool_t *proc_mask=NULL;
-     #ifdef PASO_MPI
+     #ifdef ESYS_MPI
         MPI_Request* mpi_requests=NULL;
         MPI_Status* mpi_stati=NULL;
      #endif
@@ -43,7 +43,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
      numNodes=self->numNodes;
      NN=self->numNodes;
      if (size>1) {
-         #ifdef PASO_MPI
+         #ifdef ESYS_MPI
             mpi_requests=TMPMEMALLOC(8*size, MPI_Request);
             mpi_stati=TMPMEMALLOC(8*size, MPI_Status);
             Finley_checkPtr(mpi_requests);
@@ -54,7 +54,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            and define a new element owner as the processor with the largest number of DOFs and the smallest id */
         send_count=TMPMEMALLOC(size,dim_t);
         recv_count=TMPMEMALLOC(size,dim_t);
-        newOwner=TMPMEMALLOC(self->numElements,Paso_MPI_rank);
+        newOwner=TMPMEMALLOC(self->numElements,Esys_MPI_rank);
         if ( !( Finley_checkPtr(send_count) || Finley_checkPtr(recv_count) || Finley_checkPtr(newOwner) ) ) {
            memset(send_count, 0, size_size);
            #pragma omp parallel private(p,loc_proc_mask,loc_send_count)
@@ -90,7 +90,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
                THREAD_MEMFREE(loc_proc_mask);
                THREAD_MEMFREE(loc_send_count);
            }
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
               MPI_Alltoall(send_count,1,MPI_INT,recv_count,1,MPI_INT,self->MPIInfo->comm);
            #else
               for (p=0;p<size;++p) recv_count[p]=send_count[p];
@@ -105,7 +105,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            /* allocate buffers */
            Id_buffer=TMPMEMALLOC(numElementsInBuffer,index_t);
            Tag_buffer=TMPMEMALLOC(numElementsInBuffer,index_t);
-           Owner_buffer=TMPMEMALLOC(numElementsInBuffer,Paso_MPI_rank);
+           Owner_buffer=TMPMEMALLOC(numElementsInBuffer,Esys_MPI_rank);
            Nodes_buffer=TMPMEMALLOC(numElementsInBuffer*NN,index_t);
            send_offset=TMPMEMALLOC(size,index_t);
            recv_offset=TMPMEMALLOC(size,index_t);
@@ -146,7 +146,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
               numRequests=0;
               for (p=0;p<size;++p) {
                  if (recv_count[p]>0) {
-                    #ifdef PASO_MPI
+                    #ifdef ESYS_MPI
                     MPI_Irecv(&(self->Id[recv_offset[p]]), recv_count[p], 
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+myRank,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -169,7 +169,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
               /* now the buffers can be send away */
               for (p=0;p<size;++p) {
                  if (send_count[p]>0) {
-                   #ifdef PASO_MPI
+                   #ifdef ESYS_MPI
                    MPI_Issend(&(Id_buffer[send_offset[p]]), send_count[p], 
                               MPI_INT, p, self->MPIInfo->msg_tag_counter+p,
                               self->MPIInfo->comm, &mpi_requests[numRequests]);
@@ -192,7 +192,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
               }
               self->MPIInfo->msg_tag_counter+=4*size;
               /* wait for the requests to be finalized */
-              #ifdef PASO_MPI
+              #ifdef ESYS_MPI
               MPI_Waitall(numRequests,mpi_requests,mpi_stati);
               #endif
            }
@@ -205,7 +205,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI
            TMPMEMFREE(recv_offset);
            TMPMEMFREE(proc_mask);
         }
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
             TMPMEMFREE(mpi_requests);
             TMPMEMFREE(mpi_stati);
         #endif

@@ -97,7 +97,7 @@ void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* 
 #define Paso_BlockOps_Solve_N(N, R, MAT, pivot, V) \
 { \
    *(pivot+0)=0;\
-   Paso_setError(TYPE_ERROR, "Paso_BlockOps_Solve_N: Right now there is support block size less than 4 only"); \
+   Esys_setError(TYPE_ERROR, "Paso_BlockOps_Solve_N: Right now there is support block size less than 4 only"); \
 } \
 
 #define Paso_BlockOps_SMV_1(R, MAT, V)   \

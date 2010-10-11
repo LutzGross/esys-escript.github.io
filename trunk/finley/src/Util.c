@@ -25,6 +25,11 @@
 #include <omp.h>
 #endif
 
+#include "esysUtils/mem.h"
+#include "esysUtils/index.h"
+#include <string.h>   /* for memcpy */
+
+
 /**************************************************************/
 
 /*   returns true if any of the values in the short array values is not equalt to Zero */
@@ -536,7 +541,7 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    #endif
    return out;
 }
-void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Paso_MPIInfo* mpiinfo)
+void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Esys_MPIInfo* mpiinfo)
 {
    dim_t i;
    index_t lastFoundValue=INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse=NULL;
@@ -563,7 +568,7 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
             }
 
          }
-         #ifdef PASO_MPI
+         #ifdef ESYS_MPI
          local_minFoundValue=minFoundValue;
          MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm );
          #endif
@@ -588,7 +593,7 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
 }
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  )
 {
   index_t i;

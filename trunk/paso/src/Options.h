@@ -26,7 +26,7 @@
 #ifndef INC_PASO_OPTIONS
 #define INC_PASO_OPTIONS
 
-#include "Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 
 /* solver options */
 
@@ -125,9 +125,9 @@ void Paso_Options_show(const Paso_Options* options);
 PASO_DLL_API
 void Paso_Options_showDiagnostics(const Paso_Options* options);
 const char* Paso_Options_name(const index_t key);
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info);
+index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info);
 
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, Paso_MPIInfo *mpi_info);
+index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info);
 
 #define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
 

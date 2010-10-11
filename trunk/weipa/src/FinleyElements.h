@@ -18,12 +18,14 @@
 #include <weipa/FinleyNodes.h>
 
 extern "C" {
-#include <finley/ReferenceElements.h> // for ElementTypeId
+#include <dudley/ElementType.h> // for Dudley_ElementTypeId
+#include <finley/ReferenceElements.h> // for Finley_ElementTypeId
 }
 
 class DBfile;
 class NcFile;
 
+struct Dudley_ElementFile;
 struct Finley_ElementFile;
 
 namespace weipa {
@@ -64,6 +66,9 @@ public:
 
     /// \brief Destructor
     virtual ~FinleyElements() {}
+
+    /// \brief Initialises with data from a Dudley_ElementFile instance.
+    bool initFromDudley(const Dudley_ElementFile* dudleyFile);
 
     /// \brief Initialises with data from a Finley_ElementFile instance.
     bool initFromFinley(const Finley_ElementFile* finleyFile);
@@ -108,7 +113,7 @@ public:
     virtual ZoneType getType() const { return type; }
 
     /// \brief Returns the original type id of the Finley reference elements.
-    ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
+    Finley_ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
 
     /// \brief Returns a vector of the node IDs used by the elements.
     virtual const IntVec& getNodeList() const { return nodes; }
@@ -137,7 +142,8 @@ public:
 
 private:
     FinleyElements() {}
-    FinleyElementInfo getFinleyTypeInfo(ElementTypeId typeId);
+    FinleyElementInfo getDudleyTypeInfo(Dudley_ElementTypeId typeId);
+    FinleyElementInfo getFinleyTypeInfo(Finley_ElementTypeId typeId);
     void buildMeshes();
     void buildReducedElements(const FinleyElementInfo& f);
     IntVec prepareGhostIndices(int ownIndex);
@@ -152,7 +158,7 @@ private:
     int numGhostElements;
     int nodesPerElement;
     ZoneType type;
-    ElementTypeId finleyTypeId;
+    Finley_ElementTypeId finleyTypeId;
     IntVec nodes;
     IntVec color, ID, tag;
     IntVec owner;

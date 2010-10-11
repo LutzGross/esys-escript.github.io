@@ -48,7 +48,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
   dim_t block_size=W->row_block_size;
 
   index_list=TMPMEMALLOC(n,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<n;++i) {
              index_list[i].extension=NULL;
@@ -171,7 +171,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
   index_t iptr,jptr;
 
   index_list=TMPMEMALLOC(C,Paso_IndexList);
-   if (! Paso_checkPtr(index_list)) {
+   if (! Esys_checkPtr(index_list)) {
         #pragma omp parallel for private(i) schedule(static)
         for(i=0;i<C;++i) {
              index_list[i].extension=NULL;
@@ -623,15 +623,15 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
   double time0=0;
   bool_t verbose=0;
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   outpattern=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,A->pattern,B->pattern);
   out=Paso_SparseMatrix_alloc(A->type, outpattern, block_size, block_size, FALSE);
   
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Paso_SparseMatrix_MatrixMatrix: Pattern creation: %e\n",time0);
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   if(block_size==1) {
         #pragma omp parallel for private(i,iptrC,j,sum,iptrA,k,b_lj,iptrB,l) schedule(static)
@@ -757,7 +757,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_Spa
    
   }
   
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Paso_SparseMatrix_MatrixMatrix: Matrix multiplication: %e\n",time0);
       
   Paso_Pattern_free(outpattern);
@@ -778,18 +778,18 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
   double time0=0;
   bool_t verbose=0;
   
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   temp=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,A->pattern,P->pattern);
   outpattern=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,R->pattern,temp);
   A_c=Paso_SparseMatrix_alloc(A->type,outpattern,1,1, TRUE);
   
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Paso_Solver_getCoarseMatrix: Pattern creation: %e\n",time0);
   
   /*a^c_ij=sum_k^n(r_ik)sum_l^n(a_kl*P_lj)*/
 
-  time0=Paso_timer();
+  time0=Esys_timer();
   
   #pragma omp parallel for private(i,iptrA_c,j,second_sum,iptrR,k,first_sum,p_lj,iptrP,m,a_kl,r_ik) schedule(static)
   for(i = 0; i < A_c->numRows; i++) {
@@ -819,7 +819,7 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A,Paso_SparseM
       A_c->val[iptrA_c]=second_sum;
      }
   }
-  time0=Paso_timer()-time0;
+  time0=Esys_timer()-time0;
   if (verbose) fprintf(stdout,"timing: Paso_Solver_getCoarseMatrix: Matrix multiplication: %e\n",time0);
     
   Paso_Pattern_free(outpattern);

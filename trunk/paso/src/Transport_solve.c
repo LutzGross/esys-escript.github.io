@@ -60,10 +60,10 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 
 
    if (dt<=0.) {
-       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
+       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
    }
    if (blockSize>1) {
-       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >0 is not supported.");
+       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >0 is not supported.");
     } 
    if (options->verbose) {
       if (fctp->useBackwardEuler) {
@@ -72,7 +72,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
          printf("Paso_TransportProblem_solve: Crank-Nicolson is used (dt = %e).\n",dt);
       }
    }
-   if (Paso_noError()) {
+   if (Esys_noError()) {
         dt_max=Paso_TransportProblem_getSafeTimeStepSize(fctp);
         /* 
          *  allocate memory
@@ -81,15 +81,15 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
           fctfunction=Paso_FCTSolver_Function_alloc(fctp,options);
           rsolver=Paso_ReactiveSolver_alloc(fctp); 
 	  u_save=TMPMEMALLOC(n,double);
-          Paso_checkPtr(u_save);
+          Esys_checkPtr(u_save);
     }
-   if (Paso_noError()) {  
+   if (Esys_noError()) {  
        /*
         * let the show begin!!!!
         *
         */
 	
-        /* while(i_substeps<n_substeps && Paso_noError()) */
+        /* while(i_substeps<n_substeps && Esys_noError()) */
         if (dt_max < LARGE_POSITIVE_FLOAT) {
             dt2=MIN(dt_max,dt);
         } else {
@@ -101,7 +101,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	Paso_Copy(n,u_save, u); /* create copy for restart in case of failure */
 	
 	
-	while( (dt-t)>dt*sqrt(EPSILON) && Paso_noError()) {
+	while( (dt-t)>dt*sqrt(EPSILON) && Esys_noError()) {
 
 	    n_substeps=ceil((dt-t)/dt2);
 	    dt3=(dt-t)/n_substeps;
@@ -111,7 +111,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
             Paso_FCTSolver_Function_initialize(dt3, fctp,options, &pp);
             Paso_ReactiveSolver_initialize(dt3, fctp, options);
 	    /* start iteration */
-	    for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Paso_noError(); i_substeps++) {
+	    for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
 	        if (options->verbose) printf("Paso_TransportProblem_solve: substep step %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
    	        /* updates u */
 	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u,dt3/2,q, options, &pp); /* Mu_t=Du+q u(0)=u */ 
@@ -143,7 +143,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                     /* if num_failures_max failures in a row: give up */
 		    fctp->dt_failed=MIN(fctp->dt_failed, dt3);
                     if (num_failures >= num_failures_max) {
-                       Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: No convergence after time step reductions.");
+                       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: No convergence after time step reductions.");
                     } else {
                        options->time_step_backtracking_used=TRUE;
                        if (options->verbose) printf("Paso_TransportProblem_solve: no convergence. Time step size is reduced.\n");
@@ -154,15 +154,15 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                     }
 
             } else if (errorCode == SOLVER_INPUT_ERROR) {
-	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
+	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
 	    } else if (errorCode == SOLVER_MEMORY_ERROR) {
-	        Paso_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allication failed.");
+	        Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allication failed.");
 	    } else if (errorCode == SOLVER_BREAKDOWN) {
-	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
+	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
 	    } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
-	        Paso_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
+	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
 	    } else {
-	        Paso_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
+	        Esys_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
 	    }
 	}
      }
@@ -189,20 +189,20 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      /* get a copy of the main diagonal of the mass matrix */
      Paso_SystemMatrix_copyFromMainDiagonal(fctp->mass_matrix,fctp->main_diagonal_mass_matrix);
 
-     if (Paso_noError()) {
+     if (Esys_noError()) {
           dt1=Paso_ReactiveSolver_getSafeTimeStepSize(fctp); 
           if (dt1<LARGE_POSITIVE_FLOAT) dt1*=2;
      }
-     if (Paso_noError()) dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
+     if (Esys_noError()) dt2=Paso_FCTSolver_getSafeTimeStepSize(fctp);
      printf("Paso_TransportProblem_getSafeTimeStepSize: dt_max from reactive part = %e\n",dt1);
      printf("Paso_TransportProblem_getSafeTimeStepSize: dt_max from transport part = %e\n",dt2);
      dt_max=MIN(dt1,dt2);
 
-     if ( (dt_max <= 0.) &&  Paso_noError() ) {
-            Paso_setError(TYPE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
+     if ( (dt_max <= 0.) &&  Esys_noError() ) {
+            Esys_setError(TYPE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
       } 
      fctp->dt_max=dt_max;
-     fctp->valid_matrices=Paso_noError();
+     fctp->valid_matrices=Esys_noError();
    }
    return fctp->dt_max;
 }

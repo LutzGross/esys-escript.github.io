@@ -20,8 +20,8 @@
 #include "ReferenceElementSets.h"
 #include "escript/DataC.h"
 
-#ifdef PASO_MPI
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 
 
@@ -43,8 +43,8 @@ struct Finley_ElementFile_Jacobeans {
 typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
 
 struct Finley_ElementFile {
-  Paso_MPIInfo *MPIInfo;
-  Paso_MPI_rank *Owner;
+  Esys_MPIInfo *MPIInfo;
+  Esys_MPI_rank *Owner;
 
   Finley_ReferenceElementSet *referenceElementSet; /* the reference element to be used */
 
@@ -91,7 +91,7 @@ struct Finley_ElementFile {
 };
 
 typedef struct Finley_ElementFile Finley_ElementFile;
-Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo);
+Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Esys_MPIInfo *MPIInfo);
 void Finley_ElementFile_free(Finley_ElementFile*);
 void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
 void Finley_ElementFile_freeTable(Finley_ElementFile*);
@@ -99,7 +99,7 @@ void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* di
 dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
 dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in);
 index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in); 
-void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Paso_MPI_rank* mpiRankOfDOF, index_t *Id);
+void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI_rank* mpiRankOfDOF, index_t *Id);
 
 void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
 void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);

@@ -24,7 +24,7 @@
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected indepently. */
 
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info) 
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info) 
 {
   Finley_Mesh *out;
   
@@ -45,7 +45,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info)
   out->FullReducedPattern=NULL;
   out->ReducedFullPattern=NULL;
   out->ReducedReducedPattern=NULL;
-  out->MPIInfo = Paso_MPIInfo_getReference( mpi_info );
+  out->MPIInfo = Esys_MPIInfo_getReference( mpi_info );
   if (! Finley_noError()) {
       Finley_Mesh_free(out);
       return NULL;
@@ -102,7 +102,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
        Paso_SystemMatrixPattern_free(in->FullReducedPattern);
        Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
        Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
-       Paso_MPIInfo_free( in->MPIInfo );
+       Esys_MPIInfo_free( in->MPIInfo );
        MEMFREE(in);      
      }
   }
@@ -142,11 +142,11 @@ int  Finley_Mesh_getStatus(Finley_Mesh* in) {
    }
 }
 
-void Mesh_setOrders(Finley_Mesh *in) 
+void Finley_Mesh_setOrders(Finley_Mesh *in) 
 {
    const dim_t order_max=9999999;
    dim_t locals[4];
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
        dim_t globals[4];
    #endif
    locals[0]=order_max; locals[1]=order_max; locals[2]=order_max; locals[3]=order_max;
@@ -179,7 +179,7 @@ void Mesh_setOrders(Finley_Mesh *in)
 
   }
 
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
        MPI_Allreduce( locals, globals, 4, MPI_INT, MPI_MIN, in->MPIInfo->comm );
        in->approximationOrder=(globals[0] < order_max ? globals[0] : -1 );
        in->reducedApproximationOrder=(globals[1] < order_max ? globals[1] : -1 );

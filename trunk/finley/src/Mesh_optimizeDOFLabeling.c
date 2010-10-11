@@ -29,9 +29,9 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      register index_t k;
      dim_t mpiSize, myNumVertices,len, p, i;
      Paso_Pattern *pattern=NULL;
-     Paso_MPI_rank myRank,dest,source,current_rank;
+     Esys_MPI_rank myRank,dest,source,current_rank;
      Finley_IndexList* index_list=NULL;
-     #ifdef PASO_MPI
+     #ifdef ESYS_MPI
      MPI_Status status;
      #endif
 
@@ -84,7 +84,7 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
 
            Paso_Pattern_free(pattern);
       }
-      Paso_MPIInfo_noError(in->MPIInfo);
+      Esys_MPIInfo_noError(in->MPIInfo);
       if (Finley_noError()) {
               /* shift new labeling to create a global id */
               #pragma omp parallel for private(i)
@@ -92,8 +92,8 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
 
 
               /* distribute new labeling to other processors */
-              dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);
-              source=Paso_MPIInfo_mod(mpiSize, myRank - 1);
+              dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
+              source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
               current_rank=myRank;
               for (p=0; p< mpiSize; ++p) {
                   firstVertex=distribution[current_rank];
@@ -107,14 +107,14 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                   }
    
                   if (p<mpiSize-1) {  /* the final send can be skipped */
-                     #ifdef PASO_MPI
+                     #ifdef ESYS_MPI
                      MPI_Sendrecv_replace(newGlobalDOFID,len, MPI_INT,
                                           dest, in->MPIInfo->msg_tag_counter,
                                           source, in->MPIInfo->msg_tag_counter,
                                           in->MPIInfo->comm,&status);
                      #endif
                      in->MPIInfo->msg_tag_counter++;
-                     current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
+                     current_rank=Esys_MPIInfo_mod(mpiSize, current_rank-1);
                  }
               }
      }

@@ -37,91 +37,91 @@
 #define MAX_numSides 2
 
 typedef enum {
-  Point1,
-  Line2,
-  Line3,
-  Line4,
-  Tri3,
-  Tri6,
-  Tri9,
-  Tri10,
-  Rec4,
-  Rec8,
-  Rec9,
-  Rec12,
-  Rec16,
-  Tet4,
-  Tet10,
-  Tet16,
-  Hex8,
-  Hex20,
-  Hex27,
-  Hex32,
-  Line2Face,
-  Line3Face,
-  Line4Face,
-  Tri3Face,
-  Tri6Face,
-  Tri9Face,
-  Tri10Face,
-  Rec4Face,
-  Rec8Face,
-  Rec9Face,
-  Rec12Face,
-  Rec16Face,
-  Tet4Face, 
-  Tet10Face, 
-  Tet16Face,
-  Hex8Face,
-  Hex20Face, 
-  Hex27Face, 
-  Hex32Face, 
-  Point1_Contact,
-  Line2_Contact,
-  Line3_Contact,
-  Line4_Contact,
-  Tri3_Contact,
-  Tri6_Contact,
-  Tri9_Contact,
-  Tri10_Contact,
-  Rec4_Contact,
-  Rec8_Contact,
-  Rec9_Contact,
-  Rec12_Contact,
-  Rec16_Contact,
-  Line2Face_Contact,
-  Line3Face_Contact,
-  Line4Face_Contact,
-  Tri3Face_Contact,
-  Tri6Face_Contact,
-  Tri9Face_Contact,
-  Tri10Face_Contact,
-  Rec4Face_Contact,
-  Rec8Face_Contact,
-  Rec9Face_Contact,
-  Rec12Face_Contact,
-  Rec16Face_Contact,
-  Tet4Face_Contact, 
-  Tet10Face_Contact, 
-  Tet16Face_Contact,
-  Hex8Face_Contact,
-  Hex20Face_Contact,
-  Hex27Face_Contact, 
-  Hex32Face_Contact, 
-  Line3Macro, 
-  Tri6Macro, 
-  Rec9Macro,
-  Tet10Macro,
-  Hex27Macro,
-  NoRef   /* marks end of list */
-} ElementTypeId;
+  Finley_Point1,
+  Finley_Line2,
+  Finley_Line3,
+  Finley_Line4,
+  Finley_Tri3,
+  Finley_Tri6,
+  Finley_Tri9,
+  Finley_Tri10,
+  Finley_Rec4,
+  Finley_Rec8,
+  Finley_Rec9,
+  Finley_Rec12,
+  Finley_Rec16,
+  Finley_Tet4,
+  Finley_Tet10,
+  Finley_Tet16,
+  Finley_Hex8,
+  Finley_Hex20,
+  Finley_Hex27,
+  Finley_Hex32,
+  Finley_Line2Face,
+  Finley_Line3Face,
+  Finley_Line4Face,
+  Finley_Tri3Face,
+  Finley_Tri6Face,
+  Finley_Tri9Face,
+  Finley_Tri10Face,
+  Finley_Rec4Face,
+  Finley_Rec8Face,
+  Finley_Rec9Face,
+  Finley_Rec12Face,
+  Finley_Rec16Face,
+  Finley_Tet4Face, 
+  Finley_Tet10Face, 
+  Finley_Tet16Face,
+  Finley_Hex8Face,
+  Finley_Hex20Face, 
+  Finley_Hex27Face, 
+  Finley_Hex32Face, 
+  Finley_Point1_Contact,
+  Finley_Line2_Contact,
+  Finley_Line3_Contact,
+  Finley_Line4_Contact,
+  Finley_Tri3_Contact,
+  Finley_Tri6_Contact,
+  Finley_Tri9_Contact,
+  Finley_Tri10_Contact,
+  Finley_Rec4_Contact,
+  Finley_Rec8_Contact,
+  Finley_Rec9_Contact,
+  Finley_Rec12_Contact,
+  Finley_Rec16_Contact,
+  Finley_Line2Face_Contact,
+  Finley_Line3Face_Contact,
+  Finley_Line4Face_Contact,
+  Finley_Tri3Face_Contact,
+  Finley_Tri6Face_Contact,
+  Finley_Tri9Face_Contact,
+  Finley_Tri10Face_Contact,
+  Finley_Rec4Face_Contact,
+  Finley_Rec8Face_Contact,
+  Finley_Rec9Face_Contact,
+  Finley_Rec12Face_Contact,
+  Finley_Rec16Face_Contact,
+  Finley_Tet4Face_Contact, 
+  Finley_Tet10Face_Contact, 
+  Finley_Tet16Face_Contact,
+  Finley_Hex8Face_Contact,
+  Finley_Hex20Face_Contact,
+  Finley_Hex27Face_Contact, 
+  Finley_Hex32Face_Contact, 
+  Finley_Line3Macro, 
+  Finley_Tri6Macro, 
+  Finley_Rec9Macro,
+  Finley_Tet10Macro,
+  Finley_Hex27Macro,
+  Finley_NoRef   /* marks end of list */
+} Finley_ElementTypeId;
 
 /**************************************************************/
 
 /*  this struct holds the definition of the reference element: */
 
 typedef struct Finley_ReferenceElementInfo {
-  ElementTypeId TypeId;                      /* the id */
+  Finley_ElementTypeId TypeId;               /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
   dim_t numSubElements;                      /* number of subelements. >1 is macro elements are used. */
@@ -132,9 +132,9 @@ typedef struct Finley_ReferenceElementInfo {
   index_t offsets[MAX_numSides+1];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 referes to the nodes to be used for side s*/								
 
   
-  ElementTypeId LinearTypeId;                /* id of the linear version of the element */
+  Finley_ElementTypeId LinearTypeId;         /* id of the linear version of the element */
   
-  index_t linearNodes[MAX_numNodes*MAX_numSides];         /* gives the list of nodes defining the linear or macro element */
+  index_t linearNodes[MAX_numNodes*MAX_numSides];  /* gives the list of nodes defining the linear or macro element */
   
   Finley_QuadTypeId Quadrature;                /* quadrature scheme */
   Finley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
@@ -182,13 +182,14 @@ typedef struct Finley_ReferenceElement {
 
 /*    interfaces: */
 
-Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId,int);
+Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId,int);
 void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
-ElementTypeId Finley_ReferenceElement_getTypeId(char*);
+Finley_ElementTypeId Finley_ReferenceElement_getTypeId(char*);
 Finley_ReferenceElement* Finley_ReferenceElement_reference(Finley_ReferenceElement* in);
-Finley_ReferenceElementInfo* Finley_ReferenceElement_getInfo(ElementTypeId id);
+Finley_ReferenceElementInfo* Finley_ReferenceElement_getInfo(Finley_ElementTypeId id);
 
 
 #define Finley_ReferenceElement_getNumNodes(__in__) (__in__)->Type->numNodes
 
 #endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
+

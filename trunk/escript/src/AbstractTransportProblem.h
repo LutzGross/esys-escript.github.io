@@ -20,11 +20,13 @@
 #include "TransportProblemException.h"
 #include <boost/python/object.hpp>
 
+
+
+namespace escript {
+
 //
 // Forward declaration
 class Data;
-
-namespace escript {
 
 /**
    \brief
@@ -155,6 +157,8 @@ class AbstractTransportProblem {
 
 };
 
+
+typedef boost::shared_ptr<AbstractTransportProblem> ATP_ptr;
 
 } // end of namespace
 #endif

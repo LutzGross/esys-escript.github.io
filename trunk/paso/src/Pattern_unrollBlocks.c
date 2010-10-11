@@ -37,9 +37,9 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
   index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   
-  Paso_resetError();
+  Esys_resetError();
   if ((pattern->type & PATTERN_FORMAT_SYM) != (type & PATTERN_FORMAT_SYM)) {
-      Paso_setError(TYPE_ERROR,"Paso_Pattern_unrollBlocks: conversion between symmetric and non-symmetric is not implemented yet");
+      Esys_setError(TYPE_ERROR,"Paso_Pattern_unrollBlocks: conversion between symmetric and non-symmetric is not implemented yet");
       return NULL;
   }
   if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & PATTERN_FORMAT_OFFSET1) == (type & PATTERN_FORMAT_OFFSET1) ) ) {
@@ -52,7 +52,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
    
      ptr=MEMALLOC(new_numOutput+1,index_t);
      index=MEMALLOC(new_len,index_t);
-     if (! ( Paso_checkPtr(ptr) || Paso_checkPtr(index) ) )  {
+     if (! ( Esys_checkPtr(ptr) || Esys_checkPtr(index) ) )  {
         #pragma omp parallel
         {
            #pragma omp for private(i) schedule(static)
@@ -89,7 +89,7 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
         }
         out=Paso_Pattern_alloc(type,new_numOutput,new_numInput,ptr,index);
      }  
-     if (! Paso_noError()) {
+     if (! Esys_noError()) {
         MEMFREE(index);
         MEMFREE(ptr);
      }

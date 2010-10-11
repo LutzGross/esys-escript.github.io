@@ -38,29 +38,29 @@ Paso_Function* Paso_FCTSolver_Function_alloc(Paso_TransportProblem *fctp, Paso_O
     Paso_Function * out=NULL;
     Paso_FCTSolver *more=NULL;
     out=MEMALLOC(1,Paso_Function);
-    if (! Paso_checkPtr(out)) {
+    if (! Esys_checkPtr(out)) {
         out->kind=FCT;
-        out->mpi_info=Paso_MPIInfo_getReference(fctp->mpi_info);
+        out->mpi_info=Esys_MPIInfo_getReference(fctp->mpi_info);
         out->n=n;
 	out->b=TMPMEMALLOC(n,double); /*b_m */
-	Paso_checkPtr(out->b);        
+	Esys_checkPtr(out->b);        
 	out->tmp=TMPMEMALLOC(n,double); /* z_m */
-	Paso_checkPtr(out->tmp); 
+	Esys_checkPtr(out->tmp); 
 	
 	more=MEMALLOC(1,Paso_FCTSolver);
 	out->more=(void*) more;
-	if (! Paso_checkPtr(more)) {
+	if (! Esys_checkPtr(more)) {
 	    more->transportproblem=Paso_TransportProblem_getReference(fctp);
 	    more->uTilde_n=TMPMEMALLOC(n,double);
-	    Paso_checkPtr(more->uTilde_n);
+	    Esys_checkPtr(more->uTilde_n);
 	    more->QN_n=TMPMEMALLOC(n,double);
-	    Paso_checkPtr(more->QN_n);
+	    Esys_checkPtr(more->QN_n);
 	    more->QP_n=TMPMEMALLOC(n,double);
-	    Paso_checkPtr(more->QP_n);
+	    Esys_checkPtr(more->QP_n);
 	    more->RN_m=TMPMEMALLOC(n,double);
-	    Paso_checkPtr(more->RN_m);
+	    Esys_checkPtr(more->RN_m);
 	    more->RP_m=TMPMEMALLOC(n,double);
-	    Paso_checkPtr(more->RP_m);
+	    Esys_checkPtr(more->RP_m);
 	    more->QN_n_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
 	    more->QP_n_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
 	    more->RN_m_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
@@ -74,7 +74,7 @@ Paso_Function* Paso_FCTSolver_Function_alloc(Paso_TransportProblem *fctp, Paso_O
 						    
         }
     }
-    if (Paso_noError()) {
+    if (Esys_noError()) {
         return out;
     } else {
         Paso_FCTSolver_Function_free(out);
@@ -86,7 +86,7 @@ void Paso_FCTSolver_Function_free(Paso_Function * in)
 {
    Paso_FCTSolver *more=NULL;
    if (in!=NULL) {
-       Paso_MPIInfo_free(in->mpi_info);
+       Esys_MPIInfo_free(in->mpi_info);
        MEMFREE(in->tmp);
        MEMFREE(in->b);
        more=(Paso_FCTSolver *) (in->more);
@@ -118,7 +118,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    /* set low order transport operator */
    Paso_FCTSolver_setLowOrderOperator(fctp);
           
-   if (Paso_noError()) {
+   if (Esys_noError()) {
         /*
          *  calculate time step size:                                           
         */
@@ -145,7 +145,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 		  fail=MIN(fail, fail_loc);
                }
         }
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
         {
 	       double rtmp_loc[2], rtmp[2];
                rtmp_loc[0]=dt_max;
@@ -156,7 +156,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	}
         #endif
         if (fail < 0 ) {
-	   Paso_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
+	   Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
 	   return -1;
 	} else {
 	    if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=fctp->dt_factor;
@@ -225,12 +225,12 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
     } else {
             m=0;
 	    du=MEMALLOC(n,double);
-	    if (Paso_checkPtr(du)) {
+	    if (Esys_checkPtr(du)) {
                    errorCode=SOLVER_MEMORY_ERROR;
 	    } else {
 	         /* tolerance? */
 	         
-                 while ( (!converged) && (!diverged) && (! max_m_reached) && Paso_noError()) {
+                 while ( (!converged) && (!diverged) && (! max_m_reached) && Esys_noError()) {
 	            errorCode=Paso_FCTSolver_Function_call(F,du, u, pp);
                     options->num_iter++;
                     Paso_Update(n,1.,u,omega,du);
