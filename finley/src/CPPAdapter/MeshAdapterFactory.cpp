@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #ifdef USE_NETCDF
@@ -52,12 +52,12 @@ namespace finley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    Paso_MPIInfo *mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
     AbstractContinuousDomain* temp;
     Finley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
-    char *fName = Paso_MPI_appendRankToFileName(fileName.c_str(),
+    char *fName = Esys_MPI_appendRankToFileName(fileName.c_str(),
                                                 mpi_info->size,
                                                 mpi_info->rank);
 
@@ -75,7 +75,7 @@ namespace finley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening file NetCDF %s for reading failed.", fName);
       Finley_setError(IO_ERROR,error_msg);
-      Paso_MPIInfo_free( mpi_info );
+      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -194,7 +194,7 @@ namespace finley {
 
         /* read elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
+		  Finley_ReferenceElementSet  *refElements=	Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Elements_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
 		  }
@@ -267,7 +267,7 @@ namespace finley {
 
         /* get the face elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId	,order, reduced_order);
+		  Finley_ReferenceElementSet *refFaceElements=	Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)FaceElements_TypeId	,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
 		  }
@@ -338,7 +338,7 @@ namespace finley {
 
         /* get the Contact elements */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId,order, reduced_order);
+		  Finley_ReferenceElementSet *refContactElements=	Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)ContactElements_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
 		  }
@@ -410,7 +410,7 @@ namespace finley {
 
         /* get the Points (nodal elements) */
         if (Finley_noError()) {
-		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
+		  Finley_ReferenceElementSet *refPoints=	Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Points_TypeId,order, reduced_order);
 		  if (Finley_noError())  {
 			  mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
 		  }

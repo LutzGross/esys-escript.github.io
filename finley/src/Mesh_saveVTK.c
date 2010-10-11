@@ -39,7 +39,7 @@ do {\
     dest_in_use += strlen(chunk);\
 } while(0)
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 /* writes buffer to file catching the empty buffer case which causes problems
  * with some MPI versions */
 #define MPI_WRITE_ORDERED(BUF) \
@@ -83,26 +83,26 @@ void create_MPIInfo(MPI_Info& info)
 #define MPI_WRITE_ORDERED(A)
 #define MPI_RANK0_WRITE_SHARED(A)
 
-#endif /* PASO_MPI */
+#endif /* ESYS_MPI */
 
 
 /* Returns one if the node given by coords and idx is within the quadrant
  * indexed by q and if the element type is Rec9 or Hex27, zero otherwise */
-int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
+int nodeInQuadrant(const double *coords, Finley_ElementTypeId type, int idx, int q)
 {
 #define INSIDE_1D(_X_,_C_,_R_) ( ABS((_X_)-(_C_)) <= (_R_) )
 #define INSIDE_2D(_X_,_Y_,_CX_,_CY_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_))
 #define INSIDE_3D(_X_,_Y_,_Z_,_CX_,_CY_,_CZ_,_R_) ( INSIDE_1D(_X_,_CX_,_R_) && INSIDE_1D(_Y_,_CY_,_R_) && INSIDE_1D(_Z_,_CZ_,_R_) )
 
     int ret;
-    if ( type == Line3Macro ) {
+    if ( type == Finley_Line3Macro ) {
         if (q==0)
             ret = INSIDE_1D(coords[idx],0.25,0.25);
         else if (q==1)
             ret = INSIDE_1D(coords[idx],0.75,0.25);
         else
             ret=1;
-    } else if ( (type == Rec9) || (type == Rec9Macro) ) {
+    } else if ( (type == Finley_Rec9) || (type == Finley_Rec9Macro) ) {
         if (q==0)
             ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.25, 0.25, 0.25);
         else if (q==1)
@@ -113,7 +113,7 @@ int nodeInQuadrant(const double *coords, ElementTypeId type, int idx, int q)
             ret = INSIDE_2D(coords[2*idx], coords[2*idx+1], 0.75, 0.75, 0.25);
         else
             ret = 0;
-    } else if ((type == Hex27) || (type == Hex27Macro) ){
+    } else if ((type == Finley_Hex27) || (type == Finley_Hex27Macro) ){
         if (q==0)
             ret = INSIDE_3D(coords[3*idx], coords[3*idx+1], coords[3*idx+2],
                     0.25, 0.25, 0.25, 0.25);
@@ -154,13 +154,13 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                          const char* metadata, 
                          const char*metadata_schema)
 {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
     MPI_File mpi_fileHandle_p;
     MPI_Status mpi_status;
     MPI_Request mpi_req;
     MPI_Info mpi_info = MPI_INFO_NULL;
 #endif
-    Paso_MPI_rank my_mpi_rank;
+    Esys_MPI_rank my_mpi_rank;
     FILE *fileHandle_p = NULL;
     char errorMsg[LenErrorMsg_MAX], *txtBuffer;
     char tmpBuffer[LEN_TMP_BUFFER];
@@ -177,7 +177,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     int mpi_size, i, j, l;
     int cellType=0, nodeType=FINLEY_NODES, elementType=FINLEY_UNKNOWN;
     Finley_ElementFile *elements = NULL;
-    ElementTypeId typeId = NoRef;
+    Finley_ElementTypeId typeId = Finley_NoRef;
 
     const char *vtkHeader = \
       "<?xml version=\"1.0\"?>\n" \
@@ -226,7 +226,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
      * open the file and check handle *
      */
     if (mpi_size > 1) {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
         const int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
         int ierr;
         if (my_mpi_rank == 0 && Paso_fileExists(filename_p)) {
@@ -241,7 +241,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             ierr=MPI_File_set_view(mpi_fileHandle_p,MPI_DISPLACEMENT_CURRENT,
                     MPI_CHAR, MPI_CHAR, "native", mpi_info);
         }
-#endif /* PASO_MPI */
+#endif /* ESYS_MPI */
     } else {
         fileHandle_p = fopen(filename_p, "w");
         if (fileHandle_p==NULL) {
@@ -249,7 +249,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
             Finley_setError(IO_ERROR, errorMsg);
         }
     }
-    if (!Paso_MPIInfo_noError(mesh_p->Nodes->MPIInfo)) return;
+    if (!Esys_MPIInfo_noError(mesh_p->Nodes->MPIInfo)) return;
 
     /* General note: From this point if an error occurs Finley_setError is
      * called and subsequent steps are skipped until the end of this function
@@ -395,106 +395,106 @@ void Finley_Mesh_saveVTK(const char *filename_p,
                 typeId = elements->referenceElementSet->referenceElement->Type->TypeId;
             }
             switch (typeId) {
-                case Point1:
-                case Line2Face:
-                case Line3Face:
-                case Point1_Contact:
-                case Line2Face_Contact:
-                case Line3Face_Contact:
+                case Finley_Point1:
+                case Finley_Line2Face:
+                case Finley_Line3Face:
+                case Finley_Point1_Contact:
+                case Finley_Line2Face_Contact:
+                case Finley_Line3Face_Contact:
                     cellType = VTK_VERTEX;
                     numVTKNodesPerElement = 1;
                 break;
 
-                case Line2:
-                case Tri3Face:
-                case Rec4Face:
-                case Line2_Contact:
-                case Tri3_Contact:
-                case Tri3Face_Contact:
-                case Rec4Face_Contact:
+                case Finley_Line2:
+                case Finley_Tri3Face:
+                case Finley_Rec4Face:
+                case Finley_Line2_Contact:
+                case Finley_Tri3_Contact:
+                case Finley_Tri3Face_Contact:
+                case Finley_Rec4Face_Contact:
                     cellType = VTK_LINE;
                     numVTKNodesPerElement = 2;
                 break;
 
-		case Line3Macro:
+                case Finley_Line3Macro:
                     cellType = VTK_LINE;
                     numCellFactor = 2;
                     numVTKNodesPerElement = 2;
                 break;
 
-                case Tri3:
-                case Tet4Face:
-                case Tet4Face_Contact:
+                case Finley_Tri3:
+                case Finley_Tet4Face:
+                case Finley_Tet4Face_Contact:
                     cellType = VTK_TRIANGLE;
                     numVTKNodesPerElement = 3;
                 break;
 
-                case Rec4:
-                case Hex8Face:
-                case Rec4_Contact:
-                case Hex8Face_Contact:
+                case Finley_Rec4:
+                case Finley_Hex8Face:
+                case Finley_Rec4_Contact:
+                case Finley_Hex8Face_Contact:
                     cellType = VTK_QUAD;
                     numVTKNodesPerElement = 4;
                 break;
 
-                case Rec9Macro:
-		case Rec9:
+                case Finley_Rec9Macro:
+                case Finley_Rec9:
                     numCellFactor = 4;
                     cellType = VTK_QUAD;
                     numVTKNodesPerElement = 4;
                 break;
 
-                case Tet4:
+                case Finley_Tet4:
                     cellType = VTK_TETRA;
                     numVTKNodesPerElement = 4;
                 break;
 
-                case Hex8:
+                case Finley_Hex8:
                     cellType = VTK_HEXAHEDRON;
                     numVTKNodesPerElement = 8;
                 break;
 
-                case Line3:
-                case Tri6Face:
-                case Rec8Face:
-                case Line3_Contact:
-                case Tri6Face_Contact:
-                case Rec8Face_Contact:
+                case Finley_Line3:
+                case Finley_Tri6Face:
+                case Finley_Rec8Face:
+                case Finley_Line3_Contact:
+                case Finley_Tri6Face_Contact:
+                case Finley_Rec8Face_Contact:
                     cellType = VTK_QUADRATIC_EDGE;
                     numVTKNodesPerElement = 3;
                 break;
 
-                case Tri6:
-		case Tri6Macro:		
-                case Tet10Face:
-                case Tri6_Contact:
-                case Tet10Face_Contact:
+                case Finley_Tri6:
+                case Finley_Tri6Macro:
+                case Finley_Tet10Face:
+                case Finley_Tri6_Contact:
+                case Finley_Tet10Face_Contact:
                     cellType = VTK_QUADRATIC_TRIANGLE;
                     numVTKNodesPerElement = 6;
                 break;
 
 
-                case Rec8:
-                case Hex20Face:
-                case Rec8_Contact:
-                case Hex20Face_Contact:
+                case Finley_Rec8:
+                case Finley_Hex20Face:
+                case Finley_Rec8_Contact:
+                case Finley_Hex20Face_Contact:
                     cellType = VTK_QUADRATIC_QUAD;
                     numVTKNodesPerElement = 8;
                 break;
 
-		case Tet10Macro:
-                case Tet10:
+                case Finley_Tet10Macro:
+                case Finley_Tet10:
                     cellType = VTK_QUADRATIC_TETRA;
                     numVTKNodesPerElement = 10;
                 break;
 
-                case Hex20:
+                case Finley_Hex20:
                     cellType = VTK_QUADRATIC_HEXAHEDRON;
                     numVTKNodesPerElement = 20;
                 break;
 
-		case Hex27Macro:
-                case Hex27:
+                case Finley_Hex27Macro:
+                case Finley_Hex27:
                     numCellFactor = 8;
                     cellType = VTK_HEXAHEDRON;
                     numVTKNodesPerElement = 8;
@@ -530,13 +530,13 @@ void Finley_Mesh_saveVTK(const char *filename_p,
         const index_t *nodeIndex;
         if (FINLEY_REDUCED_NODES == nodeType) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->linearNodes;
-        } else if (Line3Macro == typeId) {
+        } else if (Finley_Line3Macro == typeId) {
              nodeIndex = VTK_LINE3_INDEX;
-        } else if ( (Rec9 == typeId) || (Rec9Macro == typeId) ) {
+        } else if ( (Finley_Rec9 == typeId) || (Finley_Rec9Macro == typeId) ) {
             nodeIndex = VTK_REC9_INDEX;
-        } else if (Hex20 == typeId) {
+        } else if (Finley_Hex20 == typeId) {
             nodeIndex = VTK_HEX20_INDEX;
-        } else if ( (Hex27 == typeId) || (Hex27Macro == typeId) ){
+        } else if ( (Finley_Hex27 == typeId) || (Finley_Hex27Macro == typeId) ){
             nodeIndex = VTK_HEX27_INDEX;
         } else if (numVTKNodesPerElement  !=  elements->referenceElementSet->referenceElement->Type->numNodes) {
             nodeIndex = elements->referenceElementSet->referenceElement->Type->relevantGeoNodes;
@@ -1048,7 +1048,7 @@ void Finley_Mesh_saveVTK(const char *filename_p,
     }
 
     if ( mpi_size > 1) {
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
         MPI_File_close(&mpi_fileHandle_p);
         MPI_Barrier(mesh_p->Nodes->MPIInfo->comm);
 #endif

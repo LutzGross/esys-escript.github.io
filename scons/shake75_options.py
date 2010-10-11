@@ -11,110 +11,200 @@
 #
 ########################################################
 
+# The options file version. SCons will refuse to build if there have been
+# changes to the set of variables and your file has not been updated.
+# This setting is mandatory.
+escript_opts_version = 200
 
-# Configuration for shake75 (32-bit Intel Core 2 running Debian Linux)
-# If you cannot use the default compiler flags set in SConstruct,
-# then change them here
-#cc="gcc-4.4"
-#cxx="g++-4.4"
-# C/C++ Compiler flags (always use cc_flags and either cc_optim or cc_debug)
-# cc_flags      = '-ansi'
-# cc_optim      = '-O2'
-# usedebug      = 'no'
-# cc_debug      = '-g'
-omp_optim       = '-fopenmp'
-omp_debug       = ''
-omp_libs        = []
+# Installation prefix. Files will be installed in subdirectories underneath.
+# DEFAULT: '.' (current directory)
+#prefix = '/usr/local'
 
-# Use the default C/C++ flags but add something only for this host:
-cc_extra        = '-Wall -mmmx -msse'
-cxx_extra       = '-Wall -mmmx -msse'
-ld_extra        = '-fopenmp'
+# C compiler command name or full path.
+# DEFAULT: auto-detected
+#cc = 'gcc'
 
-# Be picky about errors
-# usepedantic   = 'no'
+# C++ compiler command name or full path.
+# DEFAULT: auto-detected
+#cxx = 'g++'
 
-# Extra libraries
-# sys_libs      = []
+# Flags to use with both C and C++ compilers. Do not set unless you know
+# what you are doing - use cc_extra to specify additional flags!
+# DEFAULT: compiler-dependent
+#cc_flags = ''
 
-# Python libraries
-# python_path       = '/usr/lib/python2.6'
-# python_lib_path   = '/usr/lib'
-# python_libs       = 'python2.6'
-# python_cmd        = 'python'
+# Additional compiler (optimization) flags for non-debug builds
+# DEFAULT: compiler-dependent
+cc_optim = '-O3 -mmmx -msse'
 
-# Boost libraries
-boost_path          = '/usr/include/'
-# boost_lib_path    = '/usr/lib'
-boost_libs          = ['boost_python']
+# Additional compiler flags for debug builds
+# DEFAULT: compiler-dependent
+#cc_debug = '-g'
 
-# Specify whether or not to use VTK
-# usevtk            = 'yes'
+# Additional flags to add to the C compiler only
+# DEFAULT: '' (empty)
+#cc_extra = ''
 
-# NetCDF
-#usenetcdf          = 'yes'
-#netCDF_path        = '/usr/include/'
-#netCDF_lib_path    = '/usr/lib/'
-#netCDF_libs        = ['netcdf_c++', 'netcdf']
+# Additional flags to add to the C++ compiler only
+# DEFAULT: '' (empty)
+#cxx_extra = ''
 
-# MKL
-# usemkl        = 'yes'
-# mkl_path      = '/usr/include'
-# mkl_lib_path  = '/usr/lib'
-# mkl_libs      = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
+# Additional flags to add to the linker
+# DEFAULT: '' (empty)
+#ld_extra = ''
 
-# UMFPACK (requires AMD and BLAS)
-useumfpack      = 'yes'
-# ufc_path      = '/usr/include'
-# umf_path      = '/usr/include'
-# umf_lib_path  = '/usr/lib'
-# umf_libs      = ['umfpack']
-# amd_path      = '/usr/include'
-# amd_lib_path  = '/usr/lib'
-# amd_libs      = ['amd']
-# blas_path     = '/usr/include'
-# blas_lib_path = '/usr/lib'
-# blas_libs     = ['blas']
+# Whether to treat compiler warnings as errors
+# DEFAULT: True
+#werror = False
 
-#Lapack
-uselapack       = 'yes'
-#lapack_path    = ''
-#lapack_lib_path= ''
-lapack_libs     = ['lapack_atlas']
+# Whether to build a debug version
+# DEFAULT: False
+#debug = True
 
-# Silo
-usesilo         = 'yes'
-silo_path       = '/usr/local/include/'
-silo_lib_path   = '/usr/local/lib/'
-silo_libs       = ['siloh5', 'hdf5']
+# Set to True to print the full compiler/linker command line
+# DEFAULT: False
+verbose = True
 
-# VisIt
-usevisit        = 'yes'
-visit_path      = '/opt/visit/2.1.0/linux-intel/libsim/V2/include'
-visit_lib_path  = '/opt/visit/2.1.0/linux-intel/libsim/V2/lib'
-#visit_path      = '/home/caltinay/src/visit-trunk/src/include/visit'
-#visit_lib_path  = '/home/caltinay/src/visit-trunk/src/lib'
+# Set to True to add flags that enable OpenMP parallelization
+# DEFAULT: False
+openmp = True
 
-# OpenMP
-useopenmp       = 'yes'
+# Additional compiler flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_flags = '-fopenmp'
 
-# MPI
-usempi          = 'yes'
-mpi_path        = '/usr/include/mpi'
-mpi_lib_path    = '/usr/lib/openmpi/lib'
-mpi_libs        = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-mpi_flavour     = 'OPENMPI'
+# Additional linker flags for OpenMP builds
+# DEFAULT: compiler-dependent
+#omp_ldflags = '-fopenmp'
 
-# ParMETIS (for use with MPI)
-#useparmetis        = 'yes'
-#parmetis_path      = '/usr/local/include'
-#parmetis_lib_path  = '/usr/local/lib'
-#parmetis_libs      = ['parmetis', 'metis']
+# Flavour of MPI implementation
+# Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
+# DEFAULT: 'none' (disable MPI)
+mpi = 'OPENMPI'
 
-# PAPI
-# usepapi                = 'no'
-# papi_path              = '/usr/include'
-# papi_lib_path          = '/usr/lib'
-# papi_libs              = ['papi']
-# papi_instrument_solver = 'no'
+# Prefix or paths to MPI headers and libraries. See note above about prefixes.
+mpi_prefix = '/usr/lib/openmpi'
+
+# MPI libraries to link against
+mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+
+# Prefix or paths to boost-python headers and libraries. See note above.
+#boost_prefix = '/usr/local'
+
+# boost-python library/libraries to link against
+#boost_libs = ['boost_python']
+
+# Whether to use the netCDF library for dump file support
+# DEFAULT: False
+netcdf = True
+
+# Prefix or paths to netCDF headers and libraries. See note above.
+#netcdf_prefix = '/usr/local'
+
+# netCDF library/libraries to link against
+#netcdf_libs = ['netcdf_c++', 'netcdf']
+
+# Whether to use the parMETIS library (only in conjunction with MPI)
+# DEFAULT: False
+parmetis = True
+
+# Prefix or paths to parMETIS headers and libraries. See note above.
+#parmetis_prefix = '/usr/local'
+
+# parMETIS library/libraries to link against
+#parmetis_libs = ['parmetis', 'metis']
+
+# Whether to use the Intel PAPI (Performance API) library
+# DEFAULT: False
+#papi = True
+
+# Prefix or paths to PAPI headers and libraries. See note above.
+#papi_prefix = '/usr/local'
+
+# PAPI library/libraries to link against
+#papi_libs = ['papi']
+
+# Whether to use PAPI to instrument solver iterations
+# DEFAULT: False
+#papi_instrument_solver = True
+
+# Whether to use Intel MKL (Math Kernel Library)
+# DEFAULT: False
+#mkl = True
+
+# Prefix or paths to MKL headers and libraries. See note above.
+#mkl_prefix = '/usr'
+
+# MKL library/libraries to link against
+#mkl_libs = ['mkl_solver', 'mkl_em64t', 'mkl_core', 'guide', 'pthread']
+
+# Whether to use UMFPACK (requires AMD and BLAS)
+# DEFAULT: False
+umfpack = True
+
+# Prefix or paths to UMFPACK headers and libraries. See note above.
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
+
+# UMFPACK library/libraries to link against
+#umfpack_libs = ['umfpack']
+
+# Flavour of LAPACK implementation
+# Recognized values: 'none', 'clapack', 'mkl'
+# DEFAULT: 'none' (do not use LAPACK)
+lapack = 'clapack'
+
+# Prefix or paths to LAPACK headers and libraries. See note above.
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+
+# LAPACK library/libraries to link against
+lapack_libs = ['lapack_atlas']
+
+# Whether to use LLNL's SILO library for Silo output file support in weipa
+# DEFAULT: False
+silo = True
+
+# Prefix or paths to SILO headers and libraries. See note above.
+silo_prefix = '/usr/local'
+
+# SILO library/libraries to link against
+silo_libs = ['siloh5', 'hdf5']
+
+# Whether to use LLNL's VisIt simulation interface (only version 2 supported)
+# DEFAULT: False
+visit = True
+
+# Prefix or paths to VisIt's sim2 headers and libraries. See note above.
+visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+
+# Sim2 library/libraries to link against
+#visit_libs = ['simV2']
+
+# Whether to enable the deprecated PyVisi interface (requires the VTK python
+# modules)
+# DEFAULT: False
+#pyvisi = True
+
+
+### ADVANCED OPTIONS ###
+# Do not change the following options unless you know what they do
+
+# Extra libraries to link with
+#sys_libs = []
+
+# Additional environmental variables to export to the tools
+#env_export = []
+
+# Build a shared esysUtils library
+#share_esysutils = True
+
+# Build a shared paso library
+#share_paso = True
+
+#tools_names = ['default']
+
+#iknowwhatimdoing = False
+
+#forcelazy = 'leave_alone'
+
+#forcecollres = 'leave_alone'
 

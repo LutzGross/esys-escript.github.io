@@ -135,34 +135,34 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_Connector *connector=NULL;
 	int i, curr_row, scan_ret;
 	MM_typecode matrixCode;
-        Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
-        Paso_resetError();
+        Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
+        Esys_resetError();
         if (mpi_info->size >1) {
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: support single processor only");
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: support single processor only");
 		return NULL;
         }
 	/* open the file */
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
-                Paso_MPIInfo_free(mpi_info);
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
+                Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Error processing MM banner.");
-                Paso_MPIInfo_free(mpi_info);
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Error processing MM banner.");
+                Esys_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
 
-		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
-                Paso_MPIInfo_free(mpi_info);
+		Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
+                Esys_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -170,8 +170,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size.");
-                Paso_MPIInfo_free(mpi_info);
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not read sparse matrix size.");
+                Esys_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -185,9 +185,9 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
-		Paso_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory" );
+		Esys_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory" );
 
-                Paso_MPIInfo_free(mpi_info);
+                Esys_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -202,7 +202,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 			MEMFREE( row_ind );
 			MEMFREE( col_ind );
 			MEMFREE( row_ptr );
-			Paso_MPIInfo_free(mpi_info);
+			Esys_MPIInfo_free(mpi_info);
 			fclose(fileHandle_p);
 			return NULL;
 		}
@@ -251,7 +251,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);
-        Paso_MPIInfo_free(mpi_info);
+        Esys_MPIInfo_free(mpi_info);
 	MEMFREE( val );
 	MEMFREE( row_ind );
 	return out;
@@ -273,45 +273,45 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	double *val = NULL;
 	int i, curr_col=0, scan_ret;
 	MM_typecode matrixCode;
-        Paso_MPIInfo* mpi_info=Paso_MPIInfo_alloc( MPI_COMM_WORLD);
+        Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
         if (mpi_info->size >1) {
-		Paso_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: support single processor only");
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: support single processor only");
 		return NULL;
         }
 
-	Paso_resetError();
+	Esys_resetError();
 
 	/* open the file */
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
-                Paso_MPIInfo_free(mpi_info);
+		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
+                Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner");
+		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner");
 		fclose( fileHandle_p );
-                Paso_MPIInfo_free(mpi_info);
+                Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
 	{
-		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
+		Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
-                Paso_MPIInfo_free(mpi_info);
+                Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
 
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
+		Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
 		fclose( fileHandle_p );
-                Paso_MPIInfo_free(mpi_info);
+                Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
 
@@ -333,7 +333,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 			MEMFREE( row_ind );
 			MEMFREE( col_ind );
 			MEMFREE( col_ptr );
-			Paso_MPIInfo_free(mpi_info);
+			Esys_MPIInfo_free(mpi_info);
 			fclose(fileHandle_p);
 			return NULL;
 		}
@@ -378,7 +378,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         Paso_Distribution_free(output_dist);
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);
-        Paso_MPIInfo_free(mpi_info);
+        Esys_MPIInfo_free(mpi_info);
 	MEMFREE( val );
 	MEMFREE( row_ind );
 	return out;
@@ -389,36 +389,36 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
 	FILE *fileHandle_p = NULL;
 	int i, scan_ret;
 	MM_typecode matrixCode;
-        Paso_resetError();
+        Esys_resetError();
 	/* open the file */
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot read file for reading.");
+		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot read file for reading.");
 	}
 
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Error processing MM banner.");
+		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Error processing MM banner.");
 	}
 	if( !(mm_is_real(matrixCode) && mm_is_general(matrixCode) && mm_is_array(matrixCode)) )
 	{
 
-		Paso_setError(TYPE_ERROR,"Paso_RHS_loadMM_toCSR: found Matrix Market type is not supported.");
+		Esys_setError(TYPE_ERROR,"Paso_RHS_loadMM_toCSR: found Matrix Market type is not supported.");
 	}
 
 	/* get matrix size */
 	if( mm_read_mtx_array_size(fileHandle_p, &M, &N) != 0 )
 	{
-		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read sparse matrix size.");
+		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read sparse matrix size.");
 	}
 	
 	if(M!=size){
-		Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Actual and provided sizes do not match.");
+		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Actual and provided sizes do not match.");
 	}
 
-       if (Paso_noError()) {
+       if (Esys_noError()) {
 		nz=M;
 		/* perform actual read of elements */
 		for( i=0; i<nz; i++ )
@@ -427,7 +427,7 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
 		if (scan_ret!=1)
 		{
 			fclose(fileHandle_p);
-			Paso_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read some of the values.");
+			Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Could not read some of the values.");
 		}
 		}
         }

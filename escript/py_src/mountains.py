@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys import finley
+
 import math
 import sys
 

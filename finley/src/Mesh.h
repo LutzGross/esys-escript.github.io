@@ -64,8 +64,8 @@
 #include "paso/SystemMatrixPattern.h"
 #include "escript/DataC.h"
 
-#ifdef PASO_MPI
-#include "paso/Paso_MPI.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
 #endif
 
 /**************************************************************/
@@ -92,7 +92,7 @@ struct Finley_Mesh {
   Paso_SystemMatrixPattern *FullReducedPattern;
   Paso_SystemMatrixPattern *ReducedFullPattern;
   Paso_SystemMatrixPattern *ReducedReducedPattern;
-  Paso_MPIInfo *MPIInfo;
+  Esys_MPIInfo *MPIInfo;
 };
 
 typedef struct Finley_Mesh Finley_Mesh;
@@ -108,7 +108,7 @@ typedef struct Finley_Mesh_findMatchingFaces_center Finley_Mesh_findMatchingFace
 /**************************************************************/
 
 /*  interfaces: */
-Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Paso_MPIInfo *mpi_info);
+Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info);
 Finley_Mesh* Finley_Mesh_reference(Finley_Mesh*);
 dim_t Finley_Mesh_getDim(Finley_Mesh*);
 void Finley_Mesh_free(Finley_Mesh*);
@@ -125,7 +125,7 @@ void Finley_PrintMesh_Info(Finley_Mesh *, bool_t);
 Finley_Mesh* Finley_Mesh_load(char* fname);
 Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
-void Mesh_setOrders(Finley_Mesh *in);
+void Finley_Mesh_setOrders(Finley_Mesh *in);
 
 void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);

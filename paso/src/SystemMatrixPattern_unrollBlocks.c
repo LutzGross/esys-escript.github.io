@@ -23,6 +23,7 @@
 /**************************************************************/
 
 #include "SystemMatrixPattern.h"
+#include "esysUtils/error.h"
 
 /**************************************************************/
 
@@ -60,7 +61,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
           new_input_distribution=Paso_Distribution_getReference(pattern->input_distribution);
           new_col_connector=Paso_Connector_getReference(pattern->col_connector);
      }
-     if (Paso_noError()) {
+     if (Esys_noError()) {
         out=Paso_SystemMatrixPattern_alloc(type,
                                            new_output_distribution,
                                            new_input_distribution,
@@ -78,7 +79,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
      Paso_Connector_free(new_row_connector);
      Paso_Connector_free(new_col_connector);
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       return out;
   } else {
      Paso_SystemMatrixPattern_free(out);

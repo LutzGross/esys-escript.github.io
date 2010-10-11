@@ -30,7 +30,7 @@
 #include "SparseMatrix.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
-#include "Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 #include "Paso.h"
 #include "Coupler.h"
 
@@ -63,7 +63,7 @@ typedef struct Paso_SystemMatrix {
 
   Paso_Distribution *row_distribution;
   Paso_Distribution *col_distribution;
-  Paso_MPIInfo *mpi_info;
+  Esys_MPIInfo *mpi_info;
 
   Paso_Coupler* col_coupler;
   Paso_Coupler* row_coupler;
@@ -111,7 +111,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
 void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size);
 void Paso_SystemMatrix_setDefaults(Paso_Options*);
-int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry, Paso_MPIInfo *mpi_info);
+int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info);
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);

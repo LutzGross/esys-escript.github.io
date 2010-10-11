@@ -27,7 +27,7 @@
 /*   allocates a node file to hold nodes */
 /*   use Finley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
 
-Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
+Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo *MPIInfo)
 {
   Finley_NodeFile *out;
   
@@ -63,7 +63,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
   out->reducedDegreesOfFreedomConnector=NULL;
   out->tagsInUse=NULL;
 
-  out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
+  out->MPIInfo = Esys_MPIInfo_getReference( MPIInfo );
   return out;
 }
 
@@ -72,7 +72,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Paso_MPIInfo *MPIInfo)
 void Finley_NodeFile_free(Finley_NodeFile* in) {
   if (in!=NULL) {
      Finley_NodeFile_freeTable(in);
-     Paso_MPIInfo_free( in->MPIInfo );
+     Esys_MPIInfo_free( in->MPIInfo );
      MEMFREE(in);      
   }
 }

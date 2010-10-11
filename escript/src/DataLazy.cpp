@@ -16,7 +16,7 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #ifdef _OPENMP

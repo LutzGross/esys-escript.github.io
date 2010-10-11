@@ -319,8 +319,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s=t([1,2,3])
         self.failUnless(isinstance(s,numpy.ndarray),"s is not an ndarray object.")
         self.failUnless(self.__distance(s,numpy.array([1.,2,1]))<self.ABS_TOL,"s is wrong.")
-   def test_Rotation_x_90_0(self):
-        t=Rotation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=90*DEG)
+   def test_Rotatation_x_90_0(self):
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -330,8 +330,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,-1.,0.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_x_30_0(self):
-        t=Rotation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
+   def test_Rotatation_x_30_0(self):
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -345,8 +345,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([1.,0.,0.]))<0.,"s2 has wrong orientation.")
-   def test_Rotation_x_330_0(self):
-        t=Rotation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
+   def test_Rotatation_x_330_0(self):
+        t=Rotatation(axis=[1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -360,8 +360,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([1.,0.,0.]))>0.,"s2 has wrong orientation.")
-   def test_Rotation_x_90(self):
-        t=Rotation(axis=[-1.,0.,0.],point=[2.,0.,0.],angle=90*DEG)
+   def test_Rotatation_x_90(self):
+        t=Rotatation(axis=[-1.,0.,0.],point=[2.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -371,8 +371,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,1.,0.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_x_30(self):
-        t=Rotation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
+   def test_Rotatation_x_30(self):
+        t=Rotatation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -386,8 +386,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([-1.,0.,0.]))<0.,"s2 has wrong orientation.")
-   def test_Rotation_x_330(self):
-        t=Rotation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
+   def test_Rotatation_x_330(self):
+        t=Rotatation(axis=[-1.,0.,0.],point=[1.,0.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -401,8 +401,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([-1.,0.,0.]))>0.,"s2 has wrong orientation.")
-   def test_Rotation_y_90_0(self):
-        t=Rotation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=90*DEG)
+   def test_Rotatation_y_90_0(self):
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([0.,0,-1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -412,8 +412,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([1,0.,0.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_y_30_0(self):
-        t=Rotation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=30*DEG)
+   def test_Rotatation_y_30_0(self):
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -427,8 +427,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([0.,1.,0.]))<0.,"s2 has wrong orientation.")
-   def test_Rotation_y_330_0(self):
-        t=Rotation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=330*DEG)
+   def test_Rotatation_y_330_0(self):
+        t=Rotatation(axis=[0.,1.,0.],point=[0.,1.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -442,8 +442,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([0.,1.,0.]))>0.,"s2 has wrong orientation.")
-   def test_Rotation_y_90(self):
-        t=Rotation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=90*DEG)
+   def test_Rotatation_y_90(self):
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([0.,0,1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -453,8 +453,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([-1,0.,0.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_y_30(self):
-        t=Rotation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=30*DEG)
+   def test_Rotatation_y_30(self):
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -468,8 +468,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(30*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([0.,-1.,0.]))<0.,"s2 has wrong orientation.")
-   def test_Rotation_y_330(self):
-        t=Rotation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=330*DEG)
+   def test_Rotatation_y_330(self):
+        t=Rotatation(axis=[0.,-1.,0.],point=[0.,2.,0.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -483,8 +483,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s2,s2)-1.)<self.ABS_TOL,"s2 length is wrong.")
         self.failUnless(abs(s2[2]-math.cos(330*DEG))<self.ABS_TOL,"s2 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s2,[0,0,1]),numpy.array([0.,-1.,0.]))>0.,"s2 has wrong orientation.")
-   def test_Rotation_z_90_0(self):
-        t=Rotation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=90*DEG)
+   def test_Rotatation_z_90_0(self):
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([0.,1,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -494,8 +494,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_z_30_0(self):
-        t=Rotation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=30*DEG)
+   def test_Rotatation_z_30_0(self):
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -509,8 +509,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_z_330_0(self):
-        t=Rotation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=330*DEG)
+   def test_Rotatation_z_330_0(self):
+        t=Rotatation(axis=[0.,0.,1.],point=[0.,0.,1.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -521,8 +521,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         self.failUnless(abs(numpy.dot(s1,s1)-5.**2)<self.ABS_TOL,"s1 length is wrong.")
         self.failUnless(abs(s1[1]/5.-math.cos(330*DEG))<self.ABS_TOL,"s1 angle is wrong.")
         self.failUnless(numpy.dot(_cross(s1,[0,1,0]),numpy.array([0.,0.,1.]))>0.,"s1 has wrong orientation.")
-   def test_Rotation_z_90(self):
-        t=Rotation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=90*DEG)
+   def test_Rotatation_z_90(self):
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([0.,-1,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -532,8 +532,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_z_30(self):
-        t=Rotation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=30*DEG)
+   def test_Rotatation_z_30(self):
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=30*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -547,8 +547,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_z_330(self):
-        t=Rotation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=330*DEG)
+   def test_Rotatation_z_330(self):
+        t=Rotatation(axis=[0.,0.,-1.],point=[0.,0.,2.],angle=330*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-1.)<self.ABS_TOL,"s0 length is wrong.")
@@ -562,8 +562,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_x_90_1(self):
-        t=Rotation(point=[0.,0.,1.],axis=[1.,0.,0.],angle=90*DEG)
+   def test_Rotatation_x_90_1(self):
+        t=Rotatation(point=[0.,0.,1.],axis=[1.,0.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,1,1.]))<self.ABS_TOL,"s0 is wrong.")
@@ -573,8 +573,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([0.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_y_90_1(self):
-        t=Rotation(point=[1.,0.,0.],axis=[0.,1.,0.],angle=90*DEG)
+   def test_Rotatation_y_90_1(self):
+        t=Rotatation(point=[1.,0.,0.],axis=[0.,1.,0.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,0,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -584,8 +584,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([2.,0,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_z_90_1(self):
-        t=Rotation(point=[0.,1.,0.],axis=[0.,0.,1.],angle=90*DEG)
+   def test_Rotatation_z_90_1(self):
+        t=Rotatation(point=[0.,1.,0.],axis=[0.,0.,1.],angle=90*DEG)
         s0=t([1,0,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(self.__distance(s0,numpy.array([1.,2,0.]))<self.ABS_TOL,"s0 is wrong.")
@@ -595,8 +595,8 @@ class Test_PyCAD_Transformations(unittest.TestCase):
         s2=t([0,0,1])
         self.failUnless(isinstance(s2,numpy.ndarray),"s2 is not an ndarray object.")
         self.failUnless(self.__distance(s2,numpy.array([1.,1,1.]))<self.ABS_TOL,"s2 is wrong.")
-   def test_Rotation_diag_90_0(self):
-        t=Rotation(axis=[1.,1.,1.],angle=90*DEG)
+   def test_Rotatation_diag_90_0(self):
+        t=Rotatation(axis=[1.,1.,1.],angle=90*DEG)
         s0=t([1,-1,0])
         self.failUnless(isinstance(s0,numpy.ndarray),"s0 is not an ndarray object.")
         self.failUnless(abs(numpy.dot(s0,s0)-2.)<self.ABS_TOL,"s0 length is wrong.")

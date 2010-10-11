@@ -70,12 +70,12 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      size_t mpiSize_size;
      index_t* partition=NULL;
      Paso_Pattern *pattern=NULL;
-     Paso_MPI_rank myRank,dest,source,current_rank, rank;
+     Esys_MPI_rank myRank,dest,source,current_rank, rank;
      Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
      int c;
      
-     #ifdef PASO_MPI
+     #ifdef ESYS_MPI
      MPI_Status status;
      #endif
 
@@ -212,7 +212,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                }
                THREAD_MEMFREE(loc_partition_count);
            }
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
 	      /* recvbuf will be the concatenation of each CPU's contribution to new_distribution */
 	      MPI_Allgather(new_distribution, mpiSize, MPI_INT, recvbuf, mpiSize, MPI_INT, in->MPIInfo->comm);
            #else
@@ -235,8 +235,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 
            /* now the overlap needs to be created by sending the partition around*/
 
-           dest=Paso_MPIInfo_mod(mpiSize, myRank + 1);
-           source=Paso_MPIInfo_mod(mpiSize, myRank - 1);
+           dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
+           source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
            current_rank=myRank;
            #pragma omp parallel for private(i)
            for (i=0;i<in->Nodes->numNodes;++i) setNewDOFId[i]=TRUE;
@@ -255,14 +255,14 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                }
 
                if (p<mpiSize-1) {  /* the final send can be skipped */
-                  #ifdef PASO_MPI
+                  #ifdef ESYS_MPI
                   MPI_Sendrecv_replace(newGlobalDOFID,len, MPI_INT,
                                        dest, in->MPIInfo->msg_tag_counter,
                                        source, in->MPIInfo->msg_tag_counter,
                                        in->MPIInfo->comm,&status);
                   #endif
                   in->MPIInfo->msg_tag_counter++;
-                  current_rank=Paso_MPIInfo_mod(mpiSize, current_rank-1);
+                  current_rank=Esys_MPIInfo_mod(mpiSize, current_rank-1);
               }
            }
            for (i=0;i<mpiSize+1;++i) distribution[i]=new_distribution[i];

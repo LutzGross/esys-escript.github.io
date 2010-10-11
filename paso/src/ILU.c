@@ -55,12 +55,12 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   double time0=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_ILU* out=MEMALLOC(1,Paso_Solver_ILU);
-  if (Paso_checkPtr(out)) return NULL;
+  if (Esys_checkPtr(out)) return NULL;
   out->factors=MEMALLOC(A->len,double);
   
-  if ( ! Paso_checkPtr(out->factors)  ) {
+  if ( ! Esys_checkPtr(out->factors)  ) {
 
-       time0=Paso_timer();
+       time0=Esys_timer();
 
        #pragma omp parallel for schedule(static) private(i,iptr,k)
        for (i = 0; i < n; ++i) {
@@ -69,7 +69,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                }
        }	
        /* start factorization */
-       for (color=0;color<num_colors && Paso_noError();++color) {
+       for (color=0;color<num_colors && Esys_noError();++color) {
               if (n_block==1) {
                  #pragma omp parallel for schedule(static) private(i,color2,iptr_ik,k,iptr_kj,S11,j,iptr_ij,A11,iptr_main,D)
                  for (i = 0; i < n; ++i) {
@@ -109,7 +109,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -178,7 +178,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -289,18 +289,18 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
                              }                               
                           }
                        } else {
-                            Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
               } else {
-                 Paso_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
+                 Esys_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
               }       
               #pragma omp barrier
        }
-       time_fac=Paso_timer()-time0;
+       time_fac=Esys_timer()-time0;
   }
-  if (Paso_noError()) {
+  if (Esys_noError()) {
       if (verbose) printf("timing: ILU: coloring/elemination : %e sec\n",time_fac);
      return out;
   } else  {

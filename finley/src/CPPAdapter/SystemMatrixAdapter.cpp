@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #include "SystemMatrixAdapter.h" 

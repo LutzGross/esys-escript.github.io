@@ -42,14 +42,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   bool_t unroll=FALSE;
 
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
-  Paso_resetError();
+  Esys_resetError();
   if (type & MATRIX_FORMAT_SYM) {
-      Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: Symmetric matrix patterns are not supported.");
+      Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: Symmetric matrix patterns are not supported.");
       return NULL;
   }
   if (patternIsUnrolled) {
      if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
-         Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
+         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
   }
@@ -65,12 +65,12 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
     ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1));
   
   out=MEMALLOC(1,Paso_SystemMatrix);
-  if (! Paso_checkPtr(out)) {  
+  if (! Esys_checkPtr(out)) {  
      out->type=type;
      out->pattern=NULL;  
      out->row_distribution=NULL;
      out->col_distribution=NULL;
-     out->mpi_info=Paso_MPIInfo_getReference(pattern->mpi_info);
+     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
      out->row_coupler=NULL;
      out->col_coupler=NULL;
      out->mainBlock=NULL;
@@ -100,7 +100,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
          }
-         if (Paso_noError()) {
+         if (Esys_noError()) {
            out->row_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
            out->col_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
          }
@@ -118,12 +118,12 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
          }
-         if (Paso_noError()) {
+         if (Esys_noError()) {
               out->row_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
               out->col_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
          }
      }
-     if (Paso_noError()) {
+     if (Esys_noError()) {
         out->block_size=out->row_block_size*out->col_block_size;
         out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
         out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
@@ -137,7 +137,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            out->mainBlock=Paso_SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size,TRUE);
            out->col_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size,TRUE);
            out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
-           if (Paso_noError()) {
+           if (Esys_noError()) {
               /* allocate memory for matrix entries */
               if (type & MATRIX_FORMAT_CSC) {
                  n_norm = out->mainBlock->numCols * out->col_block_size;
@@ -146,7 +146,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
               }
               out->normalizer=MEMALLOC(n_norm,double);
               out->normalizer_is_valid=FALSE;
-              if (! Paso_checkPtr(out->normalizer)) {
+              if (! Esys_checkPtr(out->normalizer)) {
                  #pragma omp parallel for private(i) schedule(static)
                  for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
               }
@@ -155,7 +155,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      }
   }
   /* all done: */
-  if (! Paso_noError()) {
+  if (! Esys_noError()) {
     Paso_SystemMatrix_free(out);
     return NULL;
   } else {
@@ -179,7 +179,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SystemMatrixPattern_free(in->pattern);
         Paso_Distribution_free(in->row_distribution);
         Paso_Distribution_free(in->col_distribution);
-        Paso_MPIInfo_free(in->mpi_info);
+        Esys_MPIInfo_free(in->mpi_info);
         Paso_Coupler_free(in->row_coupler);
         Paso_Coupler_free(in->col_coupler);
         Paso_SparseMatrix_free(in->mainBlock);
@@ -257,13 +257,13 @@ index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p)
     int fail=0;
     out=Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
     if (out==NULL) fail=1;
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     {
          int fail_loc = fail;
          MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);
     }
     #endif
-    if (fail>0) Paso_setError(VALUE_ERROR, "Paso_SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
+    if (fail>0) Esys_setError(VALUE_ERROR, "Paso_SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
     return out;
 }
 

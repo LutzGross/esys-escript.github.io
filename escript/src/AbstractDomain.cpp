@@ -15,7 +15,7 @@
 #include "AbstractDomain.h" 
 #include "DomainException.h"
 #include "Data.h"
-#include "paso/Paso_MPI.h"
+#include "esysUtils/Esys_MPI.h"
 
 using namespace std;
 
@@ -72,7 +72,7 @@ bool AbstractDomain::onMasterProcessor() const
 }
 
 ESCRIPT_DLL_API
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
   MPI_Comm
 #else
   unsigned int
@@ -307,10 +307,14 @@ bool AbstractDomain::canTag(int functionspacecode) const
 
 int AbstractDomain::getApproximationOrder(const int functionSpaceCode) const
 {
-  throwStandardException("AbstractContinuousDomain::getApproximationOrder");
+  throwStandardException("AbstractDomain::getApproximationOrder");
   return 0;
 }
 
-
+bool AbstractDomain::supportsContactElements() const
+{
+  throwStandardException("AbstractDomain::supportsContactElements");
+  return false;
+}
 
 } // end of namespace

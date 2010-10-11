@@ -24,17 +24,17 @@
 
 /**************************************************************/
 
-void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
+void Finley_Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
 {
   index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs=NULL;
   dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes,*rcv_len=NULL, *snd_len=NULL, count;
-  Paso_MPI_rank myRank,p,p_min,p_max, *neighbor=NULL;
+  Esys_MPI_rank myRank,p,p_min,p_max, *neighbor=NULL;
   Paso_SharedComponents *rcv_shcomp=NULL, *snd_shcomp=NULL;
   Finley_NodeMapping *this_mapping=NULL;
   Paso_Connector* this_connector=NULL;
   Paso_Distribution* dof_distribution;
-  Paso_MPIInfo *mpi_info = in->MPIInfo;
-  #ifdef PASO_MPI
+  Esys_MPIInfo *mpi_info = in->MPIInfo;
+  #ifdef ESYS_MPI
       MPI_Request* mpi_requests=NULL;
       MPI_Status* mpi_stati=NULL;
   #else
@@ -80,7 +80,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   }
   rcv_len=TMPMEMALLOC(mpiSize,dim_t);
   snd_len=TMPMEMALLOC(mpiSize,dim_t);
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
     mpi_requests=MEMALLOC(mpiSize*2,MPI_Request);
     mpi_stati=MEMALLOC(mpiSize*2,MPI_Status);
   #else
@@ -89,7 +89,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
   #endif
   wanted_DOFs=TMPMEMALLOC(numNodes,index_t);
   nodeMask=TMPMEMALLOC(numNodes,index_t);
-  neighbor=TMPMEMALLOC(mpiSize,Paso_MPI_rank);
+  neighbor=TMPMEMALLOC(mpiSize,Esys_MPI_rank);
   shared=TMPMEMALLOC(numNodes*(p_max-p_min+1),index_t);
   offsetInShared=TMPMEMALLOC(mpiSize+1,index_t);
   locDOFMask=TMPMEMALLOC(len_loc_dof, index_t);
@@ -181,14 +181,14 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     /*
      *    now we build the sender
      */
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
          MPI_Alltoall(rcv_len,1,MPI_INT,snd_len,1,MPI_INT,mpi_info->comm);
     #else
         for (p=0;p<mpiSize;++p) snd_len[p]=rcv_len[p];
     #endif
     count=0;
     for (p=0;p<rcv_shcomp->numNeighbors;p++) {
-       #ifdef PASO_MPI
+       #ifdef ESYS_MPI
        MPI_Isend(&(wanted_DOFs[rcv_shcomp->offsetInShared[p]]), rcv_shcomp->offsetInShared[p+1]-rcv_shcomp->offsetInShared[p],
                   MPI_INT,rcv_shcomp->neighbor[p],mpi_info->msg_tag_counter+myRank,mpi_info->comm,&mpi_requests[count]);
         #endif
@@ -198,7 +198,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     numNeighbors=0;
     for (p=0;p<mpiSize;p++) {
          if (snd_len[p] > 0) {
-            #ifdef PASO_MPI
+            #ifdef ESYS_MPI
             MPI_Irecv(&(shared[n]),snd_len[p],
                       MPI_INT, p, mpi_info->msg_tag_counter+p, mpi_info->comm, &mpi_requests[count]);
             #endif
@@ -211,7 +211,7 @@ void Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elemen
     }
     mpi_info->msg_tag_counter+=mpi_info->size;
     offsetInShared[numNeighbors]=n;
-    #ifdef PASO_MPI
+    #ifdef ESYS_MPI
     MPI_Waitall(count,mpi_requests,mpi_stati);
     #endif
     /* map global ids to local id's */
@@ -279,7 +279,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   index_t myFirstDOF, myLastDOF, myFirstNode, myLastNode, *reduced_dof_first_component=NULL, *nodeMask=NULL,
          *reduced_nodes_first_component=NULL, k,*maskMyReducedDOF=NULL, *indexMyReducedDOF=NULL, *maskMyReducedNodes=NULL, *indexMyReducedNodes=NULL;
   dim_t myNumDOF, myNumNodes, myNumReducedNodes, myNumReducedDOF, globalNumReducedNodes, globalNumReducedDOF,i,mpiSize;
-  Paso_MPI_rank myRank;
+  Esys_MPI_rank myRank;
 
   mpiSize=in->Nodes->MPIInfo->size;
   myRank=in->Nodes->MPIInfo->rank;
@@ -325,7 +325,7 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
         myNumReducedNodes=Finley_Util_packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
         myNumReducedDOF=Finley_Util_packMask(myNumDOF,maskMyReducedDOF,indexMyReducedDOF);
         
-        #ifdef PASO_MPI
+        #ifdef ESYS_MPI
            MPI_Allgather(&myNumReducedNodes,1,MPI_INT,reduced_nodes_first_component,1,MPI_INT,in->Nodes->MPIInfo->comm);
            MPI_Allgather(&myNumReducedDOF,1,MPI_INT,reduced_dof_first_component,1,MPI_INT,in->Nodes->MPIInfo->comm);
         #else
@@ -382,9 +382,9 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
   }
   TMPMEMFREE(nodeMask);
   /* ==== mapping between nodes and DOFs + DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,FALSE);
+  if ( Finley_noError()) Finley_Mesh_createDOFMappingAndCoupling(in,FALSE);
   /* ==== mapping between nodes and reduced DOFs + reduced DOF connector ========== */
-  if ( Finley_noError()) Mesh_createDOFMappingAndCoupling(in,TRUE);
+  if ( Finley_noError()) Finley_Mesh_createDOFMappingAndCoupling(in,TRUE);
 
   /* get the Ids for DOFs and reduced nodes */
   if (Finley_noError()) {

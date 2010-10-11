@@ -35,7 +35,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
           *globalToNewLocalNodeLabels=NULL, *newLocalToGlobalNodeLabels=NULL;
   dim_t len, n, newNumNodes, numDim;
   Finley_NodeFile *newNodeFile=NULL;
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
   index_t id_range[2], global_id_range[2];
   #endif 
   numDim=Finley_Mesh_getDim(in);
@@ -54,7 +54,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
   max_id=MAX(max_id,max_id2);
   min_id=MIN(min_id,min_id2);
-  #ifdef PASO_MPI
+  #ifdef ESYS_MPI
      id_range[0]=-min_id;
      id_range[1]=max_id;
      MPI_Allreduce( id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm );

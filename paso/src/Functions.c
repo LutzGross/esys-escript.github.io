@@ -51,7 +51,7 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
       }
       
    }
-   #ifdef PASO_MPI
+   #ifdef ESYS_MPI
    {
        double local_v[2], v[2];
        local_v[0]=s;

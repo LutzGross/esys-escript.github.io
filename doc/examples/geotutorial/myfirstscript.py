@@ -20,7 +20,7 @@ __url__="https://launchpad.net/escript-finley"
 
 # get the tools we want to use
 from esys.escript import *
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 # some parameters
 L0=1.
 L1=1. 

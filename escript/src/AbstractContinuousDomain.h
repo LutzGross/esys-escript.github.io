@@ -21,6 +21,9 @@
 #include <string>
 #include <vector>
 
+#include "AbstractSystemMatrix.h"
+#include "AbstractTransportProblem.h"
+
 namespace escript {
 
 //
@@ -207,12 +210,116 @@ class AbstractContinuousDomain : public AbstractDomain {
   ESCRIPT_DLL_API 
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
-  /**
-     \brief
-     Return the domain as const AbstractContinuousDomain&
-  */
+//  /**
+//     \brief
+//     Return the domain as const AbstractContinuousDomain&
+//  */
 //   ESCRIPT_DLL_API 
 //   static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
+
+
+
+
+  /**
+     \brief
+     adds a PDE onto the stiffness matrix mat and a rhs 
+  */
+  ESCRIPT_DLL_API
+  virtual void addPDEToSystem(
+                     AbstractSystemMatrix& mat, escript::Data& rhs,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C, 
+                     const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact, const escript::Data& y_contact) const;
+
+// We do not require this method at this level since the python side checks to ensure it exists
+// before calling it.
+
+//  /**
+//     \brief
+//     adds a PDE onto the lumped stiffness matrix matrix
+//  */
+//  ESCRIPT_DLL_API
+//  virtual void addPDEToLumpedSystem(
+//                     escript::Data& mat,
+//                     const escript::Data& D, 
+//                     const escript::Data& d) const;
+
+  /**
+     \brief
+     adds a PDE onto the stiffness matrix mat and a rhs 
+  */
+  ESCRIPT_DLL_API
+  virtual void addPDEToRHS(escript::Data& rhs,
+                     const escript::Data& X, const escript::Data& Y,
+                     const escript::Data& y, const escript::Data& y_contact) const;
+  /**
+     \brief
+     adds a PDE onto a transport problem
+  */
+
+  ESCRIPT_DLL_API
+  virtual void addPDEToTransportProblem(
+                     AbstractTransportProblem& tp, escript::Data& source, 
+                     const escript::Data& M,
+                     const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
+                     const  escript::Data& X,const  escript::Data& Y,
+                     const escript::Data& d, const escript::Data& y,
+                     const escript::Data& d_contact,const escript::Data& y_contact) const;
+
+  /**
+     \brief
+    creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
+  */
+  ESCRIPT_DLL_API
+  virtual ASM_ptr newSystemMatrix(
+                      const int row_blocksize,
+                      const escript::FunctionSpace& row_functionspace,
+                      const int column_blocksize,
+                      const escript::FunctionSpace& column_functionspace,
+                      const int type) const;
+  /**
+   \brief 
+    creates a TransportProblemAdapter 
+
+  */
+
+  ESCRIPT_DLL_API
+  virtual ATP_ptr newTransportProblem(
+                      const bool useBackwardEuler,
+                      const int blocksize,
+                      const escript::FunctionSpace& functionspace,
+                      const int type) const;
+
+  /**
+     \brief
+     Return the number of data points summed across all MPI processes
+  */
+  ESCRIPT_DLL_API
+  virtual int getNumDataPointsGlobal() const;
+
+  /**
+     \brief
+     Return the number of data points per sample, and the number of samples as a pair.
+     \param functionSpaceCode Input -
+  */
+  ESCRIPT_DLL_API
+  virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
+
+  /**
+     \brief
+     assigns new location to the domain
+  */
+  ESCRIPT_DLL_API
+  virtual void setNewX(const escript::Data& arg);
+
+  /**
+     \brief
+     \param full
+  */
+  ESCRIPT_DLL_API
+  virtual void Print_Mesh_Info(const bool full=false) const;
+
 
  protected:
 

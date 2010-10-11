@@ -35,7 +35,7 @@
 typedef struct Paso_SystemMatrixPattern {
   int type;
 
-  Paso_MPIInfo *mpi_info;
+  Esys_MPIInfo *mpi_info;
 
   
   Paso_Pattern* mainPattern;

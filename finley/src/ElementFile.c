@@ -25,7 +25,7 @@
 
 /**************************************************************/
 
-Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Paso_MPIInfo *MPIInfo)
+Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Esys_MPIInfo *MPIInfo)
 {
   Finley_ElementFile *out;
   
@@ -53,7 +53,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referen
   out->numTagsInUse=0;
   out->tagsInUse=NULL;
 
-  out->MPIInfo = Paso_MPIInfo_getReference( MPIInfo );
+  out->MPIInfo = Esys_MPIInfo_getReference( MPIInfo );
  
   out->jacobeans=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
   out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
@@ -80,13 +80,13 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
-     Paso_MPIInfo_free( in->MPIInfo );
+     Esys_MPIInfo_free( in->MPIInfo );
      MEMFREE(in);      
   }
 }
 void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
   dim_t local_num_elements,e,num_elements=0, size;
-  Paso_MPI_rank myRank;
+  Esys_MPI_rank myRank;
   if (in == NULL) {
       distribution[0]=num_elements;
   } else {
@@ -104,7 +104,7 @@ void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* di
             #pragma omp critical
             num_elements+=local_num_elements;
          }
-         #ifdef PASO_MPI
+         #ifdef ESYS_MPI
            MPI_Allgather(&num_elements,1,MPI_INT,distribution,1,MPI_INT,in->MPIInfo->comm);
          #else
            distribution[0]=num_elements;

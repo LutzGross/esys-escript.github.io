@@ -19,6 +19,8 @@
 /**************************************************************/
 
 #include "Quadrature.h"
+#include "esysUtils/index.h"
+#include "esysUtils/mem.h"
 
 
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]

@@ -32,7 +32,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
-from esys.finley import Rectangle # This imports the rectangle domain function from finley
+from esys.finley import Rectangle # This imports the rectangle domain function
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.

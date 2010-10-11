@@ -24,15 +24,15 @@ Test suite for the pdetools module
 
 The tests must be linked with a Domain class object in the setUp method:
 
-   from esys.finley import Rectangle
-   class Test_LinearPDEOnFinley(Test_LinearPDE):
+   from esys.dudley import Rectangle
+   class Test_LinearPDEOnDudley(Test_LinearPDE):
        RES_TOL=1.e-8
        def setUp(self):
            self.domain = Rectangle(10,10,2)
        def tearDown(self):
            del self.domain
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinley))
+   suite.addTest(unittest.makeSuite(Test_LinearPDEOnDudley))
    unittest.TextTestRunner(verbosity=2).run(suite)
 
 :var __author__: name of author
@@ -1138,7 +1138,8 @@ class Test_pdetools(Test_pdetools_noLumping):
       h=Lsup(self.domain.getSize())
       p=Projector(self.domain,reduce=True,fast=True)
       td_ref=x
-      td=p(td_ref.interpolate(Function(self.domain)))
+      res=td_ref.interpolate(Function(self.domain))
+      td=p(res)
       self.failUnless(Lsup(td-td_ref)<Lsup(td_ref)*h,"value wrong")
 
     def testProjector_rank2_fast_reduced(self):

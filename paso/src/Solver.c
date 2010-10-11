@@ -44,7 +44,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    double norm2_of_b_local,norm_max_of_b_local,norm2_of_residual_local;
    double norm_max_of_residual_local,norm_max_of_residual;
    double last_norm_max_of_residual,*scaling;
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
    double loc_norm;
 #endif
    dim_t i,totIter=0,cntIter,method;
@@ -56,31 +56,31 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    double *x0=NULL;
 
  
-     Paso_resetError();
+     Esys_resetError();
      tolerance=options->tolerance;
      if (tolerance < 100.* EPSILON) {
-       Paso_setError(VALUE_ERROR,"Paso_Solver: Tolerance is too small.");
+       Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance is too small.");
      }
      if (tolerance >1.) {
-       Paso_setError(VALUE_ERROR,"Paso_Solver: Tolerance mut be less than one.");
+       Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance mut be less than one.");
      }
      method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric,A->mpi_info);
      /* check matrix type */
      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
-       Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
+       Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
      }
      if (A->col_block_size != A->row_block_size) {
-        Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires row and column block sizes to be equal.");
+        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires row and column block sizes to be equal.");
      }
      if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)) {
-        Paso_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
+        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
         return;
      }
      /*if (A->block_size != 1 && options->preconditioner==PASO_AMG) {
-        Paso_setError(TYPE_ERROR,"Paso_Solver: AMG on systems not supported yet.");
+        Esys_setError(TYPE_ERROR,"Paso_Solver: AMG on systems not supported yet.");
      }
      */
-     time_iter=Paso_timer();
+     time_iter=Esys_timer();
      /* this for testing only */
      if (method==PASO_NONLINEAR_GMRES) {
         Paso_Function* F=NULL;
@@ -88,7 +88,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_SystemMatrix_solvePreconditioner(A,x,b);
         errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
         if (errorCode!=NO_ERROR) {
-           Paso_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
+           Esys_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
         }
         Paso_Function_LinearSystem_free(F);
         return;
@@ -96,10 +96,10 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      
      /* ========================= */
      Performance_startMonitor(pp,PERFORMANCE_ALL);
-     if (Paso_noError()) {
+     if (Esys_noError()) {
         /* get normalization */
         scaling=Paso_SystemMatrix_borrowNormalization(A);
-        if (Paso_noError()) {
+        if (Esys_noError()) {
            /* get the norm of the right hand side */
            norm2_of_b=0.;
            norm_max_of_b=0.;
@@ -119,7 +119,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                 }
            }
            /* TODO: use one call */
-           #ifdef PASO_MPI
+           #ifdef ESYS_MPI
            {
                loc_norm = norm2_of_b;
                MPI_Allreduce(&loc_norm,&norm2_of_b, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
@@ -130,9 +130,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
            norm2_of_b=sqrt(norm2_of_b);
          /* if norm2_of_b==0 we are ready: x=0 */
          if ( IS_NAN(norm2_of_b) || IS_NAN(norm_max_of_b) ) {
-
-            Paso_setError(VALUE_ERROR,"Paso_Solver: Matrix or right hand side contains undefined values.");
-
+            Esys_setError(VALUE_ERROR,"Paso_Solver: Matrix or right hand side contains undefined values.");
          } else if (norm2_of_b <=0.) {
 
             #pragma omp parallel for private(i) schedule(static)
@@ -177,9 +175,9 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 	    Paso_SystemMatrix_setPreconditioner(A,options);
             Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
             blocktimer_increment("Paso_Solver_setPreconditioner()", blocktimer_precond);
-            options->set_up_time=Paso_timer()-time_iter;
+            options->set_up_time=Esys_timer()-time_iter;
+            if (! Esys_noError()) return;
 
-            if (! Paso_noError()) return;
 
               /* get an initial guess by evaluating the preconditioner */
 	      Paso_SystemMatrix_solvePreconditioner(A,x,b);
@@ -187,16 +185,15 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
               /* start the iteration process :*/
               r=TMPMEMALLOC(numEqua,double);
               x0=TMPMEMALLOC(numEqua,double);
-              Paso_checkPtr(r);
-	      Paso_checkPtr(x0);
-
-              if (Paso_noError()) {
+              Esys_checkPtr(r);
+	      Esys_checkPtr(x0);
+              if (Esys_noError()) {
 
                  totIter = 1;
                  finalizeIteration = FALSE;
                  last_norm2_of_residual=norm2_of_b;
                  last_norm_max_of_residual=norm_max_of_b;
-		 net_time_start=Paso_timer();
+		 net_time_start=Esys_timer();
 
                  /* Loop */
                  while (! finalizeIteration) {
@@ -225,7 +222,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                        }
                     }
                     /* TODO: use one call */
-                    #ifdef PASO_MPI
+                    #ifdef ESYS_MPI
                         loc_norm = norm2_of_residual;
                         MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                         loc_norm = norm_max_of_residual;
@@ -239,7 +236,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                   if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
 
                      if (options->verbose) printf(" divergence!\n");
-                     Paso_setError(DIVERGED, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
+                     Esys_setError(DIVERGED, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
 
                   } else {
 
@@ -286,24 +283,24 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         if (errorCode==SOLVER_NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
-                           Paso_setError(DIVERGED,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
+                           Esys_setError(DIVERGED,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
                            if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.!\n");
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
-                           Paso_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");
+                           Esys_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");
                            if (options->verbose) printf("Paso_Solver: Internal error!\n");
 			} else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
-			   Paso_setError(VALUE_ERROR,"Paso_Solver: negative energy norm (try other solver or preconditioner).");
+			   Esys_setError(VALUE_ERROR,"Paso_Solver: negative energy norm (try other solver or preconditioner).");
 			   if (options->verbose) printf("Paso_Solver: negative energy norm (try other solver or preconditioner)!\n");
                         } else if ( errorCode == SOLVER_BREAKDOWN ) {
                            if (cntIter <= 1) {
-                              Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
+                              Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
                               if (options->verbose) printf("Paso_Solver: Uncurable break down!\n");
                            } else {
                               if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
                               finalizeIteration = FALSE;
                            }
                         } else {
-			   Paso_setError(SYSTEM_ERROR,"Paso_Solver:generic error in solver.");
+			   Esys_setError(SYSTEM_ERROR,"Paso_Solver:generic error in solver.");
 			   if (options->verbose) printf("Paso_Solver: generic error in solver!\n");
                         }
                       } else {
@@ -312,7 +309,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                       }
                    }
                  } /* while */
-                 options->net_time=Paso_timer()-net_time_start;
+                 options->net_time=Esys_timer()-net_time_start;
               }
               MEMFREE(r);
               MEMFREE(x0);
@@ -322,7 +319,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
            }
         }
       }
-   options->time=Paso_timer()-time_iter;
+   options->time=Esys_timer()-time_iter;
    Performance_stopMonitor(pp,PERFORMANCE_ALL);
    blocktimer_increment("Paso_Solver()", blocktimer_start);
 

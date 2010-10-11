@@ -144,8 +144,9 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
 class Test_CSVOnFinley(Test_saveCSV):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
-       self.linecount1=20		#see test_save1 for the meaning of these params
+       self.linecount1=80		#see test_save1 for the meaning of these params
        self.linecount2=69
+       self.line_expected=[0.125, 0., 0.125]
        
    def tearDown(self):
        del self.domain

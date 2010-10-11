@@ -12,7 +12,7 @@
 *******************************************************/
 
 
-#ifdef PASO_MPI
+#ifdef ESYS_MPI
 #include <mpi.h>
 #endif
 #include "FinleyError.h"
@@ -40,14 +40,14 @@ namespace finley {
   }
   void checkPasoError() 
   {
-    if (Paso_noError()) {
+    if (Esys_noError()) {
       return;
     } else {
       //
       // reset the error code to no error otherwise the next call to
       // this function may resurrect a previous error
-      Paso_resetError();
-      throw FinleyAdapterException(Paso_getErrorMessage());
+      Esys_resetError();
+      throw FinleyAdapterException(Esys_getErrorMessage());
     }
   }
 

@@ -16,8 +16,10 @@
 #include <weipa/DataVar.h>
 
 #ifndef VISIT_PLUGIN
+#include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
 extern "C" {
+#include <dudley/Mesh.h>
 #include <finley/Mesh.h>
 }
 #endif
@@ -84,23 +86,37 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #ifndef VISIT_PLUGIN
     cleanup();
 
-    if (!dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
-        return false;
-    }
+    if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
+        const Finley_Mesh* finleyMesh =
+            dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
+                ->getFinley_Mesh();
 
-    finleyMesh = dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
-        ->getFinley_Mesh();
+        nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
+        cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
+        faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
+        contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
 
-    nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
-    cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
-    faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
-    contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
+        if (nodes->initFromFinley(finleyMesh->Nodes) &&
+                cells->initFromFinley(finleyMesh->Elements) &&
+                faces->initFromFinley(finleyMesh->FaceElements) &&
+                contacts->initFromFinley(finleyMesh->ContactElements)) {
+            initialized = true;
+        }
+    } else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
+        const Dudley_Mesh* dudleyMesh =
+            dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)
+                ->getDudley_Mesh();
 
-    if (nodes->initFromFinley(finleyMesh->Nodes) &&
-            cells->initFromFinley(finleyMesh->Elements) &&
-            faces->initFromFinley(finleyMesh->FaceElements) &&
-            contacts->initFromFinley(finleyMesh->ContactElements)) {
-        initialized = true;
+        nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
+        cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
+        faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
+        contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
+
+        if (nodes->initFromDudley(dudleyMesh->Nodes) &&
+                cells->initFromDudley(dudleyMesh->Elements) &&
+                faces->initFromDudley(dudleyMesh->FaceElements)) {
+            initialized = true;
+        }
     }
 
     return initialized;
@@ -213,10 +229,11 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
         }
         int typeId = static_cast<FinleyElements*>(result.get())
             ->getFinleyTypeId();
-        if (typeId != Rec9 && typeId != Rec9Macro && typeId != Hex27 &&
-                typeId != Hex27Macro && typeId != Tri6 &&
-                typeId != Tri6Macro && typeId != Tet10 &&
-                typeId != Tet10Macro) {
+        if (typeId != Finley_Rec9 && typeId != Finley_Rec9Macro &&
+                typeId != Finley_Hex27 &&
+                typeId != Finley_Hex27Macro && typeId != Finley_Tri6 &&
+                typeId != Finley_Tri6Macro && typeId != Finley_Tet10 &&
+                typeId != Finley_Tet10Macro) {
             if (result->getReducedElements())
                 result = result->getReducedElements();
         }

@@ -120,7 +120,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
 		  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
              } else if (refElement->numLocalDim==1) {
                   if (out->numSides==2) {
-				       Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+				       Finley_Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                             shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                             shape->dSdv,basis->Type->numShapes,dBdv, out->DSDX,out->volume,self->Id);
 
@@ -137,12 +137,12 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
              } else if (refElement->numLocalDim==1) {
                   if (out->BasisFunctions->Type->numDim==2) {
                      if (out->numSides==1) {
-                        Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_2D_M1D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
                      } else if (out->numSides==2) {
-                        Assemble_jacobeans_2D_M1D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_2D_M1D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                         shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
@@ -151,12 +151,12 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                       }
                   }  else if (out->BasisFunctions->Type->numDim==1) {
                      if (out->numSides==1) {
-                        Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_2D_M1D_E1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
                      } else if (out->numSides==2) {
-                        Assemble_jacobeans_2D_M1D_E1D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_2D_M1D_E1D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                         shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
@@ -168,7 +168,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                   }
              } else if (refElement->numLocalDim==2) {
                   if (out->numSides==1) {
-                     Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                     Finley_Assemble_jacobeans_2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);
@@ -186,12 +186,12 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
              } else if (refElement->numLocalDim==2) {
                   if (out->BasisFunctions->Type->numDim==3) {
                      if (out->numSides==1) {
-                        Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_3D_M2D_E3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
                      } else if (out->numSides==2) {
-                        Assemble_jacobeans_3D_M2D_E3D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_3D_M2D_E3D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                         shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
@@ -200,12 +200,12 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                       }
                   }  else if (out->BasisFunctions->Type->numDim==2) {
                      if (out->numSides==1) {
-                        Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_3D_M2D_E2D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                       shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                       shape->dSdv,basis->Type->numShapes,dBdv,
                                                       out->DSDX,out->volume,self->Id);
                      } else if (out->numSides==2) {
-                        Assemble_jacobeans_3D_M2D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                        Finley_Assemble_jacobeans_3D_M2D_E2D_C(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                                         shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                                         shape->dSdv,basis->Type->numShapes,dBdv,
                                                         out->DSDX,out->volume,self->Id);
@@ -217,7 +217,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                   }
              } else if (refElement->numLocalDim==3) {
                   if (out->numSides==1) {
-                     Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
+                     Finley_Assemble_jacobeans_3D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
                                            shape->Type->numShapes,self->numElements,numNodes,self->Nodes,
                                            shape->dSdv,basis->Type->numShapes,dBdv,
                                            out->DSDX,out->volume,self->Id);

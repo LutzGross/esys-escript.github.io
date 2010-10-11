@@ -40,14 +40,14 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
   index_t node0, myRank, e_offset2, e_offset1, e_offset0=0, offset1=0, offset2=0, offset0=0, global_i0, global_i1, global_i2;
   Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   Finley_Mesh* out;
-  Paso_MPIInfo *mpi_info = NULL;
+  Esys_MPIInfo *mpi_info = NULL;
   char name[50];
   #ifdef Finley_TRACE
   double time0=Finley_timer();
   #endif
 
   /* get MPI information */
-  mpi_info = Paso_MPIInfo_alloc( MPI_COMM_WORLD );
+  mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
   if (! Finley_noError()) {
         return NULL;
   }
@@ -66,18 +66,18 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
   sprintf(name,"Rectangular %d x %d x %d mesh",N0,N1,N2);
   out=Finley_Mesh_alloc(name,DIM, mpi_info);
   if (! Finley_noError()) { 
-      Paso_MPIInfo_free( mpi_info );
+      Esys_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Finley_ReferenceElementSet_alloc(Hex8,order,reduced_order);
+  refElements= Finley_ReferenceElementSet_alloc(Finley_Hex8,order,reduced_order);
   if (useElementsOnFace) {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Hex8Face, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Hex8Face_Contact, order, reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Hex8Face, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Hex8Face_Contact, order, reduced_order);
   } else {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Rec4, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Rec4_Contact, order, reduced_order);
+	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Rec4, order, reduced_order);
+		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec4_Contact, order, reduced_order);
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Point1, order, reduced_order);
+  refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1, order, reduced_order);
   
  
   if ( Finley_noError()) {
@@ -96,21 +96,21 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
 		  e_offset0=0;
 		  local_NE1=NE1;
 		  e_offset1=0;
-		  Paso_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
+		  Esys_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
 	  } else if (N1==MAX3(N0,N1,N2)) {
 		  Nstride0=N2;
 		  Nstride1=N0*N2;
 		  Nstride2=1;
 		  local_NE0=NE0;
  	    e_offset0=0;
-		Paso_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
+		Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
 		local_NE2=NE2;
 		e_offset2=0;
 	  } else {
 		  Nstride0=N1*N2;
 		  Nstride1=1;
 		  Nstride2=N1;
-		  Paso_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
+		  Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
 		  local_NE1=NE1;
 		  e_offset1=0;
 		  local_NE2=NE2;
@@ -441,7 +441,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
   Finley_ReferenceElementSet_dealloc(refContactElements);
   Finley_ReferenceElementSet_dealloc(refFaceElements);
   Finley_ReferenceElementSet_dealloc(refElements);
-  Paso_MPIInfo_free( mpi_info );  
+  Esys_MPIInfo_free( mpi_info );  
 
   return out;
 }

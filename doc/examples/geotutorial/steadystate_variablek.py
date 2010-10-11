@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 # import tools
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-from esys.finley import Rectangle
+from esys.dudley import Rectangle
 # dimensions:
 L0=1.;L1=1.;
 # height of k interface:

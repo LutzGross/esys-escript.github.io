@@ -43,15 +43,15 @@ Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row
       index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
       int i,k,tmp,m,subpattern_row;
       int type=A->type;
-      Paso_resetError();
+      Esys_resetError();
       if (A->type & MATRIX_FORMAT_CSC) {
-          Paso_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
+          Esys_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
       } else {
          sub_pattern=Paso_Pattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
-         if (Paso_noError()) {
+         if (Esys_noError()) {
             /* create the return object */
             out=Paso_SparseMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size,TRUE);
-            if (Paso_noError()) {
+            if (Esys_noError()) {
                  #pragma omp parallel for private(i,k,m,subpattern_row,tmp) schedule(static)
                  for (i=0;i<n_row_sub;++i) {
                      subpattern_row=row_list[i];
@@ -95,7 +95,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
             }
       }
       else if (blocksize==2) {
@@ -116,7 +116,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
             }
       }
       else if (blocksize==3) {
@@ -145,7 +145,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Paso_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
             }
       }
             

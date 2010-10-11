@@ -32,30 +32,30 @@ void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
   MM_typecode matcode;                        
 
   if (A_p->mpi_info->size > 1) {
-       Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently single processor runs are supported.\n");
+       Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently single processor runs are supported.\n");
        return;
   }
   if (A_p->col_block_size !=A_p->row_block_size) {
-    Paso_setError(TYPE_ERROR, "Paso_SystemMatrix_saveMM: currently only square blocks are supported.");
+    Esys_setError(TYPE_ERROR, "Paso_SystemMatrix_saveMM: currently only square blocks are supported.");
     return;
   }
   if (A_p->row_block_size>3) {
-       Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently only block size 3 is supported.\n");
+       Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM: currently only block size 3 is supported.\n");
        return;
   }
 
   if (A_p->type & MATRIX_FORMAT_SYM) {
-    Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support symmetric storage scheme");
+    Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support symmetric storage scheme");
     return;
   }
   /* open the file */
   fileHandle_p = fopen(fileName_p, "w");
   if (fileHandle_p==NULL) {
-    Paso_setError(IO_ERROR,"file could not be opened for writing");
+    Esys_setError(IO_ERROR,"file could not be opened for writing");
     return;
   }
   if (A_p->type & MATRIX_FORMAT_CSC) {
-    Paso_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support CSC yet.");
+    Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_saveMM does not support CSC yet.");
   } else {
     mm_initialize_typecode(&matcode);
     mm_set_matrix(&matcode);
