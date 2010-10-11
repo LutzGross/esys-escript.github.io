@@ -29,6 +29,7 @@
 
 #include <numeric> // for accumulate
 #include <iostream> // for cerr
+#include <stdio.h>
 
 using namespace std;
 
