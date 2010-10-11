@@ -19,7 +19,6 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-# $Id$
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Rectangle
