@@ -54,6 +54,7 @@ bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
 	arr[2] = MEMALLOC(4,double);	/* Line Single */
 	arr[3] = MEMALLOC(4,double);	/* Line 2 */
 
+/*
 	for (i = 0; i < 2; ++i)
 	{
 	    arr[2][2 * i] = 1 - _dudley_V[0][i];
@@ -62,6 +63,20 @@ bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
 	    arr[2][2 * i + 1] = _dudley_V[0][i];
 	    arr[3][2 * i + 1] = _dudley_V[1][i];
 	}
+*/
+
+	for (i = 0; i < 2; ++i)
+	{
+	    arr[2][2 * i] = 1 - _dudley_V[0][i];
+	    arr[2][2 * i + 1] = _dudley_V[0][i];
+	}
+	for (i = 0; i < 2; ++i)
+	{
+	    arr[3][2 * i] = 1 - _dudley_V[1][i];
+	    arr[3][2 * i + 1] = _dudley_V[1][i];
+	}
+
+
 
 	arr[4] = MEMALLOC(3,double);	/* Tri single */
 	arr[4][0] = 1. - _dudley_V[2][0] - _dudley_V[2][1];
