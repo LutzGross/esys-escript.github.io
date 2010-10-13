@@ -91,13 +91,13 @@ escript_opts_version = 200
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/usr/local'
+#mpi_prefix = '/usr'
 
 # MPI libraries to link against
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = ['/usr/local/include/boost-1_38', '/usr/local/lib']
