@@ -146,8 +146,10 @@ if options_file:
 Help(vars.GenerateHelpText(env))
 
 # Check for superfluous options
-for k in vars.UnknownVariables():
-    print("WARNING: Ignoring unknown option '%s'" % k)
+if len(vars.UnknownVariables())>0:
+    for k in vars.UnknownVariables():
+        print("Unknown option '%s'" % k)
+    Exit(1)
 
 #################### Make sure install directories exist #####################
 
