@@ -770,11 +770,16 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 // adds linear PDE of second order into a given stiffness matrix and right hand side:
 //
 void MeshAdapter::addPDEToSystem(
-                                 SystemMatrixAdapter& mat, escript::Data& rhs,
+                                 AbstractSystemMatrix& mat, escript::Data& rhs,
                                  const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                  const escript::Data& d, const escript::Data& y, 
                                  const escript::Data& d_contact,const escript::Data& y_contact) const
 {
+   SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
+   if (smat==0)
+   {
+	throw FinleyAdapterException("finley only supports its own system matrices.");
+   }
    escriptDataC _rhs=rhs.getDataC();
    escriptDataC _A  =A.getDataC();
    escriptDataC _B=B.getDataC();
@@ -789,13 +794,13 @@ void MeshAdapter::addPDEToSystem(
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
-   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,mat.getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,smat->getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
    checkFinleyError();
 
-   Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, mat.getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
+   Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, smat->getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
    checkFinleyError();
 
-   Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, mat.getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
+   Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, smat->getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
 }
 
@@ -845,12 +850,19 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
 // adds PDE of second order into a transport problem
 //
 void MeshAdapter::addPDEToTransportProblem(
-                                           TransportProblemAdapter& tp, escript::Data& source, const escript::Data& M,
+                                           AbstractTransportProblem& tp, escript::Data& source, const escript::Data& M,
                                            const escript::Data& A, const escript::Data& B, const escript::Data& C,
                                            const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                            const escript::Data& d, const escript::Data& y, 
                                            const escript::Data& d_contact,const escript::Data& y_contact) const
 {
+   TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
+   if (tpa==0)
+   {
+	throw FinleyAdapterException("finley only supports its own transport problems.");
+   }
+
+
    DataTypes::ShapeType shape;
    source.expand();
    escriptDataC _source=source.getDataC();
@@ -867,7 +879,7 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y_contact=y_contact.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
-   Paso_TransportProblem* _tp = tp.getPaso_TransportProblem();
+   Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &_source, 0, 0, 0, &_M, 0, 0 );
    checkFinleyError();

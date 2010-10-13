@@ -169,7 +169,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
       .def("addPDEToSystem",&dudley::MeshAdapter::addPDEToSystem,
-args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y"),
+args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -179,6 +179,8 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y"),
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param d:\n:type d: `Data`\n"
+":param d_contact:\n:type d_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`\n"
 )
       .def("addPDEToLumpedSystem",&dudley::MeshAdapter::addPDEToLumpedSystem,
 args("mat", "D", "d"),
@@ -193,6 +195,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param y:\n:type y: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
 )
       .def("addPDEToTransportProblem",&dudley::MeshAdapter::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),

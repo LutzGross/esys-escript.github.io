@@ -545,10 +545,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   DUDLEY_DLL_API
   virtual void addPDEToSystem(
-                     SystemMatrixAdapter& mat, escript::Data& rhs,
+                     escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& d, const escript::Data& y) const;
+                     const escript::Data& d, const escript::Data& y, 
+		     const escript::Data& d_contact, const escript::Data& y_contact) const;
+
+
   /**
      \brief
      adds a PDE onto the lumped stiffness matrix matrix
@@ -566,7 +569,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   DUDLEY_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& y) const;
+                     const escript::Data& y, const escript::Data& y_contact) const;
   /**
      \brief
      adds a PDE onto a transport problem
@@ -574,7 +577,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   DUDLEY_DLL_API
   virtual void addPDEToTransportProblem(
-                     TransportProblemAdapter& tp, escript::Data& source, 
+                     escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
                      const  escript::Data& X,const  escript::Data& Y,
