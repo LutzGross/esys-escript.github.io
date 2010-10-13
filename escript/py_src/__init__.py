@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from escript import *
 from util import *
-from restarts import DataManager
+from datamanager import DataManager
 
 import os
 import atexit
