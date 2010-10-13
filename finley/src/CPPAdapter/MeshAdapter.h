@@ -544,7 +544,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   */
   FINLEY_DLL_API
   virtual void addPDEToSystem(
-                     SystemMatrixAdapter& mat, escript::Data& rhs,
+                     escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
@@ -574,7 +574,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   virtual void addPDEToTransportProblem(
-                     TransportProblemAdapter& tp, escript::Data& source, 
+                     escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
                      const  escript::Data& X,const  escript::Data& Y,

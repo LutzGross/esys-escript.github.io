@@ -79,7 +79,7 @@ protected:
   friend Data operator/(const escript::Data&, const boost::python::api::object&);
   friend Data C_GeneralTensorProduct(escript::Data& arg_0, escript::Data& arg_1,
                      int axis_offset, int transpose);
-  friend Data escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+  friend Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 };
 
 
