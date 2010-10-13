@@ -91,7 +91,7 @@ class DataManager(object):
         if self.VISIT in self._exportformats:
             simFile=os.path.join(self._workdir, "escriptsim.sim2")
             if not self.__initVisit(simFile, "Escript simulation"):
-                print "Warning: Could not initialize VisIt interface"
+                print("Warning: Could not initialize VisIt interface")
                 self._exportformats.remove(self.VISIT)
         if self.RESTART in self._exportformats:
             # find all restart directories
@@ -104,7 +104,7 @@ class DataManager(object):
                 restart_folders.sort()
                 if do_restart:
                     self._restartdir=restart_folders[-1]
-                    print "Restart from "+os.path.join(self._workdir, self._restartdir)
+                    print("Restart from "+os.path.join(self._workdir, self._restartdir))
                     for f in restart_folders[:-1]:
                         self.__removeDirectory(f)
                     self.__loadState()
@@ -129,10 +129,20 @@ class DataManager(object):
                 if self._domain==None:
                     self._domain=var.getDomain()
                 elif self._domain != var.getDomain():
-                    raise ValueError, "addData: Data must be on the same domain!"
+                    raise ValueError("addData: Data must be on the same domain!")
                 self._data[name]=var
             else:
                 self._stamp[name]=var
+
+    def setDomain(self, domain):
+        """
+        Sets the domain without adding data.
+        """
+        if self._domain==None:
+            self._domain = domain
+        elif self._domain != domain:
+            raise ValueError("setDomain: Domain already set!")
+
 
     def hasData(self):
         """
@@ -145,7 +155,7 @@ class DataManager(object):
         Returns the domain as recovered from restart files.
         """
         if not self.hasData():
-            raise ValueError, "No restart data available"
+            raise ValueError("No restart data available")
         return self._domain 
 
     def getValue(self, value_name):
@@ -154,14 +164,14 @@ class DataManager(object):
         from restart files.
         """
         if not self.hasData():
-            raise ValueError, "No restart data available"
+            raise ValueError("No restart data available")
 
         if value_name in self._stamp:
             return self._stamp[value_name]
 
         ff=self.__getDumpFilename(value_name, self._restartdir)
         var = load(ff, self._domain)
-        #print "Value %s recovered from %s."%(value_name, ff)
+        #print("Value %s recovered from %s."%(value_name, ff))
         return var 
 
     def getCycle(self):
@@ -222,6 +232,7 @@ class DataManager(object):
         """
 
         if self._domain == None:
+            print("Warning: DataManager.export() called but no domain set!")
             return
 
         self._N += 1
@@ -247,7 +258,7 @@ class DataManager(object):
                 if self._N % self._checkpointfreq==0:
                     self.__saveState()
             else:
-                raise ValueError, "export: Unknown export format "+str(f)
+                raise ValueError("export: Unknown export format "+str(f))
 
         self.__clearData()
 
@@ -262,11 +273,11 @@ class DataManager(object):
         ds.setMeshLabels(self._meshlabels[0], self._meshlabels[1], self._meshlabels[2])
         ds.setMeshUnits(self._meshunits[0], self._meshunits[1], self._meshunits[2])
         for n,d in idata.items():
-            ds.addData(d, n, "") #FIXME: data units are not supported yet
+            ds.addData(d, n, "") #TODO: data units are not supported here yet
         return ds
     
     def __clearData(self):
-        #print "Clearing all data"
+        #print("Clearing all data")
         self._restartdir = None
         self._domain = None
         self._stamp = {}
@@ -314,7 +325,7 @@ class DataManager(object):
             self._stamp = cPickle.load(open(stamp_file, "rb"))
             self._N = int(self._restartdir[len(self._restartprefix)+1:])
         except:
-            raise IOError, "Could not load stamp file "+stamp_file
+            raise IOError("Could not load stamp file "+stamp_file)
         # load domain
         ff=self.__getDumpFilename("_domain",self._restartdir)
         modname=self._stamp['__domainmodule']
@@ -323,7 +334,7 @@ class DataManager(object):
             domclass=__import__(modname, fromlist=[clsname])
             self._domain = domclass.LoadMesh(ff)
         except:
-            raise ImportError, "Unable to load %s using %s.%s!"%(ff, modname, clsname)
+            raise ImportError("Unable to load %s using %s.%s!"%(ff, modname, clsname))
 
     def __saveState(self):
         restartdir = "%s_%04d"%(self._restartprefix, self._N)
@@ -337,7 +348,7 @@ class DataManager(object):
         for name, var in self._data.items():
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
-        print "Restart files saved in "+os.path.join(self._workdir, restartdir)
+        print("Restart files saved in "+os.path.join(self._workdir, restartdir))
         # keep only one restart directory
         old_restartdir = "%s_%04d"%(self._restartprefix, self._N-self._checkpointfreq)
         self.__removeDirectory(os.path.join(self._workdir, old_restartdir))
@@ -345,6 +356,6 @@ class DataManager(object):
     def __removeDirectory(self, path):
         if self._myrank==0 and os.path.isdir(path):
             shutil.rmtree(path, True)
-            #print "Removed restart directory %s."%path
+            #print("Removed restart directory %s."%path)
         MPIBarrierWorld()
 
