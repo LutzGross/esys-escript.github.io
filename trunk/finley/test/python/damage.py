@@ -64,7 +64,7 @@ if CASE==1 or CASE==2:
    G = 10*U.m/U.sec**2     *0
    SIGMA_N=50.*U.Mega*U.Pa
    DIM=3                          
-   VMAX=-1.*U.m/U.sec/450.
+   VMAX=-1.*U.m/U.sec/500000.
    DT_MAX=50.*U.sec
    DT=DT_MAX/1000000.
    xc=[L/2,L/2,H/2]
@@ -101,10 +101,11 @@ ODE_TOL=0.01
 ODE_ITER_TOL=1.e-8
 ODE_ITER_MAX=15
 DEPS_MAX=0.01
+TOL_DU=1e-5
+UPDATE_OPERATOR = False
 
 
-#diagnose=FileWriter("diagnose.csv",append=False)
-diagnose=FileWriter("/mnt/D/Cache/diagnose.csv",append=False)
+diagnose=FileWriter("diagnose1.csv",append=False)
 #===================================
 S=0.5*XI_0*((2.*MU_0+3.*LAME_0)/(3.-XI_0**2) + LAME_0)
 GAMMA_M=S + sqrt(S**2+2.*MU_0*(2.*MU_0+3.*LAME_0)/(3.-XI_0**2))
@@ -159,7 +160,6 @@ if CASE==2 or CASE==3:
   alpha=ALPHA_0*exp(-length(Function(dom).getX()-xc)**2/WWW**2)
 else:
   alpha=Scalar(ALPHA_0,Function(dom))
-u=Vector(0.,ContinuousFunction(dom))
 
 pde=LinearPDESystem(dom)
 pde.setSymmetryOn()
@@ -168,21 +168,25 @@ pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT)
 
 
 fixed_v_mask=Vector(0,Solution(dom))
-u0=Vector(0.,ContinuousFunction(dom))
+v0=Vector(0.,ContinuousFunction(dom))
 if CASE == 1 or CASE==2:
     for d in range(DIM):
        fixed_v_mask+=whereZero(x[d]-BBOX[d][0])*unitVector(d,DIM)
        if d == DIM-1:
           fixed_v_mask+=whereZero(x[d]-BBOX[d][1])*unitVector(d,DIM)
-          u0[d]=(x[d]-BBOX[d][0])/(BBOX[d][1]-BBOX[d][0])*VMAX
+          v0[d]=(x[d]-BBOX[d][0])/(BBOX[d][1]-BBOX[d][0])*VMAX
 else:
     for d in range(DIM):
         fixed_v_mask+=whereZero(x[d]-BBOX[d][0])*unitVector(d,DIM)
         if d == 0:
            fixed_v_mask+=whereZero(x[d]-BBOX[d][1])*unitVector(d,DIM)
-           u0[d]=(x[d]-BBOX[d][0])/(BBOX[d][1]-BBOX[d][0])*VMAX
+           v0[d]=(x[d]-BBOX[d][0])/(BBOX[d][1]-BBOX[d][0])*VMAX
 
 pde.setValue(Y=-G*RHO*kronecker(DIM)[DIM-1], q=fixed_v_mask)
+du=Vector(0.,Solution(dom))
+norm_du=0.
+deps=Tensor(0,Function(dom))
+i_eta=0
 #
 #  let the show begin:
 #
@@ -190,91 +194,99 @@ k3=kronecker(DIM)
 k3Xk3=outer(k3,k3)
 alpha_old=alpha
 dt_old=None
-if CASE == 1:
-   diagnose.write("t, -e22, s00-s22, alpha\n")
-else:
-   diagnose.write("t, eps00, eps11, error0, sigma11/tau\n")
+diagnose.write("t, -e22, s00-s22, mu_eff, lame_eff, xi, gamma, alpha, alpha_dot\n")
+
 while t<T_END:
 
     print "start time step %d"%(n+1,)
 
-    I1=trace(eps_e)
-    sqI2=length(eps_e)
-    xi=safeDiv(I1,sqI2)
-    i_xi=safeDiv(sqI2,I1)
-    # update damage parameter:
-    m=wherePositive(xi-XI_0)
-    a=sqI2**2*(xi-XI_0)*(m*C_D + (1-m)* C_1)
-    b=(1-m)*(1./C_2)
+    eps_e_old = eps_e
+    sigma_old = sigma 
+    alpha_old, alpha_oold = alpha, alpha_old
+    #  start the iteration for deps on a time step: deps from the last time step is used as an initial guess:
+    iter=0
+    norm_ddu=norm_du
+    while norm_ddu > TOL_DU * norm_du or iter == 0 :
 
-    alpha, alpha_old, alpha_oold =solveODE(alpha, a,b, dt), alpha, alpha_old
-    alpha_dot=(alpha-alpha_old)/dt
+        print "\t start iteration step %d:"%iter
+        eps_e = eps_e_old + deps-(dt/2)*i_eta*deviatoric(sigma)
+       
+        I1=trace(eps_e)
+        sqI2=length(eps_e)
+        xi=safeDiv(I1,sqI2)
+        i_xi=safeDiv(sqI2,I1)
+        # update damage parameter:
+        m=wherePositive(xi-XI_0)
+        a=sqI2**2*(xi-XI_0)*(m*C_D + (1-m)* C_1)
+        b=(1-m)*(1./C_2)
 
-    if inf(alpha) < -EPSILON*10:
-        raise ValueError,"alpha<0"
-    if sup(alpha)  > 1:
-        raise ValueError,"alpha > 1"
-    # step size for the next time step:
+        alpha=solveODE(alpha_old, a,b, dt)
+        alpha_dot=(alpha-alpha_old)/dt
+        i_eta = clip(2*C_V*alpha_dot,minval=0.)
 
-    gamma=alpha*GAMMA_M
-    lame=LAME_0
-    mu=MU_0*(1-alpha)
+        if inf(alpha) < -EPSILON*10:
+            raise ValueError,"alpha<0"
+        if sup(alpha)  > 1:
+            raise ValueError,"alpha > 1"
+        # step size for the next time step:
 
-    lame_eff=lame-gamma*i_xi
-    mu_eff=mu-gamma*xi
-    print "\talpha = [ %e, %e]"%(inf(alpha),sup(alpha))
-    print "\tmu_eff = [ %e, %e]"%(inf(mu_eff),sup(mu_eff))
-    print "\tlame_eff = [ %e, %e]"%(inf(lame_eff),sup(lame_eff))
-    print "\txi = [ %e, %e]"%(inf(xi),sup(xi))
-    print "\tgamma = [ %e, %e]"%(inf(gamma),sup(gamma))
+        gamma=alpha*GAMMA_M
+        lame=LAME_0
+        mu=MU_0*(1-alpha)
 
-    if inf(mu_eff) < 0:
-        raise ValueError,"mu_eff<0"
+        lame_eff=lame-gamma*i_xi
+        mu_eff=mu-gamma*xi
 
-    if CASE == 1 or CASE ==2:
-      if t>0:
-         diagnose.write(("%e,"*4+"\n")%(t, meanValue(-eps_e[2,2]), meanValue(sigma[0,0]-sigma[2,2]),  meanValue(alpha)))
-    else:
-       if n>1:
-          print "\t eps00 = ", eps_e[0,0]
-          print "\t eps10 = ", eps_e[1,0]
-          print "\t eps01 = ", eps_e[0,1]
-          print "\t eps11 = ", eps_e[1,1]
-          print "\t eps11/eps00 = ", eps_e[1,1]/eps_e[0,0]
-          print" error:",Lsup(((2*mu-gamma*safeDiv(I1,sqI2))*eps_e[1,1]-(gamma*sqI2-lame*I1)) )/Lsup(length(sigma))
-          print" error:",Lsup(sigma[1,1])/Lsup(length(sigma))
-          diagnose.write("%e, %e, %e, %e, %e\n"%(t,inf(eps_e[0,0]),inf(eps_e[1,1]), Lsup(((2*mu-gamma*safeDiv(I1,sqI2))*eps_e[1,1]-(gamma*sqI2-lame*I1)) )/Lsup(length(sigma)), Lsup(sigma[1,1])/Lsup(length(sigma))))
+        print "\talpha = [ %e, %e]"%(inf(alpha),sup(alpha))
+        print "\tmu_eff = [ %e, %e]"%(inf(mu_eff),sup(mu_eff))
+        print "\tlame_eff = [ %e, %e]"%(inf(lame_eff),sup(lame_eff))
+        print "\txi = [ %e, %e]"%(inf(xi),sup(xi))
+        print "\tgamma = [ %e, %e]"%(inf(gamma),sup(gamma))
 
+        if inf(mu_eff) < 0:
+            raise ValueError,"mu_eff<0"
 
-    i_eta = clip(2*C_V*alpha_dot,minval=0.)
+        sigma = 2*mu_eff*eps_e+lame_eff*trace(eps_e)*k3 
 
-    # update strain:
+        if (UPDATE_OPERATOR) :
+            pde.setValue(A = mu_eff * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame_eff*k3Xk3)
+        else:
+            pde.setValue(A = mu * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame*k3Xk3)
 
-    H = safeDiv(I1,sqI2**2)*eps_e-k3
-    S= -GAMMA_M*I1*i_xi * k3 -(MU_0+GAMMA_M*xi/2) * eps_e
-    pde.setValue(A = mu_eff * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame_eff*k3Xk3 + gamma*i_xi * outer(H,H),
-                 X=- (sigma + dt * (S * alpha_dot + mu_eff * i_eta * gamma * safeDiv(length(deviatoric(eps_e))**2,sqI2) * H ) ) ,
-                 r=dt*u0, y=SIGMA_N*dom.getNormal())
+        pde.setValue(X=-sigma, y=SIGMA_N*dom.getNormal(), r=dt*v0-du)
+        
 
-    du=pde.getSolution()
-    deps=symmetric(grad(du))
-    print "\tYYY deps =", inf(deps),sup(deps)
-
-    eps_e, eps_e_old=eps_e+deps-dt/2*i_eta*deviatoric(sigma), eps_e
-    sigma, sigma_old=2*mu_eff*eps_e+lame_eff*trace(eps_e)*k3, sigma
-    print "time step %s (t=%s) completed."%(n,t)
+        ddu=pde.getSolution()
+        deps+=symmetric(grad(ddu))
+        du+=ddu
+        norm_ddu=Lsup(ddu)
+        norm_du=Lsup(du)
+        print "\t displacement change update = %e of %e"%(norm_ddu, norm_du)
+        iter+=1
+    print "deps =", inf(deps),sup(deps)
     n+=1
     t+=dt
+    #=========== this is a test for triaxial test ===========================
     print "\tYYY t = ", t
     a =(SIGMA_N-lame_eff*VMAX*t)/(lame_eff+mu_eff)/2
-    print "\tYYY a = ", inf(a)
-    print "\tYYY eps00 = ",inf( eps_e[0,0])
-    print "\tYYY eps11 = ",inf( eps_e[1,1])
-    print "\tYYY eps22 = ", inf(eps_e[2,2]), VMAX*t
-    print "\tYYY trace = ", inf(trace(eps_e)), inf(VMAX*t+2*a)
-    print "\tYYY sigma11 = ", inf(sigma[1,1]), inf(lame_eff*(VMAX*t+2*a)+2*mu_eff*a)
-    print "\tYYY sigma22 = ", inf(sigma[2,2]), inf(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t)
-    print "\tYYY linear Elastic equivalent =",inf(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/inf(eps_e[2,2]-eps_e_old[2,2]), inf(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff))
+    #=========== this is a test for triaxial test ===========================
+    print "\tYYY a = ", meanValue(a)
+    print "\tYYY eps00 = ",meanValue( eps_e[0,0])
+    print "\tYYY eps11 = ",meanValue( eps_e[1,1])
+    print "\tYYY eps22 = num/exact", meanValue(eps_e[2,2]), VMAX*t
+    print "\tYYY eps_kk = num/exact", meanValue(trace(eps_e)), meanValue(VMAX*t+2*a)
+    print "\tYYY sigma11 = num/exact", meanValue(sigma[1,1]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*a)
+    print "\tYYY sigma22 = num/exact", meanValue(sigma[2,2]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t)
+    print "\tYYY linear Elastic equivalent num/exact=",meanValue(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/meanValue(eps_e[2,2]-eps_e_old[2,2]), meanValue(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff))
+    diagnose.write(("%e,"*9+"\n")%(t, meanValue(-eps_e[2,2]), 
+                                      meanValue(sigma[0,0]-sigma[2,2]), 
+                                      meanValue(mu_eff),
+                                      meanValue(lame_eff),
+                                      meanValue(xi),
+                                      meanValue(gamma),
+                                      meanValue(alpha),
+                                      meanValue(alpha_dot)))
+    print "time step %s (t=%s) completed."%(n,t)
     #
     #  .... visualization
     #
