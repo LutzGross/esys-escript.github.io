@@ -12,19 +12,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{The First Steps}
-\label{FirstSteps} 
-
-
-
+\section{The First Steps}\label{FirstSteps} 
 In this chapter we give an introduction how to use \escript to solve 
-a partial differential equation \index{partial differential equation} (PDE \index{partial differential equation!PDE}). We assume you are at least a little familiar with Python. The knowledge presented at the Python tutorial at \url{http://docs.python.org/tut/tut.html}
-is more than sufficient.
+a partial differential equation\index{partial differential equation} (PDE\index{partial differential equation!PDE}).
+We assume you are at least a little familiar with Python.
+The knowledge presented in the Python tutorial at \url{http://docs.python.org/tut/tut.html} is more than sufficient.
 
-The PDE \index{partial differential equation} we wish to solve is the Poisson equation \index{Poisson equation} 
+The PDE\index{partial differential equation} we wish to solve is the Poisson equation\index{Poisson equation} 
 \begin{equation}
--\Delta u =f 
-\label{eq:FirstSteps.1}
+    -\Delta u=f 
+    \label{eq:FirstSteps.1}
 \end{equation}
 for the solution $u$. The function $f$ is the given right hand side. The domain of interest, denoted by $\Omega$,
 is the unit square 
@@ -33,10 +30,10 @@ is the unit square
 \label{eq:FirstSteps.1b}
 \end{equation}
 The domain is shown in \fig{fig:FirstSteps.1}.
-\begin{figure} [ht]
-\centerline{\includegraphics[width=\figwidth]{figures/FirstStepDomain}}
-\caption{Domain $\Omega=[0,1]^2$ with outer normal field $n$.}
-\label{fig:FirstSteps.1}
+\begin{figure}[ht]
+    \centerline{\includegraphics{figures/FirstStepDomain}}
+    \caption{Domain $\Omega=[0,1]^2$ with outer normal field $n$.}
+    \label{fig:FirstSteps.1}
 \end{figure}
 
 $\Delta$ denotes the Laplace operator\index{Laplace operator}, which is defined by
@@ -45,17 +42,17 @@ $\Delta$ denotes the Laplace operator\index{Laplace operator}, which is defined 
 \label{eq:FirstSteps.1.1}
 \end{equation}
 where, for any function $u$ and any direction $i$, $u\hackscore{,i}$
-denotes the partial derivative \index{partial derivative} of $u$ with respect to $i$.  
-\footnote{You
-may be more familiar with the Laplace operator\index{Laplace operator} being written
-as $\nabla^2$, and written in the form
+denotes the partial derivative \index{partial derivative} of $u$ with respect
+to $i$.\footnote{You may be more familiar with the Laplace
+operator\index{Laplace operator} being written as $\nabla^2$, and written in
+the form
 \begin{equation*}
-\nabla^2 u = \nabla^t \cdot \nabla u =  \frac{\partial^2 u}{\partial x\hackscore 0^2} 
-+ \frac{\partial^2 u}{\partial  x\hackscore 1^2}
+    \nabla^2 u = \nabla^t \cdot \nabla u =  \frac{\partial^2 u}{\partial x\hackscore 0^2} 
+    + \frac{\partial^2 u}{\partial  x\hackscore 1^2}
 \end{equation*}
 and \eqn{eq:FirstSteps.1} as
 \begin{equation*}
--\nabla^2 u = f
+    -\nabla^2 u = f
 \end{equation*}
 }
 Basically, in the subindex of a function, any index to the left of the comma denotes a spatial derivative with respect 
@@ -67,7 +64,7 @@ which leads to
 \end{equation}
 We often find that use
 of nested $\sum$ symbols makes formulas cumbersome, and we use the more
-convenient Einstein summation convention \index{summation convention}. This 
+convenient Einstein summation convention\index{summation convention}. This 
 drops the $\sum$ sign and assumes that a summation is performed over any repeated index.
 For instance we write
 \begin{eqnarray}
@@ -85,7 +82,7 @@ With the summation convention we can write the Poisson equation \index{Poisson e
 where $f=1$ in this example.
 
 On the boundary of the domain $\Omega$ the normal derivative $n\hackscore{i} u\hackscore{,i}$
-of the solution $u$ shall be zero, ie. $u$ shall fulfill
+of the solution $u$ shall be zero, i.e. $u$ shall fulfill
 the homogeneous Neumann boundary condition\index{Neumann
 boundary condition!homogeneous}
 \begin{equation}
@@ -94,74 +91,71 @@ n\hackscore{i} u\hackscore{,i}= 0 \;.
 \end{equation}
 $n=(n\hackscore{i})$ denotes the outer normal field
 of the domain, see \fig{fig:FirstSteps.1}. Remember that we 
-are applying the Einstein summation convention \index{summation convention}, i.e
-$n\hackscore{i} u\hackscore{,i}= n\hackscore{0} u\hackscore{,0} +
-n\hackscore{1} u\hackscore{,1}$. 
-\footnote{Some readers may familiar with the notation
-$
-\frac{\partial u}{\partial n} = n\hackscore{i} u\hackscore{,i}
-$
+are applying the Einstein summation convention \index{summation convention}, i.e. $n\hackscore{i} u\hackscore{,i}= n\hackscore{0} u\hackscore{,0} +%
+n\hackscore{1} u\hackscore{,1}$.\footnote{Some readers may familiar with the
+notation $\frac{\partial u}{\partial n} = n\hackscore{i} u\hackscore{,i}$
 for the normal derivative.}
 The Neumann boundary condition of \eqn{eq:FirstSteps.2} should be fulfilled on the
 set $\Gamma^N$ which is the top and right edge of the domain:
 \begin{equation}
-\Gamma^N=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=1 \mbox{ or } x\hackscore{1}=1  \}
-\label{eq:FirstSteps.2b}
+    \Gamma^N=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=1 \mbox{ or } x\hackscore{1}=1  \}
+    \label{eq:FirstSteps.2b}
 \end{equation}
 On the bottom and the left edge of the domain which is defined
 as 
 \begin{equation}
-\Gamma^D=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=0 \mbox{ or } x\hackscore{1}=0  \}
-\label{eq:FirstSteps.2c}
+    \Gamma^D=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=0 \mbox{ or } x\hackscore{1}=0  \}
+    \label{eq:FirstSteps.2c}
 \end{equation}
-the solution shall be identically zero:
+the solution shall be identical to zero:
 \begin{equation}
-u=0 \; .
-\label{eq:FirstSteps.2d}
+    u=0 \; .
+    \label{eq:FirstSteps.2d}
 \end{equation}
-This kind of boundary condition is called a homogeneous Dirichlet boundary condition
-\index{Dirichlet boundary condition!homogeneous}. The partial differential equation in \eqn{eq:FirstSteps.1.sum} together
+This kind of boundary condition is called a homogeneous Dirichlet boundary
+condition\index{Dirichlet boundary condition!homogeneous}.
+The partial differential equation in \eqn{eq:FirstSteps.1.sum} together
 with the Neumann boundary condition \eqn{eq:FirstSteps.2} and 
-Dirichlet boundary condition in \eqn{eq:FirstSteps.2d} form a so
-called boundary value
-problem\index{boundary value problem} (BVP\index{boundary value problem!BVP}) for 
-the unknown function~$u$. 
-
+Dirichlet boundary condition in \eqn{eq:FirstSteps.2d} form a so-called
+boundary value
+problem\index{boundary value problem} (BVP\index{boundary value problem!BVP})
+for the unknown function~$u$. 
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=\figwidth]{figures/FirstStepMesh}}
-\caption{Mesh of $4 \time 4$ elements on a rectangular domain.  Here
-each element is a quadrilateral and described by four nodes, namely
-the corner points. The solution is interpolated by a bi-linear
-polynomial.}
-\label{fig:FirstSteps.2}
+    \centerline{\includegraphics{figures/FirstStepMesh}}
+    \caption{Mesh of $4 \times 4$ elements on a rectangular domain. Here
+    each element is a quadrilateral and described by four nodes, namely
+    the corner points. The solution is interpolated by a bi-linear
+    polynomial.}
+    \label{fig:FirstSteps.2}
 \end{figure}
 
-In general the BVP\index{boundary value problem!BVP} cannot be solved analytically and numerical
-methods have to be used construct an approximation of the solution
-$u$. Here we will use the finite element method\index{finite element
-method} (FEM\index{finite element
-method!FEM}). The basic idea is to fill the domain with a
-set of points called nodes. The solution is approximated by its
-values on the nodes\index{finite element
-method!nodes}. Moreover, the domain is subdivided into smaller
-sub-domains called elements \index{finite element
-method!element}. On each element the solution is
-represented by a polynomial of a certain degree through its values at
-the nodes located in the element. The nodes and its connection through
-elements is called a mesh\index{finite element
-method!mesh}. \fig{fig:FirstSteps.2} shows an
+In general the BVP\index{boundary value problem!BVP} cannot be solved
+analytically and numerical methods have to be used to construct an
+approximation of the solution $u$.
+Here we will use the finite element method\index{finite element method}
+(FEM\index{finite element method!FEM}).
+The basic idea is to fill the domain with a set of points called nodes.
+The solution is approximated by its values on the nodes\index{finite element method!nodes}.
+Moreover, the domain is subdivided into smaller sub-domains called
+elements\index{finite element method!element}.
+On each element the solution is represented by a polynomial of a certain
+degree through its values at the nodes located in the element.
+The nodes and their connection through elements is called a
+mesh\index{finite element method!mesh}. \fig{fig:FirstSteps.2} shows an
 example of a FEM mesh with four elements in the $x_0$ and four elements
-in the $x_1$ direction over the unit square.  
+in the $x_1$ direction over the unit square.
 For more details we refer the reader to the literature, for instance \Ref{Zienc,NumHand}.
 
-The \escript solver we want to use to solve this problem is embedded into the python interpreter language. So you can solve the problem interactively but you will learn quickly 
-that is more efficient to use scripts which you can edit with your favorite editor. 
-To enter the escript environment you use \program{run-escript} command\footnote{\program{run-escript} is not available under Windows yet. If you run under windows you can just use the
-\program{python} command and the \env{OMP_NUM_THREADS} environment variable to control the number
-of threads.}:
+The \escript solver we want to use to solve this problem is embedded into the python interpreter language.
+So you can solve the problem interactively but you will learn quickly that it
+is more efficient to use scripts which you can edit with your favorite editor.
+To enter the escript environment, use the \program{run-escript}
+command\footnote{\program{run-escript} is not available under Windows yet.
+If you run under Windows you can just use the \program{python} command and the
+\env{OMP_NUM_THREADS} environment variable to control the number of threads.}:
 \begin{verbatim}
-  run-escript
+run-escript
 \end{verbatim}
 which will pass you on to the python prompt
 \begin{verbatim}
@@ -172,21 +166,22 @@ Type "help", "copyright", "credits" or "license" for more information.
 \end{verbatim}
 Here you can use all available python commands and language features, for instance
 \begin{python}
- >>> x=2+3
->>> print "2+3=",x
-2+3= 5
+  >>> x=2+3
+  >>> print "2+3=",x
+  2+3= 5
 \end{python}
-We refer to the python users guide if you not familiar with python.
+We refer to the python user's guide if you not familiar with python.
 
-\escript provides the class \Poisson to define a Poisson equation \index{Poisson equation}.
-(We will discuss a more general form of a PDE \index{partial differential equation!PDE} 
-that can be defined through the \LinearPDE class later). The instantiation of
-a \Poisson class object requires the specification of the domain $\Omega$. In \escript
-the \Domain class objects are used to describe the geometry of a domain but it also
-contains information about the discretization methods and the actual solver which is used
-to solve the PDE. Here we are using the FEM library \finley \index{finite element
-method}. The following statements create the \Domain object \var{mydomain} from the 
-\finley method \method{Rectangle}
+\escript provides the class \Poisson to define a Poisson equation\index{Poisson equation}.
+(We will discuss a more general form of a PDE\index{partial differential equation!PDE} 
+that can be defined through the \LinearPDE class later.)
+The instantiation of a \Poisson class object requires the specification of the domain $\Omega$.
+In \escript the \Domain class objects are used to describe the geometry of a
+domain but it also contains information about the discretization methods and
+the actual solver which is used to solve the PDE.
+Here we are using the FEM library \finley\index{finite element method}.
+The following statements create the \Domain object \var{mydomain} from the 
+\finley method \method{Rectangle}:
 \begin{python}
   from esys.finley import Rectangle
   mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
