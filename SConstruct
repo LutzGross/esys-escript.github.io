@@ -279,6 +279,7 @@ try:
     if global_revision == '': global_revision='-2'
 except:
     global_revision = '-1'
+env['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
 if IS_WINDOWS:
@@ -574,6 +575,10 @@ if not env['verbose']:
     env['ARCOMSTR'] = "Linking $TARGET"
     env['LINKCOMSTR'] = "Linking $TARGET"
     env['SHLINKCOMSTR'] = "Linking $TARGET"
+    env['PDFLATEXCOMSTR'] = "Building $TARGET from LaTeX input $SOURCES"
+    env['BIBTEXCOMSTR'] = "Generating bibliography $TARGET"
+    env['MAKEINDEXCOMSTR'] = "Generating index $TARGET"
+    env['PDFLATEXCOMSTR'] = "Building $TARGET from LaTeX input $SOURCES"
     #Progress(['Checking -\r', 'Checking \\\r', 'Checking |\r', 'Checking /\r'], interval=17)
 
 print("")
