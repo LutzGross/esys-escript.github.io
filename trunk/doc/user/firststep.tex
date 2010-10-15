@@ -31,7 +31,7 @@ is the unit square
 \end{equation}
 The domain is shown in \fig{fig:FirstSteps.1}.
 \begin{figure}[ht]
-    \centerline{\includegraphics{figures/FirstStepDomain}}
+    \centerline{\includegraphics{FirstStepDomain}}
     \caption{Domain $\Omega=[0,1]^2$ with outer normal field $n$.}
     \label{fig:FirstSteps.1}
 \end{figure}
@@ -122,7 +122,7 @@ problem\index{boundary value problem} (BVP\index{boundary value problem!BVP})
 for the unknown function~$u$. 
 
 \begin{figure}[ht]
-    \centerline{\includegraphics{figures/FirstStepMesh}}
+    \centerline{\includegraphics{FirstStepMesh}}
     \caption{Mesh of $4 \times 4$ elements on a rectangular domain. Here
     each element is a quadrilateral and described by four nodes, namely
     the corner points. The solution is interpolated by a bi-linear
@@ -362,7 +362,7 @@ Alternatively, one can use
 which gives an interactive browser window.
 
 \begin{figure}
-\centerline{\includegraphics[width=\figwidth]{figures/FirstStepResultMATPLOTLIB}}
+\centerline{\includegraphics[width=\figwidth]{FirstStepResultMATPLOTLIB}}
 \caption{Visualization of the Poisson Equation Solution for $f=1$ using \MATPLOTLIB}
 \label{fig:FirstSteps.3b}
 \end{figure}
@@ -410,7 +410,7 @@ safe under \MPI\footnote{The phrase 'safe under \MPI' means that a program
 will produce correct results when run on more than one processor under \MPI.}.
 
 \begin{figure}
-\centerline{\includegraphics[width=\figwidth]{figures/FirstStepResult}}
+\centerline{\includegraphics[width=\figwidth]{FirstStepResult}}
 \caption{Visualization of the Poisson Equation Solution for $f=1$}
 \label{fig:FirstSteps.3}
 \end{figure}
@@ -452,7 +452,7 @@ The entire code is available as \file{poisson\hackscore vtk.py} in the \ExampleD
 You can run the script using the {\it escript} environment and visualize the
 solution using \mayavi:
 \begin{verbatim}
-run-escript poisson_VTK.py
+run-escript poisson_vtk.py
 mayavi2 -d u.vtu -m SurfaceMap
 \end{verbatim}
 The result is shown in \fig{fig:FirstSteps.3}.
