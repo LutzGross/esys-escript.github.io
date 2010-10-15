@@ -13,22 +13,26 @@
 
 import os
 Import('*')
-local_env = env.Clone()
+local_env = env.Clone(tools=['pdflatex'])
 
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
 fig_src = Glob('figures/*.png')
 
-if local_env['verbose']:
-    interaction='-interaction=nonstopmode'
+if 'PDF' in dir(local_env):
+    if local_env['verbose']:
+        interaction='-interaction=nonstopmode'
+    else:
+        interaction='-interaction=batchmode'
+
+    # Define command to include SVN revision
+    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{cookbook.tex}'%(local_env['svn_revision'])])
+    pdf=local_env.PDF(target='cookbook.pdf', source='cookbook.tex')
+    Depends(pdf, fig_src+tex_src)
+
+    pdf_inst=local_env.InstallAs(target=env['prefix']+'/release/doc/cookbook/cookbook.pdf', source=pdf)
+
+    env.Alias('cookbook_pdf', pdf_inst)
 else:
-    interaction='-interaction=batchmode'
-
-# Define command to include SVN revision
-local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{cookbook.tex}'%(local_env['svn_revision'])])
-pdf=local_env.PDF(target='cookbook.pdf', source='cookbook.tex')
-Depends(pdf, fig_src+tex_src)
-
-pdf_inst=local_env.InstallAs(target=env['prefix']+'/release/doc/cookbook/cookbook.pdf', source=pdf)
-
-env.Alias('cookbook_pdf', pdf_inst)
+    env.Alias('cookbook_pdf', '', 'echo "PDF output not supported!"')
+    env.AlwaysBuild('cookbook_pdf')
 
