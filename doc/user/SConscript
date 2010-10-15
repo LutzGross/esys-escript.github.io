@@ -18,25 +18,28 @@ local_env = env.Clone(tools=['pdflatex'])
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
 fig_src = Glob('figures/*.eps')
 
-# Convert eps figures to pdf
-figures=local_env.EpsToPDF(source=fig_src)
+if 'PDF' in dir(local_env):
+    # Convert eps figures to pdf
+    figures=local_env.EpsToPDF(source=fig_src)
 
-if local_env['verbose']:
-    interaction='-interaction=nonstopmode'
+    if local_env['verbose']:
+        interaction='-interaction=nonstopmode'
+    else:
+        interaction='-interaction=batchmode'
+
+    # Define command to include SVN revision 
+    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{guide.tex}'%(local_env['svn_revision'])])
+    pdf=local_env.PDF(target='guide.pdf', source='guide.tex')
+    Depends(pdf, figures+tex_src)
+
+    pdf_path=os.path.join(release_dir, 'user', 'guide.pdf')
+    pdf_inst=local_env.InstallAs(target=pdf_path, source=pdf)
+    env.Alias('guide_pdf', pdf_inst)
 else:
-    interaction='-interaction=batchmode'
+    env.Alias('guide_pdf', '', 'echo "PDF output not supported!"')
+    env.AlwaysBuild('guide_pdf')
 
-# Define command to include SVN revision 
-local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{guide.tex}'%(local_env['svn_revision'])])
-pdf=local_env.PDF(target='guide.pdf', source='guide.tex')
-Depends(pdf, figures+tex_src)
-
-pdf_inst=local_env.InstallAs(target=env['prefix']+'/release/doc/user/guide.pdf', source=pdf)
-
-env.Alias('guide_pdf', pdf_inst)
-
-html_dir=os.path.join(env['prefix'],'release','doc','user','html')
-
+html_dir=os.path.join(release_dir,'user','html')
 html=local_env.Command(Dir(html_dir), Dir('.').abspath,
                 ["cd %s && latex2html -top_navigation \
                  -bottom_navigation \
