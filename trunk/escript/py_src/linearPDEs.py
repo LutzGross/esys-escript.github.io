@@ -168,6 +168,10 @@ class SolverOptions(object):
         self.setRelaxationFactor()        
         self.setLocalPreconditionerOff()
         self.resetDiagnostics(all=True)
+        self.setMinCoarseMatrixSparsity()
+        self.setNumRefinements()
+        self.setNumCoarseMatrixRefinements()
+        
 
     def __str__(self):
         return self.getSummary()
@@ -192,20 +196,23 @@ class SolverOptions(object):
                 out+="\nRestart  = %s"%self.getRestart()
             if self.getSolverMethod() == self.AMG:
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
             out+="\nPreconditioner = %s"%self.getName(self.getPreconditioner())
             out+="\nApply preconditioner locally = %s"%self.useLocalPreconditioner()
             if self.getPreconditioner() == self.AMG:
-                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
-                out+="\nSmoother = %e"%self.getName(self.getSmoother())
+                out+="\nSmoother = %s"%self.getName(self.getSmoother())
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+                out+="\nMinimal sparsity on coarsest level = %e"%(self.getMinCoarseMatrixSparsity(),)
+                out+="\nNumber of refinement steps in coarsest level solver = %d"%(self.getNumCoarseMatrixRefinements(),)
+                
             if self.getPreconditioner() == self.AMLI:
-                out+="\nMaximum number of levels = %s"%self.LevelMax()
+                out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
@@ -607,7 +614,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__iter_max
-    def setLevelMax(self,level_max=5):
+    def setLevelMax(self,level_max=100):
         """
         Sets the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner
 
@@ -971,7 +978,89 @@ class SolverOptions(object):
             self.setUseLocalPreconditionerOn()
         else:
             self.setUseLocalPreconditionerOff()
+            
+    def setMinCoarseMatrixSparsity(self,sparsity=0.05):
+       """
+       Sets the minimum sparsity on the coarsest level. Typically 
+       a direct solver is used when the sparsity becomes bigger than 
+       the set limit.
+       
+       :param sparsity: minimual sparsity
+       :type sparsity: ``float``
+       """
+       sparsity=float(sparsity)
+       if factor<0: 
+	 raise ValueError,"sparsity must be non-negative."
+       if factor>1: 
+           raise ValueError,"sparsity must be less than 1."
+       self.__min_sparsity=factor
+    def setMinCoarseMatrixSparsity(self,sparsity=0.05):
+       """
+       Sets the minimum sparsity on the coarsest level. Typically 
+       a direct solver is used when the sparsity becomes bigger than 
+       the set limit.
+       
+       :param sparsity: minimual sparsity
+       :type sparsity: ``float``
+       """
+       sparsity=float(sparsity)
+       if sparsity<0: 
+	 raise ValueError,"sparsity must be non-negative."
+       if sparsity>1: 
+          raise ValueError,"sparsity must be less than 1."
+       self.__min_sparsity=sparsity
 
+    def getMinCoarseMatrixSparsity(self):
+      """
+      Returns the minimum sparsity on the coarsest level. Typically 
+      a direct solver is used when the sparsity becomes bigger than 
+      the set limit.
+   
+      :return: minimual sparsity
+      :rtype: ``float``
+      """
+      return self.__min_sparsity
+
+    def setNumRefinements(self,refinements=2):
+      """
+      Sets the number of refinement steps to refine the solution when a direct solver is applied.
+   
+      :param refinements: number of refinements
+      :type refinements: non-negative ``int``
+      """
+      refinements=int(refinements)
+      if refinements<0:
+	 raise ValueError,"number of refinements must be non-negative."
+      self.__refinements=refinements
+   
+    def getNumRefinements(self):
+       """
+       Returns the number of refinement steps to refine the solution when a direct solver is applied.
+       
+       :rtype: non-negative ``int``
+       """
+       return self.__refinements
+
+    def setNumCoarseMatrixRefinements(self,refinements=2):
+      """
+      Sets the number of refinement steps to refine the solution on the coarset level when a direct solver is applied.
+   
+      :param refinements: number of refinements
+      :type refinements: non-negative ``int``
+      """
+      refinements=int(refinements)
+      if refinements<0:
+	 raise ValueError,"number of refinements must be non-negative."
+      self.__coarse_refinements=refinements
+   
+    def getNumCoarseMatrixRefinements(self):
+      """
+      Returns the number of resfinement steps to refine the solution on the coarset level when a direct solver is applied.
+      
+      :rtype: non-negative ``int``
+      """
+      return self.__coarse_refinements
+      
 class IllegalCoefficient(ValueError):
    """
    Exception that is raised if an illegal coefficient of the general or

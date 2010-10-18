@@ -36,7 +36,6 @@
 
 #define MATRIX_FORMAT_DEFAULT 0
 #define MATRIX_FORMAT_CSC 1
-#define MATRIX_FORMAT_SYM 2
 #define MATRIX_FORMAT_BLK1 4
 #define MATRIX_FORMAT_OFFSET1 8
 #define MATRIX_FORMAT_TRILINOS_CRS 16
@@ -57,7 +56,10 @@ typedef struct Paso_SparseMatrix {
   dim_t len;
 
   double *val;         /* this is used for classical CSR or CSC */
-  void* solver;
+
+  index_t solver_package;  /* package controling the solver pointer */
+  void* solver_p;  /* pointer to data needed by a solver */
+
 } Paso_SparseMatrix;
 
 /*  interfaces: */
@@ -90,6 +92,7 @@ Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix *A, Paso_Sparse
 Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_SparseMatrix* B);
 Paso_SparseMatrix* Paso_SparseMatrix_RemovePositiveOffdiagonals(Paso_SparseMatrix* P);
 Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A);
+Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* P);
 
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
@@ -104,6 +107,8 @@ void Paso_SparseMatrix_copyBlockFromMainDiagonal(Paso_SparseMatrix * A_p, double
 void Paso_SparseMatrix_copyBlockToMainDiagonal(Paso_SparseMatrix * A_p, const double* in);
 void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_diag, int* pivot, double*x, double *b);
 void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* pivot);
+dim_t Paso_SparseMatrix_maxDeg(Paso_SparseMatrix * A_p);
+
 /*
 void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR(char *);

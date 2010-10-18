@@ -26,11 +26,11 @@
 #define INC_PASO_PATTERN
 
 #include "Common.h"
+#include "IndexList.h"
 
 /**************************************************************/
 
 #define PATTERN_FORMAT_DEFAULT 0
-#define PATTERN_FORMAT_SYM 1
 #define PATTERN_FORMAT_OFFSET1 2
 
 typedef struct Paso_Pattern {
@@ -45,16 +45,6 @@ typedef struct Paso_Pattern {
   index_t* coloring;     /* coloring index: input with the same color are not connected */
   dim_t reference_counter;
 } Paso_Pattern;
-
-#define INDEXLIST_LENGTH 85
-
-typedef struct Paso_IndexList {
-  index_t index[INDEXLIST_LENGTH];
-  dim_t n;
-  struct Paso_IndexList *extension;
-} Paso_IndexList;
-/*  interfaces: */
-
 
 PASO_DLL_API
 Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
@@ -96,24 +86,15 @@ PASO_DLL_API
 index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A);
 
 PASO_DLL_API
-void Paso_IndexList_insertIndex(Paso_IndexList*, index_t);
-
-PASO_DLL_API
-void Paso_IndexList_toArray(Paso_IndexList*, index_t*, index_t, index_t, index_t);
-
-PASO_DLL_API
-dim_t Paso_IndexList_count(Paso_IndexList*,  index_t, index_t);
-
-PASO_DLL_API
-void Paso_IndexList_free(Paso_IndexList*);
-
-PASO_DLL_API
-Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max, index_t index_offset);
+Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max, index_t index_offset);
 
 PASO_DLL_API
 dim_t Paso_Pattern_getNumColors(Paso_Pattern* A);
 
 PASO_DLL_API
 index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A);
+
+PASO_DLL_API
+dim_t Paso_Pattern_maxDeg(Paso_Pattern* A);
 
 #endif /* #ifndef INC_PASO_PATTERN */

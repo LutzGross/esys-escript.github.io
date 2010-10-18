@@ -177,7 +177,6 @@ void finley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
    switch (mat->type) {
    case MATRIX_FORMAT_DEFAULT:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_DEFAULT\n"); break;
    case MATRIX_FORMAT_CSC:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_CSC\n"); break;
-   case MATRIX_FORMAT_SYM:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_SYM\n"); break;
    case MATRIX_FORMAT_BLK1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_BLK1\n"); break;
    case MATRIX_FORMAT_OFFSET1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_OFFSET1\n"); break;
    case MATRIX_FORMAT_TRILINOS_CRS:	fprintf(stdout, "\tMatrix type MATRIX_FORMAT_TRILINOS_CRS\n"); break;
@@ -338,7 +337,10 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT_OPTION("getSmoother", smoother, index_t); 
    EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
    EXTRACT("useLocalPreconditioner",  use_local_preconditioner,  bool_t);  
-  
+   EXTRACT("getMinCoarseMatrixSparsity",min_coarse_sparsity, double);
+   EXTRACT("getNumRefinements",refinements, dim_t);
+   EXTRACT("getNumCoarseMatrixRefinements",coarse_matrix_refinements, dim_t);
+   
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

@@ -38,10 +38,6 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
   index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
   
   Esys_resetError();
-  if ((pattern->type & PATTERN_FORMAT_SYM) != (type & PATTERN_FORMAT_SYM)) {
-      Esys_setError(TYPE_ERROR,"Paso_Pattern_unrollBlocks: conversion between symmetric and non-symmetric is not implemented yet");
-      return NULL;
-  }
   if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & PATTERN_FORMAT_OFFSET1) == (type & PATTERN_FORMAT_OFFSET1) ) ) {
      out = Paso_Pattern_getReference(pattern);
   } else {

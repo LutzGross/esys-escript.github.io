@@ -25,15 +25,10 @@
 
 #include "Paso.h"
 #include "performance.h"
+#include "Preconditioner.h"
 #include "Solver.h"
-
-#ifdef MKL
 #include "MKL.h"
-#endif
-
-#ifdef UMFPACK
 #include "UMFPACK.h"
-#endif
 
 /**************************************************************/
 
@@ -61,27 +56,41 @@ void Paso_solve(Paso_SystemMatrix* A,
           A->solver_package=PASO_PASO;
           break;
 
-        #ifdef MKL
         case PASO_MKL:
           if (A->mpi_info->size>1) {
               Esys_setError(VALUE_ERROR,"Paso_solve: MKL package does not support MPI.");
               return;
           }
-          Paso_MKL(A,out,in,options,&pp);
+          options->converged=FALSE;
+	  options->time=Esys_timer();
+	  Performance_startMonitor(&pp,PERFORMANCE_ALL);
+	  Paso_MKL(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
+	  Performance_stopMonitor(&pp,PERFORMANCE_ALL);
+	  options->time=Esys_timer()-options->time;
+	  options->set_up_time=0;
+	  options->residual_norm=0.;
+	  options->num_iter=0;
+	  if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
           A->solver_package=PASO_MKL;
           break;
-        #endif
 
-        #ifdef UMFPACK
-        case PASO_UMFPACK:
-          if (A->mpi_info->size>1) {
-              Esys_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
-              return;
-          }
-          Paso_UMFPACK(A,out,in,options,&pp);
-          A->solver_package=PASO_UMFPACK;
-          break;
-        #endif
+	 case PASO_UMFPACK:
+	    if (A->mpi_info->size>1) {
+	       Esys_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
+	       return;
+	    }
+	    options->converged=FALSE;
+	    options->time=Esys_timer();
+	    Performance_startMonitor(&pp,PERFORMANCE_ALL);
+	    Paso_UMFPACK(A->mainBlock, out, in, options->refinements, options->verbose);
+	    Performance_stopMonitor(&pp,PERFORMANCE_ALL);
+	    options->time=Esys_timer()-options->time;
+	    options->set_up_time=0;
+	    options->residual_norm=0.;
+	    options->num_iter=0;
+	    if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
+	    A->solver_package=PASO_UMFPACK;
+            break;
 
         default:
            Esys_setError(VALUE_ERROR,"Paso_solve: unknown package code");
@@ -114,17 +123,17 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           Paso_Solver_free(in);
           break;
 
-        #ifdef MKL
+	case PASO_SMOOTHER:
+	  Paso_Preconditioner_Smoother_free((Paso_Preconditioner_Smoother*) in->solver_p);
+	  break;
+	  
         case PASO_MKL:
-          Paso_MKL_free(in); 
+          Paso_MKL_free(in->mainBlock); 
           break;
-        #endif
 
-        #ifdef UMFPACK
         case PASO_UMFPACK:
-          Paso_UMFPACK_free(in); 
+          Paso_UMFPACK_free(in->mainBlock); 
           break;
-        #endif
 
    }
 }

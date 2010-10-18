@@ -36,48 +36,39 @@
                                                      [I_CC]
 */
 
-Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index_t* mis_marker){
+Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index_t* marker_F){
  
   Paso_Pattern *outpattern=NULL;
   Paso_SparseMatrix *out=NULL;
   index_t iptr,wptr;
   
-  Paso_IndexList* index_list=NULL;
-  dim_t n=W->numRows+W->numCols;
+  const dim_t n=W->numRows+W->numCols;
   dim_t i,j,k=0;
   dim_t block_size=W->row_block_size;
-
-  index_list=TMPMEMALLOC(n,Paso_IndexList);
-   if (! Esys_checkPtr(index_list)) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<n;++i) {
-             index_list[i].extension=NULL;
-             index_list[i].n=0;
-        }
-    }
-
+  Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(n);
+  
 
     for (i=0;i<n;++i) {
-      if (mis_marker[i]) {
+      if (marker_F[i]) {
           for (iptr=W->pattern->ptr[k];iptr<W->pattern->ptr[k+1]; ++iptr) {
             j=W->pattern->index[iptr];
-            Paso_IndexList_insertIndex(&(index_list[i]),j);
+	    Paso_IndexListArray_insertIndex(index_list,i,j);
           }
           k++;
       }
       else {
-          Paso_IndexList_insertIndex(&(index_list[i]),i-k);
+	 Paso_IndexListArray_insertIndex(index_list,i,i-k);
       }
     }
     
-    outpattern=Paso_IndexList_createPattern(0, n,index_list,0,W->numCols,0);
+    outpattern=Paso_Pattern_fromIndexListArray(0,index_list,0,W->numCols,0);
     out=Paso_SparseMatrix_alloc(W->type,outpattern,block_size,block_size,FALSE);
     
     k=0;
     
     if (block_size==1) {
             for (i=0;i<n;++i) {
-              if (mis_marker[i]) {
+              if (marker_F[i]) {
                 wptr=W->pattern->ptr[k];
                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                     out->val[iptr*block_size*block_size]=W->val[wptr*block_size*block_size];
@@ -92,7 +83,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
             }
     } else if (block_size==2) {
             for (i=0;i<n;++i) {
-              if (mis_marker[i]) {
+              if (marker_F[i]) {
                 wptr=W->pattern->ptr[k];
                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                     out->val[iptr*block_size*block_size]=W->val[wptr*block_size*block_size];
@@ -113,7 +104,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
             }
     } else if (block_size==3) {
             for (i=0;i<n;++i) {
-              if (mis_marker[i]) {
+              if (marker_F[i]) {
                 wptr=W->pattern->ptr[k];
                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
                     out->val[iptr*block_size*block_size]=W->val[wptr*block_size*block_size];
@@ -144,117 +135,16 @@ Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index
             }
     }
     
-     /* clean up */
-   if (index_list!=NULL) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<n;++i) Paso_IndexList_free(index_list[i].extension);
-     }
-    TMPMEMFREE(index_list);
+    /* clean up */
+    Paso_IndexListArray_free(index_list);
     Paso_Pattern_free(outpattern);
     return out;
 }
-
-
 /* Restriction matrix R=P^T */
 
-Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P){
- 
-  Paso_Pattern *outpattern=NULL;
-  Paso_SparseMatrix *out=NULL;
-  
-  Paso_IndexList* index_list=NULL;
-  dim_t C=P->numCols;
-  dim_t F=P->numRows-C;
-  dim_t n=C+F;
-  dim_t block_size=P->row_block_size;
-  dim_t i,j,k=0;
-  index_t iptr,jptr;
-
-  index_list=TMPMEMALLOC(C,Paso_IndexList);
-   if (! Esys_checkPtr(index_list)) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<C;++i) {
-             index_list[i].extension=NULL;
-             index_list[i].n=0;
-        }
-    }
-  
-
-    for (i=0;i<n;++i) {
-          for (iptr=P->pattern->ptr[i];iptr<P->pattern->ptr[i+1]; ++iptr) {
-             j=P->pattern->index[iptr];
-             Paso_IndexList_insertIndex(&(index_list[j]),i);
-        }
-    }
-   
-    outpattern=Paso_IndexList_createPattern(0, C,index_list,0,C+F,0);
-    out=Paso_SparseMatrix_alloc(P->type,outpattern,block_size,block_size,FALSE);
-    
-    
-    if (block_size==1) {
-          for (i=0;i<out->numRows;++i) {
-                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
-                       j=out->pattern->index[iptr];
-                        /*This can be replaced by bsearch!!*/
-                        for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
-                              k=P->pattern->index[jptr];
-                              if(k==i) {
-                                   out->val[iptr]=P->val[jptr];
-                              }
-                        }
-                 }
-            }
-    } else if (block_size==2) {
-           for (i=0;i<out->numRows;++i) {
-                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
-                       j=out->pattern->index[iptr];
-                        /*This can be replaced by bsearch!!*/
-                        for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
-                              k=P->pattern->index[jptr];
-                              if(k==i) {
-                                   out->val[iptr*block_size*block_size]=P->val[jptr*block_size*block_size];
-                                   out->val[iptr*block_size*block_size+1]=P->val[jptr*block_size*block_size+2];
-                                   out->val[iptr*block_size*block_size+2]=P->val[jptr*block_size*block_size+1];
-                                   out->val[iptr*block_size*block_size+3]=P->val[jptr*block_size*block_size+3];
-                              }
-                        }
-                 }
-            }
-    } else if (block_size==3) {
-           for (i=0;i<out->numRows;++i) {
-                 for (iptr=out->pattern->ptr[i];iptr<out->pattern->ptr[i+1]; ++iptr) {
-                       j=out->pattern->index[iptr];
-                        /*This can be replaced by bsearch!!*/
-                        for (jptr=P->pattern->ptr[j];jptr<P->pattern->ptr[j+1]; ++jptr) {
-                              k=P->pattern->index[jptr];
-                              if(k==i) {
-                                   out->val[iptr*block_size*block_size]=P->val[jptr*block_size*block_size];
-                                   out->val[iptr*block_size*block_size+1]=P->val[jptr*block_size*block_size+3];
-                                   out->val[iptr*block_size*block_size+2]=P->val[jptr*block_size*block_size+6];
-                                   out->val[iptr*block_size*block_size+3]=P->val[jptr*block_size*block_size+1];
-                                   out->val[iptr*block_size*block_size+4]=P->val[jptr*block_size*block_size+4];
-                                   out->val[iptr*block_size*block_size+5]=P->val[jptr*block_size*block_size+7];
-                                   out->val[iptr*block_size*block_size+6]=P->val[jptr*block_size*block_size+2];
-                                   out->val[iptr*block_size*block_size+7]=P->val[jptr*block_size*block_size+5];
-                                   out->val[iptr*block_size*block_size+8]=P->val[jptr*block_size*block_size+8];
-                              }
-                        }
-                 }
-            }
-    }
-    
-     /* clean up */
-   if (index_list!=NULL) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<C;++i) Paso_IndexList_free(index_list[i].extension);
-     }
-    TMPMEMFREE(index_list);
-    Paso_Pattern_free(outpattern);
-    return out;
-}
 
 
-void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_FC, index_t* mis_marker){
+void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_FC, index_t* marker_F){
  
   double *alpha;
   double *beta;
@@ -281,7 +171,7 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
   if (block_size==1) {
         k=0;
         for (i = 0; i < n; ++i) {
-            if(mis_marker[i]) {
+            if(marker_F[i]) {
                   alpha[k]=0;
                   beta[k]=0;
                   sum_all_neg=0;
@@ -294,13 +184,13 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
                        if(j!=i) {
                               if(A->val[iPtr]<0) {
                                 sum_all_neg+=A->val[iPtr];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg+=A->val[iPtr];
                                 }
                               }
                               else if(A->val[iPtr]>0) {
                                 sum_all_pos+=A->val[iPtr];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos+=A->val[iPtr];
                                 }
                               }
@@ -330,7 +220,7 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
   } else if (block_size==2) {
             k=0;
         for (i = 0; i < n; ++i) {
-            if(mis_marker[i]) {
+            if(marker_F[i]) {
                   alpha[k*block_size]=0;
                   alpha[k*block_size+1]=0;
                   beta[k*block_size]=0;
@@ -349,24 +239,24 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
                        if(j!=i) {
                               if(A->val[iPtr*block_size*block_size]<0) {
                                 sum_all_neg1+=A->val[iPtr*block_size*block_size];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg1+=A->val[iPtr*block_size*block_size];
                                 }
                               }
                               else if(A->val[iPtr*block_size*block_size]>0) {
                                 sum_all_pos1+=A->val[iPtr*block_size*block_size];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos1+=A->val[iPtr*block_size*block_size];
                                 }
                               }
                               if(A->val[iPtr*block_size*block_size+3]<0) {
                                 sum_all_neg2+=A->val[iPtr*block_size*block_size+3];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg2+=A->val[iPtr*block_size*block_size+3];
                                 }
                               } else if(A->val[iPtr*block_size*block_size+3]>0) {
                                 sum_all_pos2+=A->val[iPtr*block_size*block_size+3];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos2+=A->val[iPtr*block_size*block_size+3];
                                 }
                               }
@@ -412,7 +302,7 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
   } else if (block_size==3) {
             k=0;
         for (i = 0; i < n; ++i) {
-            if(mis_marker[i]) {
+            if(marker_F[i]) {
                   alpha[k*block_size]=0;
                   alpha[k*block_size+1]=0;
                   alpha[k*block_size+2]=0;
@@ -437,35 +327,35 @@ void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_F
                        if(j!=i) {
                               if(A->val[iPtr*block_size*block_size]<0) {
                                 sum_all_neg1+=A->val[iPtr*block_size*block_size];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg1+=A->val[iPtr*block_size*block_size];
                                 }
                               }
                               else if(A->val[iPtr*block_size*block_size]>0) {
                                 sum_all_pos1+=A->val[iPtr*block_size*block_size];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos1+=A->val[iPtr*block_size*block_size];
                                 }
                               }
                               if(A->val[iPtr*block_size*block_size+4]<0) {
                                 sum_all_neg2+=A->val[iPtr*block_size*block_size+4];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg2+=A->val[iPtr*block_size*block_size+4];
                                 }
                               } else if(A->val[iPtr*block_size*block_size+4]>0) {
                                 sum_all_pos2+=A->val[iPtr*block_size*block_size+4];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos2+=A->val[iPtr*block_size*block_size+4];
                                 }
                               }
                               if(A->val[iPtr*block_size*block_size+8]<0) {
                                 sum_all_neg3+=A->val[iPtr*block_size*block_size+8];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_neg3+=A->val[iPtr*block_size*block_size+8];
                                 }
                               } else if(A->val[iPtr*block_size*block_size+8]>0) {
                                 sum_all_pos3+=A->val[iPtr*block_size*block_size+8];
-                                if(!mis_marker[j]) {
+                                if(!marker_F[j]) {
                                   sum_strong_pos3+=A->val[iPtr*block_size*block_size+8];
                                 }
                               }

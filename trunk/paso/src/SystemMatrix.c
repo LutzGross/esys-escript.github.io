@@ -79,7 +79,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->normalizer_is_valid=FALSE;
      out->normalizer=NULL; 
      out->solver_package=PASO_PASO;  
-     out->solver=NULL;  
+     out->solver_p=NULL;  
      out->trilinos_data=NULL;
      out->reference_counter=1;
      out->logical_row_block_size=row_block_size;
@@ -176,6 +176,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
+	Paso_solve_free(in);
         Paso_SystemMatrixPattern_free(in->pattern);
         Paso_Distribution_free(in->row_distribution);
         Paso_Distribution_free(in->col_distribution);
@@ -312,8 +313,8 @@ void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double*
 }
 
 void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
-   if (A->solver==NULL) {
-      A->solver=Paso_Preconditioner_alloc(A,options);
+   if (A->solver_p==NULL) {
+      A->solver_p=Paso_Preconditioner_alloc(A,options);
    }
 }
 
@@ -321,14 +322,14 @@ void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* opti
 /* has to be called within a parallel reqion */
 /* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
-   Paso_Preconditioner* prec=(Paso_Preconditioner*) A->solver;
+   Paso_Preconditioner* prec=(Paso_Preconditioner*) A->solver_p;
    Paso_Preconditioner_solve(prec, A,x,b);
 }
 void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A) {
    Paso_Preconditioner* prec=NULL;
    if (A!=NULL) {
-      prec=(Paso_Preconditioner*) A->solver;
+      prec=(Paso_Preconditioner*) A->solver_p;
       Paso_Preconditioner_free(prec);
-      A->solver=NULL;
+      A->solver_p=NULL;
    }
 }

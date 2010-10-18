@@ -70,6 +70,9 @@
 #define PASO_MIN_COARSE_MATRIX_SIZE 37
 #define PASO_AMLI 38
 
+
+#define PASO_SMOOTHER 99999999
+
 typedef struct {
     index_t method;
     index_t package;
@@ -98,13 +101,19 @@ typedef struct {
     index_t coarsening_method;
     double relaxation_factor;
     bool_t use_local_preconditioner;
-
+    double min_coarse_sparsity;
+    dim_t refinements;
+    dim_t coarse_matrix_refinements;
+    double diagonal_dominance_threshold;
+    
     /* diagnostic values */
     dim_t num_iter;
     dim_t num_level;
     dim_t num_inner_iter;
     double time;
     double set_up_time;
+    double coarsening_selection_time;
+    double coarsening_matrix_time;
     double net_time;
     double residual_norm;
     bool_t converged;

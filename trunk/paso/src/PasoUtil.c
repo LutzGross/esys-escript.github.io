@@ -59,7 +59,7 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
 index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    index_t out=0,tmp;
    dim_t i;
-   #ifdef _OPENMP
+if (omp_get_max_threads()>1) {
       index_t *partial_sums=NULL,sum;
       partial_sums=TMPMEMALLOC(omp_get_max_threads(),index_t);
       #pragma omp parallel private(sum,i)
@@ -71,14 +71,14 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
         partial_sums[omp_get_thread_num()]=sum;
       }
 
-        {
+      {
           out=0;
           for (i=0;i<omp_get_max_threads();++i) {
              tmp=out;
              out+=partial_sums[i];
              partial_sums[i]=tmp;
            } 
-        }
+      }
      
       #pragma omp parallel private(sum,tmp,i)
       {
@@ -91,15 +91,190 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
         } 
       }
       TMPMEMFREE(partial_sums);
-   #else 
+} else {
       for (i=0;i<N;++i) {
          tmp=out;
          out+=array[i];
          array[i]=tmp;
       }
-   #endif
+}
    return out;
 }
+
+index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
+   index_t out=0,tmp;
+   dim_t i;
+   index_t *partial_sums=NULL,sum;
+   
+
+if (omp_get_max_threads()>1) {
+   partial_sums=TMPMEMALLOC(omp_get_max_threads(),index_t);
+   #pragma omp parallel private(sum,i)
+   {
+      sum=0;
+      #pragma omp for schedule(static)
+      for (i=0;i<N;++i) {
+	 if (mask[i]) {
+	    array[i] =1;
+	    sum++;
+	 } else {
+	    array[i] =0;
+	 }
+      }
+      partial_sums[omp_get_thread_num()]=sum;
+   }
+   
+   {
+      out=0;
+      for (i=0;i<omp_get_max_threads();++i) {
+	 tmp=out;
+	 out+=partial_sums[i];
+	 partial_sums[i]=tmp;
+      } 
+   }
+   
+   #pragma omp parallel private(sum,tmp,i)
+   {
+      sum=partial_sums[omp_get_thread_num()];
+      #pragma omp for schedule(static)
+      for (i=0;i<N;++i) {
+	 if (mask[i]) {
+	    tmp=sum;
+	    sum+=array[i];
+	    array[i]=tmp;
+	 } else {
+	    array[i]=-1;
+	 }
+      } 
+   }
+   TMPMEMFREE(partial_sums);
+} else {
+   for (i=0;i<N;++i) {
+      
+      if (mask[i]) {
+	  array[i]=out;
+	  out++;  
+      } else {
+	 array[i]=-1;
+      }
+   }
+}
+   return out;
+}
+
+index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
+   index_t out=0,tmp;
+   dim_t i;
+
+   index_t *partial_sums=NULL,sum;
+
+   
+if (omp_get_max_threads()>1) {
+   partial_sums=TMPMEMALLOC(omp_get_max_threads(),index_t);
+   #pragma omp parallel private(sum,i)
+   {
+      sum=0;
+      #pragma omp for schedule(static)
+      for (i=0;i<N;++i) {
+	 if (! mask[i]) {
+	    array[i] =1;
+	    sum++;
+	 } else {
+	    array[i] =0;
+	 }
+      }
+      partial_sums[omp_get_thread_num()]=sum;
+   }
+   
+   {
+      out=0;
+      for (i=0;i<omp_get_max_threads();++i) {
+	 tmp=out;
+	 out+=partial_sums[i];
+	 partial_sums[i]=tmp;
+      } 
+   }
+   
+   #pragma omp parallel private(sum,tmp,i)
+   {
+      sum=partial_sums[omp_get_thread_num()];
+      #pragma omp for schedule(static)
+      for (i=0;i<N;++i) {
+	 if (! mask[i]) {
+	    tmp=sum;
+	    sum+=array[i];
+	    array[i]=tmp;
+	 } else {
+	    array[i]=-1;
+	 }
+      } 
+   }
+   TMPMEMFREE(partial_sums);
+} else {
+   for (i=0;i<N;++i) {
+      if (! mask[i]) {
+	 array[i]=out;
+	 out++;  
+      } else {
+	 array[i]=-1;
+      }
+   }
+}
+
+   return out;
+}
+
+/* return the index  to the largest entry in lambda takes is maximum */
+index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
+   dim_t i;
+   index_t max=-1;
+   index_t argmax=-1;
+   index_t lmax=-1;
+   index_t li=-1;
+   
+   if (n>0) {
+      
+      max=lambda[0];
+      argmax=0;
+      if (omp_get_max_threads()>1) {
+	 #pragma omp parallel private(i,lmax,li)
+	 {
+	    lmax=max;
+	    li=lmax;
+	    #pragma omp for schedule(static)
+	    for (i=0;i<n;++i) {
+	       if(lmax<lambda[i]){
+		  lmax=lambda[i];
+		  li=i;
+	       }
+	    }
+	    #pragma omp critical
+	    {
+	       if (max<=lmax) {
+		  if(max==lmax && argmax>li)
+		  {
+		     argmax=li;
+		  }
+		  if (max < lmax)
+		  {
+		     max=lmax;
+		     argmax=li;
+		  }
+	       }
+	    }
+	 }
+      } else {
+	 for (i=0;i<n;++i) {
+	    if(max<lambda[i]){
+	       max=lambda[i];
+	       argmax=i;
+	    }
+	 }
+      }
+   }
+   return argmax;
+}
+
 /*
  * set x to zero:
  */

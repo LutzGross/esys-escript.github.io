@@ -34,97 +34,79 @@
 
 /*  free any extra stuff possibly used by the UMFPACK library */
 
-void Paso_UMFPACK_free(Paso_SystemMatrix* A) {
+void Paso_UMFPACK_free(Paso_SparseMatrix* A) {
      Paso_UMFPACK_Handler* pt =NULL;
-      if (A->solver!=NULL) {
-           pt=(Paso_UMFPACK_Handler*)(A->solver);
-           Paso_UMFPACK1_free((Paso_UMFPACK_Handler*)A->solver);
-           A->solver=NULL;
+      if ( (A->solver_p!=NULL) && (A->solver_package == PASO_UMFPACK) ) {
+           pt=(Paso_UMFPACK_Handler*)(A->solver_p);
+	   #ifdef UMFPACK
+	   umfpack_di_free_symbolic(&(pt->symbolic));
+	   umfpack_di_free_numeric(&(pt->numeric));
+	   #endif
+	   MEMFREE(pt);
+           A->solver_p=NULL;
      }
 }
-void Paso_UMFPACK1_free(Paso_UMFPACK_Handler* pt) {
-    if (pt!=NULL) {
-#ifdef UMFPACK
-         umfpack_di_free_symbolic(&(pt->symbolic));
-         umfpack_di_free_numeric(&(pt->numeric));
-#endif
-         MEMFREE(pt);
-    }
-}
+
 
 
 /*  call the solver: */
 
-void Paso_UMFPACK(Paso_SystemMatrix* A,
+void Paso_UMFPACK(Paso_SparseMatrix* A,
                           double* out,
                           double* in,
-                          Paso_Options* options,
-                          Paso_Performance* pp) {
+		          dim_t numRefinements,
+		          bool_t verbose) 
+{
 #ifdef UMFPACK
      double time0;
      Paso_UMFPACK_Handler* pt = NULL;
-     options->converged=FALSE;
-
+     double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
+     int error = UMFPACK_OK;
+     
      if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
         Esys_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
         return;
      }
-     Performance_startMonitor(pp,PERFORMANCE_ALL);
-     pt = (Paso_UMFPACK_Handler *)(A->solver);
-
-     time0=Esys_timer();
-     Paso_UMFPACK1(&pt, A->mainBlock, out, in, 2);
-     options->set_up_time=0;
-     options->time=Esys_timer()-time0;
-     if (!Esys_noError()) {
-         Paso_UMFPACK_free(A);
-     } else {
-        if (options->verbose) printf("UMFPACK: solve completed.\n");
-        A->solver=(void*) pt;
-        options->converged=TRUE;
-        options->residual_norm=0;
-        options->num_iter=1;
-        options->num_level=0;
-        options->num_inner_iter=0;
-     }
-     Performance_stopMonitor(pp,PERFORMANCE_ALL);
-}
-
-void Paso_UMFPACK1(Paso_UMFPACK_Handler** pt, Paso_SparseMatrix* A, double* out, double* in, const int refines) {
-
-     double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
-     int error = UMFPACK_OK;
+     
+     pt = (Paso_UMFPACK_Handler *)(A->solver_p);
      umfpack_di_defaults(control);
-
-     if (*pt==NULL) {
-        int n = A->numRows;
-        *pt=(MEMALLOC(1,Paso_UMFPACK_Handler));
-        if (Esys_checkPtr(*pt)) return;
-        /* call LDU symbolic factorization: */
-        error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&((*pt)->symbolic),control,info);
-        if (error != UMFPACK_OK) {
-             Esys_setError(VALUE_ERROR,"symbolic factorization failed.");
-             return;
-        } else {
-            /* call LDU factorization: */
-            error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,(*pt)->symbolic,&((*pt)->numeric),control,info);
-           if (error != UMFPACK_OK) {
-             Esys_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
-             return;
-           }
-        }
+     
+     if (pt==NULL) {
+	int n = A->numRows;
+	pt=(MEMALLOC(1,Paso_UMFPACK_Handler));
+	time0=Esys_timer();
+	if (Esys_checkPtr(pt)) return;
+	A->solver_p = (void*) pt;
+	/* call LDU symbolic factorization: */
+	error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
+	if (error != UMFPACK_OK) {
+	   if (verbose) printf("UMFPACK: symbolic factorization factorization failed.\n");
+	   Esys_setError(VALUE_ERROR,"UMFPACK: symbolic factorization failed.");
+	   return;
+	} else {
+	   /* call LDU factorization: */
+	   error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
+	   if (error != UMFPACK_OK) {
+	      if (verbose) printf("UMFPACK: LDU factorization failed.\n");
+	      Esys_setError(ZERO_DIVISION_ERROR,"factorization failed. Most likely the matrix is singular.");
+	      return;
+	   }
+	   if (verbose) printf("UMFPACK: LDU factorization completed (time = %e).\n",Esys_timer()-time0);
+	}
      }
      if (Esys_noError())  {
-        /* call forward backward substitution: */
-        control[UMFPACK_IRSTEP]=refines; /* number of refinement steps */
-        error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,(*pt)->numeric,control,info);
-        if (error != UMFPACK_OK) {
-              Esys_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
-              return;
-        }
+	/* call forward backward substitution: */
+	control[UMFPACK_IRSTEP]=numRefinements; /* number of refinement steps */
+	time0=Esys_timer();
+	error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
+	if (error != UMFPACK_OK) {
+	   if (verbose) printf("UMFPACK: forward/backward substitution failed.\n");
+	   Esys_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
+	   return;
+	}
+	if (verbose) printf("UMFPACK: forward/backward substitution completed (time = %e).\n",Esys_timer()-time0);
      }
-#else
-    Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
-#endif
-
+     #else
+	 Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
+     #endif
 }

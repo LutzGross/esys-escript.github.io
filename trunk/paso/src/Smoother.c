@@ -161,7 +161,8 @@ void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Precon
    
    while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
-	 Paso_SparseMatrix_MatrixVector_CSC_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
+
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,b_new);
 	 Paso_AXPY(n, x, 1., b_new);
 	 nsweeps--;
@@ -170,11 +171,7 @@ void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Precon
 
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
-   #ifdef _OPENMP
    const dim_t nt=omp_get_max_threads();
-   #else
-   const dim_t nt = 1;
-   #endif
    if (smoother->Jacobi) {
       Paso_BlockOps_allMV(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
    } else {
@@ -258,6 +255,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 	       Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	    }
 	    Paso_BlockOps_MV_2(&x[2*i], &diag[i*4], &x[2*i]);
+	    
       }
    } else if (n_block==3) {
       for (i = n-2; i > -1; --i) {
