@@ -651,7 +651,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setSmoother(so.JACOBI)
         self.failUnless(so.getSmoother() == 10, "Jacobi smoother is not set.")
 
-        self.failUnless(so.getLevelMax() == 5, "initial  LevelMax is wrong.")
+        self.failUnless(so.getLevelMax() == 100, "initial  LevelMax is wrong.")
         self.failUnlessRaises(ValueError,so.setLevelMax,-1)
         so.setLevelMax(20)
         self.failUnless(so.getLevelMax() == 20, "LevelMax is wrong.")

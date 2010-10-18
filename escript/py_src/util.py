@@ -577,6 +577,8 @@ def getShape(arg):
 
     if isinstance(arg,numpy.ndarray):
         return arg.shape
+    elif isinstance(arg,list):
+        return numpy.array(arg).shape
     elif isinstance(arg,escript.Data):
         return arg.getShape()
     elif isinstance(arg,float):
@@ -6156,10 +6158,7 @@ class FileWriter(object):
             if e==None:
                raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
             else:
-               if hasattr(e,"message"):
-                  raise IOError,e.message
-               else:
-                  raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
+               raise IOError(str(e))
          
     def close(self):
         """

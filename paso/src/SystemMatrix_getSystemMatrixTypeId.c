@@ -49,7 +49,6 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
 
      case PASO_MKL:
        out=MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1;
-       /* if (solver == PASO_CHOLEVSKY) out+=MATRIX_FORMAT_SYM */
        break;
 
      case PASO_UMFPACK:

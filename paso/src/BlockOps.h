@@ -59,8 +59,8 @@ void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* 
    register double A12=*(MAT+2);\
    register double A21=*(MAT+1);\
    register double A22=*(MAT+3);\
-   *(R+0)  =A11 * S1 + A12 * S2;\
-   *(R+1)=A21 * S1 + A22 * S2;\
+   *(R+0)  = A11 * S1 + A12 * S2;\
+   *(R+1)  = A21 * S1 + A22 * S2;\
 }\
 
 

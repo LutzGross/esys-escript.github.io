@@ -37,10 +37,6 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
   dim_t i;
   Esys_resetError();
 
-  if (type & PATTERN_FORMAT_SYM) {
-    Esys_setError(TYPE_ERROR,"Paso_Pattern_alloc: symmetric matrix pattern is not supported yet");
-    return NULL;
-  }
   if (ptr!=NULL && index != NULL) {
     #pragma omp parallel private(loc_min_index,loc_max_index,i)
      {
@@ -165,16 +161,7 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
   Paso_Pattern*out=NULL;
   index_t iptrA,iptrB;
   dim_t i,j,k;
-  Paso_IndexList* index_list=NULL;
-
-  index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
-  if (! Esys_checkPtr(index_list)) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<A->numOutput;++i) {
-             index_list[i].extension=NULL;
-             index_list[i].n=0;
-        }
-   }
+  Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
   
   #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
   for(i = 0; i < A->numOutput; i++) {
@@ -182,19 +169,15 @@ Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) 
       j = A->index[iptrA];
       for(iptrB = B->ptr[j]; iptrB < B->ptr[j+1]; ++iptrB) {
     	k = B->index[iptrB];
-        Paso_IndexList_insertIndex(&(index_list[i]),k);
+	Paso_IndexListArray_insertIndex(index_list,i,k);
      }
     }
   }
     
-  out=Paso_IndexList_createPattern(0, A->numOutput,index_list,0,B->numInput,0);
+  out=Paso_Pattern_fromIndexListArray(0, index_list,0,B->numInput,0);
 
  /* clean up */
-   if (index_list!=NULL) {
-       #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<A->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
-     }
-  TMPMEMFREE(index_list);
+ Paso_IndexListArray_free(index_list);
   
 return out;
 }
@@ -212,16 +195,7 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
   index_t iptrA,iptrB;
   dim_t i,j,k;
 
-  Paso_IndexList* index_list=NULL;
-
- index_list=TMPMEMALLOC(A->numOutput,Paso_IndexList);
-   if (! Esys_checkPtr(index_list)) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<A->numOutput;++i) {
-             index_list[i].extension=NULL;
-             index_list[i].n=0;
-        }
-    }
+  Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
   
   #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
   for(i = 0; i < B->numOutput; i++){
@@ -232,115 +206,43 @@ Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
         j = A->index[iptrA];
         k = B->index[iptrB];
         if (j<k) {
-           Paso_IndexList_insertIndex(&(index_list[i]),j);
+	   Paso_IndexListArray_insertIndex(index_list,i,j);
            iptrA++;
         } else if (j>k) {
-            Paso_IndexList_insertIndex(&(index_list[i]),k);
+	   Paso_IndexListArray_insertIndex(index_list,i,k);
             iptrB++;
         } else if (j==k) {
-            Paso_IndexList_insertIndex(&(index_list[i]),j);
+	   Paso_IndexListArray_insertIndex(index_list,i,j);
             iptrB++;
             iptrA++;
         }
     }
     while(iptrA < A->ptr[i+1]) {
         j = A->index[iptrA];
-        Paso_IndexList_insertIndex(&(index_list[i]),j);
+	Paso_IndexListArray_insertIndex(index_list,i,j);
         iptrA++;
     }
     while(iptrB < B->ptr[i+1]) {
         k = B->index[iptrB];
-        Paso_IndexList_insertIndex(&(index_list[i]),k);
+	Paso_IndexListArray_insertIndex(index_list,i,k);
         iptrB++;
     }
   }
  
-  out=Paso_IndexList_createPattern(0, A->numOutput,index_list,0,A->numInput,0);
+  out=Paso_Pattern_fromIndexListArray(0, index_list,0,A->numInput,0);
 
 
  /* clean up */
-   if (index_list!=NULL) {
-        #pragma omp parallel for private(i) schedule(static)
-        for(i=0;i<A->numOutput;++i) Paso_IndexList_free(index_list[i].extension);
-     }
-  TMPMEMFREE(index_list);
+ Paso_IndexListArray_free(index_list);
 
   return out;
 }
 
-/* inserts row index row into the Paso_IndexList in if it does not exist */
-
-void Paso_IndexList_insertIndex(Paso_IndexList* in, index_t index) {
-  dim_t i;
-  /* is index in in? */
-  for (i=0;i<in->n;i++) {
-    if (in->index[i]==index)  return;
-  }
-  /* index could not be found */
-  if (in->n==INDEXLIST_LENGTH) {
-     /* if in->index is full check the extension */
-     if (in->extension==NULL) {
-        in->extension=TMPMEMALLOC(1,Paso_IndexList);
-        if (Esys_checkPtr(in->extension)) return;
-        in->extension->n=0;
-        in->extension->extension=NULL;
-     }
-     Paso_IndexList_insertIndex(in->extension,index);
-  } else {
-     /* insert index into in->index*/
-     in->index[in->n]=index;
-     in->n++;
-  }
-}
-
-/* counts the number of row indices in the Paso_IndexList in */
-
-dim_t Paso_IndexList_count(Paso_IndexList* in, index_t range_min,index_t range_max) {
-  dim_t i;
-  dim_t out=0;
-  register index_t itmp;
-  if (in==NULL) {
-     return 0;
-  } else {
-    for (i=0;i<in->n;i++) {
-          itmp=in->index[i];
-          if ((itmp>=range_min) && (range_max>itmp)) ++out;
-    }
-     return out+Paso_IndexList_count(in->extension, range_min,range_max);
-  }
-}
-
-/* count the number of row indices in the Paso_IndexList in */
-
-void Paso_IndexList_toArray(Paso_IndexList* in, index_t* array, index_t range_min,index_t range_max, index_t index_offset) {
-  dim_t i, ptr;
-  register index_t itmp;
-  if (in!=NULL) {
-    ptr=0;
-    for (i=0;i<in->n;i++) {
-          itmp=in->index[i];
-          if ((itmp>=range_min) && (range_max>itmp)) {
-             array[ptr]=itmp+index_offset;
-             ptr++;
-          }
-
-    }
-    Paso_IndexList_toArray(in->extension,&(array[ptr]), range_min, range_max, index_offset);
-  }
-}
-
-/* deallocates the Paso_IndexList in by recursive calls */
-
-void Paso_IndexList_free(Paso_IndexList* in) {
-  if (in!=NULL) {
-    Paso_IndexList_free(in->extension);
-    TMPMEMFREE(in);
-  }
-}
-
 /* creates a Paso_pattern from a range of indices */
-Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* index_list,index_t range_min,index_t range_max,index_t index_offset)
+Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max,index_t index_offset)
 {
+   const dim_t n=index_list_array->n;
+   Paso_IndexList* index_list = index_list_array->index_list;
    dim_t *ptr=NULL;
    register dim_t s,i,itmp;
    index_t *index=NULL;
@@ -348,7 +250,7 @@ Paso_Pattern* Paso_IndexList_createPattern(dim_t n0, dim_t n,Paso_IndexList* ind
 
    ptr=MEMALLOC(n+1-n0,index_t);
    if (! Esys_checkPtr(ptr) ) {
-       /* get the number of connections per row */
+       /* get the number of connections per row */ 
        #pragma omp parallel for private(i) schedule(static)
        for(i=n0;i<n;++i) {
               ptr[i-n0]=Paso_IndexList_count(&index_list[i],range_min,range_max);
@@ -383,7 +285,7 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
 {
     const dim_t n=A->numOutput;
     int fail=0;
-    index_t i,iptr,iptr_main;
+    index_t *index,*where_p, i;
     
      if (A->main_iptr == NULL) {
          A->main_iptr=MEMALLOC(n,index_t);
@@ -391,18 +293,21 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
 	     #pragma omp parallel 
              {
                  /* identify the main diagonals */
-                 #pragma omp for schedule(static) private(i,iptr,iptr_main)
+                 #pragma omp for schedule(static) private(i, index, where_p)
                  for (i = 0; i < n; ++i) {
-                        iptr_main=A->ptr[0]-1;
-                        for (iptr=A->ptr[i];iptr<A->ptr[i+1]; iptr++) {
-                              if (A->index[iptr]==i) {
-                                   iptr_main=iptr;
-                                   break;
-                              }
-                        }
-                        A->main_iptr[i]=iptr_main;
-                        if (iptr_main==A->ptr[0]-1) fail=1;
-                  }
+		    index=&(A->index[A->ptr[i]]);
+		    where_p=bsearch(&i,
+				    index,
+				    (size_t) (A->ptr[i + 1]-A->ptr[i]),
+			             sizeof(index_t),
+			             Paso_comparIndex);
+					      
+		    if (where_p==NULL) {
+		        fail=1;
+		    } else {
+		       A->main_iptr[i]=A->ptr[i]+(index_t)(where_p-index);
+		    }
+                 }
      
              }
 	     if (fail > 0) {
@@ -414,6 +319,7 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
      }
      return A->main_iptr;
 }
+			  
 
 dim_t Paso_Pattern_getNumColors(Paso_Pattern* A)
 {
@@ -435,4 +341,23 @@ index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A)
       } 
    }
    return A->coloring;
+}
+dim_t Paso_Pattern_maxDeg(Paso_Pattern* A)
+{
+   dim_t deg=0, loc_deg=0, i;
+   const dim_t n=A->numInput;
+
+   #pragma omp parallel private(i, loc_deg) 
+   {
+         loc_deg=0;
+	 #pragma omp for schedule(static)
+	 for (i = 0; i < n; ++i) {
+	    loc_deg=MAX(loc_deg, A->ptr[i+1]-A->ptr[i]);
+	 }
+	 #pragma omp critical
+	 {
+	    deg=MAX(deg, loc_deg);
+         }
+   }
+   return deg;
 }

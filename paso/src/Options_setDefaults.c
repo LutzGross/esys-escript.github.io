@@ -52,12 +52,17 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->post_sweeps=2;
   options->coarsening_threshold=0.25;
   options->min_coarse_matrix_size=500;
-  options->level_max=10;
+  options->level_max=100;
   options->accept_failed_convergence=FALSE;
   options->coarsening_method=PASO_DEFAULT;
   options->relaxation_factor=0.95;
   options->smoother=PASO_GS;
   options->use_local_preconditioner=FALSE;
+  options->min_coarse_sparsity=0.05;
+  options->refinements=2;
+  options->coarse_matrix_refinements=0;
+  options->diagonal_dominance_threshold=0.5;
+  
 
   /* diagnostic values */
   options->num_iter=-1;
@@ -65,6 +70,8 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->num_inner_iter=-1;
   options->time=-1.;
   options->set_up_time=-1.;
+  options->coarsening_selection_time=-1.;
+  options->coarsening_matrix_time=-1;
   options->net_time=-1.;
   options->residual_norm=-1.;
   options->converged=FALSE;
@@ -78,7 +85,9 @@ void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("\tnum_inner_iter = %d\n",options->num_inner_iter);
 	printf("\ttime = %e\n",options->time);
 	printf("\tset_up_time = %e\n",options->set_up_time);
-        printf("\tnet_time = %e\n",options->net_time);
+	printf("\tcoarsening_selection_time = %e\n",options->coarsening_selection_time);
+	printf("\tscoarsening_matrix_time = %e\n",options->coarsening_matrix_time);
+	printf("\tnet_time = %e\n",options->net_time);
 	printf("\tresidual_norm = %e\n",options->residual_norm);
 	printf("\tconverged = %d\n",options->converged);
         printf("\tpreconditioner_size = %e Mbytes\n", options->preconditioner_size);
@@ -191,4 +200,8 @@ void Paso_Options_show(const Paso_Options* options ) {
 	printf("\tcoarsening_method = %s (%d)\n",Paso_Options_name(options->coarsening_method), options->coarsening_method);
 	printf("\trelaxation_factor = %e\n",options->relaxation_factor);
 	printf("\tuse_local_preconditioner = %d\n",options->use_local_preconditioner);
+	printf("\tmin_coarse_sparsity = %e\n",options->min_coarse_sparsity);
+	printf("\trefinements = %d\n",options->refinements);
+	printf("\tcoarse_matrix_refinements = %d\n",options->coarse_matrix_refinements);
+	
 }

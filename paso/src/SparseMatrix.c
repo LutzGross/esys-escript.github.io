@@ -24,6 +24,9 @@
 
 #include "Paso.h"
 #include "SparseMatrix.h"
+#include "MKL.h"
+#include "Preconditioner.h"
+#include "UMFPACK.h"
 #include "TRILINOS.h"
 #include "mmio.h"
 
@@ -108,11 +111,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
   Paso_SparseMatrixType pattern_format_out;
   bool_t unroll=FALSE;
 
-  if (type & MATRIX_FORMAT_SYM) {
-     Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: symmetric matrix pattern are not supported.");
-     return NULL;
-  }
-
   if (patternIsUnrolled) {
      if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
          Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
@@ -139,8 +137,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
      out->val=NULL;  
      out->reference_counter=1;
      out->type=type;
-     out->solver=NULL; 
-
+     out->solver_package=PASO_PASO;  
+     out->solver_p=NULL;  
+     
      /* ====== compressed sparse columns === */
      if (type & MATRIX_FORMAT_CSC) {
            if (unroll) {
@@ -210,11 +209,22 @@ void Paso_SparseMatrix_free(Paso_SparseMatrix* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
-        Paso_Pattern_free(in->pattern);
-        MEMFREE(in->val);
-	if(in->solver!=NULL) {
-		MEMFREE(in->solver);
+	switch(in->solver_package) {
+	   
+	    case PASO_SMOOTHER:
+	       Paso_Preconditioner_LocalSmoother_free((Paso_Preconditioner_LocalSmoother*) in->solver_p);
+	       break;
+	   
+	    case PASO_MKL:
+	       Paso_MKL_free(in); /* releases solver_p */
+	       break;
+	   
+	    case PASO_UMFPACK:
+	       Paso_UMFPACK_free(in); /* releases solver_p */
+	       break;
 	}
+	MEMFREE(in->val);
+	Paso_Pattern_free(in->pattern);
         MEMFREE(in);
      }
    }
@@ -335,11 +345,6 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
        return;
   }
 
-  if (A_p->type & MATRIX_FORMAT_SYM) {
-    Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support symmetric storage scheme");
-    return;
-  }
-  
   /* open the file */
   fileHandle_p = fopen(fileName_p, "w");
   if (fileHandle_p==NULL) {
@@ -410,6 +415,10 @@ dim_t Paso_SparseMatrix_getNumColors(Paso_SparseMatrix* A_p)
 index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix* A_p)
 {
    return Paso_Pattern_borrowColoringPointer(A_p->pattern);
+}
+dim_t Paso_SparseMatrix_maxDeg(Paso_SparseMatrix * A_p)
+{
+   return Paso_Pattern_maxDeg(A_p->pattern);
 }
 
 Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {

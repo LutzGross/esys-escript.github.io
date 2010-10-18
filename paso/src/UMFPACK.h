@@ -38,8 +38,6 @@ typedef struct {
     void *numeric;
 } Paso_UMFPACK_Handler;
 
-void Paso_UMFPACK_free(Paso_SystemMatrix* A);
-void Paso_UMFPACK1_free(Paso_UMFPACK_Handler* pt);
-void Paso_UMFPACK(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options,Paso_Performance* pp);
-void Paso_UMFPACK1(Paso_UMFPACK_Handler** pt, Paso_SparseMatrix* A, double* out, double* in, const int refines);
+void Paso_UMFPACK_free(Paso_SparseMatrix* A);
+void Paso_UMFPACK(Paso_SparseMatrix* A, double* out, double* in, dim_t numRefinements, bool_t verbose);
 #endif

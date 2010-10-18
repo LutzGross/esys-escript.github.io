@@ -75,7 +75,7 @@ typedef struct Paso_SystemMatrix {
   bool_t normalizer_is_valid;
   double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
   index_t solver_package;  /* package controling the solver pointer */
-  void* solver;  /* pointer to data needed by a solver */
+  void* solver_p;  /* pointer to data needed by a solver */
 
   /* this is only used for a trilinos matrix */
   void *trilinos_data; 

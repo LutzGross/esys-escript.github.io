@@ -54,10 +54,6 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
   index_t naib,iptr;
   bool_t flag;
   dim_t n=pattern_p->numOutput;
-  if (pattern_p->type & PATTERN_FORMAT_SYM) {
-    Esys_setError(TYPE_ERROR,"Paso_Pattern_mis: symmetric matrix pattern is not supported yet");
-    return;
-  }
   if (pattern_p->numOutput != pattern_p->numInput) {
      Esys_setError(VALUE_ERROR,"Paso_Pattern_mis: pattern must be square.");
      return;
