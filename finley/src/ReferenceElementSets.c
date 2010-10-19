@@ -73,6 +73,7 @@ void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in) {
 		if (in->reference_counter<1) {
 			Finley_ReferenceElement_dealloc(in->referenceElement);
 			Finley_ReferenceElement_dealloc(in->referenceElementReducedQuadrature);
+			MEMFREE(in);
 		}
 	}
 }
