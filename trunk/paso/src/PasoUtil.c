@@ -240,7 +240,7 @@ index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
 	 #pragma omp parallel private(i,lmax,li)
 	 {
 	    lmax=max;
-	    li=lmax;
+	    li=argmax;
 	    #pragma omp for schedule(static)
 	    for (i=0;i<n;++i) {
 	       if(lmax<lambda[i]){
@@ -250,17 +250,12 @@ index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
 	    }
 	    #pragma omp critical
 	    {
-	       if (max<=lmax) {
-		  if(max==lmax && argmax>li)
-		  {
-		     argmax=li;
-		  }
-		  if (max < lmax)
-		  {
-		     max=lmax;
-		     argmax=li;
-		  }
-	       }
+	       if (max < lmax)  {
+		  max=lmax;
+		  argmax=li;
+	       } else if (max==lmax && argmax>li) {
+		  argmax=li;
+	       } 
 	    }
 	 }
       } else {
@@ -281,11 +276,8 @@ index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
 void Paso_zeroes(const dim_t n, double* x) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
 
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
