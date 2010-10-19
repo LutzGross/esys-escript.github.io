@@ -405,9 +405,8 @@ void Paso_Preconditioner_AMG_RSCoarsening_Block(Paso_SparseMatrix* A, index_t* s
 	       #pragma ivdep
 	       for(bi=0;bi<n_block*n_block;++bi) fnorm+=A->val[iptr*n_block*n_block+bi]*A->val[iptr*n_block*n_block+bi];
 	       fnorm=sqrt(fnorm);
-	       
+	       rtmp[iptr-A->pattern->ptr[i]]=fnorm;
 	       if( j != i) {
-		  rtmp[iptr-A->pattern->ptr[i]]=fnorm;
 		  max_offdiagonal = MAX(max_offdiagonal,fnorm);
 		  sum_row+=fnorm;
 	       } else {
