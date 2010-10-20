@@ -49,9 +49,9 @@ CASE=1
 T_END=60000000.0*U.sec                       # end time
 
 if CASE==1 or CASE==2:
-   C_V = 2.e-5/(U.Mega*U.Pa) 
+   C_V = 2.e-5/(U.Mega*U.Pa)  *0
    C_D = 3/U.sec   
-   C_1 = 1e-12/U.sec  
+   C_1 = 1e-12/U.sec   
    C_2 = 0.03
    XI_0 = -0.56
    LAME_0 = 29e9*U.Pa
@@ -62,9 +62,10 @@ if CASE==1 or CASE==2:
       ALPHA_0 = 0.0
    RHO = 2800*U.kg/U.m**3
    G = 10*U.m/U.sec**2     *0
-   SIGMA_N=50.*U.Mega*U.Pa
+   SIGMA_N=-50.*U.Mega*U.Pa
    DIM=3                          
    VMAX=-1.*U.m/U.sec/166667.
+   VMAX=-1.*U.m/U.sec/100000.
    DT_MAX=50.*U.sec
    DT=DT_MAX/1000000.
    xc=[L/2,L/2,H/2]
@@ -101,11 +102,11 @@ ODE_TOL=0.01
 ODE_ITER_TOL=1.e-8
 ODE_ITER_MAX=15
 DEPS_MAX=0.01
-TOL_DU=1e-5
+TOL_DU=1e-8
 UPDATE_OPERATOR = False
 
 
-diagnose=FileWriter("diagnose1.csv",append=False)
+diagnose=FileWriter("diagnose.csv",append=False)
 #===================================
 S=0.5*XI_0*((2.*MU_0+3.*LAME_0)/(3.-XI_0**2) + LAME_0)
 GAMMA_M=S + sqrt(S**2+2.*MU_0*(2.*MU_0+3.*LAME_0)/(3.-XI_0**2))
@@ -144,9 +145,9 @@ mkDir(VIS_DIR)
 #   set up domain 
 #
 if DIM==2:
-    dom=Rectangle(NE_L,NE_H,l0=L,l1=H,order=-1,optimize=True)
+    dom=Rectangle(NE_L,NE_H,l0=L,l1=H,order=1,optimize=True)
 else:
-    dom=Brick(NE_L,NE_L,NE_H,l0=L,l1=L,l2=H,order=-1,optimize=True)
+    dom=Brick(NE_L,NE_L,NE_H,l0=L,l1=L,l2=H,order=1,optimize=True)
 
 BBOX=boundingBox(dom)
 DIM=dom.getDim()
@@ -184,6 +185,7 @@ else:
 
 pde.setValue(Y=-G*RHO*kronecker(DIM)[DIM-1], q=fixed_v_mask)
 du=Vector(0.,Solution(dom))
+u=Vector(0.,Solution(dom))
 norm_du=0.
 deps=Tensor(0,Function(dom))
 i_eta=0
@@ -264,6 +266,7 @@ while t<T_END:
         print "\t displacement change update = %e of %e"%(norm_ddu, norm_du)
         iter+=1
     print "deps =", inf(deps),sup(deps)
+    u+=du
     n+=1
     t+=dt
     #=========== this is a test for triaxial test ===========================
@@ -278,7 +281,7 @@ while t<T_END:
     print "\tYYY sigma11 = num/exact", meanValue(sigma[1,1]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*a)
     print "\tYYY sigma22 = num/exact", meanValue(sigma[2,2]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t)
     print "\tYYY linear Elastic equivalent num/exact=",meanValue(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/meanValue(eps_e[2,2]-eps_e_old[2,2]), meanValue(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff))
-    diagnose.write(("%e,"*9+"\n")%(t, meanValue(-eps_e[2,2]), 
+    diagnose.write(("%e,"*10+"\n")%(t, meanValue(-eps_e[2,2]), 
                                       meanValue(eps_e[1,1]),
                                       meanValue(sigma[0,0]-sigma[2,2]), 
                                       meanValue(mu_eff),
@@ -292,7 +295,7 @@ while t<T_END:
     #  .... visualization
     #
     if t>=t_vis or n>n_vis:
-      saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),alpha=alpha, I1=trace(eps_e), I2=length(eps_e)**2, xi=safeDiv(trace(eps_e),length(eps_e)))
+      saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),u=u, dalpha=alpha, I1=trace(eps_e), I2=length(eps_e)**2, xi=safeDiv(trace(eps_e),length(eps_e)))
       print "visualization file %d for time step %e generated."%(counter_vis,t)
       counter_vis+=1
       t_vis+=DT_VIS
