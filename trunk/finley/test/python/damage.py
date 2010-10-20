@@ -64,7 +64,7 @@ if CASE==1 or CASE==2:
    G = 10*U.m/U.sec**2     *0
    SIGMA_N=50.*U.Mega*U.Pa
    DIM=3                          
-   VMAX=-1.*U.m/U.sec/500000.
+   VMAX=-1.*U.m/U.sec/166667.
    DT_MAX=50.*U.sec
    DT=DT_MAX/1000000.
    xc=[L/2,L/2,H/2]
@@ -194,7 +194,7 @@ k3=kronecker(DIM)
 k3Xk3=outer(k3,k3)
 alpha_old=alpha
 dt_old=None
-diagnose.write("t, -e22, s00-s22, mu_eff, lame_eff, xi, gamma, alpha, alpha_dot\n")
+diagnose.write("t, -e22, e11, s00-s22, mu_eff, lame_eff, xi, gamma, alpha, alpha_dot\n")
 
 while t<T_END:
 
@@ -235,7 +235,7 @@ while t<T_END:
         mu=MU_0*(1-alpha)
 
         lame_eff=lame-gamma*i_xi
-        mu_eff=mu-gamma*xi
+        mu_eff=mu-gamma*xi/2.
 
         print "\talpha = [ %e, %e]"%(inf(alpha),sup(alpha))
         print "\tmu_eff = [ %e, %e]"%(inf(mu_eff),sup(mu_eff))
@@ -279,6 +279,7 @@ while t<T_END:
     print "\tYYY sigma22 = num/exact", meanValue(sigma[2,2]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t)
     print "\tYYY linear Elastic equivalent num/exact=",meanValue(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/meanValue(eps_e[2,2]-eps_e_old[2,2]), meanValue(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff))
     diagnose.write(("%e,"*9+"\n")%(t, meanValue(-eps_e[2,2]), 
+                                      meanValue(eps_e[1,1]),
                                       meanValue(sigma[0,0]-sigma[2,2]), 
                                       meanValue(mu_eff),
                                       meanValue(lame_eff),
@@ -317,7 +318,7 @@ while t<T_END:
           else:
              dt_new=DT_MAX
 
-    dt_new=min(max(dt_new,dt/5),dt*5,DT_MAX) # avid rapit changes
+    dt_new=min(max(dt_new,dt/5),dt*5,DT_MAX) # aviod rapit changes
     print "\tINFO: new time step size %e"%dt_new
     dt, dt_old=dt_new, dt
     # dom.setX(dom.getX()+du)
