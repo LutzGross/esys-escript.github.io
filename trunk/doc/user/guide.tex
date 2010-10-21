@@ -12,16 +12,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\documentclass{manual}
+\documentclass{esysdoc}
 
 % grab the handy definitions and \usepackage statements etc
 \input{guide_defs}
 
+\newcommand{\hackscore}{_}
+\newcommand{\declaremodule}[2]{}
+\newcommand{\modulesynopsis}[1]{}
+
 % title, author, etc stuff
 \title{\module{esys} User's Guide:\\ Solving Partial Differential Equations\\ with Escript and Finley}
-
-
-
 \author{Lutz Gross\etal~(Editor)}
 \authoraddress{
 Earth Systems Science Computational Centre (ESSCC) \\
@@ -29,11 +30,8 @@ School of Earth Sciences \\
 The University of Queensland \\
 Brisbane, Australia \\
 Email: \email{esys@esscc.uq.edu.au}
-}                                                                                         
-\date{\today}      
-\release{- nightly}
-\setreleaseinfo{\\(r\RepVersion)} 
-\setshortversion{}
+}
+\date{\today}
 
 \makeindex
 
@@ -42,9 +40,9 @@ Email: \email{esys@esscc.uq.edu.au}
 
 \maketitle
 
-% This must be after the make title or latex markup will end up in the title 
+% This must be after the make title or latex markup will end up in the title
 \ifpdf
-\pdfinfo {
+\pdfinfo{
 /Author (Lutz Gross et al (Editor))
 /Title (escript User's Guide)
 /Keywords (escript, PDEs)
@@ -64,7 +62,7 @@ It consists of four major components
 % \item VTK visualization interface \pyvisi
 \item a model library.
 \end{itemize}
-The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory. 
+The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory.
 
 \emph{Please see Chapter~\ref{EXECUTION} for changes to the way to launch \escript scripts.}
 For more info on this and other changes from previous releases see Appendix~\ref{app:changes}.
@@ -77,31 +75,19 @@ Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 
 \include{TutorialPDE}
 \include{execute}
-
 \include{escript}
 \include{linearPDE}
-
 \include{pycad}
-
-
-
 \include{Models}
-
 \include{finley}
 \appendix
 
 %\input{modelframe}
-
 \include{appendix}
-
 \include{pyvisi}
-
-\makemodindex
-
-\printindex
-%\input{guide.ind}
 
 \bibliographystyle{plain}
 \bibliography{esys}
 
 \end{document}
+

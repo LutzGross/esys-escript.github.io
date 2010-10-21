@@ -11,17 +11,14 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-\chapter{The Module \pycad} \label{PYCAD CHAP}
-
+\chapter{The \pycad Module}\label{PYCAD CHAP}
 
 \section{Introduction}
 
 \pycad provides a simple way to build a mesh for your finite element
 simulation.  You begin by building what we call a \class{Design} using
 primitive geometric objects, and then to go on to build a mesh from
-this.  The final step of generating the mesh from a \class{Design} 
+this.  The final step of generating the mesh from a \class{Design}
 uses freely available mesh generation software, such as \gmshextern.
 
 A \class{Design} is built by defining points, which are used to specify
@@ -32,7 +29,7 @@ call a \class{Design}, you can build meshes for arbitrarily complex 2-D
 and 3-D structures.
 
 \section{The Unit Square}
-So the simplest geometry is the unit square. First we generate the 
+So the simplest geometry is the unit square. First we generate the
 corner points
 \begin{python}
 from esys.pycad import *
@@ -48,20 +45,20 @@ l12=Line(p1,p2)
 l23=Line(p2,p3)
 l30=Line(p3,p0)
 \end{python}
-The lines are put together to form a loop 
+The lines are put together to form a loop
 \begin{python}
 c=CurveLoop(l01,l12,l23,l30)
 \end{python}
-The orientation of the line defining the \class{CurveLoop} is important. It is assumed that the surrounded 
+The orientation of the line defining the \class{CurveLoop} is important. It is assumed that the surrounded
 area is to the left when moving along the lines from their starting points towards the end points. Moreover,
-the line need to form a closed loop.  
+the line need to form a closed loop.
 
-We use the \class{CurveLoop} to define a surface 
+We use the \class{CurveLoop} to define a surface
 \begin{python}
 s=PlaneSurface(c)
 \end{python}
-Notice there is difference between the \class{CurveLoop} defining the boundary 
-of the surface and the actually surface \class{PlaneSurface}. This difference becomes clearer in the next example with a hole. The direction of the lines is important. 
+Notice there is difference between the \class{CurveLoop} defining the boundary
+of the surface and the actually surface \class{PlaneSurface}. This difference becomes clearer in the next example with a hole. The direction of the lines is important.
 New we are ready to define the geometry which described by an instance of \class{Design} class:
 \begin{python}
 d=Design(dim=2,element_size=0.05)
@@ -71,7 +68,7 @@ We then add the surface \code{s} to the geometry
 \begin{python}
 d.addItems(s)
 \end{python}
-This will automatically import all items used to construct \code{s} into the \class{Design} \code{d}. 
+This will automatically import all items used to construct \code{s} into the \class{Design} \code{d}.
 Now we are ready to construct a \finley FEM mesh and then write it to the file \file{quad.fly}:
 \begin{python}
 from esys.finley import MakeDomain
@@ -79,7 +76,7 @@ dom=MakeDomain(d)
 dom.write("quad.fly")
 \end{python}
 In some cases it is useful to access the script used to generate the geometry. You can specify a specific name
-for the script file. In our case we use 
+for the script file. In our case we use
 \begin{python}
 d.setScriptFileName("quad.geo")
 \end{python}
@@ -111,13 +108,13 @@ dom=MakeDomain(d)
 dom.write("quad.fly")
 \end{python}
 This example is included with the software in
-\file{quad.py} in the \ExampleDirectory. 
+\file{quad.py} in the \ExampleDirectory.
 
-There are three extra statements which we have not discussed yet: By default the mesh used to subdivide 
-the boundary are not written into the mesh file mainly to reduce the size of the data file. One need to explicitly add the lines to the  \Design which should be present in the mesh data. Here we additionally labeled the 
-lines on the top and the bottom with the name ``top_and_bottom`` and the lines on the left and right hand side 
-with the name ``sides`` using \class{PropertySet} objects. The labeling is convenient 
-when using tagging \index{tagging}, see Chapter~\ref{ESCRIPT CHAP}. 
+There are three extra statements which we have not discussed yet: By default the mesh used to subdivide
+the boundary are not written into the mesh file mainly to reduce the size of the data file. One need to explicitly add the lines to the  \Design which should be present in the mesh data. Here we additionally labeled the
+lines on the top and the bottom with the name ``top_and_bottom`` and the lines on the left and right hand side
+with the name ``sides`` using \class{PropertySet} objects. The labeling is convenient
+when using tagging \index{tagging}, see Chapter~\ref{ESCRIPT CHAP}.
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{quad}}
@@ -134,7 +131,7 @@ gmsh quad.msh
 You can access error messages from \gmshextern in the \file{.gmsh-errors} in your home directory.
 See Figure~\ref{fig:PYCAD 0} for a result.
 
-In most cases it is best practice to generate the mesh and to solve the mathematical 
+In most cases it is best practice to generate the mesh and to solve the mathematical
 model in to different scripts. In our example you can read the \finley mesh into your simulation
 code\footnote{\gmshextern files can be directly read using the \function{ReadGmsh}, see Chapter~\ref{CHAPTER ON FINLEY}} using
 \begin{python}
@@ -199,7 +196,7 @@ domain=MakeDomain(d)
 domain.write("trapezoid.fly")
 \end{python}
 This example is included with the software in
-\file{trapezoid.py} in the \ExampleDirectory. 
+\file{trapezoid.py} in the \ExampleDirectory.
 
 A \code{CurveLoop} is used to connect several lines into a single curve.
 It is used in the example above to create the trapezoidal outline for the grid
@@ -235,7 +232,7 @@ l32=Line(p3,p2)
 l20=Line(p2,p0)
 bottom=PlaneSurface(CurveLoop(l01,l13,l32,l20))
 \end{python}
-and 
+and
 \begin{python}
 l45=Line(p4,p5)
 l57=Line(p5,p7)
@@ -243,13 +240,13 @@ l76=Line(p7,p6)
 l64=Line(p6,p4)
 top=PlaneSurface(CurveLoop(l45,l57,l76,l64))
 \end{python}
-To form the front face we introduce the two additional lines connecting the left and right front 
+To form the front face we introduce the two additional lines connecting the left and right front
 points of the the \code{top} and \code{bottom} face:
 \begin{python}
 l15=Line(p1,p5)
 l40=Line(p4,p0)
 \end{python}
-To form the front face we encounter the problem as the line \code{l45} used to define the 
+To form the front face we encounter the problem as the line \code{l45} used to define the
 \code{top} face is pointing the wrong direction.  In \pycad you can reversing direction of an
 object by changing its sign. So we write \code{-l45} to indicate that the direction is to be reversed. With this notation we can write
 \begin{python}
@@ -270,8 +267,8 @@ sl=SurfaceLoop(top,-bottom,front,back,left,right)
 v=Volume(sl)
 \end{python}
 Similar to the definition of a \code{CurvedLoop} the orientation of the surfaces \code{SurfaceLoop} is relevant. In fact the surface normal direction defined by the the right hand rule needs to point outwards as indicated by the surface normals in
-Figure~\ref{fig:PYCAD 2}. As the \code{bottom} face is directed upwards it is inserted with the minus sign 
-into the \code{SurfaceLoop} in order to adjust the orientation of the surface. 
+Figure~\ref{fig:PYCAD 2}. As the \code{bottom} face is directed upwards it is inserted with the minus sign
+into the \code{SurfaceLoop} in order to adjust the orientation of the surface.
 
 As in the 2D case, the \class{Design} class is used to define the geometry:
 \begin{python}
@@ -285,13 +282,13 @@ des.addItems(v, top, bottom, back, front, left , right)
 dom=MakeDomain(des)
 dom.write("brick.fly")
 \end{python}
-Note that the \finley mesh file \file{brick.fly} will contain the 
+Note that the \finley mesh file \file{brick.fly} will contain the
 triangles used to define the surfaces as they are added to the \class{Design}.
 The example script of the cube is included with the software in
-\file{brick.py} in the \ExampleDirectory. 
+\file{brick.py} in the \ExampleDirectory.
 
 \section{Alternative File Formats}
-\code{pycad} supports other file formats in including 
+\code{pycad} supports other file formats in including
 I-DEAS universal file, VRML, Nastran and STL. The following example shows how
 to generate the STL file \file{brick.stl}:
 \begin{python}
@@ -305,35 +302,35 @@ des.setMeshFileName("brick.stl")
 des.generate()
 \end{python}
 The example script of the cube is included with the software in
-\file{brick_stl.py} in the \ExampleDirectory. 
+\file{brick_stl.py} in the \ExampleDirectory.
 
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{refine1}}
 \caption{Local refinement at the origin by
-\var{local_scale=0.01} 
+\var{local_scale=0.01}
 with \var{element_size=0.3} and number of elements on the top set to 10.}
 \label{fig:PYCAD 5}
 \end{figure}
 
 \section{Element Sizes}
-The element size used globally is defined by the 
-\code{element_size} argument of the \class{Design}. The mesh generator 
-will try to use this mesh size everywhere in the geometry. In some cases it can be 
-desirable to use locally a finer mesh. A local refinement can be defined at each 
+The element size used globally is defined by the
+\code{element_size} argument of the \class{Design}. The mesh generator
+will try to use this mesh size everywhere in the geometry. In some cases it can be
+desirable to use locally a finer mesh. A local refinement can be defined at each
 \class{Point}:
 \begin{python}
 p0=Point(0.,0.,0.,local_scale=0.01)
 \end{python}
-Here the mesh generator will create a mesh with an element size which is by the factor \code{0.01} 
-times smaller than the global mesh size \code{element_size=0.3}, see Figure~\ref{fig:PYCAD 5}. The point where a refinement is defined must be a point of curve used to define the geometry. 
+Here the mesh generator will create a mesh with an element size which is by the factor \code{0.01}
+times smaller than the global mesh size \code{element_size=0.3}, see Figure~\ref{fig:PYCAD 5}. The point where a refinement is defined must be a point of curve used to define the geometry.
 
 Alternatively, one can define a mesh size along a curve by defining the number of elements to be used to subdivide the curve. For instance, to use $20$ element on line \code{l23} on uses:
 \begin{python}
 l23=Line(p2, p3)
 l23.setElementDistribution(20)
 \end{python}
-Setting the number of elements on a curve overwrites the global mesh size \code{element_size}. The result is shown in Figure~\ref{fig:PYCAD 5}. 
+Setting the number of elements on a curve overwrites the global mesh size \code{element_size}. The result is shown in Figure~\ref{fig:PYCAD 5}.
 
 \section{\pycad Classes}
 \declaremodule{extension}{esys.pycad}
@@ -456,17 +453,17 @@ Defines the number of elements on all lines.
 \end{methoddesc}
 
 \begin{methoddesc}[PlaneSurface]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
-the mesh generator will try to recombine triangular elements 
+the mesh generator will try to recombine triangular elements
 into quadrilateral elements. \var{max_deviation} (in radians) defines the
-maximum deviation of any angle in the quadrilaterals from the right angle.  
+maximum deviation of any angle in the quadrilaterals from the right angle.
 Set \var{max_deviation}=\var{None} to remove recombination.
 \end{methoddesc}
 \begin{methoddesc}[PlaneSurface]{setTransfiniteMeshing}{\optional{orientation="Left"}}
-applies 2D transfinite meshing to the surface. 
+applies 2D transfinite meshing to the surface.
 \var{orientation} defines the orientation of triangles. Allowed values
-are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The
 boundary of the surface must be defined by three or four lines where an
-element distribution must be defined on all faces where opposite 
+element distribution must be defined on all faces where opposite
 faces uses the same element distribution. No holes must be present.
 \end{methoddesc}
 
@@ -480,18 +477,18 @@ surface.
 \end{classdesc}
 
 \begin{methoddesc}[RuledSurface]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
-the mesh generator will try to recombine triangular elements 
+the mesh generator will try to recombine triangular elements
 into quadrilateral elements. \var{max_deviation} (in radians) defines the
-maximum deviation of any angle in the quadrilaterals from the right angle.  
+maximum deviation of any angle in the quadrilaterals from the right angle.
 Set \var{max_deviation}=\var{None} to remove recombination.
 \end{methoddesc}
 
 \begin{methoddesc}[RuledSurface]{setTransfiniteMeshing}{\optional{orientation="Left"}}
-applies 2D transfinite meshing to the surface. 
+applies 2D transfinite meshing to the surface.
 \var{orientation} defines the orientation of triangles. Allowed values
-are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The
 boundary of the surface must be defined by three or four lines where an
-element distribution must be defined on all faces where opposite 
+element distribution must be defined on all faces where opposite
 faces uses the same element distribution. No holes must be present.
 \end{methoddesc}
 
@@ -511,23 +508,23 @@ Defines the number of elements on all lines.
 \end{methoddesc}
 
 \begin{methoddesc}[Volume]{setRecombination}{\optional{max_deviation=45 * \var{DEG} }}
-the mesh generator will try to recombine triangular elements 
-into quadrilateral elements. These meshes are then used to generate the volume mesh if possible. 
+the mesh generator will try to recombine triangular elements
+into quadrilateral elements. These meshes are then used to generate the volume mesh if possible.
 Together with transfinite meshing one can construct rectanglar meshes.
-\var{max_deviation} (in radians) defines the maximum deviation of any angle in the quadrilaterals from the right angle.  
+\var{max_deviation} (in radians) defines the maximum deviation of any angle in the quadrilaterals from the right angle.
 Set \var{max_deviation}=\var{None} to remove recombination.
 \end{methoddesc}
 
 \begin{methoddesc}[Volume]{setTransfiniteMeshing}{\optional{orientation="Left"}}
-applies transfinite meshing to the volume and all surfaces (if \var{orientation} is not equal to \var{None}) 
+applies transfinite meshing to the volume and all surfaces (if \var{orientation} is not equal to \var{None})
 \var{orientation} defines the orientation of triangles. Allowed values
-are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The 
+are \var{``Left''}, \var{``Right''} or \var{``Alternate''}. The
 boundary of the surface must be defined by three or four lines where an
-element distribution must be defined on all faces where opposite 
-faces uses the same element distribution. 
+element distribution must be defined on all faces where opposite
+faces uses the same element distribution.
 If \var{orientation} is equal to \var{None} transfinite meshing is not switched on for the surfaces but needs
 to be set by the user. No holes must be present.
-\textbf{Warning: The functionality of transfinite meshing without recombination is not entirely clear in \gmshextern. 
+\textbf{Warning: The functionality of transfinite meshing without recombination is not entirely clear in \gmshextern.
 So please apply this method with care.}
 \end{methoddesc}
 
@@ -541,13 +538,13 @@ used to move geometrical objects in the 3-dimensional space and to
 resize them.
 
 \begin{classdesc}{Translation}{\optional{b=[0,0,0]}}
-defines a translation $x \to x+b$. \var{b} can be any object that can be converted 
+defines a translation $x \to x+b$. \var{b} can be any object that can be converted
 into a \numpy object of shape $(3,)$.
 \end{classdesc}
-              
+
 \begin{classdesc}{Rotation}{\optional{axis=[1,1,1], \optional{ point = [0,0,0], \optional{angle=0*RAD} } } }
-defines a rotation by \var{angle} around axis through point \var{point} and direction \var{axis}. 
-\var{axis} and \var{point} can be any object that can be converted 
+defines a rotation by \var{angle} around axis through point \var{point} and direction \var{axis}.
+\var{axis} and \var{point} can be any object that can be converted
 into a \numpy object of shape $(3,)$.
 \var{axis} does not have to be normalised but must have positive length. The right hand rule~\cite{RIGHTHANDRULE}
 applies.
@@ -555,18 +552,18 @@ applies.
 
 
 \begin{classdesc}{Dilation}{\optional{factor=1., \optional{centre=[0,0,0]}}}
-defines a dilation by the expansion/contraction \var{factor} with 
+defines a dilation by the expansion/contraction \var{factor} with
 \var{centre} as the dilation centre.
-\var{centre} can be any object that can be converted 
+\var{centre} can be any object that can be converted
 into a \numpy object of shape $(3,)$.
 \end{classdesc}
 
 \begin{classdesc}{Reflection}{\optional{normal=[1,1,1], \optional{offset=0}}}
-defines a reflection on a plane defined in normal form $n^t x = d$ 
+defines a reflection on a plane defined in normal form $n^t x = d$
 where $n$ is the surface normal \var{normal} and $d$ is the plane \var{offset}.
-\var{normal} can be any object that can be converted 
+\var{normal} can be any object that can be converted
 into a \numpy object of shape $(3,)$.
-\var{normal} does not have to be normalised but must have positive length. 
+\var{normal} does not have to be normalised but must have positive length.
 \end{classdesc}
 
 \begin{datadesc}{DEG}
@@ -576,7 +573,7 @@ A constant to convert from degrees to an internal angle representation in radian
 \subsection{Properties}
 
 If you are building a larger geometry you may find it convenient to
-create it in smaller pieces and then assemble them into the whole. 
+create it in smaller pieces and then assemble them into the whole.
 Property sets make this easy, and they allow you to name the smaller
 pieces for convenience.
 
@@ -604,7 +601,7 @@ in the property set.
 
 \begin{methoddesc}[PropertySet]{getDim}{}
 returns the spatial dimension of the items
-in the property set. 
+in the property set.
 \end{methoddesc}
 
 \begin{methoddesc}[PropertySet]{getName}{}
@@ -616,7 +613,7 @@ sets the name. This name should be unique within a \Design.
 \end{methoddesc}
 
 \begin{methoddesc}[PropertySet]{addItem}{*items}
-adds a tuple of items. They need to be objects of class \ManifoldOneD, \ManifoldTwoD or \ManifoldThreeD. 
+adds a tuple of items. They need to be objects of class \ManifoldOneD, \ManifoldTwoD or \ManifoldThreeD.
 \end{methoddesc}
 
 \begin{methoddesc}[PropertySet]{getItems}{}
@@ -624,7 +621,7 @@ returns the list of items
 \end{methoddesc}
 
 \begin{methoddesc}[PropertySet]{clearItems}{}
-clears the list of items 
+clears the list of items
 \end{methoddesc}
 
 \begin{methoddesc}[PropertySet]{getTag}{}
@@ -644,46 +641,46 @@ deemed to be desirable in the future.
 \optional{dim=3, \optional{element_size=1., \optional{order=1, \optional{keep_files=False}}}}}
 The \class{Design} describes the geometry defined by primitives to be meshed.
 The \var{dim} specifies the spatial dimension. The argument \var{element_size} defines the global
-element size which is multiplied by the local scale to set the element size at each \Point. 
-The argument \var{order} defines the element order to be used. If \var{keep_files} is set to 
-\True temporary files a kept otherwise they are removed when the instance of the class is deleted. 
+element size which is multiplied by the local scale to set the element size at each \Point.
+The argument \var{order} defines the element order to be used. If \var{keep_files} is set to
+\True temporary files a kept otherwise they are removed when the instance of the class is deleted.
 \end{classdesc}
 
 
 \begin{memberdesc}[Design]{GMSH}
-gmsh file format~\cite{GMSH}. 
+gmsh file format~\cite{GMSH}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{IDEAS}
-I-DEAS universal file format~\cite{IDEAS}. 
+I-DEAS universal file format~\cite{IDEAS}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{VRML}
-VRML file format, \cite{VRML}. 
+VRML file format, \cite{VRML}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{STL}
-STL file format~\cite{STL}. 
+STL file format~\cite{STL}.
 \end{memberdesc}
 \begin{memberdesc}[Design]{NASTRAN}
 NASTRAN  bulk data format~\cite{NASTRAN}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{MEDIT}
-Medit file format~\cite{MEDIT}. 
+Medit file format~\cite{MEDIT}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{CGNS}
-CGNS file format~\cite{CGNS}. 
+CGNS file format~\cite{CGNS}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{PLOT3D}
-Plot3D file format~\cite{PLOT3D}.  
+Plot3D file format~\cite{PLOT3D}.
 \end{memberdesc}
 
 
 \begin{memberdesc}[Design]{DIFFPACK}
-Diffpack 3D file format~\cite{DIFFPACK}. 
+Diffpack 3D file format~\cite{DIFFPACK}.
 \end{memberdesc}
 
 \begin{memberdesc}[Design]{DELAUNAY}
@@ -720,7 +717,7 @@ returns the element order.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{setElementSize}{\optional{element_size=1}}
-set the global element size. The local element size at a point is defined as 
+set the global element size. The local element size at a point is defined as
 the global element size multiplied by the local scale. The element size must be positive.
 \end{methoddesc}
 
@@ -764,8 +761,8 @@ returns the name of the mesh file
 
 \begin{methoddesc}[Design]{addItems}{*items}
 adds the tuple of var{items}. An item can be any primitive or a \class{PropertySet}.
-\warning{If a \PropertySet is added as an item added object that are not 
-part of a \PropertySet are not considered in the messing.  
+\warning{If a \PropertySet is added as an item added object that are not
+part of a \PropertySet are not considered in the messing.
 }
 \end{methoddesc}
 
@@ -793,21 +790,21 @@ returns the gmsh command used to generate the mesh as string.
 
 \begin{methoddesc}[Design]{setOptions}{
 \optional{optimize_quality=\True
-\optional{, smoothing=1 
+\optional{, smoothing=1
 \optional{, curvature_based_element_size=\False
-\optional{, algorithm2D=\var{Design.MESHADAPT} 
-\optional{, algorithm3D=\var{Design.FRONTAL} 
+\optional{, algorithm2D=\var{Design.MESHADAPT}
+\optional{, algorithm3D=\var{Design.FRONTAL}
 \optional{, generate_hexahedra=False}}}}}}}
 sets options for the mesh generator. \var{algorithm2D} sets the 2D meshing algorithm to be used.
 The algorithm needs to be \var{Design.DELAUNAY}
 \var{Design.FRONTAL}
-or \var{Design.MESHADAPT}. By default \var{Design.MESHADAPT} is used. 
+or \var{Design.MESHADAPT}. By default \var{Design.MESHADAPT} is used.
 \var{algorithm3D} sets the 3D  meshing algorithm to be used.
 The algorithm needs to be \var{Design.DELAUNAY}
 or \var{Design.FRONTAL}
 . By default \var{Design.FRONTAL} is used.
 \var{optimize_quality}=\True invokes an optimization of the mesh quality.
-\var{smoothing} sets the number of smoothing steps to be applied to the mesh.  
+\var{smoothing} sets the number of smoothing steps to be applied to the mesh.
 \var{curvature_based_element_size}=\True switches on curvature based definition of element size.
 \var{generate_hexahedra}=\True switches on the usage of quadrilateral/hexahedra elements.
 \end{methoddesc}

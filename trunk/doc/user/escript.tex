@@ -11,7 +11,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{The Module \escript}\label{ESCRIPT CHAP}
+\chapter{The \escript Module}\label{ESCRIPT CHAP}
 
 \section{Concepts}
 \escript is a \PYTHON module that allows you to represent the values of
@@ -586,15 +586,20 @@ for the solution approximation.
 
 The following table shows arithmetic operations that can be performed point-wise on
 \Data objects.
-\begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{+\var{arg0}} {identical to \var{arg} \index{+}}
-\lineii{-\var{arg0}} {negation\index{-}}
-\lineii{\var{arg0}+\var{arg1}} {adds \var{arg0} and \var{arg1} \index{+}}
-\lineii{\var{arg0}*\var{arg1}} {multiplies \var{arg0} and \var{arg1} \index{*}}
-\lineii{\var{arg0}-\var{arg1}} {difference \var{arg1} from\var{arg1} \index{-}}
-\lineii{\var{arg0}/\var{arg1}} {divide \var{arg0} by \var{arg1} \index{/}}
-\lineii{\var{arg0}**\var{arg1}} {raises \var{arg0} to the power of \var{arg1} \index{**}}
-\end{tableii}
+\begin{table}
+    \centering
+    \begin{tabular}{l|l}
+        \bfseries expression & Description\\
+        \hline
+        +\var{arg0} & identical to \var{arg} \index{+}\\
+        -\var{arg0} & negation\index{-}\\
+        \var{arg0}+\var{arg1} & adds \var{arg0} and \var{arg1} \index{+}\\
+        \var{arg0}*\var{arg1} & multiplies \var{arg0} and \var{arg1} \index{*}\\
+        \var{arg0}-\var{arg1} & difference \var{arg1} from\var{arg1} \index{-}\\
+        \var{arg0}/\var{arg1} & divide \var{arg0} by \var{arg1} \index{/}\\
+        \var{arg0}**\var{arg1} & raises \var{arg0} to the power of \var{arg1} \index{**}\\
+    \end{tabular}
+\end{table}
 At least one of the arguments \var{arg0} or \var{arg1} must be a
 \Data object.
 Either of the arguments may be a \Data object, a python number or a \numpy object.
@@ -610,13 +615,18 @@ the \DataSamplePoints as \var{arg0} or \var{arg1}.
 
 The following table shows the update operations that can be applied to
 \Data objects:
-\begin{tableii}{l|l}{textrm}{expression}{Description}
-\lineii{\var{arg0}+=\var{arg2}} {adds \var{arg0} to \var{arg2} \index{+}}
-\lineii{\var{arg0}*=\var{arg2}} {multiplies \var{arg0} with \var{arg2} \index{*}}
-\lineii{\var{arg0}-=\var{arg2}} {subtracts \var{arg2} from\var{arg2} \index{-}}
-\lineii{\var{arg0}/=\var{arg2}} {divides \var{arg0} by \var{arg2} \index{/}}
-\lineii{\var{arg0}**=\var{arg2}} {raises \var{arg0} by \var{arg2} \index{**}}
-\end{tableii}
+\begin{table}
+    \centering
+    \begin{tabular}{l|l}
+        \bfseries Expression & Description\\
+        \hline
+        \var{arg0}+=\var{arg2} & adds \var{arg0} to \var{arg2}\index{+}\\
+        \var{arg0}*=\var{arg2} & multiplies \var{arg0} with \var{arg2}\index{*}\\
+        \var{arg0}-=\var{arg2} & subtracts \var{arg2} from\var{arg2}\index{-}\\
+        \var{arg0}/=\var{arg2} & divides \var{arg0} by \var{arg2}\index{/}\\
+        \var{arg0}**=\var{arg2} & raises \var{arg0} by \var{arg2}\index{**}\\
+    \end{tabular}
+\end{table}
 \var{arg0} must be a \Data object. \var{arg1} must be a
 \Data object or an object that can be converted into a
 \Data object. \var{arg1} must have the same \Shape as
@@ -629,13 +639,18 @@ components. \var{arg1} must be defined in the same \FunctionSpace as
 The \Data class supports taking slices from a \Data object as well as assigning new values to a slice of an existing
 \Data object. \index{slicing}
 The following expressions for taking and setting slices are valid:
-\begin{tableiii}{l|ll}{textrm}{rank of \var{arg}}{slicing expression}{\Shape of returned and assigned object}
-\lineiii{0}{ no slicing }                      {-}
-\lineiii{1}{\var{arg[l0:u0]}}                   {(\var{u0}-\var{l0},)}
-\lineiii{2}{\var{arg[l0:u0,l1:u1]}}             {(\var{u0}-\var{l0},\var{u1}-\var{l1})}
-\lineiii{3}{\var{arg[l0:u0,l1:u1,l2:u2]} }      {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})}
-\lineiii{4}{\var{arg[l0:u0,l1:u1,l2:u2,l3:u3]}} {(\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})}
-\end{tableiii}
+\begin{table}
+    \centering
+    \begin{tabular}{l|ll}
+        \bfseries rank of \var{arg} & slicing expression & \Shape of returned and assigned object\\
+        \hline
+        0 & no slicing & -\\
+        1 & \var{arg[l0:u0]} & (\var{u0}-\var{l0},)\\
+        2 & \var{arg[l0:u0,l1:u1]} & (\var{u0}-\var{l0},\var{u1}-\var{l1})\\
+        3 & \var{arg[l0:u0,l1:u1,l2:u2]} & (\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})\\
+        4 & \var{arg[l0:u0,l1:u1,l2:u2,l3:u3]} & (\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})\\
+    \end{tabular}
+\end{table}
 where \var{s} is the \Shape of \var{arg} and 
 \[0 \le \var{l0} \le \var{u0} \le \var{s[0]},\]
 \[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\] 
