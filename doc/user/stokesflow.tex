@@ -66,7 +66,7 @@ time-step size needs to be kept below a certain value.
 The Courant number is defined as:
 %
 \begin{equation}
-C = \frac{v \delta t}{h}.
+C = \frac{v \delta t}{h}
 \label{COURANT}
 \end{equation}
 %
@@ -91,7 +91,7 @@ This approach is called \textit{macro elements}\index{macro elements} and
 needs to be applied to make sure that the discretized problem has a unique
 solution, see~\cite{LBB} for details\footnote{Alternatively, one can use
 second order elements for the velocity and first order elements for pressure
-on the same element. You may use \code{order=2} in \class{esys.finley.Rectangle}.}.
+on the same element. You can set \code{order=2} in \class{esys.finley.Rectangle}.}.
 The fact that pressure and velocity are represented in different ways is
 expressed by
 \begin{python}
