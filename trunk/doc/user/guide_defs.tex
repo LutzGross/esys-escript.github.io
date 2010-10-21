@@ -232,7 +232,7 @@
 % this is for when one uses pdflatex and therefore needs to load pdf
 % figures into \includegraphics
 \ifpdf
-	\DeclareGraphicsExtensions{.pdf}  % this command defined in graphicx
+	\DeclareGraphicsExtensions{.pdf,.png}  % this command defined in graphicx
 	\pdfcompresslevel=9  % 0: no compression, 9: highest compression
 			     % or, set compress_level 9 in file pdftex.cfg
 \else

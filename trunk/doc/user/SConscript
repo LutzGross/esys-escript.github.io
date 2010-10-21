@@ -20,7 +20,7 @@ fig_src = Glob('figures/*.eps')
 
 if 'PDF' in dir(local_env):
     # Convert eps figures to pdf
-    figures=local_env.EpsToPDF(source=fig_src)
+    figures=local_env.EpsToPDF(source=fig_src) + Glob('figures/*.png')
 
     if local_env['verbose']:
         interaction='-interaction=nonstopmode'
