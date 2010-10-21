@@ -13,21 +13,28 @@
 
 
 \usepackage{subfigure}
-\usepackage{graphicx,color}
-\usepackage{makeidx}  % handle the index properly
-\usepackage{xspace}   % handle spaces after commands more nicely
-% use the ams math stuff, as it makes the maths easier to code, and
-% nicer output than the standard LaTeX stuff
-\usepackage{amsmath,amsfonts,amssymb} % see http://www.ams.org/tex/amslatex.html
-\usepackage{alltt} % handy verbatim stuff
+\usepackage{makeidx}
 
 \graphicspath{{figures/}}
+
+% default width for figures
+\newcommand{\figwidth}{100mm}
+
+% commands useful in cross-referencing
+\newcommand{\Ref}[1]{Reference~\cite{#1}}
+\newcommand{\Sec}[1]{Section~\ref{#1}}
+\newcommand{\App}[1]{Appendix~\ref{#1}}
+\newcommand{\Chap}[1]{Chapter~\ref{#1}}
+\newcommand{\etal}{\emph{~et~al.}}
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\eqn}[1]{Equation~(\ref{#1})} 
+\newcommand{\tab}[1]{Table~\ref{#1}}
+\newcommand{\env}[1]{\textbf{\mbox{#1}}\index{Environment!#1}}
 
 % define some handy commands for escript stuff
 \newcommand{\LINUX}{{\it Linux}\xspace}
 \newcommand{\WINDOWS}{{\it MS Windows}\xspace}
 \newcommand{\PYTHON}{{\it python}\xspace}
-% \newcommand{\netCDF}{{\it netCDF}\cite{NETCDF}\index{netCDF} \xspace}
 \newcommand{\netCDF}{{\it netCDF}\index{netCDF}\xspace}
 \newcommand{\escript}{\module{esys.escript}\xspace}
 \newcommand{\finley}{\module{esys.finley}\xspace}
@@ -35,18 +42,17 @@
 \newcommand{\pyvisi}{\module{esys.pyvisi}\xspace}
 \newcommand{\pycad}{\module{esys.pycad}\xspace}
 \newcommand{\gmsh}{\module{esys.pycad.gmsh}\xspace}
-\newcommand{\gmshextern}{{\it Gmsh}\cite{GMSH}\index{Gmsh} \xspace}
-\newcommand{\SCIPY}{{\it SciPy}\cite{SCIPY}\index{SciPy} \xspace}
-\newcommand{\env}[1]{\textbf{\mbox{#1}}\index{Environment!#1}}
-% \newcommand{\MPI}{{\it MPI}\xspace\index{Message Passing Interface!MPI}\cite{MPI}\xspace}
-% \newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\cite{OPENMP}\xspace}
+\newcommand{\gmshextern}{{\it Gmsh}\cite{GMSH}\index{Gmsh}\xspace}
+\newcommand{\SCIPY}{{\it SciPy}\cite{SCIPY}\index{SciPy}\xspace}
 \newcommand{\MPI}{{\it MPI}\index{Message Passing Interface!MPI}\xspace}
 \newcommand{\OPENMP}{{\it OpenMP}\xspace\index{OpenMP!threading}\xspace}
 \newcommand{\linearPDEs}{\module{esys.escript.linearPDEs}\xspace}
 \newcommand{\LinearPDE}{\class{LinearPDE}\xspace}
 \newcommand{\modelframe}{\module{esys.modelframe}\xspace}
 \newcommand{\pdetools}{\module{esys.escript.pdetools}\xspace}
-\newcommand{\esysxml}{{\it esysxml}}
+\newcommand{\False}{\constant{False}\xspace}
+\newcommand{\True}{\constant{True}\xspace}
+\newcommand{\warning}[1]{\emph{Warning: #1}}
 
 \newcommand{\SolverOptions}{\class{SolverOptions}\xspace}
 \newcommand{\Poisson}{\class{Poisson}\xspace}
@@ -55,10 +61,8 @@
 \newcommand{\Data}{\class{Data}\xspace}
 \newcommand{\EmptyData}{empty \class{Data}\index{empty Data}\xspace}
 \newcommand{\Domain}{\class{Domain}\xspace}
-\newcommand{\gnuplot}{{\it gnuplot} \cite{GNUPLOT}\index{visualization!gnuplot}\index{gnuplot}}
+\newcommand{\gnuplot}{{\it gnuplot}\cite{GNUPLOT}\index{visualization!gnuplot}\index{gnuplot}}
 \newcommand{\finleyelement}[1]{{\it #1}\index{finley!#1}}
-\newcommand{\False}{\constant{False}\xspace}
-\newcommand{\True}{\constant{True}\xspace}
 \newcommand{\PCG}{\member{SolverOptions.PCG}\xspace\index{linear solver!PCG}\index{PCG}}
 \newcommand{\BiCGStab}{\member{SolverOptions.BICGSTAB}\xspace\index{linear solver!BiCGStab}\index{BiCGStab}}
 \newcommand{\Direct}{\member{SolverOptions.DIRECT}\xspace\index{linear solver!Direct}\index{Direct solver}}
@@ -70,7 +74,7 @@
 \newcommand{\RILU}{\member{SolverOptions.RILU}\xspace\index{preconditioner!RILU}\index{RILU}}
 \newcommand{\LUMPING}{\member{SolverOptions.LUMPING}\xspace\index{linear solver!lumping}\index{lumping}}
 \newcommand{\NOREORDERING}{\member{SolverOptions.NO\hackscore REORDERING}\xspace}
-\newcommand{\MINIMUMFILLIN}{\member{SolverOptions.MINIMUM\hackscore FILL\hackscore IN}\xspace
+\newcommand{\MINIMUMFILLIN}{\member{SolverOptions.MINIMUM\hackscore FILL\hackscore IN\xspace}
 \index{linear solver!minimum fill-in ordering}\index{minimum fill-in ordering}}
 \newcommand{\NESTEDDESCTION}{\member{SolverOptions.NESTED\hackscore DISSECTION}\xspace\index{linear solver!nested dissection ordering}\index{nested dissection}}
 \newcommand{\AMG}{\member{SolverOptions.AMG}\xspace\index{linear solver!AMG}\index{algebraic Multi-grid}\index{AMG}}
@@ -105,13 +109,13 @@
 \newcommand{\Rank}{rank\xspace\index{shape}}
 \newcommand{\ExampleDirectory}{example directory\xspace}
 \newcommand{\ReferenceGuide}{\url{http://esys.esscc.uq.edu.au/docs.html}\xspace}
-\newcommand{\Point}{\class{Point} \xspace}
-\newcommand{\PropertySet}{\class{PropertySet} \xspace}
-\newcommand{\Design}{\class{Design} \xspace}
-\newcommand{\TagMap}{\class{TagMap} \xspace}
-\newcommand{\ManifoldOneD}{\class{Manifold1D} \xspace}
-\newcommand{\ManifoldTwoD}{\class{Manifold2D} \xspace}
-\newcommand{\ManifoldThreeD}{\class{Manifold3D} \xspace}
+\newcommand{\Point}{\class{Point}\xspace}
+\newcommand{\PropertySet}{\class{PropertySet}\xspace}
+\newcommand{\Design}{\class{Design}\xspace}
+\newcommand{\TagMap}{\class{TagMap}\xspace}
+\newcommand{\ManifoldOneD}{\class{Manifold1D}\xspace}
+\newcommand{\ManifoldTwoD}{\class{Manifold2D}\xspace}
+\newcommand{\ManifoldThreeD}{\class{Manifold3D}\xspace}
 
 % handy commands related to visualization
 \newcommand{\VTK}{{\it VTK}\index{visualization!VTK}\index{VTK}\xspace}
@@ -120,8 +124,9 @@
 \newcommand{\VTKUrl}{\url{http://www.vtk.org/}\index{visualization!VTK}\index{VTK}\xspace}
 \newcommand{\VisIt}{{\it VisIt}\index{visualization!VisIt}\index{VisIt}\xspace}
 \newcommand{\mayavi}{{\it mayavi}\index{visualization!mayavi}\index{mayavi}\xspace}
-\newcommand{\OpenDX}{{\it OpenDX} \index{visualization!OpenDX}\index{OpenDX}\cite{OPENDX}\xspace}
+\newcommand{\OpenDX}{{\it OpenDX}\index{visualization!OpenDX}\index{OpenDX}\cite{OPENDX}\xspace}
 
+% deprecated pyvisi commands
 \newcommand{\Scene}{\class{Scene}\xspace}
 \newcommand{\Camera}{\class{Camera}\xspace}
 \newcommand{\Light}{\class{Light}\xspace}
@@ -172,22 +177,11 @@
 \newcommand{\GlobalPosition}{\class{GlobalPosition}\xspace}
 \newcommand{\Rotation}{\class{Rotation}\xspace}
 \newcommand{\thumbnailwidth}{50mm}
-
-% default width for figures
-\newcommand{\figwidth}{100mm}
-% commands useful in cross-referencing
-\newcommand {\Ref}[1] {Reference~\cite{#1}}
-\newcommand {\Sec}[1] {Section~\ref{#1}}
-\newcommand {\App}[1] {Appendix~\ref{#1}}
-\newcommand {\Chap}[1] {Chapter~\ref{#1}}
-\newcommand {\etal} {\emph{~et~al.}}
-\newcommand {\fig}[1] {Figure~\ref{#1}}
-\newcommand {\eqn}[1] {Equation~(\ref{#1})} 
-\newcommand {\tab}[1] {Table~\ref{#1}}
+% end of pyvisi commands
 
 % this stops one figure taking up a whole page and lets more text onto
 % the one page when a figure exists
-\renewcommand{\floatpagefraction}{0.8} %   Default = 0.5
+\renewcommand{\floatpagefraction}{0.8} % Default = 0.5
 
 % improved version of caption handling
 \usepackage{ccaption}
@@ -209,26 +203,6 @@
 \vskip\belowcaptionskip}
 \makeatother
 
-% \usepackage{fancyvrb}  % fancy verbatim stuff.  Needed so code below goes
-%%% this code grabbed from the PyScript docs
-%%% pyscript.sourceforge.net
-
-% --------------------------------------------------------------
-% Code format within \Verb
-% --------------------------------------------------------------
-
-% \definecolor{pycolor}{rgb}{0,0.4,0}
-
-%% \DefineVerbatimEnvironment{python}{Verbatim}
-%% {frame=leftline,framerule=.5mm,rulecolor=\color{pycolor},
-%% formatcom=\color{pycolor}\small,fontshape=rm}
-
-%\DefineShortVerb[formatcom=\color{dgreen}\small,fontshape=sl]{\|}
-
-% \RecustomVerbatimCommand{\Verb}{Verb}{formatcom=\color{pycolor}\small,fontshape=rm}
-
-%%% end of grabbed code
-
 % this is for when one uses pdflatex and therefore needs to load pdf
 % figures into \includegraphics
 \ifpdf
@@ -242,10 +216,6 @@
 % defines the colour for the background of code examples
 \definecolor{LightGrey}{gray}{0.9}
 
-% add the listings package to pretty print the code output
-\usepackage{listings}
-
-
 %Some colour definitions added to keep pdflatex happy
 %I make no claim that these values are particularly good
 \definecolor{Purple}{rgb}{0.7, 0, 0.6}
@@ -257,7 +227,6 @@
 %end color defs
 
 \lstdefinestyle{myC++}{%
-%\lstset{%
 language=C++,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
@@ -273,7 +242,6 @@ backgroundcolor=\color{LightGrey}%
 }
 
 \lstdefinestyle{myMatlab}{%
-%\lstset{%
 language=Matlab,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
@@ -288,7 +256,6 @@ backgroundcolor=\color{LightGrey}%
 }
 
 \lstdefinestyle{myScilab}{%
-%\lstset{%
 language=Scilab,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
@@ -303,7 +270,6 @@ backgroundcolor=\color{LightGrey}%
 }
 
 \lstdefinestyle{myShell}{%
-%\lstset{%
 language=ksh,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
@@ -318,7 +284,6 @@ backgroundcolor=\color{LightGrey}%
 }
 
 \lstdefinestyle{myPython}{%
-%\lstset{%
 language=python,
 showstringspaces=false,
 basicstyle=\small\ttfamily,
@@ -333,7 +298,6 @@ frame=none,%
 }
 
 \lstdefinestyle{myhtml}{%
-%\lstset{%
 language=xml,
 showstringspaces=false,
 basicstyle=\small\ttfamily,

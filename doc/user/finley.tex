@@ -12,8 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{ The Module \finley}
- \label{CHAPTER ON FINLEY}
+\chapter{The \finley Module}\label{CHAPTER ON FINLEY}
 
 \begin{figure}
 \centerline{\includegraphics[width=\figwidth]{FinleyMesh}}
@@ -31,11 +30,11 @@
 finite elements}
 
 {\it finley} is a library of C functions solving linear, steady partial differential equations
-\index{partial differential equations} (PDEs) or systems of PDEs using isoparametrical finite 
+\index{partial differential equations} (PDEs) or systems of PDEs using isoparametrical finite
 elements \index{FEM!isoparametrical}.
 It supports unstructured, 1D, 2D and 3D meshes. The module \finley provides an access to the
-library through the \LinearPDE class of \escript supporting its full functionality. {\it finley} 
-is parallelized using the OpenMP \index{OpenMP} paradigm. 
+library through the \LinearPDE class of \escript supporting its full functionality. {\it finley}
+is parallelized using the OpenMP \index{OpenMP} paradigm.
 
 \section{Formulation}
 
@@ -44,12 +43,12 @@ following form:
 \begin{equation}\label{FINLEY.SINGLE.1}
 \begin{array}{cl} &
 \displaystyle{
-\int\hackscore{\Omega} 
+\int\hackscore{\Omega}
 A\hackscore{jl} \cdot v\hackscore{,j}u\hackscore{,l}+ B\hackscore{j} \cdot v\hackscore{,j} u+ C\hackscore{l} \cdot v u\hackscore{,l}+D \cdot vu \; d\Omega }  \\
-+ & \displaystyle{\int\hackscore{\Gamma} d \cdot vu \; d{\Gamma} } 
++ & \displaystyle{\int\hackscore{\Gamma} d \cdot vu \; d{\Gamma} }
 +  \displaystyle{\int\hackscore{\Gamma^{contact}} d^{contact} \cdot [v][u] \; d{\Gamma} } \\
-= & \displaystyle{\int\hackscore{\Omega}  X\hackscore{j} \cdot v\hackscore{,j}+ Y \cdot v \; d\Omega }\\ 
-+ & \displaystyle{\int\hackscore{\Gamma} y \cdot v \; d{\Gamma}}  + 
+= & \displaystyle{\int\hackscore{\Omega}  X\hackscore{j} \cdot v\hackscore{,j}+ Y \cdot v \; d\Omega }\\
++ & \displaystyle{\int\hackscore{\Gamma} y \cdot v \; d{\Gamma}}  +
 \displaystyle{\int\hackscore{\Gamma^{contact}} y^{contact}\cdot [v] \; d{\Gamma}} \\
 \end{array}
 \end{equation}
@@ -58,7 +57,7 @@ A\hackscore{jl} \cdot v\hackscore{,j}u\hackscore{,l}+ B\hackscore{j} \cdot v\hac
 \label{FINLEY MESHES}
 To understand the usage of \finley one needs to have an understanding of how the finite element meshes
 \index{FEM!mesh} are defined. \fig{FINLEY FIG 0} shows an example of the
-subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}. 
+subdivision of an ellipse into so called elements \index{FEM!elements} \index{element}.
 In this case, triangles have been used but other forms of subdivisions
 can be constructed, e.g. into quadrilaterals or, in the three dimensional case, into tetrahedrons
 and hexahedrons. The idea of the finite element method is to approximate the solution by a function
@@ -66,18 +65,18 @@ which is a polynomial of a certain order and is continuous across it boundary to
 In the example of \fig{FINLEY FIG 0} a linear polynomial is used on each triangle. As one can see, the triangulation
 is quite a poor approximation of the ellipse. It can be improved by introducing a midpoint on each element edge then
 positioning those nodes located on an edge expected to describe the boundary, onto the boundary.
-In this case the triangle gets a curved edge which requires a parameterization of the triangle using a 
+In this case the triangle gets a curved edge which requires a parameterization of the triangle using a
 quadratic polynomial. For this case, the solution is also approximated by a piecewise quadratic polynomial
-(which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.  
+(which explains the name isoparametrical elements), see \Ref{Zienc,NumHand} for more details.
 \finley supports macro elements\index{macro elements}. For these elements a piecewise linear approximation is used on an element which is further subdivided (in the case \finley halved). As such these elements do not provide more than a further mesh refinement but should be used in the case of incompressible flows, see \class{StokesProblemCartesian}. For these problems a linear approximation of the pressure across the element is used (use the \ReducedSolutionFS \FunctionSpace) while the refined element is used to approximate velocity. So a macro element provides a continuous pressure approximation together with a velocity approximation on a refined mesh. This approach is necessary to make sure that the  incompressible flow has a unique solution.
 
 The union of all elements defines the domain of the PDE.
 Each element is defined by the nodes used to describe its shape. In \fig{FINLEY FIG 0} the element,
 which has type \finleyelement{Tri3},
 with element reference number $19$ \index{element!reference number} is defined by the nodes
-with reference numbers $9$, $11$ and $0$ \index{node!reference number}. Notice that the order is counterclockwise. 
-The coefficients of the PDE are evaluated at integration nodes with each individual element. 
-For quadrilateral elements a Gauss quadrature scheme is used. In the case of triangular elements a 
+with reference numbers $9$, $11$ and $0$ \index{node!reference number}. Notice that the order is counterclockwise.
+The coefficients of the PDE are evaluated at integration nodes with each individual element.
+For quadrilateral elements a Gauss quadrature scheme is used. In the case of triangular elements a
 modified form is applied. The boundary of the domain is also subdivided into elements. \index{element!face} In \fig{FINLEY FIG 0}
 line elements with two nodes are used. The elements are also defined by their describing nodes, e.g.
 the face element reference number $20$ which has type \finleyelement{Line2} is defined by the nodes
@@ -87,7 +86,7 @@ the domain has to lie on the left hand side when moving counterclockwise). If th
 surface of the domain is to be calculated rich face elements face to be used. Rich elements on a face
 are identical to interior elements but with a modified order of nodes such that the 'first' face of the element aligns
 with the surface of the domain. In \fig{FINLEY FIG 0}
-elements of the type \finleyelement{Tri3Face} are used. 
+elements of the type \finleyelement{Tri3Face} are used.
 The face element reference number $20$ as a rich face element is defined by the nodes
 with reference numbers $11$, $0$ and $9$. Notice that the face element $20$ is identical to the
 interior element $19$ except that, in this case, the order of the node is different to align the first
@@ -97,25 +96,25 @@ Be aware that face elements and elements in the interior of the domain must matc
 of an interior element or, in case of a rich face element, it must be identical to an interior element.
 If no face elements are specified
 \finley implicitly assumes homogeneous natural boundary conditions \index{natural boundary conditions!homogeneous},
-i.e. \var{d}=$0$ and \var{y}=$0$, on the entire boundary of the domain. For  
-inhomogeneous natural boundary conditions \index{natural boundary conditions!inhomogeneous}, 
-the boundary must be described by face elements. 
+i.e. \var{d}=$0$ and \var{y}=$0$, on the entire boundary of the domain. For
+inhomogeneous natural boundary conditions \index{natural boundary conditions!inhomogeneous},
+the boundary must be described by face elements.
 
-If discontinuities of the PDE solution are considered contact elements 
-\index{element!contact}\index{contact conditions} are introduced to describe the contact region $\Gamma^{contact}$ 
+If discontinuities of the PDE solution are considered contact elements
+\index{element!contact}\index{contact conditions} are introduced to describe the contact region $\Gamma^{contact}$
 even if $d^{contact}$ and $y^{contact}$ are zero. \fig{FINLEY FIG 01} shows a simple example of a mesh
-of rectangular elements around a contact region $\Gamma^{contact}$ \index{element!contact}. 
+of rectangular elements around a contact region $\Gamma^{contact}$ \index{element!contact}.
 The contact region is described by the
-elements $4$, $3$ and $6$. Their element type is \finleyelement{Line2_Contact}. 
+elements $4$, $3$ and $6$. Their element type is \finleyelement{Line2_Contact}.
 The nodes $9$, $12$, $6$, $5$ define contact element $4$, where the coordinates of nodes $12$ and $5$ and
-nodes $4$ and $6$ are identical with the idea that nodes $12$ and $9$ are located above and 
-nodes $5$ and $6$ below the contact region.  
+nodes $4$ and $6$ are identical with the idea that nodes $12$ and $9$ are located above and
+nodes $5$ and $6$ below the contact region.
 Again, the order of the nodes within an element is crucial. There is also the option of using rich elements
-if the gradient is to be calculated on the contact region. Similarly to the rich face elements 
+if the gradient is to be calculated on the contact region. Similarly to the rich face elements
 these are constructed from two interior elements by reordering the nodes such that
-the 'first' face of the element above and the 'first' face of the element below the 
-contact regions line up.  The rich version of element 
-$4$ is of type \finleyelement{Rec4Face_Contact} and is defined by the nodes $9$, $12$, $16$, $18$, $6$, $5$, $0$ and 
+the 'first' face of the element above and the 'first' face of the element below the
+contact regions line up.  The rich version of element
+$4$ is of type \finleyelement{Rec4Face_Contact} and is defined by the nodes $9$, $12$, $16$, $18$, $6$, $5$, $0$ and
 $2$.
 
 
@@ -125,24 +124,27 @@ on the face and contacts. \fig{FINLEY.FIG:1}, \fig{FINLEY.FIG:2} and \fig{FINLEY
 the nodes within an element.
 
 \begin{table}
-\begin{tablev}{l|llll}{textrm}{interior}{face}{rich face}{contact}{rich contact}
-\linev{\finleyelement{Line2}}{\finleyelement{Point1}}{\finleyelement{Line2Face}}{\finleyelement{Point1_Contact}}{\finleyelement{Line2Face_Contact}}
-\linev{\finleyelement{Line3}}{\finleyelement{Point1}}{\finleyelement{Line3Face}}{\finleyelement{Point1_Contact}}{\finleyelement{Line3Face_Contact}}
-\linev{\finleyelement{Tri3}}{\finleyelement{Line2}}{\finleyelement{Tri3Face}}{\finleyelement{Line2_Contact}}{\finleyelement{Tri3Face_Contact}}
-\linev{\finleyelement{Tri6}}{\finleyelement{Line3}}{\finleyelement{Tri6Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Tri6Face_Contact}}
-\linev{\finleyelement{Rec4}}{\finleyelement{Line2}}{\finleyelement{Rec4Face}}{\finleyelement{Line2_Contact}}{\finleyelement{Rec4Face_Contact}}
-\linev{\finleyelement{Rec8}}{\finleyelement{Line3}}{\finleyelement{Rec8Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Rec8Face_Contact}}
-\linev{\finleyelement{Rec9}}{\finleyelement{Line3}}{\finleyelement{Rec9Face}}{\finleyelement{Line3_Contact}}{\finleyelement{Rec9Face_Contact}}
-\linev{\finleyelement{Tet4}}{\finleyelement{Tri6}}{\finleyelement{Tet4Face}}{\finleyelement{Tri6_Contact}}{\finleyelement{Tet4Face_Contact}}
-\linev{\finleyelement{Tet10}}{\finleyelement{Tri9}}{\finleyelement{Tet10Face}}{\finleyelement{Tri9_Contact}}{\finleyelement{Tet10Face_Contact}}
-\linev{\finleyelement{Hex8}}{\finleyelement{Rec4}}{\finleyelement{Hex8Face}}{\finleyelement{Rec4_Contact}}{\finleyelement{Hex8Face_Contact}}
-\linev{\finleyelement{Hex20}}{\finleyelement{Rec8}}{\finleyelement{Hex20Face}}{\finleyelement{Rec8_Contact}}{\finleyelement{Hex20Face_Contact}}
-\linev{\finleyelement{Hex27}}{\finleyelement{Rec9}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
-\linev{\finleyelement{Hex27Macro}}{\finleyelement{Rec9Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
-\linev{\finleyelement{Tet10Macro}}{\finleyelement{Tri6Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
-\linev{\finleyelement{Rec9Macro}}{\finleyelement{Line3Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
-\linev{\finleyelement{Tri6Macro}}{\finleyelement{Line3Macro}}{N\textbackslash A}{N\textbackslash A}{N\textbackslash A}
-\end{tablev}
+\centering
+\begin{tabular}{l|llll}
+\bfseries interior & face & rich face & contact & rich contact\\
+\hline
+\finleyelement{Line2} & \finleyelement{Point1} & \finleyelement{Line2Face} & \finleyelement{Point1_Contact} & \finleyelement{Line2Face_Contact}\\
+\finleyelement{Line3} & \finleyelement{Point1} & \finleyelement{Line3Face} & \finleyelement{Point1_Contact} & \finleyelement{Line3Face_Contact}\\
+\finleyelement{Tri3} & \finleyelement{Line2} & \finleyelement{Tri3Face} & \finleyelement{Line2_Contact} & \finleyelement{Tri3Face_Contact}\\
+\finleyelement{Tri6} & \finleyelement{Line3} & \finleyelement{Tri6Face} & \finleyelement{Line3_Contact} & \finleyelement{Tri6Face_Contact}\\
+\finleyelement{Rec4} & \finleyelement{Line2} & \finleyelement{Rec4Face} & \finleyelement{Line2_Contact} & \finleyelement{Rec4Face_Contact}\\
+\finleyelement{Rec8} & \finleyelement{Line3} & \finleyelement{Rec8Face} & \finleyelement{Line3_Contact} & \finleyelement{Rec8Face_Contact}\\
+\finleyelement{Rec9} & \finleyelement{Line3} & \finleyelement{Rec9Face} & \finleyelement{Line3_Contact} & \finleyelement{Rec9Face_Contact}\\
+\finleyelement{Tet4} & \finleyelement{Tri6} & \finleyelement{Tet4Face} & \finleyelement{Tri6_Contact} & \finleyelement{Tet4Face_Contact}\\
+\finleyelement{Tet10} & \finleyelement{Tri9} & \finleyelement{Tet10Face} & \finleyelement{Tri9_Contact} & \finleyelement{Tet10Face_Contact}\\
+\finleyelement{Hex8} & \finleyelement{Rec4} & \finleyelement{Hex8Face} & \finleyelement{Rec4_Contact} & \finleyelement{Hex8Face_Contact}\\
+\finleyelement{Hex20} & \finleyelement{Rec8} & \finleyelement{Hex20Face} & \finleyelement{Rec8_Contact} & \finleyelement{Hex20Face_Contact}\\
+\finleyelement{Hex27} & \finleyelement{Rec9} & N\textbackslash A & N\textbackslash A & N\textbackslash A\\
+\finleyelement{Hex27Macro} & \finleyelement{Rec9Macro} & N\textbackslash A & N\textbackslash A & N\textbackslash A\\
+\finleyelement{Tet10Macro} & \finleyelement{Tri6Macro} & N\textbackslash A & N\textbackslash A & N\textbackslash A\\
+\finleyelement{Rec9Macro} & \finleyelement{Line3Macro} & N\textbackslash A & N\textbackslash A & N\textbackslash A\\
+\finleyelement{Tri6Macro} & \finleyelement{Line3Macro} & N\textbackslash A & N\textbackslash A & N\textbackslash A\\
+\end{tabular}
 \caption{Finley elements and corresponding elements to be used on domain faces and contacts.
 The rich types have to be used if the gradient of function is to be calculated on faces and contacts, respectively.}
 \label{FINLEY TAB 1}
@@ -155,9 +157,9 @@ In most cases \var{Node_DOF[i]}=\var{Node_ref[i]} however, for periodic boundary
 \var{Node_DOF[i]} is chosen differently, see example below. The tag can be used to mark nodes sharing
 the same properties. Element \var{i} is defined by the \var{Element_numNodes} nodes \var{Element_Nodes[i]}
 which is a list of node reference numbers. The order is crucial.
-It has a reference number \var{Element_ref[i]} and a tag \var{Element_tag[i]}. The tag 
-can be used to mark elements  sharing the same properties. For instance elements above 
-a contact region are marked with $2$ and elements below a contact region are marked with $1$. 
+It has a reference number \var{Element_ref[i]} and a tag \var{Element_tag[i]}. The tag
+can be used to mark elements  sharing the same properties. For instance elements above
+a contact region are marked with $2$ and elements below a contact region are marked with $1$.
 \var{Element_Type} and \var{Element_Num} give the element type and the number of elements in the mesh.
 Analogue notations are used for face and contact elements. The following Python script
 prints the mesh definition in the \finley file format:
@@ -165,7 +167,7 @@ prints the mesh definition in the \finley file format:
 print "%s\n"%mesh_name
 # node coordinates:
 print "%dD-nodes %d\n"%(dim,numNodes)
-for i in range(numNodes): 
+for i in range(numNodes):
    print "%d %d %d"%(Node_ref[i],Node_DOF[i],Node_tag[i])
    for j in range(dim): print " %e"%Node[i][j]
    print "\n"
@@ -238,7 +240,7 @@ Periodic boundary condition \index{boundary conditions!periodic} can be introduc
 It allows identification of nodes even if they have different physical locations. For instance, to
 enforce periodic boundary conditions at the face $x_0=0$ and $x_0=1$ one identifies
 the degrees of freedom for nodes $0$, $5$, $12$ and $16$ with the degrees of freedom for
-$7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh gets now the form:  
+$7$, $10$, $15$ and $20$, respectively. The node section of the \finley mesh gets now the form:
 \begin{verbatim}
 2D Nodes 16
 0   0 0 0.   0.
@@ -275,16 +277,16 @@ Macro elements in \finley.
 \section{Macro Elements}
 \label{SEC FINLEY MACRO}
 \finley supports the usage of macro elements~\index{macro elements} which can be used to
-achieve LBB compliance when solving incompressible fluid flow problems. LBB compliance is required to 
-get a problem which has a unique solution for pressure and velocity. For macro elements the 
+achieve LBB compliance when solving incompressible fluid flow problems. LBB compliance is required to
+get a problem which has a unique solution for pressure and velocity. For macro elements the
 pressure and velocity are approximated by a polynomial of order 1 but the velocity approximation bases on a refinement of the element. The nodes of a triangle and quadrilateral element is shown in Figures~\ref{FINLEY MACRO TRI} and~\ref{FINLEY MACRO REC}, respectively. In essence, the velocity uses the same nodes like a quadratic polynomial approximation but replaces the quadratic polynomial by piecewise linear polynomials. In fact, this is the
-way \finley is defining the macro elements. In particular \finley uses the same local ordering of the nodes for the macro element as for the corresponding quadratic element. Another interpretation is that 
+way \finley is defining the macro elements. In particular \finley uses the same local ordering of the nodes for the macro element as for the corresponding quadratic element. Another interpretation is that
 one uses a linear approximation of the velocity together with a linear approximation of the pressure but on elements
-created by combining elements to macro elements. Notice that the macro elements still use quadratic interpolation to represent the element and domain boundary. However, if elements have linear boundary 
-a macro element approximation for the velocity is equivalent to using a linear approximation on a mesh which is created through a one step, global refinement. 
-Typically macro elements are only required to use when an incompressible fluid flow problem 
+created by combining elements to macro elements. Notice that the macro elements still use quadratic interpolation to represent the element and domain boundary. However, if elements have linear boundary
+a macro element approximation for the velocity is equivalent to using a linear approximation on a mesh which is created through a one step, global refinement.
+Typically macro elements are only required to use when an incompressible fluid flow problem
 is solved, e.g the Stokes problem in Section \ref{STOKES PROBLEM}. Please see Section~\ref{FINLEY MESHES} for
-more details on the supported macro elements. 
+more details on the supported macro elements.
 
 
 
@@ -304,25 +306,25 @@ more details on the supported macro elements.
 \end{tabular}
 }
 \caption{Solvers available for
-\finley 
-and the \PASO package and the relevant options in \class{SolverOptions}. 
-\MKL supports 
-\MINIMUMFILLIN 
-and 
-\NESTEDDESCTION 
-reordering. 
-Currently the \UMFPACK interface does not support any reordering. 
+\finley
+and the \PASO package and the relevant options in \class{SolverOptions}.
+\MKL supports
+\MINIMUMFILLIN
+and
+\NESTEDDESCTION
+reordering.
+Currently the \UMFPACK interface does not support any reordering.
 \label{TAB FINLEY SOLVER OPTIONS 1} }
-\end{table} 
+\end{table}
 
 \begin{table}
 {\scriptsize
 \begin{tabular}{l||c|c|c|c|c|c|c|c}
-\member{setPreconditioner} & 
+\member{setPreconditioner} &
 \member{NO_PRECONDITIONER} &
-\member{AMG} & 
-\member{JACOBI} & 
-\member{GAUSS_SEIDEL}& 
+\member{AMG} &
+\member{JACOBI} &
+\member{GAUSS_SEIDEL}&
 \member{REC_ILU}&
 \member{RILU} &
 \member{ILU0} &
@@ -330,31 +332,31 @@ Currently the \UMFPACK interface does not support any reordering.
  \hline
  status: &
 later &
-later & 
-$\checkmark$ & 
-$\checkmark$& 
+later &
+$\checkmark$ &
+$\checkmark$&
 $\checkmark$ &
 later &
 $\checkmark$ &
 later \\
 \hline
 \hline
-\member{setCoarsening}& 
+\member{setCoarsening}&
  &
-$\checkmark$ & 
-& 
-& 
+$\checkmark$ &
+&
+&
 &
  &
  &
  \\
 
 
-\hline\member{setLevelMax}& 
+\hline\member{setLevelMax}&
  &
-$\checkmark$ & 
- & 
-& 
+$\checkmark$ &
+ &
+&
 &
  &
  &
@@ -362,9 +364,9 @@ $\checkmark$ &
 
 \hline\member{setCoarseningThreshold}&
 &
-$\checkmark$ & 
- & 
-& 
+$\checkmark$ &
+ &
+&
 &
  &
  &
@@ -372,9 +374,9 @@ $\checkmark$ &
 
 \hline\member{setMinCoarseMatrixSize} &
  &
-$\checkmark$ & 
- & 
-& 
+$\checkmark$ &
+ &
+&
 &
  &
  &
@@ -382,9 +384,9 @@ $\checkmark$ &
 
 \hline\member{setNumSweeps} &
  &
- & 
-$\checkmark$ & 
-$\checkmark$ & 
+ &
+$\checkmark$ &
+$\checkmark$ &
 &
  &
  &
@@ -392,9 +394,9 @@ $\checkmark$ &
 
 \hline\member{setNumPreSweeps}&
  &
-$\checkmark$ & 
-  & 
- & 
+$\checkmark$ &
+  &
+ &
  &
   &
   &
@@ -402,9 +404,9 @@ $\checkmark$ &
 
 \hline\member{setNumPostSweeps} &
  &
-$\checkmark$ & 
- & 
-& 
+$\checkmark$ &
+ &
+&
 &
  &
 &
@@ -412,9 +414,9 @@ $\checkmark$ &
 
 \hline\member{setInnerTolerance}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
  &
 &
@@ -422,9 +424,9 @@ $\checkmark$ &
 
 \hline\member{setDropTolerance}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
  &
 &
@@ -432,9 +434,9 @@ $\checkmark$ &
 
 \hline\member{setDropStorage}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
  &
 &
@@ -442,9 +444,9 @@ $\checkmark$ &
 
 \hline\member{setRelaxationFactor}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
 $\checkmark$  &
  &
@@ -452,9 +454,9 @@ $\checkmark$  &
 
 \hline\member{adaptInnerTolerance}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
  &
 &
@@ -462,55 +464,55 @@ $\checkmark$  &
 
 \hline\member{setInnerIterMax}&
  &
- & 
- & 
-& 
+ &
+ &
+&
 &
  &
 &
  \\
 \end{tabular}
 }
-\caption{Preconditioners available for \finley and the \PASO package and the relevant options in \class{SolverOptions}. \label{TAB FINLEY SOLVER OPTIONS 2}} 
+\caption{Preconditioners available for \finley and the \PASO package and the relevant options in \class{SolverOptions}. \label{TAB FINLEY SOLVER OPTIONS 2}}
 \end{table}
 
 \section{Linear Solvers in \SolverOptions}
 Table~\ref{TAB FINLEY SOLVER OPTIONS 1} and
-Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners supported by 
-\finley through the \PASO library. Currently direct solvers are not supported under MPI. 
-By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems. 
+Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners supported by
+\finley through the \PASO library. Currently direct solvers are not supported under MPI.
+By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems.
 If the direct solver is selected which can be useful when solving very ill-posed equations
-\finley uses the \MKL \footnote{If the stiffness matrix is non-regular \MKL may return without 
-returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available 
+\finley uses the \MKL \footnote{If the stiffness matrix is non-regular \MKL may return without
+returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available
 a suitable iterative solver from the \PASO is used.
 
 \section{Functions}
 \begin{funcdesc}{ReadMesh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True}}
-creates a \Domain object form the FEM mesh defined in 
+creates a \Domain object form the FEM mesh defined in
 file \var{fileName}. The file must be given the \finley file format.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
 degree \var{integrationOrder} \index{integration order}. Otherwise
-an appropriate integration order is chosen independently. 
-By default the labeling of mesh nodes and element distribution is 
+an appropriate integration order is chosen independently.
+By default the labeling of mesh nodes and element distribution is
 optimized. Set \var{optimize=False} to switch off relabeling and redistribution.
 \end{funcdesc}
 
 \begin{funcdesc}{ReadGmsh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
-creates a \Domain object form the FEM mesh defined in 
+creates a \Domain object form the FEM mesh defined in
 file \var{fileName}. The file must be given the \gmshextern file format.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
 degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
-By default the labeling of mesh nodes and element distribution is 
-optimized. Set \var{optimize=False} to switch off relabeling and redistribution. 
+By default the labeling of mesh nodes and element distribution is
+optimized. Set \var{optimize=False} to switch off relabeling and redistribution.
 If \var{useMacroElements} is set, second order elements are interpreted as macro elements~\index{macro elements}.
-Currently \function{ReadGmsh} does not support MPI.  
+Currently \function{ReadGmsh} does not support MPI.
 \end{funcdesc}
 
 \begin{funcdesc}{MakeDomain}{design\optional{, integrationOrder=-1\optional{, optimizeLabeling=True\optional{, useMacroElements=False}}}}
-Creates a Finley \Domain from a \class{Design} object from \pycad using \gmshextern. 
+Creates a Finley \Domain from a \class{Design} object from \pycad using \gmshextern.
 The \class{Design} \var{design} defines the geometry.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
@@ -518,13 +520,13 @@ degree \var{integrationOrder} \index{integration order}. Otherwise
 an appropriate integration order is chosen independently.
 Set \var{optimizeLabeling=False} to switch off relabeling and redistribution (not recommended).
 If \var{useMacroElements} is set, macro elements~\index{macro elements} are used.
-Currently \function{MakeDomain} does not support MPI.  
+Currently \function{MakeDomain} does not support MPI.
 \end{funcdesc}
 
 
 \begin{funcdesc}{load}{fileName}
-recovers a \Domain object from a dump file created by the \ 
-\function{dump} method of a \Domain object defined in 
+recovers a \Domain object from a dump file created by the \
+\function{dump} method of a \Domain object defined in
 file \var{fileName}.
 \end{funcdesc}
 
@@ -534,18 +536,18 @@ file \var{fileName}.
 Generates a \Domain object representing a two dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal edges. The rectangle is filled with
 \var{n0} elements along the $x_0$-axis and
-\var{n1} elements along the $x_1$-axis. 
+\var{n1} elements along the $x_1$-axis.
 For \var{order}=1 and \var{order}=2
-\finleyelement{Rec4} and  
-\finleyelement{Rec8} are used, respectively. 
+\finleyelement{Rec4} and
+\finleyelement{Rec8} are used, respectively.
 In the case of \var{useElementsOnFace}=\False,
-\finleyelement{Line2} and  
-\finleyelement{Line3} are used to subdivide the edges of the rectangle, respectively. 
+\finleyelement{Line2} and
+\finleyelement{Line3} are used to subdivide the edges of the rectangle, respectively.
 If \var{order}=-1, \finleyelement{Rec8Macro} and \finleyelement{Line3Macro}~\index{macro elements}. This option should be used when solving incompressible fluid flow problem, e.g. \class{StokesProblemCartesian}.
 In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
 are calculated on domain faces),
-\finleyelement{Rec4Face} and  
-\finleyelement{Rec8Face} are used on the edges, respectively.  
+\finleyelement{Rec4Face} and
+\finleyelement{Rec8Face} are used on the edges, respectively.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
 degree \var{integrationOrder} \index{integration order}. Otherwise
@@ -563,19 +565,19 @@ If \var{optimize}=\True mesh node relabeling will be attempted to reduce the com
   periodic0=\False,periodic1=\False,periodic2=\False,useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
 Generates a \Domain object representing a three dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
-\var{n0} elements along the $x_0$-axis, 
-\var{n1} elements along the $x_1$-axis and 
-\var{n2} elements along the $x_2$-axis. 
+\var{n0} elements along the $x_0$-axis,
+\var{n1} elements along the $x_1$-axis and
+\var{n2} elements along the $x_2$-axis.
 For \var{order}=1 and \var{order}=2
-\finleyelement{Hex8} and  
-\finleyelement{Hex20} are used, respectively. 
+\finleyelement{Hex8} and
+\finleyelement{Hex20} are used, respectively.
 In the case of \var{useElementsOnFace}=\False,
-\finleyelement{Rec4} and  
-\finleyelement{Rec8} are used to subdivide the faces of the brick, respectively. 
+\finleyelement{Rec4} and
+\finleyelement{Rec8} are used to subdivide the faces of the brick, respectively.
 In the case of \var{useElementsOnFace}=\True (this option should be used if gradients
 are calculated on domain faces),
-\finleyelement{Hex8Face} and  
-\finleyelement{Hex20Face} are used on the brick faces, respectively.  
+\finleyelement{Hex8Face} and
+\finleyelement{Hex20Face} are used on the brick faces, respectively.
 If \var{order}=-1, \finleyelement{Hex20Macro} and \finleyelement{Rec8Macro}~\index{macro elements}. This option should be used when solving incompressible fluid flow problem, e.g. \class{StokesProblemCartesian}.
 If \var{integrationOrder} is positive, a numerical integration scheme
 chosen which is accurate on each element up to a polynomial of
@@ -591,17 +593,17 @@ If \var{optimize}=\True mesh node relabeling will be attempted to reduce the com
 
 \begin{funcdesc}{GlueFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
 Generates a new \Domain object from the list \var{meshList} of \finley meshes.
-Nodes in face elements whose difference of coordinates is less then \var{tolerance} times the 
-diameter of the domain are merged. The corresponding face elements are removed from the mesh.  
+Nodes in face elements whose difference of coordinates is less then \var{tolerance} times the
+diameter of the domain are merged. The corresponding face elements are removed from the mesh.
 
 TODO: explain \var{safetyFactor} and show an example.
 \end{funcdesc}
 
 \begin{funcdesc}{JoinFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
 Generates a new \Domain object from the list \var{meshList} of \finley meshes.
-Face elements whose nodes coordinates have difference is less then \var{tolerance} times the 
-diameter of the domain are combined to form a contact element \index{element!contact} 
-The corresponding face elements are removed from the mesh.  
+Face elements whose nodes coordinates have difference is less then \var{tolerance} times the
+diameter of the domain are combined to form a contact element \index{element!contact}
+The corresponding face elements are removed from the mesh.
 
 TODO: explain \var{safetyFactor} and show an example.
 \end{funcdesc}

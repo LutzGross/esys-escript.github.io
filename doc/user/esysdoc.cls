@@ -15,7 +15,7 @@
 \renewcommand{\familydefault}{\sfdefault}	% Switch to san seriff
 \usepackage{url}
 \usepackage{xspace}
-\usepackage{graphics}
+\usepackage{graphicx,color}
 \usepackage{amsmath}	%For equation*
 \usepackage{amsfonts,amssymb} % see http://www.ams.org/tex/amslatex.html
 \usepackage[nohyphen, strings]{underscore}
