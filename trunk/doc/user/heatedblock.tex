@@ -15,20 +15,20 @@
 \section{Elastic Deformation}
 \label{ELASTIC CHAP}
 In this section we want to examine the deformation of a linear elastic body caused by expansion through a heat distribution.
-We want a displacement field $u\hackscore{i}$ which solves the momentum
+We want a displacement field $u_{i}$ which solves the momentum
 equation\index{momentum equation}:
 \begin{eqnarray}\label{HEATEDBLOCK general problem}
- - \sigma\hackscore{ij,j}=0
+ - \sigma_{ij,j}=0
 \end{eqnarray}
 where the stress $\sigma$ is given by
 \begin{eqnarray}\label{HEATEDBLOCK linear elastic}
- \sigma\hackscore{ij}= \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
- - (\lambda+\frac{2}{3} \mu)  \; \alpha  \;  (T-T\hackscore{ref})\delta\hackscore{ij} \;.
+ \sigma_{ij}= \lambda u_{k,k} \delta_{ij} + \mu ( u_{i,j} + u_{j,i})
+ - (\lambda+\frac{2}{3} \mu)  \; \alpha  \;  (T-T_{ref})\delta_{ij} \;.
 \end{eqnarray}
 In this formula $\lambda$ and $\mu$ are the Lame coefficients, $\alpha$ is the
 temperature expansion coefficient, $T$ is the temperature distribution and $T_{ref}$ a reference temperature.
 Note that \eqn{HEATEDBLOCK general problem} is similar to \eqn{WAVE general problem}
-introduced in \Sec{WAVE CHAP} but the inertia term $\rho u\hackscore{i,tt}$
+introduced in \Sec{WAVE CHAP} but the inertia term $\rho u_{i,tt}$
 has been dropped as we assume a static scenario here.
 Moreover, in comparison to the \eqn{WAVE stress} definition of stress $\sigma$
 in \eqn{HEATEDBLOCK linear elastic} an extra term is introduced to bring in
@@ -36,19 +36,19 @@ stress due to volume changes through temperature dependent expansion.
 
 Our domain is the unit cube
 \begin{eqnarray} \label{HEATEDBLOCK natural location}
-\Omega=\{(x\hackscore{i}) | 0 \le x\hackscore{i} \le 1 \}
+\Omega=\{(x_{i}) | 0 \le x_{i} \le 1 \}
 \end{eqnarray}
 On the boundary the normal stress component is set to zero
 \begin{eqnarray} \label{HEATEDBLOCK natural}
-\sigma\hackscore{ij}n\hackscore{j}=0
+\sigma_{ij}n_{j}=0
 \end{eqnarray}
-and on the face with $x\hackscore{i}=0$ we set the $i$-th component of the displacement to $0$:
+and on the face with $x_{i}=0$ we set the $i$-th component of the displacement to $0$:
 \begin{eqnarray} \label{HEATEDBLOCK constraint}
-u\hackscore{i}(x)=0 & \mbox{ where } & x\hackscore{i}=0 \;
+u_{i}(x)=0 & \mbox{ where } & x_{i}=0 \;
 \end{eqnarray}
 For the temperature distribution we use
 \begin{eqnarray} \label{HEATEDBLOCK temperature}
-T(x)= T\hackscore{0} e^{-\beta \|x-x^{c}\|}
+T(x)= T_{0} e^{-\beta \|x-x^{c}\|}
 \end{eqnarray}
 with a given positive constant $\beta$ and location $x^{c}$ in the domain.
 
@@ -59,45 +59,45 @@ of linear PDEs for the displacements $u$ which is called the Lame equation\index
 We want to solve this using the \LinearPDE class.
 For a system of PDEs and a solution with several components the \LinearPDE class takes PDEs of the form
 \begin{equation}\label{LINEARPDE.SYSTEM.1 TUTORIAL}
--(A\hackscore{ijkl} u\hackscore{k,l})\hackscore{,j}=-X\hackscore{ij,j} \; .
+-(A_{ijkl} u_{k,l})_{,j}=-X_{ij,j} \; .
 \end{equation}
 $A$ is a \RankFour and $X$ is a \RankTwo.
 We show here the coefficients relevant for the problem we are trying to solve.
 The full form is given in \eqn{LINEARPDE.SYSTEM.1}.
 The natural boundary conditions\index{boundary condition!natural} take the form
 \begin{equation}\label{LINEARPDE.SYSTEM.2 TUTORIAL}
-n\hackscore{j} A\hackscore{ijkl} u\hackscore{k,l}=n\hackscore{j}X\hackscore{ij}
+n_{j} A_{ijkl} u_{k,l}=n_{j}X_{ij}
 \end{equation}
 while constraints\index{constraint} take the form
 \begin{equation}\label{LINEARPDE.SYSTEM.3 TUTORIAL}
-u\hackscore{i}=r\hackscore{i} \mbox{ where } q\hackscore{i}>0
+u_{i}=r_{i} \mbox{ where } q_{i}>0
 \end{equation}
 $r$ and $q$ are each a \RankOne.
 We can easily identify the coefficients in \eqn{LINEARPDE.SYSTEM.1 TUTORIAL}:
 \begin{eqnarray}\label{LINEARPDE ELASTIC COEFFICIENTS}
-A\hackscore{ijkl}=\lambda \delta\hackscore{ij} \delta\hackscore{kl} + \mu (
-\delta\hackscore{ik} \delta\hackscore{jl}
-+ \delta\hackscore{il} \delta\hackscore{jk}) \\
-X\hackscore{ij}=(\lambda+\frac{2}{3} \mu) \;  \alpha \; (T-T\hackscore{ref})\delta\hackscore{ij} \\
+A_{ijkl}=\lambda \delta_{ij} \delta_{kl} + \mu (
+\delta_{ik} \delta_{jl}
++ \delta_{il} \delta_{jk}) \\
+X_{ij}=(\lambda+\frac{2}{3} \mu) \;  \alpha \; (T-T_{ref})\delta_{ij} \\
 \end{eqnarray}
 The characteristic function $q$ defining the locations and components where constraints are set is given by:
 \begin{equation}\label{HEATEDBLOCK MASK}
-q\hackscore{i}(x)=\left\{
+q_{i}(x)=\left\{
 \begin{array}{cl}
-1 & x\hackscore{i}=0\\
+1 & x_{i}=0\\
 0 & \mbox{otherwise}\\
 \end{array}
 \right.
 \end{equation}
-Under the assumption that $\lambda$, $\mu$, $\beta$ and $T\hackscore{ref}$
-are constant we may use $Y\hackscore{i}=(\lambda+\frac{2}{3} \mu) \; \alpha \; T\hackscore{i}$.
+Under the assumption that $\lambda$, $\mu$, $\beta$ and $T_{ref}$
+are constant we may use $Y_{i}=(\lambda+\frac{2}{3} \mu) \; \alpha \; T_{i}$.
 However, this choice would lead to a different natural boundary condition
 which does not set the normal stress component as defined in \eqn{HEATEDBLOCK linear elastic} to zero.
 
 Analogously to the concept of symmetry for a single PDE, we call the PDE
 defined by \eqn{LINEARPDE.SYSTEM.1 TUTORIAL} symmetric\index{symmetric PDE} if
 \begin{eqnarray}\label{LINEARPDE.SYSTEM.SYMMETRY TUTORIAL}
-A\hackscore{ijkl} =A\hackscore{klij} \\
+A_{ijkl} =A_{klij} \\
 \end{eqnarray}
 This Lame equation is in fact symmetric, given the difference in $D$ and $d$ as compared to the scalar case.
 The \LinearPDE class is notified of this fact by calling its \method{setSymmetryOn} method.
@@ -105,11 +105,11 @@ The \LinearPDE class is notified of this fact by calling its \method{setSymmetry
 After we have solved the Lame equation we want to analyse the actual stress distribution.
 Typically the von-Mises stress\index{von-Mises stress} defined by
 \begin{equation}
-\sigma\hackscore{mises} = \sqrt{
-\frac{1}{2} ((\sigma\hackscore{00}-\sigma\hackscore{11})^2
-            + (\sigma\hackscore{11}-\sigma\hackscore{22})^2
-            + (\sigma\hackscore{22}-\sigma\hackscore{00})^2)
-+ 3( \sigma\hackscore{01}^2+\sigma\hackscore{12}^2+\sigma\hackscore{20}^2) }
+\sigma_{mises} = \sqrt{
+\frac{1}{2} ((\sigma_{00}-\sigma_{11})^2
+            + (\sigma_{11}-\sigma_{22})^2
+            + (\sigma_{22}-\sigma_{00})^2)
++ 3( \sigma_{01}^2+\sigma_{12}^2+\sigma_{20}^2) }
 \end{equation}
 is used to detect material damage.
 Here we want to calculate the von-Mises stress and write it to a file for visualization.

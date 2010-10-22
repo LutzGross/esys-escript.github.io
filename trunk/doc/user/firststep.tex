@@ -26,7 +26,7 @@ The PDE\index{partial differential equation} we wish to solve is the Poisson equ
 for the solution $u$. The function $f$ is the given right hand side. The domain of interest, denoted by $\Omega$,
 is the unit square 
 \begin{equation}
-\Omega=[0,1]^2=\{ (x\hackscore 0;x\hackscore 1) | 0\le x\hackscore{0} \le 1 \mbox{ and } 0\le x\hackscore{1} \le 1 \}
+\Omega=[0,1]^2=\{ (x_0;x_1) | 0\le x_{0} \le 1 \mbox{ and } 0\le x_{1} \le 1 \}
 \label{eq:FirstSteps.1b}
 \end{equation}
 The domain is shown in \fig{fig:FirstSteps.1}.
@@ -38,17 +38,17 @@ The domain is shown in \fig{fig:FirstSteps.1}.
 
 $\Delta$ denotes the Laplace operator\index{Laplace operator}, which is defined by
 \begin{equation}
-\Delta u = (u\hackscore {,0})\hackscore{,0}+(u\hackscore{,1})\hackscore{,1}
+\Delta u = (u_{,0})_{,0}+(u_{,1})_{,1}
 \label{eq:FirstSteps.1.1}
 \end{equation}
-where, for any function $u$ and any direction $i$, $u\hackscore{,i}$
+where, for any function $u$ and any direction $i$, $u_{,i}$
 denotes the partial derivative \index{partial derivative} of $u$ with respect
 to $i$.\footnote{You may be more familiar with the Laplace
 operator\index{Laplace operator} being written as $\nabla^2$, and written in
 the form
 \begin{equation*}
-    \nabla^2 u = \nabla^t \cdot \nabla u =  \frac{\partial^2 u}{\partial x\hackscore 0^2} 
-    + \frac{\partial^2 u}{\partial  x\hackscore 1^2}
+    \nabla^2 u = \nabla^t \cdot \nabla u =  \frac{\partial^2 u}{\partial x_0^2} 
+    + \frac{\partial^2 u}{\partial  x_1^2}
 \end{equation*}
 and \eqn{eq:FirstSteps.1} as
 \begin{equation*}
@@ -56,10 +56,10 @@ and \eqn{eq:FirstSteps.1} as
 \end{equation*}
 }
 Basically, in the subindex of a function, any index to the left of the comma denotes a spatial derivative with respect 
-to the index. To get a more compact form we will write $u\hackscore{,ij}=(u\hackscore {,i})\hackscore{,j}$
+to the index. To get a more compact form we will write $u_{,ij}=(u_{,i})_{,j}$
 which leads to
 \begin{equation}
-\Delta u = u\hackscore{,00}+u\hackscore{,11}=\sum\hackscore{i=0}^2 u\hackscore{,ii}
+\Delta u = u_{,00}+u_{,11}=\sum_{i=0}^2 u_{,ii}
 \label{eq:FirstSteps.1.1b}
 \end{equation}
 We often find that use
@@ -68,43 +68,43 @@ convenient Einstein summation convention\index{summation convention}. This
 drops the $\sum$ sign and assumes that a summation is performed over any repeated index.
 For instance we write
 \begin{eqnarray}
-x\hackscore{i}y\hackscore{i}=\sum\hackscore{i=0}^2 x\hackscore{i}y\hackscore{i}   \\
-x\hackscore{i}u\hackscore{,i}=\sum\hackscore{i=0}^2 x\hackscore{i}u\hackscore{,i}   \\
-u\hackscore{,ii}=\sum\hackscore{i=0}^2 u\hackscore{,ii} \\
-x\hackscore{ij}u\hackscore{i,j}=\sum\hackscore{j=0}^2\sum\hackscore{i=0}^2 x\hackscore{ij}u\hackscore{i,j}   \\
+x_{i}y_{i}=\sum_{i=0}^2 x_{i}y_{i}   \\
+x_{i}u_{,i}=\sum_{i=0}^2 x_{i}u_{,i}   \\
+u_{,ii}=\sum_{i=0}^2 u_{,ii} \\
+x_{ij}u_{i,j}=\sum_{j=0}^2\sum_{i=0}^2 x_{ij}u_{i,j}   \\
 \label{eq:FirstSteps.1.1c}
 \end{eqnarray}
 With the summation convention we can write the Poisson equation \index{Poisson equation} as
 \begin{equation}
-- u\hackscore{,ii} =1 
+- u_{,ii} =1 
 \label{eq:FirstSteps.1.sum}
 \end{equation}
 where $f=1$ in this example.
 
-On the boundary of the domain $\Omega$ the normal derivative $n\hackscore{i} u\hackscore{,i}$
+On the boundary of the domain $\Omega$ the normal derivative $n_{i} u_{,i}$
 of the solution $u$ shall be zero, i.e. $u$ shall fulfill
 the homogeneous Neumann boundary condition\index{Neumann
 boundary condition!homogeneous}
 \begin{equation}
-n\hackscore{i} u\hackscore{,i}= 0 \;.
+n_{i} u_{,i}= 0 \;.
 \label{eq:FirstSteps.2}
 \end{equation}
-$n=(n\hackscore{i})$ denotes the outer normal field
+$n=(n_{i})$ denotes the outer normal field
 of the domain, see \fig{fig:FirstSteps.1}. Remember that we 
-are applying the Einstein summation convention \index{summation convention}, i.e. $n\hackscore{i} u\hackscore{,i}= n\hackscore{0} u\hackscore{,0} +%
-n\hackscore{1} u\hackscore{,1}$.\footnote{Some readers may familiar with the
-notation $\frac{\partial u}{\partial n} = n\hackscore{i} u\hackscore{,i}$
+are applying the Einstein summation convention \index{summation convention}, i.e. $n_{i} u_{,i}= n_{0} u_{,0} +%
+n_{1} u_{,1}$.\footnote{Some readers may familiar with the
+notation $\frac{\partial u}{\partial n} = n_{i} u_{,i}$
 for the normal derivative.}
 The Neumann boundary condition of \eqn{eq:FirstSteps.2} should be fulfilled on the
 set $\Gamma^N$ which is the top and right edge of the domain:
 \begin{equation}
-    \Gamma^N=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=1 \mbox{ or } x\hackscore{1}=1  \}
+    \Gamma^N=\{(x_0;x_1) \in \Omega | x_{0}=1 \mbox{ or } x_{1}=1  \}
     \label{eq:FirstSteps.2b}
 \end{equation}
 On the bottom and the left edge of the domain which is defined
 as 
 \begin{equation}
-    \Gamma^D=\{(x\hackscore 0;x\hackscore 1) \in \Omega | x\hackscore{0}=0 \mbox{ or } x\hackscore{1}=0  \}
+    \Gamma^D=\{(x_0;x_1) \in \Omega | x_{0}=0 \mbox{ or } x_{1}=0  \}
     \label{eq:FirstSteps.2c}
 \end{equation}
 the solution shall be identical to zero:
@@ -188,8 +188,8 @@ The following statements create the \Domain object \var{mydomain} from the
 \end{python}
 In this case the domain is a rectangle with the lower, left corner at point $(0,0)$ and
 the right, upper corner at $(\var{l0},\var{l1})=(1,1)$.
-The arguments \var{n0} and \var{n1} define the number of elements in $x\hackscore{0}$ and
-$x\hackscore{1}$-direction respectively. For more details on \method{Rectangle} and
+The arguments \var{n0} and \var{n1} define the number of elements in $x_{0}$ and
+$x_{1}$-direction respectively. For more details on \method{Rectangle} and
 other \Domain generators within the \finley module,
 see \Chap{CHAPTER ON FINLEY}.
 
@@ -208,10 +208,10 @@ In fact, with any solution $u$ and any constant $C$ the function $u+C$ becomes
 a solution as well.
 We have to add a Dirichlet boundary condition\index{Dirichlet boundary condition}.
 This is done by defining a characteristic function\index{characteristic function}
-which has positive values at locations $x=(x\hackscore{0},x\hackscore{1})$
+which has positive values at locations $x=(x_{0},x_{1})$
 where Dirichlet boundary condition is set and $0$ elsewhere.
 In our case of $\Gamma^D$ defined by \eqn{eq:FirstSteps.2c}, we need to
-construct a function \var{gammaD} which is positive for the cases $x\hackscore{0}=0$ or $x\hackscore{1}=0$.
+construct a function \var{gammaD} which is positive for the cases $x_{0}=0$ or $x_{1}=0$.
 To get an object \var{x} which contains the coordinates of the nodes in the domain use
 \begin{python}
   x=mydomain.getX() 
@@ -240,7 +240,7 @@ will print
 \end{python}
 which tells us that the coordinates are stored on the nodes of (rather than on
 points in the interior of) a \finley mesh.
-To get the  $x\hackscore{0}$ coordinates of the locations we use the statement 
+To get the  $x_{0}$ coordinates of the locations we use the statement 
 \begin{python}
   x0=x[0]
 \end{python}
@@ -263,7 +263,7 @@ bottom and left edges of the domain with
 \code{whereZero(x[0])} creates a function which equals $1$ where \code{x[0]} is (almost) equal to zero and $0$ elsewhere. 
 Similarly, \code{whereZero(x[1])} creates a function which equals $1$ where \code{x[1]} is equal to zero and $0$ elsewhere.
 The sum of the results of \code{whereZero(x[0])} and \code{whereZero(x[1])}
-gives a function on the domain \var{mydomain} which is strictly positive where $x\hackscore{0}$ or $x\hackscore{1}$ is equal to zero.
+gives a function on the domain \var{mydomain} which is strictly positive where $x_{0}$ or $x_{1}$ is equal to zero.
 Note that \var{gammaD} has the same \Rank, \Shape and \FunctionSpace like \var{x0} used to define it.
 So from 
 \begin{python}
@@ -395,7 +395,7 @@ Now we can write the script to solve our Poisson problem
   matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
   matplotlib.pyplot.savefig("u.png")
 \end{python}
-The entire code is available as \file{poisson\hackscore matplotlib.py} in the \ExampleDirectory.
+The entire code is available as \file{poisson_matplotlib.py} in the \ExampleDirectory.
 You can run the script using the {\it escript} environment
 \begin{verbatim}
 run-escript poisson_matplotlib.py
@@ -447,7 +447,7 @@ The Poisson problem script is now
   # write u to an external file
   saveVTK("u.vtu",sol=u)
 \end{python}
-The entire code is available as \file{poisson\hackscore vtk.py} in the \ExampleDirectory.
+The entire code is available as \file{poisson_vtk.py} in the \ExampleDirectory.
 
 You can run the script using the {\it escript} environment and visualize the
 solution using \mayavi:

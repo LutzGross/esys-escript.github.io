@@ -8,7 +8,6 @@
 
 \usepackage[a4paper, left=2.5cm, right=2.5cm, nohead, vcentering, scale=0.8]{geometry}
 \usepackage{times}
-% \usepackage{fancyvrb}	% Hopefully this will give us our code environments
 \usepackage{listings}
 \usepackage{ifpdf}
 
@@ -22,7 +21,7 @@
 \usepackage[nohyphen, strings]{underscore}
 
 %Blue was chosen here because it looks ok when printed
-\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=true, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
 \usepackage{fancyhdr}
 \renewcommand{\footrulewidth}{0.4pt}
@@ -42,6 +41,7 @@
 \ChNameVar{\raggedleft\large\sffamily}	% The word chapter
 \ChNumVar{\raggedleft\bfseries\Large}	% The number of the chapter
 \ChTitleVar{\raggedleft \Huge\sffamily} % title of the chapter
+\ChTitleAsIs
 
 %Ensures that latex doesn't have an error if we don't specify the version
 \providecommand{\RepVersion}{Unknown\xspace}
@@ -70,8 +70,13 @@
 \newcommand{\constant}[1]{\textsl{#1}}
 \newcommand{\method}[1]{\texttt{#1}}
 \newcommand{\member}[1]{\texttt{#1}}
-\newcommand{\code}[1]{\mbox{\texttt{#1}}}   % Because people try to put code in maths mode
-
+\newcommand{\code}[1]{%
+\ifmmode%
+\mbox{\texttt{#1}}%
+\else%
+\texttt{#1}%
+\fi    % Because people try to put code in maths mode
+}
 
 \newenvironment{abstract}{\newpage\mbox{}\vfill\begin{center}\textbf{Abstract}\end{center}}{\vfill\newpage}
 

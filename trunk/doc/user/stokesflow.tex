@@ -28,35 +28,35 @@ Alternatively, the Stokes equations can be represented in Einstein summation
 tensor notation (compact notation):
 %
 \begin{equation}
--(\eta(v\hackscore{i,j} + v\hackscore{j,i})),\hackscore{j} - p,\hackscore{i} = f\hackscore{i},
+-(\eta(v_{i,j} + v_{j,i})),_{j} - p,_{i} = f_{i},
 \label{GENERAL NAVIER STOKES COM}
 \end{equation}
 %
 with the incompressibility condition
 %
 \begin{equation}
--v\hackscore{i,i} = 0.
+-v_{i,i} = 0.
 \label{INCOMPRESSIBILITY COM}
 \end{equation}
 %
-The subscript comma $i$ denotes the derivative of the function with respect to $x\hackscore{i}$.
-%A linear relationship between the deviatoric stress $\sigma^{'}\hackscore{ij}$ and the stretching $D\hackscore{ij} = \frac{1}{2}(v\hackscore{i,j} + v\hackscore{j,i})$ is defined as \cite{GROSS2006}:
+The subscript comma $i$ denotes the derivative of the function with respect to $x_{i}$.
+%A linear relationship between the deviatoric stress $\sigma^{'}_{ij}$ and the stretching $D_{ij} = \frac{1}{2}(v_{i,j} + v_{j,i})$ is defined as \cite{GROSS2006}:
 %
 %\begin{equation}
-%\sigma^{'}\hackscore{ij} = 2\eta D^{'}\hackscore{ij},
+%\sigma^{'}_{ij} = 2\eta D^{'}_{ij},
 %\label{STRESS}
 %\end{equation}
 %
-%where the deviatoric stretching $D^{'}\hackscore{ij}$ is defined as
+%where the deviatoric stretching $D^{'}_{ij}$ is defined as
 %
 %\begin{equation}
-%D^{'}\hackscore{ij} = D^{'}\hackscore{ij} - \frac{1}{3}D\hackscore{kk}\delta\hackscore{ij}.
+%D^{'}_{ij} = D^{'}_{ij} - \frac{1}{3}D_{kk}\delta_{ij}.
 %\label{DEVIATORIC STRETCHING}
 %\end{equation}
 %
-%where $\delta\hackscore{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
+%where $\delta_{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
 The body force $f$ in \eqn{GENERAL NAVIER STOKES COM} is the gravity acting in
-the $x\hackscore{3}$ direction and is given as $f=-g\rho\delta\hackscore{i3}$.
+the $x_{3}$ direction and is given as $f=-g\rho\delta_{i3}$.
 The Stokes equation is a saddle point problem, and can be solved using a Uzawa scheme.
 A class called \class{StokesProblemCartesian} in \escript can be used to solve
 for velocity and pressure. A more detailed discussion of the class can be
@@ -101,10 +101,10 @@ expressed by
 The gravitational force is calculated based on the fluid density and the
 acceleration due to gravity.
 The boundary conditions are set for a slip condition at the base and the left
-face of the domain. At the base fluid movement in the $x\hackscore{0}$-direction
-is free, but fixed in the $x\hackscore{1}$-direction, and similarly at the left
-face fluid movement in the $x\hackscore{1}$-direction is free  but fixed in
-the $x\hackscore{0}$-direction.
+face of the domain. At the base fluid movement in the $x_{0}$-direction
+is free, but fixed in the $x_{1}$-direction, and similarly at the left
+face fluid movement in the $x_{1}$-direction is free  but fixed in
+the $x_{0}$-direction.
 An instance of the \class{StokesProblemCartesian} class is defined for the
 given computational mesh, and the solver tolerance set.
 Inside the \code{while} loop, the boundary conditions, viscosity and body
