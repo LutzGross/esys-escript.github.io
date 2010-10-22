@@ -117,7 +117,7 @@ interpolation is not always possible, see \fig{ESCRIPT DEP} for \finley.
 An alternative approach to change the representation (=\FunctionSpace) is
 projection\index{projection}, see \Sec{SEC Projection}.
 
-\subsection{\Data objects}
+\subsection{\Data Objects}
 In \escript the class that stores these functions is called \Data.
 The function is represented through its values on \DataSamplePoints where
 the \DataSamplePoints are chosen according to the function space of the
@@ -222,7 +222,7 @@ The following call is equivalent to the previous example:
   mu=Scalar(2., Function(mydomain))
   s=getStress(u, lam, mu)
 \end{python}
-
+%
 The function \var{lam} belongs to the \ContinuousFunction but with \var{g} the
 function \var{trace(g)} is in the \Function.
 In the evaluation of the product \var{lam*trace(g)} we have different function
@@ -274,7 +274,7 @@ The \code{getStress} method does not need to be changed now that we are using ta
 
 This brings us to a very important point about \escript.
 You can develop a simulation with constant Lame coefficients, and then later
-switch to tagged Lame coefficients without otherwise changing your python script.
+switch to tagged Lame coefficients without otherwise changing your \PYTHON script.
 In short, you can use the same script for models with different domains and
 different types of input data.
 
@@ -286,9 +286,8 @@ In the expanded case, each sample point has an individual value (such as for the
 This is where your largest data sets will be created because the values are
 stored as a complete array.
 The tagged case has already been discussed above.
-
-Expanded data is created when you create a \Data object with \code{expanded=True}.
-Tagged data sets are created when you use the \member{insertTaggedValue}
+Expanded data is created when specifying \code{expanded=True} in the \Data
+object constructor, while tagged data requires calling the \member{insertTaggedValue}
 method as shown above.
 
 Values are accessed through a sample reference number.
@@ -305,7 +304,6 @@ read back using the \member{load} method, both of which use the
 \netCDF\cite{NETCDF} file format.
 Use these to save data for checkpoint/restart or simply to save and reuse data
 that was expensive to compute.
-
 For instance, to save the coordinates of the data points of a
 \ContinuousFunction to the file \file{x.nc} use
 \begin{python}
@@ -313,7 +311,8 @@ For instance, to save the coordinates of the data points of a
   x.dump("x.nc")
   mydomain.dump("dom.nc")
 \end{python}
-To recover the object \var{x}, and \var{mydomain} was a \finley mesh use
+To recover the object \var{x}, and you know that \var{mydomain} was an \finley
+mesh, use
 \begin{python}
   from esys.finley import LoadMesh
   mydomain=LoadMesh("dom.nc")
@@ -328,7 +327,7 @@ an individual file for each process containing the local data.
 In order to avoid conflicts the file names are extended by the \MPI processor
 rank, that is instead of one file \file{dom.nc} you would get
 \file{dom.nc.0000}, \file{dom.nc.0001}, etc. You still call
-\code{LoadMesh('dom.nc')} to load the domain but you have to make sure that
+\code{LoadMesh("dom.nc")} to load the domain but you have to make sure that
 the appropriate file is accessible from the corresponding rank, and loading
 will only succeed if you run with as many processes as were used when calling
 \member{dump}.
@@ -347,7 +346,7 @@ It has the advantage of allowing to save and load not only a \Domain and
 \Data objects but also other values\footnote{The \PYTHON \emph{pickle} module
 is used for other types.} you compute in your simulation script.
 Further, \class{DataManager} objects can simultaneously create files for
-visualization so no extra calls to, e.g. \code{saveVTK} are needed.
+visualization so no extra calls to \code{saveVTK} etc. are needed.
 
 The following example shows how the \class{DataManager} class can be used.
 For an explanation of all member functions and options see the relevant
@@ -383,13 +382,13 @@ method. If it returns \True we retrieve the domain and values into local
 variables. Otherwise the same variables are initialized with appropriate
 values to start a new simulation.
 Note, that \var{t} and \var{t_max} are regular floating point values and not
-\Data objects but are treated the same way by the \class{DataManager}.
+\Data objects. Yet they are treated the same way by the \class{DataManager}.
 
 After this initialization step the script enters the main simulation loop
 where calculations are performed.
 When these are finalized for a time step we call the \member{addData} method
 to let the manager know which variables to store on disk.
-Note, that this does not actually save the data yet and it is allowed to call
+This does not actually save the data yet and it is allowed to call
 \member{addData} more than once to add information incrementally, e.g. from
 separate functions that have access to the \class{DataManager} instance.
 Once all variables have been added the \member{export} method has to be called
@@ -397,6 +396,9 @@ to flush all data to disk and clear the manager.
 In this example, this call dumps \var{mydomain} and \var{val} to files
 in a restart directory and also stores \var{t} and \var{t_max} on disk.
 Additionally, it generates a \VTK file for visualization of the data.
+If the script would stop running before its completion for some reason (e.g.
+because its runtime limit was exceeded in a multiuser environment), you could
+simply run it again and it would resume at the point it stopped before.
 
 \section{\escript Classes}
 
@@ -407,248 +409,254 @@ a way of representing functions over this region.
 The \Domain class provides an abstract interface to the domain of \FunctionSpace and \Data objects.
 \Domain needs to be subclassed in order to provide a complete implementation.
 \end{classdesc}
+%
 The following methods are available:
+%
 \begin{methoddesc}[Domain]{getDim}{}
-returns the spatial dimension of the \Domain.
+    returns the spatial dimension of the \Domain.
 \end{methoddesc}
+%
 \begin{methoddesc}[Domain]{dump}{filename}
-dumps the \Domain into the file \var{filename}.
+    writes the \Domain to the file \var{filename} using the \netCDF file format.
 \end{methoddesc}
+%
 \begin{methoddesc}[Domain]{getX}{}
-returns the locations in the \Domain. The \FunctionSpace of the returned
-\Data object is chosen by the \Domain implementation. Typically it will be
-in the \Function.
+    returns the locations in the \Domain. The \FunctionSpace of the returned
+    \Data object is chosen by the \Domain implementation. Typically it will be
+    in the \Function.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{setX}{newX}
-assigns a new location to the \Domain. \var{newX} has to have \Shape $(d,)$
-where $d$ is the spatial dimension of the domain. Typically \var{newX} must be
-in the \ContinuousFunction but the space actually to be used depends on the \Domain implementation.
+    assigns new locations to the \Domain. \var{newX} has to have \Shape $(d,)$
+    where $d$ is the spatial dimension of the domain. Typically \var{newX}
+    must be in the \ContinuousFunction but the space actually to be used
+    depends on the \Domain implementation.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{getNormal}{}
-returns the surface normals on the boundary of the \Domain as \Data object.
+    returns the surface normals on the boundary of the \Domain as a \Data object.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{getSize}{}
-returns the local sample size, e.g. the element diameter, as \Data object.
+    returns the local sample size, i.e. the element diameter, as a \Data object.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{setTagMap}{tag_name, tag}
-defines a mapping of the tag name  \var{tag_name} to the \var{tag}.
+    defines a mapping of the tag name \var{tag_name} to the \var{tag}.
 \end{methoddesc}
+%
 \begin{methoddesc}[Domain]{getTag}{tag_name}
-returns the tag associated with the tag name \var{tag_name}.
+    returns the tag associated with the tag name \var{tag_name}.
 \end{methoddesc}
+%
 \begin{methoddesc}[Domain]{isValidTagName}{tag_name}
-return \True if \var{tag_name} is a valid tag name.
+    returns \True if \var{tag_name} is a valid tag name.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{__eq__}{arg}
-(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
-\False is returned.
+    (\PYTHON \var{==} operator) returns \True if the \Domain \var{arg}
+    describes the same domain, \False otherwise.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{__ne__}{arg}
-(python != operator) returns \True if the \Domain \var{arg} does not describe the same domain.
-Otherwise \False is returned.
+    (\PYTHON \var{!=} operator) returns \True if the \Domain \var{arg} does
+    not describe the same domain, \False otherwise.
 \end{methoddesc}
-
-\begin{methoddesc}[Domain]{__str__}{arg}
-(python str() function) returns string representation of the \Domain.
+%
+\begin{methoddesc}[Domain]{__str__}{}
+    (\PYTHON \var{str()} function) returns a string representation of the
+    \Domain.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{onMasterProcessor)}{}
-returns \True if the processor is the master processor within
-the \MPI processor group used by the \Domain. This is the processor with rank 0.
-If \MPI support is not enabled the return value is always \True.
+    returns \True if the processor is the master processor within the \MPI
+    processor group used by the \Domain. This is the processor with rank 0.
+    If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{getMPISize}{}
- returns the number of \MPI processors used for this \Domain. If \MPI support is not enabled
-1 is returned.
+    returns the number of \MPI processors used for this \Domain. If \MPI
+    support is not enabled 1 is returned.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{getMPIRank}{}
- returns the rank of the processor executing the statement
-within the  \MPI processor group used by the \Domain.
-If \MPI support is not enabled 0 is returned.
+    returns the rank of the processor executing the statement within the
+    \MPI processor group used by the \Domain. If \MPI support is not enabled
+    0 is returned.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[Domain]{MPIBarrier}{}
-executes barrier synchronization within
-the \MPI processor group used by the \Domain.
-If \MPI support is not enabled, this command does nothing.
+    executes barrier synchronization within the \MPI processor group used by
+    the \Domain. If \MPI support is not enabled, this command does nothing.
 \end{methoddesc}
 
 \subsection{The \FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
-\FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
-are instantiated by generator functions. A \Data object in a particular \FunctionSpace is
-represented by its values at \DataSamplePoints which are defined by the type and the \Domain of the
-\FunctionSpace.
+\FunctionSpace objects are used to define properties of \Data objects such as continuity.
+\FunctionSpace objects are instantiated by generator functions.
+A \Data object in a particular \FunctionSpace is represented by its values at
+\DataSamplePoints which are defined by the type and the \Domain of the \FunctionSpace.
 \end{classdesc}
+%
 The following methods are available:
+%
 \begin{methoddesc}[FunctionSpace]{getDim}{}
-returns the spatial dimension of the \Domain of the \FunctionSpace.
+    returns the spatial dimension of the \Domain of the \FunctionSpace.
 \end{methoddesc}
-
-
-
+%
 \begin{methoddesc}[FunctionSpace]{getX}{}
-returns the location of the \DataSamplePoints.
+    returns the location of the \DataSamplePoints.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{getNormal}{}
-If the domain of functions in the \FunctionSpace
-is a hyper-manifold (e.g. the boundary of a domain)
-the method returns the outer normal at each of the
-\DataSamplePoints. Otherwise an exception is raised.
+    If the domain of functions in the \FunctionSpace is a hyper-manifold (e.g.
+    the boundary of a domain) the method returns the outer normal at each of
+    the \DataSamplePoints. Otherwise an exception is raised.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{getSize}{}
-returns a \Data objects measuring the spacing of the \DataSamplePoints.
-The size may be zero.
+    returns a \Data object measuring the spacing of the \DataSamplePoints.
+    The size may be zero.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{getDomain}{}
-returns the \Domain of the \FunctionSpace.
+    returns the \Domain of the \FunctionSpace.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{setTags}{new_tag, mask}
-assigns a new tag \var{new_tag} to all data sample
-where \var{mask} is positive for a least one data point.
-\var{mask} must be defined on the this \FunctionSpace.
-Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
+    assigns a new tag \var{new_tag} to all data samples where \var{mask} is
+    positive for a least one data point.
+    \var{mask} must be defined on this \FunctionSpace.
+    Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{__eq__}{arg}
-(python == operator) returns \True if the \Domain \var{arg} describes the same domain. Otherwise
-\False is returned.
+    (\PYTHON \var{==} operator) returns \True if the \FunctionSpace \var{arg}
+    describes the same function space, \False otherwise.
 \end{methoddesc}
-
+%
 \begin{methoddesc}[FunctionSpace]{__ne__}{arg}
-(python != operator) returns \True if the \Domain \var{arg} do not describe the same domain.
-Otherwise \False is returned.
+    (\PYTHON \var{!=} operator) returns \True if the \FunctionSpace \var{arg}
+    does not describe the same function space, \False otherwise.
 \end{methoddesc}
 
-\begin{methoddesc}[Domain]{__str__}{g}
-(python str() function) returns string representation of the \Domain.
+\begin{methoddesc}[Domain]{__str__}{}
+    (\PYTHON \var{str()} function) returns a string representation of the
+    \FunctionSpace.
 \end{methoddesc}
-
-The following function provide generators for \FunctionSpace objects:
+%
+The following functions provide generators for \FunctionSpace objects:
+%
 \begin{funcdesc}{Function}{domain}
-returns the \Function on the \Domain \var{domain}. \Data objects in this type of \Function
-are defined over the whole geometric region defined by \var{domain}.
+    returns the \Function on the \Domain \var{domain}. \Data objects in this
+    type of \Function are defined over the whole geometric region defined by
+    \var{domain}.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{ContinuousFunction}{domain}
-returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined over the whole geometric region defined by \var{domain} and assumed to represent
-a continuous function.
+    returns the \ContinuousFunction on the \Domain domain. \Data objects in
+    this type of \Function are defined over the whole geometric region defined
+    by \var{domain} and assumed to represent a continuous function.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{FunctionOnBoundary}{domain}
-returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined on the boundary of the geometric region defined by \var{domain}.
+    returns the \FunctionOnBoundary on the \Domain domain. \Data objects in
+    this type of \Function are defined on the boundary of the geometric region
+    defined by \var{domain}.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{FunctionOnContactZero}{domain}
-returns the \FunctionOnContactZero the \Domain domain. \Data objects in this type of \Function
-are defined on side 0 of a discontinuity  within the geometric region defined by \var{domain}.
-The discontinuity is defined when \var{domain} is instantiated.
+    returns the \FunctionOnContactZero the \Domain domain. \Data objects in
+    this type of \Function are defined on side 0 of a discontinuity  within
+    the geometric region defined by \var{domain}.
+    The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{FunctionOnContactOne}{domain}
-returns the \FunctionOnContactOne on the \Domain domain.
-\Data objects in this type of \Function
-are defined on side 1 of a discontinuity  within the geometric region defined by \var{domain}.
-The discontinuity is defined when \var{domain} is instantiated.
+    returns the \FunctionOnContactOne on the \Domain domain. \Data objects in
+    this type of \Function are defined on side 1 of a discontinuity within
+    the geometric region defined by \var{domain}.
+    The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{Solution}{domain}
-returns the \SolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometric region defined by \var{domain} and are solutions of
-partial differential equations \index{partial differential equation}.
+    returns the \SolutionFS on the \Domain domain. \Data objects in this type
+    of \Function are defined on the geometric region defined by \var{domain}
+    and are solutions of partial differential equations\index{partial differential equation}.
 \end{funcdesc}
-
+%
 \begin{funcdesc}{ReducedSolution}{domain}
-returns the \ReducedSolutionFS on the \Domain domain. \Data objects in this type of \Function
-are defined on geometric region defined by \var{domain} and are solutions of
-partial differential equations \index{partial differential equation} with a reduced smoothness
-for the solution approximation.
+    returns the \ReducedSolutionFS on the \Domain domain. \Data objects in
+    this type of \Function are defined on the geometric region defined by
+    \var{domain} and are solutions of partial differential
+    equations\index{partial differential equation} with a reduced smoothness
+    for the solution approximation.
 \end{funcdesc}
 
 \subsection{The \Data Class}
 \label{SEC ESCRIPT DATA}
 
-The following table shows arithmetic operations that can be performed point-wise on
-\Data objects.
-\begin{table}
-    \centering
+The following table shows arithmetic operations that can be performed
+point-wise on \Data objects:
+\begin{center}
     \begin{tabular}{l|l}
-        \bfseries expression & Description\\
+        \textbf{Expression} & \textbf{Description}\\
         \hline
-        +\var{arg0} & identical to \var{arg} \index{+}\\
-        -\var{arg0} & negation\index{-}\\
-        \var{arg0}+\var{arg1} & adds \var{arg0} and \var{arg1} \index{+}\\
-        \var{arg0}*\var{arg1} & multiplies \var{arg0} and \var{arg1} \index{*}\\
-        \var{arg0}-\var{arg1} & difference \var{arg1} from\var{arg1} \index{-}\\
-        \var{arg0}/\var{arg1} & divide \var{arg0} by \var{arg1} \index{/}\\
-        \var{arg0}**\var{arg1} & raises \var{arg0} to the power of \var{arg1} \index{**}\\
+        \code{+arg} & identical to \var{arg}\index{+}\\
+        \code{-arg} & negation of \var{arg}\index{-}\\
+        \code{arg0+arg1} & adds \var{arg0} and \var{arg1}\index{+}\\
+        \code{arg0*arg1} & multiplies \var{arg0} and \var{arg1}\index{*}\\
+        \code{arg0-arg1} & subtracts \var{arg1} from \var{arg0}\index{-}\\
+        \code{arg0/arg1} & divides \var{arg0} by \var{arg1}\index{/}\\
+        \code{arg0**arg1} & raises \var{arg0} to the power of \var{arg1}\index{**}\\
     \end{tabular}
-\end{table}
-At least one of the arguments \var{arg0} or \var{arg1} must be a
-\Data object.
-Either of the arguments may be a \Data object, a python number or a \numpy object.
-
-If \var{arg0} or \var{arg1} are
-not defined on the same \FunctionSpace, then an attempt is made to convert \var{arg0}
-to the \FunctionSpace of \var{arg1} or to convert \var{arg1} to
-the \FunctionSpace of \var{arg0}. Both arguments must have the same
-\Shape or one of the arguments may be of rank 0 (a constant).
-
+\end{center}
+At least one of the arguments \var{arg0} or \var{arg1} must be a \Data object.
+Either of the arguments may be a \Data object, a \PYTHON number or a \numpy
+object.
+If \var{arg0} or \var{arg1} are not defined on the same \FunctionSpace, then
+an attempt is made to convert \var{arg0} to the \FunctionSpace of \var{arg1}
+or to convert \var{arg1} to the \FunctionSpace of \var{arg0}.
+Both arguments must have the same \Shape or one of the arguments may be of
+rank 0 (a constant).
 The returned \Data object has the same \Shape and is defined on
 the \DataSamplePoints as \var{arg0} or \var{arg1}.
 
 The following table shows the update operations that can be applied to
 \Data objects:
-\begin{table}
-    \centering
+\begin{center}
     \begin{tabular}{l|l}
-        \bfseries Expression & Description\\
+        \textbf{Expression} & \textbf{Description}\\
         \hline
-        \var{arg0}+=\var{arg2} & adds \var{arg0} to \var{arg2}\index{+}\\
-        \var{arg0}*=\var{arg2} & multiplies \var{arg0} with \var{arg2}\index{*}\\
-        \var{arg0}-=\var{arg2} & subtracts \var{arg2} from\var{arg2}\index{-}\\
-        \var{arg0}/=\var{arg2} & divides \var{arg0} by \var{arg2}\index{/}\\
-        \var{arg0}**=\var{arg2} & raises \var{arg0} by \var{arg2}\index{**}\\
+        \code{arg0+=arg1} & adds \var{arg1} to \var{arg0}\index{+}\\
+        \code{arg0*=arg1} & multiplies \var{arg0} by \var{arg1}\index{*}\\
+        \code{arg0-=arg1} & subtracts \var{arg1} from\var{arg0}\index{-}\\
+        \code{arg0/=arg1} & divides \var{arg0} by \var{arg1}\index{/}\\
+        \code{arg0**=arg1} & raises \var{arg0} to the power of \var{arg1}\index{**}\\
     \end{tabular}
-\end{table}
-\var{arg0} must be a \Data object. \var{arg1} must be a
-\Data object or an object that can be converted into a
-\Data object. \var{arg1} must have the same \Shape as
-\var{arg0} or have rank 0.  In the latter case it is
-assumed that the values of \var{arg1} are constant for all
-components. \var{arg1} must be defined in the same \FunctionSpace as
+\end{center}
+\var{arg0} must be a \Data object. \var{arg1} must be a \Data object or an
+object that can be converted into a \Data object.
+\var{arg1} must have the same \Shape as \var{arg0} or have rank 0.
+In the latter case it is assumed that the values of \var{arg1} are constant
+for all components. \var{arg1} must be defined in the same \FunctionSpace as
 \var{arg0} or it must be possible to interpolate \var{arg1} onto the
 \FunctionSpace of \var{arg0}.
 
-The \Data class supports taking slices from a \Data object as well as assigning new values to a slice of an existing
-\Data object. \index{slicing}
+The \Data class supports taking slices as well as assigning new values to a
+slice of an existing \Data object\index{slicing}.
 The following expressions for taking and setting slices are valid:
-\begin{table}
-    \centering
+\begin{center}
     \begin{tabular}{l|ll}
-        \bfseries rank of \var{arg} & slicing expression & \Shape of returned and assigned object\\
+        \textbf{Rank of \var{arg}} & \textbf{Slicing expression} & \textbf{\Shape of returned and assigned object}\\
         \hline
-        0 & no slicing & -\\
+        0 & no slicing & N/A\\
         1 & \var{arg[l0:u0]} & (\var{u0}-\var{l0},)\\
         2 & \var{arg[l0:u0,l1:u1]} & (\var{u0}-\var{l0},\var{u1}-\var{l1})\\
         3 & \var{arg[l0:u0,l1:u1,l2:u2]} & (\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2})\\
         4 & \var{arg[l0:u0,l1:u1,l2:u2,l3:u3]} & (\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})\\
     \end{tabular}
-\end{table}
+\end{center}
 where \var{s} is the \Shape of \var{arg} and
 \[0 \le \var{l0} \le \var{u0} \le \var{s[0]},\]
 \[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\]
