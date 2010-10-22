@@ -4,34 +4,34 @@ We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$ solv
 the Darcy flux problem \index{Darcy flux}\index{Darcy flow}
 \begin{equation}\label{DARCY PROBLEM}
 \begin{array}{rcl}
-u\hackscore{i} + \kappa\hackscore{ij} p\hackscore{,j} & = & g\hackscore{i} \\
-u\hackscore{k,k} & = & f
+u_{i} + \kappa_{ij} p_{,j} & = & g_{i} \\
+u_{k,k} & = & f
 \end{array}
 \end{equation} 
 with the boundary conditions
 \begin{equation}\label{DARCY BOUNDARY}
 \begin{array}{rcl}
-u\hackscore{i} \; n\hackscore{i}  = u^{N}\hackscore{i}  \; n\hackscore{i} & \mbox{ on } & \Gamma\hackscore{N} \\
-p = p^{D} &  \mbox{ on } & \Gamma\hackscore{D} \\ 
+u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
 \end{equation} 
-where $\Gamma\hackscore{N}$ and $\Gamma\hackscore{D}$ are a partition of the boundary of $\Omega$ with $\Gamma\hackscore{D}$ non empty, $n\hackscore{i}$ is the outer normal field of the boundary of $\Omega$, $u^{N}\hackscore{i}$ and $p^{D}$ are given functions on $\Omega$, $g\hackscore{i}$ and $f$ are given source terms and $\kappa\hackscore{ij}$ is the given permeability. We assume that $\kappa\hackscore{ij}$ is symmetric (which is not really required) and positive definite, i.e there are positive constants $\alpha\hackscore{0}$ and $\alpha\hackscore{1}$ which are independent from the location in $\Omega$ such that
+where $\Gamma_{N}$ and $\Gamma_{D}$ are a partition of the boundary of $\Omega$ with $\Gamma_{D}$ non empty, $n_{i}$ is the outer normal field of the boundary of $\Omega$, $u^{N}_{i}$ and $p^{D}$ are given functions on $\Omega$, $g_{i}$ and $f$ are given source terms and $\kappa_{ij}$ is the given permeability. We assume that $\kappa_{ij}$ is symmetric (which is not really required) and positive definite, i.e there are positive constants $\alpha_{0}$ and $\alpha_{1}$ which are independent from the location in $\Omega$ such that
 \begin{equation}
-\alpha\hackscore{0} \; x\hackscore{i} x\hackscore{i} \le \kappa\hackscore{ij} x\hackscore{i} x\hackscore{j} \le \alpha\hackscore{1} \; x\hackscore{i} x\hackscore{i}
+\alpha_{0} \; x_{i} x_{i} \le \kappa_{ij} x_{i} x_{j} \le \alpha_{1} \; x_{i} x_{i}
 \end{equation}
-for all $x\hackscore{i}$. 
+for all $x_{i}$. 
 
 \subsection{Solution Method \label{DARCY SOLVE}}
 It is useful to write equation~\ref{DARCY PROBLEM} in operator form. For any pressure $p$
 we set 
 \begin{equation}
-(Gp)\hackscore{i} =  p\hackscore{,j}
+(Gp)_{i} =  p_{,j}
 \end{equation}
 and a velocity $v$ we set
 \begin{equation}
-Dv = v\hackscore{k,k}
+Dv = v_{k,k}
 \end{equation}
-We $K=(\kappa\hackscore{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
+We $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
 \begin{equation}
 \begin{array}{rcl}
 u + K \, Gp & = & g \\
@@ -40,17 +40,17 @@ Du & = & f
 \end{equation} 
 We solve this equation by minimising the functional
 \begin{equation}\label{DARCY COST}
-J(u,p):=\|K^{-\frac{1}{2}}(u + K \, G p - g)\|^2\hackscore{0} +  \|\lambda (Du-f) \|\hackscore{0}^2 
+J(u,p):=\|K^{-\frac{1}{2}}(u + K \, G p - g)\|^2_{0} +  \|\lambda (Du-f) \|_{0}^2 
 \end{equation} 
-over all suitable $u$ and $p$. In this equation we set $\|p\|^2\hackscore{0}=(p,p)\hackscore{0}$ with
+over all suitable $u$ and $p$. In this equation we set $\|p\|^2_{0}=(p,p)_{0}$ with
 \begin{equation}
-(p,q)\hackscore{0} = \int\hackscore{\Omega } p\cdot q \, dx
+(p,q)_{0} = \int_{\Omega } p\cdot q \, dx
 \end{equation} 
 The factor $\lambda>0$ is a weighting factor.
 A simple calculation shows that
 one has to solve
 \begin{equation}
-( K^{-1} (v + K \, Gq) , u +K \, G p - g)\hackscore{0} +  (\lambda Dv,\lambda (Du-f) )\hackscore{0} =0 
+( K^{-1} (v + K \, Gq) , u +K \, G p - g)_{0} +  (\lambda Dv,\lambda (Du-f) )_{0} =0 
 \end{equation} 
 for all velocities $v$ and pressure $q$ which fulfill the homogeneous boundary conditions~\ref{DARCY BOUNDARY}.
 This so-called variational equation can be translated back into operator notation
@@ -60,9 +60,9 @@ This so-called variational equation can be translated back into operator notatio
 G^*u  + G^*K \, G p & = & G^*g \\ 
 \end{array}
 \end{equation} 
-where $D^*$ and $Q^*$ denote the  adjoint operators with respect to $(.,.)\hackscore{0}$. 
+where $D^*$ and $Q^*$ denote the  adjoint operators with respect to $(.,.)_{0}$. 
 In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is continuous and coercive and therefore has a unique solution. Also standard FEM methods can be used for discretization. It is also possible 
-to solve the problem in coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permeability ($\alpha\hackscore{1} \ll 1$ or $\alpha\hackscore{0} \gg 1$)  
+to solve the problem in coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permeability ($\alpha_{1} \ll 1$ or $\alpha_{0} \gg 1$)  
 
 The approach we are taking is to eliminate the velocity $v$ from the problem. Assuming that $p$ is known we have
 \begin{equation}\label{DARCY V FORM}
@@ -113,36 +113,36 @@ we need to solve the equation
 It remains to answer the question how to choose $\lambda$. We need to balance the first and second
 term in $J(u,p)$ in equation~\ref{DARCY COST}. We inspect $J$ for 
 $(\hat{u}, \hat{p})$ which is a perturbed exact solution $(u,p)$.   
-Assuming $\hat{u}=u+u\hackscore{0}e^{ik^tx}$
-and $\hat{p}=p+p\hackscore{0}e^{ik^tx}$ and constant $K$ we get 
+Assuming $\hat{u}=u+u_{0}e^{ik^tx}$
+and $\hat{p}=p+p_{0}e^{ik^tx}$ and constant $K$ we get 
 \begin{equation}
-J(\hat{u},\hat{p}) = C \left[ ( \|K^{-1}\|\hackscore{2} |u\hackscore{0}|^2 + \|K\|\hackscore{2} \|k\|\hackscore{2}^2 |p\hackscore{0}|^2| )
-+ \lambda^2 \|k\|\hackscore{2}^2 |u\hackscore{0}|^2  \right]
+J(\hat{u},\hat{p}) = C \left[ ( \|K^{-1}\|_{2} |u_{0}|^2 + \|K\|_{2} \|k\|_{2}^2 |p_{0}|^2| )
++ \lambda^2 \|k\|_{2}^2 |u_{0}|^2  \right]
 \end{equation} 
 with some constant $C>0$. The first two terms and the third term correspond to the first term and
-second term in the definition of $J(u,p)$ in equation~\ref{DARCY COST}. For small $\|k\|\hackscore{2}$
-(i.e. for a smooth perturbation) $J(\hat{u},\hat{p})$ is dominated by $\|K^{-1}\|\hackscore{2} |u\hackscore{0}|^2$.
+second term in the definition of $J(u,p)$ in equation~\ref{DARCY COST}. For small $\|k\|_{2}$
+(i.e. for a smooth perturbation) $J(\hat{u},\hat{p})$ is dominated by $\|K^{-1}\|_{2} |u_{0}|^2$.
 To scale the second term which is corresponds to the incompressibility condition for the velocity
-we need to meet the condition $\|K^{-1}\|\hackscore{2} =  \lambda^2 \|k\|\hackscore{2}^2$. 
-Taking the boundary conditions into consideration the smallest possible value for $\|k\|\hackscore{2} = \frac{\pi}{l}$ where $l$ is the longest edge of the domain. This leads to the 
+we need to meet the condition $\|K^{-1}\|_{2} =  \lambda^2 \|k\|_{2}^2$. 
+Taking the boundary conditions into consideration the smallest possible value for $\|k\|_{2} = \frac{\pi}{l}$ where $l$ is the longest edge of the domain. This leads to the 
 \begin{equation}\label{DARCY LAMBDA}
-\lambda = \|K^{-1}\|\hackscore{2}^{\frac{1}{2}} \frac{l}{\pi}
+\lambda = \|K^{-1}\|_{2}^{\frac{1}{2}} \frac{l}{\pi}
 \end{equation} 
 Notice that with this setting the preconditioner $G^* \frac{\lambda^2}{dx^2} K^2 G$ becomes 
 equivalent to $G^* K G$ if $K$ is a diagonal matrix and the mesh has a constant mesh size.
 
 The residual norm used in the PCG is given as
 \begin{equation}\label{DARCY R NORM}
-\|r\|\hackscore{PCG}^2 = \int r (G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1} r \; dx =\int \hat{r}  G ( G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1}  G^* \hat{r} \; dx \approx
+\|r\|_{PCG}^2 = \int r (G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1} r \; dx =\int \hat{r}  G ( G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1}  G^* \hat{r} \; dx \approx
 \int \hat{r} K^{-1}  \hat{r} \; dx 
 \end{equation}
 The iteration is terminated if 
 \begin{equation}\label{DARCY STOP}
-\|r\|\hackscore{PCG} \le \mbox{ATOL}
+\|r\|_{PCG} \le \mbox{ATOL}
 \end{equation}
 where we set 
 \begin{equation}\label{DARCY ATOL DEF}
-\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|K^{-\frac{1}{2}}v\|\hackscore{0}} + \frac{1}{\|K^{\frac{1}{2}} G p\|\hackscore{0}} \right)^{-1} 
+\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|K^{-\frac{1}{2}}v\|_{0}} + \frac{1}{\|K^{\frac{1}{2}} G p\|_{0}} \right)^{-1} 
 \end{equation}
 where rtol is a given relative tolerance and $\mbox{atol}$ is a given absolute tolerance (typically $=0$).  
 Notice that if $Gp$ and $v$ both are zero, the pair $(0,p)$ is a solution.

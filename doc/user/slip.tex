@@ -11,71 +11,71 @@ an earthquake.
 
 To simplify the presentation we assume a simple domain $\Omega=[0,1]^2$ with
 a vertical fault in its center as illustrated in \fig{fig:slip.1}.
-We assume that the slip distribution $s\hackscore{i}$ on the fault is known.
-We want to calculate the distribution of the displacements $u\hackscore{i}$\index{displacement}
+We assume that the slip distribution $s_{i}$ on the fault is known.
+We want to calculate the distribution of the displacements $u_{i}$\index{displacement}
 and stress $\sigma_{ij}$\index{stress} in the domain.
 Further, we assume an isotropic, linear elastic material model of the form
 \begin{eqnarray} \label{Slip  stress}
-\sigma\hackscore{ij} & = & \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
+\sigma_{ij} & = & \lambda u_{k,k} \delta_{ij} + \mu ( u_{i,j} + u_{j,i})
 \end{eqnarray}
 where $\lambda$ and $\mu$ are the Lame coefficients\index{Lame coefficients}
-and $\delta\hackscore{ij}$ denotes the Kronecker symbol\index{Kronecker symbol}.
+and $\delta_{ij}$ denotes the Kronecker symbol\index{Kronecker symbol}.
 On the boundary the normal stress is given by
 \begin{eqnarray} \label{Slip natural fault}
-\sigma\hackscore{ij}n\hackscore{j}=0
+\sigma_{ij}n_{j}=0
 \end{eqnarray}
 and normal displacements are set to zero:
 \begin{eqnarray} \label{Slip constraint}
-u\hackscore{i}n\hackscore{i} =0
+u_{i}n_{i} =0
 \end{eqnarray}
 The stress needs to fulfill the momentum equation\index{momentum equation}
 \begin{eqnarray}\label{Slip general problem}
-- \sigma\hackscore{ij,j}=0
+- \sigma_{ij,j}=0
 \end{eqnarray}
 This problem is very similar to the elastic deformation problem presented in \Sec{ELASTIC CHAP}.
 However, we need to address an additional challenge: the displacement
-$u\hackscore{i}$ is in fact discontinuous across the fault, but we are in the
+$u_{i}$ is in fact discontinuous across the fault, but we are in the
 lucky situation that we know the jump of the displacements across the fault.
-This is in fact the given slip $s\hackscore{i}$.
-So we can split the total distribution $u\hackscore{i}$ into a component
-$v\hackscore{i}$ which is continuous across the fault and the known slip $s\hackscore{i}$
+This is in fact the given slip $s_{i}$.
+So we can split the total distribution $u_{i}$ into a component
+$v_{i}$ which is continuous across the fault and the known slip $s_{i}$
 \begin{eqnarray}\label{Slip Split}
-u\hackscore{i} = v\hackscore{i} + \frac{1}{2} s^{\pm}\hackscore{i}
+u_{i} = v_{i} + \frac{1}{2} s^{\pm}_{i}
 \end{eqnarray}
 where $s^{\pm}=s$ when right of the fault and $s^{\pm}=-s$ when left of the fault.
 We assume that $s^{\pm}=0$ when sufficiently away from the fault.
 
 We insert this into the stress definition in \eqn{Slip stress}
 \begin{eqnarray} \label{Slip stress split}
-\sigma\hackscore{ij} & = &
-\sigma^c\hackscore{ij} +
-\frac{1}{2} \sigma^s\hackscore{ij}
+\sigma_{ij} & = &
+\sigma^c_{ij} +
+\frac{1}{2} \sigma^s_{ij}
 \end{eqnarray}
  with
 \begin{eqnarray} \label{Slip stress split 1}
-\sigma^c\hackscore{ij} = \lambda v\hackscore{k,k} \delta\hackscore{ij} + \mu ( v\hackscore{i,j} + v\hackscore{j,i})
+\sigma^c_{ij} = \lambda v_{k,k} \delta_{ij} + \mu ( v_{i,j} + v_{j,i})
 \end{eqnarray}
 and
 \begin{eqnarray} \label{Slip stress split 2}
-\sigma^s\hackscore{ij} = \lambda s^{\pm}\hackscore{k,k} \delta\hackscore{ij} + \mu ( s^{\pm}\hackscore{i,j} + s^{\pm}\hackscore{j,i}).
+\sigma^s_{ij} = \lambda s^{\pm}_{k,k} \delta_{ij} + \mu ( s^{\pm}_{i,j} + s^{\pm}_{j,i}).
 \end{eqnarray}
-In fact, $\sigma^s\hackscore{ij}$ defines a stress jump across the fault.
+In fact, $\sigma^s_{ij}$ defines a stress jump across the fault.
 An easy way to construct this function is to use a function $\chi$ which is
 $1$ on the right and $-1$ on the left side from the fault.
 One can then set
 \begin{eqnarray} \label{Slip  stress split 23 }
-\sigma^s\hackscore{ij} = \chi \cdot  ( \lambda s\hackscore{k,k} \delta\hackscore{ij} + \mu ( s\hackscore{i,j} + s\hackscore{j,i}) )
+\sigma^s_{ij} = \chi \cdot  ( \lambda s_{k,k} \delta_{ij} + \mu ( s_{i,j} + s_{j,i}) )
 \end{eqnarray}
 assuming that $s$ is extended by zero away from the fault.
 After inserting \eqn{Slip stress split} into (\ref{Slip general problem}) we
 get the differential equation\index{momentum equation}
 \begin{eqnarray}\label{Slip general problem 2 }
-- \sigma^c\hackscore{ij,j}=\frac{1}{2} \sigma^s\hackscore{ij,j}
+- \sigma^c_{ij,j}=\frac{1}{2} \sigma^s_{ij,j}
 \end{eqnarray}
 Together with the definition (\ref{Slip stress split 1}) we have a
 differential equation for the continuous function $v_i$.
 Notice that the boundary condition (\ref{Slip constraint}) and (\ref{Slip natural fault})
-transfer to $v_i$ and $\sigma^c\hackscore{ij}$ as $s$ is zero away from the fault.
+transfer to $v_i$ and $\sigma^c_{ij}$ as $s$ is zero away from the fault.
 In \Sec{ELASTIC CHAP} we have discussed how this problem is solved using
 the \LinearPDE class. We refer to this section for further details.
 
