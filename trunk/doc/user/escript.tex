@@ -43,7 +43,7 @@ PDE solutions on the \Domain \var{mydomain}:
 \begin{python}
   solution_space=Solution(mydomain)
 \end{python}
-The following generators for function spaces on a \Domain \var{mydomain} are commonly used: 
+The following generators for function spaces on a \Domain \var{mydomain} are commonly used:
 \begin{itemize}
 \item \var{Solution(mydomain)}: solutions of a PDE
 \item \var{ReducedSolution(mydomain)}: solutions of a PDE with a reduced
@@ -60,7 +60,7 @@ In some cases under-integration is used. For these cases the user may use a
 \begin{itemize}
 \item \var{ReducedFunction(mydomain)}
 \item \var{ReducedFunctionOnBoundary(mydomain)}
-\item \var{ReducedFunctionOnContact0(mydomain)} 
+\item \var{ReducedFunctionOnContact0(mydomain)}
 \item \var{ReducedFunctionOnContact1(mydomain)}
 \end{itemize}
 In comparison to the corresponding full version they use a reduced number of
@@ -83,7 +83,7 @@ A discontinuity\index{discontinuity} is a region within the domain across
 which functions may be discontinuous.
 The location of a discontinuity is defined in the \Domain object.
 \fig{ESCRIPT DEP} shows the dependency between the types of function spaces
-in \finley (other libraries may have different relationships). 
+in \finley (other libraries may have different relationships).
 
 The solution of a PDE is a continuous function. Any continuous function can
 be seen as a general function on the domain and can be restricted to the
@@ -107,21 +107,21 @@ but in a finite difference scheme the edge midpoint of cells is preferred.
 By changing its function space you can use the same function in a Finite
 Difference scheme instead of Finite Element scheme.
 Changing the function space of a particular function will typically lead to
-a change of its representation. 
+a change of its representation.
 So, when seen as a general function, a continuous function which is typically
 represented by its values on the nodes of the FEM mesh or finite difference
 grid must be interpolated to the element centers or the cell edges,
 respectively. Interpolation happens automatically in \escript whenever it is
 required\index{interpolation}. The user needs to be aware that an
 interpolation is not always possible, see \fig{ESCRIPT DEP} for \finley.
-An alternative approach to change the representation (=\FunctionSpace) is 
+An alternative approach to change the representation (=\FunctionSpace) is
 projection\index{projection}, see \Sec{SEC Projection}.
 
 \subsection{\Data objects}
 In \escript the class that stores these functions is called \Data.
 The function is represented through its values on \DataSamplePoints where
 the \DataSamplePoints are chosen according to the function space of the
-function.  
+function.
 \Data class objects are used to define the coefficients of the PDEs to be
 solved by a PDE solver library and also to store the solutions of the PDE.
 
@@ -144,7 +144,7 @@ components.
 
 \Data objects can also be created from any \numpy array or any object, such
 as a list of floating point numbers, that can be converted into
-a \numpyNDA\cite{NUMPY}. 
+a \numpyNDA\cite{NUMPY}.
 The following two statements create objects which are equivalent
 to \var{mydat}:
 \begin{python}
@@ -155,7 +155,7 @@ In the first case the initial value is \var{numpy.ones((2,3))} which generates
 a $2 \times 3$ matrix as a \numpyNDA filled with ones.
 The \Shape of the created \Data object is taken from the \Shape of the array.
 In the second case, the creator converts the initial value, which is a list of
-lists, into a \numpyNDA before creating the actual \Data object.      
+lists, into a \numpyNDA before creating the actual \Data object.
 
 For convenience \escript provides creators for the most common types
 of \Data objects in the following forms (\var{d} defines the spatial dimension):
@@ -187,9 +187,9 @@ The following example shows the usage of \Data objects. Assume we have a
 displacement field $u$ and we want to calculate the corresponding stress field
 $\sigma$ using the linear-elastic isotropic material model
 \begin{eqnarray}\label{eq: linear elastic stress}
-\sigma\hackscore {ij}=\lambda u\hackscore {k,k} \delta\hackscore {ij} + \mu ( u\hackscore {i,j} + u\hackscore {j,i})
+\sigma_{ij}=\lambda u_{k,k} \delta_{ij} + \mu ( u_{i,j} + u_{j,i})
 \end{eqnarray}
-where $\delta\hackscore {ij}$ is the Kronecker symbol and
+where $\delta_{ij}$ is the Kronecker symbol and
 $\lambda$ and $\mu$ are the Lame coefficients. The following function
 takes the displacement \var{u} and the Lame coefficients \var{lam} and \var{mu}
 as arguments and returns the corresponding stress:
@@ -207,7 +207,7 @@ displacements are defined.
 from 0 to \var{d}-1.
 The call \var{grad(u)} requires the displacement field \var{u} to be in
 the \var{Solution} or \ContinuousFunction.
-The result \var{g} as well as the returned stress will be in the \Function. 
+The result \var{g} as well as the returned stress will be in the \Function.
 If, for example, \var{u} is the solution of a PDE then \code{getStress} might
 be called in the following way:
 \begin{python}
@@ -290,7 +290,7 @@ The tagged case has already been discussed above.
 Expanded data is created when you create a \Data object with \code{expanded=True}.
 Tagged data sets are created when you use the \member{insertTaggedValue}
 method as shown above.
- 
+
 Values are accessed through a sample reference number.
 Operations on expanded \Data objects have to be performed for each sample
 point individually.
@@ -399,10 +399,8 @@ in a restart directory and also stores \var{t} and \var{t_max} on disk.
 Additionally, it generates a \VTK file for visualization of the data.
 
 \section{\escript Classes}
-\declaremodule{extension}{esys.escript} 
-\modulesynopsis{Data manipulation}
 
-\subsection{\Domain class}
+\subsection{The \Domain class}
 \begin{classdesc}{Domain}{}
 A \Domain object is used to describe a geometric region together with
 a way of representing functions over this region.
@@ -437,7 +435,7 @@ returns the local sample size, e.g. the element diameter, as \Data object.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{setTagMap}{tag_name, tag}
-defines a mapping of the tag name  \var{tag_name} to the \var{tag}. 
+defines a mapping of the tag name  \var{tag_name} to the \var{tag}.
 \end{methoddesc}
 \begin{methoddesc}[Domain]{getTag}{tag_name}
 returns the tag associated with the tag name \var{tag_name}.
@@ -452,7 +450,7 @@ return \True if \var{tag_name} is a valid tag name.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{__ne__}{arg}
-(python != operator) returns \True if the \Domain \var{arg} does not describe the same domain. 
+(python != operator) returns \True if the \Domain \var{arg} does not describe the same domain.
 Otherwise \False is returned.
 \end{methoddesc}
 
@@ -461,7 +459,7 @@ Otherwise \False is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{onMasterProcessor)}{}
-returns \True if the processor is the master processor within 
+returns \True if the processor is the master processor within
 the \MPI processor group used by the \Domain. This is the processor with rank 0.
 If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
@@ -472,21 +470,21 @@ If \MPI support is not enabled the return value is always \True.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{getMPIRank}{}
- returns the rank of the processor executing the statement 
-within the  \MPI processor group used by the \Domain. 
+ returns the rank of the processor executing the statement
+within the  \MPI processor group used by the \Domain.
 If \MPI support is not enabled 0 is returned.
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{MPIBarrier}{}
-executes barrier synchronization within 
+executes barrier synchronization within
 the \MPI processor group used by the \Domain.
-If \MPI support is not enabled, this command does nothing. 
+If \MPI support is not enabled, this command does nothing.
 \end{methoddesc}
 
-\subsection{\FunctionSpace class}
+\subsection{The \FunctionSpace class}
 \begin{classdesc}{FunctionSpace}{}
 \FunctionSpace objects are used to define properties of \Data objects, such as continuity. \FunctionSpace objects
-are instantiated by generator functions. A \Data object in a particular \FunctionSpace is 
+are instantiated by generator functions. A \Data object in a particular \FunctionSpace is
 represented by its values at \DataSamplePoints which are defined by the type and the \Domain of the
 \FunctionSpace.
 \end{classdesc}
@@ -502,14 +500,14 @@ returns the location of the \DataSamplePoints.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{getNormal}{}
-If the domain of functions in the \FunctionSpace 
+If the domain of functions in the \FunctionSpace
 is a hyper-manifold (e.g. the boundary of a domain)
-the method returns the outer normal at each of the 
+the method returns the outer normal at each of the
 \DataSamplePoints. Otherwise an exception is raised.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{getSize}{}
-returns a \Data objects measuring the spacing of the \DataSamplePoints.  
+returns a \Data objects measuring the spacing of the \DataSamplePoints.
 The size may be zero.
 \end{methoddesc}
 
@@ -518,8 +516,8 @@ returns the \Domain of the \FunctionSpace.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{setTags}{new_tag, mask}
-assigns a new tag \var{new_tag} to all data sample 
-where \var{mask} is positive for a least one data point. 
+assigns a new tag \var{new_tag} to all data sample
+where \var{mask} is positive for a least one data point.
 \var{mask} must be defined on the this \FunctionSpace.
 Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
@@ -530,7 +528,7 @@ Use the \var{setTagMap} to assign a tag name to \var{new_tag}.
 \end{methoddesc}
 
 \begin{methoddesc}[FunctionSpace]{__ne__}{arg}
-(python != operator) returns \True if the \Domain \var{arg} do not describe the same domain. 
+(python != operator) returns \True if the \Domain \var{arg} do not describe the same domain.
 Otherwise \False is returned.
 \end{methoddesc}
 
@@ -541,7 +539,7 @@ Otherwise \False is returned.
 The following function provide generators for \FunctionSpace objects:
 \begin{funcdesc}{Function}{domain}
 returns the \Function on the \Domain \var{domain}. \Data objects in this type of \Function
-are defined over the whole geometric region defined by \var{domain}. 
+are defined over the whole geometric region defined by \var{domain}.
 \end{funcdesc}
 
 \begin{funcdesc}{ContinuousFunction}{domain}
@@ -552,7 +550,7 @@ a continuous function.
 
 \begin{funcdesc}{FunctionOnBoundary}{domain}
 returns the \ContinuousFunction on the \Domain domain. \Data objects in this type of \Function
-are defined on the boundary of the geometric region defined by \var{domain}. 
+are defined on the boundary of the geometric region defined by \var{domain}.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactZero}{domain}
@@ -562,7 +560,7 @@ The discontinuity is defined when \var{domain} is instantiated.
 \end{funcdesc}
 
 \begin{funcdesc}{FunctionOnContactOne}{domain}
-returns the \FunctionOnContactOne on the \Domain domain. 
+returns the \FunctionOnContactOne on the \Domain domain.
 \Data objects in this type of \Function
 are defined on side 1 of a discontinuity  within the geometric region defined by \var{domain}.
 The discontinuity is defined when \var{domain} is instantiated.
@@ -571,17 +569,17 @@ The discontinuity is defined when \var{domain} is instantiated.
 \begin{funcdesc}{Solution}{domain}
 returns the \SolutionFS on the \Domain domain. \Data objects in this type of \Function
 are defined on geometric region defined by \var{domain} and are solutions of
-partial differential equations \index{partial differential equation}. 
+partial differential equations \index{partial differential equation}.
 \end{funcdesc}
 
 \begin{funcdesc}{ReducedSolution}{domain}
 returns the \ReducedSolutionFS on the \Domain domain. \Data objects in this type of \Function
 are defined on geometric region defined by \var{domain} and are solutions of
-partial differential equations \index{partial differential equation} with a reduced smoothness 
+partial differential equations \index{partial differential equation} with a reduced smoothness
 for the solution approximation.
 \end{funcdesc}
 
-\subsection{\Data Class}
+\subsection{The \Data Class}
 \label{SEC ESCRIPT DATA}
 
 The following table shows arithmetic operations that can be performed point-wise on
@@ -651,14 +649,14 @@ The following expressions for taking and setting slices are valid:
         4 & \var{arg[l0:u0,l1:u1,l2:u2,l3:u3]} & (\var{u0}-\var{l0},\var{u1}-\var{l1},\var{u2}-\var{l2},\var{u3}-\var{l3})\\
     \end{tabular}
 \end{table}
-where \var{s} is the \Shape of \var{arg} and 
+where \var{s} is the \Shape of \var{arg} and
 \[0 \le \var{l0} \le \var{u0} \le \var{s[0]},\]
-\[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\] 
-\[0 \le \var{l2} \le \var{u2} \le \var{s[2]},\] 
+\[0 \le \var{l1} \le \var{u1} \le \var{s[1]},\]
+\[0 \le \var{l2} \le \var{u2} \le \var{s[2]},\]
 \[0 \le \var{l3} \le \var{u3} \le \var{s[3]}.\]
-Any of the lower indexes \var{l0}, \var{l1}, \var{l2} and \var{l3} may not be present in which case 
-$0$ is assumed. 
-Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may be omitted, in which case, the upper limit for that dimension is assumed. 
+Any of the lower indexes \var{l0}, \var{l1}, \var{l2} and \var{l3} may not be present in which case
+$0$ is assumed.
+Any of the upper indexes \var{u0}, \var{u1}, \var{u2} and \var{u3} may be omitted, in which case, the upper limit for that dimension is assumed.
 The lower and upper index may be identical, in which case the column and the lower or upper
 index may be dropped. In the returned or in the object assigned to a slice, the corresponding component is dropped,
 i.e. the rank is reduced by one in comparison to \var{arg}.
@@ -679,8 +677,8 @@ the \Data object is represented in expanded from.
 \end{classdesc}
 
 \begin{classdesc}{Data}{value,what=FunctionSpace(),expand=\False}
-creates a \Data object in the \FunctionSpace \var{what}. 
-The value for each \DataSamplePoints is set to \var{value}, which could be a \numpy, \Data object \var{value} or a dictionary of 
+creates a \Data object in the \FunctionSpace \var{what}.
+The value for each \DataSamplePoints is set to \var{value}, which could be a \numpy, \Data object \var{value} or a dictionary of
 \numpy or floating point numbers. In the latter case the keys must be integers and are used
 as tags.
 The \Shape of the returned object is equal to the \Shape of \var{value}. If \var{expanded} is \True
@@ -731,7 +729,7 @@ recovers a \Data object on \Domain \var{domain} from the file \var{filename}, wh
 \end{funcdesc}
 
 \subsection{\Data methods}
-These are the most frequently-used methods of the 
+These are the most frequently-used methods of the
 \Data class. A complete list of methods can be found on \ReferenceGuide.
 \begin{methoddesc}[Data]{getFunctionSpace}{}
 returns the \FunctionSpace of the object.
@@ -772,7 +770,7 @@ the value assigned to \DataSamplePoints with tag \var{tag_name} is replaced by
 \begin{methoddesc}[Data]{dump}{filename}
 dumps the \Data object to the file \var{filename}. The file stores the
 function space but not the \Domain. It is in the responsibility of the user to
-save the \Domain. 
+save the \Domain.
 \end{methoddesc}
 
 \begin{methoddesc}[Data]{__str__}{}
@@ -783,27 +781,27 @@ returns a string representation of the object.
 This section lists the most important functions for \Data class objects \var{a}.
 A complete list and a more detailed description of the functionality can be found on \ReferenceGuide.
 \begin{funcdesc}{saveVTK}{filename,**kwdata}
-writes \Data defined by keywords in the file with \var{filename} using the 
+writes \Data defined by keywords in the file with \var{filename} using the
 vtk file format \VTK file format. The key word is used as an identifier. The statement
 \begin{python}
   saveVTK("out.xml",temperature=T,velocity=v)
-\end{python} 
-will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
+\end{python}
+will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the
 file \file{out.xml}. Restrictions on the allowed combinations of \FunctionSpace apply.
 \end{funcdesc}
 \begin{funcdesc}{saveDX}{filename,**kwdata}
-writes \Data defined by keywords in the file with \var{filename} using the 
+writes \Data defined by keywords in the file with \var{filename} using the
 vtk file format \OpenDX file format. The key word is used as an identifier. The statement
 \begin{python}
   saveDX("out.dx",temperature=T,velocity=v)
-\end{python} 
-will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the 
+\end{python}
+will write the scalar \var{T} as \var{temperature} and the vector \var{v} as  \var{velocity} into the
 file \file{out.dx}. Restrictions on the allowed combinations of \FunctionSpace apply.
 \end{funcdesc}
 \begin{funcdesc}{kronecker}{d}
 returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 \begin{equation}
-\code{kronecker(d)}\left[ i,j\right] = \left\{ 
+\code{kronecker(d)}\left[ i,j\right] = \left\{
 \begin{array}{cc}
 1 & \mbox{ if } i=j \\
 0 & \mbox{ otherwise }
@@ -816,7 +814,7 @@ If \var{d} is an integer a $(d,d)$ \numpy array is returned.
 is a synonym for \code{kronecker} (see above).
 % returns a \RankTwo \Data object in \FunctionSpace \var{d} such that
 % \begin{equation}
-% \code{identityTensor(d)}\left[ i,j\right] = \left\{ 
+% \code{identityTensor(d)}\left[ i,j\right] = \left\{
 % \begin{array}{cc}
 % 1 & \mbox{ if } i=j \\
 % 0 & \mbox{ otherwise }
@@ -828,7 +826,7 @@ is a synonym for \code{kronecker} (see above).
 \begin{funcdesc}{identityTensor4}{d}
 returns a \RankFour \Data object in \FunctionSpace \var{d} such that
 \begin{equation}
-\code{identityTensor(d)}\left[ i,j,k,l\right] = \left\{ 
+\code{identityTensor(d)}\left[ i,j,k,l\right] = \left\{
 \begin{array}{cc}
 1 & \mbox{ if } i=k \mbox{ and } j=l\\
 0 & \mbox{ otherwise }
@@ -840,7 +838,7 @@ If \var{d} is an integer a $(d,d,d,d)$ \numpy array is returned.
 \begin{funcdesc}{unitVector}{i,d}
 returns a \RankOne \Data object in \FunctionSpace \var{d} such that
 \begin{equation}
-\code{identityTensor(d)}\left[ j \right] = \left\{ 
+\code{identityTensor(d)}\left[ j \right] = \left\{
 \begin{array}{cc}
 1 & \mbox{ if } j=i\\
 0 & \mbox{ otherwise }
@@ -853,7 +851,7 @@ If \var{d} is an integer a $(d,)$ \numpy array is returned.
 
 \begin{funcdesc}{Lsup}{a}
 returns the $L^{sup}$ norm of \var{arg}. This is the maximum of the absolute values
- over all components and all \DataSamplePoints of \var{a}. 
+ over all components and all \DataSamplePoints of \var{a}.
 \end{funcdesc}
 
 \begin{funcdesc}{sup}{a}
@@ -877,42 +875,42 @@ returns at each \DataSamplePoints the maximum value over all components.
 \begin{funcdesc}{length}{a}
 returns at Euclidean norm at each \DataSamplePoints. For a \RankFour \var{a} this is
 \begin{equation}
-\code{length(a)}=\sqrt{\sum\hackscore{ijkl} \var{a} \left[i,j,k,l\right]^2}
-\end{equation} 
+\code{length(a)}=\sqrt{\sum_{ijkl} \var{a} \left[i,j,k,l\right]^2}
+\end{equation}
 \end{funcdesc}
 \begin{funcdesc}{trace}{a\optional{,axis_offset=0}}
 returns the trace of \var{a}. This is the sum over components \var{axis_offset} and \var{axis_offset+1} with the same index. For instance in the
-case of a \RankTwo function and this is 
+case of a \RankTwo function and this is
 \begin{equation}
-\code{trace(a)}=\sum\hackscore{i} \var{a} \left[i,i\right]
-\end{equation} 
+\code{trace(a)}=\sum_{i} \var{a} \left[i,i\right]
+\end{equation}
 and for a \RankFour function and  \code{axis_offset=1} this is
 \begin{equation}
-\code{trace(a,1)}\left[i,j\right]=\sum\hackscore{k} \var{a} \left[i,k,k,j\right]
-\end{equation} 
+\code{trace(a,1)}\left[i,j\right]=\sum_{k} \var{a} \left[i,k,k,j\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{transpose}{a\optional{, axis_offset=None}}
 returns the transpose of \var{a}. This swaps the first \var{axis_offset} components of \var{a} with the rest. If \var{axis_offset} is not
-present \code{int(r/2)} is used where \var{r} is the rank of \var{a}. 
+present \code{int(r/2)} is used where \var{r} is the rank of \var{a}.
  the sum over components \var{axis_offset} and \var{axis_offset+1} with the same index. For instance in the
-case of a \RankTwo function and this is 
+case of a \RankTwo function and this is
 \begin{equation}
 \code{transpose(a)}\left[i,j\right]=\var{a} \left[j,i\right]
-\end{equation} 
+\end{equation}
 and for a \RankFour function and  \code{axis_offset=1} this is
 \begin{equation}
 \code{transpose(a,1)}\left[i,j,k,l\right]=\var{a} \left[j,k,l,i\right]
-\end{equation} 
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{swap_axes}{a\optional{, axis0=0 \optional{, axis1=1 }}}
 returns \var{a} but with swapped components \var{axis0} and  \var{axis1}. The argument \var{a} must be
-at least of \RankTwo. For instance in the 
+at least of \RankTwo. For instance in the
 for a \RankFour argument, \code{axis0=1} and \code{axis1=2} this is
 \begin{equation}
 \code{swap_axes(a,1,2)}\left[i,j,k,l\right]=\var{a} \left[i,k,j,l\right]
-\end{equation} 
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{symmetric}{a}
@@ -922,41 +920,41 @@ returns the symmetric part of \var{a}. This is \code{(a+transpose(a))/2}.
 returns the non--symmetric part of \var{a}. This is \code{(a-transpose(a))/2}.
 \end{funcdesc}
 \begin{funcdesc}{inverse}{a}
-return the inverse of \var{a}. This is 
+return the inverse of \var{a}. This is
 \begin{equation}
 \code{matrix_mult(inverse(a),a)=kronecker(d)}
-\end{equation} 
-if \var{a} has shape \code{(d,d)}. The current implementation is restricted to arguments of shape 
+\end{equation}
+if \var{a} has shape \code{(d,d)}. The current implementation is restricted to arguments of shape
 \code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
 \begin{funcdesc}{eigenvalues}{a}
-return the eigenvalues of \var{a}. This is 
+return the eigenvalues of \var{a}. This is
 \begin{equation}
 \code{matrix_mult(a,V)=e[i]*V}
-\end{equation} 
-where \code{e=eigenvalues(a)} and \var{V} is suitable non--zero vector \var{V}. 
+\end{equation}
+where \code{e=eigenvalues(a)} and \var{V} is suitable non--zero vector \var{V}.
 The eigenvalues are ordered in increasing size.
-The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.  
-The current implementation is restricted to arguments of shape 
+The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.
+The current implementation is restricted to arguments of shape
 \code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
 \begin{funcdesc}{eigenvalues_and_eigenvectors}{a}
-return the eigenvalues and eigenvectors of \var{a}. This is 
+return the eigenvalues and eigenvectors of \var{a}. This is
 \begin{equation}
 \code{matrix_mult(a,V[:,i])=e[i]*V[:,i]}
-\end{equation} 
+\end{equation}
 where \code{e,V=eigenvalues_and_eigenvectors(a)}. The eigenvectors \var{V} are orthogonal and normalized, ie.
 \begin{equation}
 \code{matrix_mult(transpose(V),V)=kronecker(d)}
-\end{equation} 
+\end{equation}
 if \var{a} has shape \code{(d,d)}. The eigenvalues are ordered in increasing size.
-The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.  
-The current implementation is restricted to arguments of shape 
+The argument \var{a} has to be the symmetric, ie. \code{a=symmetric(a)}.
+The current implementation is restricted to arguments of shape
 \code{(2,2)} and \code{(3,3)}.
 \end{funcdesc}
 \begin{funcdesc}{maximum}{*a}
 returns the maximum value over all arguments at all \DataSamplePoints and for each component.
-For instance 
+For instance
 \begin{equation}
 \code{maximum(a0,a1)}\left[i,j\right]=max(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
 \end{equation}
@@ -964,7 +962,7 @@ at all \DataSamplePoints.
 \end{funcdesc}
 \begin{funcdesc}{minimum}{*a}
 returns the minimum value over all arguments at all \DataSamplePoints and for each component.
-For instance 
+For instance
 \begin{equation}
 \code{minimum(a0,a1)}\left[i,j\right]=min(\var{a0} \left[i,j\right],\var{a1} \left[i,j\right])
 \end{equation}
@@ -972,77 +970,77 @@ at all \DataSamplePoints.
 \end{funcdesc}
 
 \begin{funcdesc}{clip}{a\optional{, minval=0.}\optional{, maxval=1.}}
-cuts back \var{a} into the range between \var{minval} and \var{maxval}. A value in the returned object equals 
-\var{minval} if the corresponding value of \var{a} is less than \var{minval}, equals \var{maxval} if the 
+cuts back \var{a} into the range between \var{minval} and \var{maxval}. A value in the returned object equals
+\var{minval} if the corresponding value of \var{a} is less than \var{minval}, equals \var{maxval} if the
  corresponding value of \var{a} is greater than \var{maxval}
 or corresponding value of \var{a} otherwise.
 \end{funcdesc}
 \begin{funcdesc}{inner}{a0,a1}
 returns the inner product of \var{a0} and \var{a1}. For instance in the
-case of \RankTwo arguments and this is 
+case of \RankTwo arguments and this is
 \begin{equation}
-\code{inner(a)}=\sum\hackscore{ij}\var{a0} \left[j,i\right]  \cdot \var{a1} \left[j,i\right]
-\end{equation} 
+\code{inner(a)}=\sum_{ij}\var{a0} \left[j,i\right]  \cdot \var{a1} \left[j,i\right]
+\end{equation}
 and for a \RankFour arguments this is
 \begin{equation}
-\code{inner(a)}=\sum\hackscore{ijkl}\var{a0} \left[i,j,k,l\right]  \cdot \var{a1} \left[j,i,k,l\right]
-\end{equation} 
+\code{inner(a)}=\sum_{ijkl}\var{a0} \left[i,j,k,l\right]  \cdot \var{a1} \left[j,i,k,l\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{matrix_mult}{a0,a1}
 returns the matrix product of \var{a0} and \var{a1}. If \var{a1} is \RankOne this is
 \begin{equation}
-\code{matrix_mult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k\right]
-\end{equation} 
+\code{matrix_mult(a)}\left[i\right]=\sum_{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k\right]
+\end{equation}
 and if \var{a1} is \RankTwo this is
 \begin{equation}
-\code{matrix_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
-\end{equation} 
+\code{matrix_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[k,j\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{transposed_matrix_mult}{a0,a1}
-returns the matrix product of the transposed of \var{a0} and \var{a1}. The function is equivalent to 
+returns the matrix product of the transposed of \var{a0} and \var{a1}. The function is equivalent to
 \code{matrix_mult(transpose(a0),a1)}.
 If \var{a1} is \RankOne this is
 \begin{equation}
-\code{transposed_matrix_mult(a)}\left[i\right]=\sum\hackscore{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k\right]
-\end{equation} 
+\code{transposed_matrix_mult(a)}\left[i\right]=\sum_{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k\right]
+\end{equation}
 and if \var{a1} is \RankTwo this is
 \begin{equation}
-\code{transposed_matrix_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k,j\right]
-\end{equation} 
+\code{transposed_matrix_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[k,i\right]\var{a1} \left[k,j\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{matrix_transposed_mult}{a0,a1}
 returns the matrix product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to
-\code{matrix_mult(a0,transpose(a1))}.  
+\code{matrix_mult(a0,transpose(a1))}.
 If \var{a1} is \RankTwo this is
 \begin{equation}
-\code{matrix_transposed_mult(a)}\left[i,j\right]=\sum\hackscore{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[j,k\right]
-\end{equation} 
+\code{matrix_transposed_mult(a)}\left[i,j\right]=\sum_{k}\var{a0}  \cdot \left[i,k\right]\var{a1} \left[j,k\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{outer}{a0,a1}
 returns the outer product of \var{a0} and \var{a1}. For instance if \var{a0} and \var{a1} both are \RankOne then
 \begin{equation}
 \code{outer(a)}\left[i,j\right]=\var{a0} \left[i\right]  \cdot  \var{a1}\left[j\right]
-\end{equation} 
+\end{equation}
 and if \var{a0} is \RankOne and \var{a1} is \RankThree
 \begin{equation}
 \code{outer(a)}\left[i,j,k\right]=\var{a0} \left[i\right] \cdot \var{a1}\left[j,k\right]
-\end{equation} 
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{tensor_mult}{a0,a1}
 returns the tensor product of \var{a0} and \var{a1}. If \var{a1} is \RankTwo this is
 \begin{equation}
-\code{tensor_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[k,l\right]
-\end{equation} 
+\code{tensor_mult(a)}\left[i,j\right]=\sum_{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[k,l\right]
+\end{equation}
 and if \var{a1} is \RankFour this is
 \begin{equation}
-\code{tensor_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
-\end{equation} 
+\code{tensor_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[m,n,k,l\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{transposed_tensor_mult}{a0,a1}
@@ -1050,53 +1048,53 @@ returns the tensor product of the transposed of \var{a0} and \var{a1}. The funct
 \code{tensor_mult(transpose(a0),a1)}.
 If \var{a1} is \RankTwo this is
 \begin{equation}
-\code{transposed_tensor_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[k,l,i,j\right] \cdot \var{a1} \left[k,l\right]
-\end{equation} 
+\code{transposed_tensor_mult(a)}\left[i,j\right]=\sum_{kl}\var{a0}\left[k,l,i,j\right] \cdot \var{a1} \left[k,l\right]
+\end{equation}
 and if \var{a1} is \RankFour this is
 \begin{equation}
-\code{transposed_tensor_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[m,n,i,j\right] \cdot \var{a1} \left[m,n,k,l\right]
-\end{equation} 
+\code{transposed_tensor_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[m,n,i,j\right] \cdot \var{a1} \left[m,n,k,l\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{tensor_transposed_mult}{a0,a1}
-returns the tensor product of \var{a0} and the transposed of \var{a1}. 
+returns the tensor product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to
 \code{tensor_mult(a0,transpose(a1))}.
 If \var{a1} is \RankTwo this is
 \begin{equation}
-\code{tensor_transposed_mult(a)}\left[i,j\right]=\sum\hackscore{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[l,k\right]
-\end{equation} 
+\code{tensor_transposed_mult(a)}\left[i,j\right]=\sum_{kl}\var{a0}\left[i,j,k,l\right] \cdot \var{a1} \left[l,k\right]
+\end{equation}
 and if \var{a1} is \RankFour this is
 \begin{equation}
-\code{tensor_transposed_mult(a)}\left[i,j,k,l\right]=\sum\hackscore{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[k,l,m,n\right]
-\end{equation} 
+\code{tensor_transposed_mult(a)}\left[i,j,k,l\right]=\sum_{mn}\var{a0} \left[i,j,m,n\right] \cdot \var{a1} \left[k,l,m,n\right]
+\end{equation}
 \end{funcdesc}
 
 \begin{funcdesc}{grad}{a\optional{, where=None}}
-returns the gradient of \var{a}. If \var{where} is present the gradient will be calculated in \FunctionSpace \var{where} otherwise a 
+returns the gradient of \var{a}. If \var{where} is present the gradient will be calculated in \FunctionSpace \var{where} otherwise a
 default \FunctionSpace is used. In case that \var{a} has \RankTwo one has
 \begin{equation}
-\code{grad(a)}\left[i,j,k\right]=\frac{\partial \var{a} \left[i,j\right]}{\partial x\hackscore{k}}
-\end{equation} 
+\code{grad(a)}\left[i,j,k\right]=\frac{\partial \var{a} \left[i,j\right]}{\partial x_{k}}
+\end{equation}
 \end{funcdesc}
 \begin{funcdesc}{integrate}{a\optional{ ,where=None}}
-returns the integral of \var{a} where the domain of integration is defined by the \FunctionSpace of \var{a}. If \var{where} is 
-present the argument is interpolated into \FunctionSpace \var{where} before integration. For instance in the case of 
+returns the integral of \var{a} where the domain of integration is defined by the \FunctionSpace of \var{a}. If \var{where} is
+present the argument is interpolated into \FunctionSpace \var{where} before integration. For instance in the case of
 a \RankTwo argument in \ContinuousFunction it is
 \begin{equation}
-\code{integrate(a)}\left[i,j\right]=\int\hackscore{\Omega}\var{a} \left[i,j\right] \; d\Omega
-\end{equation} 
-where $\Omega$ is the spatial domain and $d\Omega$ volume integration. To integrate over the boundary of the domain one uses  
+\code{integrate(a)}\left[i,j\right]=\int_{\Omega}\var{a} \left[i,j\right] \; d\Omega
+\end{equation}
+where $\Omega$ is the spatial domain and $d\Omega$ volume integration. To integrate over the boundary of the domain one uses
 \begin{equation}
-\code{integrate(a,where=FunctionOnBoundary(a.getDomain))}\left[i,j\right]=\int\hackscore{\partial \Omega} a\left[i,j\right] \; ds
-\end{equation} 
+\code{integrate(a,where=FunctionOnBoundary(a.getDomain))}\left[i,j\right]=\int_{\partial \Omega} a\left[i,j\right] \; ds
+\end{equation}
 where $\partial \Omega$ is the surface of the spatial domain and $ds$ area or line integration.
 \end{funcdesc}
 \begin{funcdesc}{interpolate}{a,where}
-interpolates argument \var{a} into the \FunctionSpace \var{where}. 
+interpolates argument \var{a} into the \FunctionSpace \var{where}.
 \end{funcdesc}
 \begin{funcdesc}{div}{a\optional{ ,where=None}}
-returns the divergence of \var{a}. This 
+returns the divergence of \var{a}. This
 \begin{equation}
 \code{div(a)}=trace(grad(a),where)
 \end{equation}
@@ -1112,10 +1110,10 @@ in \var{domain}.
 \end{equation}
 \end{funcdesc}
 \begin{funcdesc}{L2}{a}
-returns the $L^2$-norm of \var{a} in its function space. This is 
+returns the $L^2$-norm of \var{a} in its function space. This is
 \begin{equation}
 \code{L2(a)=integrate(length(a)}^2\code{)} \; .
-\end{equation} 
+\end{equation}
 \end{funcdesc}
 
 The following functions operate ``point-wise''. That is, the operation is applied to each component of each point
@@ -1217,7 +1215,7 @@ returns a function which is $1$ where \var{a} different from zero with tolerance
 \subsection{Interpolating Data}
 \index{interpolateTable}
 In some cases, it may be useful to produce Data objects which fit some user defined function.
-Manually modifying each value in the Data object is not a good idea since it depends on 
+Manually modifying each value in the Data object is not a good idea since it depends on
 knowing the location and order of each datapoint in the domain.
 Instead \escript can use an interpolation table to produce a Data object.
 
@@ -1239,12 +1237,12 @@ toobig=100
 
 First we produce an interpolation table.
 \begin{python}
-sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0, 
+sine_table=[0, 0.70710678118654746, 1, 0.70710678118654746, 0,
            -0.70710678118654746, -1, -0.70710678118654746, 0]
 \end{python}
 
 We wish to identify $0$ and $1$ with the ends of the curve.
-That is, with the first and eighth values in the table. 
+That is, with the first and eighth values in the table.
 
 \begin{python}
 numslices=len(sine_table)-1
@@ -1266,7 +1264,7 @@ Now we produce our new \Data object.
 \begin{python}
 result=x0.interpolateTable(sine_table, minval, step, toobig)
 \end{python}
-Any values which interpolate to larger than \var{toobig} will raise an exception. You can 
+Any values which interpolate to larger than \var{toobig} will raise an exception. You can
 switch on boundary checking by adding ''check_boundaries=True`` the argument list.
 
 
@@ -1287,7 +1285,7 @@ The use of numpy and multiplication here is just to save typing.
 result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
 \end{python}
 
-In the 2D case, the parameters for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and 
+In the 2D case, the parameters for the x1 direction (min=0, step=0.55) come first followed by the x0 data object and
 its parameters.
 By default, if a point is specified which is outside the boundary, then \var{interpolateTable} will operate
 as if the point was on the boundary.
@@ -1328,23 +1326,23 @@ saveDataCSV('data.csv', append=True, sep=' ', csep='/', mask=mymask, e=mat1)
 \begin{itemize}
  \item \var{append} - specifies that the output should be written to the end of an existing file.
 \item \var{sep} - defines the separator between fields.
-\item \var{csep} - defines the separator between components in the header line. For example between the components of a matrix. 
+\item \var{csep} - defines the separator between components in the header line. For example between the components of a matrix.
 \end{itemize}
 
 The above command would produce output like this:
 \begin{verbatim}
 e/0/0 e/1/0 e/0/1 e/1/1
 1.0000000000e+00 2.0000000000e+00 3.0000000000e+00 4.0000000000e+00
-... 
+...
 \end{verbatim}
 
 Note that while the order in which rows are output can vary, all the elements in a given row
 always correspond to the same input.
 
 
-\subsection{\Operator Class}
+\subsection{The \Operator Class}
 The \Operator class provides an abstract access to operators build
-within the \LinearPDE class. \Operator objects are created 
+within the \LinearPDE class. \Operator objects are created
 when a PDE is handed over to a PDE solver library and handled
 by the \LinearPDE object defining the PDE. The user can gain access
 to the \Operator of a \LinearPDE object through the \var{getOperator}
@@ -1388,13 +1386,13 @@ w=30*kg
 w2=40*lb
 T=100*Celsius
 \end{python}
-In the two latter cases an conversion from pounds\index{pounds} and degree Celsius\index{Celsius} is performed into the appropriate SI units kg and Kelvin is performed. In addition 
+In the two latter cases an conversion from pounds\index{pounds} and degree Celsius\index{Celsius} is performed into the appropriate SI units kg and Kelvin is performed. In addition
 composed units can be used, for instance
 \begin{python}
 from esys.escript.unitsSI import *
 rho=40*lb/cm**3
 \end{python}
-to define the density in the units of pounds per cubic centimeter. The value $40$ will be converted 
+to define the density in the units of pounds per cubic centimeter. The value $40$ will be converted
 into SI units, in this case kg per cubic meter.
 Moreover unit prefixes are supported:
 \begin{python}
@@ -1407,7 +1405,7 @@ a desired unit, e.g
 from esys.escript.unitsSI import *
 print p/atm
 \end{python}
-can be used print the pressure in units of atmosphere\index{atmosphere}.  
+can be used print the pressure in units of atmosphere\index{atmosphere}.
 
 This is an incomplete list of supported physical units:
 
@@ -1436,10 +1434,10 @@ unit of centi meter
 \end{datadesc}
 
 \begin{datadesc}{h}
-unit of hour 
+unit of hour
 \end{datadesc}
 \begin{datadesc}{day}
-unit of day 
+unit of day
 \end{datadesc}
 \begin{datadesc}{yr}
  unit of year
@@ -1452,7 +1450,7 @@ unit of gram
 unit of kilo gram
  \end{datadesc}
 \begin{datadesc}{lb}
-unit of pound 
+unit of pound
 \end{datadesc}
 \begin{datadesc}{ton}
  metric ton
@@ -1470,48 +1468,48 @@ unit of pound
  unit of Newton
 \end{datadesc}
 \begin{datadesc}{Pa}
-unit of Pascal 
+unit of Pascal
 \end{datadesc}
 \begin{datadesc}{atm}
-unit of atmosphere 
+unit of atmosphere
 \end{datadesc}
 \begin{datadesc}{J}
-unit of Joule 
+unit of Joule
 \end{datadesc}
 
 \begin{datadesc}{W}
-unit of Watt 
+unit of Watt
 \end{datadesc}
 
 \begin{datadesc}{C}
-unit of Coulomb 
+unit of Coulomb
 \end{datadesc}
 \begin{datadesc}{V}
-unit of Volt 
+unit of Volt
 \end{datadesc}
 \begin{datadesc}{F}
- unit of Farad 
+ unit of Farad
 \end{datadesc}
 
 \begin{datadesc}{Ohm}
  unit of Ohm
 \end{datadesc}
 \begin{datadesc}{K}
-unit of Kelvin 
+unit of Kelvin
 \end{datadesc}
 \begin{datadesc}{Celsius}
  unit of Celsius
 \end{datadesc}
 
 \begin{datadesc}{Fahrenheit}
-unit of Fahrenheit 
+unit of Fahrenheit
 \end{datadesc}
 
 Moreover unit prefixes are supported:
 
 \begin{datadesc}{Yotta}
 prefix yotta = $10^{24}$.
- 
+
 \end{datadesc}
 
 \begin{datadesc}{Zetta}
@@ -1555,7 +1553,7 @@ prefix deci= $10^{-1}$.
  \end{datadesc}
 
 \begin{datadesc}{Centi}
-prefix centi= $10^{-2}$. 
+prefix centi= $10^{-2}$.
 \end{datadesc}
 
 \begin{datadesc}{Milli}
@@ -1593,18 +1591,18 @@ prefix yocto= $10^{-24}$.
 
 \section{Utilities}
 
-The \class{FileWriter} provides a mechanism to write data to a file. 
-In essence, this class wraps the standard \class{file} class to write data 
-that are global in MPI to a file. In fact, data are written on the processor 
-with \MPI rank 0 only. It is recommended to use \class{FileWriter} 
-rather than \class{open} in order to write code that is running 
+The \class{FileWriter} provides a mechanism to write data to a file.
+In essence, this class wraps the standard \class{file} class to write data
+that are global in MPI to a file. In fact, data are written on the processor
+with \MPI rank 0 only. It is recommended to use \class{FileWriter}
+rather than \class{open} in order to write code that is running
 with and without \MPI. It is save to use \class{open} under MPI to read data which are global under \MPI.
 
 \begin{classdesc}{FileWriter}{fn\optional{,append=\False, \optional{createLocalFiles=\False}})}
 Opens a file of name \var{fn} for writing. If \var{append} is set to \True
 written data are append at the end of the file.
 If running under \MPI only the first processor with rank==0
-will open the file and write to it. 
+will open the file and write to it.
 If \var{createLocalFiles} is set each individual processor will create a file
 where for any processor with rank>0 the file name is extended by its rank. This option is normally used for debug purposes only.
 \end{classdesc}
@@ -1622,14 +1620,14 @@ Note that newline is not added.
 \end{methoddesc}
 \begin{methoddesc}[FileWriter]{writelines}{txts}
 Write the list \var{txts} of strings to the file..
-Note that newlines are not added. 
+Note that newlines are not added.
 This method is equivalent to call write() for each string.
 \end{methoddesc}
 \begin{memberdesc}[FileWriter]{closed}
 \True if file is closed.
 \end{memberdesc}
 \begin{memberdesc}[FileWriter]{mode}
-access mode. 
+access mode.
 \end{memberdesc}
 \begin{memberdesc}[FileWriter]{name}
 file name.
@@ -1641,12 +1639,12 @@ line separator
 
 \begin{funcdesc}{setEscriptParamInt}{name,value}
 assigns the integer value \var{value} to the parameter \var{name}.
-If \var{name}="TOO_MANY_LINES" conversion of any \Data object to a string switches to a 
+If \var{name}="TOO_MANY_LINES" conversion of any \Data object to a string switches to a
 condensed format if more than \var{value} lines would be created.
 \end{funcdesc}
 
 \begin{funcdesc}{getEscriptParamInt}{name}
-returns the current value of integer parameter \var{name}. 
+returns the current value of integer parameter \var{name}.
 \end{funcdesc}
 
 \begin{funcdesc}{listEscriptParams}{a}
@@ -1666,7 +1664,7 @@ performs a barrier synchronization across all processors within \env{MPI_COMM_WO
 processor group.
 \end{funcdesc}
 \begin{funcdesc}{getMPIWorldMax}{a}
-returns the maximum value of the integer \var{a} across all 
+returns the maximum value of the integer \var{a} across all
 processors within \env{MPI_COMM_WORLD}.
 \end{funcdesc}
 
