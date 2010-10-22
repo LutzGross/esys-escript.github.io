@@ -54,7 +54,7 @@
 %This should be converted into a two arg form so we can have different fonts for different parts
 \newcommand*{\programopt}[1]{#1}
 
-\newenvironment{classdesc}[3]{\begin{description}\item[class #1]\mbox{}\\}{\end{description}}
+\newenvironment{classdesc}[2]{\begin{description}\item[class #1]\mbox{}\\}{\end{description}}
 \newenvironment{methoddesc}[3][{}]{\begin{description}\item[\textbf{#2}(#3)]\mbox{}\\}{\end{description}}
 \newenvironment{funcdesc}[2]{\begin{description}\item[\textbf{#1}(#2)]\mbox{}\\}{\end{description}}
 \newenvironment{memberdesc}[2][{}]{\begin{description}\item[\textbf{#2}]\mbox{}\\}{\end{description}}
