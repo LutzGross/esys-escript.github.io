@@ -6,74 +6,47 @@
 \ProvidesClass{esysdoc}
 \LoadClass[a4paper, twoside]{book}
 
-\usepackage[a4paper, left=2.5cm, right=2.5cm]{geometry}
+\usepackage[a4paper, left=2.5cm, right=2.5cm, nohead, vcentering, scale=0.8]{geometry}
 \usepackage{times}
 % \usepackage{fancyvrb}	% Hopefully this will give us our code environments
 \usepackage{listings}
+\usepackage{ifpdf}
 
 %\usepackage{avant}
-\renewcommand{\familydefault}{\sfdefault}	% Switch to san seriff
+%\renewcommand{\familydefault}{\sfdefault}	% Switch to san seriff
 \usepackage{url}
 \usepackage{xspace}
 \usepackage{graphicx,color}
 \usepackage{amsmath}	%For equation*
 \usepackage{amsfonts,amssymb} % see http://www.ams.org/tex/amslatex.html
 \usepackage[nohyphen, strings]{underscore}
-\usepackage[colorlinks=false,pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=true]{hyperref}
+
+%Blue was chosen here because it looks ok when printed
+\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancypagestyle{plain}{%
+\fancyhead{}
+\cfoot{}
+\fancyfoot[LE,RO]{\thepage}	%left on even pages right on odd pages
+\fancyfoot[RE]{\nouppercase{\rightmark}}
+\fancyfoot[LO]{\nouppercase{\leftmark}}
+}
+\pagestyle{plain}
+
+\usepackage[Bjarne]{fncychap}
+% \ChRuleWidth{1pt}
+\ChNameVar{\raggedleft\large\sffamily}	% The word chapter
+\ChNumVar{\raggedleft\bfseries\Large}	% The number of the chapter
+\ChTitleVar{\raggedleft \Huge\sffamily} % title of the chapter
 
 %Ensures that latex doesn't have an error if we don't specify the version
 \providecommand{\RepVersion}{Unknown\xspace}
 
-
-
-%This is FAR from perfect for one thing it doesn't allow underscores to be used in filenames
-
-%Now we mess with the underscore char
-% {
-% \catcode`|=8   % Since we will be redefining _ we need another way to indicate subscript in math mode
-%                % This change only holds for the definition since it disappears at the close brace
-% \catcode`_=\active	% define _ as a char which triggers a macro (which is what active means)
-% \gdef\_{%		% A global definition (persists after } ) for _ when it is a macro
-% \ifmmode |		% If we are in math mode, then output subscript char
-% \else
-% \textunderscore		% else output underscore symbol
-% \fi
-% }
-% }
-% \catcode`_=\active	% Set _ to active at the top level
-
-
-% \newcommand*{\module}[1]{\texttt{#1}}
-% \newcommand*{\class}[1]{\texttt{#1}}
-% \newcommand*{\var}[1]{\textsl{#1}}
-% \newcommand*{\method}[1]{\texttt{#1}}
-
-
-%Use the \Var form if you need to include % in the URL
-%Please note that the \Var form does not work in maths mode
-% \DeclareUrlCommand\Var{}
-%Same here with \function except \Function is already in use for a FunctionSpace
-% \DeclareUrlCommand\FunctionName{}
-
-% \DeclareUrlCommand\umodule{}
-% \DeclareUrlCommand\class{}
-% \DeclareUrlCommand\method{}
 \DeclareUrlCommand\email{}
-% \DeclareUrlCommand\program{}
-% \DeclareUrlCommand\env{}
-
-
-% \DeclareUrlCommand\member{}
-% \DeclareUrlCommand\file{}
-
-% \DeclareUrlCommand\kbd{}
-
-% \DeclareUrlCommand\usafe{}	%intended as a wrapper to make stuff underscrore safe
-% \DeclareUrlCommand\constant{}
-
-%To safely deal with a module that has _ in its name do this:
-% \urldef{\rMATPLOTLIB}\umodule{matplotlib}
-% \newcommand{\MATPLOTLIB}{\rMATPLOTLIB\index{visualization!matplotlib}\index{matplotlib}\xspace}
 
 \newcommand{\module}[1]{\mbox{\texttt{#1}}}
 
@@ -112,6 +85,7 @@
 
 \renewcommand{\maketitle}{
 \begin{titlepage}
+\textsf{
 \begin{raggedleft}
 \Huge
 \hrule
@@ -132,25 +106,12 @@
 \vfill
 \@authoraddress\mbox{}\\
 \end{raggedleft}
-
+}
 \end{titlepage}}
 
 
 %Please do not use this one
 \newcommand*{\strong}{}
 
-\usepackage{fancyhdr}
-\renewcommand{\footrulewidth}{0.4pt}
-\renewcommand{\headrulewidth}{0pt}
 
-\fancypagestyle{plain}{%
-\fancyhead{}
-\cfoot{}
-\fancyfoot[LE,RO]{\thepage}	%left on even pages right on odd pages
-\fancyfoot[RE]{\nouppercase{\rightmark}}
-\fancyfoot[LO]{\nouppercase{\leftmark}}
-}
-\pagestyle{plain}
-
-\usepackage[Bjarne]{fncychap}
 
