@@ -29,7 +29,6 @@
 #include <omp.h>
 #endif
 
-
 /**************************************************************/
 
 /*  free any extra stuff possibly used by the MKL library */
@@ -55,7 +54,7 @@ void Paso_MKL_free(Paso_SparseMatrix* A) {
                    &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                    iparm, &msglvl,&ddum, &ddum, &error);
           MEMFREE(A->solver_p);
-          if (error != MKL_ERROR_NO) Paso_setError(TYPE_ERROR,"memory release in PARDISO library failed.");
+	  if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in PARDISO library failed.");
      }
 #endif
 }
@@ -130,7 +129,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
              if (verbose) printf("MKL: symbolic factorization factorization failed.\n");
-             Paso_setError(VALUE_ERROR,"symbolic factorization in PARDISO library failed.");
+             Esys_setError(VALUE_ERROR,"symbolic factorization in PARDISO library failed.");
              Paso_MKL_free(A);
         } else {
            /* LDU factorization */
@@ -140,12 +139,12 @@ void Paso_MKL(Paso_SparseMatrix* A,
                 iparm, &msglvl, in, out, &error);
            if (error != MKL_ERROR_NO) {
              if (verbose) printf("MKL: LDU factorization failed.\n");
-             Paso_setError(ZERO_DIVISION_ERROR,"factorization in PARDISO library failed. Most likely the matrix is singular.");
+             Esys_setError(ZERO_DIVISION_ERROR,"factorization in PARDISO library failed. Most likely the matrix is singular.");
              Paso_MKL_free(A);
            }
-           if (verbose) printf("MKL: LDU factorization completed (time = %e).\n",Paso_timer()-time0);
+           if (verbose) printf("MKL: LDU factorization completed (time = %e).\n",Esys_timer()-time0);
         }
-
+     }
      /* forward backward substitution\ */
      if (Esys_noError())  {
         time0=Esys_timer();
@@ -156,9 +155,9 @@ void Paso_MKL(Paso_SparseMatrix* A,
         if (verbose) printf("MKL: solve completed.\n");
         if (error != MKL_ERROR_NO) {
               if (verbose) printf("MKL: forward/backward substitution failed.\n");
-              Paso_setError(VALUE_ERROR,"forward/backward substitution in PARDISO library failed. Most likely the matrix is singular.");
+              Esys_setError(VALUE_ERROR,"forward/backward substitution in PARDISO library failed. Most likely the matrix is singular.");
         } else {
-	   if (verbose) printf("MKL: forward/backward substitution completed (time = %e).\n",Paso_timer()-time0);
+	   if (verbose) printf("MKL: forward/backward substitution completed (time = %e).\n",Esys_timer()-time0);
         }
      }
 #else
