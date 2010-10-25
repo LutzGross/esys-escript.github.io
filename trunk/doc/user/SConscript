@@ -18,10 +18,10 @@ local_env = env.Clone(tools=['pdflatex'])
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
 fig_src = Glob('figures/*.eps')
 
-if 'PDF' in dir(local_env):
-    # Convert eps figures to pdf
-    figures=local_env.EpsToPDF(source=fig_src) + Glob('figures/*.png')
+# Target that converts eps figures to pdf and adds png files
+figures=local_env.EpsToPDF(source=fig_src) + Glob('figures/*.png')
 
+if 'PDF' in dir(local_env):
     if local_env['verbose']:
         interaction='-interaction=nonstopmode'
     else:
@@ -39,23 +39,29 @@ else:
     env.Alias('guide_pdf', '', 'echo "PDF output not supported!"')
     env.AlwaysBuild('guide_pdf')
 
-html_dir=os.path.join(release_dir,'user','html')
-html=local_env.Command(Dir(html_dir), fig_src+tex_src,
-                ["cd %s && latex2html -top_navigation \
-                 -bottom_navigation \
-                 -index_in_navigation \
-                 -contents_in_navigation \
-                 -next_page_in_navigation \
-                 -previous_page_in_navigation \
-                 -title \"esys users guide\" \
-                 -noshow_section_numbers \
-                 -dir %s -mkdir \
-                 -address \"esys@esscc.uq.edu.au\" \
-                 -antialias_text -antialias -transparent \
-                 -noshort_extn \
-                 -up_url \"https://launchpad.net/escript-finley\" \
-                 -up_title \"escript\" guide.tex"%(Dir('.').abspath,html_dir)])
-
-env.Alias('guide_html', html)
-env.AlwaysBuild(Dir(html_dir))
+# html version
+#html_dir=os.path.join(release_dir,'user','html')
+#html=local_env.Command(Dir(html_dir), tex_src+fig_src,
+#                [Delete(Dir('html')),
+#                 Copy(Dir('html'), '${SOURCE.srcdir}'),
+#                 Delete(Dir('html/figures')),
+#                 Copy(Dir('html/figures'), Dir('figures')),
+#                 #Delete(html_dir),
+#                 Mkdir(html_dir),
+#                 "cd %s && latex2html -top_navigation \
+#                 -bottom_navigation \
+#                 -index_in_navigation \
+#                 -contents_in_navigation \
+#                 -next_page_in_navigation \
+#                 -previous_page_in_navigation \
+#                 -title \"esys users guide\" \
+#                 -noshow_section_numbers \
+#                 -dir %s -mkdir \
+#                 -address \"esys@esscc.uq.edu.au\" \
+#                 -antialias_text -antialias -transparent \
+#                 -noshort_extn \
+#                 -up_url \"https://launchpad.net/escript-finley\" \
+#                 -up_title \"escript\" guide.tex"%(Dir('html').abspath,html_dir)])
+#env.Alias('guide_html', [figures,html])
+#env.AlwaysBuild(Dir(html_dir))
 
