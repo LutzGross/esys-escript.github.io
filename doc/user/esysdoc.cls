@@ -23,6 +23,7 @@
 %Blue was chosen here because it looks ok when printed
 \usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
+
 \usepackage{fancyhdr}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\headrulewidth}{0pt}
@@ -155,9 +156,11 @@
 }
 \end{titlepage}}
 
-
-%Please do not use this one
-\newcommand*{\strong}{}
+\newcommand{\esysappendix}{%
+\appendix%
+\renewcommand*{\theHchapter}{\Alph{chapter}}	%How latex generates chapters
+\renewcommand*{\thechapter}{\Alph{chapter}}	%How hyperref generates chapters
+}
 
 
 
