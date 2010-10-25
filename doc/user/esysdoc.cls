@@ -21,7 +21,7 @@
 \usepackage[nohyphen, strings]{underscore}
 
 %Blue was chosen here because it looks ok when printed
-\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=true, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 
 \usepackage{fancyhdr}
 \renewcommand{\footrulewidth}{0.4pt}
@@ -56,7 +56,20 @@
 
 \newenvironment{classdesc}[2]{\begin{description}\item[class #1]\mbox{}\\}{\end{description}}
 \newenvironment{methoddesc}[3][{}]{\begin{description}\item[\textbf{#2}(#3)]\mbox{}\\}{\end{description}}
-\newenvironment{funcdesc}[2]{\begin{description}\item[\textbf{#1}(#2)]\mbox{}\\}{\end{description}}
+\newenvironment{funcdesc}[2]{%
+\noindent
+\begin{list}{}{\setlength{\labelwidth}{0cm}}
+\item \textbf{#1(#2)}
+\end{list}
+\begin{list}{}{}
+\item
+}%
+{%
+\end{list}%
+}
+
+\setlength{\itemindent}{-1cm}\setlength{\leftmargin}{1cm}
+
 \newenvironment{memberdesc}[2][{}]{\begin{description}\item[\textbf{#2}]\mbox{}\\}{\end{description}}
 \newenvironment{datadesc}[1]{\begin{description}\item[\textbf{#1}]\mbox{}\\}{\end{description}}
 

@@ -483,7 +483,7 @@ Table~\ref{TAB FINLEY SOLVER OPTIONS 2} show the solvers and preconditioners sup
 By default, \finley is using the iterative solvers \PCG for symmetric and \BiCGStab for non-symmetric problems.
 If the direct solver is selected which can be useful when solving very ill-posed equations
 \finley uses the \MKL \footnote{If the stiffness matrix is non-regular \MKL may return without
-returning a proper error code. If you observe suspicious solutions when using MKL, this may cause by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available
+returning a proper error code. If you observe suspicious solutions when using MKL, this may be caused by a non-invertible operator. } solver package. If \MKL is not available \UMFPACK is used. If \UMFPACK is not available
 a suitable iterative solver from the \PASO is used.
 
 \section{Functions}
