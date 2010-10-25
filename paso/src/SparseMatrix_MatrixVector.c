@@ -419,3 +419,105 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
     }
     return;
 }
+/* CSR format with offset 0*/
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
+						       const Paso_SparseMatrix* A,
+						       const double* in,
+						       const double beta,
+						        double* out) 
+{
+   
+   register index_t ir,icol,iptr,ib,irow,ic;
+   register double reg,reg1,reg2,reg3, reg4;
+   if (ABS(beta)>0.) {
+      if (beta != 1.) {
+	 #pragma omp parallel for private(irow) schedule(static)
+	 for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
+	    out[irow] *= beta;
+      }
+   } else {
+      #pragma omp parallel for private(irow) schedule(static)
+      for (irow=0;irow < A->numRows * A->row_block_size;irow++) 
+	 out[irow] = 0;
+   }
+   /*  do the operation: */
+   if (ABS(alpha)>0) {
+      if (A ->block_size==1) {
+	 #pragma omp parallel for private(irow,iptr,reg) schedule(static)
+	 for (irow=0;irow< A->pattern->numOutput;++irow) {
+	    reg=0.;
+	    #pragma ivdep
+	    for (iptr=(A->pattern->ptr[irow]);iptr<(A->pattern->ptr[irow+1]); ++iptr) {
+	       reg += A->val[iptr] * in[A->pattern->index[iptr]];
+	    }
+	    out[irow] += alpha * reg;
+	 }
+      } else if (A ->block_size==2 ) {
+	 #pragma omp parallel for private(ir,reg1,reg2,iptr,ic) schedule(static)
+	 for (ir=0;ir< A->pattern->numOutput;ir++) {
+	    reg1=0.;
+	    reg2=0.;
+	    #pragma ivdep
+	    for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+	       ic=2*A->pattern->index[iptr];
+	       reg1 += A->val[iptr*2  ]*in[ic];
+	       reg2 += A->val[iptr*2+1]*in[1+ic];
+	    }
+	    out[  2*ir] += alpha * reg1;
+	    out[1+2*ir] += alpha * reg2;
+	 }
+      } else if (A ->block_size==3) {
+	 #pragma omp parallel for private(ir,reg1,reg2,reg3,iptr,ic) schedule(static)
+	 for (ir=0;ir< A->pattern->numOutput;ir++) {
+	    reg1=0.;
+	    reg2=0.;
+	    reg3=0.;
+	    #pragma ivdep
+	    for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+	       ic=3*A->pattern->index[iptr];
+	       reg1 += A->val[iptr*3  ]*in[ic];
+	       reg2 += A->val[iptr*3+1]*in[1+ic];
+	       reg3 += A->val[iptr*3+2]*in[2+ic];
+	    }
+	    out[  3*ir] += alpha * reg1;
+	    out[1+3*ir] += alpha * reg2;
+	    out[2+3*ir] += alpha * reg3;
+	 }
+      } else if (A ->block_size==4) {
+	 #pragma omp parallel for private(ir,reg1,reg2,reg3,reg4,iptr,ic) schedule(static)
+	 for (ir=0;ir< A->pattern->numOutput;ir++) {
+	    reg1=0.;
+	    reg2=0.;
+	    reg3=0.;
+	    reg4=0.;
+	    #pragma ivdep
+	    for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+	       ic=4*A->pattern->index[iptr];
+	       reg1 += A->val[iptr*4  ]*in[ic];
+	       reg2 += A->val[iptr*4+1]*in[1+ic];
+	       reg3 += A->val[iptr*4+2]*in[2+ic];
+	       reg4 += A->val[iptr*4+3]*in[3+ic];
+	    }
+	    out[  4*ir] += alpha * reg1;
+	    out[1+4*ir] += alpha * reg2;
+	    out[2+4*ir] += alpha * reg3;
+	    out[3+4*ir] += alpha * reg4;
+	 }
+      } else {
+	 #pragma omp parallel for private(ir,iptr,ib,irow,icol) schedule(static)
+	 for (ir=0;ir< A->pattern->numOutput;ir++) {
+	    
+	    for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
+	       for (ib=0;ib< A->block_size;ib++) {
+		  irow=ib+A->row_block_size*ir;
+		  icol=ib+A->col_block_size*(A->pattern->index[iptr]);
+		  out[irow]+=alpha * A->val[iptr*A->block_size+ib] * in[icol];
+	       }
+	    }
+	    
+	 }
+	 
+      }
+   }
+   return;
+}

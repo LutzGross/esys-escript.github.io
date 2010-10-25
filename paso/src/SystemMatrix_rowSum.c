@@ -28,8 +28,8 @@
 
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum) {
    dim_t irow, nrow;
-   if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_SYM) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_rowSum: No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
+   if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
+        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_rowSum: No normalization available for compressed sparse column or index offset 1.");
       } else {
          nrow=A->mainBlock->numRows*A->row_block_size;
          #pragma omp parallel for private(irow) schedule(static)

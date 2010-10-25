@@ -40,12 +40,13 @@ H_VISC=0.2*H                    # height of viscous zone (must aline with elemen
 
 ETA_TOP=10.
 ETA_BOTTOM=ETA_TOP/10.
+TRANSITION_WIDTH = H/NE          # half width of the transition zone between top and bottom (typically = H/NE)
 FRICTION_ANGLE=70*DEG
-C=10000.                        # =None interesting value is calculated.
-V0=0.5                        # =None interesting value is calculated.
+C=None                       # =None interesting value is calculated.
+V0=None                        # =None interesting value is calculated.
 COMPRESSION=False              
 RHO=1.
-G=1.*0
+G=1.
 W_WEAK=0.03*L                   # width of weak zone (>H/NE)
 ALPHA_WEAK=65*DEG               # angle of week zone against x-axis
 OFFSET_X_WEAK=L*0.3              # offset of weak zone 
@@ -64,7 +65,7 @@ VERBOSE=True
 if C==None:
      C=RHO*G*H*(1-sin(FRICTION_ANGLE))/cos(FRICTION_ANGLE)
 if V0==None:
-     V0=RHO*G*H**2/ETA_TOP
+     V0=RHO*G*H**2/ETA_TOP * 0.1
 if COMPRESSION:
     DIRECTION=-1.
     T_END=(STOP_FRAC+2)/(STOP_FRAC+1)*L/V0
@@ -137,6 +138,8 @@ else:
 #
 x=Function(dom).getX()
 mask_visc=whereNegative(x[DIM-1]-H_VISC)
+mask_visc=clip((H_VISC+TRANSITION_WIDTH-x[DIM-1])/(2.*TRANSITION_WIDTH),maxval=1.,minval=0)
+
 if DIM == 3:
    offset=[OFFSET_X_WEAK, 0, OFFSET_Z_WEAK]
    strike=numpy.array([cos(ALPHA_WEAK),sin(ALPHA_WEAK),0.])
@@ -163,35 +166,38 @@ tau=0.
 tau_lsup=0
 
 flow=StokesProblemCartesian(dom)
-flow.setTolerance(TOL/10.)
+flow.setTolerance(1.e-5)
 
 while n<1:
 
   print "========= Time step %d ======="%( n+1,)
   m=0
-  error=1.
   dtau_lsup =1.
   while dtau_lsup > TOL * tau_lsup:
      print "--- iteration step %d ---- "%m
-     if n==1 and m==1:
+     if n==0 and m==0:
         eta_top=ETA_TOP
      else:
         tau_Y=clip(c*cos(friction_angle)+p*sin(friction_angle), minval=0.)
         eta_top=clip(safeDiv(tau_Y,gamma_dot),maxval=ETA_TOP)
+        print "eta_top=",eta_top
      eta_eff=eta_top*(1-mask_visc) + ETA_BOTTOM*mask_visc
-     saveVTK("test.%s.vtu"%m,p=p,eta_eff=eta_eff,m=mask_visc)
+     print "eta_eff=",eta_eff
      flow.initialize(fixed_u_mask=fixed_v_mask,eta=eta_eff,f=-RHO*G*unitVector(DIM-1,DIM))
      v,p=flow.solve(v,-3.*p,max_iter=MAX_ITER,verbose=VERBOSE,usePCG=True)
+     print "p=",p
      p*=-(1./3.)
      gamma_dot=sqrt(2.)*length(deviatoric(symmetric(grad(v))))
      tau, tau_old = eta_eff*gamma_dot, tau
      dtau_lsup=Lsup(tau-tau_old)
      tau_lsup=Lsup(tau)
-     print "increment tau = ",dtau_lsup,tau_lsup
+     print "increment tau = ",dtau_lsup,tau_lsup, dtau_lsup > TOL * tau_lsup, TOL
+     print "flux balance = ",integrate(inner(v,dom.getNormal()))
      m+=1
      if m>MAX_ITER:
         raise ValueError,"no convergence."
   print "iteration complted after %d steps"%(m,)
+  print p
   saveVTK("test.vtu",v=v, p=p, eta=eta_eff, tau=tau);
 
   print "Max velocity =", Lsup(v)

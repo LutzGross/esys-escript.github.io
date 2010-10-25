@@ -159,6 +159,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
               out->numRows = out->pattern->numInput;
               out->numCols = out->pattern->numOutput;
            }
+ 
      } else {
      /* ====== compressed sparse row === */
            if (unroll) {
@@ -180,7 +181,11 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
            }
      }
      if (Esys_noError()) {
-         out->block_size=out->row_block_size*out->col_block_size;
+	 if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+	    out->block_size=MIN(out->row_block_size,out->col_block_size);
+	 } else {
+	    out->block_size=out->row_block_size*out->col_block_size;
+	 }
          out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
     
          out->val=MEMALLOC(out->len,double);
@@ -332,75 +337,66 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 
 
 void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
-  FILE * fileHandle_p = NULL;
-  dim_t N,M,i, iptr_ij;
-  MM_typecode matcode;                        
-
-  if (A_p->col_block_size !=A_p->row_block_size) {
-    Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_saveMM: currently only square blocks are supported.");
-    return;
-  }
-  if (A_p->row_block_size>3) {
-       Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM: currently only block size 3 is supported.\n");
-       return;
-  }
-
-  /* open the file */
-  fileHandle_p = fopen(fileName_p, "w");
-  if (fileHandle_p==NULL) {
-    Esys_setError(IO_ERROR,"file could not be opened for writing");
-    return;
-  }
-
-  if (A_p->type & MATRIX_FORMAT_CSC) {
-    Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support CSC yet.");
-  } else {
-    mm_initialize_typecode(&matcode);
-    mm_set_matrix(&matcode);
-    mm_set_coordinate(&matcode);
-    mm_set_real(&matcode);
-
-    N= A_p->numRows; 
-    M= A_p->numCols; 
-    mm_write_banner(fileHandle_p, matcode); 
-    mm_write_mtx_crd_size(fileHandle_p, N, M, A_p->pattern->ptr[N]);
-    if(A_p->row_block_size==1)
-      for (i=0; i<N; i++) 
-        for (iptr_ij=A_p->pattern->ptr[i];iptr_ij<A_p->pattern->ptr[i+1]; ++iptr_ij) {
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i+1, A_p->pattern->index[iptr_ij]+1, A_p->val[iptr_ij]);
-        }
-
-    if(A_p->row_block_size==2)
-      for (i=0; i<N; i++) {
-        for (iptr_ij=A_p->pattern->ptr[i];iptr_ij<A_p->pattern->ptr[i+1]; ++iptr_ij) {
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*2+1, 2*(A_p->pattern->index[iptr_ij])+1, A_p->val[iptr_ij*4]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*2+1, 2*(A_p->pattern->index[iptr_ij])+1+1, A_p->val[iptr_ij*4+2]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*2+1+1, 2*(A_p->pattern->index[iptr_ij])+1, A_p->val[iptr_ij*4+1]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*2+1+1, 2*(A_p->pattern->index[iptr_ij])+1+1, A_p->val[iptr_ij*4+3]);
-        }
+   FILE * fileHandle_p = NULL;
+   dim_t N,M,i,j, irow, icol, ib, irb, icb, iptr;
+   MM_typecode matcode;  
+   const dim_t col_block_size = A_p->col_block_size;
+   const dim_t row_block_size = A_p->row_block_size;
+   const dim_t block_size = A_p->block_size;
+   
+   if (col_block_size !=row_block_size) {
+      Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_saveMM: currently only square blocks are supported.");
+      return;
+   }
+   
+   /* open the file */
+   fileHandle_p = fopen(fileName_p, "w");
+   if (fileHandle_p==NULL) {
+      Esys_setError(IO_ERROR,"file could not be opened for writing");
+      return;
+   }
+   if (A_p->type & MATRIX_FORMAT_CSC) {
+      Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_saveMM does not support CSC yet.");
+   } else {
+      mm_initialize_typecode(&matcode);
+      mm_set_matrix(&matcode);
+      mm_set_coordinate(&matcode);
+      mm_set_real(&matcode);
+      
+      N=Paso_SparseMatrix_getNumRows(A_p);
+      M=Paso_SparseMatrix_getNumCols(A_p);
+      mm_write_banner(fileHandle_p, matcode); 
+      mm_write_mtx_crd_size(fileHandle_p, N*row_block_size, M*col_block_size, A_p->pattern->ptr[N]*block_size);
+      
+      if (A_p->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+	 for (i=0; i<N; i++) {
+	    for (iptr = A_p->pattern->ptr[i];iptr<A_p->pattern->ptr[i+1]; ++iptr) {
+	       j=A_p->pattern->index[iptr];
+	       for (ib=0;ib<block_size;ib++) {
+		  irow=ib+row_block_size*i;
+		  icol=ib+col_block_size*j;
+		  fprintf(fileHandle_p, "%d %d %25.15e\n", irow+1, icol+1, A_p->val[iptr*block_size+ib]);
+	       }
+	    }
+	 }
+      } else {
+	 for (i=0; i<N; i++) {
+	    for (iptr = A_p->pattern->ptr[i];iptr<A_p->pattern->ptr[i+1]; ++iptr) {
+	       j=A_p->pattern->index[iptr]; 
+	       for (irb=0;irb<row_block_size;irb++) {
+		  irow=irb+row_block_size*i;
+		  for (icb=0;icb<col_block_size;icb++) {
+		     icol=icb+col_block_size*j;
+		     fprintf(fileHandle_p, "%d %d %25.15e\n", irow+1, icol+1, A_p->val[iptr*block_size+irb+row_block_size*icb]);
+		  }
+	       }
+	    }
+	 }
       }
-
-    if(A_p->row_block_size==3)
-      for (i=0; i<N; i++) {
-       for (iptr_ij=A_p->pattern->ptr[i];iptr_ij<A_p->pattern->ptr[i+1]; ++iptr_ij) {
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1, 3*(A_p->pattern->index[iptr_ij])+1, A_p->val[iptr_ij*9]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1, 3*(A_p->pattern->index[iptr_ij])+1+1, A_p->val[iptr_ij*9+3]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1, 3*(A_p->pattern->index[iptr_ij])+2+1, A_p->val[iptr_ij*9+6]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1+1, 3*(A_p->pattern->index[iptr_ij])+1, A_p->val[iptr_ij*9+1]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1+1, 3*(A_p->pattern->index[iptr_ij])+1+1, A_p->val[iptr_ij*9+4]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+1+1, 3*(A_p->pattern->index[iptr_ij])+2+1, A_p->val[iptr_ij*9+7]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+2+1, 3*(A_p->pattern->index[iptr_ij])+1, A_p->val[iptr_ij*9+2]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+2+1, 3*(A_p->pattern->index[iptr_ij])+1+1, A_p->val[iptr_ij*9+5]);
-          fprintf(fileHandle_p, "%d %d %25.15e\n", i*3+2+1, 3*(A_p->pattern->index[iptr_ij])+2+1, A_p->val[iptr_ij*9+8]);
-        }
-      } 
-     
-  }
-
-  /* close the file */
-  fclose(fileHandle_p);
-  
-  return;
+   }
+   /* close the file */
+   fclose(fileHandle_p);
+   return;
 }
 
 index_t* Paso_SparseMatrix_borrowMainDiagonalPointer(Paso_SparseMatrix * A_p) 
@@ -487,4 +483,17 @@ Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {
 	}
 
  return out;
+}
+dim_t Paso_SparseMatrix_getTotalNumRows(const Paso_SparseMatrix* A){
+   return A->numRows * A->row_block_size;
+}
+
+dim_t Paso_SparseMatrix_getTotalNumCols(const Paso_SparseMatrix* A){
+   return A->numCols * A->col_block_size;
+}
+dim_t Paso_SparseMatrix_getNumRows(Paso_SparseMatrix* A) {
+   return A->numRows;
+}
+dim_t Paso_SparseMatrix_getNumCols(Paso_SparseMatrix* A) {
+   return A->numCols;  
 }
