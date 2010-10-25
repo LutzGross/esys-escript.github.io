@@ -15,7 +15,7 @@
 %\renewcommand{\familydefault}{\sfdefault}	% Switch to san seriff
 \usepackage{url}
 \usepackage{xspace}
-\usepackage{graphicx,color}
+\usepackage{graphicx}
 \usepackage{amsmath}	%For equation*
 \usepackage{amsfonts,amssymb} % see http://www.ams.org/tex/amslatex.html
 \usepackage[nohyphen, strings]{underscore}
@@ -71,7 +71,7 @@
 }
 
 \newenvironment{classdesc}[2]{%
-\begin{bigdef}{class #1}}{\end{bigdef}}
+\begin{bigdef}{class #1(#2)}}{\end{bigdef}}
 
 \newenvironment{methoddesc}[3][{}]{%
 \begin{bigdef}{#2(#3)}}{\end{bigdef}}
