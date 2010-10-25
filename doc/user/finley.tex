@@ -532,7 +532,7 @@ file \var{fileName}.
 
 
 \begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
-  periodic0=\False, periodic1=\False, useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
+  periodic0=\False, periodic1=\False, useElementsOnFace=\False, useMacroElements=\False,\\ optimize=\False}
 Generates a \Domain object representing a two dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal edges. The rectangle is filled with
 \var{n0} elements along the $x_0$-axis and
@@ -561,8 +561,8 @@ in $x_1$-direction.
 If \var{optimize}=\True mesh node relabeling will be attempted to reduce the computation and also ParMETIS will be used to improve the mesh partition if running on multiple CPUs with MPI.
 \end{funcdesc}
 
-\begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1, \\
-  periodic0=\False,periodic1=\False,periodic2=\False,useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
+\begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1,
+  periodic0=\False, periodic1=\False, \\ periodic2=\False, useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
 Generates a \Domain object representing a three dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
 \var{n0} elements along the $x_0$-axis,

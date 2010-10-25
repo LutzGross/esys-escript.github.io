@@ -54,19 +54,47 @@
 %This should be converted into a two arg form so we can have different fonts for different parts
 \newcommand*{\programopt}[1]{#1}
 
-\newenvironment{classdesc}[2]{\begin{description}\item[class #1]\mbox{}\\}{\end{description}}
-\newenvironment{methoddesc}[3][{}]{\begin{description}\item[\textbf{#2}(#3)]\mbox{}\\}{\end{description}}
-\newenvironment{funcdesc}[2]{%
+\newenvironment{bigdef}[1]{%
 \noindent
-\begin{list}{}{\setlength{\labelwidth}{0cm}}
-\item \textbf{#1(#2)}
-\end{list}
-\begin{list}{}{}
-\item
+\setlength{\hangindent}{2cm}
+\textbf{#1}
+
+\setlength{\hangindent}{1cm}%
+\setlength{\hangafter}{0}%
+\noindent%
 }%
 {%
-\end{list}%
+
+\vspace{0.5cm}
 }
+
+\newenvironment{classdesc}[2]{%
+\begin{bigdef}{class #1}}{\end{bigdef}}
+
+\newenvironment{methoddesc}[3][{}]{%
+\begin{bigdef}{#2(#3)}}{\end{bigdef}}
+\newenvironment{funcdesc}[2]{%
+\begin{bigdef}{#1(#2)}%
+}
+{%
+\end{bigdef}
+}
+
+% {
+% \begin{bigdef}[#1(#2)]
+% \noindent
+% \setlength{\hangindent}{2cm}
+% \textbf{#1(#2)}
+% 
+% }
+% \setlength{\hangindent}{1cm}
+% \setlength{\hangafter}{0}
+% \noindent
+% }%
+% {%
+% 
+% \mbox{}\\
+% }
 
 \setlength{\itemindent}{-1cm}\setlength{\leftmargin}{1cm}
 

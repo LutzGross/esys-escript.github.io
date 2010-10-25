@@ -180,12 +180,13 @@ sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
-Returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}). Use the returned \SolverOptions object to control the solution algorithms. 
+Returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}). Use this
+ \SolverOptions object to control the solution algorithms. 
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
 Returns the solver options used to solve the pressure problems~(\ref{UPDATE P}) as a preconditioner. 
-Use the returned \SolverOptions object to control the solution algorithms. 
+Use this \SolverOptions object to control the solution algorithms. 
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}
