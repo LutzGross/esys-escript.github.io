@@ -140,7 +140,7 @@ from finley import ReadMesh
 mesh=ReadMesh("quad.fly")
 \end{python}
 Note that the underlying mesh generation software will not accept all
-the geometries you can create with \pycad.  For example, \pycad
+the geometries you can create.  For example, \pycad
 will happily allow you to create a 2-D \class{Design} that is a
 closed loop with some additional points or lines lying outside of the
 enclosed area, but \gmshextern will fail to create a mesh for it.
@@ -752,7 +752,7 @@ returns the name of the file for the gmsh script.
 
 \begin{methoddesc}[Design]{setMeshFileName}{\optional{name=None}}
 sets the name for the mesh file. if no name is given a name is generated.
-The format is set by \var{Design.setFileFormat}.
+The format is set by \\ \var{Design.setFileFormat}.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getMeshFileName}{}
@@ -792,9 +792,9 @@ returns the gmsh command used to generate the mesh as string.
 \begin{methoddesc}[Design]{setOptions}{
 \optional{optimize_quality=\True
 \optional{, smoothing=1
-\optional{, curvature_based_element_size=\False
+\optional{, curvature_based_element_size=\False\\
 \optional{, algorithm2D=\var{Design.MESHADAPT}
-\optional{, algorithm3D=\var{Design.FRONTAL}
+\optional{, algorithm3D=\var{Design.FRONTAL}\\
 \optional{, generate_hexahedra=False}}}}}}}
 sets options for the mesh generator. \var{algorithm2D} sets the 2D meshing algorithm to be used.
 The algorithm needs to be \var{Design.DELAUNAY}
@@ -815,15 +815,15 @@ returns a \class{TagMap} to map the name \class{PropertySet} in the class to tag
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{setFileFormat}{\optional{format=\var{Design.GMSH}}}
-set the file format. \var{format} must be one of the values
-\var{Design.GMSH},
-\var{Design.IDEAS},
-\var{Design.VRML},
-\var{Design.STL},
-\var{Design.NASTRAN},
-\var{Design.MEDIT},
-\var{Design.CGNS},
-\var{Design.PLOT3D} or
+set the file format. \var{format} must be one of the values:\\
+\var{Design.GMSH} \\
+\var{Design.IDEAS}\\
+\var{Design.VRML}\\
+\var{Design.STL}\\
+\var{Design.NASTRAN}\\
+\var{Design.MEDIT}\\
+\var{Design.CGNS}\\
+\var{Design.PLOT3D}\\
 \var{Design.DIFFPACK}.
 \end{methoddesc}
 
