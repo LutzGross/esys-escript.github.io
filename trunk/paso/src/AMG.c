@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au                                */
+/* Author: artak@uq.edu.au, l.gross@uq.edu.au                                */
 
 /**************************************************************/
 
@@ -61,10 +61,10 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   Paso_Preconditioner_LocalAMG* out=NULL;
   bool_t verbose=options->verbose;
   
-  Paso_SparseMatrix* W_FC=NULL, *Atemp=NULL, *A_C=NULL;
+  Paso_SparseMatrix *Atemp=NULL, *A_C=NULL;
   const dim_t n=A_p->numRows;
   const dim_t n_block=A_p->row_block_size;
-  index_t* split_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL;
+  index_t* split_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree=NULL;
   dim_t n_F=0, n_C=0, i;
   double time0=0;
   const double theta = options->coarsening_threshold;
@@ -84,17 +84,20 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 
      split_marker=TMPMEMALLOC(n,index_t);
      counter=TMPMEMALLOC(n,index_t);
-     if ( !( Esys_checkPtr(split_marker) || Esys_checkPtr(counter) ) ) {
+     degree=TMPMEMALLOC(n, dim_t);
+     S=TMPMEMALLOC(A_p->pattern->len, index_t);
+     if ( !( Esys_checkPtr(split_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree) || Esys_checkPtr(S) ) ) {
 	 /* 
 	      set splitting of unknows:
 	   
     	 */
 	 time0=Esys_timer();
 	 if (n_block>1) {
-	    Paso_Preconditioner_AMG_RSCoarsening_Block(A_p, split_marker, theta,tau);
+	       Paso_Preconditioner_AMG_setStrongConnections_Block(A_p, degree, S, theta,tau);
 	 } else {
-	    Paso_Preconditioner_AMG_RSCoarsening(A_p, split_marker, theta,tau);
+	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree, S, theta,tau);
 	 }
+	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree, S, split_marker);
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
 	 
 	 if (Esys_noError() ) {
@@ -149,38 +152,25 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			   }
 			}
 			/*
-			      get Restriction : (can we do this in one go?)	 
-			*/
+			      get Restriction :	 
+			*/					
 			time0=Esys_timer();
-			W_FC=Paso_SparseMatrix_getSubmatrix(A_p, n_F, n_C, rows_in_F, mask_C);
-			if (SHOW_TIMING) printf("timing: level %d: get Weights: %e\n",level, Esys_timer()-time0);
-			
-			time0=Esys_timer();
-			Paso_SparseMatrix_updateWeights(A_p,W_FC,split_marker);
-			if (SHOW_TIMING) printf("timing: level %d: updateWeights: %e\n",level, Esys_timer()-time0);
-			
-			time0=Esys_timer();
-			out->P=Paso_SparseMatrix_getProlongation(W_FC,split_marker);
+			out->P=Paso_Preconditioner_AMG_getDirectProlongation(A_p,degree,S,n_C,mask_C);
 			if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
-			
-			Paso_SparseMatrix_free(W_FC);
-			/*      
+	/*      
 			   construct Prolongation operator as transposed of restriction operator: 
 			*/
 			time0=Esys_timer();
 			out->R=Paso_SparseMatrix_getTranspose(out->P);
 			if (SHOW_TIMING) printf("timing: level %d: Paso_SparseMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
+					
 			/* 
-			constrPaso AMG level 2: 4 unknowns are flagged for elimination.
-			timing: Gauss-Seidel preparation: elemination : 8.096400e-05
-			AMG: level 2: 4 unknowns eliminated.
-			uct coarse level matrix (can we do this in one call?)
+			construct coarse level matrix (can we do this in one call?)
 			*/
 			time0=Esys_timer();
 			Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
 			A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
 			Paso_SparseMatrix_free(Atemp);
-			/*A_c=Paso_Solver_getCoarseMatrix(A_p,out->R,out->P);*/
 			if (SHOW_TIMING) printf("timing: level %d : getCoarseMatrix: %e\n",level,Esys_timer()-time0);
 			
 			/* allocate helpers :*/
@@ -239,6 +229,8 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   }
   TMPMEMFREE(counter);
   TMPMEMFREE(split_marker);
+  TMPMEMFREE(degree);
+  TMPMEMFREE(S);
 
   if (Esys_noError()) {
       if (verbose) printf("AMG: level %d: %d unknowns eliminated.\n",level, n_F);
@@ -266,7 +258,7 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
          time0=Esys_timer();
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C); /*r=r-Ax*/
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
          time0=Esys_timer()-time0;
 	 /* coarse level solve */
@@ -289,7 +281,7 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
 	    Paso_Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
 	 }  
   	 time0=time0+Esys_timer();
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x);       /* x = x + P*x_c */
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
 	
          /*postsmoothing*/
       
@@ -307,22 +299,21 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
 /* theta = threshold for strong connections */
 /* tau = threshold for diagonal dominance */
 
-void Paso_Preconditioner_AMG_RSCoarsening(Paso_SparseMatrix* A, index_t* split_marker, const double theta, const double tau)
+/*S_i={j \in N_i; i strongly coupled to j}
+
+in the sense that |A_{ij}| >= theta * max_k |A_{ik}| 
+*/
+
+void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A, 
+					  dim_t *degree, index_t *S,
+					  const double theta, const double tau)
 {
    const dim_t n=A->numRows;
-   dim_t *degree=NULL;   /* number of naighbours in strong connection graph */
-   index_t *S=NULL, iptr, i,j;
+   index_t iptr, i,j;
    dim_t kdeg;
    double max_offdiagonal, threshold, sum_row, main_row, fnorm;
-   
-   degree=TMPMEMALLOC(n, dim_t);
-   S=TMPMEMALLOC(A->pattern->len, index_t);
 
-   if ( !( Esys_checkPtr(degree) || Esys_checkPtr(S) ) )  {
-      /*S_i={j \in N_i; i strongly coupled to j}
-   
-	 in the sense that |A_{ij}| >= theta * max_k |A_{ik}| 
-      */
+
       #pragma omp parallel for private(i,iptr,max_offdiagonal, threshold,j, kdeg, sum_row, main_row, fnorm) schedule(static)
       for (i=0;i<n;++i) {
           
@@ -355,36 +346,28 @@ void Paso_Preconditioner_AMG_RSCoarsening(Paso_SparseMatrix* A, index_t* split_m
 	 }
 	 degree[i]=kdeg;
       }
-      
-      Paso_Preconditioner_AMG_RSCoarsening_search(n, A->pattern->ptr, degree, S, split_marker);
-      
-   }
-   TMPMEMFREE(degree);
-   TMPMEMFREE(S);
+
 }
 
 /* theta = threshold for strong connections */
 /* tau = threshold for diagonal dominance */ 
-void Paso_Preconditioner_AMG_RSCoarsening_Block(Paso_SparseMatrix* A, index_t* split_marker, const double theta, const double tau)
+/*S_i={j \in N_i; i strongly coupled to j}
+
+in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F 
+*/
+void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SparseMatrix* A, 
+							dim_t *degree, index_t *S,
+							const double theta, const double tau)
 
 {
    const dim_t n_block=A->row_block_size;
    const dim_t n=A->numRows;
-   dim_t *degree=NULL;   /* number of naighbours in strong connection graph */
-   index_t *S=NULL, iptr, i,j, bi;
+   index_t iptr, i,j, bi;
    dim_t kdeg, max_deg;
    register double max_offdiagonal, threshold, fnorm, sum_row, main_row;
    double *rtmp;
    
    
-   degree=TMPMEMALLOC(n, dim_t);
-   S=TMPMEMALLOC(A->pattern->len, index_t);
-   
-   if ( !( Esys_checkPtr(degree) || Esys_checkPtr(S)  ) ) {
-      /*S_i={j \in N_i; i strongly coupled to j}
-   
-      in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F 
-      */
       #pragma omp parallel private(i,iptr,max_offdiagonal, kdeg, threshold,j, max_deg, fnorm, sum_row, main_row, rtmp) 
       {
 	 max_deg=0;
@@ -430,14 +413,12 @@ void Paso_Preconditioner_AMG_RSCoarsening_Block(Paso_SparseMatrix* A, index_t* s
 	 }      
 	 TMPMEMFREE(rtmp);
       } /* end of parallel region */
-      Paso_Preconditioner_AMG_RSCoarsening_search(n, A->pattern->ptr, degree, S, split_marker);
-   }
-   TMPMEMFREE(degree);
-   TMPMEMFREE(S);  
+ 
 }   
 
 /* the runge stueben coarsening algorithm: */
-void Paso_Preconditioner_AMG_RSCoarsening_search(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, 
+void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset,
+						 const dim_t* degree, const index_t* S, 
 						 index_t*split_marker)
 {
    index_t *lambda=NULL, j, *ST=NULL;

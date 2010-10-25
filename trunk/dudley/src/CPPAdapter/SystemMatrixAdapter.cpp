@@ -177,7 +177,6 @@ void dudley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
    switch (mat->type) {
    case MATRIX_FORMAT_DEFAULT:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_DEFAULT\n"); break;
    case MATRIX_FORMAT_CSC:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_CSC\n"); break;
-   case MATRIX_FORMAT_SYM:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_SYM\n"); break;
    case MATRIX_FORMAT_BLK1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_BLK1\n"); break;
    case MATRIX_FORMAT_OFFSET1:		fprintf(stdout, "\tMatrix type MATRIX_FORMAT_OFFSET1\n"); break;
    case MATRIX_FORMAT_TRILINOS_CRS:	fprintf(stdout, "\tMatrix type MATRIX_FORMAT_TRILINOS_CRS\n"); break;

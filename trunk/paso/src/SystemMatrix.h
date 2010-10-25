@@ -39,13 +39,6 @@
 
 /*  this struct holds a stiffness matrix: */
 
-#define MATRIX_FORMAT_DEFAULT 0
-#define MATRIX_FORMAT_CSC 1
-#define MATRIX_FORMAT_SYM 2
-#define MATRIX_FORMAT_BLK1 4
-#define MATRIX_FORMAT_OFFSET1 8
-#define MATRIX_FORMAT_TRILINOS_CRS 16
-
 typedef int Paso_SystemMatrixType;
 
 typedef struct Paso_SystemMatrix {

@@ -35,6 +35,7 @@ sources = """
 	Pattern.c
 	Pattern_getSubpattern.c
 	Pattern_mis.c
+        Pattern_multiply.c
 	Pattern_reduceBandwidth.c
 	Pattern_unrollBlocks.c
 	SharedComponents.c
@@ -49,6 +50,7 @@ sources = """
 	ILU.c
 	RILU.c
 	AMG.c
+	AMG_Prolongation.c
 	SchurComplement.c
 	Preconditioner.c
 	SparseMatrix.c
@@ -57,7 +59,6 @@ sources = """
 	SparseMatrix_addRow.c
 	SparseMatrix_getSubmatrix.c
 	SparseMatrix_getTranspose.c
-	SparseMatrix_AMGcomponents.c
 	SparseMatrix_nullifyRowsAndCols.c
 	SparseMatrix_saveHB.c
 	SparseMatrix_setValues.c
@@ -66,6 +67,7 @@ sources = """
 	SystemMatrixPattern.c
 	SystemMatrixPattern_unrollBlocks.c
 	SystemMatrix_MatrixVector.c
+        SparseMatrix_MatrixMatrix.c
 	SystemMatrix_borrowNormalization.c
 	SystemMatrix_getSystemMatrixTypeId.c
 	SystemMatrix_loadMM.c

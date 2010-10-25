@@ -36,8 +36,8 @@ double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A) {
    index_t irow_failed, irow_failed_local;
    register double fac;
    if (!A->normalizer_is_valid) {
-      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_SYM) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_borrowNormalization: No normalization available for compressed sparse column, symmetric storage scheme or index offset 1.");
+      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
+        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_borrowNormalization: No normalization available for compressed sparse column or index offset 1.");
       } else {
           if (Esys_checkPtr(A->normalizer)) {
               Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_borrowNormalization: no memory alloced for normalizer.");

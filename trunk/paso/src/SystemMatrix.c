@@ -43,10 +43,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
 
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
   Esys_resetError();
-  if (type & MATRIX_FORMAT_SYM) {
-      Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: Symmetric matrix patterns are not supported.");
-      return NULL;
-  }
   if (patternIsUnrolled) {
      if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
          Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");

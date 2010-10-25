@@ -34,11 +34,13 @@
 
 /*  this struct holds a stiffness matrix: */
 
-#define MATRIX_FORMAT_DEFAULT 0
-#define MATRIX_FORMAT_CSC 1
+#define MATRIX_FORMAT_DEFAULT 1
+#define MATRIX_FORMAT_CSC 2
 #define MATRIX_FORMAT_BLK1 4
 #define MATRIX_FORMAT_OFFSET1 8
 #define MATRIX_FORMAT_TRILINOS_CRS 16
+#define MATRIX_FORMAT_DIAGONAL_BLOCK 32
+
 
 typedef int Paso_SparseMatrixType;
 
@@ -73,6 +75,8 @@ void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_S
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
@@ -84,12 +88,12 @@ void Paso_SparseMatrix_nullifyRows_CSR_BLK1(Paso_SparseMatrix* A, double* mask_r
 void Paso_SparseMatrix_saveHB_CSC(Paso_SparseMatrix *, FILE*);
 Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,dim_t,dim_t,index_t*,index_t*);
 Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid);
+Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
+void Paso_SparseMatrix_MatrixMatrix_DD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
+void Paso_SparseMatrix_MatrixMatrix_DB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
+void Paso_SparseMatrix_MatrixMatrix_BD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
+void Paso_SparseMatrix_MatrixMatrix_BB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
 
-Paso_SparseMatrix* Paso_SparseMatrix_getProlongation(Paso_SparseMatrix* W, index_t* mis_marker);
-Paso_SparseMatrix* Paso_SparseMatrix_getRestriction(Paso_SparseMatrix* P);
-void Paso_SparseMatrix_updateWeights(Paso_SparseMatrix* A,Paso_SparseMatrix* W_FC, index_t* mis_marker);
-Paso_SparseMatrix* Paso_Solver_getCoarseMatrix(Paso_SparseMatrix *A, Paso_SparseMatrix *R, Paso_SparseMatrix *P);
-Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(Paso_SparseMatrix* A, Paso_SparseMatrix* B);
 Paso_SparseMatrix* Paso_SparseMatrix_RemovePositiveOffdiagonals(Paso_SparseMatrix* P);
 Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A);
 Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* P);
@@ -108,12 +112,11 @@ void Paso_SparseMatrix_copyBlockToMainDiagonal(Paso_SparseMatrix * A_p, const do
 void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_diag, int* pivot, double*x, double *b);
 void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* pivot);
 dim_t Paso_SparseMatrix_maxDeg(Paso_SparseMatrix * A_p);
+dim_t Paso_SparseMatrix_getTotalNumRows(const Paso_SparseMatrix* A);
+dim_t Paso_SparseMatrix_getTotalNumCols(const Paso_SparseMatrix*A);
+dim_t Paso_SparseMatrix_getNumRows(Paso_SparseMatrix*A);
+dim_t Paso_SparseMatrix_getNumCols(Paso_SparseMatrix*A);
 
-/*
-void Paso_SparseMatrix_add(Paso_SparseMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
-Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR(char *);
-void Paso_Solver_getCoarseMatrix(Paso_SparseMatrix* A_c, Paso_SparseMatrix* A,Paso_SparseMatrix *R,Paso_SparseMatrix *P);
-*/
 
 #endif /* #ifndef INC_PASO_SPARSEMATRIX */
 

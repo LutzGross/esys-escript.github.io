@@ -66,7 +66,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      }
      method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric,A->mpi_info);
      /* check matrix type */
-     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) || (A->type & MATRIX_FORMAT_SYM) ) {
+     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) ) {
        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
      }
      if (A->col_block_size != A->row_block_size) {
