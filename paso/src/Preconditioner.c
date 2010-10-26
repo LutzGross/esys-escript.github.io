@@ -100,8 +100,6 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 		    }
 		 }
 		 prec->localamgsubstitute=Paso_Preconditioner_LocalSmoother_alloc(A->mainBlock, (options->smoother == PASO_JACOBI), options->verbose);
-	      } else {
-		 if (options->verbose) printf("Paso: AMG preconditioner is used.\n");
 	      }
 	      prec->type=PASO_AMG;
 	      Esys_MPIInfo_noError(A->mpi_info);

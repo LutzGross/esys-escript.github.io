@@ -63,8 +63,8 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
      double control[UMFPACK_CONTROL], info[UMFPACK_INFO];
      int error = UMFPACK_OK;
      
-     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Esys_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSR format with index offset 1 and block size 1.");
+     if (! (A->type & (MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC)) ) {
+        Esys_setError(TYPE_ERROR,"Paso_UMFPACK: UMFPACK requires CSC format with index offset 1 and block size 1.");
         return;
      }
      

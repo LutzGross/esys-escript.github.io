@@ -261,7 +261,7 @@ Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList
 	    {
 		Dudley_IndexList_toArray(&index_list[i], &index[ptr[i - n0]], range_min, range_max, index_offset);
 	    }
-	    out = Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT, n - n0, range_max + index_offset, ptr, index);
+	    out = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n - n0, range_max + index_offset, ptr, index);
 	}
     }
     if (!Dudley_noError())

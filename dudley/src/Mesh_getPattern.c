@@ -161,7 +161,7 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_r
 	/* if everthing is in order we can create the return value */
 	if (Dudley_noError())
 	{
-	    out = Paso_SystemMatrixPattern_alloc(PATTERN_FORMAT_DEFAULT,
+	    out = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
 						 rowDistribution,
 						 colDistribution,
 						 main_pattern,

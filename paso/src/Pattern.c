@@ -32,7 +32,7 @@
 
 Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index) {
   Paso_Pattern *out=NULL;
-  index_t index_offset=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t loc_min_index,loc_max_index,min_index=index_offset,max_index=index_offset-1;
   dim_t i;
   Esys_resetError();
@@ -42,7 +42,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
      {
         loc_min_index=index_offset;
         loc_max_index=index_offset-1;
-        if (type & PATTERN_FORMAT_OFFSET1) {
+        if (type & MATRIX_FORMAT_OFFSET1) {
            #pragma omp for schedule(static) 
            for (i=0;i<numOutput;++i) {
                if (ptr[i]<ptr[i+1]) {
@@ -185,7 +185,7 @@ Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* ind
               for(i=n0;i<n;++i) {
                   Paso_IndexList_toArray(&index_list[i],&index[ptr[i-n0]],range_min,range_max,index_offset);
               }
-              out=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
+              out=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,n-n0,range_max+index_offset,ptr,index);
        }
   }
   if (! Esys_noError()) {

@@ -54,7 +54,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrix(const Paso_SparseMatrix* A, co
       C_type=MATRIX_FORMAT_DEFAULT;
    }
 
-   outpattern=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,A->pattern,B->pattern);
+   outpattern=Paso_Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
    
    if (Esys_noError()) {
       out=Paso_SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);

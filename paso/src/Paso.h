@@ -29,6 +29,13 @@
 #include "Common.h"
 #include "esysUtils/error.h"
 
+#define MATRIX_FORMAT_DEFAULT 1
+#define MATRIX_FORMAT_CSC 2
+#define MATRIX_FORMAT_BLK1 4
+#define MATRIX_FORMAT_OFFSET1 8
+#define MATRIX_FORMAT_TRILINOS_CRS 16
+#define MATRIX_FORMAT_DIAGONAL_BLOCK 32
+
 #define PASO_ONE (double)(1.0)
 #define PASO_ZERO (double)(0.0)
 

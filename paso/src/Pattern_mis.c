@@ -48,7 +48,7 @@ static double Paso_Pattern_mis_seed=.4142135623730951;
 
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
 
-  index_t index_offset=(pattern_p->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  const index_t index_offset=(pattern_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   dim_t i;
   double *value;
   index_t naib,iptr;
