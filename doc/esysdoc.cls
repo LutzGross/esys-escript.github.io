@@ -10,6 +10,7 @@
 \usepackage{times}
 \usepackage{listings}
 \usepackage{ifpdf}
+\usepackage{makeidx}
 
 %\usepackage{avant}
 %\renewcommand{\familydefault}{\sfdefault}	% Switch to san seriff
@@ -22,6 +23,11 @@
 
 %Blue was chosen here because it looks ok when printed
 \usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+%Dummy commands for if we ever need to switch off hyperref
+% \providecommand{\pdfbookmark}[3][0]{}
+% \providecommand{\currentpdfbookmark}[2]{}
+% \providecommand{\subpdfbookmark}[2]{}
 
 
 \usepackage{fancyhdr}
@@ -133,6 +139,7 @@
 
 \renewcommand{\maketitle}{
 \begin{titlepage}
+\pdfbookmark[0]{Title page}{title}
 \textsf{
 \begin{raggedleft}
 \Huge
@@ -162,6 +169,8 @@
 \renewcommand*{\theHchapter}{\Alph{chapter}}	%How latex generates chapters
 \renewcommand*{\thechapter}{\Alph{chapter}}	%How hyperref generates chapters
 }
+
+\newcommand{\etableofcontents}{\pdfbookmark[0]{Contents}{cont}\tableofcontents}
 
 
 
