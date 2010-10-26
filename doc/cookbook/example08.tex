@@ -22,23 +22,23 @@ particle motion. An example of this would be seismic waves.
 
 Wave propagation in the earth can be described by the elastic wave equation
 \begin{equation} \label{eqn:wav} \index{wave equation}
-\rho \frac{\partial^{2}u\hackscore{i}}{\partial t^2} - \frac{\partial
-\sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
+\rho \frac{\partial^{2}u_{i}}{\partial t^2} - \frac{\partial
+\sigma_{ij}}{\partial x_{j}} = 0
 \end{equation}
 where $\sigma$ is the stress given by
 \begin{equation} \label{eqn:sigw}
- \sigma \hackscore{ij} = \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu (
-u\hackscore{i,j} + u\hackscore{j,i})
+ \sigma _{ij} = \lambda u_{k,k} \delta_{ij} + \mu (
+u_{i,j} + u_{j,i})
 \end{equation}
 and $\lambda$ and $\mu$ represent Lame's parameters. Specifically for seismic
 waves, $\mu$ is the propagation materials shear modulus. 
 In a similar process to the previous chapter, we will use the acceleration
 solution to solve this PDE. By substituting $a$ directly for
-$\frac{\partial^{2}u\hackscore{i}}{\partial t^2}$ we can derive the
+$\frac{\partial^{2}u_{i}}{\partial t^2}$ we can derive the
 displacement solution. Using $a$ we can see that \autoref{eqn:wav} becomes
 \begin{equation} \label{eqn:wava} 
-\rho a\hackscore{i} - \frac{\partial
-\sigma\hackscore{ij}}{\partial x\hackscore{j}} = 0
+\rho a_{i} - \frac{\partial
+\sigma_{ij}}{\partial x_{j}} = 0
 \end{equation}
 Thus the problem will be solved for acceleration and then converted to 
 displacement using the backwards difference approximation.
@@ -47,14 +47,14 @@ Consider now the stress $\sigma$. One can see that the stress consists of two
 distinct terms:
 \begin{subequations}
 \begin{equation} \label{eqn:sigtrace}
-\lambda u\hackscore{k,k} \delta\hackscore{ij}
+\lambda u_{k,k} \delta_{ij}
 \end{equation}
 \begin{equation} \label{eqn:sigtrans}
-\mu (u\hackscore{i,j} + u\hackscore{j,i})
+\mu (u_{i,j} + u_{j,i})
 \end{equation}
 \end{subequations}
-One simply recognizes in \autoref{eqn:sigtrace} that $u\hackscore{k,k}$ is the
-trace of the displacement solution and that $\delta\hackscore{ij}$ is the
+One simply recognizes in \autoref{eqn:sigtrace} that $u_{k,k}$ is the
+trace of the displacement solution and that $\delta_{ij}$ is the
 kronecker delta function with dimensions equivalent to $u$. The second term
 \autoref{eqn:sigtrans} is the sum of $u$ with its own transpose. Putting these
 facts together we see that the spatial differential of the stress is given by the
@@ -289,7 +289,7 @@ To dampen the waves, the method of \citet{Cerjan1985}
 where the solution and the stress are multiplied by a damping function defined
 on $n$ nodes of the domain adjacent to the boundary, given by;
 \begin{equation}
-\gamma =\sqrt{\frac{| -log( \gamma \hackscore{b} ) |}{n^2}}
+\gamma =\sqrt{\frac{| -log( \gamma _{b} ) |}{n^2}}
 \end{equation}
 \begin{equation}
 y=e^{-(\gamma x)^2}

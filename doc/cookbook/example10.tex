@@ -29,19 +29,19 @@ where $\gamma$ is the gravitational constant.
 Consider now the \esc general form, which can simply be related to
 \autoref{eqn:poisson} using two coefficients. The result is
 \begin{equation}
--\left(A\hackscore{jl} u\hackscore{,l} \right)\hackscore{,j} = Y
+-\left(A_{jl} u_{,l} \right)_{,j} = Y
 \end{equation}
 one recognises that the LHS side is equivalent to 
 \begin{equation} \label{eqn:ex10a}
 -\nabla A \nabla u
 \end{equation}
-If $A=\delta\hackscore{jl}$ then \autoref{eqn:ex10a} is equivalent to
+If $A=\delta_{jl}$ then \autoref{eqn:ex10a} is equivalent to
 \begin{equation*}
 -\nabla^2 u
 \end{equation*}
 and thus Poisson's \autoref{eqn:poisson} satisfies the general form when
 \begin{equation}
-A=\delta\hackscore{jl} \text{ and } Y= 4\pi\gamma\rho
+A=\delta_{jl} \text{ and } Y= 4\pi\gamma\rho
 \end{equation}
 At least one boundary point must be set for the problem to be solvable. For this
 example we have set all of the boundaries to zero. The normal flux condition is
@@ -73,14 +73,14 @@ The potential $U$ is related to the gravitational response $\vec{g}$ via
 \begin{equation}
 \vec{g} = \nabla U
 \end{equation}
-This for example as a vertical component $g\hackscore{z}$ where
+This for example as a vertical component $g_{z}$ where
 \begin{equation}
-g\hackscore{z}=\vec{g}\cdot\hat{z}
+g_{z}=\vec{g}\cdot\hat{z}
 \end{equation}
 Finally, there is the magnitude of the vertical component $g$ of
-$g\hackscore{z}$
+$g_{z}$
 \begin{equation}
-g=|g\hackscore{z}|
+g=|g_{z}|
 \end{equation}
 These values are derived from the \esc solution \verb!sol! to the potential $U$
 using the following commands

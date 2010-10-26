@@ -40,7 +40,7 @@ To expand upon our 1D problem, the domain must first be expanded. In fact, we
 have solved a two dimensional problem already but essentially ignored the second
 dimension. In our definition phase we create a square domain in $x$ and
 $y$\footnote{In \esc the notation
-$x\hackscore{0}$ and $x\hackscore{1}$ is used for $x$ and $y$, respectively.}
+$x_{0}$ and $x_{1}$ is used for $x$ and $y$, respectively.}
 that is $600$ meters along each side \reffig{fig:twodhdmodel}. Now we set the
 number of discrete spatial cells to $150$ in both directions and the radius of
 the intrusion to $200$ meters with the centre located at the $300$ meter mark
@@ -72,9 +72,9 @@ In fact, the temperature model \refEq{eqn:hd} we utilised in
 1D case with a constant material parameter only. For the more general case
 examined in this chapter, the correct model equation is 
 \begin{equation}
-\rho c\hackscore p \frac{\partial T}{\partial t} -  \frac{\partial }{\partial x}
+\rho c_p \frac{\partial T}{\partial t} -  \frac{\partial }{\partial x}
 \kappa \frac{\partial T}{\partial x} -  \frac{\partial }{\partial y} \kappa
-\frac{\partial T}{\partial y} = q\hackscore H 
+\frac{\partial T}{\partial y} = q_H 
 \label{eqn:hd2}
 \end{equation}
 Notice that for the 1D case we have $\frac{\partial T}{\partial y}=0$ and
@@ -84,13 +84,13 @@ with a simplified model equation for this case. It is more convenient
 to write this equation using the $\nabla$ notation as we have already seen in
 \refEq{eqn:commonform nabla};
 \begin{equation}\label{eqn:Tform nabla}
-\rho c\hackscore p \frac{\partial T}{\partial t} 
--\nabla \cdot \kappa \nabla T = q\hackscore H
+\rho c_p \frac{\partial T}{\partial t} 
+-\nabla \cdot \kappa \nabla T = q_H
 \end{equation}
 We can easily apply the backward Euler scheme as before to end up with 
 \begin{equation}
-\frac{\rho c\hackscore p}{h} T^{(n)} -\nabla \cdot \kappa \nabla T^{(n)}  =
-q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
+\frac{\rho c_p}{h} T^{(n)} -\nabla \cdot \kappa \nabla T^{(n)}  =
+q_H +  \frac{\rho c_p}{h} T^{(n-1)}
 \label{eqn:hdgenf2}
 \end{equation}
 which is very similar to \refEq{eqn:hdgenf} used to define the temperature
@@ -100,19 +100,19 @@ $\nabla \cdot \kappa \nabla T^{(n)}$. Under the light of the more general case
 we need to revisit the \esc PDE form as shown in \ref{eqn:commonform2D}.
 For the 2D case with variable PDE coefficients the form needs to be read as 
 \begin{equation}\label{eqn:commonform2D 2}
--\frac{\partial }{\partial x} A\hackscore{00}\frac{\partial u}{\partial x} 
--\frac{\partial }{\partial x} A\hackscore{01}\frac{\partial u}{\partial y} 
--\frac{\partial }{\partial y} A\hackscore{10}\frac{\partial u}{\partial x} 
--\frac{\partial }{\partial x} A\hackscore{11}\frac{\partial u}{\partial y} 
+-\frac{\partial }{\partial x} A_{00}\frac{\partial u}{\partial x} 
+-\frac{\partial }{\partial x} A_{01}\frac{\partial u}{\partial y} 
+-\frac{\partial }{\partial y} A_{10}\frac{\partial u}{\partial x} 
+-\frac{\partial }{\partial x} A_{11}\frac{\partial u}{\partial y} 
 + Du = f
 \end{equation}
-So besides the settings $u=T^{(n)}$, $D = \frac{\rho c \hackscore{p}}{h}$ and
-$f = q \hackscore{H} + \frac{\rho c\hackscore p}{h} T^{(n-1)}$ as we have used
+So besides the settings $u=T^{(n)}$, $D = \frac{\rho c _{p}}{h}$ and
+$f = q _{H} + \frac{\rho c_p}{h} T^{(n-1)}$ as we have used
 before (see \refEq{ESCRIPT SET}) we need to set
 \begin{equation}\label{eqn: kappa general}
-A\hackscore{00}=A\hackscore{11}=\kappa; A\hackscore{01}=A\hackscore{10}=0
+A_{00}=A_{11}=\kappa; A_{01}=A_{10}=0
 \end{equation}
-The fundamental difference to the 1D case is that $A\hackscore{11}$ is not set
+The fundamental difference to the 1D case is that $A_{11}$ is not set
 to zero but $\kappa$,
 which brings in the second dimension. It is important to note that the
 coefficients of the PDE may depend on their location in the domain which does
@@ -146,23 +146,23 @@ we set $\kappa$. As pointed out \refEq{NEUMAN 2} makes certain assumptions on
 the boundary conditions. In our case these assumptions translate to;
 \begin{equation}
 -n \cdot \kappa \nabla T^{(n)} = 
--n\hackscore{0} \cdot \kappa \frac{\partial T^{(n)}}{\partial x} -
-n\hackscore{1} \cdot  \kappa \frac{\partial T^{(n)}}{\partial y} = 0
+-n_{0} \cdot \kappa \frac{\partial T^{(n)}}{\partial x} -
+n_{1} \cdot  \kappa \frac{\partial T^{(n)}}{\partial y} = 0
 \label{eq:hom flux}
 \end{equation}
 which sets the normal component of the heat flux $- \kappa \cdot (\frac{\partial
 T^{(n)}}{\partial x}, \frac{\partial T^{(n)}}{\partial y})$ to zero. This means
 that the region is insulated which is what we want. 
 On the left and right face of the domain where we have
-$(n\hackscore{0},n\hackscore{1} ) = (\mp 1,0)$ 
+$(n_{0},n_{1} ) = (\mp 1,0)$ 
 this means $\frac{\partial T^{(n)}}{\partial x}=0$ and on the top and bottom on
 the domain 
-where we have  $(n\hackscore{0},n\hackscore{1} ) = (\pm 1,0)$ this is
+where we have  $(n_{0},n_{1} ) = (\pm 1,0)$ this is
 $\frac{\partial T^{(n)}}{\partial y}=0$. 
 
 \section{Setting variable PDE Coefficients}
 Now we need to look into the problem of how we define the material coefficients
-$\kappa$ and $\rho c\hackscore p$ depending on their location in the domain. 
+$\kappa$ and $\rho c_p$ depending on their location in the domain. 
 We can make use of the technique used in the granite block example in
 \refSec{Sec:1DHDv00}
 to set up the initial temperature. However,
@@ -172,11 +172,11 @@ curved interface between the two sub-domains.
 Prior to setting up the PDE, the interface between the two materials must be
 established. 
 The distance $s\ge 0$ between two points $[x,y]$ and
-$[x\hackscore{0},y\hackscore{0}]$ in Cartesian coordinates is defined as:
+$[x_{0},y_{0}]$ in Cartesian coordinates is defined as:
 \begin{equation}
- (x-x\hackscore{0})^{2}+(y-y\hackscore{0})^{2} = s^{2}
+ (x-x_{0})^{2}+(y-y_{0})^{2} = s^{2}
 \end{equation}
-If we define the point $[x\hackscore{0},y\hackscore{0}]$ as $ic$ which denotes
+If we define the point $[x_{0},y_{0}]$ as $ic$ which denotes
 the centre of the semi-circle of our intrusion, then for all the points $[x,y]$
 in our model we can calculate a distance to $ic$. 
 All the points that fall within the given radius $r$ of our intrusion will have
@@ -204,7 +204,7 @@ mypde.setValue(A=kappa*kronecker(model))
 Notice that we are using the sample points of the \verb|Function| function space
 as expected for the PDE coefficient \verb|A|\footnote{For the experienced user: use
 \texttt{x=mypde.getFunctionSpace("A").getX()}.}.
-The corresponding statements are used to set $\rho c\hackscore p$. 
+The corresponding statements are used to set $\rho c_p$. 
 
 Our PDE has now been properly established. The initial conditions for
 temperature are set out in a similar manner:

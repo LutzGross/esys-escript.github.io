@@ -39,11 +39,11 @@ heat diffusion equation is derived can be found at
 http://online.redwoods.edu/instruct/darnold/DEProj/sp02/AbeRichards/paper.pdf}};
 which is defined as:
 \begin{equation}
-\rho c\hackscore p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2}
-T}{\partial x^{2}} = q\hackscore H 
+\rho c_p \frac{\partial T}{\partial t} - \kappa \frac{\partial^{2}
+T}{\partial x^{2}} = q_H 
 \label{eqn:hd}
 \end{equation}
-where $\rho$ is the material density, $c\hackscore p$ is the specific heat and
+where $\rho$ is the material density, $c_p$ is the specific heat and
 $\kappa$ is the thermal 
 conductivity\footnote{A list of some common thermal conductivities is available
 from Wikipedia
@@ -51,8 +51,8 @@ from Wikipedia
 assume that these material 
 parameters are \textbf{constant}. 
 The heat source is defined by the right hand side of \refEq{eqn:hd} as
-$q\hackscore{H}$; this can take the form of a constant or a function of time and
-space. For example $q\hackscore{H} = q\hackscore{0}e^{-\gamma t}$ where we have
+$q_{H}$; this can take the form of a constant or a function of time and
+space. For example $q_{H} = q_{0}e^{-\gamma t}$ where we have
 the output of our heat source decaying with time. There are also two partial
 derivatives in \refEq{eqn:hd}; $\frac{\partial T}{\partial t}$ describes the
 change in temperature with time while $\frac{\partial ^2 T}{\partial x^2}$ is
@@ -99,8 +99,8 @@ T^{(n)} & = & T(t^{(n-1)}) \\
 \end{equation}
 Substituting \refEq{eqn:Tbeuler} into \refEq{eqn:hd} we get;
 \begin{equation}
-\frac{\rho c\hackscore p}{h} (T^{(n)} - T^{(n-1)}) - \kappa \frac{\partial^{2}
-T^{(n)}}{\partial x^{2}} = q\hackscore H 
+\frac{\rho c_p}{h} (T^{(n)} - T^{(n-1)}) - \kappa \frac{\partial^{2}
+T^{(n)}}{\partial x^{2}} = q_H 
 \label{eqn:hddisc}
 \end{equation}
 Notice that we evaluate the spatial derivative term at the current time
@@ -135,7 +135,7 @@ this introduction we illustrate a simpler version of the general form for full
 linear PDEs which is available in the \esc user's guide. A simplified form that
 suits our heat diffusion problem\footnote{The form in the \esc users guide which
 uses the Einstein convention is written as 
-$-(A\hackscore{jl} u\hackscore{,l})\hackscore{,j}+D u =Y$}
+$-(A_{jl} u_{,l})_{,j}+D u =Y$}
 is described by;
 \begin{equation}\label{eqn:commonform nabla}
 -\nabla\cdot(A\cdot\nabla u) + Du = f
@@ -156,8 +156,8 @@ if $A$ is constant. To match this simplified general form to our problem
 \refEq{eqn:hddisc} 
 we rearrange \refEq{eqn:hddisc};
 \begin{equation}
-\frac{\rho c\hackscore p}{h} T^{(n)} - \kappa \frac{\partial^2 T^{(n)}}{\partial
-x^2} = q\hackscore H +  \frac{\rho c\hackscore p}{h} T^{(n-1)}
+\frac{\rho c_p}{h} T^{(n)} - \kappa \frac{\partial^2 T^{(n)}}{\partial
+x^2} = q_H +  \frac{\rho c_p}{h} T^{(n-1)}
 \label{eqn:hdgenf}
 \end{equation}
 The PDE is now in a form that satisfies \refEq{eqn:commonform nabla} which is
@@ -170,8 +170,8 @@ Finally, by comparing \refEq{eqn:hdgenf} with \refEq{eqn:commonform} one can see
 that;
 \begin{equation}\label{ESCRIPT SET}
 u=T^{(n)}; 
-A = \kappa; D = \frac{\rho c \hackscore{p}}{h}; f = q \hackscore{H} + \frac{\rho
-c\hackscore p}{h} T^{(n-1)}
+A = \kappa; D = \frac{\rho c _{p}}{h}; f = q _{H} + \frac{\rho
+c_p}{h} T^{(n-1)}
 \end{equation}
 
 \subsection{Boundary Conditions}
@@ -208,7 +208,7 @@ The $\cdot$ (dot) refers to the dot product of the vectors $\nabla T$ and $n$.
 In fact, the term $\nabla T \cdot n$ is the normal derivative of 
 the temperature $T$. Other notations used here are\footnote{The \esc notation
 for the normal
-derivative is $T\hackscore{,i} n\hackscore i$.};
+derivative is $T_{,i} n_i$.};
 \begin{equation}
 \nabla T \cdot n  = \frac{\partial T}{\partial n} \; .
 \end{equation}
@@ -233,7 +233,7 @@ the user may modify where appropriate.
 For a problem of the form in~\refEq{eqn:commonform nabla} the default
 condition\footnote{In the \esc user guide which uses the Einstein convention
 this is written as 
-$n\hackscore{j}A\hackscore{jl} u\hackscore{,l}=0$.} is;
+$n_{j}A_{jl} u_{,l}=0$.} is;
 \begin{equation}\label{NEUMAN 2}
 -n\cdot A \cdot\nabla u = 0 
 \end{equation}
@@ -392,10 +392,10 @@ two components $\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial
 y})$. Assuming the coefficient $A$ is constant, the \refEq{eqn:commonform nabla}
 takes the following form;
 \begin{equation}\label{eqn:commonform2D}
--A\hackscore{00}\frac{\partial^{2}u}{\partial x^{2}} 
--A\hackscore{01}\frac{\partial^{2}u}{\partial x\partial y} 
--A\hackscore{10}\frac{\partial^{2}u}{\partial y\partial x} 
--A\hackscore{11}\frac{\partial^{2}u}{\partial y^{2}} 
+-A_{00}\frac{\partial^{2}u}{\partial x^{2}} 
+-A_{01}\frac{\partial^{2}u}{\partial x\partial y} 
+-A_{10}\frac{\partial^{2}u}{\partial y\partial x} 
+-A_{11}\frac{\partial^{2}u}{\partial y^{2}} 
 + Du = f
 \end{equation}
 Notice that for the higher dimensional case $A$ becomes a matrix. It is also
@@ -404,7 +404,7 @@ a compact formulation which is also independent from the spatial dimension.
 To make the general PDE \refEq{eqn:commonform2D} one dimensional as
 shown in \refEq{eqn:commonform} we need to set
 \begin{equation}
-A\hackscore{00}=A; A\hackscore{01}=A\hackscore{10}=A\hackscore{11}=0
+A_{00}=A; A_{01}=A_{10}=A_{11}=0
 \end{equation}
 
 
@@ -520,7 +520,7 @@ In many cases it may be possible to decrease the computational time of the
 solver if the PDE is symmetric. 
 Symmetry of a PDE is defined by;
 \begin{equation}\label{eqn:symm}
-A\hackscore{jl}=A\hackscore{lj}
+A_{jl}=A_{lj}
 \end{equation}
 Symmetry is only dependent on the $A$ coefficient in the general form and the
 other coefficients $D$ as well as the right hand side $Y$. From the above
@@ -533,12 +533,12 @@ myPDE.setSymmetryOn()
 Next we need to establish the initial temperature distribution \verb|T|. We need
 to 
 assign the value \verb|T1| to all sample points left to the contact interface at
-$x\hackscore{0}=\frac{mx}{2}$
+$x_{0}=\frac{mx}{2}$
 and the value \verb|T2| right to the contact interface. \esc
 provides the \verb|whereNegative| function to construct this. More
 specifically, \verb|whereNegative| returns the value $1$ at those sample points
 where the argument has a negative value. Otherwise zero is returned.
-If \verb|x| are the $x\hackscore{0}$ 
+If \verb|x| are the $x_{0}$ 
 coordinates of the sample points used to represent the temperature distribution 
 then \verb|x[0]-boundloc| gives us a negative value for 
 all sample points left to the interface and non-negative value to 
@@ -576,7 +576,7 @@ while t < tend:
 	totE = integrate(rhocp*T) #get the total heat (energy) in the system
 \end{python}
 The last statement in this script calculates the total energy in the system as
-the volume integral of $\rho c\hackscore{p} T$ over the block.
+the volume integral of $\rho c_{p} T$ over the block.
 As the blocks are insulated no energy should be lost or added. 
 The total energy should stay constant for the example discussed here.
 
@@ -750,7 +750,7 @@ the temperature as a \pyt list of tuples or a \numpy array as requested by the
 plotting function. 
 We need to convert the array \verb|x| previously set as
 \verb|Solution(blocks).getX()| into a \pyt list 
-and then to a \numpy array. The $x\hackscore{0}$ component is then extracted via
+and then to a \numpy array. The $x_{0}$ component is then extracted via
 an array slice to the variable \verb|plx|; 
 \begin{python}
 import numpy as np # array package.
