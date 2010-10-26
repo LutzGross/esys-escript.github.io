@@ -171,7 +171,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
 			A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
 			Paso_SparseMatrix_free(Atemp);
-			if (SHOW_TIMING) printf("timing: level %d : getCoarseMatrix: %e\n",level,Esys_timer()-time0);
+			if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);
 			
 			/* allocate helpers :*/
 			out->x_C=MEMALLOC(n_block*n_C,double);
@@ -198,15 +198,18 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 				    out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
 				    Paso_SparseMatrix_free(A_C);
 				    out->A_C->solver_package = PASO_MKL;
+				    if (verbose) printf("Paso: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
 			      #else
 				    #ifdef UMFPACK
 				       out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
 				       Paso_SparseMatrix_free(A_C);
 				       out->A_C->solver_package = PASO_UMFPACK;
+				       if (verbose) printf("Paso: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
 				    #else
 				       out->A_C=A_C;
 				       out->A_C->solver_p=Paso_Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
 				       out->A_C->solver_package = PASO_SMOOTHER;
+				       if (verbose) printf("Paso: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C);
 				    #endif
 			      #endif
 			   } else {
