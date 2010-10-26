@@ -25,7 +25,6 @@
 #ifndef INC_PASO_PATTERN
 #define INC_PASO_PATTERN
 
-#include "Common.h"
 #include "Paso.h"
 #include "IndexList.h"
 

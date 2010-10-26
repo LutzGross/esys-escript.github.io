@@ -83,7 +83,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
 
 
      if (type & MATRIX_FORMAT_CSC) {
-printf("MATRIX_FORMAT_CSC\n");
          if (unroll) {
                if (patternIsUnrolled) {
                   out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
