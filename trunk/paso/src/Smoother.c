@@ -94,13 +94,6 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
    time0=Esys_timer()-time0;
    
    if (Esys_noError()) {
-      if (verbose) {
-	 if (jacobi) {
-	   printf("timing: Jacobi preparation: elemination : %e\n",time0);
-	 } else {   
-	   printf("timing: Gauss-Seidel preparation: elemination : %e\n",time0);
-	 }
-      }
       return out;
    } else {
       Paso_Preconditioner_LocalSmoother_free(out);

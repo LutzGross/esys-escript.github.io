@@ -63,6 +63,7 @@ sources = """
 	SparseMatrix_saveHB.c
 	SparseMatrix_setValues.c
         SparseMatrix_invMain.c
+        SparseMatrix_unroll.c
 	SystemMatrix.c
 	SystemMatrixPattern.c
 	SystemMatrixPattern_unrollBlocks.c

@@ -23,6 +23,7 @@
 /**************************************************************/
 
 #include "SystemMatrixPattern.h"
+#include "Paso.h"
 #include "esysUtils/error.h"
 
 /**************************************************************/
@@ -37,7 +38,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatri
   Paso_Distribution* new_output_distribution=NULL, *new_input_distribution=NULL;
   Paso_Connector *new_col_connector=NULL, *new_row_connector=NULL;
 
-  if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & PATTERN_FORMAT_OFFSET1) == (type & PATTERN_FORMAT_OFFSET1) ) ) {
+  if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1) ) ) {
      out = Paso_SystemMatrixPattern_getReference(pattern);
   } else {
      new_mainPattern=Paso_Pattern_unrollBlocks(pattern->mainPattern,type,output_block_size,input_block_size);

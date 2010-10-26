@@ -109,7 +109,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, split_marker);
 	    n_C=n-n_F;
-	    if (verbose) printf("Paso AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+	    if (verbose) printf("Paso: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
 	 
 	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
@@ -165,7 +165,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			if (SHOW_TIMING) printf("timing: level %d: Paso_SparseMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 					
 			/* 
-			construct coarse level matrix (can we do this in one call?)
+			construct coarse level matrix:
 			*/
 			time0=Esys_timer();
 			Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
@@ -195,18 +195,12 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			      out->refinements = options->coarse_matrix_refinements;
 			      /* no coarse level matrix has been constructed. use direct solver */
 			      #ifdef MKL
-				    Atemp=Paso_SparseMatrix_unroll(A_C);
+				    out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
 				    Paso_SparseMatrix_free(A_C);
-				    out->A_C=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, Atemp->pattern,1,1, FALSE);
-				    #pragma omp parallel for private(i) schedule(static)
-				    for (i=0;i<out->A->len;++i) {
-				       out->A_C->val[i]=Atemp->val[i];
-				    }
-				    Paso_SparseMatrix_free(Atemp);
 				    out->A_C->solver_package = PASO_MKL;
 			      #else
 				    #ifdef UMFPACK
-				       out->A_C=Paso_SparseMatrix_unroll(A_C);
+				       out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
 				       Paso_SparseMatrix_free(A_C);
 				       out->A_C->solver_package = PASO_UMFPACK;
 				    #else
@@ -233,7 +227,6 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   TMPMEMFREE(S);
 
   if (Esys_noError()) {
-      if (verbose) printf("AMG: level %d: %d unknowns eliminated.\n",level, n_F);
      return out;
   } else  {
      Paso_Preconditioner_LocalAMG_free(out);
@@ -258,8 +251,8 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
          time0=Esys_timer();
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C); /*r=r-Ax*/
-         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
          time0=Esys_timer()-time0;
 	 /* coarse level solve */
 	 if ( amg->AMG_C == NULL) {

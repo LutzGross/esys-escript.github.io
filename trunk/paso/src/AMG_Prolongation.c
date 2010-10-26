@@ -104,7 +104,7 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_getDirectProlongation(const Paso_Spar
       }
    }   
    if (Esys_noError()) {
-	 outpattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,n,n_C,ptr,index);
+	 outpattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
    } else {
       MEMFREE(ptr);
       MEMFREE(index);

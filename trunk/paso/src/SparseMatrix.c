@@ -112,7 +112,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
   bool_t unroll=FALSE;
 
   if (patternIsUnrolled) {
-     if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
+     if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
          Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
@@ -126,9 +126,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
         /* or if lock size one requested and the block size is not 1 */
     ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) 
         /* offsets don't match */
-    || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1) ) ;
+    || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1) ) ;
 
-  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
+  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
 
   Esys_resetError();
   out=MEMALLOC(1,Paso_SparseMatrix);
@@ -324,7 +324,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	}
 	row_ptr[M] = nz;
 
-        mainPattern=Paso_Pattern_alloc(PATTERN_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
+        mainPattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
 	out  = Paso_SparseMatrix_alloc(MATRIX_FORMAT_DEFAULT, mainPattern, 1, 1, TRUE);
 	/* copy values and cleanup temps */
 	for( i=0; i<nz; i++ ) out->val[i] = val[i];
@@ -415,74 +415,6 @@ index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix* A_p)
 dim_t Paso_SparseMatrix_maxDeg(Paso_SparseMatrix * A_p)
 {
    return Paso_Pattern_maxDeg(A_p->pattern);
-}
-
-Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A) {
-	Paso_SparseMatrix *out = NULL;
-	/*Paso_Pattern* mainPattern=NULL;*/
-	int i;
-	dim_t block_size=A->row_block_size;
-	index_t iptr, optr1=0, optr2=0, optr3=0;
-	
-	/*mainPattern= Paso_Pattern_unrollBlocks(A->pattern, PATTERN_FORMAT_DEFAULT,  A->row_block_size,A->col_block_size);*/
-	out  = Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1, A->pattern, A->row_block_size,A->col_block_size, FALSE);
-	
-	if (block_size==1) {
-	   #pragma omp parallel for private(i,iptr) schedule(static)
-	   for (i=0;i<A->numRows;++i) {
-		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-		     out->val[iptr]=A->val[iptr];
-		 }
-	   }
-	} else if (block_size==2) {
-	   #pragma omp parallel for private(i,iptr,optr1,optr2) schedule(static)
-	   for (i=0;i<A->numRows;++i) {
-		 optr1=out->pattern->ptr[i*block_size];
-		 optr2=out->pattern->ptr[i*block_size+1];
-		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-		        out->val[optr1]=A->val[iptr*block_size*block_size];
-			optr1++;
-			out->val[optr1]=A->val[iptr*block_size*block_size+2];
-			optr1++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+1];
-			optr2++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+3];
-			optr2++;
-		 }
-	   }
-		
-	} else if (block_size==3) {
-	   #pragma omp parallel for private(i,iptr,optr1,optr2,optr3) schedule(static)
-	   for (i=0;i<A->numRows;++i) {
-		    optr1=out->pattern->ptr[i*block_size];
-		    optr2=out->pattern->ptr[i*block_size+1];
-		    optr3=out->pattern->ptr[i*block_size+2];
-		 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-			out->val[optr1]=A->val[iptr*block_size*block_size];
-			optr1++;
-			out->val[optr1]=A->val[iptr*block_size*block_size+3];
-			optr1++;
-			out->val[optr1]=A->val[iptr*block_size*block_size+6];
-			optr1++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+1];
-			optr2++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+4];
-			optr2++;
-			out->val[optr2]=A->val[iptr*block_size*block_size+7];
-			optr2++;
-			out->val[optr3]=A->val[iptr*block_size*block_size+2];
-			optr3++;
-			out->val[optr3]=A->val[iptr*block_size*block_size+5];
-			optr3++;
-			out->val[optr3]=A->val[iptr*block_size*block_size+8];
-			optr3++;
-		 }
-	   }
-		
-		
-	}
-
- return out;
 }
 dim_t Paso_SparseMatrix_getTotalNumRows(const Paso_SparseMatrix* A){
    return A->numRows * A->row_block_size;

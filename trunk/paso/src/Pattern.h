@@ -26,12 +26,10 @@
 #define INC_PASO_PATTERN
 
 #include "Common.h"
+#include "Paso.h"
 #include "IndexList.h"
 
 /**************************************************************/
-
-#define PATTERN_FORMAT_DEFAULT 1
-#define PATTERN_FORMAT_OFFSET1 2
 
 typedef struct Paso_Pattern {
   int type;

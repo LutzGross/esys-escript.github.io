@@ -34,11 +34,12 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
   Paso_Pattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,iPtr;
   dim_t i,j,k, block_size, new_len, new_numOutput, new_numInput;
-  index_t index_offset_in=(pattern->type & PATTERN_FORMAT_OFFSET1 ? 1:0);
-  index_t index_offset_out=(type & PATTERN_FORMAT_OFFSET1 ? 1:0);
+  const index_t index_offset_in=(pattern->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+  const index_t index_offset_out=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+
   
   Esys_resetError();
-  if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & PATTERN_FORMAT_OFFSET1) == (type & PATTERN_FORMAT_OFFSET1) ) ) {
+  if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1) ) ) {
      out = Paso_Pattern_getReference(pattern);
   } else {
      block_size=output_block_size*input_block_size;

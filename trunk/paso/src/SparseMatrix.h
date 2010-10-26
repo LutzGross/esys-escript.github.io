@@ -34,13 +34,6 @@
 
 /*  this struct holds a stiffness matrix: */
 
-#define MATRIX_FORMAT_DEFAULT 1
-#define MATRIX_FORMAT_CSC 2
-#define MATRIX_FORMAT_BLK1 4
-#define MATRIX_FORMAT_OFFSET1 8
-#define MATRIX_FORMAT_TRILINOS_CRS 16
-#define MATRIX_FORMAT_DIAGONAL_BLOCK 32
-
 
 typedef int Paso_SparseMatrixType;
 
@@ -94,8 +87,7 @@ void Paso_SparseMatrix_MatrixMatrix_DB(Paso_SparseMatrix *C, const Paso_SparseMa
 void Paso_SparseMatrix_MatrixMatrix_BD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
 void Paso_SparseMatrix_MatrixMatrix_BB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
 
-Paso_SparseMatrix* Paso_SparseMatrix_RemovePositiveOffdiagonals(Paso_SparseMatrix* P);
-Paso_SparseMatrix* Paso_SparseMatrix_unroll(Paso_SparseMatrix* A);
+Paso_SparseMatrix* Paso_SparseMatrix_unroll(const Paso_SparseMatrixType type, const Paso_SparseMatrix* A);
 Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* P);
 
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);

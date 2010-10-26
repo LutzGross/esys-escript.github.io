@@ -41,10 +41,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   Paso_SystemMatrixType pattern_format_out;
   bool_t unroll=FALSE;
 
-  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? PATTERN_FORMAT_OFFSET1:  PATTERN_FORMAT_DEFAULT;
+  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
   Esys_resetError();
   if (patternIsUnrolled) {
-     if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & PATTERN_FORMAT_OFFSET1) ) {
+     if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
          Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
          return NULL;
      }
@@ -58,7 +58,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
         /* or if lock size one requested and the block size is not 1 */
     ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
         /* or the offsets are wrong */
-    ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & PATTERN_FORMAT_OFFSET1));
+    ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1));
   
   out=MEMALLOC(1,Paso_SystemMatrix);
   if (! Esys_checkPtr(out)) {  
@@ -83,6 +83,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
 
 
      if (type & MATRIX_FORMAT_CSC) {
+printf("MATRIX_FORMAT_CSC\n");
          if (unroll) {
                if (patternIsUnrolled) {
                   out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
