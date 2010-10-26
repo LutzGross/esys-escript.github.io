@@ -23,9 +23,9 @@
 \end{figure}
 
 Our second example is of a cold iron bar at a constant temperature of
-$T\hackscore{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is
+$T_{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is
 perfectly insulated on all sides with a heating element at one end keeping the
-temperature at a constant level $T\hackscore0=100^{\circ} C$.  As heat is
+temperature at a constant level $T_0=100^{\circ} C$.  As heat is
 applied energy will disperse along the bar via conduction. With time the bar
 will reach a constant temperature equivalent to that of the heat source.
 
@@ -53,9 +53,9 @@ T0 = 100 * Celsius # temperature at heating element
 tend= 0.5 * day # - time to end simulation
 \end{python}
 We also need to alter the initial value for the temperature. Now we need to set
-the temperature to $T\hackscore{0}$ at the left end of the rod where we have
-$x\hackscore{0}=0$ and 
-$T\hackscore{ref}$ elsewhere. Instead of \verb|whereNegative| function we now
+the temperature to $T_{0}$ at the left end of the rod where we have
+$x_{0}=0$ and 
+$T_{ref}$ elsewhere. Instead of \verb|whereNegative| function we now
 use \verb|whereZero| which returns the value one for those sample points where
 the argument (almost) equals zero and the value zero elsewhere. The initial
 temperature is set to
@@ -65,10 +65,10 @@ T= T0*whereZero(x[0])+Tref*(1-whereZero(x[0]))
 \end{python}
 
 \subsection{Dirichlet Boundary Conditions}
-In the iron rod model we want to keep the initial temperature $T\hackscore0$ on
+In the iron rod model we want to keep the initial temperature $T_0$ on
 the left side of the domain constant with time. 
 This implies that when we solve the PDE~\refEq{eqn:hddisc}, the solution must
-have the value $T\hackscore0$ on the left hand side of the domain. As mentioned
+have the value $T_0$ on the left hand side of the domain. As mentioned
 already in Section~\ref{SEC BOUNDARY COND} where we discussed boundary
 conditions, this kind of scenario can be expressed using a
 \textbf{Dirichlet boundary condition}. Some people also use the term
@@ -88,11 +88,11 @@ In the case of the iron rod we can set
 q=whereZero(x[0])
 r=T0
 \end{python}
-to prescribe the value $T\hackscore{0}$ for the temperature at the left end of
-the rod where $x\hackscore{0}=0$.
+to prescribe the value $T_{0}$ for the temperature at the left end of
+the rod where $x_{0}=0$.
 Here we use the \verb|whereZero| function again which we have already used to
 set the initial value.
-Notice that $r$ is set to the constant value $T\hackscore{0}$ for all sample
+Notice that $r$ is set to the constant value $T_{0}$ for all sample
 points. In fact, values of $r$ are used only where $q$ is positive. Where $q$
 is non-positive, $r$ may have any value as these values are not used by the PDE
 solver. 
@@ -141,7 +141,7 @@ scale and material parameters.
 In practice it can take a few model runs before the right time scale has been
 chosen\footnote{An estimate of the
 time scale for a diffusion problem is given by the formula $\frac{\rho
-c\hackscore{p} L\hackscore{0}^2}{4 \kappa}$, see
+c_{p} L_{0}^2}{4 \kappa}$, see
 \url{http://en.wikipedia.org/wiki/Fick\%27s_laws_of_diffusion}}.
 
 
@@ -153,10 +153,10 @@ the domain.
  \item Vary the mesh step size. Do you see a difference in the answers? What
 does happen with the compute time?
  \item Insert an internal heat source (Hint: The internal heat source is given
-by $q\hackscore{H}$.)
+by $q_{H}$.)
  \item Change the boundary condition for the iron rod example such that the
 temperature 
- at the right end is kept at a constant level $T\hackscore{ref}$, which
+ at the right end is kept at a constant level $T_{ref}$, which
 corresponds to the installation of a cooling element (Hint: Modify $q$ and
 $r$). 
 \end{enumerate}

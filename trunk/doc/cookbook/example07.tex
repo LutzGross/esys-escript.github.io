@@ -31,8 +31,8 @@ calculated via the divergence of the gradient of the object, which is in this
 example $p$. Thus we can write;
 \begin{equation}
  \nabla^2 p = \nabla \cdot \nabla p = 
-	\sum\hackscore{i}^n
-	\frac{\partial^2 p}{\partial x^2\hackscore{i}}
+	\sum_{i}^n
+	\frac{\partial^2 p}{\partial x^2_{i}}
  \label{eqn:laplacian}
 \end{equation}
 For the two dimensional case in Cartesian coordinates \autoref{eqn:laplacian}
@@ -48,27 +48,27 @@ intrinsic functions \textit{grad()} and \textit{trace()}. The fucntion
 For a rank 0 solution, this is of the form;
 \begin{equation}
  \nabla p = \left[
-	   \frac{\partial p}{\partial x \hackscore{0}},  
-	   \frac{\partial p}{\partial x \hackscore{1}}
+	   \frac{\partial p}{\partial x _{0}},  
+	   \frac{\partial p}{\partial x _{1}}
                   \right]
 \label{eqn:grad}
 \end{equation}
 Larger ranked solution objects will return gradient tensors. For example, a
-pressure field which acts in the directions $p \hackscore{0}$ and $p
-\hackscore{1}$ would return;
+pressure field which acts in the directions $p _{0}$ and $p
+_{1}$ would return;
 \begin{equation}
   \nabla p = \begin{bmatrix}
-	   \frac{\partial p \hackscore{0}}{\partial x \hackscore{0}} &
-		\frac{\partial p \hackscore{1}}{\partial x \hackscore{0}} \\
-	  \frac{\partial p \hackscore{0}}{\partial x \hackscore{1}} &
-		\frac{\partial p \hackscore{1}}{\partial x \hackscore{1}} 
+	   \frac{\partial p _{0}}{\partial x _{0}} &
+		\frac{\partial p _{1}}{\partial x _{0}} \\
+	  \frac{\partial p _{0}}{\partial x _{1}} &
+		\frac{\partial p _{1}}{\partial x _{1}} 
                   \end{bmatrix}
 \label{eqn:gradrank1}
 \end{equation}
 
 \autoref{eqn:grad} corresponds to the Linear PDE general form value
 $X$. Notice however that the general form contains the term $X
-\hackscore{i,j}$\footnote{This is the first derivative in the $j^{th}$
+_{i,j}$\footnote{This is the first derivative in the $j^{th}$
 direction for the $i^{th}$ component of the solution.},
 hence for a rank 0 object there is no need to do more than calculate the
 gradient and submit it to the solver. In the case of the rank 1 or greater
@@ -119,11 +119,11 @@ be significantly less than this. Of the order $10E-4$ would be appropriate.
 
 The wave frequency content also plays a part in numerical stability. The
 nyquist-sampling theorem states that a signals bandwidth content will be
-accurately represented when an equispaced sampling rate $f \hackscore{n}$ is
+accurately represented when an equispaced sampling rate $f _{n}$ is
 equal to or greater than twice the maximum frequency of the signal
-$f\hackscore{s}$, or;
+$f_{s}$, or;
 \begin{equation} \label{eqn:samptheorem}
- f\hackscore{n} \geqslant f\hackscore{s}
+ f_{n} \geqslant f_{s}
 \end{equation}
 For example a 50Hz signal will require a sampling rate greater than 100Hz or
 one sample every 0.01 seconds. The wave equation relies on a spatial frequency,
@@ -151,18 +151,18 @@ second derivative;
 substituting \autoref{eqn:centdiff} for $\frac{\partial ^2 p }{\partial t ^2}$
 in \autoref{eqn:acswave};
 \begin{equation}
- \nabla ^2 p - \frac{1}{c^2h^2} \left[p\hackscore{(t+1)} - 2p\hackscore{(t)} +
-p\hackscore{(t-1)} \right]
+ \nabla ^2 p - \frac{1}{c^2h^2} \left[p_{(t+1)} - 2p_{(t)} +
+p_{(t-1)} \right]
 = 0
 \label{eqn:waveu}
 \end{equation}
 Rearranging for $p_{(t+1)}$;
 \begin{equation}
- p\hackscore{(t+1)} = c^2 h^2 \nabla ^2 p\hackscore{(t)} +2p\hackscore{(t)} -
-p\hackscore{(t-1)}
+ p_{(t+1)} = c^2 h^2 \nabla ^2 p_{(t)} +2p_{(t)} -
+p_{(t-1)}
 \end{equation}
 this can be compared with the general form of the \modLPDE module and it
-becomes clear that $D=1$, $X\hackscore{i,j}=-c^2 h^2 \nabla ^2 p_{(t)}$ and
+becomes clear that $D=1$, $X_{i,j}=-c^2 h^2 \nabla ^2 p_{(t)}$ and
 $Y=2p_{(t)} - p_{(t-1)}$.
 
 The solution script is similar to others that we have created in previous
@@ -275,10 +275,10 @@ PDE solution. \autoref{eqn:waveu} is thus modified;
   \nabla ^2 p - \frac{1}{c^2} a = 0
 \label{eqn:wavea}
 \end{equation}
-and can be solved directly with $Y=0$ and $X=-c^2 \nabla ^2 p\hackscore{(t)}$.
+and can be solved directly with $Y=0$ and $X=-c^2 \nabla ^2 p_{(t)}$.
 After each iteration the displacement is re-evaluated via;
 \begin{equation}
- p\hackscore{(t+1)}=2p\hackscore{(t)} - p\hackscore{(t-1)} + h^2a
+ p_{(t+1)}=2p_{(t)} - p_{(t-1)} + h^2a
 \end{equation}
 
 \subsection{Lumping}
@@ -306,7 +306,7 @@ First, we let the frequency content of the source be very small. If we define
 the source as a cosine input, than the wavlength of the input is equal to the
 radius of the source. Let this value be 5 meters. Now, if the maximum velocity
 of the model is $c=380.0ms^{-1}$ then the source
-frequency is $f\hackscore{r} = \frac{380.0}{5} = 76.0 Hz$. This is a worst case
+frequency is $f_{r} = \frac{380.0}{5} = 76.0 Hz$. This is a worst case
 scenario with a small source and the models maximum velocity. 
 
 Furthermore, we know from \autoref{sec:nsstab}, that the spatial sampling
@@ -315,7 +315,7 @@ the model mesh is a square equispaced grid,
 then the sampling interval is the side length divided by the number of samples,
 given by $\Delta x = \frac{1000.0m}{400} = 2.5m$ and the maximum sampling
 frequency capable at this interval is
-$f\hackscore{s}=\frac{380.0ms^{-1}}{2.5m}=152Hz$ this is just equal to the
+$f_{s}=\frac{380.0ms^{-1}}{2.5m}=152Hz$ this is just equal to the
 required rate satisfying \autoref{eqn:samptheorem}. 
 
 \autoref{fig:ex07sampth} depicts three examples where the grid has been

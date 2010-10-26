@@ -192,7 +192,7 @@ distribution in the model does not change with time. To calculate the steady
 state solution the time derivative term in \refEq{eqn:Tform nabla} needs to be
 set to zero;
 \begin{equation}\label{eqn:Tform nabla steady}
--\nabla \cdot \kappa \nabla T = q\hackscore H
+-\nabla \cdot \kappa \nabla T = q_H
 \end{equation}
 This PDE is easier to solve than the PDE in \refEq{eqn:hdgenf2}, as no time
 steps (iterations) are required. The \verb|D| term from \refEq{eqn:hdgenf2} is
@@ -217,20 +217,20 @@ translates into a zero normal flux $-n \cdot \kappa \nabla T$, see
 the normal heat flux at the bottom to \verb|qin| while still maintaining
 insulation at the left and right face. Mathematically we can express this as
 \begin{equation}
--n \cdot \kappa \nabla T = q\hackscore{S}
+-n \cdot \kappa \nabla T = q_{S}
 \label{eq:inhom flux}
 \end{equation}
-where $q\hackscore{S}$ is a function of its location on the boundary. Its value
+where $q_{S}$ is a function of its location on the boundary. Its value
 becomes zero for locations on the left or right face of the domain while it has
 the value \verb|qin| at the bottom face.
-Notice that the value of $q\hackscore{S}$ at the top face is not relevant as we
+Notice that the value of $q_{S}$ at the top face is not relevant as we
 prescribe the temperature here.
-We could define $q\hackscore{S}$ by using the masking techniques demonstrated
+We could define $q_{S}$ by using the masking techniques demonstrated
 earlier. The tagging mechanism provides an alternative and in many cases more
 convenient way of defining piecewise constant functions such as
-$q\hackscore{S}$. Recall now that the bottom face was denoted with the name
+$q_{S}$. Recall now that the bottom face was denoted with the name
 \verb|linebottom| when we defined the domain.
-We can use this now to create $q\hackscore{S}$;
+We can use this now to create $q_{S}$;
 \begin{python}
 qS=Scalar(0,FunctionOnBoundary(domain))
 qS.setTaggedValue("linebottom",qin)
@@ -248,7 +248,7 @@ In comparison to the version in \refEq{NEUMAN 2} we have used so far the right
 hand side is now the new PDE coefficient $y$. As we have not specified $y$ in
 our previous examples, \esc has assumed the value zero for $y$. A comparison of
 \refEq{NEUMAN 2b} and \refEq{eq:inhom flux} reveals that one needs to choose
-$y=-q\hackscore{S}$;
+$y=-q_{S}$;
 \begin{python}
 qS=Scalar(0,FunctionOnBoundary(domain))
 qS.setTaggedValue("linebottom",qin)
