@@ -739,9 +739,9 @@ void Paso_SparseMatrix_MatrixMatrix_BD(Paso_SparseMatrix* C, const Paso_SparseMa
 			C_ij_11 +=A_ik[1+3*1]*B_kj[1];
 			C_ij_21 +=A_ik[2+3*1]*B_kj[1];
  
-			C_ij_01 +=A_ik[0+3*2]*B_kj[2];
-			C_ij_11 +=A_ik[1+3*2]*B_kj[2];
-			C_ij_21 +=A_ik[2+3*2]*B_kj[2];
+			C_ij_02 +=A_ik[0+3*2]*B_kj[2];
+			C_ij_12 +=A_ik[1+3*2]*B_kj[2];
+			C_ij_22 +=A_ik[2+3*2]*B_kj[2];
 		  }
 				
 	       }
