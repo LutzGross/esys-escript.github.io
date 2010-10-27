@@ -135,7 +135,17 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 		  
 		  if ( n_F < n ) { /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
-		     /* creates index for F:*/
+			/* allocate helpers :*/
+			out->x_C=MEMALLOC(n_block*n_C,double);
+			out->b_C=MEMALLOC(n_block*n_C,double);
+			out->r=MEMALLOC(n_block*n,double);
+		     
+			Esys_checkPtr(out->r);
+			Esys_checkPtr(out->Smoother);
+			Esys_checkPtr(out->x_C);
+			Esys_checkPtr(out->b_C);
+		     
+			/* creates index for F:*/
 			#pragma omp parallel for private(i) schedule(static)
 			for (i = 0; i < n; ++i) {
 			   if  (split_marker[i]) rows_in_F[counter[i]]=i;
@@ -160,35 +170,30 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	/*      
 			   construct Prolongation operator as transposed of restriction operator: 
 			*/
-			time0=Esys_timer();
-			out->R=Paso_SparseMatrix_getTranspose(out->P);
-			if (SHOW_TIMING) printf("timing: level %d: Paso_SparseMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
-					
+			if ( Esys_noError()) {
+			   time0=Esys_timer();
+			   out->R=Paso_SparseMatrix_getTranspose(out->P);
+			   if (SHOW_TIMING) printf("timing: level %d: Paso_SparseMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
+			}		
 			/* 
 			construct coarse level matrix:
 			*/
-			time0=Esys_timer();
-			Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
-			A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
-			Paso_SparseMatrix_free(Atemp);
-			if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);
-			
-			/* allocate helpers :*/
-			out->x_C=MEMALLOC(n_block*n_C,double);
-			out->b_C=MEMALLOC(n_block*n_C,double);
-			out->r=MEMALLOC(n_block*n,double);
-			
-			Esys_checkPtr(out->r);
-			Esys_checkPtr(out->Smoother);
-			Esys_checkPtr(out->x_C);
-			Esys_checkPtr(out->b_C);
+			if ( Esys_noError()) {
+			   time0=Esys_timer();
+			   Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
+			   A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
+			   Paso_SparseMatrix_free(Atemp);
+			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
+			}
+
 			
 			/*
 			   constructe courser level:
 			   
 			*/
-			out->AMG_C=Paso_Preconditioner_LocalAMG_alloc(A_C,level+1,options);
-			
+			if ( Esys_noError()) {
+			   out->AMG_C=Paso_Preconditioner_LocalAMG_alloc(A_C,level+1,options);
+			}
 			if ( Esys_noError()) {
 			   if ( out->AMG_C == NULL ) { 
 			      out->reordering = options->reordering;
