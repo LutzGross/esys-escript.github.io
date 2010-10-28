@@ -200,7 +200,7 @@ env_export = ['INTEL_LICENSE_FILE']
 # Build a shared paso library
 #share_paso = True
 
-tools_names = ['intelc']
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/cc/x86_64/10.1.025'})]
 
 #iknowwhatimdoing = False
 
