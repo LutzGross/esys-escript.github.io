@@ -76,7 +76,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
       
   */
   if ( (A_p->pattern->len >= options->min_coarse_sparsity * n * n ) || (n <= options->min_coarse_matrix_size) || (level > options->level_max) ) {
-     if (verbose) printf("Paso: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
+     if (verbose) printf("Paso_Solver: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
 	level,  options->level_max, A_p->pattern->len/(1.*n * n), options->min_coarse_sparsity, n, options->min_coarse_matrix_size  );  
      return NULL;
   } 
@@ -109,15 +109,13 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, split_marker);
 	    n_C=n-n_F;
-	    if (verbose) printf("Paso: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+	    if (verbose) printf("Paso_Solver: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
 	 
 	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
 	    } else {
 	       out=MEMALLOC(1,Paso_Preconditioner_LocalAMG);
-	       mask_C=TMPMEMALLOC(n,index_t);
-	       rows_in_F=TMPMEMALLOC(n_F,index_t);
-	       if ( !( Esys_checkPtr(mask_C) || Esys_checkPtr(rows_in_F) || Esys_checkPtr(out)) ) {
+	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
 		  out->n = n;
 		  out->n_F = n_F;
@@ -131,8 +129,16 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 		  out->x_C = NULL;
 		  out->b_C = NULL;
 		  out->AMG_C = NULL;
+		  out->Smoother=NULL;
+	       }
+	       mask_C=TMPMEMALLOC(n,index_t);
+	       rows_in_F=TMPMEMALLOC(n_F,index_t);
+	       Esys_checkPtr(mask_C);
+	       Esys_checkPtr(rows_in_F);
+	       if ( Esys_noError() ) {
+
 		  out->Smoother = Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
-		  
+	  
 		  if ( n_F < n ) { /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
@@ -141,33 +147,37 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			out->r=MEMALLOC(n_block*n,double);
 		     
 			Esys_checkPtr(out->r);
-			Esys_checkPtr(out->Smoother);
 			Esys_checkPtr(out->x_C);
 			Esys_checkPtr(out->b_C);
 		     
-			/* creates index for F:*/
-			#pragma omp parallel for private(i) schedule(static)
-			for (i = 0; i < n; ++i) {
-			   if  (split_marker[i]) rows_in_F[counter[i]]=i;
-			}  			
-			/*  create mask of C nodes with value >-1 gives new id */
-			i=Paso_Util_cumsum_maskedFalse(n,counter, split_marker);
-
-			#pragma omp parallel for private(i) schedule(static)
-			for (i = 0; i < n; ++i) {
-			   if  (split_marker[i]) {
-			      mask_C[i]=-1;
-			   } else {
-			      mask_C[i]=counter[i];;
+			if ( Esys_noError() ) {
+			   /* creates index for F:*/
+			   #pragma omp parallel private(i)
+			   {
+			      #pragma omp for schedule(static)
+			      for (i = 0; i < n; ++i) {
+				 if  (split_marker[i]) rows_in_F[counter[i]]=i;
+			      }
 			   }
-			}
-			/*
+			   /*  create mask of C nodes with value >-1 gives new id */
+			   i=Paso_Util_cumsum_maskedFalse(n,counter, split_marker);
+
+			   #pragma omp parallel for private(i) schedule(static)
+			   for (i = 0; i < n; ++i) {
+			      if  (split_marker[i]) {
+				 mask_C[i]=-1;
+			      } else {
+				 mask_C[i]=counter[i];;
+			      }
+			   }
+			   /*
 			      get Restriction :	 
-			*/					
-			time0=Esys_timer();
-			out->P=Paso_Preconditioner_AMG_getDirectProlongation(A_p,degree,S,n_C,mask_C);
-			if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
-	/*      
+			   */					
+			   time0=Esys_timer();
+			   out->P=Paso_Preconditioner_AMG_getDirectProlongation(A_p,degree,S,n_C,mask_C);
+			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
+			}
+			/*      
 			   construct Prolongation operator as transposed of restriction operator: 
 			*/
 			if ( Esys_noError()) {
@@ -203,18 +213,18 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 				    out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
 				    Paso_SparseMatrix_free(A_C);
 				    out->A_C->solver_package = PASO_MKL;
-				    if (verbose) printf("Paso: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
+				    if (verbose) printf("Paso_Solver: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
 			      #else
 				    #ifdef UMFPACK
 				       out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
 				       Paso_SparseMatrix_free(A_C);
 				       out->A_C->solver_package = PASO_UMFPACK;
-				       if (verbose) printf("Paso: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
+				       if (verbose) printf("Paso_Solver: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
 				    #else
 				       out->A_C=A_C;
 				       out->A_C->solver_p=Paso_Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
 				       out->A_C->solver_package = PASO_SMOOTHER;
-				       if (verbose) printf("Paso: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C);
+				       if (verbose) printf("Paso_Solver: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C);
 				    #endif
 			      #endif
 			   } else {
@@ -424,6 +434,7 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
 {
    index_t *lambda=NULL, j, *ST=NULL;
    dim_t i,k, p, q, *degreeT=NULL, itmp;
+   double time0=0;
    
    if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
    
@@ -432,6 +443,8 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
    ST=TMPMEMALLOC(offset[n], index_t);
    
    if (! ( Esys_checkPtr(lambda) || Esys_checkPtr(degreeT) || Esys_checkPtr(ST) ) ) {
+time0=Esys_timer();
+
       /* initialize  split_marker and split_marker :*/
       /* those unknows which are not influenced go into F, the rest is available for F or C */
       #pragma omp parallel for private(i) schedule(static)
@@ -469,7 +482,8 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
 	    lambda[i]=itmp;
 	 }
       }
-
+      /* printf("timing: %e\n",Esys_timer()-time0); */
+      time0=Esys_timer(); 
       /* start search :*/
       i=Paso_Util_arg_max(n,lambda); 
       while (lambda[i]>-1) { /* is there any undecided unknowns? */
@@ -502,6 +516,7 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
 	 i=Paso_Util_arg_max(n,lambda);
       }
    }
+   /* printf("timing: %e\n",Esys_timer()-time0); */
    TMPMEMFREE(lambda);
    TMPMEMFREE(ST);
    TMPMEMFREE(degreeT);
