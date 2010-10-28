@@ -61,6 +61,7 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_getDirectProlongation(const Paso_Spar
    
    ptr=MEMALLOC(n+1,index_t);
    if (! Esys_checkPtr(ptr)) {
+
       
       /* count the number of entries per row in the Prolongation matrix :*/
    
@@ -80,7 +81,7 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_getDirectProlongation(const Paso_Spar
       }
       len_P=Paso_Util_cumsum(n,ptr);
       ptr[n]=len_P;
-   
+      
       /* allocate and create index vector for prolongation: */
       index=MEMALLOC(len_P,index_t);
    

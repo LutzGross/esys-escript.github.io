@@ -59,36 +59,31 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
 index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    index_t out=0,tmp;
    dim_t i;
-#ifdef _OPENMP
+   index_t *partial_sums=NULL,sum;
    const int num_threads=omp_get_max_threads();
-   const int thread_num=omp_get_thread_num();
-#else
-   const int num_threads=1;
-   const int thread_num=0;
-#endif
+   int thread_num;
+   
    if (num_threads>1) {
-      index_t *partial_sums=NULL,sum;
       partial_sums=TMPMEMALLOC(num_threads, index_t);
-      #pragma omp parallel private(sum,i)
+      #pragma omp parallel private(sum,thread_num ,i,tmp)
       {
         sum=0;
+	thread_num=omp_get_thread_num();
         #pragma omp for schedule(static)
         for (i=0;i<N;++i) sum+=array[i];
 
         partial_sums[thread_num]=sum;
-      }
-
-      {
+	#pragma omp barrier
+	#pragma omp master
+        {
           out=0;
           for (i=0;i<num_threads;++i) {
              tmp=out;
              out+=partial_sums[i];
              partial_sums[i]=tmp;
            } 
-      }
-     
-      #pragma omp parallel private(sum,tmp,i)
-      {
+        }
+        #pragma omp barrier
         sum=partial_sums[thread_num];
         #pragma omp for schedule(static)
         for (i=0;i<N;++i) {
@@ -112,19 +107,15 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
    index_t out=0,tmp;
    dim_t i;
    index_t *partial_sums=NULL,sum;
-#ifdef _OPENMP
    const int num_threads=omp_get_max_threads();
-   const int thread_num=omp_get_thread_num();
-#else
-   const int num_threads=1;
-   const int thread_num=0;
-#endif
+   int thread_num;
  
    if (num_threads>1) {
       partial_sums=TMPMEMALLOC(num_threads, index_t);
-      #pragma omp parallel private(sum,i)
+      #pragma omp parallel private(sum,i,thread_num,tmp)
       {
          sum=0;
+	 thread_num=omp_get_thread_num();
          #pragma omp for schedule(static)
          for (i=0;i<N;++i) {
             if (mask[i]) {
@@ -135,19 +126,17 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
             }
          }
          partial_sums[thread_num]=sum;
-      }
-       
-      {
-         out=0;
-         for (i=0;i<num_threads;++i) {
-            tmp=out;
-            out+=partial_sums[i];
-            partial_sums[i]=tmp;
-         } 
-      }
-       
-      #pragma omp parallel private(sum,tmp,i)
-      {
+	 #pragma omp barrier
+         #pragma omp master
+	 {
+	    out=0;
+	    for (i=0;i<num_threads;++i) {
+	       tmp=out;
+	       out+=partial_sums[i];
+	       partial_sums[i]=tmp;
+	    } 
+	 }
+	 #pragma omp barrier
          sum=partial_sums[thread_num];
          #pragma omp for schedule(static)
          for (i=0;i<N;++i) {
@@ -175,22 +164,18 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
 }
 
 index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
-   index_t out=0,tmp;
+   index_t out=0,tmp=0;
    dim_t i;
    index_t *partial_sums=NULL,sum;
-#ifdef _OPENMP
    const int num_threads=omp_get_max_threads();
-   const int thread_num=omp_get_thread_num();
-#else
-   const int num_threads=1;
-   const int thread_num=0;
-#endif
+   int thread_num=0;
 
    if (num_threads>1) {
       partial_sums=TMPMEMALLOC(num_threads,index_t);
-      #pragma omp parallel private(sum,i)
+      #pragma omp parallel private(sum,i,thread_num,tmp)
       {
          sum=0;
+	 thread_num=omp_get_thread_num();
          #pragma omp for schedule(static)
          for (i=0;i<N;++i) {
             if (! mask[i]) {
@@ -201,19 +186,17 @@ index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
             }
          }
          partial_sums[thread_num]=sum;
-      }
-       
-      {
-         out=0;
-         for (i=0;i<num_threads;++i) {
-            tmp=out;
-            out+=partial_sums[i];
-            partial_sums[i]=tmp;
-          } 
-      }
-       
-      #pragma omp parallel private(sum,tmp,i)
-      {
+	 #pragma omp barrier
+	 #pragma omp master
+	 {
+	    out=0;
+	    for (i=0;i<num_threads;++i) {
+	       tmp=out;
+	       out+=partial_sums[i];
+	       partial_sums[i]=tmp;
+	    } 
+	 }
+	 #pragma omp barrier
          sum=partial_sums[thread_num];
          #pragma omp for schedule(static)
          for (i=0;i<N;++i) {
@@ -248,11 +231,7 @@ index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
    index_t argmax=-1;
    index_t lmax=-1;
    index_t li=-1;
-#ifdef _OPENMP
    const int num_threads=omp_get_max_threads();
-#else
-   const int num_threads=1;
-#endif
    
    if (n>0) {
       max=lambda[0];
@@ -297,11 +276,7 @@ index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
 void Paso_zeroes(const dim_t n, double* x) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
-#ifdef _OPENMP
    const int num_threads=omp_get_max_threads();
-#else
-   const int num_threads=1;
-#endif
 
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
@@ -322,11 +297,8 @@ void Paso_zeroes(const dim_t n, double* x)
 void Paso_Update(const dim_t n, const double a, double* x, const double b, const double* y) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
 
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
@@ -378,11 +350,8 @@ void Paso_Copy(const dim_t n, double* out, const double* in) {
 void Paso_LinearCombination(const dim_t n, double*z, const double a,const double* x, const double b, const double* y)
 {
    dim_t i,local_n,rest,n_start,n_end,q;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
 
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
@@ -420,11 +389,8 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MP
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0, local_out=0., out=0.;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
    #pragma omp parallel for private(i,local_out,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
         local_out=0;
@@ -455,11 +421,8 @@ double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0., local_out=0., out=0.;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
@@ -489,11 +452,8 @@ double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0, local_out=0., out=0.;
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
+   const int num_threads=omp_get_max_threads();
+
    #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q, local_out)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
