@@ -14,15 +14,13 @@
 
 #include "DataFactory.h"
 #include "esysUtils/esys_malloc.h"
+#include "esysUtils/Esys_MPI.h"
 
 #include <boost/python/extract.hpp>
 #include <iostream>
 #include <exception>
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
-#endif
-#ifdef ESYS_MPI
-#include <mpi.h>
 #endif
 
 using namespace boost::python;

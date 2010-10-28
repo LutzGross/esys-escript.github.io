@@ -11,18 +11,17 @@
 *
 *******************************************************/
 
-
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
-#ifdef USE_NETCDF
-#include <netcdfcpp.h>
-#endif
 #include "MeshAdapterFactory.h"
 #include "FinleyError.h"
 extern "C" {
 #include "esysUtils/blocktimer.h"
+#ifdef ESYS_MPI
+#include "esysUtils/Esys_MPI.h"
+#endif
 }
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>
+#endif
 
 #include <boost/python/extract.hpp>
 

@@ -17,11 +17,11 @@
 #include "DataException.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
+
+#include "esysUtils/Esys_MPI.h"
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
-#endif
-#ifdef ESYS_MPI
-#include <mpi.h>
 #endif
 
 #include <boost/python/extract.hpp>

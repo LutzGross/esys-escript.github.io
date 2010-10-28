@@ -12,9 +12,6 @@
 *******************************************************/
 
 
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
 #include "DudleyError.h"
 #include <iostream>
 

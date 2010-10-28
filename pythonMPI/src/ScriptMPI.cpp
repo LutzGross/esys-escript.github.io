@@ -13,15 +13,13 @@
 
 
 #include <Python.h>
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
 #include <iostream>
 #include <stdexcept>
 
 extern "C"{
 #include "esysUtils/Esys_MPI.h"
 }
+
 #ifdef ESYS_MPI
 
 int main( int argc, char **argv ) {
@@ -102,8 +100,10 @@ int main( int argc, char **argv ) {
 }
 
 #else
+
 int main( int argc, char **argv ) {
 	printf( "Esys must be compiled with ESYS_MPI defined to make the MPI version available\n\n" );
 	return 0;
 }
-#endif
+#endif // ESYS_MPI
+
