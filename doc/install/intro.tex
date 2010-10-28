@@ -31,24 +31,24 @@ The binary bundles are currently available for the following platforms:
 
 Hopefully, a Windows version(stand-alone) of this release will be available soon.
 
-See \Chap{chap:bin} for instructions on how to set these up and run \esfinley.
+See Chapter~\ref{chap:bin} for instructions on how to set these up and run \esfinley.
 If you choose to compile from source your options are to
 \begin{itemize}
     \item install dependencies (e.g. using your package manager) and only compile \esfinley, OR
     \item compile everything from source.
 \end{itemize}
 
-Compiling \esfinley when its dependencies are already installed is discussed in \Chap{chap:essrc}.
-To compile \esfinley and all dependencies from source please see \Chap{chap:allsrc}.
+Compiling \esfinley when its dependencies are already installed is discussed in Chapter~\ref{chap:essrc}.
+To compile \esfinley and all dependencies from source please see Chapter~\ref{chap:allsrc}.
 The latter option takes a significant amount of time and is only required if the versions of the dependent libraries available on your system do not work with \esfinley.
 
-Once everything is installed you can test your installation using the Python scripts in \filename{examples.zip} or \filename{examples.tar.gz}\footnote{These should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
+Once everything is installed you can test your installation using the Python scripts in \file{examples.zip} or \file{examples.tar.gz}\footnote{These should either be in \file{escript.d/release/doc} or in the case of Debian, in \file{/usr/share/doc/escript}.}.
 Unpack the examples and try to run the following from a terminal:
 \begin{shellCode}
  run-escript poission.py
 \end{shellCode}
-If this produces a VTK file called \filename{u.vtu} then you are likely to have a functional \esfinley installation.
+If this produces a VTK file called \file{u.vtu} then you are likely to have a functional \esfinley installation.
 You can try and visualize the VTK data or delete the file.
-For visualization we suggest using \filename{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \filename{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
+For visualization we suggest using \file{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \file{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
 
 See the site \url{https://answers.launchpad.net/escript-finley} for online help.

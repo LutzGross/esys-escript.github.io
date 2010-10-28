@@ -16,8 +16,8 @@
 Before you start installing from source you will need \macosx development tools installed on your Mac.
 This will ensure that you have the following available:
 \begin{itemize}
-\item \filename{g++} and associated tools.
-\item \filename{make}
+\item \file{g++} and associated tools.
+\item \file{make}
 \end{itemize}
 
 Here are the instructions on how to install these.
@@ -30,20 +30,20 @@ Here are the instructions on how to install these.
 
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
-For additional visualization functionality see \Sec{sec:addfunc}.
+For additional visualization functionality see Section{sec:addfunc}.
 
 These instructions will produce the following directory structure:
 \begin{itemize}
- \item[] \filename{stand}: \begin{itemize}
-  \item[] \filename{escript.d}
-  \item[] \filename{pkg}
-  \item[] \filename{pkg_src}
-  \item[] \filename{build}
-  \item[] \filename{doc}
+ \item[] \file{stand}: \begin{itemize}
+  \item[] \file{escript.d}
+  \item[] \file{pkg}
+  \item[] \file{pkg_src}
+  \item[] \file{build}
+  \item[] \file{doc}
  \end{itemize}
 \end{itemize}
 
-The following instructions assume you are running the \filename{bash} shell.
+The following instructions assume you are running the \file{bash} shell.
 Comments are indicated with \# characters. 
 
 Open a terminal~\footnote{If you do not know how to open a terminal on Mac, then just type terminal in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
@@ -54,8 +54,8 @@ cd stand
 export PKG_ROOT=`pwd`/pkg
 \end{shellCode}
 
-Copy compressed source bundles into \filename{stand/package_src}.
-Copy documentation files into \filename{doc}.
+Copy compressed source bundles into \file{stand/package_src}.
+Copy documentation files into \file{doc}.
 
 \begin{shellCode}
 mkdir packages
@@ -165,7 +165,7 @@ cd ..
 
 \subsection{Compiling escript}\label{sec:compileescriptmac}
 
-Change to the directory containing your escript source (\filename{stand/escript.d}), then:
+Change to the directory containing your escript source (\file{stand/escript.d}), then:
 
 \begin{shellCode}
 cd escript.d/scons
@@ -184,11 +184,11 @@ PKG_ROOT="/Users/bob/stand/pkg"
 cd ../bin
 \end{shellCode}
 
-Modify the STANDALONE line of \filename{escript} to read:
+Modify the STANDALONE line of \file{escript} to read:
  
 STANDALONE=1
 
-Start a new terminal and go to the \filename{stand} directory.
+Start a new terminal and go to the \file{stand} directory.
 
 \begin{shellCode}
 export PATH=$(pwd)/pkg/scons/bin:$PATH
@@ -203,18 +203,18 @@ Note this may take a while if you have a slow processor and/or less than 1GB of 
 scons all_tests
 \end{shellCode}
 
-Once you are satisfied, the \filename{build} and \filename{\$PKG_ROOT/build} directories can be removed.
-Within the \filename{packages} directory, the \filename{scons}, \filename{scons-1.2.0}, \filename{cmake-2.6.3} and \filename{cmake} entries can also be removed.
-If you are not redistributing this bundle you can remove \filename{\$PKG_ROOT/package_src}.
+Once you are satisfied, the \file{build} and \file{\$PKG_ROOT/build} directories can be removed.
+Within the \file{packages} directory, the \file{scons}, \file{scons-1.2.0}, \file{cmake-2.6.3} and \file{cmake} entries can also be removed.
+If you are not redistributing this bundle you can remove \file{\$PKG_ROOT/package_src}.
 
 If you do not plan to edit or recompile the source you can remove it.
-The only entries which are required in \filename{escript.d} are:
+The only entries which are required in \file{escript.d} are:
 \begin{itemize}
- \item \filename{bin}
- \item \filename{esys}
- \item \filename{include}
- \item \filename{lib}
- \item \filename{README_LICENSE}
+ \item \file{bin}
+ \item \file{esys}
+ \item \file{include}
+ \item \file{lib}
+ \item \file{README_LICENSE}
 \end{itemize}
 
 Hidden files can be removed with

@@ -10,7 +10,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass{manual}
+\documentclass{esysdoc}
 
 \input{install_defs}
 
@@ -24,15 +24,23 @@ Brisbane, Australia \\
 Email: \email{esys@esscc.uq.edu.au}
 }
 \date{\today}      
-\release{Revision: \RepVersion}
-\setreleaseinfo{development version} 
-\setshortversion{\RepVersion}
+% \release{Revision: \RepVersion}
+% \setreleaseinfo{development version} 
+% \setshortversion{\RepVersion}
+
+\ifpdf
+\pdfinfo {
+/Author (Escript development team)
+/Title (escript install guide)
+/Keywords (escript, PDEs)
+}
+\fi
 
 \makeindex
 \begin{document}
 
 \maketitle
-\tableofcontents
+\etableofcontents
 
 \include{intro}
 \include{bincommon}		% material common to all binary installs

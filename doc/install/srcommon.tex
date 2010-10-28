@@ -15,9 +15,9 @@
 % The original version of this content came from the esscc twiki page maintained by ksteube
 
 This chapter describes how to build \esfinley from source assuming that the dependencies are already installed (for example using precompiled packages for your OS).
-\Sec{sec:deps} describes the dependencies, while \Sec{sec:compilesrc} gives the compile instructions.
+Section{sec:deps} describes the dependencies, while Section{sec:compilesrc} gives the compile instructions.
 
-If you would prefer to build all the dependecies from source in the escript-support packages please see \Chap{chap:allsrc}.
+If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter{chap:allsrc}.
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
  \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
@@ -95,19 +95,19 @@ Packages for visualization:
 \end{itemize}
 
 \section{Compilation}\label{sec:compilesrc}
-Throughout this section we will assume that the source code is uncompressed in a directory called \filename{escript.d}.
+Throughout this section we will assume that the source code is uncompressed in a directory called \file{escript.d}.
 You can call the directory anything you like, provided that you make the change before you compile.
 
 You need to indicate where to find the external dependencies.
-To do this, create a file in the \filename{escript.d/scons} directory called \filename{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
+To do this, create a file in the \file{escript.d/scons} directory called \file{x_options.py} where ``x'' is the name of your computer (output of the \texttt{hostname} command).
 Please note that if your hostname has non-alphanumeric characters in it (eg - ) you need to replace them with underscores.
-For example the options file for \texttt{bob-desktop} would be named \filename{bob_desktop_options.py}.
+For example the options file for \texttt{bob-desktop} would be named \file{bob_desktop_options.py}.
 
 From now on all paths will be relative to the top level of the source.
 As a starting point copy the contents one of the following files into your options file:
 \begin{itemize}
-\item \filename{scons/TEMPLATE_linux.py} (\linux and \macosx desktop)
-\item \filename{scons/TEMPLATE_windows.py} (\winxp)
+\item \file{scons/TEMPLATE_linux.py} (\linux and \macosx desktop)
+\item \file{scons/TEMPLATE_windows.py} (\winxp)
 \end{itemize}
 
 The template files contain all available options with a comment explaining the
@@ -124,8 +124,8 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 \end{shellCode}
 
 In this example, netCDF \emph{header} files must be located in
-\filename{/opt/netcdf4/include}\footnote{or \ldots/include32 or \ldots/include64 or \ldots/inc}
-and the \emph{libraries} in \filename{/opt/netcdf4/lib}\footnote{or \ldots/lib32 or \ldots/lib64}.
+\file{/opt/netcdf4/include}\footnote{or \ldots/include32 or \ldots/include64 or \ldots/inc}
+and the \emph{libraries} in \file{/opt/netcdf4/lib}\footnote{or \ldots/lib32 or \ldots/lib64}.
 If this scheme does not apply to your installation then you may also specify
 the include-path and library-path directly like so:
 \begin{shellCode}
@@ -158,7 +158,7 @@ default settings, you can use:
 scons debug=1 prefix=debugbuild
 \end{shellCode}
 This will install the binaries and libraries built in debug mode into
-directories underneath \filename{./debugbuild}.
+directories underneath \file{./debugbuild}.
 
 To run the unit test suite that comes with the source code issue
 \begin{shellCode}
@@ -248,6 +248,7 @@ Whenever these dependencies change on your system you should recompile
 faults.
 
 \subsubsection{\openmp builds segfault running examples}
-One known cause for this is linking the \filename{gomp} library with escript built using gcc 4.3.3.
-While you need the \texttt{-fopenmp} switch you should not need to link \filename{gomp}.
+One known cause for this is linking the \file{gomp} library with escript built using gcc 4.3.3.
+While you need the \texttt{-fopenmp} switch you should not need to link \file{gomp}.
+
 

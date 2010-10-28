@@ -8,10 +8,10 @@
 SRCDIR=`pwd`
 WRAPPERNAME=run-escript
 #ALTWRAPPERNAME=finleypython
-OUTPUTROOT=$SRCDIR/build/package/lenny/escript
+OUTPUTROOT=$SRCDIR/build/package/debuntu/escript
 LIBOUT=$OUTPUTROOT/usr/lib/escript
 BINOUT=$OUTPUTROOT/usr/bin
-PKGFILES=$SRCDIR/packaging/lenny
+PKGFILES=$SRCDIR/packaging/debuntu
 
 # check to be sure we are running from the project root and that we look like the root user
 
@@ -36,12 +36,14 @@ fi
 
 distro=$1
 
-case "$distro" in
-  "lenny" ) ;;
-  "jaunty" ) needpy26=yes;;
-  "karmic" ) needalt=yes;;
-  *) echo "Unknown distro $distro"; exit 4;;
-esac
+# case "$distro" in
+#   "lenny" ) ;;
+#   "jaunty" ) needpy26=yes;;
+#   "karmic" ) needalt=yes;;
+#   "lucid" ) needalt=yes;;
+#   "maverick" ) needalt=yes;;
+#   *) echo "Unknown distro $distro"; exit 4;;
+# esac
 
 if [ -d $OUTPUTROOT ]
 then
@@ -69,6 +71,25 @@ then
    exit 6
 fi
 
+#Now try to identify versions we are using
+PYPKG=`dpkg --get-selections 'python?*' | grep install | grep -v '-' | cut -f1`
+if [ `echo $PYPKG | wc -w ` != "1" ]
+then
+    echo "Can't determine the version of python"
+    exit 8
+fi
+
+echo "Python package is $PYPKG."
+
+BOOSTPKG=`dpkg --get-selections 'libboost-python?????*' | grep -v 'de' | grep 'install' | cut -f1`
+if [ `echo $BOOSTPKG | wc -w` != "1" ]
+then
+    echo "Can't determine the version of boost"
+    exit 9
+fi
+
+echo "Boost package is $BOOSTPKG"
+
 echo "Reading package version from  $PKGFILES/escript/DEBIAN/control"
 #Now get the package version
 VERSION=`grep "Version:" $PKGFILES/escript/DEBIAN/control | cut -f2 -d\ `
@@ -88,15 +109,6 @@ cp -r $PKGFILES/escript/* $OUTPUTROOT
 find $OUTPUTROOT -name ".svn" | xargs rm -rf 
 
 pkgname=escript
-
-#If we are building transitional package we may need replacement files
-if [ -n "$needalt" ]
-then
-  echo "Switching to alternative package"
-  cp -r $PKGFILES/escript-noalias/* $OUTPUTROOT
-  pkgname=escript-noalias
-  find $OUTPUTROOT -name ".svn" | xargs rm -rf 
-fi
 
 mkdir -p $OUTPUTROOT/usr/share/man/man1
 
@@ -131,12 +143,16 @@ export ESCRIPT_ROOT=/usr/lib/escript
 
 sed -e "s%STDLOCATION=0%STDLOCATION=1%" < $SRCDIR/bin/$WRAPPERNAME > $BINOUT/$WRAPPERNAME
 
-if [ -z "$needalt" ]
-then
-	pushd $BINOUT > /dev/null || (echo "A directory has disappeared" ; exit 8)
-	ln -s $WRAPPERNAME escript
-	popd > /dev/null
-fi
+sed -ie "s%PYPKG%$PYPKG%" $OUTPUTROOT/DEBIAN/control
+sed -ie "s%BOOSTPKG%$BOOSTPKG%" $OUTPUTROOT/DEBIAN/control
+
+
+# if [ -z "$needalt" ]
+# then
+# 	pushd $BINOUT > /dev/null || (echo "A directory has disappeared" ; exit 8)
+# 	ln -s $WRAPPERNAME escript
+# 	popd > /dev/null
+# fi
 
 #end content from finley_wrapper_writer.sh
 
@@ -171,11 +187,11 @@ cd DEBIAN
 
 #Now we need to update the architecture
 sed -i -e "s%Architecture: i386%Architecture: $ARCH%" control
-if [ -n "$needpy26" ]
-then
-  echo "Replacing python2.5 dependency with python2.6 for jaunty"
-  sed -i -e "s%Depends: python2.5%Depends: python2.6%" control 
-fi
+# if [ -n "$needpy26" ]
+# then
+#   echo "Replacing python2.5 dependency with python2.6 for jaunty"
+#   sed -i -e "s%Depends: python2.5%Depends: python2.6%" control 
+# fi
 
 tar czf ../../control.tar.gz .
 cd ..
@@ -190,3 +206,5 @@ mkdir -p $SRCDIR/release/pkg
 cp $pkgname-$VERSION-$distro\_$ARCH.deb $SRCDIR/release/pkg
 
 
+echo "Control file is:"
+cat $OUTPUTROOT/DEBIAN/control

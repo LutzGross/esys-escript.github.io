@@ -22,8 +22,7 @@
 % (pdf)latex '\newcommand{\RepVersion}{version\xspace}\input{install.tex}'
 % as your command-line
 
-\usepackage{listings}        % add the listings package to pretty print the code output
-
+\input{elist}
 
 % hyperref is incompatible with python.sty which defines \ispdf and \url
 %\usepackage[colorlinks=true, pdftitle={Escript/Finley Installation Guide}, pdfauthor={Escript development team}, pdfdisplaydoctitle=true]{hyperref}
@@ -40,33 +39,8 @@
 \newcommand{\openmp}{OpenMP\xspace}
 \newcommand{\mpi}{MPI\xspace}
 
-% hyref is defined in python.sty as an alternative to hyperref which we can't
-% use
-\newcommand{\Sec}[1] {\hyref{#1}{Section~\ref{#1}}}
-\newcommand{\Chap}[1] {\hyref{#1}{Chapter~\ref{#1}}}
-\newcommand*{\filename}[1]{\texttt{#1}\xspace}
-
-% defines the colour for the background of code examples
-\definecolor{LightGrey}{gray}{0.9}
 
 
-\lstdefinestyle{myShell}{%
-%\lstset{%
-language=ksh,
-showstringspaces=false,
-basicstyle=\small\ttfamily,
-commentstyle=\color{black}\ttfamily,
-keywordstyle=\color{black}\ttfamily,
-%identifierstyle=\color[named]{Blue}\ttfamily,
-%functionstyle=\color[named]{Blue}\ttfamily,
-%typestyle=\color[named]{ForestGreen}\ttfamily,
-stringstyle=\color{black}\ttfamily,%
-frame=none,%
-backgroundcolor=\color{LightGrey}%
-}
-
-% this implements nicely formatted shell code
-\lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
 
 \newcommand{\todo}[1]{\emph{TODO:}{\em #1}}
 
