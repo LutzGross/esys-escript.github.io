@@ -11,10 +11,6 @@
 *
 *******************************************************/
 
-
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
 #include "SystemMatrixAdapter.h" 
 
 using namespace std;

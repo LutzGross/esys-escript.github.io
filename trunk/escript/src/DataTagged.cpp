@@ -18,12 +18,12 @@
 
 #include "DataConstant.h"
 #include "DataException.h"
+#include "esysUtils/Esys_MPI.h"
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
+
 #include "DataMaths.h"
 
 

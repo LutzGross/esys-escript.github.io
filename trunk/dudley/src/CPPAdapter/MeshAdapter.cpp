@@ -18,9 +18,6 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-#ifdef ESYS_MPI
-#include "esysUtils/Esys_MPI.h"
-#endif
 extern "C" {
 #include "esysUtils/blocktimer.h"
 }

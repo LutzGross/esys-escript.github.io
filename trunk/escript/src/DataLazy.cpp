@@ -13,12 +13,7 @@
 
 
 #include "DataLazy.h"
-#ifdef USE_NETCDF
-#include <netcdfcpp.h>
-#endif
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
+#include "esysUtils/Esys_MPI.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -29,6 +24,10 @@
 #include "Utils.h"
 
 #include "EscriptParams.h"
+
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>
+#endif
 
 #include <iomanip>		// for some fancy formatting in debug
 

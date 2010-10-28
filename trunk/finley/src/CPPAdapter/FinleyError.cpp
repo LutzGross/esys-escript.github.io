@@ -12,9 +12,6 @@
 *******************************************************/
 
 
-#ifdef ESYS_MPI
-#include <mpi.h>
-#endif
 #include "FinleyError.h"
 #include <iostream>
 
