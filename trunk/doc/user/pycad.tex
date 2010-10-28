@@ -231,9 +231,12 @@ l01=Line(p0,p1)
 l13=Line(p1,p3)
 l32=Line(p3,p2)
 l20=Line(p2,p0)
-bottom=PlaneSurface(CurveLoop(l01,l13,l32,l20))
+bottom=PlaneSurface(-CurveLoop(l01,l13,l32,l20))
 \end{python}
-and
+Similar to the definition of a \code{CurvedLoop} the orientation of the surfaces \code{SurfaceLoop} is relevant. In fact the surface normal direction defined by the the right hand rule needs to point outwards as indicated by the surface normals in
+Figure~\ref{fig:PYCAD 2}. As the \code{bottom} face is directed upwards it is inserted with the minus sign
+into the \code{SurfaceLoop} in order to adjust the orientation of the surface. 
+Similarly we set 
 \begin{python}
 l45=Line(p4,p5)
 l57=Line(p5,p7)
@@ -264,13 +267,9 @@ right=PlaneSurface(CurveLoop(-l15,l13,l37,-l57))
 We can now put the six surfaces together to form a \class{SurfaceLoop} defining the
 boundary of the volume of the cube:
 \begin{python}
-sl=SurfaceLoop(top,-bottom,front,back,left,right)
+sl=SurfaceLoop(top,bottom,front,back,left,right)
 v=Volume(sl)
 \end{python}
-Similar to the definition of a \code{CurvedLoop} the orientation of the surfaces \code{SurfaceLoop} is relevant. In fact the surface normal direction defined by the the right hand rule needs to point outwards as indicated by the surface normals in
-Figure~\ref{fig:PYCAD 2}. As the \code{bottom} face is directed upwards it is inserted with the minus sign
-into the \code{SurfaceLoop} in order to adjust the orientation of the surface.
-
 As in the 2D case, the \class{Design} class is used to define the geometry:
 \begin{python}
 from esys.pycad.gmsh import Design
