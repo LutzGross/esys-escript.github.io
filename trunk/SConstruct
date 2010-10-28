@@ -125,9 +125,13 @@ vars.AddVariables(
 # Intel's compiler uses regular expressions improperly and emits a warning
 # about failing to find the compilers. This warning can be safely ignored.
 
-env = Environment(tools = ['default'], options = vars)
+# PATH is needed so the compiler, linker and tools are found if they are not
+# in default locations.
+env = Environment(tools = ['default'], options = vars,
+                  ENV = {'PATH': os.environ['PATH']})
 if env['tools_names'] != 'default':
-    env = Environment(tools = ['default'] + env['tools_names'], options = vars)
+    env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+                      ENV = {'PATH' : os.environ['PATH']})
 
 if options_file:
     opts_valid=False
@@ -297,8 +301,7 @@ if IS_WINDOWS:
 else:
     LD_LIBRARY_PATH_KEY='LD_LIBRARY_PATH'
 
-# the following env variables are exported for the unit tests, PATH is needed
-# so the compiler/linker is found if they are not in default locations.
+# the following env variables are exported for the unit tests
 
 for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
     try:
