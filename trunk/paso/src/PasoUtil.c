@@ -24,9 +24,8 @@
 
 #include "Common.h"
 #include "PasoUtil.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "Paso.h"
+
 
 /* returns true if array contains value */
 bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
