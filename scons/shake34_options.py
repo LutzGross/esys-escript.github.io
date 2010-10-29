@@ -81,7 +81,7 @@ debug = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = True
+# openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent

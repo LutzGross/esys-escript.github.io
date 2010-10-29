@@ -25,6 +25,10 @@
 #include "system_dep.h"
 #include "types.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <stdio.h>	/* For FILENAME_MAX */
 #define LenString_MAX FILENAME_MAX*2
 #define LenErrorMsg_MAX LenString_MAX
@@ -74,8 +78,10 @@ Esys_ErrorCodeType Esys_getErrorType(void);
 ESYSUTILS_DLL_API
 char* Esys_getErrorMessage(void);
 
-#ifndef _OPENMP 
+#ifndef _OPENMP
 int omp_get_max_threads(void);
+int omp_get_thread_num(void);
 #endif
+
 
 #endif /* #ifndef INC_PASO */
