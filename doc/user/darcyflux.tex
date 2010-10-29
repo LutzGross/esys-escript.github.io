@@ -1,7 +1,20 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Darcy Flux}
 \label{DARCY FLUX}
-We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$ solving 
-the Darcy flux problem \index{Darcy flux}\index{Darcy flow}
+We want to calculate the velocity $u$ and pressure $p$ on a domain $\Omega$
+solving the Darcy flux problem\index{Darcy flux}\index{Darcy flow}
 \begin{equation}\label{DARCY PROBLEM}
 \begin{array}{rcl}
 u_{i} + \kappa_{ij} p_{,j} & = & g_{i} \\
@@ -15,23 +28,30 @@ u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
 p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
 \end{equation} 
-where $\Gamma_{N}$ and $\Gamma_{D}$ are a partition of the boundary of $\Omega$ with $\Gamma_{D}$ non empty, $n_{i}$ is the outer normal field of the boundary of $\Omega$, $u^{N}_{i}$ and $p^{D}$ are given functions on $\Omega$, $g_{i}$ and $f$ are given source terms and $\kappa_{ij}$ is the given permeability. We assume that $\kappa_{ij}$ is symmetric (which is not really required) and positive definite, i.e there are positive constants $\alpha_{0}$ and $\alpha_{1}$ which are independent from the location in $\Omega$ such that
+where $\Gamma_{N}$ and $\Gamma_{D}$ are a partition of the boundary of
+$\Omega$ with $\Gamma_{D}$ non-empty, $n_{i}$ is the outer normal field of the
+boundary of $\Omega$, $u^{N}_{i}$ and $p^{D}$ are given functions on $\Omega$,
+$g_{i}$ and $f$ are given source terms and $\kappa_{ij}$ is the given
+permeability.
+We assume that $\kappa_{ij}$ is symmetric (which is not really required) and
+positive definite, i.e. there are positive constants $\alpha_{0}$ and
+$\alpha_{1}$ which are independent from the location in $\Omega$ such that
 \begin{equation}
 \alpha_{0} \; x_{i} x_{i} \le \kappa_{ij} x_{i} x_{j} \le \alpha_{1} \; x_{i} x_{i}
 \end{equation}
-for all $x_{i}$. 
+for all $x_{i}$.
 
 \subsection{Solution Method \label{DARCY SOLVE}}
-It is useful to write equation~\ref{DARCY PROBLEM} in operator form. For any pressure $p$
-we set 
+It is useful to write \eqn{DARCY PROBLEM} in operator form.
+For any pressure $p$ we set
 \begin{equation}
 (Gp)_{i} =  p_{,j}
 \end{equation}
-and a velocity $v$ we set
+and for velocity $v$ we set
 \begin{equation}
 Dv = v_{k,k}
 \end{equation}
-We $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
+With $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
 \begin{equation}
 \begin{array}{rcl}
 u + K \, Gp & = & g \\
@@ -42,17 +62,18 @@ We solve this equation by minimising the functional
 \begin{equation}\label{DARCY COST}
 J(u,p):=\|K^{-\frac{1}{2}}(u + K \, G p - g)\|^2_{0} +  \|\lambda (Du-f) \|_{0}^2 
 \end{equation} 
-over all suitable $u$ and $p$. In this equation we set $\|p\|^2_{0}=(p,p)_{0}$ with
+over all suitable $u$ and $p$.
+In this equation we set $\|p\|^2_{0}=(p,p)_{0}$ with
 \begin{equation}
 (p,q)_{0} = \int_{\Omega } p\cdot q \, dx
 \end{equation} 
 The factor $\lambda>0$ is a weighting factor.
-A simple calculation shows that
-one has to solve
+A simple calculation shows that one has to solve
 \begin{equation}
 ( K^{-1} (v + K \, Gq) , u +K \, G p - g)_{0} +  (\lambda Dv,\lambda (Du-f) )_{0} =0 
 \end{equation} 
-for all velocities $v$ and pressure $q$ which fulfill the homogeneous boundary conditions~\ref{DARCY BOUNDARY}.
+for all velocities $v$ and pressure $q$ which fulfill the homogeneous boundary
+conditions~\ref{DARCY BOUNDARY}.
 This so-called variational equation can be translated back into operator notation
 \begin{equation}
 \begin{array}{rcl}
@@ -60,34 +81,40 @@ This so-called variational equation can be translated back into operator notatio
 G^*u  + G^*K \, G p & = & G^*g \\ 
 \end{array}
 \end{equation} 
-where $D^*$ and $Q^*$ denote the  adjoint operators with respect to $(.,.)_{0}$. 
-In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is continuous and coercive and therefore has a unique solution. Also standard FEM methods can be used for discretization. It is also possible 
-to solve the problem in coupled form, however this approach leads in some cases to a very ill-conditioned stiffness matrix in particular in the case of a very small or large permeability ($\alpha_{1} \ll 1$ or $\alpha_{0} \gg 1$)  
+where $D^*$ and $Q^*$ denote the adjoint operators with respect to $(.,.)_{0}$.
+In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is
+continuous and coercive and therefore has a unique solution.
+Standard FEM methods can be used for discretization. It is also possible to
+solve the problem in coupled form, however this approach leads in some cases
+to a very ill-conditioned stiffness matrix, in particular in the case of a
+very small or large permeability ($\alpha_{1} \ll 1$ or $\alpha_{0} \gg 1$).
 
-The approach we are taking is to eliminate the velocity $v$ from the problem. Assuming that $p$ is known we have
+The approach we are taking is to eliminate the velocity $v$ from the problem.
+Assuming that $p$ is known we have\footnote{notice
+that $K^{-1}+\lambda D^*D$ is coercive}
 \begin{equation}\label{DARCY V FORM}
 v= (K^{-1}+ D^*\lambda^2 D)^{-1} ( D^*\lambda f + K^{-1} g - Gp)
 \end{equation} 
-(notice that $K^{-1}+\lambda D^*D$ is coercive) which is inserted into the second equation
+which is inserted into the second equation
 \begin{equation}
 G^* (K^{-1}+\lambda D^*D)^{-1} (\lambda D^*f + K^{-1} g - Gp) + G^* KG p = G^*g 
 \end{equation} 
-which is 
+which is
 \begin{equation}
 G^* ( K - (K^{-1}+ D^*\lambda^2 D)^{-1} ) G p = G^* (g-(K^{-1}+D^*\lambda^2 D)^{-1} ( D^*\lambda f + K^{-1} g) ) 
 \end{equation} 
-We use the PCG \index{linear solver!PCG}\index{PCG} method to solve this.
-The residual $r$  is given as
+We use the PCG\index{linear solver!PCG}\index{PCG} method to solve this.
+The residual $r$ is given as
 \begin{equation}
 \begin{array}{rcl}
 r & =&  G^* \left( g - K\, G p - v \right)
 \end{array}
 \end{equation} 
-for the current pressure approximation $p$ and current velocity $v$ defined by  
-equation~\ref{DARCY V FORM}.
-So in a particular implementation we use $\hat{r}=g-K\, Gp-v$ to represent the residual. 
-The evaluation of the iteration operator for a given $p$ is then 
-returning $Qp+v$ where $v$ is the solution of 
+for the current pressure approximation $p$ and current velocity $v$ defined by
+\eqn{DARCY V FORM}.
+So in a particular implementation we use $\hat{r}=g-K\, Gp-v$ to represent the residual.
+The evaluation of the iteration operator for a given $p$ is then returning
+$Qp+v$ where $v$ is the solution of
 \begin{equation}\label{UPDATE W}
 (K^{-1}+ D^*\lambda^2 D)v = Gp
 \end{equation}
@@ -105,50 +132,60 @@ where $dx$ is the local mesh size and we use the approximation
 \begin{equation}
 D^*  \lambda^2 D \approx \frac{\lambda^2}{dx^2}
 \end{equation} 
-Therefore we use $G^* \frac{\lambda^2}{dx^2} K^2 G$ as a preconditioner.To evalute the preconditioner
-we need to solve the equation
+Therefore we use $G^* \frac{\lambda^2}{dx^2} K^2 G$ as a preconditioner.
+To evaluate the preconditioner we need to solve the equation
 \begin{equation}\label{UPDATE P}
  G^* \frac{\lambda^2}{dx^2} K^2 G p =  G^* \hat{r}
 \end{equation}
-It remains to answer the question how to choose $\lambda$. We need to balance the first and second
-term in $J(u,p)$ in equation~\ref{DARCY COST}. We inspect $J$ for 
-$(\hat{u}, \hat{p})$ which is a perturbed exact solution $(u,p)$.   
-Assuming $\hat{u}=u+u_{0}e^{ik^tx}$
-and $\hat{p}=p+p_{0}e^{ik^tx}$ and constant $K$ we get 
+It remains to answer the question how to choose $\lambda$.
+We need to balance the first and second term in $J(u,p)$ in \eqn{DARCY COST}.
+We inspect $J$ for $(\hat{u}, \hat{p})$ which is a perturbed exact solution $(u,p)$.
+Assuming $\hat{u}=u+u_{0}e^{ik^tx}$ and $\hat{p}=p+p_{0}e^{ik^tx}$ and
+constant $K$ we get
 \begin{equation}
 J(\hat{u},\hat{p}) = C \left[ ( \|K^{-1}\|_{2} |u_{0}|^2 + \|K\|_{2} \|k\|_{2}^2 |p_{0}|^2| )
 + \lambda^2 \|k\|_{2}^2 |u_{0}|^2  \right]
 \end{equation} 
-with some constant $C>0$. The first two terms and the third term correspond to the first term and
-second term in the definition of $J(u,p)$ in equation~\ref{DARCY COST}. For small $\|k\|_{2}$
-(i.e. for a smooth perturbation) $J(\hat{u},\hat{p})$ is dominated by $\|K^{-1}\|_{2} |u_{0}|^2$.
-To scale the second term which is corresponds to the incompressibility condition for the velocity
-we need to meet the condition $\|K^{-1}\|_{2} =  \lambda^2 \|k\|_{2}^2$. 
-Taking the boundary conditions into consideration the smallest possible value for $\|k\|_{2} = \frac{\pi}{l}$ where $l$ is the longest edge of the domain. This leads to the 
+with some constant $C>0$.
+The first two terms and the third term correspond to the first term and
+second term in the definition of $J(u,p)$ in \eqn{DARCY COST}.
+For small $\|k\|_{2}$ (i.e. for a smooth perturbation) $J(\hat{u},\hat{p})$ is
+dominated by $\|K^{-1}\|_{2} |u_{0}|^2$.
+To scale the second term which corresponds to the incompressibility condition
+for the velocity we need to meet the condition $\|K^{-1}\|_{2} = \lambda^2 \|k\|_{2}^2$.
+Taking the boundary conditions into consideration the smallest possible value
+for $\|k\|_{2} = \frac{\pi}{l}$ where $l$ is the longest edge of the domain.
+This leads to
 \begin{equation}\label{DARCY LAMBDA}
 \lambda = \|K^{-1}\|_{2}^{\frac{1}{2}} \frac{l}{\pi}
 \end{equation} 
-Notice that with this setting the preconditioner $G^* \frac{\lambda^2}{dx^2} K^2 G$ becomes 
-equivalent to $G^* K G$ if $K$ is a diagonal matrix and the mesh has a constant mesh size.
+Notice that with this setting the preconditioner
+$G^* \frac{\lambda^2}{dx^2} K^2 G$ becomes equivalent to $G^* K G$ if $K$ is a
+diagonal matrix and the mesh has a constant mesh size.
 
-The residual norm used in the PCG is given as
+The residual norm used in PCG is given as
 \begin{equation}\label{DARCY R NORM}
 \|r\|_{PCG}^2 = \int r (G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1} r \; dx =\int \hat{r}  G ( G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1}  G^* \hat{r} \; dx \approx
 \int \hat{r} K^{-1}  \hat{r} \; dx 
 \end{equation}
-The iteration is terminated if 
+The iteration is terminated if
 \begin{equation}\label{DARCY STOP}
 \|r\|_{PCG} \le \mbox{ATOL}
 \end{equation}
-where we set 
+where we set
 \begin{equation}\label{DARCY ATOL DEF}
 \mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|K^{-\frac{1}{2}}v\|_{0}} + \frac{1}{\|K^{\frac{1}{2}} G p\|_{0}} \right)^{-1} 
 \end{equation}
-where rtol is a given relative tolerance and $\mbox{atol}$ is a given absolute tolerance (typically $=0$).  
+where rtol is a given relative tolerance and atol is a given absolute
+tolerance (typically $=0$).
 Notice that if $Gp$ and $v$ both are zero, the pair $(0,p)$ is a solution.
-The problem is that ATOL is depending on the solution $p$ and $v$ calculated form~\ref{DARCY V FORM}. 
-In practice one use the initial guess for $p$ 
-to get a first value for ATOL. If the stopping criterion is met in the PCG iteration, a new $v$ is calculated from the current pressure approximation and ATOL is recalculated. If \ref{DARCY STOP} is still fulfilled the calculation is terminated and $(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
+The problem is that ATOL is depending on the solution $p$ and $v$ calculated
+form~\ref{DARCY V FORM}.
+In practice one can use the initial guess for $p$ to get a first value for ATOL.
+If the stopping criterion is met in the PCG iteration, a new $v$ is calculated
+from the current pressure approximation and ATOL is recalculated.
+If \ref{DARCY STOP} is still fulfilled the calculation is terminated and
+$(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
 
 \subsection{Functions}
 \begin{classdesc}{DarcyFlow}{domain}
@@ -157,44 +194,50 @@ opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
 
 \begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, 
 \\\optional{permeability=None}}}}}}
-assigns values to the model parameters. Values can be assigned using various calls - in particular 
-in a time dependent problem only values that change over time needs to be reset. The permeability can be defined as scalar (isotropic), a vector (orthotropic) or a matrix (anisotropic). 
+assigns values to the model parameters. Values can be assigned using various
+calls -- in particular in a time dependent problem only values that change
+over time need to be reset. The permeability can be defined as a scalar
+(isotropic), a vector (orthotropic) or a matrix (anisotropic).
 \var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.
-The locations and components where the flux is prescribed are set by positive values in
-\var{location_of_fixed_flux}. 
-The locations where the pressure is prescribed are set by 
-by positive values of \var{location_of_fixed_pressure}. 
+The locations and components where the flux is prescribed are set by positive
+values in \var{location_of_fixed_flux}.
+The locations where the pressure is prescribed are set by by positive values
+of \var{location_of_fixed_pressure}.
 The values of the pressure and flux are defined by the initial guess.
-Notice that at any point on the boundary of the domain the pressure or the normal component of
-the flux must be defined. There must be at least one point where the pressure is prescribed. 
-The method will try to cast the given values to appropriate 
-\Data class objects.
+Notice that at any point on the boundary of the domain the pressure or the
+normal component of the flux must be defined. There must be at least one point
+where the pressure is prescribed.
+The method will try to cast the given values to appropriate \Data class objects.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
-sets the relative tolerance \mbox{rtol} in \ref{DARCY ATOL DEF}.
+sets the relative tolerance \var{rtol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{setAbsoluteTolerance}{\optional{atol=0.}}
-sets the absolute tolerance \mbox{atol} in \ref{DARCY ATOL DEF}.
+sets the absolute tolerance \var{atol} in \ref{DARCY ATOL DEF}.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
-Returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}). Use this
- \SolverOptions object to control the solution algorithms. 
+returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}).
+Use this \SolverOptions object to control the solution algorithms.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
-Returns the solver options used to solve the pressure problems~(\ref{UPDATE P}) as a preconditioner. 
-Use this \SolverOptions object to control the solution algorithms. 
+returns the solver options used to solve the pressure problem~(\ref{UPDATE P})
+as a preconditioner.
+Use this \SolverOptions object to control the solution algorithms.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}
-solves the problem. and returns approximations for the flux $v$ and the pressure $p$. 
-\var{u0} and \var{p0} define initial guess for flux and pressure. Values marked
-by positive values \var{location_of_fixed_flux} and \var{location_of_fixed_pressure}, respectively, are kept unchanged. \var{max_iter} sets the maximum number of iterations steps allowed for solving the coupled problem.
+solves the problem and returns approximations for the flux $v$ and the pressure $p$.
+\var{u0} and \var{p0} define initial guesses for flux and pressure.
+Values marked by positive values \var{location_of_fixed_flux} and
+\var{location_of_fixed_pressure}, respectively, are kept unchanged.
+\var{max_iter} sets the maximum number of iteration steps allowed for solving
+the coupled problem.
 \end{methoddesc}
 
+%\subsection{Example: Gravity Flow}
+%later
 
-\subsection{Example: Gravity Flow}
-later
