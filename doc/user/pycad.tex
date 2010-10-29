@@ -803,8 +803,8 @@ returns the name of the mesh file.
 \begin{methoddesc}[Design]{addItems}{*items}
 adds the tuple of \var{items}. An item can be any primitive or a
 \class{PropertySet}.
-%FIXME: \warning{If a \PropertySet is added as an item added object that is not
-%part of a \PropertySet it is not considered in the meshing.}
+\warning{If a \PropertySet is added which includes an object that is not
+part of a \PropertySet, it may not be considered in the meshing.}
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getItems}{}
