@@ -67,7 +67,7 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
 #_deps is for files which end in .py and are required for
 # testing but should not be invoked directly themselves
 
-sortOutExample('usersguide/lit_driven_cavity.py')
+sortOutExample('usersguide/lid_driven_cavity.py')
 sortOutExample('usersguide/mount.py')
 sortOutExample('usersguide/heatedblock.py')
 sortOutExample('usersguide/helmholtz.py')
