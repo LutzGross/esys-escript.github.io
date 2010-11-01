@@ -294,10 +294,11 @@ returns the tag of the fault where \var{f} takes the maximum value and a
 \class{Locator} object which can be used to collect values from \Data objects
 at the location where the maximum is taken, e.g.
 \begin{python}
-  fs=FaultSystem()
-  f=Scalar(..)
-  t, loc=fs.getMaxValue(f)
-  print "maximum value of f on the fault %s is %s at location."%(t,loc(f),loc.getX())
+       fs=FaultSystem()
+       f=Scalar(..)
+       t, loc=fs.getMaxValue(f)
+       print("maximum value of f on the fault %s is %s at location %s."%(t, \
+             loc(f), loc.getX()))
 \end{python}
 \var{f} must be a \Scalar. When the maximum is calculated only
 \DataSamplePoints are considered which are on a fault in the fault system in
@@ -350,33 +351,31 @@ Note that the coordinates are represented as \numpyNDA objects.
 \end{methoddesc}
 
 \begin{methoddesc}[FaultSystem]{addFault}{
-strikes\optional{, 
-ls\optional{, 
+strikes\optional{,
+ls\optional{,
 V0=[0.,0.,0.]\optional{,
-tag=None\optional{, 
-dips=None\optional{, 
-depths= None\optional{, 
-w0_offsets=None\optional{, 
+tag=None\optional{,
+dips=None\optional{,
+depths= None\optional{,
+w0_offsets=None\optional{,
 w1_max=None}}}}}}}}
 adds the fault \var{tag} to the fault system.
-\var{V0} defines the start point of fault names $t=$\var{tag}. The polyline
-defining the fault segments on the surface are set 
-by the strike angles \var{strikes} (=$\sigma^{ti}$, north = $\pi/2$, the orientation is counter clockwise.) and
-the length \var{ls} (=$l^{ti}$). In the 3D one also needs to define the 
-dip angles \var{dips} (=$\delta^{ti}$, vertical=$0$, right-hand rule applies.) and 
-the depth \var{depths} for each segment.
-\var{w1_max} defines the range of the $w_{1}$. If not present the mean value over the depth of 
-all segment edges in the fault is used.
-\var{w0_offsets} sets the offsets $\Omega^{ti}$. If not present it i chosen such that $\Omega^{ti}-\Omega^{t(i-1)}$ is the length of the $i$-th segment. In some cases, eg. when kinks in the fault are relevant, it can be useful
+\var{V0} defines the start point of fault named $t=$\var{tag}.
+The polyline defining the fault segments on the surface are set by the strike
+angles \var{strikes} (=$\sigma^{ti}$, north = $\pi/2$, the orientation is
+counterclockwise.) and the length \var{ls} (=$l^{ti}$).
+In the 3D case one also needs to define the dip angles \var{dips}
+(=$\delta^{ti}$, vertical=$0$, right-hand rule applies.) and the depth
+\var{depths} for each segment.
+\var{w1_max} defines the range of $w_{1}$.
+If not present the mean value over the depth of all segment edges in the fault
+is used.
+\var{w0_offsets} sets the offsets $\Omega^{ti}$. If not present it is chosen
+such that $\Omega^{ti}-\Omega^{t(i-1)}$ is the length of the $i$-th segment.
+In some cases, e.g. when kinks in the fault are relevant, it can be useful
 to explicitly specify the offsets in order to simplify the assignment of values.
 \end{methoddesc}
 
 \subsection{Example}
-See section~\ref{Slip CHAP}
-
-
-
-
-
-
+See \Sec{Slip CHAP}.
 
