@@ -785,5 +785,5 @@ if not IS_WINDOWS:
     # Make sure that the escript wrapper is in place
     if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
         print("Copying escript wrapper.")
-        Execute(Copy(os.path.join(env['bininstall'],'escript'), 'bin/run-escript'))
+        Execute(Copy(os.path.join(env['bininstall'],'run-escript'), 'bin/run-escript'))
 
