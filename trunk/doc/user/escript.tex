@@ -77,7 +77,7 @@ the function spaces below the line. See also \Sec{SEC Projection}.}
 \end{figure}
 
 The reduced smoothness for a PDE solution is often used to fulfill the
-Ladyzhenskaya-Babuska-Brezzi condition\cite{LBB} when solving saddle point
+Ladyzhenskaya-Babuska-Brezzi condition~\cite{LBB} when solving saddle point
 problems\index{saddle point problems}, e.g. the Stokes equation.
 A discontinuity\index{discontinuity} is a region within the domain across
 which functions may be discontinuous.
@@ -152,7 +152,7 @@ to \var{mydat}:
   mydat2=Data(value=[[1,1], [1,1], [1,1]], what=ContinuousFunction(myDomain))
 \end{python}
 In the first case the initial value is \var{numpy.ones((2,3))} which generates
-a $2 \times 3$ matrix as a \numpyNDA filled with ones.
+a $2 \times 3$ matrix as an instance of \numpyNDA filled with ones.
 The \Shape of the created \Data object is taken from the \Shape of the array.
 In the second case, the creator converts the initial value, which is a list of
 lists, into a \numpyNDA before creating the actual \Data object.
@@ -160,13 +160,13 @@ lists, into a \numpyNDA before creating the actual \Data object.
 For convenience \escript provides creators for the most common types
 of \Data objects in the following forms (\var{d} defines the spatial dimension):
 \begin{itemize}
-\item \code{Scalar(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(,))}
+\item \code{Scalar(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(,))}\\
     (each value is a scalar), e.g. a temperature field
-\item \code{Vector(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(d))}
+\item \code{Vector(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain),(d))}\\
     (each value is a vector), e.g. a velocity field
-\item \code{Tensor(0, Function(mydomain))} is the same as \code{Data(0, Function(myDomain), (d,d))},
+\item \code{Tensor(0, Function(mydomain))} equals \code{Data(0, Function(myDomain), (d,d))},
     e.g. a stress field
-\item \code{Tensor4(0,Function(mydomain))} is the same as \code{Data(0,Function(myDomain), (d,d,d,d))}
+\item \code{Tensor4(0,Function(mydomain))} equals \code{Data(0,Function(myDomain), (d,d,d,d))},
     e.g. a Hook tensor field
 \end{itemize}
 Here the initial value is 0 but any object that can be converted into
@@ -341,7 +341,7 @@ In some cases, data points will be reordered so be aware and confirm that you
 get what you wanted.
 
 A newer, more flexible way of saving and restoring \escript simulation data
-is through a \class{DataManager} class object.
+is through an instance of the \class{DataManager} class.
 It has the advantage of allowing to save and load not only a \Domain and
 \Data objects but also other values\footnote{The \PYTHON \emph{pickle} module
 is used for other types.} you compute in your simulation script.
@@ -1329,8 +1329,8 @@ In the 2D case, the parameters for the \var{x1} direction (min=0, step=0.55)
 come first followed by the \var{x0} data object and its parameters.
 By default, if a point is specified which is outside the boundary, then
 \var{interpolateTable} will operate as if the point was on the boundary.
-Passing \code{check_boundaries=True} will cause \var{interpolateTable} to
-reject any points outside the boundaries.
+Passing \code{check_boundaries=True} will lead to the rejection of any points
+outside the boundaries by \var{interpolateTable}.
 
 \subsection{The \var{DataManager} Class}
 \label{sec:datamanager}
@@ -1450,6 +1450,7 @@ reject any points outside the boundaries.
 \end{methoddesc}
 
 \subsection{Saving Data as CSV}
+\label{sec:savedatacsv}
 \index{saveDataCSV}\index{CSV}
 For simple post-processing, \Data objects can be saved in comma separated
 value (\emph{CSV}) format.
