@@ -224,9 +224,9 @@ Use this \SolverOptions object to control the solution algorithms.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
-returns the solver options used to solve the pressure problem~(\ref{UPDATE P})
-as a preconditioner.
-Use this \SolverOptions object to control the solution algorithms.
+returns a \SolverOptions object with the options used to solve the pressure
+problem~(\ref{UPDATE P}) as a preconditioner.
+Use this object to control the solution algorithms.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}

@@ -387,9 +387,9 @@ file \file{u_pc.png} in the PNG image format:
       plt.savefig('u_pc.png', format='png')
 \end{python}
 You can add \function{plt.show()} to create an interactive browser window.
-Please note that through the \code{getMPIRankWorld() == 0} statement the plot
+Notice that by checking the condition \code{getMPIRankWorld()==0} the plot
 is generated on one processor only (in this case the rank 0 processor) when
-run under MPI. 
+run under \MPI. 
 
 Both options for processing the point source data are include in the example
 file \file{wave.py}. There are other options available to process these data
