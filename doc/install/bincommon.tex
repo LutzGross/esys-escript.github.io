@@ -18,7 +18,11 @@ Binary distributions (no compilation required) are available for the following o
 \begin{itemize}
  \item \linux~-- Section~\ref{sec:binlinux}
  \item \macosx~-- Section~\ref{sec:binmac}
-%  \item Windows~-- \Sec{sec:binwin}.
+ \item Windows~-- Section~\ref{sec:binwin}.
 \end{itemize}
+
+Note that the binary packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for \mpi requires knowing something about your computer's configuration.}.
+If you need these features you will need to compile \esfinley from source (see Section~\ref{sec:compilesrc} and Section~\ref{sec:compileescriptlinux}.)
+
 
 \input{binlinux}
