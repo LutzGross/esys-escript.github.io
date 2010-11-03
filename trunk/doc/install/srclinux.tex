@@ -13,7 +13,7 @@
 \section{Installing from source for \linux}
 \label{sec:srclinux}
 
-\subsection{Preliminaries}
+\subsection{Dependencies}
 
 The following instructions assume you are running the \file{bash} shell.
 Comments are indicated with \# characters.
@@ -36,7 +36,8 @@ make sure to get the development packages):
 \end{itemize}
 
 
-
+\subsection{Preliminaries}
+\label{sec:prelim}
 You will also need a copy of the \esfinley source code.
 If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
 For additional visualization functionality see Section~\ref{sec:addfunc}.
@@ -59,11 +60,11 @@ There are a number of uses of the \file{make} command in the following instructi
 If your computer has multiple cores/processors you can speed up the compilation process by adding -j 2 after the make command.
 For example to use all processors on a computer with 4 cores:
 \begin{shellCode}
- make
+make
 \end{shellCode}
 becomes
 \begin{shellCode}
- make -j 4
+make -j 4
 \end{shellCode}
 
 \begin{shellCode}
@@ -317,19 +318,52 @@ Change to the directory containing your escript source (\file{stand/escript.d}),
 
 \begin{shellCode}
 cd escript.d/scons
-cp linux_standalone_options_example.py YourMachineName_options.py
+cp TEMPLATE_linux.py YourMachineName_options.py
 
 echo $PKG_ROOT
 \end{shellCode}
 Where \texttt{YourMachineName} is the name of your computer as returned by the hostname command.
 If the name contains non-alphanumeric characters, then you will need to replace them with underscores.
 For example the options file for \texttt{bob-desktop} would be named \file{bob_desktop_options.py}.
+If you wish to build with OpenMP, MPI or configure other aspects of the system take a quick look at Section~\ref{sec:compilesrc}.
 
-Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
-For example:
-\begin{shellCode}
-PKG_ROOT="/home/bob/stand/pkg"
-\end{shellCode}
+
+You will need to edit your options file and specify where to find boost and netcdf.
+(replace \file{x/stand} with the path to \file{stand})
+
+\begin{python}
+#boost_prefix = '/usr/local'
+\end{python}
+
+should be
+\begin{python}
+boost_prefix = ['x/stand/pkg/boost/include/boost-1_39/', 'x/stand/pkg/boost/lib/']
+\end{python}
+
+\begin{python}
+#netcdf = True
+\end{python}
+
+should be
+\begin{python}
+netcdf = True
+\end{python}
+
+\begin{python}
+#netcdf_prefix = '/usr/local'
+\end{python}
+
+should be \begin{python}
+netcdf_prefix = ['x/stand/pkg/netcdf/include/', 
+			'x/stand/pkg/netcdf/lib/']}
+\end{python}
+
+% 
+% Edit the options file and put the value of PKG_ROOT between the quotes in the PKG_ROOT= line.
+% For example:
+% \begin{shellCode}
+% PKG_ROOT="/home/bob/stand/pkg"
+% \end{shellCode}
 
 \begin{shellCode}
 cd ../bin
@@ -355,7 +389,7 @@ scons all_tests
 \end{shellCode}
 
 \subsection{Cleaning up}
-Once you are satisfied, the \file{escript.d/build} and \file{\$PKG_ROOT/build} directories can be removed.
+Once you are satisfied, the \file{escript.d/build} and \file{stand/build} directories can be removed.
 
 If you \emph{really} want to save space and do not wish to be able to edit or recompile \esfinley, you can remove the following:
 \begin{itemize}
@@ -370,7 +404,7 @@ in the \file{escript.d} directory.
 \end{itemize}
 \item from the \file{pkg} directory:
 \begin{itemize}
-\item  \file{scons}, \file{scons-1.2.0}, \file{cmake-2.6.3} and \file{cmake}
+\item  \file{scons}, \file{scons-1.2.0}
 \end{itemize}
 \item \file{package\_src}\footnote{Do not remove this if you intend to redistribute.}.
 \end{itemize}

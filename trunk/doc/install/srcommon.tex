@@ -15,9 +15,9 @@
 % The original version of this content came from the esscc twiki page maintained by ksteube
 
 This chapter describes how to build \esfinley from source assuming that the dependencies are already installed (for example using precompiled packages for your OS).
-Section{sec:deps} describes the dependencies, while Section{sec:compilesrc} gives the compile instructions.
+Section~\ref{sec:deps} describes the dependencies, while Section~\ref{sec:compilesrc} gives the compile instructions.
 
-If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter{chap:allsrc}.
+If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:allsrc}.
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
  \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
@@ -25,6 +25,9 @@ If you would prefer to build all the dependecies from source in the escript-supp
 \item \macosx using gcc
 \item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
+
+If you have compiled a previous version of \esfinley please note that the format of the \file{..._options.py} file has changed so you will not be able to reuse old options file for this build.
+
 
 \section{External dependencies}
 \label{sec:deps}
@@ -38,11 +41,11 @@ You must take greater care if downloading sources separately.
  \item python-2.5.1 (\url{http://python.org}) \\-
         Python interpreter (you must compile with shared libraries.)
  \item numpy 1.1.0 (\url{http://numpy.scipy.org}) \\-
-        Arrays for python
+        Arrays for Python
  \item boost-1.35 (\url{http://www.boost.org}) \\-
         Interface between C++ and Python
  \item scons-0.989.5 (\url{http://www.scons.org/}) \\-
-        Python-based alternative to ``make''.
+        Python-based alternative to \texttt{make}.
 \end{itemize}
 
 The version numbers given here are not strict requirements, more recent (and in some cases older) versions are very likely to work.
@@ -54,14 +57,14 @@ These packages may be required for some of the optional capabilities of the syst
 \begin{itemize}
  \item netcdf-3.6.2 (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
         Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC)
- \item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
-        Used to save VTK files for visualization
-  \begin{itemize}
-   \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
-        Required to build VTK
-   \item mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
-        Free OpenGL replacement used by VTK
-  \end{itemize}
+%  \item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
+%         Used to save VTK files for visualization
+%   \begin{itemize}
+%    \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
+%         Required to build VTK
+%    \item mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
+%         Free OpenGL replacement used by VTK
+%   \end{itemize}
  \item netpbm (\url{http://netpbm.sourceforge.com}) \\-
         Tools for producing movies from images
  \item parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
@@ -109,6 +112,17 @@ As a starting point copy the contents one of the following files into your optio
 \item \file{scons/TEMPLATE_linux.py} (\linux and \macosx desktop)
 \item \file{scons/TEMPLATE_windows.py} (\winxp)
 \end{itemize}
+
+This options file controls which features and libraries your build of escript will attempt to use.
+For example to use OpenMP or MPI you will need to enable it here.
+
+If you want to try escript out without customising your build, then change directories to \file{escript.d} and
+\begin{shellCode}
+scons 
+\end{shellCode}
+If this works you can skip to Section~\ref{sec:diff}.
+If not, then you will need to make some modications to the the file.
+Read on.
 
 The template files contain all available options with a comment explaining the
 purpose of each.
@@ -180,7 +194,7 @@ openmp = True
 omp_flags = '-fopenmp'
 omp_ldflags = '-fopenmp'
 \end{shellCode}
-(The two latter settings can also be left out as this is the default for gcc.)
+(The two latter settings can also be left out as this is the default OpenMP on gcc.)
 
 You can test your \openmp-enabled build, e.g. using 4 threads by issuing
 \begin{shellCode}
@@ -221,10 +235,10 @@ To test your build using 6 processes enter:
 export ESCRIPT_NUM_PROCS=6
 scons all_tests
 \end{shellCode}
-and on 6 processes with 4 threads each (provided \openmp is enabled):
+and on $2$ processes with $4$ threads each (provided \openmp is enabled)\footnote{Unless your system has $8$ cores expect this to be slow}:
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
-export ESCRIPT_NUM_PROCS=6
+export ESCRIPT_NUM_PROCS=2
 scons all_tests
 \end{shellCode}
 Alternatively, you can give a hostfile
@@ -236,7 +250,7 @@ scons all_tests
 Note that depending on your \mpi flavour it may be required to start a daemon
 before running the tests under \mpi.
 
-\subsection{Difficulties}
+\subsection{Difficulties}\label{sec:diff}
 
 \subsubsection{Mismatch of runtime and build libraries}
 Most external libraries used by \esfinley are linked dynamically.

@@ -15,25 +15,37 @@
 
 \esfinley can be installed as a stand-alone bundle, containing all the required dependencies.
 Alternatively, if we have a package for your distribution you can use the standard tools to install.
-Please note, however, that the current binary packages do not support \openmp\footnote{This is due to a bug related to gcc 4.3.2.} or \mpi\footnote{Producing packages for \mpi requires knowing something about your computer's configuration.}.
-If you need these features you may need to compile \esfinley from source (see Section~\ref{sec:compilesrc} and Section~\ref{sec:compileescriptlinux}.)
+
 
 For more information on using the \file{run-escript} command please see the User's Guide.
 
-If you are using Debian (5.0 - ``Lenny'') or Ubuntu (8.10-``Intrepid Ibex'', 9.04-``Jaunty Jackalope'') then see Section~\ref{sec:debian}.
-For Ubuntu 9.10-``karmic koala'' see Section~\ref{sec:karmic}.
-For other Linux distributions refer to Section~\ref{sec:standalonelinux}.
+If you are using Debian~5.0(``Lenny''), Ubuntu~8.10(``Intrepid Ibex'') or greater, then see Section~\ref{sec:debian}.
+For other linux distributions refer to Section~\ref{sec:standalonelinux}.
 
-\subsection{Debian 5.0(``Lenny''), Ubuntu 8.10(``Intrepid Ibex'') or 9.04(``Jaunty Jakalope'')}\label{sec:debian}
+\subsection{Debian and Ubuntu}\label{sec:debian}
 
 At the time of this writing we only produce deb's for the i386 and amd64 architectures.
-The package file will be named \file{escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} is either ``\texttt{lenny}'' or ``\texttt{jaunty}'' and \texttt{A} is the architecture.
-For example, \file{escript-3.0-1-lenny_amd64.deb} would be the file for lenny (and intrepid) for 64bit processors.
+The package file will be named \file{escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} is the distribution codename (eg ``\texttt{lenny}'' or ``\texttt{jaunty}'') and \texttt{A} is the architecture.
+For example, \file{escript-3.0-1-lenny_amd64.deb} would be the file for lenny for 64bit processors.
 To install \esfinley download the appropriate \file{.deb} file and execute the following commands as root (you need to be in the directory containing the file):
+
+\begin{verse}
+\textbf{(For users of Ubuntu~10.10 \textit{``Maverick Meercat''} only)}\\
+You will need to either install \texttt{aptitude}\footnote{Unless you are short on disk space \texttt{aptitude} is recommended} or replace use \texttt{apt-get} where this guide uses \texttt{aptitude}.
+\begin{shellCode}
+sudo apt-get install aptitude
+\end{shellCode}
+\end{verse}
+
 \begin{shellCode}
 dpkg --unpack escript*.deb
 aptitude install escript
 \end{shellCode}
+
+Installing escript should not remove any packages from your system.
+If aptitude suggests removing escript, then choose 'N'.
+It should then suggest installing some dependencies choose 'Y' here.
+If it suggests removing escript-noalias then agree.
 
 If you use sudo (for example on Ubuntu) enter the following instead:
 \begin{shellCode}
@@ -44,25 +56,14 @@ sudo aptitude install escript
 This should install \esfinley and its dependencies on your system.
 Please notify the development team if something goes wrong.
 
-\subsection{Ubuntu 9.10(``Karmic Koala'')}\label{sec:karmic}
-
-You will need to download either \file{escript-noalias-3.1-1-lenny_i386.deb} (for 32bit processors) or \file{escript-noalias-3.1-1-lenny_amd64.deb} (for 64bit processors).
-
-Type the following in the directory containing the file.
-\begin{shellCode}
-sudo dpkg --unpack escript-noalias*.deb
-sudo aptitude install escript
-\end{shellCode}
-
-
-
 \subsection{Stand-alone bundle}\label{sec:standalonelinux}
 
 If there is no package available for your distribution, you may be able to use one of our stand alone bundles.
-These come in two parts: escript itself (\file{escript_3.0_i386.tar.bz2}) and a group of required programs (\file{escript-support_3.0_i386.tar.bz2}). For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.
+These come in two parts: escript itself (\file{escript_3.2_i386.tar.bz2}) and a group of required programs (\file{escript-support_3.0_i386.tar.bz2}) (Note that the support bundle is version~3.0 not 3.2) . For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.
+This point release uses the same support bundle as previous releases so if you already have it you don't need a new version.
 \begin{shellCode}
 tar -xjf escript-support_3.0_i386.tar.bz2
-tar -xjf escript_3.0_i386.tar.bz2
+tar -xjf escript_3.2_i386.tar.bz2
 \end{shellCode}
 This will produce a directory called \file{stand} which contains a stand-alone version of \esfinley and its dependencies.
 You can rename or move it as is convenient to you, no installation is required.

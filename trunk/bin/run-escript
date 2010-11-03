@@ -58,15 +58,7 @@ else
 fi
 ##### End finding ESCRIPT_ROOT  ########
 
-BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
-if [ ! -r $BUILDINFO_FILE ]; then
-    echo "Error! Unable to read escript build information. Exiting."
-    exit 1
-fi
 
-function get_buildvar {
-    echo `grep "^$1=" $BUILDINFO_FILE |cut -d= -f2`
-}
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
@@ -82,12 +74,33 @@ EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 
 if [ $STANDALONE -eq 1 ]
 then
-    EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$EXTRA_PATH
+    EXTRA_PATH=$ESCRIPT_PARENT/pkg/python/bin:$ESCRIPT_PARENT/pkg/scons/bin:$EXTRA_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/boost/lib:$ESCRIPT_PARENT/pkg/netcdf/lib/:$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_PARENT/pkg/python/lib:$EXTRA_LD_LIBRARY_PATH
     EXTRA_PYTHONPATH=$ESCRIPT_PARENT/pkg/numpy/lib/python2.6/site-packages:$ESCRIPT_PARENT/pkg/matplotlib/lib/python2.6/site-packages:$EXTRA_PYTHONPATH
 fi
+
+
+BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
+if [ ! -r $BUILDINFO_FILE ]; then
+    if [ "$1" = "-e" ];then
+	echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+	echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+	echo "export PATH=$EXTRA_PATH:\$PATH"
+	if [ "`uname`" = "Darwin" ]
+	then
+	    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+	fi	
+        exit 0
+    fi
+    echo "Error! Unable to read escript build information. Exiting."
+    exit 1
+fi
+
+function get_buildvar {
+    echo `grep "^$1=" $BUILDINFO_FILE |cut -d= -f2`
+}
 
 #
 #   Add VisIt paths if required
