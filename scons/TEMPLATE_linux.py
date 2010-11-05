@@ -107,7 +107,7 @@ escript_opts_version = 200
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-#boost_libs = ['boost_python']
+#boost_libs = ['boost_python-mt']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
