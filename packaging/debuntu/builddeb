@@ -116,12 +116,12 @@ mkdir -p $OUTPUTROOT/usr/share/man/man1
 cp $SRCDIR/doc/manpage/man1/$WRAPPERNAME.1 $OUTPUTROOT/usr/share/man/man1
 
 gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
-if [ -z "$needalt" ]			#We are not building the alt package
-then
-	pushd $OUTPUTROOT/usr/share/man/man1 > /dev/null || (echo "A directory has disappeared" ; exit 8)
-	ln -s $WRAPPERNAME.1.gz escript.1.gz
-	popd > /dev/null
-fi
+#if [ -z "$needalt" ]			#We are not building the alt package
+#then
+#	pushd $OUTPUTROOT/usr/share/man/man1 > /dev/null || (echo "A directory has disappeared" ; exit 8)
+#	ln -s $WRAPPERNAME.1.gz escript.1.gz
+#	popd > /dev/null
+#fi
 
 
 
