@@ -30,7 +30,7 @@ if 'PDF' in dir(local_env):
     Depends(pdf, tex_src)
 
     pdf_path=os.path.join(release_dir, 'install', 'install.pdf')
-    pdf_inst=local_env.InstallAs(target=pdf_path, source='install.tex')
+    pdf_inst=local_env.InstallAs(target=pdf_path, source='install.pdf')
     env.Alias('install_pdf', pdf_inst)
 else:
     env.Alias('install_pdf', '', 'echo "PDF output not supported!"')
