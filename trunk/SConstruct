@@ -71,7 +71,7 @@ vars.AddVariables(
   ('omp_ldflags', 'OpenMP linker flags', 'default'),
 # Mandatory libraries
   ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
-  ('boost_libs', 'Boost libraries to link with', ['boost_python']),
+  ('boost_libs', 'Boost libraries to link with', ['boost_python-mt']),
 # Optional libraries and options
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
