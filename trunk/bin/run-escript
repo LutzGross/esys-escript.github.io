@@ -362,8 +362,8 @@ then
 else
     # Check to see if the python version we were compiled with matches the
     # one of PYTHON_CMD.
-    compversion=`get_buildvar python_version`
-    intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d.%d"%(sys.version_info[0], sys.version_info[1], sys.version_info[2])'`
+    compversion=`get_buildvar python_version | cut -d. -f1,2`
+    intversion=`$PYTHON_CMD -c 'import sys;print "%d.%d"%(sys.version_info[0], sys.version_info[1])'`
     if [ "$compversion" != "$intversion" ]
     then
         echo "Python versions do not match. Escript was compiled for "$compversion"."
