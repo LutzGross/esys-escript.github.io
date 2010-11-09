@@ -857,8 +857,11 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
             ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
             break;
 
-        case Finley_Line3:
         case Finley_Line3Macro:
+            ret.useQuadNodes = true;
+            ret.quadDim = 1;
+            // fall through
+        case Finley_Line3:
             ret.multiCellIndices = line3indices;
             ret.elementFactor = 2;
             // fall through
@@ -1094,7 +1097,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
 
     if (finleyTypeId == Finley_Line3Macro) {
         for (int i=0; i<elementFactor; i++) {
-            const float bounds[] = { 0.25, 0.75 };
+            const float bounds[] = { .25, .75 };
             IntVec m(numQNodes, 0);
             int hits = 0;
             for (size_t j=0; j<numQNodes; j++) {
@@ -1183,7 +1186,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             int hits = 0;
             for (size_t j=0; j<numQNodes; j++) {
                 if (inside2D(qnodes[0][j], qnodes[1][j],
-                        bounds[i][0], bounds[i][1], 0.25)) {
+                        bounds[i][0], bounds[i][1], .25)) {
                     m[j] = 1;
                     hits++;
                 }
@@ -1205,7 +1208,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             int hits = 0;
             for (size_t j=0; j<numQNodes; j++) {
                 if (inside3D(qnodes[0][j], qnodes[1][j], qnodes[2][j],
-                        bounds[i][0], bounds[i][1], bounds[i][2], 0.25)) {
+                        bounds[i][0], bounds[i][1], bounds[i][2], .25)) {
                     m[j] = 1;
                     hits++;
                 }
