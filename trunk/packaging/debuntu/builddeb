@@ -143,8 +143,8 @@ export ESCRIPT_ROOT=/usr/lib/escript
 
 sed -e "s%STDLOCATION=0%STDLOCATION=1%" < $SRCDIR/bin/$WRAPPERNAME > $BINOUT/$WRAPPERNAME
 
-sed -ie "s%PYPKG%$PYPKG%" $OUTPUTROOT/DEBIAN/control
-sed -ie "s%BOOSTPKG%$BOOSTPKG%" $OUTPUTROOT/DEBIAN/control
+sed -i -e "s%PYPKG%$PYPKG%" $OUTPUTROOT/DEBIAN/control
+sed -i -e "s%BOOSTPKG%$BOOSTPKG%" $OUTPUTROOT/DEBIAN/control
 
 
 # if [ -z "$needalt" ]

@@ -28,16 +28,16 @@ if 'PDF' in dir(local_env):
         interaction='-interaction=batchmode'
 
     # Define command to include SVN revision 
-    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{guide.tex}'%(local_env['svn_revision'])])
-    pdf=local_env.PDF(target='guide.pdf', source='guide.tex')
+    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{user.tex}'%(local_env['svn_revision'])])
+    pdf=local_env.PDF(target='user.pdf', source='user.tex')
     Depends(pdf, figures+tex_src)
 
-    pdf_path=os.path.join(release_dir, 'user', 'guide.pdf')
-    pdf_inst=local_env.InstallAs(target=pdf_path, source='guide.pdf')
-    env.Alias('guide_pdf', pdf_inst)
+    pdf_path=os.path.join(release_dir, 'user', 'user.pdf')
+    pdf_inst=local_env.InstallAs(target=pdf_path, source='user.pdf')
+    env.Alias('user_pdf', pdf_inst)
 else:
-    env.Alias('guide_pdf', '', 'echo "PDF output not supported!"')
-    env.AlwaysBuild('guide_pdf')
+    env.Alias('user_pdf', '', 'echo "PDF output not supported!"')
+    env.AlwaysBuild('user_pdf')
 
 # html version
 #html_dir=os.path.join(release_dir,'user','html')
