@@ -92,7 +92,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-#boost_libs = ['boost_python']
+boost_libs = ['libboost_python-mt-py26']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False

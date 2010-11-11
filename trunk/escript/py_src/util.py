@@ -146,68 +146,15 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     """
-    Writes `Data` objects and their mesh into a file using the VTK XML file
-    format.
-
-    Example::
-
-        tmp=Scalar(..)
-        v=Vector(..)
-        saveVTK("solution.vtu", temperature=tmp, velocity=v)
-
-    ``tmp`` and ``v`` are written into "solution.vtu" where ``tmp`` is named
-    "temperature" and ``v`` is named "velocity".
-
-    Meta tags, e.g. a timeStamp, can be added to the file, for instance::
-
-        tmp=Scalar(..)
-        v=Vector(..)
-        saveVTK("solution.vtu", temperature=tmp, velocity=v,
-                metadata="<timeStamp>1.234</timeStamp>",
-                metadata_schema={ "gml" : "http://www.opengis.net/gml"})
-
-    The argument ``metadata_schema`` allows the definition of name spaces with a schema used in the definition of meta tags.
-
-    :param filename: file name of the output file
-    :type filename: ``str``
-    :param domain: domain of the `Data` objects. If not specified, the domain
-                   of the given `Data` objects is used.
-    :type domain: `escript.Domain`
-    :keyword <name>: writes the assigned value to the VTK file using <name> as
-                     identifier
-    :param metadata: additional XML meta data which are inserted into the VTK file. The meta data are marked by the tag ``<MetaData>``.
-    :type metadata: ``str``
-    :param metadata_schema: assignes schema to namespaces which have been used to define  meta data.
-    :type metadata_schema: ``dict`` with ``metadata_schema[<namespace>]=<URI>`` to assign the scheme ``<URI>`` to the name space ``<namespace>``.
-    :note: The data objects have to be defined on the same domain. They may not
-           be in the same `FunctionSpace` but one cannot expect that all
-           `FunctionSpace` s can be mixed. Typically, data on the boundary and
-           data on the interior cannot be mixed.
+    Deprecated. See esys.weipa.saveVTK().
     """
-    # create the string if meta data:
-    if not metadata==None:
-        metadata2="<MetaData>"+metadata+"</MetaData>"
-    else:
-        metadata2=""
-    metadata_shema2=""
-    if not metadata_schema==None:
-         for i,p in metadata_schema.items():
-             metadata_shema2="%s xmlns:%s=\"%s\""%(metadata_shema2,i,p)
-    new_data={}
-    for n,d in data.items():
-          if not d.isEmpty():
-            fs=d.getFunctionSpace()
-            domain2=fs.getDomain()
-            if fs == escript.Solution(domain2):
-               new_data[n]=interpolate(d,escript.ContinuousFunction(domain2))
-            elif fs == escript.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            else:
-               new_data[n]=d
-            if domain==None: domain=domain2
-    if domain==None:
-        raise ValueError,"saveVTK: no domain detected."
-    domain.saveVTK(filename,new_data,metadata2.strip(),metadata_shema2.strip())
+
+    import warnings
+    msg = "esys.escript.util.saveVTK is deprecated.  Use the esys.weipa module."
+    warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
+    from esys import weipa
+    weipa.saveVTK(filename, domain, metadata, metadata_schema, **data)
 
 def saveDX(filename,domain=None,**data):
     """

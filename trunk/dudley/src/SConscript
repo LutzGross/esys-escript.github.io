@@ -74,7 +74,6 @@ sources = """
 	Mesh_relableElementNodes.c
 	Mesh_resolveNodeIds.c
 	Mesh_saveDX.c
-	Mesh_saveVTK.c
 	Mesh_setCoordinates.c
 	Mesh_tagmaps.c
 	Mesh_tet4.c
