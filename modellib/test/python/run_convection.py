@@ -108,7 +108,7 @@ def Test(dom):
 	vis.data0=Link(temp,"temperature")
 	vis.data1=Link(vel,"velocity")
 	vis.dt=0.0001
-	vis.filename=os.path.join(WORKDIR,"temp.xml")
+	vis.filename=os.path.join(WORKDIR,"temp.vtu")
 	
 	per=GaussianProfile()
 	per.domain=Link(dom)

@@ -19,7 +19,6 @@
 
 using namespace CppUnitTest;
 using namespace escript;
-using namespace finley;
 using namespace weipa;
 using namespace std;
 
@@ -55,7 +54,7 @@ void EscriptDatasetTestCase::testAll()
     assert(dataset->getMeshVariables().size() == 0);
 
     // instantiate a domain and data
-    Domain_ptr dom(brick());
+    Domain_ptr dom(finley::brick());
     escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;

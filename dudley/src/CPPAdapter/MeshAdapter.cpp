@@ -22,6 +22,9 @@ extern "C" {
 #include "esysUtils/blocktimer.h"
 }
 
+#include <boost/python/import.hpp>
+#include <boost/python/tuple.hpp>
+
 using namespace std;
 using namespace escript;
 
@@ -1374,23 +1377,10 @@ void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) 
 //
 void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,  const string& metadata, const string& metadata_schema) const
 {
-   int num_data;
-   char **names;
-   escriptDataC *data;
-   escriptDataC **ptr_data;
-
-   extractArgsFromDict(arg, num_data, names, data, ptr_data);
-   Dudley_Mesh_saveVTK(filename.c_str(), m_dudleyMesh.get(), num_data, names, ptr_data, metadata.c_str(), metadata_schema.c_str());
-   checkDudleyError();
-
-   /* win32 refactor */
-   TMPMEMFREE(data);
-   TMPMEMFREE(ptr_data);
-   for(int i=0; i<num_data; i++)
-   {
-      TMPMEMFREE(names[i]);
-   }
-   TMPMEMFREE(names);
+    boost::python::object pySaveVTK = boost::python::import("esys.weipa").attr("saveVTK");
+    pySaveVTK(*boost::python::make_tuple(filename,
+               const_cast<MeshAdapter*>(this)->getPtr(),
+               metadata, metadata_schema), **arg);
 }
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const

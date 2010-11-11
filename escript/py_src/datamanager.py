@@ -263,17 +263,14 @@ class DataManager(object):
         self.__clearData()
 
     def __createDataset(self):
-        idata = self.__interpolateData()
-
         from esys.weipa.weipacpp import EscriptDataset
-        ds=EscriptDataset()
-        ds.setDomain(self._domain)
+        from esys.weipa import createDataset
+
+        ds = createDataset(self._domain, self._data)
         ds.setCycleAndTime(self._N, self._time)
         ds.setMetadataSchemaString(self._md_schema, self._metadata)
         ds.setMeshLabels(self._meshlabels[0], self._meshlabels[1], self._meshlabels[2])
         ds.setMeshUnits(self._meshunits[0], self._meshunits[1], self._meshunits[2])
-        for n,d in idata.items():
-            ds.addData(d, n, "") #TODO: data units are not supported here yet
         return ds
     
     def __clearData(self):
@@ -299,25 +296,6 @@ class DataManager(object):
         """
         from esys.weipa.weipacpp import visitInitialize
         return visitInitialize(simFile, comment)
-
-    def __interpolateData(self):
-        # (Reduced)Solution is not directly supported so interpolate to a
-        # different function space
-        from esys.escript import Solution, ReducedSolution
-        from esys.escript import ContinuousFunction, ReducedContinuousFunction
-        from esys.escript.util import interpolate
-        new_data={}
-        for n,d in self._data.items():
-            if not d.isEmpty():
-                fs=d.getFunctionSpace()
-                domain=fs.getDomain()
-                if fs == Solution(domain):
-                    new_data[n]=interpolate(d, ContinuousFunction(domain))
-                elif fs == ReducedSolution(domain):
-                    new_data[n]=interpolate(d, ReducedContinuousFunction(domain))
-                else:
-                    new_data[n]=d
-        return new_data
 
     def __loadState(self):
         stamp_file=self.__getStampFilename(self._restartdir)

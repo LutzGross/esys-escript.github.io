@@ -23,14 +23,18 @@ from escript import *
 from util import *
 from datamanager import DataManager
 
-import os
-import atexit
-
 # To have this function called automatically
 def escriptLogMemoryStatusNow(prefix='memescript'):
+    import os
     if os.name=='posix':
-	pid=os.getpid()
-	os.system("cat /proc/%d/status > %s.%d"%(pid,prefix,pid))
-	
-if 'escriptExitProfiling' in os.environ:
-	atexit.register(escriptLogMemoryStatusNow)
+        pid=os.getpid()
+        os.system("cat /proc/%d/status > %s.%d"%(pid,prefix,pid))
+    
+try:
+    import os
+    if 'escriptExitProfiling' in os.environ:
+        import atexit
+        atexit.register(escriptLogMemoryStatusNow)
+except:
+    pass
+
