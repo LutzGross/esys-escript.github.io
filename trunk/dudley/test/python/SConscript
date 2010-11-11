@@ -28,7 +28,6 @@ testruns += ['run_inputOutput.py']
 #testruns += ['run_models.py']
 #testruns += ['run_simplesolve.py']
 #testruns += ['run_utilOnDudley.py']
-#testruns += ['run_visualization_interface.py']
 # 
 #  files defining a few tests for a quick test
 # 

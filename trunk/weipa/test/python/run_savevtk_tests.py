@@ -29,7 +29,8 @@ from esys.escript import FunctionOnBoundary, ReducedFunctionOnBoundary
 from esys.escript import FunctionOnContactZero, ReducedFunctionOnContactZero
 from esys.escript import FunctionOnContactOne, ReducedFunctionOnContactOne
 from esys.escript import Solution, ReducedSolution
-from esys.finley import ReadMesh
+from esys import finley
+from esys import dudley
 from esys.weipa import saveVTK
 
 try:
@@ -275,7 +276,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_metadata_full(self):
      fn=os.path.join(WEIPA_WORKDIR, "metadata0.vtu")
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
      saveVTK(fn, x=dom.getX(), metadata_schema={"gml":"http://www.opengis.net/gml"}, metadata='<dummy>hello world</dummy><timeStamp uom="s">1234</timeStamp>')
      # testing:
      dom=VTKParser()
@@ -301,7 +302,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_metadata_no_schema(self):
      fn=os.path.join(WEIPA_WORKDIR, "metadata1.vtu")
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
      saveVTK(fn, x=dom.getX(), metadata='<dummy>hello world</dummy><timeStamp uom="s">1234</timeStamp>')
      # testing:
      dom=VTKParser()
@@ -326,7 +327,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_metadata_schema_only(self):
      fn=os.path.join(WEIPA_WORKDIR, "metadata2.vtu")
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES, "hex_2D_order2.msh"), optimize=False)
      saveVTK(fn, x=dom.getX(), metadata_schema={"gml":"http://www.opengis.net/gml"})
      # testing:
      dom=VTKParser()
@@ -336,36 +337,36 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 2D macro =========================================================
 
   def test_hex_2D_macro(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      self.check_vtk("hex_2D_o2p", domain=dom)
 
   def test_hex_2D_macro_AllPoints_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o1_node_3xs", ['Elements','ReducedElements'], data_r=x_r[0], data_n=x_n[0], data=x[0])
 
   def test_hex_2D_macro_02Points_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_node_2xs", data_n=x_n[0], data=x[0])
 
   def test_hex_2D_macro_2Cells_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_cell_2xs", ['Elements','FaceElements'], data_b=x_b[0], data=x[0])
 
   def test_hex_2D_macro_BoundaryPoint_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_boundary_2xs", ['Elements','FaceElements'], data_b=x_b[0], data=x[0])
 
   def test_hex_2D_macro_Cells_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_macro_cell_all",
                      data_s=x[0],
@@ -374,7 +375,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
 
   def test_hex_2D_macro_CellsPoints_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_macro_cellnode_all",
@@ -386,49 +387,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_tc=x_c[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_2D_o2p_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_2D_o2p_reduced_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_reduced_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_reduced_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_macro_cell_s", data=x[0])
      self.check_vtk("hex_2D_macro_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_macro_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_2D_macro_cell_s", data=x[0])
      self.check_vtk("hex_2D_macro_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_macro_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_macro_boundary_s", data=x[0])
      self.check_vtk("hex_2D_macro_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_macro_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_macro_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_macro.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_macro_boundary_s", data=x[0])
      self.check_vtk("hex_2D_macro_boundary_v", data=x[0]*[1.,2.])
@@ -437,36 +438,36 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 2D order 2 =======================================================
 
   def test_hex_2D_order2(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      self.check_vtk("hex_2D_o2", domain=dom)
 
   def test_hex_2D_order2_AllPoints_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2_node_3xs", ['Elements','ReducedElements'], data_r=x_r[0], data_n=x_n[0], data=x[0])
 
   def test_hex_2D_order2_02Points_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2_node_2xs", data_n=x_n[0], data=x[0])
 
   def test_hex_2D_order2_2Cells_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_cell_2xs", ['ReducedElements','ReducedFaceElements'], data_b=x_b[0], data=x[0])
 
   def test_hex_2D_order2_BoundaryPoint_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_boundary_2xs", ['Elements','ReducedFaceElements'], data=x[0],data_b=x_b[0])
 
   def test_hex_2D_order2_Cells_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_o2_cell_all",
                      data_s=x[0],
@@ -475,7 +476,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
 
   def test_hex_2D_order2_CellsPoints_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2.msh"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2_cellnode_all", ['Elements','ReducedElements'],
@@ -489,36 +490,36 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 2D order 2 (full) ================================================
 
   def test_hex_2D_order2p(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      self.check_vtk("hex_2D_o2p", domain=dom)
 
   def test_hex_2D_order2p_AllPoints_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o1_node_3xs", ['Elements','ReducedElements'], data_r=x_r[0], data_n=x_n[0], data=x[0])
 
   def test_hex_2D_order2p_02Points_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_node_2xs", data_n=x_n[0], data=x[0])
 
   def test_hex_2D_order2p_2Cells_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2p_cell_2xs", ['Elements','ReducedFaceElements'], data_b=x_b[0], data=x[0])
 
   def test_hex_2D_order2p_BoundaryPoint_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2p_boundary_2xs", ['Elements','ReducedFaceElements'], data=x[0],data_b=x_b[0])
 
   def test_hex_2D_order2p_Cells_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_o2p_cell_all",
                      data_s=x[0],
@@ -527,7 +528,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
 
   def test_hex_2D_order2p_CellsPoints_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_cellnode_all",
@@ -539,49 +540,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_tc=x_c[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_2D_o2p_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_2D_o2p_reduced_node_s", data=x[0])
      self.check_vtk("hex_2D_o2p_reduced_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_reduced_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_o2p_cell_s", data=x[0])
      self.check_vtk("hex_2D_o2p_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_2D_o2p_cell_reduced_s", data=x[0])
      self.check_vtk("hex_2D_o2p_cell_reduced_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_cell_reduced_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2p_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2p_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2p_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_2D_order2p_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_2D_order2p.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2p_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2p_boundary_v", data=x[0]*[1.,2.])
@@ -590,119 +591,119 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 2D order 1 with contacts =========================================
 
   def test_hex_contact_2D_order1_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o1_node_s", data=x[0])
      self.check_vtk("hex_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_2D_o1_node_s", data=x[0])
      self.check_vtk("hex_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_2D_o1_node_s", data=x[0])
      self.check_vtk("hex_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_o1_cell_s", data=x[0])
      self.check_vtk("hex_2D_o1_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_2D_o1_cell_s", data=x[0])
      self.check_vtk("hex_2D_o1_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o1_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o1_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o1_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o1_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o1_f_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o1_f_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_f_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o1_f_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o1_f_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_f_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o1_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order1_onFace_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o1_contact_s", data=x[0])
      self.check_vtk("hex_2D_o1_contact_v", data=x[0]*[1.,2.])
@@ -711,119 +712,119 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 2D order 2 with contacts =========================================
 
   def test_hex_contact_2D_order2_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_2D_o2_node_s", data=x[0])
      self.check_vtk("hex_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_2D_o2_node_s", data=x[0])
      self.check_vtk("hex_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_2D_o2_reduced_node_s", data=x[0])
      self.check_vtk("hex_2D_o2_reduced_node_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_reduced_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_2D_o2_cell_s", data=x[0])
      self.check_vtk("hex_2D_o2_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_2D_o2_cell_s", data=x[0])
      self.check_vtk("hex_2D_o2_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_f_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2_f_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_f_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_2D_o2_f_boundary_s", data=x[0])
      self.check_vtk("hex_2D_o2_f_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_f_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
      self.check_vtk("hex_2D_o2_contact_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_hex_contact_2D_order2_onFace_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_2D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_2D_o2_contact_s", data=x[0])
      self.check_vtk("hex_2D_o2_contact_v", data=x[0]*[1.,2.])
@@ -832,119 +833,119 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 3D order 1 with contacts =========================================
 
   def test_hex_contact_3D_order1_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_3D_o1_node_s", data=x[0])
      self.check_vtk("hex_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_3D_o1_node_s", data=x[0])
      self.check_vtk("hex_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_3D_o1_node_s", data=x[0])
      self.check_vtk("hex_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_3D_o1_cell_s", data=x[0])
      self.check_vtk("hex_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_3D_o1_cell_s", data=x[0])
      self.check_vtk("hex_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o1_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o1_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o1_f_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o1_f_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_f_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o1_f_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o1_f_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_f_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o1_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order1_onFace_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order1_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o1_contact_s", data=x[0])
      self.check_vtk("hex_3D_o1_contact_v", data=x[0]*[1.,2.,3.])
@@ -953,119 +954,119 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 3D order 2 with contacts =========================================
 
   def test_hex_contact_3D_order2_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_3D_o2_node_s", data=x[0])
      self.check_vtk("hex_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_3D_o2_node_s", data=x[0])
      self.check_vtk("hex_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_3D_o2_reduced_node_s", data=x[0])
      self.check_vtk("hex_3D_o2_reduced_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_reduced_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_3D_o2_cell_s", data=x[0])
      self.check_vtk("hex_3D_o2_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_3D_o2_cell_s", data=x[0])
      self.check_vtk("hex_3D_o2_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o2_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o2_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2_f_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o2_f_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_f_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2_f_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o2_f_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_f_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_FunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=FunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_ReducedFunctionOnContactZero(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactZero(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_FunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=FunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2_contact_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_contact_3D_order2_onFace_ReducedFunctionOnContactOne(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_contact_3D_order2_onFace.msh"),optimize=False)
      x=ReducedFunctionOnContactOne(dom).getX()
      self.check_vtk("hex_3D_o2_contact_s", data=x[0])
      self.check_vtk("hex_3D_o2_contact_v", data=x[0]*[1.,2.,3.])
@@ -1074,49 +1075,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 3D order 2 (full) ================================================
 
   def test_hex_3D_order2p_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_3D_o2p_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_3D_o2p_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_3D_o2p_reduced_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_reduced_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_reduced_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_3D_o2p_cell_s", data=x[0])
      self.check_vtk("hex_3D_o2p_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_3D_o2p_cell_reduced_s", data=x[0])
      self.check_vtk("hex_3D_o2p_cell_reduced_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_cell_reduced_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2p_boundary_s", data=x[0])
      self.check_vtk("hex_3D_o2p_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_order2p_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_order2p.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_o2p_boundary_reduced_s", data=x[0])
      self.check_vtk("hex_3D_o2p_boundary_reduced_v", data=x[0]*[1.,2.,3.])
@@ -1125,49 +1126,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === HEX 3D macro =========================================================
 
   def test_hex_3D_macro_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("hex_3D_o2p_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("hex_3D_o2p_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("hex_3D_o2p_reduced_node_s", data=x[0])
      self.check_vtk("hex_3D_o2p_reduced_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_o2p_reduced_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("hex_3D_macro_cell_s", data=x[0])
      self.check_vtk("hex_3D_macro_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_macro_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("hex_3D_macro_cell_s", data=x[0])
      self.check_vtk("hex_3D_macro_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_macro_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_macro_boundary_s", data=x[0])
      self.check_vtk("hex_3D_macro_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("hex_3D_macro_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_hex_3D_macro_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"hex_3D_macro.msh"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("hex_3D_macro_boundary_s", data=x[0])
      self.check_vtk("hex_3D_macro_boundary_v", data=x[0]*[1.,2.,3.])
@@ -1176,36 +1177,36 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TRI 2D order 2 =======================================================
 
   def test_tet_2D_order2(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      self.check_vtk("tet_2D_o2", domain=dom)
 
   def test_tet_2D_order2_AllPoints_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o2_node_3xs", ['Elements','ReducedElements'], data_r=x_r[0], data_n=x_n[0], data=x[0])
 
   def test_tet_2D_order2_02Points_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o2_node_2xs", data_n=x_n[0], data=x[0])
 
   def test_tet_2D_order2_2Cells_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o2_cell_2xs", ['Elements','ReducedFaceElements'], data_b=x_b[0], data=x[0])
 
   def test_tet_2D_order2_BoundaryPoint_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o2_boundary_2xs", ['Elements','ReducedFaceElements'], data=x[0],data_b=x_b[0])
 
   def test_tet_2D_order2_Cells_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_2D_o2_cell_all",
                      data_s=x[0],
@@ -1214,7 +1215,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
 
   def test_tet_2D_order2_CellsPoints_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o2_cellnode_all",
@@ -1226,49 +1227,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_tc=x_c[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o2_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_2D_o2_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_2D_o2_reduced_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_reduced_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_reduced_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_2D_o2_cell_s", data=x[0])
      self.check_vtk("tet_2D_o2_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_2D_o2_reduced_cell_s", data=x[0])
      self.check_vtk("tet_2D_o2_reduced_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_reduced_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o2_boundary_s", data=x[0])
      self.check_vtk("tet_2D_o2_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order2_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o2_boundary_s", data=x[0])
      self.check_vtk("tet_2D_o2_boundary_v", data=x[0]*[1.,2.])
@@ -1277,36 +1278,36 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TRI 2D macro =========================================================
 
   def test_tet_2D_macro(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      self.check_vtk("tet_2D_o2", domain=dom)
 
   def test_tet_2D_macro_AllPoints_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Solution(dom).getX()
      x_r=ReducedSolution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o1_node_3xs", ['Elements','ReducedElements'], data_r=x_r[0], data_n=x_n[0], data=x[0])
 
   def test_tet_2D_macro_02Points_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Solution(dom).getX()
      x_n=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_macro_node_2xs", data_n=x_n[0], data=x[0])
 
   def test_tet_2D_macro_2Cells_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Function(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_cell_2xs", ['Elements','FaceElements'], data_b=x_b[0], data=x[0])
 
   def test_tet_2D_macro_BoundaryPoint_Scalar(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      x_b=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_boundary_2xs", ['Elements','FaceElements'], data_b=x_b[0], data=x[0])
 
   def test_tet_2D_macro_Cells_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_2D_macro_cell_all",
                      data_s=x[0],
@@ -1315,7 +1316,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_t2=x[0]*[[-11.,-12.],[-21.,-22.]])
 
   def test_tet_2D_macro_CellsPoints_AllData(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x_c=Function(dom).getX()
      x_p=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_macro_cellnode_all",
@@ -1327,49 +1328,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                      data_tc=x_c[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o2_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_2D_o2_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_2D_o2_reduced_node_s", data=x[0])
      self.check_vtk("tet_2D_o2_reduced_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o2_reduced_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_2D_macro_cell_s", data=x[0])
      self.check_vtk("tet_2D_macro_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_macro_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_2D_macro_reduced_cell_s", data=x[0])
      self.check_vtk("tet_2D_macro_reduced_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_macro_reduced_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_macro_boundary_s", data=x[0])
      self.check_vtk("tet_2D_macro_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_macro_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_macro_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_macro.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_macro_boundary_s", data=x[0])
      self.check_vtk("tet_2D_macro_boundary_v", data=x[0]*[1.,2.])
@@ -1379,49 +1380,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_tet_2D_order1_ContinuousFunction(self):
      reference="tet_2D_o1_node_s.vtu"
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o1_node_s", data=x[0])
      self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_2D_o1_node_s", data=x[0])
      self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_2D_o1_node_s", data=x[0])
      self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_2D_o1_cell_s", data=x[0])
      self.check_vtk("tet_2D_o1_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_2D_o1_cell_s", data=x[0])
      self.check_vtk("tet_2D_o1_cell_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o1_boundary_s", data=x[0])
      self.check_vtk("tet_2D_o1_boundary_v", data=x[0]*[1.,2.])
      self.check_vtk("tet_2D_o1_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
 
   def test_tet_2D_order1_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_2D_o1_boundary_s", data=x[0])
      self.check_vtk("tet_2D_o1_boundary_v", data=x[0]*[1.,2.])
@@ -1431,49 +1432,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_tet_3D_order1_ContinuousFunction(self):
      reference="tet_3D_o1_node_s.vtu"
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o1_node_s", data=x[0])
      self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_3D_o1_node_s", data=x[0])
      self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_3D_o1_node_s", data=x[0])
      self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_3D_o1_cell_s", data=x[0])
      self.check_vtk("tet_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_3D_o1_cell_s", data=x[0])
      self.check_vtk("tet_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_o1_boundary_s", data=x[0])
      self.check_vtk("tet_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order1_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_o1_boundary_s", data=x[0])
      self.check_vtk("tet_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
@@ -1483,49 +1484,49 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
 
   def test_tet_3D_order2_ContinuousFunction(self):
      reference="tet_3D_o2_node_s.vtu"
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o2_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_3D_o2_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_3D_o2_reduced_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_reduced_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_reduced_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_3D_o2_cell_s", data=x[0])
      self.check_vtk("tet_3D_o2_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_3D_o2_reduced_cell_s", data=x[0])
      self.check_vtk("tet_3D_o2_reduced_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_reduced_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_o2_boundary_s", data=x[0])
      self.check_vtk("tet_3D_o2_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_order2_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_o2_reduced_boundary_s", data=x[0])
      self.check_vtk("tet_3D_o2_reduced_boundary_v", data=x[0]*[1.,2.,3.])
@@ -1534,60 +1535,167 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TET 3D macro =========================================================
 
   def test_tet_3D_macro_ContinuousFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o2_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_Solution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=Solution(dom).getX()
      self.check_vtk("tet_3D_o2_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_ReducedSolution(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=ReducedSolution(dom).getX()
      self.check_vtk("tet_3D_o2_reduced_node_s", data=x[0])
      self.check_vtk("tet_3D_o2_reduced_node_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_o2_reduced_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_Function(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=Function(dom).getX()
      self.check_vtk("tet_3D_macro_cell_s", data=x[0])
      self.check_vtk("tet_3D_macro_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_macro_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_ReducedFunction(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=ReducedFunction(dom).getX()
      self.check_vtk("tet_3D_macro_reduced_cell_s", data=x[0])
      self.check_vtk("tet_3D_macro_reduced_cell_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_macro_reduced_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_FunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=FunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_macro_boundary_s", data=x[0])
      self.check_vtk("tet_3D_macro_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_macro_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
   def test_tet_3D_macro_ReducedFunctionOnBoundary(self):
-     dom=ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
+     dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_macro.fly"),optimize=False)
      x=ReducedFunctionOnBoundary(dom).getX()
      self.check_vtk("tet_3D_macro_reduced_boundary_s", data=x[0])
      self.check_vtk("tet_3D_macro_reduced_boundary_v", data=x[0]*[1.,2.,3.])
      self.check_vtk("tet_3D_macro_reduced_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
 
+class Test_Dudley_SaveVTK(Test_VTKSaver):
+
+  # === TRI 2D order 1 =======================================================
+
+  def test_tet_2D_dudley_ContinuousFunction(self):
+     reference="tet_2D_o1_node_s.vtu"
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("tet_2D_o1_node_s", data=x[0])
+     self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_Solution(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=Solution(dom).getX()
+     self.check_vtk("tet_2D_o1_node_s", data=x[0])
+     self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_ReducedSolution(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("tet_2D_o1_node_s", data=x[0])
+     self.check_vtk("tet_2D_o1_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_Function(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=Function(dom).getX()
+     self.check_vtk("tet_2D_o1_cell_s", data=x[0])
+     self.check_vtk("tet_2D_o1_cell_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_ReducedFunction(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("tet_2D_o1_cell_s", data=x[0])
+     self.check_vtk("tet_2D_o1_cell_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_FunctionOnBoundary(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("tet_2D_o1_boundary_s", data=x[0])
+     self.check_vtk("tet_2D_o1_boundary_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_tet_2D_dudley_ReducedFunctionOnBoundary(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("tet_2D_o1_boundary_s", data=x[0])
+     self.check_vtk("tet_2D_o1_boundary_v", data=x[0]*[1.,2.])
+     self.check_vtk("tet_2D_o1_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  # === TET 3D order 1 =======================================================
+
+  def test_tet_3D_dudley_ContinuousFunction(self):
+     reference="tet_3D_o1_node_s.vtu"
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("tet_3D_o1_node_s", data=x[0])
+     self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_Solution(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=Solution(dom).getX()
+     self.check_vtk("tet_3D_o1_node_s", data=x[0])
+     self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_ReducedSolution(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("tet_3D_o1_node_s", data=x[0])
+     self.check_vtk("tet_3D_o1_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_Function(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=Function(dom).getX()
+     self.check_vtk("tet_3D_o1_cell_s", data=x[0])
+     self.check_vtk("tet_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_ReducedFunction(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("tet_3D_o1_cell_s", data=x[0])
+     self.check_vtk("tet_3D_o1_cell_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_FunctionOnBoundary(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("tet_3D_o1_boundary_s", data=x[0])
+     self.check_vtk("tet_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_tet_3D_dudley_ReducedFunctionOnBoundary(self):
+     dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("tet_3D_o1_boundary_s", data=x[0])
+     self.check_vtk("tet_3D_o1_boundary_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("tet_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+
 if __name__ == '__main__':
    import sys
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Finley_SaveVTK))
-   #suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
+   suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
