@@ -424,6 +424,23 @@ bool EscriptDataset::saveVTK(string fileName)
             continue;
         }
         string meshName = viIt->dataChunks[0]->getMeshName();
+
+        // ranks with 0 samples can't know the correct mesh name.
+        // We assume rank 0 always has samples, if this turns out to be a
+        // wrong assumption then a bit more work is needed to get the correct
+        // mesh name to all ranks.
+#if HAVE_MPI
+        if (mpiSize > 1) {
+            char name[100];
+            if (mpiRank == 0) {
+                strncpy(&name[0], meshName.c_str(), 100);
+            }
+
+            MPI_Bcast(name, 100, MPI_CHAR, 0, mpiComm);
+            meshName = name;
+        }
+#endif
+
         map<string,VarVector>::iterator it = varsPerMesh.find(meshName);
         if (it != varsPerMesh.end()) {
             it->second.push_back(*viIt);
@@ -529,12 +546,17 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
         fw = new FileWriter(mpiComm);
         domainChunks[0]->removeGhostZones(mpiRank);
         ElementData_ptr elements = domainChunks[0]->getElementsByName(meshName);
-        int myNumCells = elements->getNumElements();
+        int myNumCells = 0;
+        if (elements) {
+            myNumCells = elements->getNumElements();
+        }
         MPI_Reduce(&myNumCells, &gNumCells, 1, MPI_INT, MPI_SUM, 0, mpiComm);
 
-        int myCellSizeAndType[2];
-        myCellSizeAndType[0] = elements->getNodesPerElement();
-        myCellSizeAndType[1] = elements->getType();
+        int myCellSizeAndType[2] = { 0, 0 };
+        if (elements) {
+            myCellSizeAndType[0] = elements->getNodesPerElement();
+            myCellSizeAndType[1] = elements->getType();
+        }
 
         // rank 0 needs to know element type and size but it's possible that
         // this information is only available on other ranks (value=0) so
@@ -627,7 +649,9 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     //
     for (domIt = domainChunks.begin(); domIt != domainChunks.end(); domIt++) {
         ElementData_ptr el = (*domIt)->getElementsByName(meshName);
-        el->writeConnectivityVTK(oss);
+        if (el) {
+            el->writeConnectivityVTK(oss);
+        }
     }
 
     if (!fw->writeOrdered(oss)) {

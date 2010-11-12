@@ -241,9 +241,10 @@ class Test_VTKSaver(unittest.TestCase):
         for name in pdata2:
             self.assertTrue(pdata1.has_key(name), "Point variable '%s' missing"%name)
             self.assertEquals(len(pdata1[name]), nPoints1)
-            self.assertTrue(self.compareDataWithMap(
-                pdata1[name], pdata2[name], nodeMap1to2),
-                "Point data in '%s' does not match" % name)
+            if not name.startswith('mesh_vars/'):
+                self.assertTrue(self.compareDataWithMap(
+                    pdata1[name], pdata2[name], nodeMap1to2),
+                    "Point data in '%s' does not match" % name)
 
         # cell data
         cdata1=p1.getCellData()
@@ -252,9 +253,10 @@ class Test_VTKSaver(unittest.TestCase):
         for name in cdata2:
             self.assertTrue(cdata1.has_key(name), "Cell variable '%s' missing"%name)
             self.assertEquals(len(cdata1[name]), nCells1)
-            self.assertTrue(self.compareDataWithMap(
-                cdata1[name], cdata2[name], elementMap1to2),
-                "Cell data in '%s' does not match" % name)
+            if not name.startswith('mesh_vars/'):
+                self.assertTrue(self.compareDataWithMap(
+                    cdata1[name], cdata2[name], elementMap1to2),
+                    "Cell data in '%s' does not match" % name)
 
     def check_vtk(self, reference, fspaces=[], **data):
         outFileBase="out_"+reference
