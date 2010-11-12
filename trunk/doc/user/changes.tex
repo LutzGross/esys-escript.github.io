@@ -16,19 +16,27 @@
 
 \subsection*{3.1 to 3.2}
 \begin{itemize}
-\item The deprecated name for the launcher has been removed. To run scripts use \emph{run-escript} not \emph{escript}.
-\item \module{esys.escript} is no longer automatically imported by importing \module{esys.finley}. You will need to import escript explicitly. 
-(All of our example scripts do this anyway.)
+\item The deprecated name for the launcher has been removed. To run scripts use
+    \emph{run-escript} not \emph{escript}.
+\item \escript is no longer automatically imported by importing \finley.
+    You will need to import escript explicitly. (All of our example scripts do this anyway.)
 \item An experimental version of the new Dudley domain is now available.
 \item Various bug fixes and optimisations.
 \item New algorithms for gmsh support.
 \item Improvements to the AMG solver.
 \item Fixed compilation issues using netcdf.
-\item Redesigned configuration files to make it easier to compile from source without finding the locations of all your libraries.
+\item Redesigned configuration files to make it easier to compile from source
+    without finding the locations of all your libraries.
 \item Expanded version of the escript cookbook.
 \item Faster rendering of documentation.
 \item Documentation is now hyperlinked.
-\item New data export and checkpointing with the Weipa module.
+\item New data export module \weipa. The \texttt{saveVTK} functionality has
+    been moved into this module, and while calling \texttt{saveVTK} from the
+    \escript module still works it is discouraged and will be removed in a
+    future release.
+\item New \texttt{esys.escript.DataManager} class for convenient checkpointing
+    and exporting of escript data.
+\item \VisIt simulation interface for online data access and visualization.
 \end{itemize}
 
 \subsection*{3.0 to 3.1}

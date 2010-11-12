@@ -322,8 +322,9 @@ best is found. Moreover, in many cases a 3D interactive visualisation is the
 only way to really understand the results (e.g. using stereographic projection).
 
 To write the temperatures at each time step to data files in the VTK file format
-one needs to insert a \verb|saveVTK| call into the code;
+one needs to import \verb|saveVTK| from the \weipa module and call it:
 \begin{python}
+from esys.weipa import saveVTK
 while t<=tend:
       i+=1 #counter
       t+=h #current time
@@ -333,8 +334,8 @@ while t<=tend:
 \end{python}
 The data files, e.g. \file{data.001.vtu}, contain all necessary information to 
 visualise the temperature and can be directly processed by \mayavi. Note that
-there is no re-gridding required. It is recommended to use the file extension
-\file{.vtu} for files created by \verb|saveVTK|. 
+there is no re-gridding required. The file extension \file{.vtu} is
+automatically added if not supplied to \verb|saveVTK|. 
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=4.in]{figures/ScreeshotMayavi2n1}}

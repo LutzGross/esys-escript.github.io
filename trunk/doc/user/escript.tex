@@ -801,6 +801,8 @@ file format. The keyword is used as an identifier. The statement
 writes the scalar \var{T} as \var{temperature} and the vector \var{v} as
 \var{velocity} into the file \file{out.vtu}.
 Restrictions on the allowed combinations of \FunctionSpace apply.
+This method is deprecated and will be removed in a future version of escript.
+Use the weipa module instead!
 \end{funcdesc}
 
 \begin{funcdesc}{saveDX}{filename, **kwdata}
@@ -1402,7 +1404,7 @@ outside the boundaries by \var{interpolateTable}.
 \end{methoddesc}
 
 \begin{methoddesc}[DataManager]{getCycle}{}
-    returns the export cycle, i.e. the number of time \var{export()} has been
+    returns the export cycle, i.e. the number of times \var{export()} has been
     called.
 \end{methoddesc}
 
