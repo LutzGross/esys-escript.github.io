@@ -425,16 +425,23 @@ works with large 2D and 3D problems.
 To write the solution \var{u} of the Poisson problem in the \VTK file format
 to the file \file{u.vtu} one needs to add:
 \begin{python}
+  from esys.weipa import saveVTK
   saveVTK("u.vtu", sol=u)
 \end{python}
 This file can then be opened in a \VTK compatible visualization tool where the
-solution is accessible by the name {\it sol}.
+solution is accessible by the name {\it sol}. Similarly,
+\begin{python}
+  from esys.weipa import saveSilo
+  saveSilo("u.silo", sol=u)
+\end{python}
+will write \var{u} to a \SILO file if escript was compiled with \SILO support.
 
 The Poisson problem script is now 
 \begin{python}
   from esys.escript import *
   from esys.escript.linearPDEs import Poisson
   from esys.finley import Rectangle
+  from esys.weipa import saveVTK
   # generate domain:
   mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
   # define characteristic function of Gamma^D
