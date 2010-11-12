@@ -33,6 +33,7 @@ from esys.escript.pdetools import Locator, Projector
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
+from esys.weipa import saveVTK
 
 
 # routine to find consecutive coordinates of a loop in pycad

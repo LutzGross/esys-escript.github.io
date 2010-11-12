@@ -33,6 +33,7 @@ from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
+from esys.weipa import saveVTK # This imports the VTK file saver from weipa
 import os, sys #This package is necessary to handle saving our data.
 from math import pi, sqrt, sin, cos
 

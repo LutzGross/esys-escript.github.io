@@ -20,7 +20,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript.modelframe import Model, Link
-from esys.escript import saveVTK, Data
+from esys.escript import Data
+from esys.weipa import saveVTK
 import os
 
 class Visualization(Model):

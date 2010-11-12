@@ -34,6 +34,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 import esys.finley
 from esys.finley import finley
+from esys.weipa import saveVTK
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector, SaddlePointProblem
 import sys

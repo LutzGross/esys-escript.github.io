@@ -21,7 +21,8 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
-import esys.finley as finley
+from esys import finley
+from esys.weipa import saveVTK
 
 press0=1.
 lamb=1.

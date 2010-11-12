@@ -1,6 +1,7 @@
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian
 from esys.dudley import Rectangle
+from esys.weipa import saveVTK
 
 
 #physical properties

@@ -20,6 +20,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.models import Mountains
 from esys.finley import Brick,Rectangle
+from esys.weipa import saveVTK
 from math import pi, ceil
 
 NE=16

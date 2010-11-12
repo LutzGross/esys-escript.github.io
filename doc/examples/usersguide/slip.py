@@ -24,6 +24,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.models import FaultSystem
 from esys.finley import Rectangle
+from esys.weipa import saveVTK
 from esys.escript.unitsSI import DEG
 #... set some parameters ...
 lam=1.

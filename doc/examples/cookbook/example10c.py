@@ -33,6 +33,7 @@ from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import ReadMesh
+from esys.weipa import saveVTK
 import os, sys #This package is necessary to handle saving our data.
 
 ########################################################MPI WORLD CHECK

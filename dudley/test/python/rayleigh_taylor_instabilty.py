@@ -36,6 +36,7 @@ import esys.dudley
 from esys.dudley import dudley
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Projector, SaddlePointProblem
+from esys.weipa import saveVTK
 import sys
 import math
 

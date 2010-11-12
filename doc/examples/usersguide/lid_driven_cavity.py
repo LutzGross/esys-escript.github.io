@@ -22,6 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
 from esys.finley import Rectangle
+from esys.weipa import saveVTK
 from esys.escript.models import StokesProblemCartesian
 NE=25
 dom = Rectangle(NE,NE,order=-1)  # use macro elements for pressure
