@@ -29,6 +29,7 @@ __url__="https://launchpad.net/escript-finley"
 #######################################################EXTERNAL MODULES
 from esys.escript import *
 from esys.finley import Rectangle
+from esys.weipa import saveVTK
 import os
 # smoothing operator 
 from esys.escript.pdetools import Projector, Locator

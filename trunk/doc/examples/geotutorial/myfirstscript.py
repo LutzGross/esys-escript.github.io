@@ -21,6 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 # get the tools we want to use
 from esys.escript import *
 from esys.dudley import Rectangle
+from esys.weipa import saveVTK
 # some parameters
 L0=1.
 L1=1. 

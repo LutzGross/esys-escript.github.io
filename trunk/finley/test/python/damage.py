@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDESystem
 from esys.finley import Rectangle, Brick
+from esys.weipa import saveVTK
 from esys.escript import unitsSI as U
 from math import pi, ceil
 import sys

@@ -27,6 +27,7 @@ from esys.escript import *
 from esys.escript.unitsSI import DEG
 from esys.escript.models import StokesProblemCartesian
 from esys.finley import Rectangle, Brick, LoadMesh
+from esys.weipa import saveVTK
 from math import pi, ceil
 import sys
 import time

@@ -34,6 +34,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import Brick
+from esys.weipa import saveVTK
 import time
 
 WORKDIR="./waves/"

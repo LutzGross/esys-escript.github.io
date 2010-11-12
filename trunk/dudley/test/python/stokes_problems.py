@@ -36,6 +36,7 @@ from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
 from esys.escript.linearPDEs import LinearPDE
 from esys.dudley import Rectangle
+from esys.weipa import saveVTK
 
 class SimpleStokesProblem(SaddlePointProblem):
       """

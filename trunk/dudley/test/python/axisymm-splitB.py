@@ -33,6 +33,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem
 from esys.dudley import Rectangle
+from esys.weipa import saveVTK
 
 
 nel      =   20

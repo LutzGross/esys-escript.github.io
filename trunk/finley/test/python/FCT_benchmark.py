@@ -49,6 +49,8 @@ from time import time as clock
 from esys.finley import Rectangle, Brick
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
+from esys.weipa import saveVTK
+
 #  
 DIM=2
 NE_MAX=300000

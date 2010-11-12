@@ -22,6 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.dudley import Rectangle
+from esys.weipa import saveVTK
 # set dimensions
 L0=1.;L1=1. 
 # bottom temperature:

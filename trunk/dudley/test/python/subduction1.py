@@ -25,6 +25,7 @@ from esys.escript import unitsSI as U
 from esys.escript.pdetools import MaskFromBoundaryTag
 from esys.dudley import ReadMesh
 from esys.escript.models import StokesProblemCartesian
+from esys.weipa import saveVTK
 from math import ceil
 #
 #  Parameter

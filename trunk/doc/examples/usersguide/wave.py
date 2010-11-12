@@ -23,6 +23,7 @@ from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearPDE
 from esys.dudley import Brick
+from esys.weipa import saveVTK
 from numpy import identity,zeros,ones
 import matplotlib
 

@@ -18,6 +18,7 @@ from esys.escript import *
 import esys.finley
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.models import StokesProblemCartesian
+from esys.weipa import saveVTK
 
 #physical constants
 eta=1.0

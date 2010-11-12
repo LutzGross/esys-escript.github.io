@@ -38,6 +38,7 @@ from esys.escript import *
 from esys.escript.pdetools import SaddlePointProblem
 from esys.escript.linearPDEs import LinearPDE
 from esys.finley import ReadMesh
+from esys.weipa import saveVTK
 
 
 rho=0.

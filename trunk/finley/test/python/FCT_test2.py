@@ -44,6 +44,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
 from esys.finley import Rectangle, Brick
+from esys.weipa import saveVTK
 from math import pi, ceil
 NE=128
 NE=64

@@ -22,6 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, TransportPDE
 from esys.finley import Rectangle
+from esys.weipa import saveVTK
 
 # dom=Rectangle(12,8,l0=1.5)
 # dom=Rectangle(24,16,l0=1.5)
