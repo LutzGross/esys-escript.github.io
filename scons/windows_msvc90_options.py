@@ -213,7 +213,7 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 # Do not change the following options unless you know what they do
 
 # Extra libraries to link with
-sys_libs = ['C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32']
+#sys_libs = []
 
 # Additional environmental variables to export to the tools
 #env_export = []
