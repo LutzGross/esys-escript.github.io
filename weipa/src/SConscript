@@ -118,5 +118,5 @@ if not IS_WINDOWS:
 local_env.SConscript(dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0, exports=['py_wrapper_lib'])
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/weipa/test'], variant_dir='#/build/$PLATFORM/weipa/test', duplicate=0)
+local_env.SConscript(dirs = ['#/weipa/test'], variant_dir='$BUILD_DIR/$PLATFORM/weipa/test', duplicate=0)
 

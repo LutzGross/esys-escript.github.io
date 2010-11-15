@@ -25,5 +25,5 @@ py_inst = local_env.Install(local_env['pyinstall']+'/pyvisi', pyc)
 env.Alias('install_pyvisi_py', py_inst)
 
 # configure tests
-local_env.SConscript(dirs = ['#/pyvisi/test/python'], variant_dir='#/build/$PLATFORM/pyvisi/test/python', duplicate=0)
+local_env.SConscript(dirs = ['#/pyvisi/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi/test/python', duplicate=0)
 

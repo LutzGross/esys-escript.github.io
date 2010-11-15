@@ -60,9 +60,9 @@ alltestruns = testruns + localtestruns
 # only run tests if pyvisi enabled
 if env['pyvisi']:
     # add unit test to target alias
-    local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/pyvisi/test/python')))
-    local_env['ENV']['PYVISI_TEST_DATA_ROOT']=env.Dir('#/pyvisi/test/python').srcnode().abspath
-    local_env['ENV']['PYVISI_WORKDIR']=env.Dir('#/build/$PLATFORM/pyvisi/test/python').srcnode().abspath
+    local_env.PrependENVPath('PYTHONPATH',Dir('.').abspath)
+    local_env['ENV']['PYVISI_TEST_DATA_ROOT']=Dir('.').srcnode().abspath
+    local_env['ENV']['PYVISI_WORKDIR']=Dir('.').abspath
 
     env.Alias('local_py_tests',[splitext(x)[0]+'.passed' for x in alltestruns])
     env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])

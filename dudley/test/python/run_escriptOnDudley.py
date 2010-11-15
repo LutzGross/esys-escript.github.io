@@ -131,7 +131,7 @@ class Test_CSVOnDudley(Test_saveCSV):
        
    #This test checks to see that all FunctionSpaces can be saved
    def test_singleFS(self):
-	fname="test_singlefs.csv"
+	fname=os.path.join(DUDLEY_WORKDIR, "test_singlefs.csv")
 	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
 	DiracDeltaFunction(self.domain)]
@@ -141,7 +141,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 		saveDataCSV(fname, D=d)
 
    def test_multiFS(self):
-	fname="test_multifs.csv"
+	fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
 	sol=Data(8,Solution(self.domain))
 	ctsfn=Data(9,ContinuousFunction(self.domain))
 	#test line 0
