@@ -39,6 +39,11 @@ import numpy
 import os
 from esys.escript import *
 
+try:
+     ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
+except KeyError:
+     ESCRIPT_WORKDIR='.'
+
 class Test_util_base(unittest.TestCase):
    """
    basic tests on util.py
@@ -54,7 +59,7 @@ class Test_util_base(unittest.TestCase):
         for i in xrange(len(cont)):
            self.failUnless(cont[i].strip()==ref_cont[i],"wrong records %s"%i)
    def test_FileWriter_W(self):
-        fn="filewriter_w.txt"
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_w.txt")
         self.failUnlessRaises(IOError,FileWriter,fn="",append=False)
         f=FileWriter(fn,append=False)
         self.failUnless(f.name==fn, "wrong file name.")
@@ -70,7 +75,7 @@ class Test_util_base(unittest.TestCase):
         self.__checkContent(fn,["line1", "line2", "line3"])
 
    def test_FileWriter_A(self):
-        fn="filewriter_a.txt"
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a.txt")
         if getMPIRankWorld()==0: open(fn,'w').write("line1"+os.linesep)
         self.failUnlessRaises(IOError,FileWriter,fn="",append=True)
         f=FileWriter(fn,append=True)
@@ -87,7 +92,7 @@ class Test_util_base(unittest.TestCase):
         self.__checkContent(fn,["line1", "line2", "line3", "line4"])
 
    def test_FileWriter_A_loc(self):
-        fn="filewriter_a_loc.txt"
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a_loc.txt")
         if getMPIRankWorld()>0:
             fn2=fn+".%s"%getMPIRankWorld()
         else:
@@ -108,7 +113,7 @@ class Test_util_base(unittest.TestCase):
         self.__checkContent(fn2,["line1", "line2", "line3", "line4"])
 
    def test_FileWriter_W_loc(self):
-        fn="filewriter_w_loc.txt"
+        fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_w_loc.txt")
         if getMPIRankWorld()>0:
             fn2=fn+".%s"%getMPIRankWorld()
         else:

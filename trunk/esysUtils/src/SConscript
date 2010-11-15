@@ -61,5 +61,5 @@ env.Alias('install_esysUtils_headers', hdr_inst)
 env.Alias('install_esysUtils_lib', lib_inst)
 
 # configure the unit tests
-local_env.SConscript(dirs=['#/esysUtils/test'], variant_dir='#/build/$PLATFORM/esysUtils/test', duplicate=0)
+local_env.SConscript(dirs=['#/esysUtils/test'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils/test', duplicate=0)
 

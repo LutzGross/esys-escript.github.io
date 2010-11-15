@@ -35,6 +35,10 @@ escript_opts_version = 200
 # DEFAULT: '.' (current directory)
 #prefix = '/usr/local'
 
+# Top-level directory for intermediate build and test files.
+# DEFAULT: 'build'
+#build_dir = 'build'
+
 # C compiler command name or full path.
 # DEFAULT: auto-detected
 #cc = 'gcc'

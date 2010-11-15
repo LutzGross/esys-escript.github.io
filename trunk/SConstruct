@@ -54,6 +54,7 @@ vars = Variables(options_file, ARGUMENTS)
 vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
   PathVariable('prefix', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cc', 'Path to C compiler', 'default'),
@@ -157,6 +158,7 @@ if len(vars.UnknownVariables())>0:
 
 #################### Make sure install directories exist #####################
 
+env['BUILD_DIR']=env['build_dir']
 prefix=Dir(env['prefix']).abspath
 env['incinstall'] = os.path.join(prefix, 'include')
 env['bininstall'] = os.path.join(prefix, 'bin')
@@ -636,20 +638,20 @@ Export(
   ]
 )
 
-env.SConscript(dirs = ['tools/CppUnitTest/src'], variant_dir='build/$PLATFORM/tools/CppUnitTest', duplicate=0)
-env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='build/$PLATFORM/tools/escriptconvert', duplicate=0)
-env.SConscript(dirs = ['paso/src'], variant_dir='build/$PLATFORM/paso', duplicate=0)
-env.SConscript(dirs = ['weipa/src'], variant_dir='build/$PLATFORM/weipa', duplicate=0)
-env.SConscript(dirs = ['escript/src'], variant_dir='build/$PLATFORM/escript', duplicate=0)
-env.SConscript(dirs = ['esysUtils/src'], variant_dir='build/$PLATFORM/esysUtils', duplicate=0)
-env.SConscript(dirs = ['dudley/src'], variant_dir='build/$PLATFORM/dudley', duplicate=0)
-env.SConscript(dirs = ['finley/src'], variant_dir='build/$PLATFORM/finley', duplicate=0)
-env.SConscript(dirs = ['modellib/py_src'], variant_dir='build/$PLATFORM/modellib', duplicate=0)
-env.SConscript(dirs = ['doc'], variant_dir='build/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='build/$PLATFORM/pyvisi', duplicate=0)
-env.SConscript(dirs = ['pycad/py_src'], variant_dir='build/$PLATFORM/pycad', duplicate=0)
-env.SConscript(dirs = ['pythonMPI/src'], variant_dir='build/$PLATFORM/pythonMPI', duplicate=0)
-env.SConscript(dirs = ['paso/profiling'], variant_dir='build/$PLATFORM/paso/profiling', duplicate=0)
+env.SConscript(dirs = ['tools/CppUnitTest/src'], variant_dir='$BUILD_DIR/$PLATFORM/tools/CppUnitTest', duplicate=0)
+env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
+env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
+env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
+env.SConscript(dirs = ['escript/src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
+env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
+env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
+env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
+env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
+env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
+env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
+env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
+env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
+env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
 
 ######################## Populate the buildvars file #########################
 
@@ -761,7 +763,7 @@ env.Alias('install_cppunittest', ['build_cppunittest', 'install_cppunittest_lib'
 env.Alias('run_tests', ['install_all', 'install_cppunittest_lib'])
 env.Alias('all_tests', ['install_all', 'install_cppunittest_lib', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
-env.Alias('build_PasoTests','build/$PLATFORM/paso/profiling/PasoTests')
+env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
 
 ##################### Targets to build the documentation #####################
 
@@ -772,7 +774,7 @@ env.Alias('release_prep', ['docs', 'install_all'])
 if not IS_WINDOWS:
     try:
         utest=open('utest.sh','w')
-        utest.write(GroupTest.makeHeader(env['PLATFORM']))
+        utest.write(GroupTest.makeHeader(env['BUILD_DIR'], env['PLATFORM']))
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()

@@ -33,10 +33,10 @@ alltestruns = testruns + localtestruns
 #env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/modellib/test/python')))
-local_env['ENV']['MODELLIB_TEST_DATA_ROOT']=env.Dir('#/modellib/test/python').srcnode().abspath
-local_env['ENV']['MODELLIB_WORKDIR']=env.Dir('#/build/$PLATFORM/modellib/test/python').srcnode().abspath
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
+local_env['ENV']['MODELLIB_TEST_DATA_ROOT']=Dir('.').srcnode().abspath
+local_env['ENV']['MODELLIB_WORKDIR']=Dir('.').abspath
 env.Alias('local_py_tests',[splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
 

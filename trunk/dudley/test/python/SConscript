@@ -51,10 +51,12 @@ alltestruns = testruns + localtestruns
 #env.Alias('build_py_tests', test_pyc)
 
 #Add Unit Test to target alias
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/dudley/test/python')))
-local_env.PrependENVPath('PYTHONPATH',str(env.Dir('#/build/$PLATFORM/escript/test/python')))
-local_env['ENV']['DUDLEY_TEST_DATA']=env.Dir('#/dudley/test/python').srcnode().abspath
-local_env['ENV']['DUDLEY_WORKDIR']=env.Dir('#/build/$PLATFORM/dudley/test/python').srcnode().abspath
+local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env['ENV']['DUDLEY_TEST_DATA']=Dir('.').srcnode().abspath
+local_env['ENV']['DUDLEY_WORKDIR']=Dir('.').abspath
+# needed for a test from the util base class in escript
+local_env['ENV']['ESCRIPT_WORKDIR']=Dir('.').abspath
 env.Alias('local_py_tests',[os.path.splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [os.path.splitext(x)[0]+'.passed' for x in testruns ])
 env.Alias('scalable_tests', [os.path.splitext(x)[0]+'.passed' for x in scalable_tests ])

@@ -53,6 +53,10 @@ import os
 import numpy
 from esys.escript import *
 
+try:
+     ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
+except KeyError:
+     ESCRIPT_WORKDIR='.'
 
 class Test_TableInterpolation(unittest.TestCase):
     RES_TOL=1.e-7 # RES_TOLerance to compare results	
@@ -141,7 +145,7 @@ class Test_saveCSV(unittest.TestCase):
    def test_save1(self):
 	X=self.domain.getX()
 	X0=X[0]
-	fname="test_save1.csv"
+	fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
 	saveDataCSV(fname,C=X, D=X0)
 	saveDataCSV(fname,append=True, J=X0, H=X)
 	self.failUnless(os.path.exists(fname), "test file not created")

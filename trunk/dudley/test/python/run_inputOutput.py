@@ -37,6 +37,11 @@ from esys.escript import *
 from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh
 
 try:
+     DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
+except KeyError:
+     DUDLEY_WORKDIR='.'
+
+try:
      DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
      DUDLEY_TEST_DATA='.'
@@ -113,8 +118,9 @@ class InputOutput(unittest.TestCase):
 	  mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
 	  d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
 	  d1.expand()
-	  d1.dump("tempfile.dump.nc")
-	  d2=load("tempfile.dump.nc", mydomain1)
+	  dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
+	  d1.dump(dumpfile)
+	  d2=load(dumpfile, mydomain1)
           self.failUnless(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_data_dump_to_NetCDF_brick(self):
@@ -122,22 +128,25 @@ class InputOutput(unittest.TestCase):
 	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
 	  d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
 	  d1.expand()
-	  d1.dump("tempfile.dump.nc")
-	  d2=load("tempfile.dump.nc", mydomain1)
+	  dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
+	  d1.dump(dumpfile)
+	  d2=load(dumpfile, mydomain1)
           self.failUnless(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_mesh_dump_to_NetCDF_rectangle(self):
 	if loadIsConfigured():
 	  mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-	  mydomain1.dump("tempfile.mesh.nc")
-	  mydomain2=LoadMesh("tempfile.mesh.nc")
+	  dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
+	  mydomain1.dump(dumpfile)
+	  mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_dump_to_NetCDF_brick(self):
 	if loadIsConfigured():
 	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
-	  mydomain1.dump("tempfile.mesh.nc")
-	  mydomain2=LoadMesh("tempfile.mesh.nc")
+	  dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
+	  mydomain1.dump(dumpfile)
+	  mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
      def fixme_test_mesh_read_rectangle_from_dudley_file(self):
