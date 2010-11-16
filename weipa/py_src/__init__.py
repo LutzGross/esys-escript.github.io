@@ -145,3 +145,9 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, **data):
     dataset.setMetadataSchemaString(ss.strip(), ms.strip())
     dataset.saveVTK(filename)
 
+def _saveVTK(filename, domain=None, metadata='', metadata_schema=None, data={}):
+    """
+    This is only here to support the deprecated domain C++ member saveVTK().
+    """
+    saveVTK(filename, domain, metadata, metadata_schema, **data)
+
