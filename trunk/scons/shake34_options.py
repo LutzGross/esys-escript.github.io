@@ -77,7 +77,7 @@ escript_opts_version = 200
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = True
+# debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -85,7 +85,7 @@ debug = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-# openmp = True
+openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
