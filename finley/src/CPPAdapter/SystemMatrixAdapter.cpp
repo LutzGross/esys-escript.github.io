@@ -336,6 +336,8 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getMinCoarseMatrixSparsity",min_coarse_sparsity, double);
    EXTRACT("getNumRefinements",refinements, dim_t);
    EXTRACT("getNumCoarseMatrixRefinements",coarse_matrix_refinements, dim_t);
+   EXTRACT("usePanel",usePanel, bool_t);
+   EXTRACT("useDirectInterpolation", useDirectInterpolation, bool_t);
    
 #undef EXTRACT
 #undef EXTRACT_OPTION

@@ -105,6 +105,8 @@ typedef struct {
     dim_t refinements;
     dim_t coarse_matrix_refinements;
     double diagonal_dominance_threshold;
+    bool_t usePanel;
+    bool_t useDirectInterpolation;
     
     /* diagnostic values */
     dim_t num_iter;

@@ -62,6 +62,8 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->refinements=2;
   options->coarse_matrix_refinements=0;
   options->diagonal_dominance_threshold=0.5;
+  options->usePanel=TRUE;
+  options->useDirectInterpolation=FALSE;
   
 
   /* diagnostic values */

@@ -171,6 +171,8 @@ class SolverOptions(object):
         self.setMinCoarseMatrixSparsity()
         self.setNumRefinements()
         self.setNumCoarseMatrixRefinements()
+        self.setUsePanel()
+        self.setUseDirectInterpolation()
         
 
     def __str__(self):
@@ -203,14 +205,15 @@ class SolverOptions(object):
             out+="\nApply preconditioner locally = %s"%self.useLocalPreconditioner()
             if self.getPreconditioner() == self.AMG:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
-                out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
-                out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
+                out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+                out+="\nMinimal sparsity on coarsest level = %e"%(self.getMinCoarseMatrixSparsity(),)
                 out+="\nSmoother = %s"%self.getName(self.getSmoother())
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-                out+="\nMinimal sparsity on coarsest level = %e"%(self.getMinCoarseMatrixSparsity(),)
                 out+="\nNumber of refinement steps in coarsest level solver = %d"%(self.getNumCoarseMatrixRefinements(),)
-                
+                out+="\nUse node panel = %s"%(self.usePanel())
+                out+="\nUse direct interpolation only = %s"%(self.useDirectInterpolation())
+
             if self.getPreconditioner() == self.AMLI:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
@@ -900,7 +903,7 @@ class SolverOptions(object):
         self.__adapt_inner_tolerance=False
     def setInnerToleranceAdaption(self,adapt=True):
         """
-        Sets a flag to indicate automatic selection of the inner tolerance. 
+        Sets the flag to indicate automatic selection of the inner tolerance. 
 
         :param adapt: If ``True``, the inner tolerance is selected automatically.
         :type adapt: ``bool``
@@ -936,7 +939,7 @@ class SolverOptions(object):
         self.__accept_convergence_failure=False
     def setAcceptanceConvergenceFailure(self,accept=False):
         """
-        Sets a flag to indicate the acceptance of a failure of convergence. 
+        Sets the flag to indicate the acceptance of a failure of convergence. 
 
         :param accept: If ``True``, any failure to achieve convergence is accepted.
         :type accept: ``bool``
@@ -959,20 +962,21 @@ class SolverOptions(object):
 
     def setLocalPreconditionerOn(self):
         """
-        Sets a flag to use  local preconditioning to on 
+        Sets the flag to use  local preconditioning to on 
         """
         self.__use_local_preconditioner=True
     def setLocalPreconditionerOff(self):
         """
-        Sets a flag to use  local preconditioning to off
+        Sets the flag to use  local preconditioning to off
         """
         self.__use_local_preconditioner=False
+        
     def setLocalPreconditioner(self,use=False):
         """
-        Sets a flag to use  local preconditioning
+        Sets the flag to use  local preconditioning
 
-        :param accept: If ``True``, local proconditioning on each MPI rank is applied
-        :type accept: ``bool``
+        :param use: If ``True``, local proconditioning on each MPI rank is applied
+        :type use: ``bool``
         """
         if use:
             self.setUseLocalPreconditionerOn()
@@ -1060,7 +1064,75 @@ class SolverOptions(object):
       :rtype: non-negative ``int``
       """
       return self.__coarse_refinements
-      
+
+    def usePanel(self):
+        """
+        Returns ``True`` if a panel is used to serach for unknown in the AMG coarsening, The panel approach is normally faster
+        but can lead to larger coarse level systems.
+        
+        :return: ``True`` if a panel is used to find unknowns in AMG coarsening
+        :rtype: ``bool``
+        """
+        return self.__use_panel
+
+    def setUsePanelOn(self):
+        """
+        Sets the flag to use a panel to find unknowns in AMG coarsening 
+        """
+        self.__use_panel=True
+        
+    def setUsePanelOff(self):
+        """
+        Sets the flag to use a panel to find unknowns in AMG coarsening to off
+        """
+        self.__use_panel=False
+        
+    def setUsePanel(self,use=True):
+        """
+        Sets the flag to use  a panel to find unknowns in AMG coarsening 
+
+	 :param use: If ``True``,a panel is used to find unknowns in AMG coarsening
+        :type use: ``bool``
+        """
+        if use:
+            self.setUsePanelOn()
+        else:
+            self.setUsePanelOff()
+            
+    def useDirectInterpolation(self):
+        """
+        Returns ``True`` if direct interpolation is used in AMG.
+
+	:return: ``True`` if direct interpolation is used in AMG.
+        :rtype: ``bool``
+        """
+        return self.__use_direct_interpolation
+
+    def setUseDirectInterpolationOn(self):
+        """
+        Sets the flag to use direct interpolation in AMG
+        """
+        self.__use_direct_interpolation=True
+        
+    def setUseDirectInterpolationOff(self):
+        """
+        Sets the flag to use direct interpolation in AMG
+        """
+        self.__use_direct_interpolation=False
+        
+    def setUseDirectInterpolation(self,use=False):
+        """
+        Sets the flag to use direct interpolation in AMG
+
+	:param use: If ``True``, direct interpolation in AMG
+	:type use: ``bool``
+        """
+        if use:
+            self.setUseDirectInterpolationOn()
+        else:
+            self.setUseDirectInterpolationOff()
+
+
 class IllegalCoefficient(ValueError):
    """
    Exception that is raised if an illegal coefficient of the general or

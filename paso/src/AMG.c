@@ -97,7 +97,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree, S, theta,tau);
 	 }
-	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree, S, split_marker);
+	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree, S, split_marker, options->usePanel);
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
 	 
 	 if (Esys_noError() ) {
@@ -429,10 +429,9 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SparseMatrix* A,
 
 /* the runge stueben coarsening algorithm: */
 void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset,
-						 const dim_t* degree, const index_t* S, 
-						 index_t*split_marker)
+						const dim_t* degree, const index_t* S, 
+						index_t*split_marker, const bool_t usePanel)
 {
-   const bool_t usePanel=FALSE;
    
    index_t *lambda=NULL, *ST=NULL, *notInPanel=NULL, *panel=NULL, lambda_max, lambda_k;
    dim_t i,k, p, q, *degreeT=NULL, len_panel, len_panel_new;
