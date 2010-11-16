@@ -23,7 +23,6 @@ extern "C" {
 }
 
 #include <boost/python/import.hpp>
-#include <boost/python/tuple.hpp>
 
 using namespace std;
 using namespace escript;
@@ -1549,10 +1548,9 @@ void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) 
 //
 void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,  const string& metadata, const string& metadata_schema) const
 {
-    boost::python::object pySaveVTK = boost::python::import("esys.weipa").attr("saveVTK");
-    pySaveVTK(*boost::python::make_tuple(filename,
-               const_cast<MeshAdapter*>(this)->getPtr(),
-               metadata, metadata_schema), **arg);
+    boost::python::object pySaveVTK = boost::python::import("esys.weipa").attr("_saveVTK");
+    pySaveVTK(filename, const_cast<MeshAdapter*>(this)->getPtr(),
+              metadata, metadata_schema, arg);
 }
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
