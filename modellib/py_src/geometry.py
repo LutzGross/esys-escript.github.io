@@ -66,7 +66,7 @@ class DomainReader(ParameterSet):
 		
 class FinleyReader(DomainReader):
 	def __init__(self, **kw):
-		super().__init__(esys.finley, kw)
+		DomainReader.__init__(self, esys.finley, kw)
 		
 class RectangularDomain(ParameterSet):
        """
