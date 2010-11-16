@@ -532,7 +532,6 @@ returns the key of the solver method to be used.
 sets the preconditioner to be used.
 The value of \var{preconditioner} must be one of the constants:\\
  \member{SolverOptions.ILU0}\\
- \member{SolverOptions.ILUT}\\
  \member{SolverOptions.JACOBI}\\
  \member{SolverOptions.AMG}\\
  \member{SolverOptions.REC_ILU}\\
@@ -557,8 +556,7 @@ The value of \var{method} must be one of the constants:\\
  \member{SolverOptions.SUPER_LU}\\
  \member{SolverOptions.PASTIX}\\
  \member{SolverOptions.MKL}\\
- \member{SolverOptions.UMFPACK}\\
- \member{SolverOptions.TRILINOS}.\\
+ \member{SolverOptions.UMFPACK}.\\
 Not all packages are supported on all implementations. An exception may be
 thrown on some platforms if a particular package is requested.
 Currently \finley supports \member{SolverOptions.PASO} (as default) and, if
@@ -603,21 +601,6 @@ returns \True if the last solver call has been finalized successfully.
 If an exception has been thrown by the solver the status of this flag is undefined.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setCoarsening}{\optional{method=SolverOptions.DEFAULT}}
-Sets the key of the coarsening method to be applied in \AMG.
-The value of \var{method} must be one of the constants:\\
-\member{SolverOptions.DEFAULT}\\
-\member{SolverOptions.STANDARD_COARSENING}\\
-\member{SolverOptions.YAIR_SHAPIRA_COARSENING}\\
-\member{SolverOptions.RUGE_STUEBEN_COARSENING}~\footnote{The Ruge-Stueben
-and aggregation coarsening algorithms are used for measuring the strength of
-connection only, but splitting is done with the greedy algorithm.}\\
-\member{SolverOptions.AGGREGATION_COARSENING}.
-\end{methoddesc}
-
-\begin{methoddesc}[SolverOptions]{getCoarsening}{}
-returns the key of the coarsening algorithm to be applied in \AMG.
-\end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setReordering}{\optional{ordering=SolverOptions.DEFAULT_REORDERING}}
 sets the key of the reordering method to be applied if supported by the solver.
@@ -750,23 +733,6 @@ on the coarsest level in a multi-level scheme.
 returns the relative tolerance for an inner iteration scheme.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setDropTolerance}{\optional{drop_tol=0.01}}
-sets the relative drop tolerance in \ILUT.
-\end{methoddesc}
-
-\begin{methoddesc}[SolverOptions]{getDropTolerance}{}
-returns the relative drop tolerance in \ILUT.
-\end{methoddesc}
-
-\begin{methoddesc}[SolverOptions]{setDropStorage}{\optional{storage=2.}}
-sets the maximum allowed increase in storage for \ILUT. \var{storage=2} would
-mean that a doubling of the storage needed for the coefficient matrix is
-allowed in the \ILUT factorization.
-\end{methoddesc}
-
-\begin{methoddesc}[SolverOptions]{getDropStorage}{}
-returns the maximum allowed increase in storage for \ILUT.
-\end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setRelaxationFactor}{\optional{factor=0.3}}
 sets the relaxation factor used to add dropped elements in \RILU to the main diagonal.
@@ -924,15 +890,6 @@ this as a solver.
 the incomplete LU factorization preconditioner with no fill-in, see \Ref{Saad}.
 \end{memberdesc}
 
-\begin{memberdesc}[SolverOptions]{ILUT}
-the incomplete LU factorization preconditioner with fill-in, see \Ref{Saad}.
-During the LU-factorization elements with relative size less than
-\member{getDropTolerance} are dropped. Moreover, the size of the
-LU-factorization is restricted to the \member{getDropStorage}-fold of the
-stiffness matrix. \member{getDropTolerance} and \member{getDropStorage} are
-both set in the \method{getSolution} call.
-\end{memberdesc}
-
 \begin{memberdesc}[SolverOptions]{JACOBI}
 the Jacobi preconditioner, see \Ref{Saad}.
 \end{memberdesc}
@@ -981,33 +938,12 @@ if this is supported. In any case, it is advisable to apply reordering on the
 mesh to minimize fill-in.
 \end{memberdesc}
 
-\begin{memberdesc}[SolverOptions]{TRILINOS}
-the Trilinos library~\cite{Trilinos} is used as a solver.
-\end{memberdesc}
-
 \begin{memberdesc}[SolverOptions]{SUPER_LU}
 the SuperLU library~\cite{SuperLU} is used as a solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PASTIX}
 the Pastix library~\cite{PASTIX} is used as a solver.
-\end{memberdesc}
-
-\begin{memberdesc}[SolverOptions]{STANDARD_COARSENING}
-\AMG coarsening method by Ruge and Stueben using measure of importance
-principle~\cite{Multigrid}. 
-\end{memberdesc}
-
-\begin{memberdesc}[SolverOptions]{YAIR_SHAPIRA_COARSENING}
-\AMG coarsening method by Yair-Shapira
-\end{memberdesc}
-
-\begin{memberdesc}[SolverOptions]{RUGE_STUEBEN_COARSENING}
-\AMG coarsening method by Ruge and Stueben using greedy algorithm for splitting.
-\end{memberdesc}
-
-\begin{memberdesc}[SolverOptions]{AGGREGATION_COARSENING}
-\AMG coarsening using (symmetric) aggregation using greedy algorithm for splitting.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{NO_PRECONDITIONER}
