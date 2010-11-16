@@ -389,7 +389,7 @@ Currently the \UMFPACK interface does not support any reordering.
 \member{ILU0}&
 \member{DIRECT}\\
 \hline
-status:&later&later&$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&later\\
+status:& $\checkmark$ & $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&later\\
 \hline
 \hline
 \member{setCoarsening}& &$\checkmark$& & & & & &\\
@@ -400,23 +400,15 @@ status:&later&later&$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&la
 \hline
 \member{setMinCoarseMatrixSize}& &$\checkmark$& & & & & &\\
 \hline
+\member{setMinCoarseMatrixSparsity}& &$\checkmark$& & & & & &\\
+\hline
 \member{setNumSweeps}& & &$\checkmark$&$\checkmark$& & & &\\
 \hline
 \member{setNumPreSweeps}& &$\checkmark$& & & & & &\\
 \hline
 \member{setNumPostSweeps}& &$\checkmark$& & & & & &\\
 \hline
-\member{setInnerTolerance}& & & & & & & &\\
-\hline
-\member{setDropTolerance}& & & & & & & &\\
-\hline
-\member{setDropStorage}& & & & & & & &\\
-\hline
 \member{setRelaxationFactor}& & & & & &$\checkmark$& &\\
-\hline
-\member{adaptInnerTolerance}& & & & & & & &\\
-\hline
-\member{setInnerIterMax}& & & & & & & &\\
 \end{tabular}
 }
 \caption{Preconditioners available for \finley and the \PASO package and the
