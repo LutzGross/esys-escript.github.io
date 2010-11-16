@@ -330,9 +330,14 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getCoarseningThreshold", coarsening_threshold, double);
    EXTRACT("acceptConvergenceFailure", accept_failed_convergence, bool_t);
    EXTRACT_OPTION("getCoarsening", coarsening_method, index_t);
-   EXTRACT_OPTION("getSmoother", smoother, index_t); 
-   EXTRACT("getRelaxationFactor",  relaxation_factor,  double);  
-   EXTRACT("useLocalPreconditioner", use_local_preconditioner, bool_t);
+   EXTRACT_OPTION("getSmoother", smoother, index_t);
+   EXTRACT("getRelaxationFactor",  relaxation_factor,  double);
+   EXTRACT("useLocalPreconditioner",  use_local_preconditioner,  bool_t);
+   EXTRACT("getMinCoarseMatrixSparsity",min_coarse_sparsity, double);
+   EXTRACT("getNumRefinements",refinements, dim_t);
+   EXTRACT("getNumCoarseMatrixRefinements",coarse_matrix_refinements, dim_t);
+   EXTRACT("usePanel",usePanel, bool_t);
+   EXTRACT("useDirectInterpolation", useDirectInterpolation, bool_t);
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }
