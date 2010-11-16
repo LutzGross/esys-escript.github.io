@@ -432,19 +432,25 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
 						 const dim_t* degree, const index_t* S, 
 						 index_t*split_marker)
 {
-   index_t *lambda=NULL, j, *ST=NULL;
-   dim_t i,k, p, q, *degreeT=NULL, itmp;
-   double time0=0;
+   const bool_t usePanel=FALSE;
+   
+   index_t *lambda=NULL, *ST=NULL, *notInPanel=NULL, *panel=NULL, lambda_max, lambda_k;
+   dim_t i,k, p, q, *degreeT=NULL, len_panel, len_panel_new;
+   register index_t j, itmp;
    
    if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
    
-   lambda=TMPMEMALLOC(n, index_t);
-   degreeT=TMPMEMALLOC(n, dim_t);
-   ST=TMPMEMALLOC(offset[n], index_t);
+   lambda=TMPMEMALLOC(n, index_t); Esys_checkPtr(lambda);
+   degreeT=TMPMEMALLOC(n, dim_t); Esys_checkPtr(degreeT);
+   ST=TMPMEMALLOC(offset[n], index_t);  Esys_checkPtr(ST);
+   if (usePanel) {
+      notInPanel=TMPMEMALLOC(n, bool_t); Esys_checkPtr(notInPanel);
+      panel=TMPMEMALLOC(n, index_t); Esys_checkPtr(panel);
+   }
    
-   if (! ( Esys_checkPtr(lambda) || Esys_checkPtr(degreeT) || Esys_checkPtr(ST) ) ) {
-time0=Esys_timer();
-
+   
+   
+   if (Esys_noError() ) {
       /* initialize  split_marker and split_marker :*/
       /* those unknows which are not influenced go into F, the rest is available for F or C */
       #pragma omp parallel for private(i) schedule(static)
@@ -482,42 +488,113 @@ time0=Esys_timer();
 	    lambda[i]=itmp;
 	 }
       }
-      /* printf("timing: %e\n",Esys_timer()-time0); */
-      time0=Esys_timer(); 
+      if (usePanel) {
+	 #pragma omp parallel for private(i) schedule(static)
+	 for (i=0;i<n;++i) notInPanel[i]=TRUE;
+      }
       /* start search :*/
       i=Paso_Util_arg_max(n,lambda); 
-      while (lambda[i]>-1) { /* is there any undecided unknowns? */
-     
-	 /* the unknown i is moved to C */
-	 split_marker[i]=PASO_AMG_IN_C;
-	 lambda[i]=-1;  /* lambda fro unavailable unknowns is set to -1 */
-     
-	 /* all undecided unknown strongly coupled to i are moved to F */
-	 for (p=0; p<degreeT[i]; ++p) {
-	    j=ST[offset[i]+p];
-	
-	    if (split_marker[j]==PASO_AMG_UNDECIDED) {
-	   
-	       split_marker[j]=PASO_AMG_IN_F;
-	       lambda[j]=-1;
-	   
-	       for (q=0; q<degreeT[j]; ++q) {
-		  k=ST[offset[j]+q];
-		  if (split_marker[k]==PASO_AMG_UNDECIDED) lambda[k]++; 
+      while (lambda[i]>-1) { /* is there any undecided unknown? */
+
+	 if (usePanel) {
+	    len_panel=0;
+	    do {
+	       /* the unknown i is moved to C */
+	       split_marker[i]=PASO_AMG_IN_C;
+	       lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
+	       
+	       /* all undecided unknown strongly coupled to i are moved to F */
+	       for (p=0; p<degreeT[i]; ++p) {
+		  j=ST[offset[i]+p];
+		  
+		  if (split_marker[j]==PASO_AMG_UNDECIDED) {
+		     
+		     split_marker[j]=PASO_AMG_IN_F;
+		     lambda[j]=-1;
+		     
+		     for (q=0; q<degreeT[j]; ++q) {
+			k=ST[offset[j]+q];
+			if (split_marker[k]==PASO_AMG_UNDECIDED) {
+			   lambda[k]++;
+			   if (notInPanel[k]) { 
+			      notInPanel[k]=FALSE; 
+			      panel[len_panel]=k;
+			      len_panel++; 
+			   }
+
+			}	 /* the unknown i is moved to C */
+			split_marker[i]=PASO_AMG_IN_C;
+			lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
+		     }
+		     
+		  }
+	       }
+	       for (p=0; p<degree[i]; ++p) {
+		  j=S[offset[i]+p];
+		  if (split_marker[j]==PASO_AMG_UNDECIDED) {
+		     lambda[j]--;
+		     if (notInPanel[j]) { 
+			notInPanel[j]=FALSE; 
+			panel[len_panel]=j;
+			len_panel++; 
+		     }
+		  }
 	       }
 
+	       /* consolidate panel */
+	       /* remove lambda[q]=-1 */
+	       lambda_max=-1;
+	       i=-1;
+	       len_panel_new=0;
+	       for (q=0; q<len_panel; q++) {
+		     k=panel[q];
+		     lambda_k=lambda[k];
+		     if (split_marker[k]==PASO_AMG_UNDECIDED) {
+			panel[len_panel_new]=k;
+			len_panel_new++;
+
+			if (lambda_max == lambda_k) {
+			   if (k<i) i=k;
+			} else if (lambda_max < lambda_k) {
+			   lambda_max =lambda_k;
+			   i=k;
+			}
+		     }
+	       }
+	       len_panel=len_panel_new;
+	    } while (len_panel>0);    
+	 } else {
+	    /* the unknown i is moved to C */
+	    split_marker[i]=PASO_AMG_IN_C;
+	    lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
+	    
+	    /* all undecided unknown strongly coupled to i are moved to F */
+	    for (p=0; p<degreeT[i]; ++p) {
+	       j=ST[offset[i]+p];
+	       if (split_marker[j]==PASO_AMG_UNDECIDED) {
+	    
+		  split_marker[j]=PASO_AMG_IN_F;
+		  lambda[j]=-1;
+	    
+		  for (q=0; q<degreeT[j]; ++q) {
+		     k=ST[offset[j]+q];
+		     if (split_marker[k]==PASO_AMG_UNDECIDED) lambda[k]++;
+		  }
+
+	       }
 	    }
+	    for (p=0; p<degree[i]; ++p) {
+	       j=S[offset[i]+p];
+	       if(split_marker[j]==PASO_AMG_UNDECIDED) lambda[j]--;
+	    }
+	    
 	 }
-	 for (p=0; p<degree[i]; ++p) {
-	    j=S[offset[i]+p];
-	    if(split_marker[j]==PASO_AMG_UNDECIDED) lambda[j]--;
-	 }
-	 
 	 i=Paso_Util_arg_max(n,lambda);
       }
    }
-   /* printf("timing: %e\n",Esys_timer()-time0); */
    TMPMEMFREE(lambda);
    TMPMEMFREE(ST);
    TMPMEMFREE(degreeT);
+   TMPMEMFREE(panel);
+   TMPMEMFREE(notInPanel);
 }
