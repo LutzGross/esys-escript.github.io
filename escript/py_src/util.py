@@ -1561,7 +1561,7 @@ def whereNonPositive(arg):
    else:
       raise TypeError,"whereNonPositive: Unknown argument type."
 
-def whereZero(arg,tol=None,adaptTol=True,rtol=math.sqrt(EPSILON)):
+def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    """
    Returns mask of zero entries of argument ``arg``.
 
@@ -6215,11 +6215,14 @@ def negative(arg):
    """
    return (arg-abs(arg))/2.
 
-def safeDiv(arg0, arg1):
+def safeDiv(arg0, arg1, rtol=None):
     """
-    returns arg0/arg1 but return 0 where arg1 is zero
+    returns arg0/arg1 but return 0 where arg1 is (almost) zero
     """
-    m1=whereZero(arg1)
+    if rtol==None:
+      m1=whereZero(arg1,tol=0)
+    else:
+      m1=whereZero(arg1,tol=None, rtol=rtol)
     return arg0/(arg1+m1)*(1-m1)
 
 def condEval(f, tval, fval):
