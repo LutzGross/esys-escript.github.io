@@ -241,7 +241,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
     att = input->get_att("function_space_type");
     funcSpace = att->as_int(0);
 
-    centering = domain->getCenteringForFunctionSpace(funcSpace);
+    centering = dom->getCenteringForFunctionSpace(funcSpace);
 
     dim = input->get_dim("num_samples");
     numSamples = dim->size();
