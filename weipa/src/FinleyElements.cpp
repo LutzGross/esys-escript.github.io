@@ -846,9 +846,9 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
             ret.elementType = ZONETYPE_POLYGON;
             break;
 
-        case Finley_Tri3Face_Contact://untested
         case Finley_Tri3Face://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
+        case Finley_Tri3Face_Contact:
         case Finley_Line2_Contact:
         case Finley_Rec4Face_Contact:
         case Finley_Rec4Face:
