@@ -774,7 +774,7 @@ env.Alias('release_prep', ['docs', 'install_all'])
 if not IS_WINDOWS:
     try:
         utest=open('utest.sh','w')
-        utest.write(GroupTest.makeHeader(env['BUILD_DIR'], env['PLATFORM']))
+        utest.write(GroupTest.makeHeader(env['PLATFORM']))
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()
