@@ -12,6 +12,7 @@
 *******************************************************/
 
 #include <weipa/VisItControl.h>
+#include <weipa/EscriptDataset.h>
 
 #ifdef USE_VISIT
 #include <weipa/VisItData.h>
@@ -30,13 +31,14 @@ namespace weipa {
 
 namespace VisItControl {
     
+bool initialized = false;
+
 #ifdef USE_VISIT
 
 weipa::VisItData_ptr visitData(new VisItData());
 int mpiRank = 0;
 int mpiSize = 1;
 bool runFlag = true;
-bool initialized = false;
 bool connected = false;
 
 // Helper function for processVisItCommand()
