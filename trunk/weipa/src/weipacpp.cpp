@@ -72,7 +72,7 @@ BOOST_PYTHON_MODULE(weipacpp)
         .def("setCycleAndTime", &weipa::EscriptDataset::setCycleAndTime, args("cycle","time"))
         .def("setMeshLabels", &weipa::EscriptDataset::setMeshLabels, (arg("x"),arg("y"),arg("z")=""))
         .def("setMeshUnits", &weipa::EscriptDataset::setMeshUnits, (arg("x"),arg("y"),arg("z")=""))
-        .def("setMetadataSchemaString", &weipa::EscriptDataset::setMetadataSchemaString, (arg("schema"),arg("metadata")=""))
+        .def("setMetadataSchemaString", &weipa::EscriptDataset::setMetadataSchemaString, (arg("schema")="", arg("metadata")=""))
         .def("saveSilo", &weipa::EscriptDataset::saveSilo, (arg("filename"), arg("useMultimesh")=true))
         .def("saveVTK", &weipa::EscriptDataset::saveVTK, args("filename"));
 
