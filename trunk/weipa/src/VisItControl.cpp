@@ -104,7 +104,9 @@ static int broadcastStringCallback(char* str, int len, int sender)
 static void controlCommandCallback(const char* cmd, const char* sdata,
                                    void* cb_data)
 {
+#ifdef _DEBUG
     std::cout << "Control Command: " << cmd << std::endl;
+#endif
 
     if (strstr(cmd, "pause")) {
         runFlag = !runFlag;
@@ -116,23 +118,31 @@ static void controlCommandCallback(const char* cmd, const char* sdata,
 // Callback that returns metadata for this dataset
 visit_handle VisItGetMetaData(void* cbdata)
 {
+#ifdef _DEBUG
     std::cout << "VisItGetMetaData()" << std::endl;
+#endif
     return visitData->getSimMetaData();
 }
 
 // Callback that returns the domain list for this dataset
 visit_handle VisItGetDomainList(const char* name, void* cbdata)
 {
+#ifdef _DEBUG
     std::cout << "VisItGetDomainList(" << name << ")" << std::endl;
+#endif
     return visitData->getDomainList();
 }
 
 // Callback that returns mesh data
 visit_handle VisItGetMesh(int domain, const char* name, void* cbdata)
 {
+#ifdef _DEBUG
     std::cout << "VisItGetMesh(" << domain << ", '" << name << "')" << std::endl;
+#endif
     if (mpiRank != domain) {
+#ifdef _DEBUG
         std::cout << "I don't have data for domain " << domain << std::endl;
+#endif
         return VISIT_INVALID_HANDLE;
     }
     return visitData->getMesh(name);
@@ -141,9 +151,14 @@ visit_handle VisItGetMesh(int domain, const char* name, void* cbdata)
 // Callback that returns variable data
 visit_handle VisItGetVariable(int domain, const char* name, void* cbdata)
 {
+#ifdef _DEBUG
     std::cout << "VisItGetVariable(" << domain << ", '" << name << "')" << std::endl;
+#endif
     if (mpiRank != domain) {
+#ifdef _DEBUG
         std::cout << "I don't have data for domain " << domain << std::endl;
+#endif
+        return VISIT_INVALID_HANDLE;
     }
     return visitData->getVariable(name);
 }
@@ -161,7 +176,7 @@ bool initialize(const std::string& simFile, const std::string& comment)
     if (connected) {
         VisItDisconnect();
         connected = false;
-        std::cout << "Disconnected." << std::endl;
+        std::cout << "VisIt client disconnected." << std::endl;
     }
 
     //VisItOpenTraceFile("/tmp/simV2trace.txt");
@@ -232,7 +247,7 @@ void publishData(EscriptDataset_ptr dataset)
             err = 1;
         } else if (visitState == 1) {
             if (VisItAttemptToCompleteConnection() == VISIT_OKAY) {
-                std::cout << "Client connected!" << std::endl;
+                std::cout << "VisIt client connected." << std::endl;
                 // publish latest data
                 visitData->publishData(dataset);
                 visitData->setSimulationStatus(runFlag);
@@ -252,7 +267,7 @@ void publishData(EscriptDataset_ptr dataset)
                     if (strlen(errorString) > 0) {
                         std::cerr << errorString << std::endl;
                     } else {
-                        std::cerr << "VisIt failed to connect successfully"
+                        std::cerr << "VisIt failed to connect successfully."
                             << std::endl;
                     }
                 }
@@ -262,7 +277,7 @@ void publishData(EscriptDataset_ptr dataset)
             if (!processVisItCommand()) {
                 VisItDisconnect();
                 connected = false;
-                std::cout << "Disconnected." << std::endl;
+                std::cout << "VisIt client disconnected." << std::endl;
             }
         }
     } while (visitState != 0);
