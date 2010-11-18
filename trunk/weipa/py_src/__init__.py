@@ -19,6 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+from weipacpp import visitInitialize, visitPublishData
+
 def interpolateEscriptData(domain, data):
     """
     esys.weipa does not support the function spaces Solution and
