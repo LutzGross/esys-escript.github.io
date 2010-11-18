@@ -36,6 +36,7 @@ weipa::VisItData_ptr visitData(new VisItData());
 int mpiRank = 0;
 int mpiSize = 1;
 bool runFlag = true;
+bool initialized = false;
 bool connected = false;
 
 // Helper function for processVisItCommand()
@@ -170,8 +171,6 @@ visit_handle VisItGetVariable(int domain, const char* name, void* cbdata)
 // Initializes libsim and the communication to VisIt
 bool initialize(const std::string& simFile, const std::string& comment)
 {
-    bool initialized = false;
-
 #ifdef USE_VISIT
     if (connected) {
         VisItDisconnect();
@@ -179,10 +178,13 @@ bool initialize(const std::string& simFile, const std::string& comment)
         std::cout << "VisIt client disconnected." << std::endl;
     }
 
-    //VisItOpenTraceFile("/tmp/simV2trace.txt");
-    if (!VisItSetupEnvironment()) {
-        std::cerr << "Error setting up VisIt environment" << std::endl;
-    } else {
+    if (!initialized) {
+        //VisItOpenTraceFile("/tmp/simV2trace.txt");
+        if (!VisItSetupEnvironment()) {
+            std::cerr << "Error setting up VisIt environment" << std::endl;
+            return false;
+        }
+
 #if HAVE_MPI
         MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
@@ -195,27 +197,32 @@ bool initialize(const std::string& simFile, const std::string& comment)
         VisItSetParallel(mpiSize > 1);
         VisItSetParallelRank(mpiRank);
 #endif
-        if (mpiRank == 0) {
-            std::string filename(simFile);
-            if (filename.rfind(".sim2") != filename.length()-5) {
-                filename += ".sim2";
-            }
-            VisItInitializeSocketAndDumpSimFile("escript", comment.c_str(),
-                    NULL, NULL, NULL, filename.c_str());
-        }
         std::vector<std::string> cmdNames;
         cmdNames.push_back("pause");
         cmdNames.push_back("update_plots");
         visitData->setCommandNames(cmdNames);
         initialized = true;
     }
+
+    if (mpiRank == 0) {
+        std::string filename(simFile);
+        if (filename.rfind(".sim2") != filename.length()-5) {
+            filename += ".sim2";
+        }
+        VisItInitializeSocketAndDumpSimFile("escript", comment.c_str(),
+                NULL, NULL, NULL, filename.c_str());
+    }
 #endif // USE_VISIT
     return initialized;
 }
 
 // Main entry point that checks for client input and publishes new data
-void publishData(EscriptDataset_ptr dataset)
+bool publishData(EscriptDataset_ptr dataset)
 {
+    if (!initialized || dataset->getConvertedDomain().size()==0) {
+        return false;
+    }
+
 #ifdef USE_VISIT
     int visitState = 0, err = 0;
 
@@ -281,7 +288,12 @@ void publishData(EscriptDataset_ptr dataset)
             }
         }
     } while (visitState != 0);
-#endif // USE_VISIT
+
+    return err==0;
+#else // USE_VISIT
+
+    return false;
+#endif
 }
 
 } // namespace VisItControl
