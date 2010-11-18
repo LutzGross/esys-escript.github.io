@@ -749,7 +749,7 @@ class Model(ParameterSet):
     Model has the following work flow::
 
         doInitialization()
-        while not terminateInitialIteration(): doInitializationiStep()
+        while not terminateInitialIteration(): doInitialStep()
         doInitialPostprocessing()
         while not finalize():
             dt=getSafeTimeStepSize(dt)

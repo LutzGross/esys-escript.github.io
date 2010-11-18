@@ -156,7 +156,7 @@ class DarcyFlow(object):
    def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
       """
       assigns values to model parameters
-      
+
       :param f: volumetic sources/sinks
       :type f: scalar value on the domain (e.g. `Data`)
       :param g: flux sources/sinks
@@ -165,13 +165,13 @@ class DarcyFlow(object):
       :type location_of_fixed_pressure: scalar value on the domain (e.g. `Data`)
       :param location_of_fixed_flux:  mask for locations where flux is fixed.
       :type location_of_fixed_flux: vector values on the domain (e.g. `Data`)
-      :param permeability: permeability tensor. If scalar ``s`` is given the tensor with
-      ``s`` on the main diagonal is used. 
+      :param permeability: permeability tensor. If scalar ``s`` is given the tensor with ``s`` on the main diagonal is used. 
       :type permeability: scalar or tensor values on the domain (e.g. `Data`)
+
       :note: the values of parameters which are not set by calling ``setValue`` are not altered.
       :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
-      or the normal component of the flux (``location_of_fixed_flux[i]>0`` if direction of the normal
-      is along the *x_i* axis.
+      or the normal component of the flux (``location_of_fixed_flux[i]>0``) if direction of the normal is along the *x_i* axis.
+
       """
       if f !=None:
 	 f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("X"))
@@ -306,8 +306,7 @@ class DarcyFlow(object):
 
       :note: The problem is solved as a least squares form
       *(K^[-1]+D^* (DKD^*)^[-1] D)u+G p=D^* (DKD^*)^[-1] f + K^[-1]g*
-      *G^*u+G^* K Gp=G^*g*
-
+      *G^*u+*G^* K Gp=G^*g*
       where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
       """
       self.verbose=verbose

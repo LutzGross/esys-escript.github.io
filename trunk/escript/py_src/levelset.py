@@ -42,10 +42,9 @@ class LevelSet:
     """
     Sets up the level set method.
 
-    :param domain: the domain where the level set is used
     :param phi: the initial level set function
     :param reinit_max: maximum number of reinitialization steps
-    :param reinit_after: ``phi`` is reinitialized every ``reinit_after`` step
+    :param reinitialize_after: ``phi`` is reinitialized every ``reinit_after`` step
     :param smooth: smoothing width
     """
     self.__domain = phi.getDomain()

@@ -25,15 +25,15 @@ import math
 
 class FaultSystem:
   """
-  The FaultSystem class defines a system of faults in the Earth's crust. 
- 
+  The FaultSystem class defines a system of faults in the Earth's crust.
+
   A fault system is defined by set of faults index by a tag. Each fault is defined by a starting point V0 and a list of 
   strikes ``strike`` and length ``l``. The strikes and the length is used to define a polyline with points ``V[i]`` such that
 
   - ``V[0]=V0``
-  - ``V[i]=V[i]+ls[i]*array(cos(strike[i]),sin(strike[i]),0)''
+  - ``V[i]=V[i]+ls[i]*array(cos(strike[i]),sin(strike[i]),0)``
 
-  So ``strike`` defines the angle between the direction of the fault segment and the x0 axis. ''ls[i]``==0 is allowed.
+  So ``strike`` defines the angle between the direction of the fault segment and the x0 axis. ls[i]==0 is allowed.
 
   In case of a 3D model a fault plane is defined through a dip and depth. 
 
@@ -77,7 +77,7 @@ class FaultSystem:
   def getStart(self,tag=None):
      """
      returns the starting point of fault ``tag``
-     :rtype: `numpy.ndarray'.
+     :rtype: `numpy.ndarray`.
      """
      return self.getTopPolyline(tag)[0]
 
@@ -100,36 +100,36 @@ class FaultSystem:
       
      :param tag: the tag of the fault
      :type tag: ``float`` or ``str``
-     :return: the list of vertices defining the top of the fault.  The coordinates are `numpy.ndarray'.
+     :return: the list of vertices defining the top of the fault.  The coordinates are `numpy.ndarray`.
      """
      if tag==None: tag=self.NOTAG
      return self.__top[tag]
   def getStrikes(self, tag=None):
      """
-     returns the strike of the segements in fault ``tag``
+     :return: the strike of the segements in fault ``tag``
      :rtype: ``list`` of ``float``
      """
      if tag==None: tag=self.NOTAG
      return self.__strikes[tag]
   def getStrikeVectors(self, tag=None):
      """
-     returns the strike vectors of fault ``tag``
-     :rtype: ``list`` of `numpy.ndarray'.
+     :return: the strike vectors of fault ``tag``
+     :rtype: ``list`` of `numpy.ndarray`.
      """
      if tag==None: tag=self.NOTAG
      return self.__strike_vectors[tag]
   def getLengths(self, tag=None):
      """
-     returns the lengths of segments in fault ``tag``
-     :rtype: ``list`` of `float``
+     :return: the lengths of segments in fault ``tag``
+     :rtype: ``list`` of ``float``
      """
      if tag==None: tag=self.NOTAG
      return self.__ls[tag]
 
   def getTotalLength(self, tag=None):
      """
-     returns the total unrolled length of fault ``tag``
-     :rtype: `float``
+     :return: the total unrolled length of fault ``tag``
+     :rtype: ``float``
      """
      if tag==None: tag=self.NOTAG
      return self.__total_length[tag]
@@ -306,15 +306,15 @@ class FaultSystem:
      is used to define a polyline with points ``V[i]`` such that
 
      - ``V[0]=V0``
-     - ``V[i]=V[i]+ls[i]*array(cos(strikes[i]),sin(strikes[i]),0)''
+     - ``V[i]=V[i]+ls[i]*array(cos(strikes[i]),sin(strikes[i]),0)``
 
-     So ``strikes`` defines the angle between the direction of the fault segment and the x0 axis. In 3D ''ls[i]``==0 is allowed.
+     So ``strikes`` defines the angle between the direction of the fault segment and the x0 axis. In 3D ``ls[i]``==0 is allowed.
 
      In case of a 3D model a fault plane is defined through a dip ``dips`` and depth ``depths``. 
      From the dip and the depth the polyline ``bottom`` of the bottom of the fault is computed.
 
 
-     Each segment in the fault is decribed by the for vertices ``v0=top[i]``, ``v1``==``top[i+1]``, ``v2=bottom[i]`` and ``v3=bottom[i+1]`` 
+     Each segment in the fault is decribed by the for vertices ``v0=top[i]``, ``v1==top[i+1]``, ``v2=bottom[i]`` and ``v3=bottom[i+1]`` 
      The segment is parametrized by ``w0`` and ``w1`` with ``w0_offsets[i]<=w0<=w0_offsets[i+1]`` and ``-w1_max<=w1<=0``. Moreover 
    
      - ``(w0,w1)=(w0_offsets[i]  ,       0)->v0``
@@ -480,7 +480,7 @@ class FaultSystem:
      :param f: a distribution of values 
      :type f: `escript.Data`
      :param tol: relative tolerance used to decide if point is on fault 
-     :type f: ``tol``
+     :type tol: ``tol``
      :return: the fault tag the maximum is taken, and a `Locator` object to collect the value at location of maximum value.
      """
      ref=-Lsup(f)*2
@@ -509,7 +509,7 @@ class FaultSystem:
      :param f: a distribution of values 
      :type f: `escript.Data`
      :param tol: relative tolerance used to decide if point is on fault 
-     :type f: ``tol``
+     :type tol: ``tol``
      :return: the fault tag the minimum is taken, and a `Locator` object to collect the value at location of minimum value.
      """
      ref=Lsup(f)*2

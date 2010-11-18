@@ -527,7 +527,7 @@ class SolverOptions(object):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        :rtype ordering: in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
+        :rtype: ordering in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
         """
         return self.__reordering
     def setRestart(self,restart=None):
@@ -1091,7 +1091,7 @@ class SolverOptions(object):
         """
         Sets the flag to use  a panel to find unknowns in AMG coarsening 
 
-	 :param use: If ``True``,a panel is used to find unknowns in AMG coarsening
+        :param use: If ``True``,a panel is used to find unknowns in AMG coarsening
         :type use: ``bool``
         """
         if use:

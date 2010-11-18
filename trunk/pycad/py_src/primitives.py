@@ -1703,9 +1703,8 @@ class Manifold3D(PrimitiveBase):
 
     def setTransfiniteMeshing(self,orientation="Left"):
         """
-        applies 3D transfinite meshing to the volume and all surface. It requires transfinite meshing on all faces which will be enforced (except 
-if ``orientation`` is equal to ``None``.
-
+        applies 3D transfinite meshing to the volume and all surface. It requires transfinite meshing
+        on all faces which will be enforced (except if ``orientation`` is equal to ``None``).
         :param orientation: sets the orientation of the triangles on the surfaces. It is only relevant if recombination is not used.
         If orientation is equal to ``None``, the transinite meshing is not applied to the surfaces but must be set by the user.
         :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
