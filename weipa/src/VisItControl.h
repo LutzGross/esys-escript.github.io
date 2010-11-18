@@ -15,9 +15,6 @@
 #define __WEIPA_VISITCONTROL_H__
 
 #include <weipa/weipa.h>
-#include <escript/AbstractDomain.h>
-
-#include <boost/python/dict.hpp>
 #include <string>
 
 namespace weipa {
