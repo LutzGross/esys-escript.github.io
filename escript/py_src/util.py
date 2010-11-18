@@ -99,12 +99,25 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     Writes `Data` objects to a csv file.
     These objects must have compatible FunctionSpaces. ie it must be possible to
     interpolate all data to one `FunctionSpace`. 
+
+    :param filename: file to save data to.
+    :type filename: ``string``
+    :param append: If ``True``, then open file at end rather than beginning
+    :type append: ``bool``
+    :param sep: separator between fields
+    :type sep: ``string``
+    :param csep: separator for components of rank2 and above eg ('_' -> c0_1)
+
+    The keyword args are Data objects to save.
+    If a scalar `Data` object is passed with the name ``mask``, then only
+    samples which correspond to positive values in ``mask`` will be output.
     Example::
-	s=Scalar(..)
-	v=Vector(..)
-	t=Tensor(..)
+
+        s=Scalar(..)
+        v=Vector(..)
+        t=Tensor(..)
         f=float()
-	saveDataCSV("f.csv",a=s, b=v, c=t, d=f)
+        saveDataCSV("f.csv",a=s, b=v, c=t, d=f)
     
     Will result in a file
     
@@ -113,18 +126,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21  0.0
     
     The first line is a header, the remaining lines give the values.
-    
-    :param filename: file to save data to.
-    :type filename: ``string``
-    :param append: If ``True``, then open file at end rather than beginning
-    :type append: ``bool``
-    :param sep: separator between fields
-    :type sep: ``string``
-    :param csep: separator for components of rank2 and above eg ('_' -> c0_1)
-    
-    The keyword args are Data objects to save.
-    If a scalar `Data` object is passed with the name ``mask``, then only
-    samples which correspond to positive values in ``mask`` will be output.
+
     """
     # find a function space:
     fs = None

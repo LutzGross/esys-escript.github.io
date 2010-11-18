@@ -115,12 +115,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
 "The keys given in the dictionary will be used to name columns.\n"
 "Then the data will be output, one line per sample (for all data).\n"
 "That is, items in each column will be printed in the same order.\n"
-"So you can be sure that values in the same row correspond to the same input value.\n"
+"So you can be sure that values in the same row correspond to the same input value.\n\n"
 "\n:param filename:\n:type filename: ``string``\n"
-":param arg: dictionary of named `Data` objects. If one is called ``mask`` it must be scalar data."
-"\n:type arg: ``dict``\n"
-":param sep:separator for columns (defaults to \", \"\n:type sep:``string``\n"
-":param csep:separator for fields within data object (defaults to \"_\"\n:type csep:``string``\n"
+":param arg: dictionary of named `Data` objects. If one is called ``mask`` it must be scalar data.\n"
+":type arg: ``dict``\n"
+":param sep: separator for columns (defaults to ',')\n"
+":type sep: ``string``\n"
+":param csep: separator for fields within data object (defaults to \"_\")\n:type csep: ``string``\n"
 ":param append: If True, write to the end of ``filename``\n:type append: ``string``\n");
 
 
@@ -264,9 +265,8 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   fs_definer.def("getNormal",&escript::FunctionSpace::getNormal,":return: the surface normal field.\n\n:rtype: `Data`");
   fs_definer.def("getSize",&escript::FunctionSpace::getSize,":return: sample size\n:rtype: `Data`");
   fs_definer.def("setTags",&escript::FunctionSpace::setTags,args("newtag","mask"),
-"Set tags according to a mask\n\n:param newtag: tag number to set\n:type newtag: non-zero ``int``\n:param mask: Samples which correspond to positive values in the mask will be set to ``newtag``.\n:type mask: scalar `Data`");
-  fs_definer.def("setTags",&escript::FunctionSpace::setTagsByString,args("newtag","mask"),
-"Set tags according to a mask\n\n:param newtag: tag name to set\n:type newtag: string\n:param mask: Samples which correspond to positive values in the mask will be set to ``newtag``.\n:type mask: scalar `Data`");
+"Set tags according to a mask\n\n:param newtag: tag number to set\n:type newtag: string, non-zero ``int``\n:param mask: Samples which correspond to positive values in the mask will be set to ``newtag``.\n:type mask: scalar `Data`");
+  fs_definer.def("setTags",&escript::FunctionSpace::setTagsByString,args("newtag","mask"));
   fs_definer.def("getTagFromDataPointNo",
                  &escript::FunctionSpace::getTagFromDataPointNo,":return: the tag associated with the given sample number.\n:rtype: int");
   fs_definer.def("getReferenceIDFromDataPointNo", &escript::FunctionSpace::getReferenceIDFromDataPointNo,args("dataPointNo"),":return: the reference number associated with ``dataPointNo``\n:rtype: int ");
@@ -350,7 +350,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 "\n:rtype: `Data`"
 )
     .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
-(arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50, arg("check_boundaries")=false),
+(arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50, arg("check_boundaries")=false)/*,
 "Creates a new Data object by interpolating using the source data (which are\n"
 "looked up in ``table``)\n\n"
 ":param table: one dimensional collection of values\n"
@@ -360,6 +360,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":param check_boundaries: if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.\n"
 ":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
+*/
 )
 
 

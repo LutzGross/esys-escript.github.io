@@ -621,8 +621,6 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
          :type numMaterials: ``int``
          :param verbose: if ``True`` some informations are printed.
          :type verbose: ``bool``         
-	 :param adaptSubTolerance: If True the tolerance for subproblem is set automatically.
-	 :type adaptSubTolerance: ``bool``
          """
          PowerLaw. __init__(self, numMaterials,verbose=verbose)
          Rheology. __init__(self, domain, stress, v, p, t,verbose=verbose)
