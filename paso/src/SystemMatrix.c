@@ -72,8 +72,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->mainBlock=NULL;
      out->row_coupleBlock=NULL;
      out->col_coupleBlock=NULL;
-     out->normalizer_is_valid=FALSE;
-     out->normalizer=NULL; 
+     out->is_balanced=FALSE;
+     out->balance_vector=NULL; 
      out->solver_package=PASO_PASO;  
      out->solver_p=NULL;  
      out->trilinos_data=NULL;
@@ -135,16 +135,12 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
            if (Esys_noError()) {
               /* allocate memory for matrix entries */
-              if (type & MATRIX_FORMAT_CSC) {
-                 n_norm = out->mainBlock->numCols * out->col_block_size;
-              } else {
-                 n_norm = out->mainBlock->numRows * out->row_block_size;
-              }
-              out->normalizer=MEMALLOC(n_norm,double);
-              out->normalizer_is_valid=FALSE;
-              if (! Esys_checkPtr(out->normalizer)) {
+              n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
+	      out->balance_vector=MEMALLOC(n_norm,double);
+	      out->is_balanced=FALSE;
+	      if (! Esys_checkPtr(out->balance_vector)) {
                  #pragma omp parallel for private(i) schedule(static)
-                 for (i=0;i<n_norm;++i) out->normalizer[i]=0.;
+                 for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
               }
            }
         }
@@ -182,7 +178,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SparseMatrix_free(in->mainBlock);
         Paso_SparseMatrix_free(in->col_coupleBlock);
         Paso_SparseMatrix_free(in->row_coupleBlock);
-        MEMFREE(in->normalizer);
+	MEMFREE(in->balance_vector);
         Paso_solve_free(in); 
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);
