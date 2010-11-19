@@ -34,6 +34,6 @@ void  Paso_SystemMatrix_setValues(Paso_SystemMatrix* in,double value) {
       Paso_SparseMatrix_setValues(in->mainBlock, value);
       Paso_SparseMatrix_setValues(in->col_coupleBlock, value);
       Paso_SparseMatrix_setValues(in->row_coupleBlock, value);
-      in->normalizer_is_valid=FALSE;
+      in->is_balanced=FALSE;
   }
 }

@@ -1619,7 +1619,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    """
    if tol == None:
       if not isinstance(arg,Symbol):
-         if rtol<=0: raise ValueError,"rtol must be non-negative."
+         if rtol<0: raise ValueError,"rtol must be non-negative."
          tol = Lsup(arg)*rtol
       else:
          tol=0.

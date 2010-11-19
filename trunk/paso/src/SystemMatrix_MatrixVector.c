@@ -40,6 +40,10 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
   /*double *snd_buffer=NULL, *rcv_buffer=NULL;*/
   Esys_MPIInfo *mpi_info=A->mpi_info;
 
+  if (A->is_balanced) {
+     Esys_setError(VALUE_ERROR,"Paso_SystemMatrix_MatrixVector: balanced matrix is not supported.");
+     return;
+  }
   if (A->type & MATRIX_FORMAT_CSC) {
      if ( mpi_info->size>1) {
            Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSC is not supported by MPI.");

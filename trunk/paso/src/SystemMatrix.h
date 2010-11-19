@@ -65,8 +65,15 @@ typedef struct Paso_SystemMatrix {
   Paso_SparseMatrix* mainBlock;                      /* main block */
   Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */
   Paso_SparseMatrix* row_coupleBlock;                /* coupling to naighbouring processors (col - row)  */
-  bool_t normalizer_is_valid;
-  double *normalizer; /* vector with a inverse of the absolute row/col sum (set by Solver.c)*/
+
+  bool_t is_balanced;
+  double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
+			      if is_balanced is set, the matrix stored is D*A*D where A is the original matrix
+		              When the system of linear equations is solved we solve D*A*D*y=c.
+		              so to solve A*x=b one needs to set c=D*b and x=D*y. */
+
+  
+  
   index_t solver_package;  /* package controling the solver pointer */
   void* solver_p;  /* pointer to data needed by a solver */
 
@@ -83,6 +90,11 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix*);
 
 void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
 void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
+void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
+void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool_t RHS);
+void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool_t RHS);
+void Paso_SystemMatrix_balance(Paso_SystemMatrix* A);
+
 void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
 void Paso_solve_free(Paso_SystemMatrix* in);
 void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
@@ -91,8 +103,7 @@ void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in);
 double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A);
 void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in);
 double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
-void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-double* Paso_SystemMatrix_borrowNormalization(Paso_SystemMatrix* A);
+
 dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A);
 dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix*);
 dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix*);
@@ -103,15 +114,17 @@ void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
 Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
 void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size);
-void Paso_SystemMatrix_setDefaults(Paso_Options*);
+
 int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info);
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
+
 void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
 void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
 void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
 void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
 
 void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over); 
+
 void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
 void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
 void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);

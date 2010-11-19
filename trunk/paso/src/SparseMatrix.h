@@ -62,6 +62,7 @@ typedef struct Paso_SparseMatrix {
 Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType,Paso_Pattern*,dim_t,dim_t,const bool_t);
 Paso_SparseMatrix* Paso_SparseMatrix_getReference(Paso_SparseMatrix*);
 dim_t Paso_SparseMatrix_getNumColors(Paso_SparseMatrix*);
+void Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(Paso_SparseMatrix* A, const double* left, const double* right);
 index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
 void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
@@ -71,7 +72,8 @@ void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha, const Paso_S
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
 
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
-void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
+void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix*,double*);
+void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(const Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_addRow_CSR_OFFSET0(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
