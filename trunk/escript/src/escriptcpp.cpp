@@ -333,6 +333,10 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 "\n:param dataPointNo: datapoint to access\n:type dataPointNo: int")
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
+    .def("_interpolateTable3d", &escript::Data::interpolateFromTable3DP, 
+(arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("C"), arg("Cmin"), arg("Cstep"), arg("undef")=1.e50, arg("check_boundaries")=false, "For internal use only. Please use the interpolateTable function.")
+)
+
     .def("interpolateTable", &escript::Data::interpolateFromTable2DP, 
 (arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("undef")=1.e50, arg("check_boundaries")=false),
 "Creates a new Data object by interpolating using the source data (which are\n"

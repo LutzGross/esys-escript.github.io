@@ -3232,6 +3232,14 @@ Data::getDataPointRW(int sampleNo, int dataPointNo)
 }
 
 Data
+Data::interpolateFromTable3DP(boost::python::object table, double Amin, double Astep,
+		Data& B, double Bmin, double Bstep, Data& C, double Cmin, double Cstep, double undef, bool check_boundaries)
+{
+    WrappedArray t(table);
+    return interpolateFromTable3D(t, Amin, Astep, undef, B, Bmin, Bstep, C, Cmin, Cstep, check_boundaries);
+}
+
+Data
 Data::interpolateFromTable2DP(boost::python::object table, double Amin, double Astep,
 		Data& B, double Bmin, double Bstep, double undef, bool check_boundaries)
 {
@@ -3460,7 +3468,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
                     if (x<0) x=0;
                     if (y<0) y=0;
                     if (x>twx) x=twx;
-		    if (y>twx) y=twy;
+		    if (y>twy) y=twy;
 		    try
 		    {
            		if (x == twx )
@@ -3540,6 +3548,245 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 			#pragma omp critical	// Doco says there is a flush associated with critical
 			{
 			    haserror=true;	// We only care that one error is recorded. We don't care which 
+			    error=lerror;	// one
+			}		
+		}
+	    }  // if (!haserror)
+	}	// parallel for
+     } // !error
+#ifdef ESYS_MPI
+     int rerror=0;
+     MPI_Allreduce( &error, &rerror, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+     error=rerror;
+#endif
+     if (error)
+     {
+	switch (error)
+	{
+			case 1: throw DataException("Value below lower table range.");
+			case 2: throw DataException("Interpolated value too large");
+			case 4: throw DataException("Value greater than upper table range.");
+	                default:
+		              throw DataException("Unknown error in interpolation");		
+	}
+     }
+     return res;
+}
+
+Data
+Data::interpolateFromTable3D(const WrappedArray& table, double Amin, double Astep,
+                       double undef, Data& B, double Bmin, double Bstep, Data& C, 
+			double Cmin, double Cstep, bool check_boundaries)
+{
+    table.convertArray();		// critical!   Calling getElt on an unconverted array is not thread safe
+    int error=0;
+    if ((getDataPointRank()!=0) || (B.getDataPointRank()!=0) || (C.getDataPointRank()!=0))
+    {
+        throw DataException("Inputs to 3D interpolation must be scalar");
+    }
+    if (table.getRank()!=3)
+    {
+	throw DataException("Table for 3D interpolation must be 3D");
+    }
+    if ((Astep<=0) || (Bstep<=0) || (Cstep<=0))
+    {
+	throw DataException("All step components must be strictly positive.");
+    }
+    if (getFunctionSpace()!=B.getFunctionSpace())
+    {
+	Data n=B.interpolate(getFunctionSpace());
+	return interpolateFromTable3D(table, Amin, Astep, undef, 
+		n , Bmin, Bstep, C, Cmin, Cstep, check_boundaries);
+    }
+    if (getFunctionSpace()!=C.getFunctionSpace())
+    {
+	Data n=C.interpolate(getFunctionSpace());
+	return interpolateFromTable3D(table, Amin, Astep, undef, 
+		B , Bmin, Bstep, n, Cmin, Cstep, check_boundaries);
+    }
+
+    if (!isExpanded())
+    {
+	expand();
+    }
+    if (!B.isExpanded())
+    {
+	B.expand();
+    }
+    if (!C.isExpanded())
+    {
+	C.expand();
+    }
+
+    Data res(0, DataTypes::scalarShape, getFunctionSpace(), true);
+
+    int numpts=getNumDataPoints();
+    const DataVector* adat=0;
+    const DataVector* bdat=0;
+    const DataVector* cdat=0;
+    DataVector* rdat=0;
+    const DataTypes::ShapeType& ts=table.getShape();
+    try
+    {
+	adat=&(getReady()->getVectorRO());
+	bdat=&(B.getReady()->getVectorRO());
+	cdat=&(C.getReady()->getVectorRO());
+	rdat=&(res.getReady()->getVectorRW());
+    }
+    catch (DataException e)
+    {
+	error=3;
+    }
+    if (!error)
+    {
+	int twx=ts[0]-1;	// table width x
+	int twy=ts[1]-1;	// table width y
+	int twz=ts[2]-1;	// table width z
+	bool haserror=false;
+	int l=0;
+	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat) schedule(static) 
+	for (l=0; l<numpts; ++l)
+	{
+	   #pragma omp flush(haserror)		// In case haserror was in register
+	   if (!haserror)		
+	   {
+		int lerror=0;
+		double a=(*adat)[l];
+		double b=(*bdat)[l];
+		double c=(*cdat)[l];
+		int x=static_cast<int>(((a-Amin)/Astep));
+		int y=static_cast<int>(((b-Bmin)/Bstep));
+		int z=static_cast<int>(((c-Cmin)/Cstep));
+                if (check_boundaries)
+		{
+			    if ( (a<Amin) || (b<Bmin) || (c<Cmin)|| (x<0) || (y<0) || (z<0))
+			    {
+				lerror=1;
+			    }
+			    else if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) || (c>Cmin+Cstep*twz))
+			    {
+				lerror=4;
+			    }
+                } 
+		if (lerror==0)
+		{
+                    if (x<0) x=0;
+                    if (y<0) y=0;
+                    if (z<0) z=0;
+
+                    if (x>twx) x=twx;
+		    if (y>twy) y=twy;
+		    if (z>twz) z=twz;
+		    try
+		    {
+			int nx=x+1;
+			int ny=y+1;
+			int nz=z+1;
+			double la=0;	/* map position of a between x and nx to [-1,1] */
+			double lb=0;
+			double lc=0;
+			double weight=8;
+
+			// now we work out which terms we should be considering
+			bool usex=(x!=twx);
+			bool usey=(y!=twy);
+			bool usez=(z!=twz);
+// 			if (usex) {weight/=2;}
+// 			if (usey) {weight/=2;}
+// 			if (usez) {weight/=2;}
+
+			la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+			lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
+			lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
+
+/*
+cerr << "Processing point " << l << " x=";
+cerr <<  x << "," << nx << " ";
+cerr <<  "y=" << y << "," << ny << " ";
+cerr <<  "z=" << z << "," << nz << "\n";
+
+cerr << "  usex=" << usex << "  usey=" << usey << "  usez=" << usez << endl;*/
+
+// 			double swb=table.getElt(x,y,z);
+// 			double swt=usez?table.getElt(x,y,nz):0;
+// 			double nwb=usey?table.getElt(x,ny,z):0;
+// 			double nwt=(usey&&usez)?table.getElt(x,ny,nz):0;
+// 			double seb=usex?table.getElt(nx,y,z):0;
+// 			double set=(usex&&usez)?table.getElt(nx,y,nz):0;
+// 			double neb=(usex&&usey)?table.getElt(nx,ny,z):0;
+// 			double net=(usex&&usey&&usez)?table.getElt(nx,ny,nz):0;
+
+			double swb=table.getElt(z,y,x);
+			double swt=usez?table.getElt(nz,y,x):0;
+			double nwb=usey?table.getElt(z,ny,x):0;
+			double nwt=(usey&&usez)?table.getElt(nz,ny,x):0;
+			double seb=usex?table.getElt(z,y,nx):0;
+			double set=(usex&&usez)?table.getElt(nz,y,nx):0;
+			double neb=(usex&&usey)?table.getElt(z,ny,nx):0;
+			double net=(usex&&usey&&usez)?table.getElt(nz,ny,nx):0;
+
+// cerr << "     +(0,1,0) " << table.getElt(0,1,0) << endl;
+// cerr << "     +(1,1,0) " << table.getElt(1,1,0) << endl;
+// cerr << "     +(0,0,1) " << table.getElt(0,0,1) << endl;
+// cerr << "     +(0,1,1) " << table.getElt(0,1,1) << endl;
+
+
+// cerr << "    " << swb << ", " << swt << ", ";
+// cerr << nwb << ", " << nwt << ", ";
+// cerr << seb << ", " << set << ", ";
+// cerr << neb << ", " << net << "\n";
+// 
+// cerr << "       la=" << la << " lb=" << lb << " lc="<< lc << endl;
+
+/*			double la = 2.0*(a-Amin-(x*Astep))/Astep-1;*/
+/*			double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;*/
+// 			double lc = 2.0*(c-Cmin-(z*Cstep))/Cstep-1;
+
+// cerr << "        swb=" << swb << endl;
+// cerr << "        swt=" << swt << endl;
+// cerr << "        nwb=" <<	nwb << endl;
+// cerr << "        nwt=" <<	nwt << endl;
+// cerr << "        seb=" <<	seb << endl;
+// cerr << "        set=" <<	set << endl;
+// cerr << "        neb=" <<	neb << endl;
+// cerr << "        net=" <<	net << endl;;
+// 
+// cerr << "      swb->" << (1-la)*(1-lb)*(1-lc)*swb << endl;
+// cerr << "      swt->" <<  (1-la)*(1-lb)*(1+lc)*swt << endl;
+// cerr << "      nwb->" <<				   (1-la)*(1+lb)*(1-lc)*nwb << endl;
+// cerr << "      nwt->" <<				   (1-la)*(1+lb)*(1+lc)*nwt << endl;
+// cerr << "      seb->" <<				   (1+la)*(1-lb)*(1-lc)*seb << endl;
+// cerr << "      set->" <<				   (1+la)*(1-lb)*(1+lc)*set << endl;
+// cerr << "      neb->" <<				   (1+la)*(1+lb)*(1-lc)*neb << endl;
+// cerr << "      net->" <<				   (1+la)*(1+lb)*(1+lc)*net << endl;;
+
+
+			double ans=(1-la)*(1-lb)*(1-lc)*swb +
+				   (1-la)*(1-lb)*(1+lc)*swt +
+				   (1-la)*(1+lb)*(1-lc)*nwb +
+				   (1-la)*(1+lb)*(1+lc)*nwt +
+				   (1+la)*(1-lb)*(1-lc)*seb +
+				   (1+la)*(1-lb)*(1+lc)*set +
+				   (1+la)*(1+lb)*(1-lc)*neb +
+				   (1+la)*(1+lb)*(1+lc)*net;
+			ans/=weight;
+			(*rdat)[l]=ans;
+			// this code does not check to see if any of the points used in the interpolation are undef
+			if (ans>undef)
+			{
+			    lerror=2;
+			}
+		    }
+		    catch (DataException d)
+		    {
+			lerror=3;
+		    }
+		}
+		if (lerror!=0)
+		{
+			#pragma omp critical	// Doco says there is a flush associated with critical
+			{
+// 			    haserror=true;	// We only care that one error is recorded. We don't care which 
 			    error=lerror;	// one
 			}		
 		}
