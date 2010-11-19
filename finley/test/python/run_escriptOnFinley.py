@@ -23,7 +23,7 @@ import unittest
 import tempfile
 
 from esys.escript import *
-from esys.finley import Rectangle
+from esys.finley import Rectangle, Brick
 import sys
 import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
@@ -125,7 +125,7 @@ class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax,
 
 class Test_TableInterpolationOnFinley(Test_TableInterpolation):
     def setUp(self):
-	self.domain=Rectangle(4,4)
+	self.domain=Brick(4,4,4)
 	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
 	    FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
@@ -133,6 +133,7 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
 	    #We aren't testing DiracDeltaFunction
 	self.xn=3	# number of grids on x axis
 	self.yn=3	# number of grids on y axis
+	self.zn=3	# number of grids on z axis
 
     def tearDown(self):
 	del self.domain

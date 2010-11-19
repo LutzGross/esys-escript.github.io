@@ -94,6 +94,44 @@ def insertTaggedValues(target,**kwargs):
         target.setTaggedValue(k,kwargs[k])
     return target
 
+
+def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
+    try:
+	dim=len(start)
+    except TypeError:
+	start=(start,)
+	dim=1
+    try:
+	slen=len(step)
+    except TypeError:
+	step=(step,)
+	slen=1
+    if dim<1 or dim>3:
+	raise ValueError("Length of start list must be between 1 and 3.")
+    if dim!=slen:
+	raise ValueError("Length of start and step must be the same.")
+    dshape=dat.getShape()
+    if len(dshape)==0:
+	datdim=0
+	firstdim=dat
+    else:
+	datdim=dshape[0]
+	firstdim=dat[0]
+    #So now we know firstdim is a scalar
+    if (dim==1 and datdim>1) or (dim>1 and datdim!=dim):
+	print dim, datdim
+	raise ValueError("The dimension of dat must be equal to the length of start.")
+    if dim==3:
+	d1=dat[1]
+	d2=dat[2]
+	return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
+    if dim==2:
+	d1=dat[1]
+	return d1.interpolateTable(tab, start[0], step[0], firstdim, start[1], step[1], undef, check_boundaries)
+    else:
+	return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
+
+
 def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     """
     Writes `Data` objects to a csv file.

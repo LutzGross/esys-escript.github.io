@@ -48,7 +48,7 @@ maxval=1
 
 step=sup(maxval-minval)/numslices	#The width of the gap between entries in the table
 
-result=x0.interpolateTable(sine_table, minval, step, toobig)
+result=interpolateTable(sine_table, x0, minval, step, toobig)
 
 #Now we save the input and output for comparison
 
@@ -64,7 +64,6 @@ st=numpy.array(sine_table)
 
 table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
 
-##note that we call the interpolate table method on the object
-##which corresponds to the outer dimension of the table
-result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, 500)
+#The y dimension should be the outer the dimension of the table
+result2=interpolateTable(table, x (minval,0), (0.55, step), toobig)
 saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)

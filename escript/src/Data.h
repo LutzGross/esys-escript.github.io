@@ -766,6 +766,11 @@ If false, the result is a list of scalars [1, 2, ...]
   Data
   interpolate(const FunctionSpace& functionspace) const;
 
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable3D(const WrappedArray& table, double Amin, double Astep,
+                       double undef, Data& B, double Bmin, double Bstep, Data& C, 
+			double Cmin, double Cstep, bool check_boundaries);
 
   ESCRIPT_DLL_API
   Data
@@ -778,6 +783,10 @@ If false, the result is a list of scalars [1, 2, ...]
                        double undef,bool check_boundaries);
 
 
+  ESCRIPT_DLL_API
+  Data
+  interpolateFromTable3DP(boost::python::object table, double Amin, double Astep,
+                        Data& B, double Bmin, double Bstep, Data& C, double Cmin, double Cstep, double undef,bool check_boundaries);
 
 
   ESCRIPT_DLL_API

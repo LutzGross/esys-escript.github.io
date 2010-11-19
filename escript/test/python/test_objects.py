@@ -94,6 +94,45 @@ class Test_TableInterpolation(unittest.TestCase):
 	    self.failUnlessRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 
 
+    def test_FunctionSpace3D(self):
+	vs=[(1,3,5,7,11,13,17,19), (-1,1,-1,1,-1,1,-1,1), (0.5, 17, 0.25, 42, 0.125, 35, 0.625, 49)]   #There is no particular significance to these numbers
+	for fs in self.functionspaces:
+	    points=fs.getX()
+	    for t in vs:
+		v0, v1, v2, v3, v4, v5, v6, v7 =t
+		x=points[0]
+		y=points[1]
+		z=points[2]
+		xmax=sup(x)
+		xmin=inf(x)
+		ymax=sup(y)
+		ymin=inf(y)
+		zmax=sup(z)
+		zmin=inf(z)
+		xwidth=(xmax-xmin)/(self.xn-1)
+		ywidth=(ymax-ymin)/(self.yn-1)
+		zwidth=(zmax-zmin)/(self.zn-1)		
+		table=[]
+		for k in xrange(self.zn):
+		    face=[]
+		    for j in xrange(self.yn):
+			row=[]
+			for i in xrange(self.xn):
+				row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
+			face.append(row)
+		    table.append(face)
+	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin)
+		lsupref=Lsup(ref)
+		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
+		    res=interpolateTable(table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth),900)
+	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+		    # Test undef
+		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth), -1)
+		    # Test bounds checking
+		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, zwidth), 900,True)
+		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, zwidth), 900, True)
+		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth/3), 900, True)
+
     def test_FunctionSpace2D(self):
 	vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
 	for fs in self.functionspaces:
@@ -119,6 +158,10 @@ class Test_TableInterpolation(unittest.TestCase):
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
 	    	    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
 	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+		    #Now we try for the new interface
+		    res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
+		    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+		    
 	    
 
     def test_FunctionSpace1D(self):
@@ -139,6 +182,11 @@ class Test_TableInterpolation(unittest.TestCase):
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
 		   res=x.interpolateTable(table, xmin, xwidth,500)
 		   self.failUnless(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
+		   #Now we try for the new interface
+		   res=interpolateTable(table,points[0:1], (xmin,), (xwidth, ),500)
+		   self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+		   res=interpolateTable(table,points[0:1], xmin, xwidth,500)
+		   self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
 
 class Test_saveCSV(unittest.TestCase):
 

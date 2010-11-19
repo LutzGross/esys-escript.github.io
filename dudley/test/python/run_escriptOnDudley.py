@@ -23,7 +23,7 @@ import unittest
 import tempfile
 
 from esys.escript import *
-from esys.dudley import Rectangle
+from esys.dudley import Rectangle, Brick
 import sys
 import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
@@ -105,12 +105,13 @@ class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax,
 
 class Test_TableInterpolationOnDudley(Test_TableInterpolation):
     def setUp(self):
-	self.domain=Rectangle(4,4)
+	self.domain=Brick(4,4,4)
 	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
 	    #We aren't testing DiracDeltaFunction
-	self.xn=3	# number of grids on x axis
-	self.yn=3	# number of grids on y axis
+	self.xn=5	# number of grids on x axis
+	self.yn=5	# number of grids on y axis
+	self.zn=5
 
     def tearDown(self):
 	del self.domain
@@ -159,10 +160,11 @@ class Test_CSVOnDudley(Test_saveCSV):
 	
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   #suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
+   suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
+   # These two assume macro elements are supported
    #suite.addTest(unittest.makeSuite(Test_DataOpsOnDudley))
    #suite.addTest(unittest.makeSuite(Test_DomainOnDudley))
-   #suite.addTest(unittest.makeSuite(Test_TableInterpolationOnDudley))
+   suite.addTest(unittest.makeSuite(Test_TableInterpolationOnDudley))
    suite.addTest(unittest.makeSuite(Test_CSVOnDudley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
