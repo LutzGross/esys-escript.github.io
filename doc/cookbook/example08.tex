@@ -35,13 +35,14 @@ waves, $\mu$ is the propagation materials shear modulus.
 In a similar process to the previous chapter, we will use the acceleration
 solution to solve this PDE. By substituting $a$ directly for
 $\frac{\partial^{2}u_{i}}{\partial t^2}$ we can derive the
-displacement solution. Using $a$ we can see that \autoref{eqn:wav} becomes
+acceleration solution. Using $a$ we can see that \autoref{eqn:wav} becomes
 \begin{equation} \label{eqn:wava} 
 \rho a_{i} - \frac{\partial
 \sigma_{ij}}{\partial x_{j}} = 0
 \end{equation}
 Thus the problem will be solved for acceleration and then converted to 
-displacement using the backwards difference approximation.
+displacement using the backwards difference approximation as for the acoustic
+example in the previous chapter.
 
 Consider now the stress $\sigma$. One can see that the stress consists of two
 distinct terms:
@@ -58,7 +59,7 @@ trace of the displacement solution and that $\delta_{ij}$ is the
 kronecker delta function with dimensions equivalent to $u$. The second term
 \autoref{eqn:sigtrans} is the sum of $u$ with its own transpose. Putting these
 facts together we see that the spatial differential of the stress is given by the
-gradient of $u$ and the aforementioned opperations. This value is then submitted
+gradient of $u$ and the aforementioned operations. This value is then submitted
 to the \esc PDE as $X$.
 \begin{python}
 g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
@@ -68,7 +69,7 @@ The solution is then obtained via the usual method and the displacement is
 calculated so that the memory variables can be updated for the next time
 iteration.
 \begin{python}
-accel = mypde.getSolution() #get PDE solution for accelleration
+accel = mypde.getSolution() #get PDE solution for acceleration
 u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement
 u_m1=u; u=u_p1 # shift values by 1
 \end{python}
@@ -98,18 +99,18 @@ then \verb!t! the solution is saved and \verb!rtime! is incremented. This
 limits the number of outputs and increases the speed of the solver.
 
 \section{Multi-threading}
-The wave equation solution can be quite demanding on cpu time. Enhancements can
+The wave equation solution can be quite demanding on CPU time. Enhancements can
 be made by accessing multiple threads or cores on your computer. This does not
 require any modification to the solution script and only comes into play when
-escript is called from the shell. To use multiple threads \esc is called using
-the \verb!-t! option with an interger argument for the number of threads
+\esc is called from the shell. To use multiple threads \esc is called using
+the \verb!-t! option with an integer argument for the number of threads
 required. For example
 \begin{verbatim}
 $escript -t 4 example08a.py
 \end{verbatim}
 would call the script in this section and solve it using 4 threads.
 
-The computation times on an increasing number of cores is outlines in
+The computation times on an increasing number of cores is outlined in
 \autoref{tab:wpcores}.
 
 \begin{table}[ht]
@@ -135,8 +136,8 @@ Number of Cores & Time (s) \\
 \section{Vector source on the boundary}
 \sslist{example08b.py}
 For this particular example, we will introduce the source by applying a
-displacment to the boundary during the initial time steps. The source will again
-be
+displacement to the boundary during the initial time steps. The source will
+again be
 a radially propagating wave but due to the vector nature of the PDE used, a
 direction will need to be applied to the source.
 
@@ -159,9 +160,9 @@ y=y*src_dir
 \end{python}
 where \verb xc  is the source point on the boundary of the model. Note that
 because the source is specifically located on the boundary, we have used the
-\verb!FunctionOnBoundary! call to ensure the nodes are located upon the
-boundary only. These boundary nodes are passed to source as \verb!xb!. The
-source direction is then defined as an $(x,y)$ array and multiplied by the 
+\verb!FunctionOnBoundary! call to ensure the nodes used to define the source
+are also located upon the boundary. These boundary nodes are passed to
+source as \verb!xb!. The source direction is then defined as an $(x,y)$ array and multiplied by the 
 source function. The directional array must have a magnitude of $\left| 1
 \right| $ otherwise the amplitude of the source will become modified. For this
 example, the source is directed in the $-y$ direction.
@@ -221,7 +222,7 @@ frequency range and thus mitigate aliasing in the solution.
 It is quite 
 simple to implement a source which is smooth in time. In addition to the
 original source function the only extra requirement is a time function. For
-this example the time variant source will be the derivative of a gausian curve
+this example the time variant source will be the derivative of a Gaussian curve
 defined by the required dominant frequency (\autoref{fig:tvsource}).
 \begin{python}
 #Creating the time function of the source.
@@ -264,7 +265,7 @@ u_m1=u
 \end{python}
 
 Finally, for the length of the source, we are required to update each new
-solution in the itterative section of the solver. This is done via;
+solution in the iterative section of the solver. This is done via;
 \begin{python}
 # increment loop values
 t=t+h; n=n+1
@@ -277,13 +278,15 @@ boundary
 
 \section{Absorbing Boundary Conditions}
 To mitigate the effect of the boundary on the model, absorbing boundary
-conditions can be introduced. These conditions effectively dampen the wave
-energy as they approach the bounday and thus prevent that energy from being
-reflected. This type of approach is used typically when a model only represents
-a small portion of the entire model, which in reality may have infinite bounds.
-It is inpractical to calculate the solution for an infinite model and thus ABCs
-allow us the create an approximate solution with small to zero boundary effects
-on a model with a solvable size. 
+conditions can be introduced. These conditions effectively dampen the wave energy
+as they approach the boundary and thus prevent that energy from being reflected.
+This type of approach is typically used when a model is shrunk to decrease
+computational requirements. In practise this applies to almost all models,
+especially in earth sciences where the entire planet or a large enough
+portional of it cannot be modelled efficiently when considering small scale
+problems. It is impractical to calculate the solution for an infinite model and thus ABCs allow
+us the create an approximate solution with small to zero boundary effects on a
+model with a solvable size.
 
 To dampen the waves, the method of \citet{Cerjan1985}
 where the solution and the stress are multiplied by a damping function defined
@@ -345,7 +348,7 @@ resulting boundary damping function can be viewed in
 For stiff problems like the wave equation it is often prudent to implement
 second order meshing. This creates a more accurate mesh approximation with some
 increased processing cost. To turn second order meshing on, the \verb!rectangle!
-function accpets an \verb!order! keyword argument.
+function accepts an \verb!order! keyword argument.
 \begin{python}
 domain=Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy,order=2) # create the domain
 \end{python}
@@ -389,9 +392,8 @@ the mesh by half.
 \section{Pycad example}
 \sslist{example08c.py}
 To make the problem more interesting we will now introduce an interface to the
-middle of the domain. Infact we will use the same domain as we did for heat flux
-in \autoref{CHAP HEAT 2}. The domain contains a syncline with two set of
-material properties on either side of the interface.
+middle of the domain. In fact we will use the same domain as we did fora
+different set of material properties on either side of the interface.
 
 \begin{figure}[ht]
 \begin{center}
@@ -415,14 +417,15 @@ rho=Scalar(0,Function(domain))
 rho.setTaggedValue("top",rho1)
 rho.setTaggedValue("bottom",rho2)
 \end{python}
-Don't forget that teh source boudnary must also be tagged and added so it can be
-referenced 
+Don't forget that the source boundary must also be tagged and added so it can
+be referenced 
 \begin{python}
 # Add the subdomains and flux boundaries.
 d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
                                      PropertySet("linetop",l30))
 \end{python}
-It is now possible to solve the script as in the previous examples.
+It is now possible to solve the script as in the previous examples
+(\autoref{fig:ex08cres}).
 
 \begin{figure}[ht]
 \centering

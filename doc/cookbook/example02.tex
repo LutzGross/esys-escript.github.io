@@ -14,13 +14,7 @@
 
 \section{Example 2: One Dimensional Heat Diffusion in an Iron Rod}
 \sslist{example02.py}
-
 \label{Sec:1DHDv0}
-\begin{figure}[ht]
-\centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
-\caption{Example 2: One dimensional model of an Iron bar}
-\label{fig:onedhdmodel}
-\end{figure}
 
 Our second example is of a cold iron bar at a constant temperature of
 $T_{ref}=20^{\circ} C$, see \reffig{fig:onedhdmodel}. The bar is
@@ -28,6 +22,12 @@ perfectly insulated on all sides with a heating element at one end keeping the
 temperature at a constant level $T_0=100^{\circ} C$.  As heat is
 applied energy will disperse along the bar via conduction. With time the bar
 will reach a constant temperature equivalent to that of the heat source.
+
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/onedheatdiff002}}
+\caption{Example 2: One dimensional model of an Iron bar}
+\label{fig:onedhdmodel}
+\end{figure}
 
 This problem is very similar to the example of temperature diffusion in granite
 blocks presented in the previous Section~\ref{Sec:1DHDv00}. Thus, it is possible
@@ -111,25 +111,6 @@ prescribed on the same location as any Neumann boundary condition, the Neumann
 boundary condition will be \textbf{overwritten}. This applies to Neumann
 boundary conditions that \esc sets by default and those defined by the user.
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=4in]{figures/ttrodpyplot150}
-\caption{Example 2: Total Energy in the Iron Rod over Time (in seconds)}
-\label{fig:onedheatout1 002} 
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=4in]{figures/rodpyplot001}
-\includegraphics[width=4in]{figures/rodpyplot050}
-\includegraphics[width=4in]{figures/rodpyplot200}
-\caption{Example 2: Temperature ($T$) distribution in the iron rod at time steps
-$1$, $50$ and $200$}
-\label{fig:onedheatout 002} 
-\end{center}
-\end{figure}
-
 Besides some cosmetic modification this is all we need to change. The total
 energy over time is shown in \reffig{fig:onedheatout1 002}. As heat
 is transferred into the rod by the heater the total energy is growing over time
@@ -144,6 +125,24 @@ time scale for a diffusion problem is given by the formula $\frac{\rho
 c_{p} L_{0}^2}{4 \kappa}$, see
 \url{http://en.wikipedia.org/wiki/Fick\%27s_laws_of_diffusion}}.
 
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=4in]{figures/ttrodpyplot150}
+\caption{Example 2: Total Energy in the Iron Rod over Time (in seconds)}
+\label{fig:onedheatout1 002} 
+\end{center}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=4in]{figures/rodpyplot001}
+\includegraphics[width=4in]{figures/rodpyplot050}
+\includegraphics[width=4in]{figures/rodpyplot200}
+\caption{Example 2: Temperature ($T$) distribution in the iron rod at time steps
+$1$, $50$ and $200$}
+\label{fig:onedheatout 002} 
+\end{center}
+\end{figure}
 
 \section{For the Reader}
 \begin{enumerate}

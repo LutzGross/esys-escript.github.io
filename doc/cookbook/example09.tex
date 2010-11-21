@@ -20,12 +20,12 @@ remember  so that the model will function correctly.
   \item There must be no duplication of any geometric features whether they are
   points, lines, loops, surfaces or volumes.
   \item All objects with dimensions greater then a line have a normal defined by
-  the right hand rull (RHR). It is important to consider which direction a
-  normal is oriented when combining primatives to form higher order shapes.
+  the right hand rule (RHR). It is important to consider which direction a
+  normal is oriented when combining primitives to form higher order shapes.
 \end{itemize}
 
 The first step as always is to import the external modules. To build a 3D model
-and mesh we will need pycad, some GMesh interfaces, the finley domain builder
+and mesh we will need pycad, some GMesh interfaces, the Finley domain builder
 and some additional tools.
 \begin{python}
 #######################################################EXTERNAL MODULES
@@ -49,7 +49,7 @@ depth=500.0*m   #depth of model
 intf=depth/2.   #Depth of the interface.
 \end{python}
 We now start to specify the components of our model starting with the vertexes
-using the \verb!Point! primative. These are then joined by lines in a regular
+using the \verb!Point! primitive. These are then joined by lines in a regular
 manner taking note of the right hand rule. Finally, the lines are turned into
 loops and then planar surfaces.
 \footnote{Some code has been emmitted here for
@@ -81,7 +81,7 @@ linte_ar.append(Line(p0,ip0))
 linhe_ar.append(Line(ip3,ip0))
 \end{python}
 Consider now the sides of the domain. One could specify the whole side using the
-points first defined for the top and bottom layer. This would specify the whole
+points first defined for the top and bottom layer. This would define the whole
 domain as one volume. However, there is an interface and we wish to define each
 layer individually. Therefore, there will be 8 surfaces on the sides of our
 domain. We can do this operation quite simply using the points and lines that we
@@ -114,7 +114,7 @@ vintfb=Volume(SurfaceLoop(sbot,sintf,*tuple(sintfb_ar)))
 #model=Volume(sloop)
 \end{python}
 The final steps are designing the mesh, tagging the volumes and the interface
-and outputting the data to file so it can be imported by an \esc sollution
+and outputting the data to file so it can be imported by an \esc solution
 script.
 \begin{python}
 #############################################EXPORTING MESH FOR ESCRIPT
@@ -156,16 +156,16 @@ domain.write(os.path.join(save_path,"example09m.fly"))
 
 \section{Layer Cake Models}
 Whilst this type of model seems simple enough to construct for two layers,
-specifying multiple layers can become combersome. A function exists to generate
+specifying multiple layers can become cumbersome. A function exists to generate
 layer cake models called \verb!layer_cake!. A detailed description of its
 arguments and returns is available in the API and the function can be imported
-from pycad.
+from the pycad.extras module.
 \begin{python}
-from esys.pycad import layer_cake
+from esys.pycad.extras import layer_cake
 intfaces=[10,30,50,55,80,100,200,250,400,500]
 
 domaindes=Design(dim=3,element_size=element_size,order=2)
-cmplx_domain=layer_cake.LayerCake(domaindes,xwidth,ywidth,intfaces)
+cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
 cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
 cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
 dcmplx=MakeDomain(cmplx_domain)
@@ -183,10 +183,10 @@ dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 \section{Troubleshooting Pycad}
 There are some techniques which can be useful when trying to troubleshoot
 problems with pycad. As mentioned earlier it is important to ensure the correct
-directionality of your primatives when constructing more complicated domains. If
-one cannot establist the tangent of a line or curveloop, or the normal of a
-surface. These values can be checked by importing the geometry to gmesh and
-applying the appropriate options.
+directionality of your primitives when constructing more complicated domains. If
+it remains too difficult to establish the tangent of a line or curveloop, or
+the normal of a surface, these values can be checked by importing the geometry
+to gmesh and applying the appropriate visualisation options.
 
 \section{3D Seismic Wave Propagation}
 Adding an extra dimension to our wave equation solution script should be
@@ -197,7 +197,7 @@ modified to make the solution appropriate for 3d modelling.
 \section{Applying a function to a domain tag}
 \sslist{example09b.py}
 To apply a function or data object to a domain requires a two step process. The
-first step is to create a data object with a on/off mask based upon the tagged
+first step is to create a data object with an on/off mask based upon the tagged
 value. This is quite simple and can be achieved by using a scalar data object
 based upon the domain. In this case we are using the \verb!FunctionOnBoundary!
 function space because the tagged value \verb!'stop'! is effectively a specific
