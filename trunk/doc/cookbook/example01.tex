@@ -11,18 +11,11 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[h!]
-\centerline{\includegraphics[width=4.in]{figures/onedheatdiff001}}
-\caption{Example 1: Temperature differential along a single interface between
-two granite blocks.}
-\label{fig:onedgbmodel}
-\end{figure}
-
 \section{Example 1: One Dimensional Heat Diffusion in Granite}
 \label{Sec:1DHDv00}
 
 The first model consists of two blocks of isotropic material, for instance
-granite, sitting next to each other.
+granite, sitting next to each other (\autoref{fig:onedgbmodel}).
 Initial temperature in \textit{Block 1} is \verb|T1| and in \textit{Block 2} is
 \verb|T2|.
 We assume that the system is insulated.
@@ -30,6 +23,13 @@ What would happen to the temperature distribution in each block over time?
 Intuition tells us that heat will be transported from the hotter block to the
 cooler one until both
 blocks have the same temperature.
+
+\begin{figure}[ht]
+\centerline{\includegraphics[width=4.in]{figures/onedheatdiff001}}
+\caption{Example 1: Temperature differential along a single interface between
+two granite blocks.}
+\label{fig:onedgbmodel}
+\end{figure}
 
 \subsection{1D Heat Diffusion Equation}
 We can model the heat distribution of this problem over time using the one
@@ -668,7 +668,7 @@ The last statement generates the plot and writes the result into the file
 As expected the total energy is constant over time, see
 \reffig{fig:onedheatout1}.
 
-\begin{figure}
+\begin{figure}[ht]
 \begin{center}
 \includegraphics[width=4in]{figures/ttblockspyplot150}
 \caption{Example 1b: Total Energy in the Blocks over Time (in seconds)}
@@ -723,6 +723,7 @@ want to substitute a value into the name;
 and
  \item \verb d  means that the value to substitute will be a decimal integer.
 \end{itemize}
+
 To actually substitute the value of \verb|i| into the name write \verb|%i| after
 the string.
 When done correctly, the output files from this command will be placed in the
