@@ -55,7 +55,7 @@ def createDataset(domain=None, **data):
     dataset=EscriptDataset()
     domain,new_data=interpolateEscriptData(domain, data)
     dataset.setDomain(domain)
-    for n,d in new_data.items():
+    for n,d in sorted(new_data.iteritems()):
         #TODO: data units are not supported here yet
         dataset.addData(d, n, "")
     return dataset
