@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 # This example demonstrates both interpolation and saving data in CSV format
 
-from esys.escript import saveDataCSV, sup
+from esys.escript import saveDataCSV, sup, interpolateTable
 import numpy
 from esys.finley import Rectangle
 
@@ -65,5 +65,5 @@ st=numpy.array(sine_table)
 table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
 
 #The y dimension should be the outer the dimension of the table
-result2=interpolateTable(table, x (minval,0), (0.55, step), toobig)
+result2=interpolateTable(table, x, (minval,0), (0.55, step), toobig)
 saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)
