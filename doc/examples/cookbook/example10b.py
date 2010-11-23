@@ -44,14 +44,14 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.
-mx = 500*m #meters - model length
-my = 500*m #meters - model width
-mz = -500*m
-ndx = 50 # mesh steps in x direction 
-ndy = 50 # mesh steps in y direction - one dimension means one element
-ndz = 50
+mx = 2000*m #meters - model length
+my = 2000*m #meters - model width
+mz = -2000*m
+ndx = 100 # mesh steps in x direction 
+ndy = 100 # mesh steps in y direction - one dimension means one element
+ndz = 100
 #PDE related
-rho=1000.0
+rho=100.0
 rholoc=[0,0,-0]
 G=6.67300*10E-11
 

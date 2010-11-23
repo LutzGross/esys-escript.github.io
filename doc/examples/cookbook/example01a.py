@@ -42,13 +42,14 @@ ndx = 100 # mesh steps in x direction
 ndy = 1 # mesh steps in y direction - one dimension means one element
 boundloc = mx/2 # location of boundary between the two blocks
 #PDE related
-rho = 7874. *kg/m**3 #kg/m^{3} density of iron
-cp = 449.*J/(kg*K) # J/Kg.K thermal capacity
-rhocp = rho*cp 
-kappa = 80.*W/m/K   # watts/m.Kthermal conductivity
-qH=0 * J/(sec*m**3) # J/(sec.m^{3}) no heat source
+rho = 2750. *kg/m**3 #kg/m{3} density of iron
+cp = 790.*J/(kg*K) # J/Kg.K thermal capacity
+rhocp = rho*cp
+kappa = 2.2*W/m/K # watts/m.Kthermal conductivity
+qH=0 * J/(sec*m**3) # J/(sec.m{3}) no heat source
 T1=20 * Celsius # initial temperature at Block 1
-T2=2273. * Celsius # initial temperature at Block 2
+T2=2273. * Celsius # base temperature at Block 2
+
 
 ################################################ESTABLISHING PARAMETERS
 t=0 * day  # our start time, usually zero
