@@ -111,6 +111,8 @@ while t<tend:
       pl.plot(plx,tempT) #plot solution
       # add title
       pl.axis([0,mx,Tref*.9,T0*1.1])
+      pl.ylabel('Temperature (K)')
+      pl.xlabel("Length (m)")
       pl.title("Temperature across rod at time %e hours"%(t/hour))
       #save figure to file
       pl.savefig(os.path.join(save_path,"tempT", "rodpyplot%03d.png"%i))
@@ -121,6 +123,8 @@ while t<tend:
 pl.figure(2)
 pl.plot(t_list,E_list)
 pl.title("Total Energy")
+pl.ylabel('Energy (W)')
+pl.xlabel('Time (s)')
 # pl.axis([0,max(t_list),0,max(E_list)*1.1])
 pl.savefig(os.path.join(save_path,"totE.png"))
 pl.clf()
