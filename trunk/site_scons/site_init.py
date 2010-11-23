@@ -80,7 +80,7 @@ def runUnitTest(target, source, env):
   app = str(source[0].abspath)
   pn, sn= os.path.split(app)
   if not os.name== "nt":
-     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -bv "+os.path.join('.',sn)
+     app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -bv "+os.path.join('.',sn)
   else:
       if env['usempi']:
           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
@@ -108,7 +108,7 @@ def runPyUnitTest(target, source, env):
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
-     app = "cd "+pn+"; "+os.path.join(env['bininstall'],"escript")+" -ov "+sn
+     app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -ov "+sn
    print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

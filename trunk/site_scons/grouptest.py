@@ -59,7 +59,7 @@ class GroupTest:
 	res=res+"\nexport LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n"
 	if build_platform=='darwin':
 		res=res+"export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH\n"
-	res=res+"\nexport OLD_PYTHON=`pwd`:$PYTHONPATH\nBINRUNNER=\"`pwd`/bin/escript -b $2\"\nPYTHONRUNNER=\"`pwd`/bin/escript $2\"\nBATCH_ROOT=`pwd`\n"
+	res=res+"\nexport OLD_PYTHON=`pwd`:$PYTHONPATH\nBINRUNNER=\"`pwd`/bin/run-escript -b $2\"\nPYTHONRUNNER=\"`pwd`/bin/run-escript $2\"\nBATCH_ROOT=`pwd`\n"
 	res=res+"BUILD_DIR=$1"+"/"+build_platform
 	res=res+"\nif [ ! -d $BUILD_DIR ]\nthen\n echo Can not find build directory $BUILD_DIR\n exit 2\nfi\n" 
 	#res=res+"if [ $# -lt 2 ]\nthen\n echo Usage: $0 bin_run_cmd python_run_cmd\n exit 2\nfi\n"
