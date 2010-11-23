@@ -266,7 +266,7 @@ class DataManager(object):
         from esys.weipa.weipacpp import EscriptDataset
         from esys.weipa import createDataset
 
-        ds = createDataset(self._domain, self._data)
+        ds = createDataset(self._domain, **self._data)
         ds.setCycleAndTime(self._N, self._time)
         ds.setMetadataSchemaString(self._md_schema, self._metadata)
         ds.setMeshLabels(self._meshlabels[0], self._meshlabels[1], self._meshlabels[2])
