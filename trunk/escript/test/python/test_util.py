@@ -91,7 +91,7 @@ class Test_util_no_tagged_data(Test_util_unary_no_tagged_data,Test_util_reductio
    """all tests without tagged data"""
    pass
 
-class Test_util(Test_util_unary,Test_util_reduction,Test_util_binary,Test_util_overloaded_binary, Test_util_table):
+class Test_util(Test_util_unary,Test_util_reduction,Test_util_binary,Test_util_overloaded_binary):
    """all tests"""
    pass
 
