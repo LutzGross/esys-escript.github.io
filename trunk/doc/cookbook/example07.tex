@@ -26,10 +26,10 @@ The acoustic wave equation is defined as;
 where $p$ is the pressure, $t$ is the time and $c$ is the wave velocity. In this
 chapter the acoustic wave equation is demonstrated. Important steps include the
 translation of the Laplacian $\nabla^2$ to the \esc general form, the stiff
-equation stability criterion and solving for the displacement of acceleration solution.
+equation stability criterion and solving for the displacement or acceleration solution.
 
 \section{The Laplacian in \esc}
-The Laplacian operator which can be written as $\Delta$ or $\nabla^2$  is
+The Laplacian operator which can be written as $\Delta$ or $\nabla^2$,  is
 calculated via the divergence of the gradient of the object, which in this
 example is the scalar $p$. Thus we can write;
 \begin{equation}
@@ -70,12 +70,12 @@ _{1}$ would return;
 \end{equation}
 
 \autoref{eqn:grad} corresponds to the Linear PDE general form value
-$X$. Notice however that the general form contains the term $X
+$X$. Notice however, that the general form contains the term $X
 _{i,j}$\footnote{This is the first derivative in the $j^{th}$
 direction for the $i^{th}$ component of the solution.},
 hence for a rank 0 object there is no need to do more then calculate the
 gradient and submit it to the solver. In the case of the rank 1 or greater
-object, it is necessary to calculate the trace also. This is the sum of the
+object, it is also necessary to calculate the trace. This is the sum of the
 diagonal in \autoref{eqn:gradrank1}. 
 
 Thus when solving for equations containing the Laplacian one of two things must
@@ -103,9 +103,9 @@ command will return the rank of the PDE object.
 \section{Numerical Solution Stability} \label{sec:nsstab}
 Unfortunately, the wave equation belongs to a class of equations called
 \textbf{stiff} PDEs. These types of equations can be difficult to solve
-numerically as they tend to oscillate about the exact solution which can
+numerically as they tend to oscillate about the exact solution, which can
 eventually lead to a catastrophic failure. To counter this problem, explicitly
-stable schemes like the backwards Euler method and correct parameterisation of
+stable schemes like the backwards Euler method, and correct parameterisation of
 the problem are required. 
 
 There are two variables which must be considered for
@@ -132,9 +132,9 @@ $f_{s}$, or;
 \end{equation}
 For example a 50Hz signal will require a sampling rate greater then 100Hz or
 one sample every 0.01 seconds. The wave equation relies on a spatial frequency,
-thus the sampling theorem in this case applies to the solution mesh spacing. In
-this way, the frequency content of the input signal directly affects the time
-discretisation of the problem.  
+thus the sampling theorem in this case applies to the solution mesh spacing.
+This relationship confirms that the frequency content of the input signal
+directly affects the time discretisation of the problem.
 
 To accurately model the wave equation with high resolutions and velocities
 means that very fine spatial and time discretisation is necessary for most
@@ -228,13 +228,13 @@ for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
 We then submit the output to \verb!Locator! and finally return the appropriate
 values using the \verb!getValue! function.
 \begin{python}
- src=Locator(mydomain,src_cut)
+src=Locator(mydomain,src_cut)
 src_cut=src.getValue(u)
 \end{python}
 It is then a trivial task to plot and save the output using \mpl
 (\autoref{fig:cxsource}).
 \begin{python}
- pl.plot(cut_loc,src_cut)
+pl.plot(cut_loc,src_cut)
 pl.axis([xc[0]-src_radius*3,xc[0]+src_radius*3,0.,2*U0])
 pl.savefig(os.path.join(savepath,"source_line.png"))
 \end{python}
@@ -272,9 +272,10 @@ the \verb!Locator! function.
 \section{Acceleration Solution}
 \sslist{example07b.py}
 
-An alternative method is to solve for the acceleration $\frac{\partial ^2
-p}{\partial t^2}$ directly, and derive the displacement solution from the
-PDE solution. \autoref{eqn:waveu} is thus modified;
+An alternative method to the displacement solution, is to solve for the
+acceleration $\frac{\partial ^2 p}{\partial t^2}$ directly. The displacement can
+then be derived from the acceleration after a solution has been calculated
+The acceleration is given by a modified form of \autoref{eqn:waveu};
 \begin{equation}
   \nabla ^2 p - \frac{1}{c^2} a = 0
 \label{eqn:wavea}
@@ -309,7 +310,7 @@ It is now prudent to investigate the stability limitations of this problem.
 First, we let the frequency content of the source be very small. If we define
 the source as a cosine input, then the wavlength of the input is equal to the
 radius of the source. Let this value be 5 meters. Now, if the maximum velocity
-of the model is $c=380.0ms^{-1}$ then the source
+of the model is $c=380.0ms^{-1}$, then the source
 frequency is $f_{r} = \frac{380.0}{5} = 76.0 Hz$. This is a worst case
 scenario with a small source and the models maximum velocity. 
 
@@ -340,31 +341,34 @@ the propagation requirement. For a maximum velocity of $380.0ms^{-1}$,
   \Delta t \leq \frac{1000.0m}{800} \frac{1}{380.0} = 0.0032s
  \end{equation}
 \end{subequations}
-We can see, that for each doubling of the number of nodes in the mesh, we halve
-the timestep. To illustrate the impact this has, consider our model. If the
+Observe that for each doubling of the number of nodes in the mesh, we halve
+the time step. To illustrate the impact this has, consider our model. If the
 source is placed at the center, it is $500m$ from the nearest boundary. With a
 velocity of $380.0ms^{-1}$ it will take $\approx1.3s$ for the wavefront to
 reach that boundary. In each case, this equates to $100$,  $200$ and $400$ time
 steps. This is again, only a best case scenario, for true stability these time
-values may need to be halved and possibly havled again.
+values may need to be halved and possibly halved again.
 
 \begin{figure}[ht]
 \centering
 \subfigure[Undersampled Example]{
-\includegraphics[width=3in]{figures/ex07usamp.png}
+\includegraphics[width=0.45\textwidth,trim=0cm 6cm 5cm 6cm
+,clip]{figures/ex07usamp.png}
 \label{fig:ex07usamp}
 }
 \subfigure[Just sampled Example]{
-\includegraphics[width=3in]{figures/ex07jsamp.png}
+\includegraphics[width=0.45\textwidth,trim=0cm 6cm 5cm 6cm
+,clip]{figures/ex07jsamp.png}
 \label{fig:ex07jsamp}
 }
 \subfigure[Over sampled Example]{
-\includegraphics[width=3in]{figures/ex07nsamp.png}
+\includegraphics[width=0.45\textwidth,trim=0cm 6cm 5cm 6cm
+,clip]{figures/ex07nsamp.png}
 \label{fig:ex07nsamp}
 }
-\label{fig:ex07sampth}
 \caption{Sampling Theorem example for stability
 investigation.}
+\label{fig:ex07sampth}
 \end{figure}
 
 

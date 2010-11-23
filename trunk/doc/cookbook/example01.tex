@@ -488,8 +488,8 @@ T2=2273. * Celsius # base temperature at Block 2
 Finally, to control our script we will have to specify our timing controls and
 where we would like to save the output from the solver. This is simple enough:
 \begin{python}
-t=0 * day  #our start time, usually zero
-tend=1. * day # - time to end simulation
+t=0 * day  # our start time, usually zero
+tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
@@ -787,17 +787,26 @@ following iteration.
 \begin{python}
 # ... start iteration:
 while t<tend:
-        ....
-	T=mypde.getSolution() #get the PDE solution
-        tempT = T.toListOfTuples() # convert to a tuple
-        pl.plot(plx,tempT) # plot solution
-	# set scale (Temperature should be between Tref and T0)
-        pl.axis([0,mx,Tref*.9,T0*1.1])
-        # add title
-	pl.title("Temperature across the blocks at time %e minutes"%(t/day))
-	#save figure to file
-	pl.savefig(os.path.join(save_path,"tempT","blockspyplot%03d.png") %i)
-\end{python}
+      i+=1
+      t+=h
+      mypde.setValue(Y=qH+rhocp/h*T)
+      T=mypde.getSolution()
+      totE=integrate(rhocp*T)
+      print "time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE)
+      t_list.append(t)
+      E_list.append(totE)
+
+      #establish figure 1 for temperature vs x plots
+      tempT = T.toListOfTuples()
+      pl.figure(1) #current figure
+      pl.plot(plx,tempT) #plot solution
+      # add title
+      pl.axis([0,mx,T1*.9,T2*1.1])
+      pl.title("Temperature across blocks at time %d days"%(t/day))
+      #save figure to file
+      pl.savefig(os.path.join(save_path,"tempT", "blockspyplot%03d.png"%i))
+      pl.clf() #clear figure
+\end{python}  
 Some results are shown in \reffig{fig:onedheatout}. 
 
 \subsection{Making a Video} 

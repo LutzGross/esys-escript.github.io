@@ -16,7 +16,7 @@
 In this chapter the gravitational potential field is developed for \esc.
 Gravitational fields are present in many modelling scenarios, including
 geophysical investigations, planetary motion and attraction and microparticle
-interactions. Gravitational fields also presents the opportunity to demonstrate
+interactions. Gravitational fields also present an opportunity to demonstrate
 the saving and visualisation of vector data for Mayavi.
 
 The gravitational potential $U$ at a point $P$ due to a region with a mass
@@ -26,26 +26,51 @@ distribution of density $\rho(P)$, is given by Poisson's equation
 \nabla^2 U(P) = -4\pi\gamma\rho(P)
 \end{equation}
 where $\gamma$ is the gravitational constant.
-Consider now the \esc general form, which can simply be related to
-\autoref{eqn:poisson} using two coefficients. The result is
+Consider now the \esc general form, which has a simple relationship to
+\autoref{eqn:poisson}. There are only two non-zero coefficients, $A$ and $Y$,
+thus the relevant terms of the general form are reduced to;
 \begin{equation}
 -\left(A_{jl} u_{,l} \right)_{,j} = Y
 \end{equation}
-one recognises that the LHS side is equivalent to 
+One recognises that the LHS side is equivalent to 
 \begin{equation} \label{eqn:ex10a}
 -\nabla A \nabla u
 \end{equation}
-If $A=\delta_{jl}$ then \autoref{eqn:ex10a} is equivalent to
+and when a $A=\delta_{jl}$, \autoref{eqn:ex10a} is equivalent to
 \begin{equation*}
 -\nabla^2 u
 \end{equation*}
-and thus Poisson's \autoref{eqn:poisson} satisfies the general form when
+Thus Poisson's \autoref{eqn:poisson} satisfies the general form when
 \begin{equation}
 A=\delta_{jl} \text{ and } Y= 4\pi\gamma\rho
 \end{equation}
-At least one boundary point must be set for the problem to be solvable. For this
-example we have set all of the boundaries to zero. The normal flux condition is
-also zero by default. For a more realistic and complicated models it may be
+The boundary condition is the last parameter that requires consideration. The
+potential $U$ is related to the mass of a sphere by
+\begin{equation}
+U(P)=-\gamma \frac{m}{r^2}
+\end{equation} where $m$ is the mass of the sphere and $r$ is the distance from
+the center of the mass to the observation point $P$. Plainly, the magnitude
+of the potential is goverened by an inverse-square distance law. Thus, in the
+limit as $r$ increases;
+\begin{equation}
+\lim_{r\to\infty} U(P) = 0
+\end{equation}
+Provided that the domain being solved is large enough, the potential will decay
+to zero. This stipulates a dirichlet condition where $U=0$ on the boundary of a
+domain.
+
+This boundary condition can be satisfied when there is some mass suspended in a
+free-space. For geophysical models where the mass of interest may be an anomaly
+inside a host rock, the anomaly can be isolated by subtracting the density of the
+host rock from the model. This creates a ficticious free space model that will
+obey the boundary conditions. The result is that $Y=4\pi\gamma\Delta\rho$, where
+$\Delta\rho=\rho-\rho_0$ and $\rho_0$ is the baseline or host density. This of
+course means that the true gravity response is not being modelled, but the
+reponse due to an anomalous mass $\Delta g$.
+
+For this example we have set all of the boundaries to zero but only one bondary
+point needs to be set for the problem to be solvable. The normal flux condition
+is also zero by default. For a more realistic and complicated models it may be
 necessary to give careful consideration to the boundary conditions of the model,
 which can have an influence upon the solution.
 
@@ -73,7 +98,7 @@ The potential $U$ is related to the gravitational response $\vec{g}$ via
 \begin{equation}
 \vec{g} = \nabla U
 \end{equation}
-This for example as a vertical component $g_{z}$ where
+$\vec{g}$ is a vector and thus, has a a vertical component $g_{z}$ where
 \begin{equation}
 g_{z}=\vec{g}\cdot\hat{z}
 \end{equation}
@@ -96,18 +121,59 @@ saveVTK(os.path.join(save_path,"ex10a.vtu"),\
         grav_pot=sol,g_field=g_field,g_fieldz=g_fieldz,gz=gz)
 \end{python}
 
+It is quite simple to visualise the data from the gravity solution in Mayavi2.
+With Mayavi2 open go to File, Load data, Open file \ldots as in
+\autoref{fig:mayavi2openfile} and select the saved data file. The data will
+have then been loaded and is ready for visualisation. Notice that under the data
+object in the Mayavi2 navigation tree the 4 values saved to the VTK file are
+available (\autoref{fig:mayavi2data}). There are two vector values,
+\verb|gfield| and \verb|gfieldz|. Note that to plot both of these on the same
+chart requires that the data object be imported twice.
+
+The point scalar data \verb|grav_pot| is the gravitational potential and it is
+easily plotted using a surface module. To visualise the cell data a filter is
+required that converts to point data. This is done by right clicking on the data
+object in the explorer tree and sellecting the cell to point filter as in
+\autoref{fig:mayavi2cell2point}.
+
+The settings can then be modified to suit personal taste. An example of the
+potential and gravitational field vectors is illustrated in
+\autoref{fig:ex10pot}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/mayavi2_openfile.png}
+\caption{Open a file in Mayavi2}
+\label{fig:mayavi2openfile}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/mayavi2_data.png}
+\caption{The 4 types of data in the imported VTK file.}
+\label{fig:mayavi2data}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/mayavi2_cell2point.png}
+\caption{Converting cell data to point data.}
+\label{fig:mayavi2cell2point}
+\end{figure}
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.75\textwidth]{figures/ex10apot.png}
 \caption{Newtonian potential with g field directionality.}
 \label{fig:ex10pot}
 \end{figure}
+\clearpage
 
 \section{Gravity Well}
 \sslist{example10b.py}
 Let us now investigate the effect of gravity in three dimensions. Consider a
 volume which contains a sphericle mass anomaly and a gravitational potential
-which decays to zero at the base of the anomaly.
+which decays to zero at the base of the model.
 
 The script used to solve this model is very similar to that used for the gravity
 pole in the previous section, but with an extra spatial dimension. As for all
