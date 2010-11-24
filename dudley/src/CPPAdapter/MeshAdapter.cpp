@@ -725,7 +725,8 @@ void MeshAdapter::addPDEToSystem(
 void  MeshAdapter::addPDEToLumpedSystem(
                                         escript::Data& mat,
                                         const escript::Data& D,
-                                        const escript::Data& d) const
+                                        const escript::Data& d,
+					const bool useHRZ) const
 {
    escriptDataC _mat=mat.getDataC();
    escriptDataC _D=D.getDataC();
@@ -733,10 +734,10 @@ void  MeshAdapter::addPDEToLumpedSystem(
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D);
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D, useHRZ);
    checkDudleyError();
    
-   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d, useHRZ);
    checkDudleyError();
 
 }

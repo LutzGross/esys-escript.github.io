@@ -187,7 +187,9 @@ args("mat", "D", "d"),
 "adds a PDE onto the lumped stiffness matrix\n\n"
 ":param mat:\n:type mat: `Data`\n"
 ":param D:\n:type D: `Data`\n"
-":param d:\n:type d: `Data`\n")
+":param d:\n:type d: `Data`\n"
+":param useHRZ:\n:type useHRZ: bool\n"
+)
       .def("addPDEToRHS",&dudley::MeshAdapter::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"

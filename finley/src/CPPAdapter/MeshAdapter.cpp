@@ -805,7 +805,8 @@ void MeshAdapter::addPDEToSystem(
 void  MeshAdapter::addPDEToLumpedSystem(
                                         escript::Data& mat,
                                         const escript::Data& D,
-                                        const escript::Data& d) const
+                                        const escript::Data& d,
+                                        const bool useHRZ) const
 {
    escriptDataC _mat=mat.getDataC();
    escriptDataC _D=D.getDataC();
@@ -813,10 +814,10 @@ void  MeshAdapter::addPDEToLumpedSystem(
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
-   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D);
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Elements,&_mat, &_D, useHRZ);
    checkFinleyError();
    
-   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d);
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d, useHRZ);
    checkFinleyError();
 
 }

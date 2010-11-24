@@ -20,6 +20,8 @@
 
 void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x);
 
+
+/*  do we need this ? */
 #define Paso_BlockOps_Cpy_1(R, V) \
 {\
    *(R+0)=*(V+0);\

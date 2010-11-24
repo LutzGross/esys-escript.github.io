@@ -1,19 +1,4 @@
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Copyright (c) 2003-2010 by University of Queensland
-% Earth Systems Science Computational Center (ESSCC)
-% http://www.uq.edu.au/esscc
-%
-% Primary Business: Queensland, Australia
-% Licensed under the Open Software License version 3.0
-% http://www.opensource.org/licenses/osl-3.0.php
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{3-D Wave Propagation}
-\label{WAVE CHAP}
 
 In this next example we want to calculate the displacement field $u_{i}$ for any time $t>0$ by solving the wave equation:\index{wave equation}
 \begin{eqnarray}\label{WAVE general problem}
@@ -144,7 +129,7 @@ of the problem.
      x=domain.getX()
      # ... open new PDE ...
      mypde=LinearPDE(domain)
-     mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+     mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
      kronecker=identity(mypde.getDim())
      dunit=numpy.array([1., 0., 0.]) # defines direction of point source
      mypde.setValue(D=kronecker*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
@@ -205,15 +190,13 @@ information as much as possible when iterating over time.
 
 The statement
 \begin{python}
-  mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING) 
+  mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING) 
 \end{python}
 switches on the use of an aggressive approximation of the PDE operator as a
 diagonal matrix formed from the coefficient \var{D}.
 The approximation allows, at the cost of additional error, very fast solution
-of the PDE.
-When using lumping the presence of \var{A}, \var{B} or \var{C} will produce
-wrong results.
- 
+of the PDE, see also Section~\ref{REMARKS ON LUMPING}.
+
 There are a few new \escript functions in this example: 
 \code{grad(u)} returns the gradient $u_{i,j}$ of $u$ (in fact \var{grad(g)[i,j]}$==u_{i,j}$).
 There are restrictions on the argument of the \function{grad} function, for
@@ -261,7 +244,7 @@ suffer from stability problems.
 Therefore they require a very careful selection of the time step size $h$.
 
 An easy, heuristic way of choosing an appropriate time step size is the
-Courant condition\index{Courant condition}\index{explicit scheme!Courant condition}
+Courant–Friedrichs–Lewy condition (CFL condition)\index{Courant condition}\index{explicit scheme!Courant condition}
 which says that within a time step information should not travel further than
 a cell used in the discretization scheme.
 In the case of the wave equation the velocity of a (p-) wave is given as
@@ -321,7 +304,7 @@ elements over the brick $[0,l_0] \times [0,l_1] \times [0,l_2]$.
           wavePropagation(mydomain, h, tend, lam, mu, rho, xc, src_radius, U0)
 \end{python}
 The \function{domain.getSize()} function returns the local element size $\Delta x$.
-Using \function{inf} ensures that the Courant condition~\ref{WAVE dyn 66} holds
+Using \function{inf} ensures that the CFL condition~\ref{WAVE dyn 66} \index{Courant number}\index{CFL condition} holds
 everywhere in the domain. 
 
 The script is available as \file{wave.py} in the \ExampleDirectory\index{scripts!\file{wave.py}}. 

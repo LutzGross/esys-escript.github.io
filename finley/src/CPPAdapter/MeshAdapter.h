@@ -557,7 +557,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual void addPDEToLumpedSystem(
                      escript::Data& mat,
                      const escript::Data& D, 
-                     const escript::Data& d) const;
+                     const escript::Data& d,
+		     const bool useHRZ) const;
 
   /**
      \brief
