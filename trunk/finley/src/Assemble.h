@@ -63,7 +63,6 @@ typedef struct Finley_Assemble_Parameters Finley_Assemble_Parameters;
 
 void Finley_Assemble_PDE(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                     escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*) ;
-void Finley_Assemble_LumpedSystem(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*, escriptDataC*);
 
 void Finley_Assemble_getAssembleParameters(Finley_NodeFile*,Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,bool_t, Finley_Assemble_Parameters*);
 void  Finley_Assemble_PDE_System2_3D(Finley_Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
@@ -106,6 +105,6 @@ void Finley_Assemble_jacobeans_3D_M2D_E2D(double*, dim_t, double*, dim_t, dim_t,
 void Finley_Assemble_jacobeans_3D_M2D_E2D_C(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 
 
-void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D);
+void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* elements, escriptDataC* lumpedMat, escriptDataC* D, const bool_t useHRZ);
 #endif /* #ifndef INC_FINLEY_ASSEMBLE */
 

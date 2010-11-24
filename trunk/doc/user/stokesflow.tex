@@ -73,9 +73,9 @@ The Stokes equation is a saddle point problem, and can be solved using a Uzawa s
 A class called \class{StokesProblemCartesian} in \escript can be used to solve
 for velocity and pressure. A more detailed discussion of the class can be
 found in Chapter \ref{MODELS CHAPTER}.
-In order to keep numerical stability and satisfy the Courant condition, the
+In order to keep numerical stability and satisfy the Courant–Friedrichs–Lewy condition (CFL condition)  \index{Courant number}\index{CFL condition}, the
 time-step size needs to be kept below a certain value.
-The Courant number is defined as:
+The Courant number \index{Courant number} is defined as:
 %
 \begin{equation}
 C = \frac{v \delta t}{h}
@@ -122,7 +122,7 @@ given computational mesh, and the solver tolerance set.
 Inside the \code{while} loop, the boundary conditions, viscosity and body
 force are initialized.
 The Stokes equation is then solved for velocity and pressure.
-The time-step size is calculated based on the Courant condition, to ensure stable solutions.
+The time-step size is calculated based on the Courant–Friedrichs–Lewy condition (CFL condition)  \index{Courant number}\index{CFL condition}, to ensure stable solutions.
 The nodes in the mesh are then displaced based on the current velocity and
 time-step size, to move the body of fluid.
 The output for the simulation of velocity and pressure is then saved to a file
@@ -183,7 +183,7 @@ for visualization.
 
     print("Max velocity =", Lsup(velocity), "m/s")
 
-    # Courant condition
+    # CFL condition
     dt=0.4*h/(Lsup(velocity))
     print("dt =", dt)
 

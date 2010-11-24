@@ -52,7 +52,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+   mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
    kronecker=identity(mypde.getDim())
 
    dunit=numpy.array([1.,0.,0.]) # defines direction of point source

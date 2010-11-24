@@ -54,7 +54,7 @@ typedef struct Dudley_Assemble_Parameters Dudley_Assemble_Parameters;
 void Dudley_Assemble_PDE(Dudley_NodeFile *, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 			 escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 			 escriptDataC *);
-void Dudley_Assemble_LumpedSystem(Dudley_NodeFile *, Dudley_ElementFile *, escriptDataC *, escriptDataC *);
+
 
 void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile *, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    bool_t, Dudley_Assemble_Parameters *);
@@ -99,5 +99,5 @@ void Dudley_Assemble_jacobeans_3D_M2D_E2D(double *, dim_t, dim_t, dim_t, index_t
 				   double *quadweight, index_t *);
 
 void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * lumpedMat,
-				  escriptDataC * D);
+				  escriptDataC * D, const bool_t useHRZ);
 #endif				/* #ifndef INC_DUDLEY_ASSEMBLE */

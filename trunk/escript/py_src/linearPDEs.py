@@ -75,7 +75,8 @@ class SolverOptions(object):
     :cvar JACOBI: The Jacobi preconditioner
     :cvar GMRES: The Gram-Schmidt minimum residual method
     :cvar PRES20: Special GMRES with restart after 20 steps and truncation after 5 residuals
-    :cvar LUMPING: Matrix lumping
+    :cvar ROWSUM_LUMPING: Matrix lumping using row sum
+    :cvar HRZ_LUMPING: Matrix lumping using the HRZ approach 
     :cvar NO_REORDERING: No matrix reordering allowed
     :cvar MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
     :cvar NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
@@ -113,6 +114,8 @@ class SolverOptions(object):
     GMRES= 11
     PRES20= 12
     LUMPING= 13
+    ROWSUM_LUMPING= 13
+    HRZ_LUMPING= 14
     NO_REORDERING= 17
     MINIMUM_FILL_IN= 18
     NESTED_DISSECTION= 19
@@ -247,7 +250,8 @@ class SolverOptions(object):
         if key == self.JACOBI: return "JACOBI"
         if key == self.GMRES: return "GMRES"
         if key == self.PRES20: return "PRES20"
-        if key == self.LUMPING: return "LUMPING"
+        if key == self.ROWSUM_LUMPING: return "ROWSUM_LUMPING"
+        if key == self.HRZ_LUMPING: return "HRZ_LUMPING"
         if key == self.NO_REORDERING: return "NO_REORDERING"
         if key == self.MINIMUM_FILL_IN: return "MINIMUM_FILL_IN"
         if key == self.NESTED_DISSECTION: return "NESTED_DISSECTION"
@@ -471,14 +475,15 @@ class SolverOptions(object):
         :param method: key of the solver method to be used.
         :type method: in `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
                         `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, 
-                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.ROWSUM_LUMPING`, `SolverOptions.HRZ_LUMPING`, `SolverOptions.ITERATIVE`, 
                         `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`
         :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
 	if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
                            SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, 
-                           SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.LUMPING, SolverOptions.ITERATIVE,
+                           SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING,
+                           SolverOptions.ITERATIVE,
                            SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES ]:
              raise ValueError,"unknown solver method %s"%method
         self.__method=method
@@ -488,7 +493,7 @@ class SolverOptions(object):
 
         :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.DIRECT`, `SolverOptions.CHOLEVSKY`, `SolverOptions.PCG`, 
                         `SolverOptions.CR`, `SolverOptions.CGS`, `SolverOptions.BICGSTAB`, 
-                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.LUMPING`, `SolverOptions.ITERATIVE`, 
+                        `SolverOptions.GMRES`, `SolverOptions.PRES20`, `SolverOptions.ROWSUM_LUMPING`, `SolverOptions.HRZ_LUMPING`, `SolverOptions.ITERATIVE`, 
                         `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`
         """
         return self.__method
@@ -1736,7 +1741,7 @@ class LinearProblem(object):
       :return: True if the current solver method is lumping
       :rtype: ``bool``
       """
-      return self.getSolverOptions().getSolverMethod()==self.getSolverOptions().LUMPING
+      return self.getSolverOptions().getSolverMethod() in [ SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING ]
    # ==========================================================================
    #    symmetry  flag:
    # ==========================================================================
@@ -2615,8 +2620,11 @@ class LinearPDE(LinearProblem):
       """
       Returns the system type which needs to be used by the current set up.
       """
-      solver_options=self.getSolverOptions()
-      return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
+      if self.isUsingLumping():
+	 return "__ESCRIPT_DATA"
+      else:
+	 solver_options=self.getSolverOptions()
+	 return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2667,6 +2675,8 @@ class LinearPDE(LinearProblem):
        if not self.isSolutionValid():
           mat,f=self.getSystem()
           if self.isUsingLumping():
+	     if not util.inf(abs(mat)) > 0.:
+		 raise ZeroDivisionError,"Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping)."
              self.setSolution(f*1/mat)
           else:
              self.trace("PDE is resolved.")
@@ -2740,8 +2750,9 @@ class LinearPDE(LinearProblem):
                  self.resetOperator()
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
-                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e)
-                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e)
+		    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
+		    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e,  hrz_lumping )
+		    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, hrz_lumping)
                  else:
                     self.getDomain().addPDEToRHS(operator, \
                                                  escript.Data(), \
