@@ -111,10 +111,6 @@ bblockloop = CurveLoop(bbl1,l12,bbl3,bbl4)
 # surface
 bblock = PlaneSurface(bblockloop)
 
-#clockwise check as splines must be set as polygons in the point order
-#they were created. Otherwise get a line across plot.
-bblockloop2=CurveLoop(mysp,Line(x2,p2),Line(p2,p1),Line(p1,x1))
-
 ################################################CREATE MESH FOR ESCRIPT
 # Create a Design which can make the mesh
 d=Design(dim=2, element_size=200)

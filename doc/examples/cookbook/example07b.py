@@ -54,8 +54,8 @@ mkDir(savepath) #make sure savepath exists
 #Geometric and material property related variables.
 mx = 1000. # model lenght
 my = 1000. # model width
-ndx = 200 # steps in x direction 
-ndy = 200 # steps in y direction
+ndx = 500 # steps in x direction 
+ndy = 500 # steps in y direction
 xstep=mx/ndx # calculate the size of delta x
 ystep=my/ndy # calculate the size of delta y
 
@@ -68,9 +68,9 @@ if testing:
 	print "Try changing testing to False for more iterations."
 	tend=0.004
 else:
-	tend=1.5    # end time
+	tend=1.0    # end time
 
-h=0.005     # time step
+h=0.0005     # time step
 # data recording times
 rtime=0.0 # first time to record
 rtime_inc=tend/20.0 # time increment to record
@@ -88,7 +88,7 @@ x=mydomain.getX() #get the node locations of the domain
 ##########################################################ESTABLISH PDE
 mypde=LinearPDE(mydomain) # create pde
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
 mypde.setSymmetryOn() # turn symmetry on
 mypde.setValue(D=1.) # set the value of D in the general form to 1.
 
