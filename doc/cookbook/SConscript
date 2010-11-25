@@ -15,7 +15,7 @@ import os
 Import('*')
 local_env = env.Clone(tools=['pdflatex'])
 
-tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
+tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.cls')
 fig_src = Glob('figures/*.png')
 
 if 'PDF' in dir(local_env):
@@ -29,8 +29,8 @@ if 'PDF' in dir(local_env):
     pdf=local_env.PDF(target='cookbook.pdf', source='cookbook.tex')
     Depends(pdf, fig_src+tex_src)
 
-    pdf_inst=local_env.InstallAs(target=env['prefix']+'/release/doc/cookbook/cookbook.pdf', source='cookbook.pdf')
-
+    pdf_path=os.path.join(release_dir, 'cookbook', 'cookbook.pdf')
+    pdf_inst=local_env.InstallAs(target=pdf_path, source=pdf)
     env.Alias('cookbook_pdf', pdf_inst)
 else:
     env.Alias('cookbook_pdf', '', 'echo "PDF output not supported!"')
