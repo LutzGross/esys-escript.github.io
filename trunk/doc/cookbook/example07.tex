@@ -121,6 +121,13 @@ For example, a line 100m long is discretised into 1m intervals or 101 nodes. If
 a wave enters with a propagation velocity of 100m/s then the travel time for
 the wave between each node will be 0.01 seconds. The time step, must therefore
 be significantly less then this. Of the order $10E-4$ would be appropriate. 
+This stability criterion is known as the Courant–Friedrichs–Lewy
+condition given by
+\begin{equation}
+dt=f\cdot \frac{dx}{v}
+\end{equation}
+where $dx$ is the mesh size and $f$ is a safety factor. To obtain a time step of
+$10E-4$, a safety factor of $f=0.1$ was used.
 
 The wave frequency content also plays a part in numerical stability. The
 nyquist-sampling theorem states that a signals bandwidth content will be
@@ -130,7 +137,7 @@ $f_{s}$, or;
 \begin{equation} \label{eqn:samptheorem}
  f_{n} \geqslant f_{s}
 \end{equation}
-For example a 50Hz signal will require a sampling rate greater then 100Hz or
+For example, a 50Hz signal will require a sampling rate greater then 100Hz or
 one sample every 0.01 seconds. The wave equation relies on a spatial frequency,
 thus the sampling theorem in this case applies to the solution mesh spacing.
 This relationship confirms that the frequency content of the input signal
@@ -138,8 +145,7 @@ directly affects the time discretisation of the problem.
 
 To accurately model the wave equation with high resolutions and velocities
 means that very fine spatial and time discretisation is necessary for most
-problems.
-This requirement makes the wave equation arduous to
+problems.  This requirement makes the wave equation arduous to
 solve numerically due to the large number of time iterations required in each
 solution. Models with very high velocities and frequencies will be the worst
 affected by this problem.
@@ -296,9 +302,12 @@ requirements of a problem. Care should be taken however, as this
 function can only be used when the $A$, $B$ and $C$ coefficients of the
 general form are zero. 
 
+More information about the lumping implementation used in \esc and its accuracy
+can be found in the user guide.
+
 To turn lumping on in \esc one can use the command;
 \begin{python}
- mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+ mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
 \end{python}
 It is also possible to check if lumping is set using;
 \begin{python}
