@@ -59,7 +59,7 @@ rho=1154.   #density
 # Time related variables.
 testing=True
 if testing:
-	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
 	print "Try changing testing to False for more iterations."
 	tend=0.001
 else:

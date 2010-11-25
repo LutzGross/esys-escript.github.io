@@ -64,7 +64,7 @@ csq=c*c #square of c
 # Time related variables.
 testing=True
 if testing:
-	print 'The testing end time is curerntly sellected this severely limits the number of time iterations.'
+	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
 	print "Try changing testing to False for more iterations."
 	tend=0.004
 else:
