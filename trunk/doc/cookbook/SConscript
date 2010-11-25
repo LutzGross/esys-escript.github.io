@@ -16,7 +16,10 @@ Import('*')
 local_env = env.Clone(tools=['pdflatex'])
 
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.cls')
-fig_src = Glob('figures/*.png')
+fig_src = Glob('figures/*.png')+Glob('figures/*.pdf')
+
+
+
 
 if 'PDF' in dir(local_env):
     if local_env['verbose']:
@@ -26,11 +29,11 @@ if 'PDF' in dir(local_env):
 
     # Define command to include SVN revision
     local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{cookbook.tex}'%(local_env['svn_revision'])])
-    pdf=local_env.PDF(target='cookbook.pdf', source='cookbook.tex')
-    Depends(pdf, fig_src+tex_src)
+    cbpdf=local_env.PDF(target='cookbook.pdf', source='cookbook.tex')
+    Depends(cbpdf, fig_src+tex_src)
 
     pdf_path=os.path.join(release_dir, 'cookbook', 'cookbook.pdf')
-    pdf_inst=local_env.InstallAs(target=pdf_path, source=pdf)
+    pdf_inst=local_env.InstallAs(target=pdf_path, source=cbpdf)
     env.Alias('cookbook_pdf', pdf_inst)
 else:
     env.Alias('cookbook_pdf', '', 'echo "PDF output not supported!"')
