@@ -35,9 +35,9 @@ else
   if [[ $0 =~ / ]]
   then
       # We are not using the PATH to find the script
-      cd `dirname $0`
+      cd "`dirname $0`"
       scriptdir=`pwd`
-      cd $CURDIR
+      cd "$CURDIR"
   else
       # name does not contain / therefore we are using 
       tscriptdir=`which $0`
@@ -49,11 +49,11 @@ else
       scriptdir=`dirname $tscriptdir`
   fi
 
-  cd $scriptdir/..
+  cd "$scriptdir/.."
   ESCRIPT_ROOT=`pwd`
   cd ..
   ESCRIPT_PARENT=`pwd`
-  cd $CURDIR
+  cd "$CURDIR"
 
 fi
 ##### End finding ESCRIPT_ROOT  ########
