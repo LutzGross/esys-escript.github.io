@@ -51,6 +51,7 @@ if getMPISizeWorld() > 1:
 #################################################ESTABLISHING VARIABLES
 # where to save output data
 savepath = "data/example09"
+meshpath = "data/example09m"
 mkDir(savepath)
 #Geometric and material property related variables.
 mx = 200. # model lenght
@@ -118,7 +119,7 @@ for it in range(0,ls):
 xc=[50,50,0]
 
 ####################################################DOMAIN CONSTRUCTION
-domain=ReadMesh(os.path.join(savepath,'example09m.fly')) # create the domain
+domain=ReadMesh(os.path.join(meshpath,'example09m.fly')) # create the domain
 x=domain.getX() # get the locations of the nodes in the domain
 
 lam=Scalar(0,Function(domain))

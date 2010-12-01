@@ -35,6 +35,7 @@ from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
 from esys.escript import mkDir, getMPISizeWorld
 import os
+import math
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
@@ -42,112 +43,131 @@ if getMPISizeWorld() > 1:
 	sys.exit(0)
 
 # make sure path exists 
-save_path= os.path.join("data","example09") 
+save_path= os.path.join("data","example09c") 
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
 #Model Parameters
-xwidth=2000.0   #x width of model
-ywidth=2000.0   #y width of model
-depth=500.0   #depth of model
-intf=depth/2.   #Depth of the interface.
+origin=[0,0]                  #orign of model
+xwidth=300.0                      #width of model
+depth=-100.0                      #depth of model
+nintf=3                         #number of the interfaces
+lintf_depths=[-20,-40,-60]       #depth of interfaces
+rintf_depths=[-30,-50,-70]      #vertical displacement across fault
+fault_dip=40.0                  #dip of fault plane
+fault_atsurface=50.0             #location of fault at surface
+fault_width=10                 #apparent width of fault plane 
+
+element_size=1.
 
 ####################################################DOMAIN CONSTRUCTION
-# Domain Corners
-p0=Point(0.0,    0.0,      0.0)
-p1=Point(xwidth, 0.0,      0.0)
-p2=Point(xwidth, ywidth,   0.0)
-p3=Point(0.0,    ywidth,   0.0)
-p4=Point(0.0,    ywidth, depth)
-p5=Point(0.0,    0.0,    depth)
-p6=Point(xwidth, 0.0,    depth)
-p7=Point(xwidth, ywidth, depth)
-# Join corners in anti-clockwise manner.
-l01=Line(p0, p1)
-l12=Line(p1, p2)
-l23=Line(p2, p3)
-l30=Line(p3, p0)
-l56=Line(p5, p6)
-l67=Line(p6, p7)
-l74=Line(p7, p4)
-l45=Line(p4, p5)
+x0=0.0+origin[0]
+y0=0.0+origin[1]
+#z=0.0+origin[2]
+fault_atsurface=fault_atsurface+origin[0]
+xwidth=xwidth+origin[0]
+depth=depth+origin[1]
+# Construction points, 4 vectors that descend from the surface with nintf+2 points.
+left_edge=[Point(x0,y0)]; 
+leftf_edge=[Point(fault_atsurface,y0)]; 
+rightf_edge=[Point(fault_atsurface+fault_width,y0)]; 
+right_edge=[Point(xwidth,y0)]; 
 
-# Join line segments to create domain boundaries and then surfaces
-ctop=CurveLoop(l01, l12, l23, l30);     stop=PlaneSurface(ctop)
-cbot=CurveLoop(-l67, -l56, -l45, -l74); sbot=PlaneSurface(cbot)
+for i in range(0,nintf):
+    left_shift=(lintf_depths[i]-y0)/math.tan(fault_dip)
+    right_shift=(rintf_depths[i]-y0)/math.tan(fault_dip)
+    left_edge.append(Point(x0,lintf_depths[i]+origin[1]))
+    leftf_edge.append(Point(fault_atsurface+left_shift,lintf_depths[i]+origin[1]))
+    rightf_edge.append(Point(fault_atsurface+right_shift+fault_width,rintf_depths[i]+origin[1]))
+    right_edge.append(Point(xwidth,rintf_depths[i]+origin[1]))
 
-# for each side
-ip0=Point(0.0,    0.0,      intf)
-ip1=Point(xwidth, 0.0,      intf)
-ip2=Point(xwidth, ywidth,   intf)
-ip3=Point(0.0,    ywidth,   intf)
+left_edge.append(Point(x0,depth))
+leftf_edge.append(Point(fault_atsurface+(depth-y0)/math.tan(fault_dip),depth))
+rightf_edge.append(Point(fault_atsurface+fault_width+(depth-y0)/math.tan(fault_dip),depth))
+right_edge.append(Point(xwidth,depth))
 
-linte_ar=[]; #lines for vertical edges
-linhe_ar=[]; #lines for horizontal edges
-linte_ar.append(Line(p0,ip0))
-linte_ar.append(Line(ip0,p5))
-linte_ar.append(Line(p1,ip1))
-linte_ar.append(Line(ip1,p6))
-linte_ar.append(Line(p2,ip2))
-linte_ar.append(Line(ip2,p7))
-linte_ar.append(Line(p3,ip3))
-linte_ar.append(Line(ip3,p4))
+#Build lines
+lright=[]; nlright=[];
+lhright=[]; nlhright=[];
+lfright=[]; nlfright=[];
+lfhor=[]; nlfhor=[];
+lfleft=[]; nlfleft=[];
+lhleft=[]; nlhleft=[];
+lleft=[]; nlleft=[];
 
-linhe_ar.append(Line(ip0,ip1))
-linhe_ar.append(Line(ip1,ip2))
-linhe_ar.append(Line(ip2,ip3))
-linhe_ar.append(Line(ip3,ip0))
+#Build vertical lines
+for i in range(0,nintf+1):
+    lleft.append(Line(left_edge[i],left_edge[i+1]))
+    lfleft.append(Line(leftf_edge[i],leftf_edge[i+1]))
+    lfright.append(Line(rightf_edge[i],rightf_edge[i+1]))
+    lright.append(Line(right_edge[i],right_edge[i+1]))
 
-cintfa_ar=[]; cintfb_ar=[] #curveloops for above and below interface on sides
-cintfa_ar.append(CurveLoop(linte_ar[0],linhe_ar[0],-linte_ar[2],-l01))
-cintfa_ar.append(CurveLoop(linte_ar[2],linhe_ar[1],-linte_ar[4],-l12))
-cintfa_ar.append(CurveLoop(linte_ar[4],linhe_ar[2],-linte_ar[6],-l23))
-cintfa_ar.append(CurveLoop(linte_ar[6],linhe_ar[3],-linte_ar[0],-l30))
+#Build horizontal lines
+for i in range(0,nintf+2):
+    lhleft.append(Line(left_edge[i],leftf_edge[i]))
+    lhright.append(Line(rightf_edge[i],right_edge[i]))
+lfhor.append(Line(leftf_edge[0],rightf_edge[0]))
+lfhor.append(Line(leftf_edge[nintf+1],rightf_edge[nintf+1]))
 
-cintfb_ar.append(CurveLoop(linte_ar[1],l56,-linte_ar[3],-linhe_ar[0]))
-cintfb_ar.append(CurveLoop(linte_ar[3],l67,-linte_ar[5],-linhe_ar[1]))
-cintfb_ar.append(CurveLoop(linte_ar[5],l74,-linte_ar[7],-linhe_ar[2]))
-cintfb_ar.append(CurveLoop(linte_ar[7],l45,-linte_ar[1],-linhe_ar[3]))
+#Build negative lines
+for i in range(nintf,-1,-1):
+    nlleft.append(-lleft[i])
+    nlfleft.append(-lfleft[i])
+    nlfright.append(-lfright[i])
+    nlright.append(-lright[i])
+for i in range(nintf+1,-1,-1):
+    nlhleft.append(-lhleft[i])
+    nlhright.append(-lhright[i])
 
-sintfa_ar=[PlaneSurface(cintfa_ar[i]) for i in range(0,4)]
-sintfb_ar=[PlaneSurface(cintfb_ar[i]) for i in range(0,4)]
+#Build curveloops
+lcurves=[]
+fcurves=[]
+rcurves=[]
 
-sintf=PlaneSurface(CurveLoop(*tuple(linhe_ar)))
+#Fault
+for i in range(0,nintf+1):
+    fcurves.append(lfleft[i])
+fcurves.append(lfhor[1])
+for i in range(0,nintf+1):
+    fcurves.append(nlfright[i])
+fcurves.append(-lfhor[0])
+fcurves=CurveLoop(*tuple(fcurves))
 
-vintfa=Volume(SurfaceLoop(stop,-sintf,*tuple(sintfa_ar)))
-vintfb=Volume(SurfaceLoop(sbot,sintf,*tuple(sintfb_ar)))
+#Left and Right Blocks
+for i in range(0,nintf+1):
+    lcurves.append(CurveLoop(lleft[i],lhleft[i+1],nlfleft[nintf-i],nlhleft[nintf+1-i]))
+    rcurves.append(CurveLoop(lfright[i],lhright[i+1],nlright[nintf-i],nlhright[nintf+1-i]))
+    
+#Build Surfaces
+fsurf=PlaneSurface(fcurves)
+lsurf=[]
+rsurf=[]
+for i in range(0,nintf+1):
+    lsurf.append(PlaneSurface(lcurves[i]))
+    rsurf.append(PlaneSurface(rcurves[i]))
 
-# Create the volume.
-#sloop=SurfaceLoop(stop,sbot,*tuple(sintfa_ar+sintfb_ar))
-#model=Volume(sloop)
+d=Design(dim=2, element_size=element_size, order=2)
+
+d.addItems(PropertySet('fault',fsurf))
+for i in range(0,nintf+1):
+    d.addItems(PropertySet('lblock%d'%i,lsurf[i]))
+    d.addItems(PropertySet('rblock%d'%i,rsurf[i]))
+
+d.addItems(PropertySet('top',lhright[0],lfhor[0],lhleft[0],lhright[4],lhleft[4],lfhor[1]))
+#for i in range(0,2):
+#     d.addItems(lfhor[i])
 
 
-#############################################EXPORTING MESH FOR ESCRIPT
-# Create a Design which can make the mesh
-d=Design(dim=3, element_size=200.0)
-
-d.addItems(PropertySet('vintfa',vintfa))
-d.addItems(PropertySet('vintfb',vintfb))
-d.addItems(sintf)
 
 d.setScriptFileName(os.path.join(save_path,"example09n.geo"))
 d.setMeshFileName(os.path.join(save_path,"example09n.msh"))
 #
-#  
+#  make the domain:
 #
 domain=MakeDomain(d)
-# Create a file that can be read back in to python with
 # mesh=ReadMesh(fileName)
 domain.write(os.path.join(save_path,"example09n.fly"))
 
-from esys.pycad import layer_cake
-intfaces=[10,30,50,55,80,100,200,250,400,500]
-
-cmplx_domain=layer_cake.LayerCake(xwidth,ywidth,intfaces,200.0)
-cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
-cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
-dcmplx=MakeDomain(cmplx_domain)
-dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 
 
 
