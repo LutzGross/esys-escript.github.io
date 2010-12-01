@@ -36,6 +36,9 @@ from esys.finley import Brick # This imports the rectangle domain function from 
 from esys.weipa import saveVTK # This imports the VTK file saver from weipa
 import os, sys #This package is necessary to handle saving our data.
 
+from esys.escript.pdetools import Projector, Locator
+import numpy as np
+
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
@@ -44,11 +47,11 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.
-mx = 2000*m #meters - model length
-my = 2000*m #meters - model width
-mz = -2000*m
-ndx = 100 # mesh steps in x direction 
-ndy = 100 # mesh steps in y direction - one dimension means one element
+mx = 500*m #meters - model length
+my = 500*m #meters - model width
+mz = -4000*m
+ndx = 150 # mesh steps in x direction 
+ndy = 150 # mesh steps in y direction - one dimension means one element
 ndz = 100
 #PDE related
 rho=100.0
@@ -70,6 +73,10 @@ mask=wherePositive(100-length(x-rholoc))
 rho=rho*mask
 kro=kronecker(domain)
 
+mass=rho*vol(domain)
+ipot=FunctionOnBoundary(domain)
+xb=ipot.getX()
+
 q=whereZero(x[2]-inf(x[2]))
 ###############################################ESCRIPT PDE CONSTRUCTION
 
@@ -82,4 +89,14 @@ saveVTK(os.path.join(save_path,"ex10b.vtu"),\
         g_field=-grad(sol),\
         g_fieldz=-grad(sol)*[0,0,1],\
         gz=length(-grad(sol)*[0,0,1]))
+
+################################################MODEL SIZE SAMPLING
+sampler=[]
+for i in range(-250,250,1):
+    sampler.append([i,0,250])
+
+sample=[] # array to hold values
+rec=Locator(domain,sampler) #location to record
+psol=rec.getValue(sol)
+np.savetxt(os.path.join(save_path,"example10b_%04d.asc"%mx),psol)
 
