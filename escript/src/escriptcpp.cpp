@@ -559,6 +559,13 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
 
+
+ def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0.0),
+"Creates a new expanded Data object containing (not very) random values.\n\n"
+":param shape: datapoint shape\n:type shape: tuple\n"
+":param fs: function space for data object.\n:type fs: `FunctionSpace`\n"
+":param seed: seed for random number generator.\n:type seed: double\n");
+
   //
   // Binary operators
   //

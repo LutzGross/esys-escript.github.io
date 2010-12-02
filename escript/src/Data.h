@@ -184,8 +184,6 @@ class Data {
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
-
-
   /**
 	\brief Create a Data using an existing DataAbstract. Warning: The new object assumes ownership of the pointer!
 	Once you have passed the pointer, do not delete it.
@@ -1519,7 +1517,6 @@ instead of manually manipulating process and point IDs.
         DataTypes::ValueType::reference
         getDataAtOffsetRW(DataTypes::ValueType::size_type i);
 
-
  
  protected:
 
@@ -1770,6 +1767,7 @@ template <class BinaryOp>
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
   friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, double seed);
 
 };
 
@@ -1784,6 +1782,16 @@ applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, esc
 ESCRIPT_DLL_API
 Data
 condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
+
+
+
+/**
+ \brief Create a new Expanded Data object filled with (not very) random data.
+*/
+ESCRIPT_DLL_API
+Data randomData(const boost::python::tuple& shape,
+       const FunctionSpace& what,
+       double seed);
 
 
 }   // end namespace escript

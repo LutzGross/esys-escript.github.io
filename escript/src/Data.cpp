@@ -423,6 +423,7 @@ Data::Data(const object& value,
   m_protected=false;
 }
 
+
 Data::~Data()
 {
   set_m_data(DataAbstract_ptr());
@@ -4237,4 +4238,19 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 
     }
 
+}
+
+
+Data escript::randomData(const boost::python::tuple& shape,
+       const FunctionSpace& what,
+       double seed)
+{
+    Data   towipe(0, shape, what, true);
+    DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
+    if (de==0) 
+    {
+	throw DataException("Programmer Error: Expanded data is not expanded");
+    }
+    de->randomFill(seed);
+    return towipe;
 }

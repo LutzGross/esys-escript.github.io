@@ -374,7 +374,15 @@ TODO Note that this constructor will also copy data to all points if it only con
   virtual void
   reorderByReferenceIDs(int *reference_ids);
 
+  /**
+  \brief Fill the object with random values
 
+  At the moment this is "slow" and not particularly random.
+
+  \param seed - random seed
+  */
+  ESCRIPT_DLL_API
+  void randomFill(double seed);
 
  protected:
 

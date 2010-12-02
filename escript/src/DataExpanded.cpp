@@ -816,5 +816,20 @@ DataExpanded::getVectorRO() const
 	return m_data.getData();
 }
 
+void DataExpanded::randomFill(double seed)
+{
+    CHECK_FOR_EX_WRITE
+    if (seed==0)
+    {
+	time_t s=time(0);
+	seed=s;
+    }
+    srand(seed);
+    DataVector&  dv=getVectorRW();
+    for (long i=0;i<dv.size();++i)
+    {
+	dv[i]=(double)rand()/RAND_MAX;
+    }
+}
 
 }  // end of namespace
