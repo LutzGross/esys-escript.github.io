@@ -36,7 +36,7 @@ One recognises that the LHS side is equivalent to
 \begin{equation} \label{eqn:ex10a}
 -\nabla A \nabla u
 \end{equation}
-and when a $A=\delta_{jl}$, \autoref{eqn:ex10a} is equivalent to
+and when $A=\delta_{jl}$, \autoref{eqn:ex10a} is equivalent to
 \begin{equation*}
 -\nabla^2 u
 \end{equation*}
@@ -83,10 +83,11 @@ q=whereZero(x[1]-my)+whereZero(x[1])+whereZero(x[0])+whereZero(x[0]-mx)
 This identifies the points on the boundary and \verb!r! is simply
 ser to \verb!r=0.0!. This is a dirichlet boundary condition.
 
+\clearpage
 \section{Gravity Pole}
 \sslist{example10a.py}
 A gravity pole is used in this example to demonstrate the radial directionality
-of gravity, and also to show how this information can be exported for
+of gravity, and also to demonstrate how this information can be exported for
 visualisation to Mayavi or an equivalent using the VTK data format. 
 
 The solution script for this section is very simple. First the domain is
@@ -164,7 +165,8 @@ potential and gravitational field vectors is illustrated in
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.75\textwidth]{figures/ex10apot.png}
-\caption{Newtonian potential with g field directionality.}
+\caption{Newtonian potential with $\vec{g}$ field directionality. The magnitude
+of the field is reflected in the size of the vector arrows.}
 \label{fig:ex10pot}
 \end{figure}
 \clearpage
@@ -202,13 +204,35 @@ and z. The iso-surfaces illuminate the 3D shape of the gravity field, as well as
 its strength which is give by the colour. Finally, the streamlines highlight the
 directional flow of the gravity field in this example.
 
+\autoref{fig:ex10bpot2} and \autoref{fig:ex10p} highlight the importance of the
+boundary conditions and the size of the model. The results are clearly very
+different between the two model sizes and the profile shows the effect of model
+size for various models.
+
 \begin{figure}[htp]
 \centering
 \includegraphics[width=0.75\textwidth]{figures/ex10bpot.png}
 \caption{Gravity well with iso surfaces and streamlines of the vector
-gravitational potential.}
+gravitational potential \textemdash small model.}
 \label{fig:ex10bpot}
 \end{figure}
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/ex10bpot2.png}
+\caption{Gravity well with iso surfaces and streamlines of the vector
+gravitational potential \textemdash large model.}
+\label{fig:ex10bpot2}
+\end{figure}
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ex10p_boundeff.pdf}
+\caption{Profile of the graviational provile along x where $y=0,z=250$ for
+various sized domains.}
+\label{fig:ex10p}
+\end{figure}
+\clearpage
 
 \section{Gravity Surface over a fault model.}
 \sslist{example10c.py,example10m.py}
@@ -234,4 +258,129 @@ conditions for a gravity scenario have been established.
 	faults identified as isosurfaces.}
 	\label{fig:ex10cpot}
 \end{figure}
+\clearpage
 
+\section{Variable mesh-element sizes}
+\sslist{example10m.py and example10d.py}
+With the help of Gmsh, it is possible to create a mesh for \esc, which has a
+variable element size. This will be extremely useful for the gravitational
+potential, and trying to impose appropriate boundary conditions. 
+
+A large domain can be created that has sufficient resultion close to the source
+and extends to distances large enough that the infinity clause is satisfied,
+without the requirement for large number of cells. 
+
+To create a variable size mesh, multiple meshing domains are required. The
+domains mush share points, boundaries and surfaces so that they are joined; and
+no sub-domains are allowed to overlap. Whilst this initially seems complicated,
+it is quite simple to implement. 
+
+This example creates a mesh which contains a high resolution sub-domain in its
+center. We begin by defining two curve loops which describe the large of
+big-subdomain and the smaller sub-domain which is to contain the high resolution
+portion of the mesh. 
+\begin{python}
+################################################BIG DOMAIN
+#ESTABLISHING PARAMETERS
+width=10000.    #width of model
+depth=10000.    #depth of model
+bele_size=500.  #big element size
+#DOMAIN CONSTRUCTION
+p0=Point(0.0,    0.0)
+p1=Point(width, 0.0)
+p2=Point(width, depth)
+p3=Point(0.0,   depth)
+# Join corners in anti-clockwise manner.
+l01=Line(p0, p1)
+l12=Line(p1, p2)
+l23=Line(p2, p3)
+l30=Line(p3, p0)
+
+cbig=CurveLoop(l01,l12,l23,l30)
+
+################################################SMALL DOMAIN
+#ESTABLISHING PARAMETERS
+xwidth=2000.0   #x width of model
+zdepth=2000.0   #y width of model
+sele_size=10.   #small element size
+#TRANSFORM
+xshift=width/2-xwidth/2
+zshift=depth/2-zdepth/2
+#DOMAIN CONSTRUCTION
+p4=Point(xshift, zshift)
+p5=Point(xwidth+xshift, zshift)
+p6=Point(xwidth+xshift, zdepth+zshift)
+p7=Point(xshift,    zdepth+zshift)
+# Join corners in anti-clockwise manner.
+l45=Line(p4, p5)
+l56=Line(p5, p6)
+l67=Line(p6, p7)
+l74=Line(p7, p4)
+
+csmall=CurveLoop(l45,l56,l67,l74)
+\end{python}
+The small sub-domain curve can then be used to create a surface.
+\begin{python}
+ssmall=PlaneSurface(csmall)
+\end{python}
+However, so that the two domains do not overlap, when the big sub-domain
+curveloop is used to create a surface it must contain a hole. The hole is
+defined by the small sub-domain curveloop.
+\begin{python}
+sbig=PlaneSurface(cbig,holes=[csmall])
+\end{python}
+The two sub-domains now have a common geometry and no overlaping features as
+per \autoref{fig:ex10mgeo}. Notice, that both domains have a normal in the
+same direction.
+
+The next step, is exporting each sub-domain individually, with an appropriate
+element size. This is carried out using the \pycad Design command.
+\begin{python}
+# Design the geometry for the big mesh.
+d1=Design(dim=2, element_size=bele_size, order=1)
+d1.addItems(sbig)
+d1.setScriptFileName(os.path.join(save_path,"example10m_big.geo"))
+
+# Design the geometry for the small mesh.
+d2=Design(dim=2, element_size=sele_size, order=1)
+d2.addItems(ssmall)
+d2.setScriptFileName(os.path.join(save_path,"example10m_small.geo"))
+\end{python}
+Finally, a system call to Gmsh is required to merge and then appropriate
+mesh the two sub-domains together.
+\begin{python}
+# Join the two meshes using Gmsh and then apply a 2D meshing algorithm.
+# The small mesh must come before the big mesh in the merging call!!@!!@!
+sp.call("gmsh -2 "+
+        os.path.join(save_path,"example10m_small.geo")+" "+
+        os.path.join(save_path,"example10m_big.geo")+" -o "+
+        os.path.join(save_path,"example10m.msh"),shell=True)
+\end{python}
+The ``-2'' option is responsible for the 2D meshing, and the ``-o'' option
+provides the output path. The resulting mesh is depicted in
+\autoref{fig:ex10mmsh}
+
+To use the Gmsh ``*.msh'' file in the solution script, the mesh reading function
+``ReadGmsh'' is required. It can be imported via;
+\begin{python}
+from esys.finley import ReadGmsh
+\end{python}
+To read in the file the function is called like
+\begin{python}
+domain=ReadGmsh(os.path.join(mesh_path,'example10m.msh'),2) # create the domain
+\end{python}
+% 
+ \begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/ex10m_geo.png}
+\caption{Geometry of two surfaces for a single domain.}
+\label{fig:ex10mgeo}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/ex10m_msh.png}
+\caption{Mesh of merged surfaces, showing variable element size. Elements
+range from 10m in the centroid to 500m at the boundary.}
+\label{fig:ex10mmsh}
+\end{figure}
