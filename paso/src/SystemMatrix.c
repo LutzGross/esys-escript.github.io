@@ -179,7 +179,6 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SparseMatrix_free(in->col_coupleBlock);
         Paso_SparseMatrix_free(in->row_coupleBlock);
 	MEMFREE(in->balance_vector);
-        Paso_solve_free(in); 
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);
         #endif

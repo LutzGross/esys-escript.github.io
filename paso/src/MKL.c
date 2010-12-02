@@ -36,25 +36,30 @@
 void Paso_MKL_free(Paso_SparseMatrix* A) {
 #ifdef MKL
       index_t i;
-      if ((A->solver_p!=NULL) && (A->solver_package=PASO_MKL) ) {
-          _INTEGER_t mtype = MKL_MTYPE_UNSYM;
-          _INTEGER_t n = A->numRows;
-          _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
-          _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
-          _INTEGER_t msglvl=0; /* message level */
-          _INTEGER_t nrhs=1; /* number of right hand sides */
-          _INTEGER_t idum; /* dummy integer */
-          _DOUBLE_PRECISION_t ddum; /* dummy float */
-          _INTEGER_t error=MKL_ERROR_NO;  /* error code */
-          _INTEGER_t iparm[64]; /* parameters */
-          for (i=0;i<64;++i) iparm[i]=0;
+      if (A!=NULL) {
 
-          _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;
-          PARDISO ((_MKL_DSS_HANDLE_t *)(A->solver_p), &maxfct, &mnum, &mtype, &phase,
-                   &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
-                   iparm, &msglvl,&ddum, &ddum, &error);
-          MEMFREE(A->solver_p);
-	  if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in PARDISO library failed.");
+         if ((A->solver_p!=NULL) && (A->solver_package==PASO_MKL) ) {
+             _INTEGER_t mtype = MKL_MTYPE_UNSYM;
+             _INTEGER_t n = A->numRows;
+             _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
+             _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
+             _INTEGER_t msglvl=0; /* message level */
+             _INTEGER_t nrhs=1; /* number of right hand sides */
+             _INTEGER_t idum; /* dummy integer */
+             _DOUBLE_PRECISION_t ddum; /* dummy float */
+             _INTEGER_t error=MKL_ERROR_NO;  /* error code */  
+             _INTEGER_t iparm[64]; /* parameters */  
+             _MKL_DSS_HANDLE_t* pt = (_MKL_DSS_HANDLE_t *)(A->solver_p);
+             _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;  
+              for (i=0;i<64;++i) iparm[i]=0;  
+  
+            PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                   &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,  
+                   iparm, &msglvl,&ddum, &ddum, &error);  
+              MEMFREE(A->solver_p);  
+              A->solver_p=NULL;
+	      if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in PARDISO library failed.");  
+        }
      }
 #endif
 }
