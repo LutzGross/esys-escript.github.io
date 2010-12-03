@@ -381,6 +381,8 @@ if conf.CheckFunc('gethostname'):
 python_inc_path=sysconfig.get_python_inc()
 if IS_WINDOWS:
     python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+elif env['PLATFORM']=='darwin':
+    python_lib_path=sysconfig.get_config_var('LIBPL')
 else:
     python_lib_path=sysconfig.get_config_var('LIBDIR')
 #python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
