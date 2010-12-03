@@ -79,8 +79,12 @@ ESYSUTILS_DLL_API
 char* Esys_getErrorMessage(void);
 
 #ifndef _OPENMP
-int omp_get_max_threads(void);
-int omp_get_thread_num(void);
+int serial_get_max_threads(void);
+int serial_get_thread_num(void);
+
+/* Nasty hack to get 3.2 out */
+#define omp_get_max_threads serial_get_max_threads
+#define omp_get_thread_num serial_get_thread_num
 #endif
 
 
