@@ -66,7 +66,7 @@ escript_opts_version = 200
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = ''
+ld_extra = '-L/usr/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
