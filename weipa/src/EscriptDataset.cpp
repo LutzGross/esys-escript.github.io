@@ -253,7 +253,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     PMPIO_baton_t* baton = NULL;
 #endif
 
-    if (fileName.compare(fileName.length()-5, 5,".silo") != 0) {
+    if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
         fileName+=".silo";
     }
 
@@ -452,7 +452,7 @@ bool EscriptDataset::saveVTK(string fileName)
         }
     }
 
-    if (fileName.compare(fileName.length()-4, 4,".vtu") != 0) {
+    if (fileName.length() < 5 || fileName.compare(fileName.length()-4, 4, ".vtu") != 0) {
         fileName+=".vtu";
     }
 
