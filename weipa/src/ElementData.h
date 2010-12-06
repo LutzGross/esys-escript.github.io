@@ -15,7 +15,7 @@
 #define __WEIPA_ELEMENTDATA_H__
 
 #include <weipa/weipa.h>
-#include <finley/vtkCellType.h>
+#include <weipa/vtkCellType.h>
 #include <ostream>
 
 namespace weipa {

@@ -41,6 +41,7 @@ headers = """
     FinleyNodes.h
     NodeData.h
     VisItControl.h
+    vtkCellType.h
     weipa.h
 """.split()
 

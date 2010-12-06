@@ -125,7 +125,6 @@ headers = """
     TagMap.h
     Util.h
     ReferenceElementSets.h
-    vtkCellType.h
 """.split()
 
 cppadapter_headers = """
