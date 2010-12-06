@@ -119,7 +119,6 @@ headers = """
 	ShapeTable.h
 	TagMap.h
 	Util.h
-	vtkCellType.h
 """.split()
 cppadapter_headers = """
 	CPPAdapter/DudleyAdapterException.h
