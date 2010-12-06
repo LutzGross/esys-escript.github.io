@@ -481,17 +481,30 @@ float* DataVar::getDataFlat() const
 //
 void DataVar::sampleToStream(ostream& os, int index)
 {
+    // index is -1 for dummy samples, i.e. if writing the full mesh but
+    // only a reduced number of samples is required
     if (rank == 0) {
-        os << dataArray[0][index];
+        if (index < 0) {
+            os << 0.;
+        } else {
+            os << dataArray[0][index];
+        }
     } else if (rank == 1) {
-        if (shape[0] < 3)
+        if (index < 0) {
+            os << 0. << " " << 0.  << " " << 0.;
+        } else if (shape[0] < 3) {
             os << dataArray[0][index] << " " << dataArray[1][index]
                 << " " << 0.;
-        else
+        } else {
             os << dataArray[0][index] << " " << dataArray[1][index]
                 << " " << dataArray[2][index];
+        }
     } else if (rank == 2) {
-        if (shape[1] < 3) {
+        if (index < 0) {
+            os << 0. << " " << 0. << " " << 0. << " ";
+            os << 0. << " " << 0. << " " << 0. << " ";
+            os << 0. << " " << 0. << " " << 0.;
+        } else if (shape[1] < 3) {
             os << dataArray[0][index] << " " << dataArray[1][index]
                 << " " << 0. << " ";
             os << dataArray[2][index] << " " << dataArray[3][index]
@@ -519,7 +532,9 @@ void DataVar::writeToVTK(ostream& os, int ownIndex)
 
     if (isNodeCentered()) {
         // data was reordered in reorderSamples() but for VTK we write the
-        // original node mesh and thus need the original ordering...
+        // original node mesh and thus need the original ordering.
+        // Note, that this also means we may not have samples for all nodes
+        // in which case we set idx to -1 and write a dummy sample
         const IntVec& requiredIDs = domain->getNodes()->getNodeIDs();
         const IntVec& nodeGNI = domain->getNodes()->getGlobalNodeIndices();
         const IntVec& nodeDist = domain->getNodes()->getNodeDistribution();
@@ -528,7 +543,8 @@ void DataVar::writeToVTK(ostream& os, int ownIndex)
         IndexMap sampleID2idx = buildIndexMap();
         for (int i=0; i<nodeGNI.size(); i++) {
             if (firstId <= nodeGNI[i] && nodeGNI[i] < lastId) {
-                int idx = sampleID2idx[requiredIDs[i]];
+                IndexMap::const_iterator it = sampleID2idx.find(requiredIDs[i]);
+                int idx = (it==sampleID2idx.end() ? -1 : (int)it->second);
                 sampleToStream(os, idx);
             }
         }
