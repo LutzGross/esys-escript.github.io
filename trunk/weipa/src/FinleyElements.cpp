@@ -1134,7 +1134,6 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
                 // simply average over all data points within that element
                 m = IntVec(numQNodes, 1);
                 qmi.factor.push_back(numQNodes);
-                qmi.factor.push_back(1);
             } else {
                 qmi.factor.push_back(hits);
             }
