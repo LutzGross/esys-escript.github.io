@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2010 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{esysdoc}
+
+\input{install_defs}
+
+\title{Installation guide for \emph{esys-Escript}}
+
+\author{Escript development team}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}
+\date{\today}      
+% \release{Revision: \RepVersion}
+% \setreleaseinfo{development version} 
+% \setshortversion{\RepVersion}
+
+\ifpdf
+\pdfinfo {
+/Author (Escript development team)
+/Title (escript install guide)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\makeindex
+\begin{document}
+
+\maketitle
+\etableofcontents
+
+\include{intro}
+\include{bincommon}		% material common to all binary installs
+\include{binmac}
+\include{binwin}
+\chapter{Building escript from source}
+\label{chap:essrc}
+\input{srcommon}		% material common to all source installs
+\include{allsrccommon} 
+\end{document}
