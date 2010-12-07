@@ -37,9 +37,8 @@ index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index
   switch(true_package)  {
 
      case PASO_PASO:
-            out=MATRIX_FORMAT_DEFAULT;
+       out=MATRIX_FORMAT_DEFAULT;
        break;
-
 
      case PASO_MKL:
        out=MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1;

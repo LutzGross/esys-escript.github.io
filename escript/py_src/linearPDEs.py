@@ -176,6 +176,7 @@ class SolverOptions(object):
         self.setNumCoarseMatrixRefinements()
         self.setUsePanel()
         self.setUseDirectInterpolation()
+        self.setDiagonalDominanceThreshold()
         
 
     def __str__(self):
@@ -216,6 +217,7 @@ class SolverOptions(object):
                 out+="\nNumber of refinement steps in coarsest level solver = %d"%(self.getNumCoarseMatrixRefinements(),)
                 out+="\nUse node panel = %s"%(self.usePanel())
                 out+="\nUse direct interpolation only = %s"%(self.useDirectInterpolation())
+                out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
 
             if self.getPreconditioner() == self.AMLI:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
@@ -333,6 +335,10 @@ class SolverOptions(object):
             self.__converged = (value == True)
         if name == "time_step_backtracking_used":
             self.__time_step_backtracking_used = (value == True)
+        if name == "coarse_level_sparsity":
+	       self.__coarse_level_sparsity = value
+	if name == "num_coarse_unknowns": 
+	       self.__num_coarse_unknowns= value
     def getDiagnostics(self, name):
         """
         Returns the diagnostic information ``name``. Possible values are:
@@ -349,8 +355,10 @@ class SolverOptions(object):
         - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
         - "cum_net_time": cumulative net execution time
         - "preconditioner_size": size of preconditioner [Bytes]
-        - "converged": return self.__converged
-        - "time_step_backtracking_used": return self.__converged
+        - "converged": return True if solution has converged.
+        - "time_step_backtracking_used": returns True if time step back tracking has been used.
+        - "coarse_level_sparsity": returns the sparsity of the matrix on the coarsest level
+        - "num_coarse_unknowns": returns the number of unknowns on the coarsest level
 	
         
         :param name: name of diagnostic information to return
@@ -373,6 +381,8 @@ class SolverOptions(object):
         elif name == "converged": return self.__converged      
         elif name == "preconditioner_size": return  self.__preconditioner_size
         elif name == "time_step_backtracking_used": return  self.__time_step_backtracking_used
+        elif name == "coarse_level_sparsity": return self.__coarse_level_sparsity
+        elif name == "num_coarse_unknowns": return self.__num_coarse_unknowns
         else:
             raise ValueError,"unknown diagnostic item %s"%name
     def hasConverged(self):
@@ -567,6 +577,27 @@ class SolverOptions(object):
 		    return -1
             else: 
 		    return r
+   
+    def setDiagonalDominanceThreshold(self,value=0.5):
+        """
+        Sets the threshold for diagonal dominant rows which are eliminated during AMG coarsening. 
+
+	 :param value: threshold
+	 :type value: ``float``
+        """
+        value=float(value)
+        if value<0 or value>1.:
+	   raise ValueError,"Diagonal dominance threshold must be between 0 and 1."
+	self.__diagonal_dominance_threshold=value
+        
+    def getDiagonalDominanceThreshold(self):
+        """
+        Returns the threshold for diagonal dominant rows which are eliminated during AMG coarsening. 
+
+        :rtype: ``float``
+        """
+        return self.__diagonal_dominance_threshold
+        
     def setTruncation(self,truncation=20):
         """
         Sets the number of residuals in GMRES to be stored for orthogonalization.  The more residuals are stored

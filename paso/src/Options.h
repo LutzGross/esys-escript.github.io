@@ -121,6 +121,8 @@ typedef struct {
     bool_t converged;
     double preconditioner_size; /* in Mbytes */
     bool_t time_step_backtracking_used;
+    double coarse_level_sparsity;
+    dim_t num_coarse_unknowns;
 
 } Paso_Options;
 

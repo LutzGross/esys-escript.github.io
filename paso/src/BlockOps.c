@@ -21,51 +21,29 @@
 
 **************************************************************/
 
-void Paso_BlockOps_allMV(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
+void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
      dim_t i;
-     register dim_t i3,i9;
-     register double b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22;
-
+     int failed=0;
+     const dim_t block_size=n_block*n_block;
+     
      if (n_block==1) {
          #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<n;++i) {
-            x[i]=D[i]*x[i];
-         }
+         for (i=0;i<n;++i) x[i]*=D[i];
      } else if (n_block==2) {
-         #pragma omp parallel for private(i,b0,b1,D00,D10,D01,D11,i3,i9) schedule(static)
-         for (i=0;i<n;++i) {
-            i3=2*i;
-            i9=4*i;
-            b0=x[i3];
-            b1=x[i3+1];
-            D00=D[i9  ];
-            D10=D[i9+1];
-            D01=D[i9+2];
-            D11=D[i9+3];
-            x[i3  ]=D00*b0+D01*b1;
-            x[i3+1]=D10*b0+D11*b1;
-         }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0;i<n;++i) Paso_BlockOps_MViP_2(&D[4*i], &x[2*i]);
+
      } else if (n_block==3) {
-         #pragma omp parallel for private(i,b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22,i3,i9) schedule(static)
-         for (i=0;i<n;++i) {
-            i3=3*i;
-            i9=9*i;
-            b0=x[i3];
-            b1=x[i3+1];
-            b2=x[i3+2];
-            D00=D[i9  ];
-            D10=D[i9+1];
-            D20=D[i9+2];
-            D01=D[i9+3];
-            D11=D[i9+4];
-            D21=D[i9+5];
-            D02=D[i9+6];
-            D12=D[i9+7];
-            D22=D[i9+8];
-            x[i3  ]=D00*b0+D01*b1+D02*b2;
-            x[i3+1]=D10*b0+D11*b1+D12*b2;
-            x[i3+2]=D20*b0+D21*b1+D22*b2;
-         }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0;i<n;++i) Paso_BlockOps_MViP_3(&D[9*i], &x[3*i]);
+     } else {
+	#pragma omp parallel for private(i) schedule(static)
+	for (i=0;i<n;++i) {
+	   Paso_BlockOps_solve_N(n_block, &x[n_block*i], &D[block_size*i], &pivot[n_block*i], &failed);
+	}
+     }
+     if (failed > 0) {
+	Esys_setError(ZERO_DIVISION_ERROR, "Paso_BlockOps_solveAll: solution failed.");
      }
      return;
 }

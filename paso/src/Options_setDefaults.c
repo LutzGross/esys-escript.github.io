@@ -79,6 +79,8 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->converged=FALSE;
   options->preconditioner_size=-1.;
   options->time_step_backtracking_used=FALSE;
+  options->coarse_level_sparsity=-1.;
+  options->num_coarse_unknowns=-1;
 }
 void Paso_Options_showDiagnostics(const Paso_Options* options) {
 	printf("Paso diagonsitics:\n");

@@ -76,10 +76,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
         return;
      }
-     /*if (A->block_size != 1 && options->preconditioner==PASO_AMG) {
-        Esys_setError(TYPE_ERROR,"Paso_Solver: AMG on systems not supported yet.");
-     }
-     */
      time_iter=Esys_timer();
      /* this for testing only */
      if (method==PASO_NONLINEAR_GMRES) {

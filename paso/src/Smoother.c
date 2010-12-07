@@ -166,7 +166,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Precondi
 {
    const dim_t nt=omp_get_max_threads();
    if (smoother->Jacobi) {
-      Paso_BlockOps_allMV(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
+      Paso_BlockOps_solveAll(A->row_block_size,A->numRows,smoother->diag,smoother->pivot,x);
    } else {
       if (nt < 2) {
 	 Paso_Preconditioner_LocalSmoother_Sweep_sequential(A,smoother,x);
@@ -183,11 +183,13 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    const double *diag = smoother->diag;
-   /* const index_t* pivot = smoother->pivot;
-   const dim_t block_size=A_p->block_size;  use for block size >3*/
+   const index_t* pivot = smoother->pivot;
+   const dim_t block_len=A_p->block_size;
    
    register dim_t i,k;
    register index_t iptr_ik, mm;
+   register double rtmp;
+   int failed = 0;
    
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
    /* forward substitution */
@@ -197,24 +199,25 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 /* x_i=x_i-a_ik*x_k  (with k<i) */
+	 rtmp=x[i];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik]; 
-	    x[i]-=A_p->val[iptr_ik]*x[k];
+	    rtmp-=A_p->val[iptr_ik]*x[k];
 	 }
-	 x[i]*=diag[i];
+	 x[i]=rtmp*diag[i];
       }
    } else if (n_block==2) {
-      Paso_BlockOps_MV_2(&x[0], &diag[0], &x[0]);
+      Paso_BlockOps_MViP_2(&diag[0], &x[0]);
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];                          
 	    Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	 }
-	 Paso_BlockOps_MV_2(&x[2*i], &diag[4*i], &x[2*i]);
+	 Paso_BlockOps_MViP_2(&diag[4*i], &x[2*i]);
       }
    } else if (n_block==3) {
-      Paso_BlockOps_MV_3(&x[0], &diag[0], &x[0]);
+      Paso_BlockOps_MViP_3(&diag[0], &x[0]);
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
 	 /* x_i=x_i-a_ik*x_k */
@@ -222,47 +225,73 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 	    k=A_p->pattern->index[iptr_ik];
 	    Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
 	 }
-	 Paso_BlockOps_MV_3(&x[3*i], &diag[9*i], &x[3*i]); 
+	 Paso_BlockOps_MViP_3(&diag[9*i], &x[3*i]); 
       }
-   } /* add block size >3 */
-
+   } else {
+      Paso_BlockOps_solve_N(n_block, &x[0], &diag[0], &pivot[0], &failed);
+      for (i = 1; i < n; ++i) {
+	 mm=ptr_main[i];
+	 /* x_i=x_i-a_ik*x_k */
+	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
+	    k=A_p->pattern->index[iptr_ik];
+	    Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+	 }
+	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed)
+      }
+   }
    /* backward substitution */
    
    if (n_block==1) {
       for (i = n-2; i > -1; --i) {	       
 	    mm=ptr_main[i];
-	    Paso_BlockOps_MV_1(&x[i], &A_p->val[mm], &x[i]);
+	    rtmp=x[i]*A_p->val[mm];
 	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
-	       k=A_p->pattern->index[iptr_ik];  
-	       Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]);
+	       k=A_p->pattern->index[iptr_ik];
+	       rtmp-=A_p->val[iptr_ik]*x[k];
 	    }
-	    Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
+	    x[i]=diag[i]*rtmp;
       }
       
    } else if (n_block==2) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
-	    Paso_BlockOps_MV_2(&x[2*i], &A_p->val[4*mm], &x[2*i]);
+	    Paso_BlockOps_MViP_2(&A_p->val[4*mm], &x[2*i]);
 	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik]; 
 	       Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	    }
-	    Paso_BlockOps_MV_2(&x[2*i], &diag[i*4], &x[2*i]);
+	    Paso_BlockOps_MViP_2(&diag[i*4], &x[2*i]);
 	    
       }
    } else if (n_block==3) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
-	    Paso_BlockOps_MV_3(&x[3*i], &A_p->val[9*mm], &x[3*i]);
-	 
+	    Paso_BlockOps_MViP_3(&A_p->val[9*mm], &x[3*i]);
 	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik];    
 	       Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
 	    }
-	    Paso_BlockOps_MV_3(&x[3*i], &diag[i*9], &x[3*i]);
+	    Paso_BlockOps_MViP_3(&diag[i*9], &x[3*i]);
       }
       
-   } /* add block size >3 */      
+   } else {
+      double *y=TMPMEMALLOC(n_block, double);
+      for (i = n-2; i > -1; --i) {
+	 mm=ptr_main[i];
+	 Paso_BlockOps_MV_N(n_block, &y[0], &A_p->val[block_len*mm], &x[n_block*i]);
+	 for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+	    k=A_p->pattern->index[iptr_ik];    
+	    Paso_BlockOps_SMV_N(n_block, &y[0], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+	 }
+	 Paso_BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);
+	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[i*block_len], &pivot[i*n_block], &failed);
+      }   
+      TMPMEMFREE(y);
+   }
+   
+   if (failed > 0) {
+      Esys_setError(ZERO_DIVISION_ERROR, "Paso_Preconditioner_LocalSmoother_Sweep_sequential: non-regular main diagonal block.");
+   }
    
    return;
 }
@@ -273,146 +302,163 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    const dim_t n_block=A_p->row_block_size;
    const double *diag = smoother->diag;
    index_t* pivot = smoother->pivot; 
-   const dim_t block_size=A_p->block_size;
+   const dim_t block_len=A_p->block_size;
+   double *y;
    
    register dim_t i,k;
    register index_t color,iptr_ik, mm;
+   register double rtmp;
+   int failed = 0;
    
    const index_t* coloring = Paso_Pattern_borrowColoringPointer(A_p->pattern);
    const dim_t num_colors = Paso_Pattern_getNumColors(A_p->pattern);
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
-   
-   /* forward substitution */
 
-   
-   /* color = 0 */
-   if (n_block==1) { 
-      #pragma omp parallel for schedule(static) private(i)
-      for (i = 0; i < n; ++i) {
-	 if (coloring[i]== 0 ) Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
+   #pragma omp parallel  private(mm, i,iptr_ik,k,rtmp, color, y)
+   {
+      if (n_block>3) {
+	 y=TMPMEMALLOC(n_block, double);
+      } else {
+	 y=NULL;
       }
-   } else if (n_block==2) {
-         #pragma omp parallel for schedule(static) private(i)
+      /* forward substitution */
+
+      /* color = 0 */
+      if (n_block==1) { 
+	 #pragma omp  for schedule(static) 
 	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]== 0 ) Paso_BlockOps_MV_2(&x[2*i], &diag[i*4], &x[2*i]);
+	    if (coloring[i]== 0 ) x[i]*=diag[i];
 	 }
-    } else if (n_block==3) {
-	 #pragma omp parallel for schedule(static) private(i)
+      } else if (n_block==2) {
+         #pragma omp for schedule(static)
 	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==0) Paso_BlockOps_MV_3(&x[3*i], &diag[i*9], &x[3*i]);
+	    if (coloring[i]== 0 ) Paso_BlockOps_MViP_2(&diag[i*4], &x[2*i]);
 	 }
-   } else {
-      #pragma omp parallel for schedule(static) private(i)
-      for (i = 0; i < n; ++i) {
-	 if (coloring[i]==0) Paso_BlockOps_Solve_N(n_block, &x[n_block*i], &diag[block_size*i], &pivot[n_block*i], &x[n_block*i]);
+      } else if (n_block==3) {
+	 #pragma omp for schedule(static)
+	 for (i = 0; i < n; ++i) {
+	    if (coloring[i]==0) Paso_BlockOps_MViP_3(&diag[i*9], &x[3*i]);
+	 }
+      } else {
+	 #pragma omp for schedule(static)
+	 for (i = 0; i < n; ++i) {
+	    if (coloring[i]==0) Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed);
+	 }
       }
-   }
    
-   for (color=1;color<num_colors;++color) {
+
+      for (color=1;color<num_colors;++color) {
  
-      if (n_block==1) {
-	 #pragma omp parallel for schedule(static) private(i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       /* x_i=x_i-a_ik*x_k */                     
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];
-		  if (coloring[k]<color) Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]); 
+	 if (n_block==1) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  /* x_i=x_i-a_ik*x_k */  
+		  rtmp=x[i];
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];
+		     if (coloring[k]<color) rtmp-=A_p->val[iptr_ik]*x[k]; 
+		  }
+		  x[i]=diag[i]*rtmp;
 	       }
-	       Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
+	    }
+	 } else if (n_block==2) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]<color) Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]); 
+		  }
+		  Paso_BlockOps_MViP_2(&diag[4*i], &x[2*i]);
+	       }
+	    }
+	 } else if (n_block==3) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]<color) Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+		  }
+		  Paso_BlockOps_MViP_3(&diag[9*i], &x[3*i]);
+	       }
+	    }
+	 } else {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i] == color) {
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]<color) Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+		  }
+		  Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed);
+	       }
 	    }
 	 }
-      } else if (n_block==2) {
-	 #pragma omp parallel for schedule(static) private(i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]<color) Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]); 
+      } /* end of coloring loop */
+      
+      /* backward substitution */
+      for (color=(num_colors)-2 ;color>-1;--color) { /* Note: color=(num_colors)-1 is not required */
+	 if (n_block==1) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  mm=ptr_main[i];
+		  rtmp=A_p->val[mm]*x[i];
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]>color) rtmp-=A_p->val[iptr_ik]*x[k];
+		  }
+		  x[i]= rtmp*diag[i];
 	       }
-	       Paso_BlockOps_MV_2(&x[2*i], &diag[4*i], &x[2*i]);
 	    }
-	 }
-      } else if (n_block==3) {
-	 #pragma omp parallel for schedule(static) private(i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]<color) Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+	 } else if (n_block==2) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  mm=ptr_main[i];
+		  Paso_BlockOps_MViP_2(&A_p->val[4*mm], &x[2*i]);
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]>color) Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
+		  }
+		  Paso_BlockOps_MViP_2(&diag[4*i], &x[2*i]);
 	       }
-	       Paso_BlockOps_MV_3(&x[3*i], &diag[9*i], &x[3*i]);
 	    }
-	 }
-      } else {
-	 #pragma omp parallel for schedule(static) private(i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i] == color) {
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]<color) Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_size*iptr_ik], &x[n_block*k]);
+	 } else if (n_block==3) {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  mm=ptr_main[i];
+		  Paso_BlockOps_MViP_3(&A_p->val[9*mm], &x[3*i]);
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]>color) Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+		  }
+		  Paso_BlockOps_MViP_3(&diag[9*i], &x[3*i]);
 	       }
-	       Paso_BlockOps_Solve_N(n_block, &x[n_block*i], &diag[block_size*i], &pivot[n_block*i], &x[n_block*i]);
+	    }
+	 } else {
+	    #pragma omp for schedule(static)
+	    for (i = 0; i < n; ++i) {
+	       if (coloring[i]==color) {
+		  mm=ptr_main[i];
+		  Paso_BlockOps_MV_N(n_block, &y[0], &A_p->val[block_len*mm], &x[n_block*i]);
+		  for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
+		     k=A_p->pattern->index[iptr_ik];                          
+		     if (coloring[k]>color) Paso_BlockOps_SMV_N(n_block, &y[0], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+		  }
+		  Paso_BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);
+		  Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[i*block_len], &pivot[i*n_block], &failed);
+	       }
 	    }
 	 }
       }
-   } /* end of coloring loop */
-   
-   /* backward substitution */
-   for (color=(num_colors)-2 ;color>-1;--color) { /* Note: color=(num_colors)-1 is not required */
-      if (n_block==1) {
-	 #pragma omp parallel for schedule(static) private(mm, i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       mm=ptr_main[i];
-	       Paso_BlockOps_MV_1(&x[i], &A_p->val[mm], &x[i]);
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]>color) Paso_BlockOps_SMV_1(&x[i], &A_p->val[iptr_ik], &x[k]);
-	       }
-	       Paso_BlockOps_MV_1(&x[i], &diag[i], &x[i]);
-	    }
-	 }
-      } else if (n_block==2) {
-	 #pragma omp parallel for schedule(static) private(mm, i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       mm=ptr_main[i];
-	       Paso_BlockOps_MV_2(&x[2*i], &A_p->val[4*mm], &x[2*i]);
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]>color) Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
-	       }
-	       Paso_BlockOps_MV_2(&x[2*i], &diag[4*i], &x[2*i]);
-	    }
-	 }
-      } else if (n_block==3) {
-	 #pragma omp parallel for schedule(static) private(mm, i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       mm=ptr_main[i];
-	       Paso_BlockOps_MV_3(&x[3*i], &A_p->val[9*mm], &x[3*i]);
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]>color) Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
-	       }
-	       Paso_BlockOps_MV_3(&x[3*i], &diag[9*i], &x[3*i]);
-	    }
-	 }
-      } else {
-	 #pragma omp parallel for schedule(static) private(mm, i,iptr_ik,k)
-	 for (i = 0; i < n; ++i) {
-	    if (coloring[i]==color) {
-	       mm=ptr_main[i];
-	       Paso_BlockOps_MV_N( n_block, &x[n_block*i], &A_p->val[block_size*mm], &x[n_block*i] );
-	       for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<A_p->pattern->ptr[i+1]; ++iptr_ik) {
-		  k=A_p->pattern->index[iptr_ik];                          
-		  if (coloring[k]>color) Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_size*iptr_ik], &x[n_block*k]);
-	       }
-	       Paso_BlockOps_Solve_N(n_block, &x[n_block*i], &diag[block_size*i], &pivot[n_block*i], &x[n_block*i]);
-	    }
-	 }
-      }
+      TMPMEMFREE(y);
+   }
+   if (failed > 0) {
+      Esys_setError(ZERO_DIVISION_ERROR, "Paso_Preconditioner_LocalSmoother_Sweep_colored: non-regular main diagonal block.");
    }
    return;
 }

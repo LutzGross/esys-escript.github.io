@@ -594,7 +594,10 @@ supported:\\
  \var{"cum_net_time"}: cumulative net execution time\\
  \var{"residual_norm"}: norm of the final residual\\
  \var{"converged"}: status of convergence\\
- \var{"preconditioner_size"}: size of preconditioner in MBytes.
+ \var{"preconditioner_size"}: size of preconditioner in MBytes \\
+ \var{"preconditioner_size"}: size of preconditioner in MBytes \\
+ \var{"preconditioner_size"}: size of preconditioner in MBytes .
+ 
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{hasConverged}{}
@@ -661,6 +664,14 @@ sets the threshold for coarsening in the \AMG solver or preconditioner.
 
 \begin{methoddesc}[SolverOptions]{getCoarseningThreshold}{}
 returns the threshold for coarsening in the \AMG solver or preconditioner.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{setDiagonalDominanceThreshold}{\optional{value=0.5}}
+sets the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{getDiagonalDominanceThreshold}{}
+returns the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setMinCoarseMatrixSize}{\optional{size=500}}
