@@ -29,7 +29,7 @@ testruns += ['run_models.py']
 testruns += ['run_simplesolve.py']
 testruns += ['run_utilOnFinley.py']
 # testruns += ['run_visualization_interface.py']
-# testruns += ['run_amg.py'] removed for now
+testruns += ['run_amg.py'] 
 
 #  files defining a few tests for a quick test
 scalable_tests = []

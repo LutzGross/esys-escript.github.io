@@ -59,17 +59,25 @@ index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_Local
    }
 }
 double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in) {
-   if (in->AMG_C == NULL) {
-      return DBLE(in->A_C->pattern->len)/DBLE(in->A_C->numRows)/DBLE(in->A_C->numRows);
-   } else {
-      return Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
-   }
+      if (in->AMG_C == NULL) {
+	 if (in->A_C == NULL) {
+	    return 1.;
+	 } else {
+	    return DBLE(in->A_C->pattern->len)/DBLE(in->A_C->numRows)/DBLE(in->A_C->numRows);
+	 }
+      } else {
+	    return Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
+      }
 }
 dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in) {
    if (in->AMG_C == NULL) {
-      return in->A_C->numRows;
+      if (in->A_C == NULL) {
+	 return 0;
+      } else {
+	 return in->A_C->numRows;
+      }
    } else {
-      return Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(in->AMG_C);
+ 	 return Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(in->AMG_C);
    }
 }
 /*****************************************************************
