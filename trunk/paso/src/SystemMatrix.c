@@ -53,8 +53,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   unroll  
         /* we don't like non-square blocks */
     =   (row_block_size!=col_block_size)
+    #ifndef USE_LAPACK
         /* or any block size bigger than 3 */
     ||  (col_block_size>3) 
+    # endif
         /* or if lock size one requested and the block size is not 1 */
     ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
         /* or the offsets are wrong */

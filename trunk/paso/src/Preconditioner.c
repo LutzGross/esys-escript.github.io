@@ -73,33 +73,48 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
-	      if (options->verbose) printf("Paso: Jacobi(%d) preconditioner is used.\n",options->sweeps);
+	      if (options->verbose) printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",options->sweeps);
 	      prec->jacobi=Paso_Preconditioner_Smoother_alloc(A, TRUE, options->use_local_preconditioner, options->verbose);
               prec->type=PASO_JACOBI;
 	      prec->sweeps=options->sweeps;
               break;
 	   case PASO_GS:
-	      if (options->verbose) printf("Paso: Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
+	      if (options->verbose) printf("Paso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
 	      prec->gs=Paso_Preconditioner_Smoother_alloc(A, FALSE, options->use_local_preconditioner, options->verbose);
 	      prec->type=PASO_GS;
 	      prec->sweeps=options->sweeps;
 	      break;
 	   case PASO_AMLI:
 	   case PASO_AMG:
-	      if (options->verbose) printf("Paso: AMG preconditioner is used.\n");
+	      if (options->verbose) {
+		   printf("Paso_Preconditioner: AMG preconditioner is used. Smoother is ");
+		   if (options->smoother == PASO_JACOBI) {
+		      printf("Jacobi");
+		   } else {
+		      printf("Gauss-Seidel");
+		   }
+		   printf(" with %d/%d pre/post sweeps.\n",options->pre_sweeps, options->post_sweeps);
+	      }
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);
 	      prec->sweeps=options->sweeps;
 	      /* if NULL is returned (and no error) no AMG has been constructed because the system is too small or not big enough 
 	         we now use the Smoother as a preconditioner                                                                      */
-	      if ( (Esys_noError()) && (prec->localamg == NULL) ) {
-		 if (options->verbose) { 
-		    if (options->smoother == PASO_JACOBI) {
-			printf("Paso: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
-		    } else {
-		       printf("Paso: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
-		    }
-		 }
-		 prec->localamgsubstitute=Paso_Preconditioner_LocalSmoother_alloc(A->mainBlock, (options->smoother == PASO_JACOBI), options->verbose);
+	      if ( Esys_noError() ) {
+		 if (prec->localamg == NULL)  {
+		     if (options->verbose) { 
+			if (options->smoother == PASO_JACOBI) {
+			   printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
+			} else {
+			   printf("PPaso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
+			}
+		     }
+		     options->num_level=0;
+		     prec->localamgsubstitute=Paso_Preconditioner_LocalSmoother_alloc(A->mainBlock, (options->smoother == PASO_JACOBI), options->verbose);
+		  } else {
+		     options->num_level=Paso_Preconditioner_LocalAMG_getMaxLevel(prec->localamg);
+		     options->coarse_level_sparsity=Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(prec->localamg);
+		     options->num_coarse_unknowns=Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(prec->localamg);
+		  }
 	      }
 	      prec->type=PASO_AMG;
 	      Esys_MPIInfo_noError(A->mpi_info);
@@ -107,13 +122,13 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	      
 	   /***************************************************************************************/   
            case PASO_ILU0:
-	      if (options->verbose) printf("Paso: ILU preconditioner is used.\n");
+	      if (options->verbose) printf("Paso_Preconditioner: ILU preconditioner is used.\n");
               prec->ilu=Paso_Solver_getILU(A->mainBlock,options->verbose);
               prec->type=PASO_ILU0;
 	      Esys_MPIInfo_noError(A->mpi_info);
               break;
            case PASO_RILU:
-	      if (options->verbose) printf("Paso: RILU preconditioner is used.\n");
+	      if (options->verbose) printf("Paso_Preconditioner: RILU preconditioner is used.\n");
               prec->rilu=Paso_Solver_getRILU(A->mainBlock,options->verbose);
 	      Esys_MPIInfo_noError(A->mpi_info);
               prec->type=PASO_RILU;

@@ -298,6 +298,9 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("residual_norm", residual_norm, double);
    SET("converged",converged, bool);
    SET("time_step_backtracking_used",time_step_backtracking_used, bool);
+   SET("coarse_level_sparsity",coarse_level_sparsity,double);
+   SET("num_coarse_unknowns",num_coarse_unknowns,int);
+
 #undef SET
 }
 void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
@@ -338,6 +341,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getNumCoarseMatrixRefinements",coarse_matrix_refinements, dim_t);
    EXTRACT("usePanel",usePanel, bool_t);
    EXTRACT("useDirectInterpolation", useDirectInterpolation, bool_t);
+   EXTRACT("getDiagonalDominanceThreshold", diagonal_dominance_threshold, double);
    
 #undef EXTRACT
 #undef EXTRACT_OPTION

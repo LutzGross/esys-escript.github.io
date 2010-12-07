@@ -507,7 +507,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
 
         /* x_F=invA_FF*b_F  */
 	Paso_Copy(amli->n_F, amli->x_F,amli->b_F);
-        Paso_BlockOps_allMV(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,amli->x_F);
+        Paso_BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,amli->x_F);
         
         /* b_C=b_C-A_CF*x_F */
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_CF,amli->x_F,1.,amli->b_C);
@@ -524,7 +524,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,0.,amli->b_F);
         /* x_F_temp=invA_FF*b_F  */
 	Paso_Copy(amli->n_F, x_F_temp,amli->b_F);
-        Paso_BlockOps_allMV(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,x_F_temp);
+	Paso_BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,x_F_temp);
         
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amli->n_F;++i) {

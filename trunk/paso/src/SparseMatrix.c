@@ -121,8 +121,10 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
   unroll
         /* we don't like non-square blocks */
     =   (row_block_size!=col_block_size)
-        /* or any block size bigger than 3 */
-    ||  (col_block_size>3)
+    #ifndef USE_LAPACK
+    /* or any block size bigger than 3 */
+    ||  (col_block_size>3) 
+    # endif
         /* or if lock size one requested and the block size is not 1 */
     ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) 
         /* offsets don't match */

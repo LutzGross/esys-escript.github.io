@@ -137,11 +137,11 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 						   const index_t *counter_C) { 
    dim_t i;
    const dim_t n =A_p->numRows;
-   register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii;
+   register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
    register index_t iPtr, j, offset; 
    index_t *where_p, *start_p;
    
-   #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  schedule(static)
+   #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
    for (i=0;i<n;++i) {
       if (counter_C[i]>=0) {
 	    offset = P_p->pattern->ptr[i];
@@ -198,10 +198,10 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 	    A_ii+=sum_all_pos;
 	 }
 	 if ( A_ii > 0.) {
-	    alpha*=(-1./A_ii);
-	    beta*=(-1./A_ii);
+	    rtmp=(-1.)/A_ii;
+	    alpha*=rtmp;
+	    beta*=rtmp;
 	 }
-      
 	 for (iPtr=P_p->pattern->ptr[i];iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
 	    A_ij=P_p->val[iPtr];
 	    if (A_ij > 0 ) {
@@ -222,11 +222,11 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
    const dim_t row_block=A_p->row_block_size;
    const dim_t A_block = A_p->block_size;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
-   register double A_ij;
+   register double A_ij, rtmp;
    register index_t iPtr, j, offset, ib; 
    index_t *where_p, *start_p;
    
-   #pragma omp parallel private(ib, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
+   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
    {
       sum_all_neg=TMPMEMALLOC(row_block, double); /* sum of all negative values in row i of A */
       sum_all_pos=TMPMEMALLOC(row_block, double); /* sum of all positive values in row i of A */
@@ -300,8 +300,9 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
 		  A_ii[ib]+=sum_all_pos[ib];
 	       }
 	       if ( A_ii[ib] > 0.) {
-		  alpha[ib]*=(-1./A_ii[ib]);
-		  beta[ib]*=(-1./A_ii[ib]);
+		  rtmp=(-1./A_ii[ib]);
+		  alpha[ib]*=rtmp;
+		  beta[ib]*=rtmp;
 	       }
 	    }
       

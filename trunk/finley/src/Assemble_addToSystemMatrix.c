@@ -45,7 +45,6 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
   dim_t num_subblocks_Sol=num_Sol/col_block_size;
   dim_t numMyCols=in->pattern->mainPattern->numInput;
   dim_t numMyRows=in->pattern->mainPattern->numOutput;
-
   if (in->type & MATRIX_FORMAT_CSC) {
          /* MATRIX_FORMAT_CSC does not support MPI !!!!! */
 	 mainBlock_ptr=in->mainBlock->pattern->ptr;
@@ -154,7 +153,6 @@ void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,dim_t NN_Equa,inde
          row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
          row_coupleBlock_index=in->row_coupleBlock->pattern->index;
          row_coupleBlock_val=in->row_coupleBlock->val;
-
          for (k_Equa=0;k_Equa<NN_Equa;++k_Equa) { /* Down columns of array */
                 j_Equa=Nodes_Equa[k_Equa];
                 for (l_row=0;l_row<num_subblocks_Equa;++l_row) {

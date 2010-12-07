@@ -51,6 +51,27 @@ void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in) {
      }
 }
 
+index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in) {
+   if (in->AMG_C == NULL) {
+      return in->level; 
+   } else {
+      return Paso_Preconditioner_LocalAMG_getMaxLevel(in->AMG_C);
+   }
+}
+double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in) {
+   if (in->AMG_C == NULL) {
+      return DBLE(in->A_C->pattern->len)/DBLE(in->A_C->numRows)/DBLE(in->A_C->numRows);
+   } else {
+      return Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
+   }
+}
+dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in) {
+   if (in->AMG_C == NULL) {
+      return in->A_C->numRows;
+   } else {
+      return Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(in->AMG_C);
+   }
+}
 /*****************************************************************
 
    constructs AMG
@@ -76,7 +97,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
       
   */
   if ( (A_p->pattern->len >= options->min_coarse_sparsity * n * n ) || (n <= options->min_coarse_matrix_size) || (level > options->level_max) ) {
-     if (verbose) printf("Paso_Solver: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
+     if (verbose) printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
 	level,  options->level_max, A_p->pattern->len/(1.*n * n), options->min_coarse_sparsity, n, options->min_coarse_matrix_size  );  
      return NULL;
   } 
@@ -109,7 +130,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, split_marker);
 	    n_C=n-n_F;
-	    if (verbose) printf("Paso_Solver: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+	    if (verbose) printf("Paso_Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
 	 
 	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
@@ -139,7 +160,8 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 
 		  out->Smoother = Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
 	  
-		  if ( n_F < n ) { /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
+		  if (n_C != 0) {
+			   /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
 			out->x_C=MEMALLOC(n_block*n_C,double);
@@ -213,18 +235,18 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 				    out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
 				    Paso_SparseMatrix_free(A_C);
 				    out->A_C->solver_package = PASO_MKL;
-				    if (verbose) printf("Paso_Solver: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
+				    if (verbose) printf("Paso_Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
 			      #else
 				    #ifdef UMFPACK
 				       out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
 				       Paso_SparseMatrix_free(A_C);
 				       out->A_C->solver_package = PASO_UMFPACK;
-				       if (verbose) printf("Paso_Solver: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C); 
+				       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
 				    #else
 				       out->A_C=A_C;
 				       out->A_C->solver_p=Paso_Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
 				       out->A_C->solver_package = PASO_SMOOTHER;
-				       if (verbose) printf("Paso_Solver: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C);
+				       if (verbose) printf("Paso_Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
 				    #endif
 			      #endif
 			   } else {
@@ -284,7 +306,7 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
 		  Paso_UMFPACK(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
 		  break;
 	       case (PASO_SMOOTHER):
-                  Paso_Preconditioner_LocalSmoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
+		  Paso_Preconditioner_LocalSmoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
 		  break;
 	    }
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
@@ -326,8 +348,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A,
 
 
       #pragma omp parallel for private(i,iptr,max_offdiagonal, threshold,j, kdeg, sum_row, main_row, fnorm) schedule(static)
-      for (i=0;i<n;++i) {
-          
+      for (i=0;i<n;++i) {        
 	 max_offdiagonal = 0.;
 	 sum_row=0;
 	 main_row=0;
@@ -345,6 +366,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A,
 	 }
 	 threshold = theta*max_offdiagonal;
 	 kdeg=0;
+	 
 	 if (tau*main_row < sum_row) { /* no diagonal domainance */
 	    #pragma ivdep
 	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {

@@ -82,7 +82,9 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *d
 Paso_SparseMatrix* Paso_Preconditioner_AMG_getDirectProlongation(const Paso_SparseMatrix* A_p, const dim_t* degree, const index_t* S, const dim_t n_C, const index_t* counter_C); 
 void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
 void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
-
+index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in);
+double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in);
+dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in);
 /*===============================================*/
 /* ILU preconditioner */
 struct Paso_Solver_ILU {
