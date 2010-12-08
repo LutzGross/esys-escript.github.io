@@ -195,7 +195,7 @@ and, the boundary conditions are updated.
 q=whereZero(x[2]-inf(x[2]))
 \end{python}
 No modifications to the PDE solution section are required. This make the
-migration of 2D to a 3D problem almost trivial.
+migration from a 2D to a 3D problem almost trivial.
 
 \autoref{fig:ex10bpot} illustrates the strength of a PDE solution. Three
 different visualisation types help define and illuminate properties of the data.
@@ -204,10 +204,16 @@ and z. The iso-surfaces illuminate the 3D shape of the gravity field, as well as
 its strength which is give by the colour. Finally, the streamlines highlight the
 directional flow of the gravity field in this example.
 
-\autoref{fig:ex10bpot2} and \autoref{fig:ex10p} highlight the importance of the
-boundary conditions and the size of the model. The results are clearly very
-different between the two model sizes and the profile shows the effect of model
-size for various models.
+The boundary conditions were discussed previously, but not thoroughly
+investigated. It was stated, that in the limit as the boundary becomes more
+remote from the source, the potential will reduce to zero.
+\autoref{fig:ex10bpot2} is the solution to the same gravity problem
+but with a slightly larger domain. It is obvious in this case that
+the previous domain size was too small to accurately represent the
+solution. The profiles in \auotref{fig:ex10p} further demonstrates the affect
+the domain size has upon the solution. As the domain size increases, the
+profiles begin to converge. This convergence is a good indicator of an
+appropriately dimensioned model for the problem. 
 
 \begin{figure}[htp]
 \centering
@@ -261,14 +267,18 @@ conditions for a gravity scenario have been established.
 \clearpage
 
 \section{Variable mesh-element sizes}
-\sslist{example10m.py and example10d.py}
-With the help of Gmsh, it is possible to create a mesh for \esc, which has a
-variable element size. This will be extremely useful for the gravitational
-potential, and trying to impose appropriate boundary conditions. 
+\sslist{example10m.py}
+We saw in a previous section that the domain needed to be sufficiently
+large for the boundary conditions to be satisfied. This can be problematic when
+trying to solve problems that require a dense mesh, either for solution
+resolution of stability reasons. The cost of solving for vast numbers of
+elements can be prohibitive.
 
-A large domain can be created that has sufficient resultion close to the source
-and extends to distances large enough that the infinity clause is satisfied,
-without the requirement for large number of cells. 
+With the help of Gmsh, it is possible to create a mesh for \esc, which has a
+variable element size. Such an approach can significantly reduce the number of
+elements that need to be solved, and a large domain can be created that has
+sufficient resolution close to the source and extends to distances large enough
+that the infinity clause is satisfied.
 
 To create a variable size mesh, multiple meshing domains are required. The
 domains mush share points, boundaries and surfaces so that they are joined; and
@@ -276,9 +286,9 @@ no sub-domains are allowed to overlap. Whilst this initially seems complicated,
 it is quite simple to implement. 
 
 This example creates a mesh which contains a high resolution sub-domain in its
-center. We begin by defining two curve loops which describe the large of
-big-subdomain and the smaller sub-domain which is to contain the high resolution
-portion of the mesh. 
+center. We begin by defining two curve loops which describe the large or
+big sub-domain and the smaller sub-domain which is to contain the high
+resolution portion of the mesh. 
 \begin{python}
 ################################################BIG DOMAIN
 #ESTABLISHING PARAMETERS
@@ -384,3 +394,8 @@ domain=ReadGmsh(os.path.join(mesh_path,'example10m.msh'),2) # create the domain
 range from 10m in the centroid to 500m at the boundary.}
 \label{fig:ex10mmsh}
 \end{figure}
+\clearpage
+
+\section{Unbounded problems}
+With a variable element-size, it is now possible to solve the potential problem
+over a very large mesh.
