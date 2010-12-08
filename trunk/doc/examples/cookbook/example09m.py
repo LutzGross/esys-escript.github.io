@@ -36,6 +36,7 @@ from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
 from esys.escript import mkDir, getMPISizeWorld
 import os
+import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
@@ -47,10 +48,20 @@ save_path= os.path.join("data","example09m")
 mkDir(save_path)
 
 ################################################ESTABLISHING PARAMETERS
-#Model Parameters
-xwidth=200.0   #x width of model
-ywidth=200.0   #y width of model
-depth=100.0   #depth of model
+# Time related variables.
+testing=True
+if testing:
+    print 'This script is currently optioned for testing..'
+    print "Try changing the testing variable to False for more iterations."
+    xwidth=40.
+    ywidth=40.
+    depth=20.
+else:
+    #Model Parameters
+    xwidth=100.0   #x width of model
+    ywidth=100.0   #y width of model
+    depth=50.0   #depth of model
+
 intf=depth/2.   #Depth of the interface.
 element_size=4.0
 
@@ -138,15 +149,18 @@ domain=MakeDomain(d)
 # mesh=ReadMesh(fileName)
 domain.write(os.path.join(save_path,"example09m.fly"))
 
-intfaces=[10,30,50,55,80,100,200,250,400,500]
+if testing:
+    intfaces=np.array([10,30,50,55,80,100,200,250,400])/100.
+else:
+    intfaces=np.array([10,30,50,55,80,100,200,250,400])/10.
 
 # Specify the domain.
-#domaindes=Design(dim=3,element_size=element_size,order=2)
-#cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
-#cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
-#cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
-#dcmplx=MakeDomain(cmplx_domain)
-#dcmplx.write(os.path.join(save_path,"example09lc.fly"))
+domaindes=Design(dim=3,element_size=element_size,order=2)
+cmplx_domain=layer_cake(domaindes,xwidth,ywidth,intfaces)
+cmplx_domain.setScriptFileName(os.path.join(save_path,"example09lc.geo"))
+cmplx_domain.setMeshFileName(os.path.join(save_path,"example09lc.msh"))
+dcmplx=MakeDomain(cmplx_domain)
+dcmplx.write(os.path.join(save_path,"example09lc.fly"))
 
 
 

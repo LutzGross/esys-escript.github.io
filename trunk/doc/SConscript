@@ -110,7 +110,7 @@ sortOutExample('cookbook/example08b.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example08c.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
 sortOutExample('cookbook/example09m.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
 sortOutExample('cookbook/example09a.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
-sortOutExample('cookbook/example09b.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
+#sortOutExample('cookbook/example09b.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 

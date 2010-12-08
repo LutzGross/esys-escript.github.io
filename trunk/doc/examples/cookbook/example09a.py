@@ -50,39 +50,45 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
-savepath = "data/example09"
+savepath = "data/example09a"
 meshpath = "data/example09m"
 mkDir(savepath)
 #Geometric and material property related variables.
-mx = 200. # model lenght
-my = 200. # model width
-mz=100.0
 step=10.0 # the element size
-ndx = int(mx/step) # steps in x direction 
-ndy = int(my/step) # steps in y direction
-ndz = int(mz/step)
 
 vel2=1800.;   vel1=3000.
 rho2=2300.;   rho1=3100. #density
 mu2=vel2**2.*rho2/4.;  mu1=vel1**2.*rho1/4.  #bulk modulus
 lam2=vel2**2.*rho2/2.; lam1=vel1**2.*rho1/2.  #lames constant
 
-# Time related variables.
+####################################################TESTING SWITCH
 testing=True
 if testing:
-	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-	print "Try changing testing to False for more iterations."
-	tend=0.001
+    print 'The testing end time is currently selected. This severely limits the number of time iterations.'
+    print "Try changing testing to False for more iterations."
+    tend=0.001
+    #Model Parameters    
+    mx=40.
+    my=40.
+    mz=20.
+    outputs=5
 else:
-	tend=0.1    # end time
+    tend=0.1    # end time
+    #Model Parameters
+    mx=100.0   #x width of model
+    my=100.0   #y width of model
+    mz=50.0   #depth of model
+    outputs=200
 
-h=0.0001    # time step
+####################################################TIME RELATED VARIABLES 
+h=0.00005    # time step
 # data recording times
 rtime=0.0 # first time to record
-rtime_inc=tend/50.0 # time increment to record
+rtime_inc=tend/outputs # time increment to record
 #Check to make sure number of time steps is not too large.
 print "Time step size= ",h, "Expected number of outputs= ",tend/h
 
+####################################################CREATING THE SOURCE FUNCTION
 U0=0.1 # amplitude of point source
 ls=500   # length of the source
 source=np.zeros(ls,'float') # source array
@@ -107,16 +113,9 @@ for it in range(0,ls):
     if (abs(source[it]) > ampmax):
         ampmax = abs(source[it])
     time[t]=t*h
-#tdecay=decay1*decay2*U0
-#decay1=decay1*U0; decay2=decay2*U0
-#pl.clf(); 
-#pl.plot(source)
-#pl.plot(time,decay1);pl.plot(time,decay2); 
-#pl.plot(time,tdecay)
-#pl.savefig(os.path.join(savepath,'source.png'))
 
 # will introduce a spherical source at middle left of bottom face
-xc=[50,50,0]
+xc=[mx/2,my/2,0]
 
 ####################################################DOMAIN CONSTRUCTION
 domain=ReadMesh(os.path.join(meshpath,'example09m.fly')) # create the domain
@@ -136,24 +135,21 @@ rho.setTaggedValue("vintfb",rho2)
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=rho*kmat) #set the general form value D
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_length = 20; print "src_length = ",src_length
+src_rad = 20; print "sourc radius= ",src_rad
 # set initial values for first two time steps with source terms
 xb=FunctionOnBoundary(domain).getX()
-#sy=source[0]*(cos(length(xb-xc)*3.1415/src_length)+1)*whereNegative(length(xb-src_length))
-y=Vector(0.0,FunctionOnBoundary(domain))
-
+yx=(cos(length(xb-xc)*3.1415/src_rad)+1)*whereNegative(length(xb-xc)-src_rad)
+stop=Scalar(0.0,FunctionOnBoundary(domain))
+stop.setTaggedValue("stop",1.0)
 src_dir=numpy.array([0.,0.,1.0]) # defines direction of point source as down
 
-#sy=sy*src_dir
-#sy.setTaggedValue("stop")
-y.setTaggedValue("stop",src_dir*source[0])#)*(cos(length(xb-xc)*3.1415/src_length)+1))
-mypde.setValue(y=y) #set the source as a function on the boundary
+mypde.setValue(y=source[0]*yx*src_dir*stop) #set the source as a function on the boundary
 # initial value of displacement at point source is constant (U0=0.01)
 # for first two time steps
 u=[0.0,0.0,0.0]*wherePositive(x)
@@ -173,12 +169,11 @@ while t<tend:
     u_m1=u; u=u_p1 # shift values by 1
     # save current displacement, acceleration and pressure
     if (t >= rtime):
-        saveVTK(os.path.join(savepath,"ex09.%05d.vtu"%n),displacement=length(u),\
+        saveVTK(os.path.join(savepath,"ex09a.%05d.vtu"%n),displacement=length(u),\
                                     acceleration=length(accel),tensor=stress)
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1
     if (n < ls):
-        y.setTaggedValue("stop",source[n]*src_dir)
-        mypde.setValue(y=y) #set the source as a function on the boundary
+        mypde.setValue(y=source[0]*yx*src_dir*stop) #set the source as a function on the boundary
     print n,"-th time step t ",t
