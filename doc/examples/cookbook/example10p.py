@@ -24,8 +24,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# example10a.py
-# Model of gravitational Potential for a Gravity Well.
+# example10p.py
+# Profiles of gravitational potential with increasing domain size.
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
@@ -39,17 +39,17 @@ save_path= os.path.join("data","example10")
 #ensure the dir exists
 mkDir(save_path)
 
-
+#load the data files.
 dat1=pl.loadtxt(os.path.join(save_path,'example10b_2000.asc'))
 dat2=pl.loadtxt(os.path.join(save_path,'example10b_0500.asc'))
 dat3=pl.loadtxt(os.path.join(save_path,'example10b_4000.asc'))
 dat4=pl.loadtxt(os.path.join(save_path,'example10b_1000.asc'))
 
+#plot the data.
 pl.plot(dat2,label='500^2')
 pl.plot(dat4,label='1000^2')
 pl.plot(dat1,label='2000^2')
 pl.plot(dat3,label='4000^2')
-
 pl.legend()
 pl.title('Small vs Large Gravity Model')
 pl.xlabel('X')

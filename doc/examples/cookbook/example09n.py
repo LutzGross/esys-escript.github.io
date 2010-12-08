@@ -154,10 +154,6 @@ for i in range(0,nintf+1):
     d.addItems(PropertySet('rblock%d'%i,rsurf[i]))
 
 d.addItems(PropertySet('top',lhright[0],lfhor[0],lhleft[0],lhright[4],lhleft[4],lfhor[1]))
-#for i in range(0,2):
-#     d.addItems(lfhor[i])
-
-
 
 d.setScriptFileName(os.path.join(save_path,"example09n.geo"))
 d.setMeshFileName(os.path.join(save_path,"example09n.msh"))
@@ -165,7 +161,7 @@ d.setMeshFileName(os.path.join(save_path,"example09n.msh"))
 #  make the domain:
 #
 domain=MakeDomain(d)
-# mesh=ReadMesh(fileName)
+# mesh=ReadMesh(fileName) this is how to read the fly file into escript
 domain.write(os.path.join(save_path,"example09n.fly"))
 
 

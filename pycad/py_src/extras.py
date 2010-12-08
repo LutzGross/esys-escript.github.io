@@ -117,7 +117,7 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
 def layer_cake(domain,xwidth,ywidth,depths):
     '''
     Builds a horizontally layered box like model. All layers are 
-    tagged as 'interface_i' where i is the python style integer denoting
+    tagged as 'intface_i' where i is the python style integer denoting
     that layer. For example, the free surface is tagged 'interface_0'.
     Volumes are similarly tagged as 'volume_i'.
 

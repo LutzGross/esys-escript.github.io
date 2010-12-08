@@ -125,7 +125,7 @@ x=domain.getX() # get the locations of the nodes in the domani
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=kmat*rho) #set the general form value D
 
@@ -183,7 +183,8 @@ y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-s
 src_dir=numpy.array([0.,1.]) # defines direction of point source as down
 y=y*src_dir
 mypde.setValue(y=y) #set the source as a function on the boundary
-# initial value of displacement at point source is constant (U0=0.01)
+# turn lumping on for more efficient solving
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
 # for first two time steps
 u=[0.0,0.0]*wherePositive(x)
 u_m1=u
