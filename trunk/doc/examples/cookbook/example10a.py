@@ -80,11 +80,12 @@ q=whereZero(x[1]-my)+whereZero(x[1])+whereZero(x[0])+whereZero(x[0]-mx)
 ###############################################ESCRIPT PDE CONSTRUCTION
 
 mypde=LinearPDE(domain)
-mypde.setValue(A=kro,Y=4.*3.1415*G*rho,q=q,r=0)
+mypde.setValue(A=kro,Y=4.*3.1415*G*rho)
+mypde.setValue(q=q,r=0)
 mypde.setSymmetryOn()
 sol=mypde.getSolution()
 
-g_field=grad(sol) #The graviational accelleration g.
+g_field=grad(sol) #The gravitational acceleration g.
 g_fieldz=g_field*[0,1] #The vertical component of the g field.
 gz=length(g_fieldz) #The magnitude of the vertical component.
 # Save the output to file.
