@@ -24,7 +24,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# example10a.py
+# example10d.py
 # Model of gravitational Potential for a gravity POLE.
 
 #######################################################EXTERNAL MODULES
@@ -41,7 +41,7 @@ from esys.escript.pdetools import Projector, Locator
 from esys.finley import ReadGmsh
 
 import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
+matplotlib.use('agg') #Its just here for automated testing
 
 import pylab as pl #Plotting package
 import numpy as np
