@@ -24,47 +24,42 @@ from esys.escript.linearPDEs import LinearPDE
 from esys import finley
 from esys.weipa import saveVTK
 
-press0=1.
-lamb=1.
-nu=0.3
+pres0=-100.
+lame=1.
+mu=0.3
+rho=1.
+g=9.81
 
-# this sets the hook tensor:
-def setHookTensor(w,l,n):
-   C=Tensor4(0.,w)
-   for i in range(w.getDim()):
-     for j in range(w.getDim()):
-          C[i,i,j,j]+=l
-          C[j,i,j,i]+=n
-          C[j,i,i,j]+=n
-
-   return C
-  
-# generate mesh: here 10x20 mesh of order 2
-domain=finley.Rectangle(10,20,1,l0=0.5,l1=1.0)
-# get handel to nodes and elements:
-e=Function(domain)
-fe=FunctionOnBoundary(domain)
-n=ContinuousFunction(domain)
+# generate mesh: here 20x20 mesh of order 1
+domain=finley.Rectangle(20,20,1,l0=1.0,l1=1.0)
 #
 # set a mask msk of type vector which is one for nodes and components set be a constraint:
 #
-msk=whereZero(n.getX()[0])*[1.,1.]
+msk=whereZero(domain.getX()[0])*[1.,1.]
 #
 #  set the normal stress components on face elements.
 #  faces tagged with 21 get the normal stress [0,-press0].
 #
-# now the pressure is set to zero for x0 coordinates bigger then 0.1
-press=whereNegative(fe.getX()[0]-0.1)*200000.*[1.,0.]
+# now the pressure is set to zero for x0 coordinates equal 1. (= right face)
+press=whereZero(FunctionOnBoundary(domain).getX()[0]-1.)*pres0*[1.,0.]
 # assemble the linear system:
 mypde=LinearPDE(domain)
-mypde.setValue(A=setHookTensor(e,lamb,nu),y=press,q=msk,r=[0,0])
+k3=kronecker(domain)
+k3Xk3=outer(k3,k3)
+
+mypde.setValue(A=mu * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame*k3Xk3, 
+               Y=[0,-g*rho],
+               y=press,
+               q=msk,r=[0,0])
 mypde.setSymmetryOn()
 mypde.getSolverOptions().setVerbosityOn()
-mypde.getSolverOptions().setPreconditioner(mypde.getSolverOptions().AMG)
+# use direct solver (default is iterative)
+mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().DIRECT)
+# mypde.getSolverOptions().setPreconditioner(mypde.getSolverOptions().AMG)
 # solve for the displacements:
 u_d=mypde.getSolution()
 # get the gradient and calculate the stress:
 g=grad(u_d)
-stress=lamb*trace(g)*kronecker(domain)+nu*(g+transpose(g))
+stress=lame*trace(g)*kronecker(domain)+mu*(g+transpose(g))
 # write the hydrostatic pressure:
 saveVTK("result.vtu",displacement=u_d,pressure=trace(stress)/domain.getDim())
