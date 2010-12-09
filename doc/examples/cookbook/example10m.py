@@ -50,8 +50,8 @@ mkDir(save_path)
 
 ################################################BIG DOMAIN
 #ESTABLISHING PARAMETERS
-width=40000.    #width of model
-depth=40000.    #depth of model
+width=10000.    #width of model
+depth=10000.    #depth of model
 bele_size=500.  #big element size
 #DOMAIN CONSTRUCTION
 p0=Point(0.0,    0.0)
@@ -68,8 +68,8 @@ cbig=CurveLoop(l01,l12,l23,l30)
 
 ################################################SMALL DOMAIN
 #ESTABLISHING PARAMETERS
-xwidth=2000.0   #x width of model
-zdepth=2000.0   #y width of model
+xwidth=1000.0   #x width of model
+zdepth=1000.0   #y width of model
 sele_size=10.   #small element size
 #TRANSFORM
 xshift=width/2-xwidth/2
@@ -94,6 +94,7 @@ sbig=PlaneSurface(cbig,holes=[csmall])
 # Design the geometry for the big mesh.
 d1=Design(dim=2, element_size=bele_size, order=1)
 d1.addItems(sbig)
+d1.addItems(PropertySet(l01,l12,l23,l30))
 d1.setScriptFileName(os.path.join(save_path,"example10m_big.geo"))
 MakeDomain(d1)
 

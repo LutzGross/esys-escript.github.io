@@ -38,13 +38,14 @@ import os, sys #This package is necessary to handle saving our data.
 from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector, Locator
-from cblib import toRegGrid
+from esys.finley import ReadGmsh
 
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
 import pylab as pl #Plotting package
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -54,12 +55,10 @@ if getMPISizeWorld() > 1:
 
 #################################################ESTABLISHING VARIABLES
 #Domain related.
-mx = 4000*m #meters - model length
-my = -4000*m #meters - model width
-ndx = 400 # mesh steps in x direction 
-ndy = 400 # mesh steps in y direction - one dimension means one element
+mx = 10000*m #meters - model length
+my = 10000*m #meters - model width
 #PDE related
-rho=200.0
+rho=10.0
 rholoc=[mx/2.,my/2.]
 G=6.67300*10E-11
 
@@ -79,23 +78,22 @@ def analytic_gz(x,z,R,drho):
 
 sol_angz=[]
 sol_anx=[]
-for x in range(int(-mx/2),int(mx/2),10):
+for x in range(int(-mx/20),int(mx/20),10):
     sol_angz.append(analytic_gz(x,z,R,rho))
     sol_anx.append(x+mx/2)
 
 ##############INVERSION
 def gzpot(p, y, x, *args):
     #rho, rhox, rhoy, R = p
-    R=10.; rhox=args[0]/2.; rhoy=args[1]/2.
-    rho=p[0]
+    rhox=args[0]/2.; rhoy=args[1]/2.
+    rho, R, z =p
     #Domain related.
-    mx = args[0]; my = args[1]; ndx = args[2]; ndy = args[3]
-
+    mx = args[0]; my = args[1];
     #PDE related
     G=6.67300*10E-11
 
     #DOMAIN CONSTRUCTION
-    domain = Rectangle(l0=mx,l1=my,n0=ndx, n1=ndy)
+    domain=ReadGmsh('data/example10m/example10m.msh',2)
     domx=Solution(domain).getX()
     mask=wherePositive(R-length(domx-rholoc))
     rhoe=rho*mask
@@ -116,27 +114,56 @@ def gzpot(p, y, x, *args):
     sol_escgz=[]
     sol_escx=[]
     for i in range(0,len(x)):
-        sol_escgz.append([x[i],my/2.+z])
+        sol_escgz.append([x[i],rhoy+z])
 
     sample=[] # array to hold values
     rec=Locator(gz.getFunctionSpace(),sol_escgz) #location to record
     psol=rec.getValue(gz)
 
-    err = np.sum(np.array(y) - np.array(psol))
+    err = np.sum((np.array(y) - np.array(psol))**2.)
     print "Lsup= ",Lsup(np.array(psol)-np.array(sol_angz))/Lsup(np.array(psol))
     return err
 
 #Initial Guess
 #guess=[400,mx/4,my/4,50]
-guess=15.
+guess=[15.,20.]
 
 from scipy.optimize import leastsq
-#plsq = leastsq(gzpot, guess, args=(sol_angz, sol_anx, mx, my, ndx, ndy),maxfev=10)
+#plsq = leastsq(gzpot, guess, args=(sol_angz, sol_anx, mx, my, ndx, ndy),maxfev=20)
+#print plsq
 
 objf=[]
-for R in range(180,220):
-    objf.append(gzpot([R],sol_angz,sol_anx, mx, my, ndx, ndy))
+x=np.arange(1,20)
+y=np.arange(1,20)
+z=np.arange(40,60)
+fig=pl.figure(figsize=(5,5))
 
-pl.plot(objf)
-pl.show()
+for p in x:
+    objf.append(gzpot([p,10.,50.],sol_angz,sol_anx, mx, my))
+sp=fig.add_subplot(311)
+sp.plot(x,objf)
+sp.set_title("Variable RHO")
+objf=[]
+for R in y:
+    objf.append(gzpot([10.,R,50.],sol_angz,sol_anx, mx, my))
+sp=fig.add_subplot(312)
+sp.plot(y,objf)
+sp.set_title("Variable Radius")
+
+objf=[]
+for D in z:
+    objf.append(gzpot([10.,10.,D],sol_angz,sol_anx, mx, my))     
+sp=fig.add_subplot(313)
+sp.plot(z,objf)
+sp.set_title("Variable Depth")
+
+fig.savefig("ex10e_objf.pdf",dpi=150)
+
+#ob=np.array(objf)
+#X,Y=pl.meshgrid(x,y)
+#fig=pl.figure()
+#ax=Axes3D(fig)
+#ax.plot_surface(X,Y,ob)
+
+#pl.show()
 
