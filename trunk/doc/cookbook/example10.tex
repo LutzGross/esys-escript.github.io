@@ -15,9 +15,10 @@
 
 In this chapter the gravitational potential field is developed for \esc.
 Gravitational fields are present in many modelling scenarios, including
-geophysical investigations, planetary motion and attraction and microparticle
+geophysical investigations, planetary motion and attraction and micro-particle
 interactions. Gravitational fields also present an opportunity to demonstrate
-the saving and visualisation of vector data for Mayavi.
+the saving and visualisation of vector data for Mayavi, and the construction of
+variable sized meshes.
 
 The gravitational potential $U$ at a point $P$ due to a region with a mass
 distribution of density $\rho(P)$, is given by Poisson's equation
@@ -26,9 +27,9 @@ distribution of density $\rho(P)$, is given by Poisson's equation
 \nabla^2 U(P) = -4\pi\gamma\rho(P)
 \end{equation}
 where $\gamma$ is the gravitational constant.
-Consider now the \esc general form, which has a simple relationship to
-\autoref{eqn:poisson}. There are only two non-zero coefficients, $A$ and $Y$,
-thus the relevant terms of the general form are reduced to;
+Consider now the \esc general form, 
+\autoref{eqn:poisson} requires only two coefficients,
+$A$ and $Y$, thus the relevant terms of the general form are reduced to;
 \begin{equation}
 -\left(A_{jl} u_{,l} \right)_{,j} = Y
 \end{equation}
@@ -50,28 +51,29 @@ potential $U$ is related to the mass of a sphere by
 U(P)=-\gamma \frac{m}{r^2}
 \end{equation} where $m$ is the mass of the sphere and $r$ is the distance from
 the center of the mass to the observation point $P$. Plainly, the magnitude
-of the potential is goverened by an inverse-square distance law. Thus, in the
+of the potential is governed by an inverse-square distance law. Thus, in the
 limit as $r$ increases;
 \begin{equation}
 \lim_{r\to\infty} U(P) = 0
 \end{equation}
-Provided that the domain being solved is large enough, the potential will decay
-to zero. This stipulates a dirichlet condition where $U=0$ on the boundary of a
-domain.
+Provided that the domain being solved is large enough, and the source mass is
+contained within a central region of the domain, the potential will decay to
+zero. This is a dirichlet boundary condition where $U=0$.
 
 This boundary condition can be satisfied when there is some mass suspended in a
 free-space. For geophysical models where the mass of interest may be an anomaly
 inside a host rock, the anomaly can be isolated by subtracting the density of the
-host rock from the model. This creates a ficticious free space model that will
-obey the boundary conditions. The result is that $Y=4\pi\gamma\Delta\rho$, where
-$\Delta\rho=\rho-\rho_0$ and $\rho_0$ is the baseline or host density. This of
-course means that the true gravity response is not being modelled, but the
-reponse due to an anomalous mass $\Delta g$.
+host rock from the model. This creates a fictitious free space model that will
+satisfy the analytic boundary conditions. The result is that
+$Y=4\pi\gamma\Delta\rho$, where $\Delta\rho=\rho-\rho_0$ and $\rho_0$ is the
+baseline or host density. This of course means that the true gravity response is
+not being modelled, but the response due to an anomalous mass with a
+density contrast $\Delta\rho$.
 
-For this example we have set all of the boundaries to zero but only one bondary
+For this example we have set all of the boundaries to zero but only one boundary
 point needs to be set for the problem to be solvable. The normal flux condition
-is also zero by default. For a more realistic and complicated models it may be
-necessary to give careful consideration to the boundary conditions of the model,
+is also zero by default. Note, that for a more realistic and complicated models
+it may be necessary to give careful consideration to the boundary conditions of the model,
 which can have an influence upon the solution.
 
 Setting the boundary condition is relatively simple using the \verb!q! and
@@ -79,16 +81,17 @@ Setting the boundary condition is relatively simple using the \verb!q! and
 function on the boundary using
 \begin{python}
 q=whereZero(x[1]-my)+whereZero(x[1])+whereZero(x[0])+whereZero(x[0]-mx)
+mypde.setValue(q=q,r=0)
 \end{python}
 This identifies the points on the boundary and \verb!r! is simply
-ser to \verb!r=0.0!. This is a dirichlet boundary condition.
+ser to \verb!r=0.0!. This is a Dirichlet boundary condition.
 
 \clearpage
 \section{Gravity Pole}
 \sslist{example10a.py}
-A gravity pole is used in this example to demonstrate the radial directionality
+A gravity pole is used in this example to demonstrate the vector characteristics
 of gravity, and also to demonstrate how this information can be exported for
-visualisation to Mayavi or an equivalent using the VTK data format. 
+visualisation to Mayavi or an equivalent using the VTK data format.
 
 The solution script for this section is very simple. First the domain is
 constructed, then the parameters of the model are set, and finally the steady
@@ -111,7 +114,7 @@ g=|g_{z}|
 These values are derived from the \esc solution \verb!sol! to the potential $U$
 using the following commands
 \begin{python}
-g_field=grad(sol) #The graviational accelleration g.
+g_field=grad(sol) #The gravitational acceleration g.
 g_fieldz=g_field*[0,1] #The vertical component of the g field.
 gz=length(g_fieldz) #The magnitude of the vertical component.
 \end{python}
@@ -134,7 +137,7 @@ chart requires that the data object be imported twice.
 The point scalar data \verb|grav_pot| is the gravitational potential and it is
 easily plotted using a surface module. To visualise the cell data a filter is
 required that converts to point data. This is done by right clicking on the data
-object in the explorer tree and sellecting the cell to point filter as in
+object in the explorer tree and selecting the cell to point filter as in
 \autoref{fig:mayavi2cell2point}.
 
 The settings can then be modified to suit personal taste. An example of the
@@ -174,13 +177,13 @@ of the field is reflected in the size of the vector arrows.}
 \section{Gravity Well}
 \sslist{example10b.py}
 Let us now investigate the effect of gravity in three dimensions. Consider a
-volume which contains a sphericle mass anomaly and a gravitational potential
+volume which contains a spherical mass anomaly and a gravitational potential
 which decays to zero at the base of the model.
 
 The script used to solve this model is very similar to that used for the gravity
 pole in the previous section, but with an extra spatial dimension. As for all
 the 3D problems examined in this cookbook, the extra dimension is easily
-integrated into the \esc solultion script.
+integrated into the \esc solution script.
 
 The domain is redefined from a rectangle to a Brick;
 \begin{python}
@@ -194,15 +197,15 @@ and, the boundary conditions are updated.
 \begin{python}
 q=whereZero(x[2]-inf(x[2]))
 \end{python}
-No modifications to the PDE solution section are required. This make the
-migration from a 2D to a 3D problem almost trivial.
+No modifications to the PDE solution section are required. Thus the migration
+from a 2D to a 3D problem is almost trivial.
 
 \autoref{fig:ex10bpot} illustrates the strength of a PDE solution. Three
 different visualisation types help define and illuminate properties of the data.
 The cut surfaces of the potential are similar to a 2D section for a given x or y
 and z. The iso-surfaces illuminate the 3D shape of the gravity field, as well as
-its strength which is give by the colour. Finally, the streamlines highlight the
-directional flow of the gravity field in this example.
+its strength which is illustrated by the colour. Finally, the streamlines
+highlight the directional flow of the gravity field in this example.
 
 The boundary conditions were discussed previously, but not thoroughly
 investigated. It was stated, that in the limit as the boundary becomes more
@@ -210,10 +213,10 @@ remote from the source, the potential will reduce to zero.
 \autoref{fig:ex10bpot2} is the solution to the same gravity problem
 but with a slightly larger domain. It is obvious in this case that
 the previous domain size was too small to accurately represent the
-solution. The profiles in \auotref{fig:ex10p} further demonstrates the affect
+solution. The profiles in \autoref{fig:ex10p} further demonstrates the affect
 the domain size has upon the solution. As the domain size increases, the
 profiles begin to converge. This convergence is a good indicator of an
-appropriately dimensioned model for the problem. 
+appropriately dimensioned model for the problem, and and sampling location. 
 
 \begin{figure}[htp]
 \centering
@@ -269,10 +272,10 @@ conditions for a gravity scenario have been established.
 \section{Variable mesh-element sizes}
 \sslist{example10m.py}
 We saw in a previous section that the domain needed to be sufficiently
-large for the boundary conditions to be satisfied. This can be problematic when
+large for the boundary conditions to be satisfied. This can be troublesome when
 trying to solve problems that require a dense mesh, either for solution
-resolution of stability reasons. The cost of solving for vast numbers of
-elements can be prohibitive.
+resolution of stability reasons. The computational cost of solving a large
+number of elements can be prohibitive.S
 
 With the help of Gmsh, it is possible to create a mesh for \esc, which has a
 variable element size. Such an approach can significantly reduce the number of
@@ -281,11 +284,11 @@ sufficient resolution close to the source and extends to distances large enough
 that the infinity clause is satisfied.
 
 To create a variable size mesh, multiple meshing domains are required. The
-domains mush share points, boundaries and surfaces so that they are joined; and
+domains must share points, boundaries and surfaces so that they are joined; and
 no sub-domains are allowed to overlap. Whilst this initially seems complicated,
 it is quite simple to implement. 
 
-This example creates a mesh which contains a high resolution sub-domain in its
+This example creates a mesh which contains a high resolution sub-domain at its
 center. We begin by defining two curve loops which describe the large or
 big sub-domain and the smaller sub-domain which is to contain the high
 resolution portion of the mesh. 
@@ -339,7 +342,7 @@ defined by the small sub-domain curveloop.
 \begin{python}
 sbig=PlaneSurface(cbig,holes=[csmall])
 \end{python}
-The two sub-domains now have a common geometry and no overlaping features as
+The two sub-domains now have a common geometry and no over-laping features as
 per \autoref{fig:ex10mgeo}. Notice, that both domains have a normal in the
 same direction.
 
@@ -349,14 +352,17 @@ element size. This is carried out using the \pycad Design command.
 # Design the geometry for the big mesh.
 d1=Design(dim=2, element_size=bele_size, order=1)
 d1.addItems(sbig)
+d1.addItems(PropertySet(l01,l12,l23,l30))
 d1.setScriptFileName(os.path.join(save_path,"example10m_big.geo"))
+MakeDomain(d1)
 
 # Design the geometry for the small mesh.
 d2=Design(dim=2, element_size=sele_size, order=1)
 d2.addItems(ssmall)
 d2.setScriptFileName(os.path.join(save_path,"example10m_small.geo"))
+MakeDomain(d2)
 \end{python}
-Finally, a system call to Gmsh is required to merge and then appropriate
+Finally, a system call to Gmsh is required to merge and then appropriately
 mesh the two sub-domains together.
 \begin{python}
 # Join the two meshes using Gmsh and then apply a 2D meshing algorithm.
@@ -375,10 +381,11 @@ To use the Gmsh ``*.msh'' file in the solution script, the mesh reading function
 \begin{python}
 from esys.finley import ReadGmsh
 \end{python}
-To read in the file the function is called like
+To read in the file the function is called 
 \begin{python}
 domain=ReadGmsh(os.path.join(mesh_path,'example10m.msh'),2) # create the domain
 \end{python}
+where the integer argument is the number of domain dimensions.
 % 
  \begin{figure}[ht]
 \centering
@@ -398,4 +405,42 @@ range from 10m in the centroid to 500m at the boundary.}
 
 \section{Unbounded problems}
 With a variable element-size, it is now possible to solve the potential problem
-over a very large mesh.
+over a very large mesh. To test the accuracy of the solution, we will compare
+the \esc result with the analytic solution for the vertical gravitational
+acceleration $g_z$ of an infinite horizontal cylinder.
+
+For a horizontal cylinder with a circular cross-section with infinite strike,
+the analytic solution is give by
+\begin{equation}
+g_z = 2\gamma\pi R^2 \Delta\rho \frac{z}{(x^2+z^2)} 
+\end{equation}
+where $\gamma$ is the gravitational constant (as defined previously), $R$ is the
+radius of the cylinder, $\Delta\rho$ is the density contrast and $x$ and $z$ are
+geometric factors, relating the observation point to the center of the source
+via the horizontal and vertical displacements respectively.
+
+The accuracy of the solution was tested using a square domain. For each test the
+dimensions of the domain were modified, being set to 5, 10, 20 and 40 Km. The
+results are compared with the analytic solution and are depicted in
+\autoref{fig:ex10q boundeff} and \autoref{fig:ex10q boundeff zoom}. Clearly, 
+as the domain size increases, the results are valid at greater
+distances from the source. The same is true at the anomaly peak, where the
+variation around the source diminishes with an increasing domain size.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/ex10q_boundeff.pdf}
+\caption{Solution profile 1000.0 meters from the source as the domain size
+increases.}
+\label{fig:ex10q boundeff}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/ex10q_boundeff_zoom.pdf}
+\caption{Magnification of \autoref{fig:ex10q boundeff}.}
+\label{fig:ex10q boundeff zoom}
+\end{figure}
+\clearpage
+
+\subsection{Inversion using scipy}
