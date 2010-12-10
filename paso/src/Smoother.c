@@ -182,8 +182,8 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
-   const double *diag = smoother->diag;
-   const index_t* pivot = smoother->pivot;
+   double *diag = smoother->diag;
+   index_t* pivot = smoother->pivot;
    const dim_t block_len=A_p->block_size;
    
    register dim_t i,k;
@@ -300,7 +300,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
-   const double *diag = smoother->diag;
+   double *diag = smoother->diag;
    index_t* pivot = smoother->pivot; 
    const dim_t block_len=A_p->block_size;
    double *y;
