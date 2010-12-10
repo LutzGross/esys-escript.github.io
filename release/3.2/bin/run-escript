@@ -162,7 +162,7 @@ do
 	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
 		exit 0
 		;;
-	  "V")	echo "escript-development(build "`get_buildvar svn_revision`")"
+	  "V")	echo "escript-3.2(build "`get_buildvar svn_revision`")"
 		exit 0
 		;;
 	  "h")  echo "$HELPTEXT"
