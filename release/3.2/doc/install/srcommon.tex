@@ -120,8 +120,26 @@ If you want to try escript out without customising your build, then change direc
 \begin{shellCode}
 scons 
 \end{shellCode}
-If this works you can skip to Section~\ref{sec:diff}.
-If not, then you will need to make some modications to the the file.
+
+\begin{verse}
+If you are using a relatively recent version of Ubuntu this may produce errors.
+The problem is the name of a library in Ubuntu packages.
+Find the line in the options file you just created which reads
+\begin{shellCode}
+#boost_libs = ['boost_python-mt']
+\end{shellCode}
+
+You will need to change the name so it has a python version after it.
+For example:
+\begin{shellCode}
+boost_libs = ['boost_python-mt-py26']
+\end{shellCode}
+
+Then run scons.
+\end{verse}
+
+If this works, then  you can skip to Section~\ref{sec:diff}.
+If not, then you will need to make some more modications to the the file.
 Read on.
 
 The template files contain all available options with a comment explaining the
