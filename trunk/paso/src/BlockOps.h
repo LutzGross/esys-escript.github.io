@@ -21,6 +21,7 @@
 #ifdef USE_LAPACK
    #ifdef MKL_LAPACK
       #include <mkl_lapack.h>
+      #include <mkl_cblas.h>
    #else
       #include <clapack.h>
       #include <cblas.h>
@@ -86,35 +87,13 @@ register double A33=*(MAT+8);\
 /* Paso_BlockOps_SMV_N */
 
 #ifdef USE_LAPACK
-   #ifdef MKL_LAPACK
-      #define Paso_BlockOps_SMV_N(N, R, MAT, V) \
-           {\
-              int NN=N; \
-	      double D_MONE=-1.;\
-	      double D_ONE=1.;\
-	      int ONE=1;\
-	      dgemv('N',&NN,&NN, &MONE, MAT, &NN, V, &ONE, D_ONE, R, &ONE);  \
-	    }
-   #else
-      #define Paso_BlockOps_SMV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, -1., _MAT_, _N_, _V_, 1, (1.), _R_, 1)  
-   #endif
+   #define Paso_BlockOps_SMV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, -1., _MAT_, _N_, _V_, 1, (1.), _R_, 1)  
 #else
    #define Paso_BlockOps_SMV_N(N, R, MAT, V)   PASO_MISSING_CLAPACK 
 #endif
 
 #ifdef USE_LAPACK
-   #ifdef MKL_LAPACK
-      #define Paso_BlockOps_MV_N(N, R, MAT, V) \
-	 {\
-	    int NN=N; \
-	    double D_ZERO=0.;\
-	    double D_ONE=1.;\
-	    int ONE=1;\
-	    dgemv('N',&NN,&NN, &D_ONE, MAT, &NN, V, &ONE, D_ZERO, R, &ONE);  \
-	 }
-      #else
-	 #define Paso_BlockOps_MV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, 1., _MAT_, _N_, _V_, 1, (0.), _R_, 1)  
-      #endif
+      #define Paso_BlockOps_MV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, 1., _MAT_, _N_, _V_, 1, (0.), _R_, 1)  
    #else
       #define Paso_BlockOps_MV_N(N, R, MAT, V)   PASO_MISSING_CLAPACK 
 #endif
@@ -192,7 +171,7 @@ register double A33=*(MAT+8);\
 	 int NN=N; \
 	 int res =0; \
 	 int ONE=1; \
-	 dgetrs('N', &NN, &ONE, MAT, &NN, PIVOT, X, &NN, &res); \
+	 dgetrs("N", &NN, &ONE, MAT, &NN, PIVOT, X, &NN, &res); \
 	 if (res!=0) *failed=1;\
       }
    #else
