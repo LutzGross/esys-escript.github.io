@@ -70,7 +70,7 @@ ld_extra = '-L/usr/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-#werror = False
+werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
