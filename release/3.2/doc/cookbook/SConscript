@@ -33,7 +33,7 @@ if 'PDF' in dir(local_env):
     Depends(cbpdf, fig_src+tex_src)
 
     pdf_path=os.path.join(release_dir, 'cookbook', 'cookbook.pdf')
-    pdf_inst=local_env.InstallAs(target=pdf_path, source=cbpdf)
+    pdf_inst=local_env.InstallAs(target=pdf_path, source='cookbook.pdf')
     env.Alias('cookbook_pdf', pdf_inst)
 else:
     env.Alias('cookbook_pdf', '', 'echo "PDF output not supported!"')

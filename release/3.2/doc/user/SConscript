@@ -33,7 +33,7 @@ if 'PDF' in dir(local_env):
     Depends(pdf, figures+tex_src)
 
     pdf_path=os.path.join(release_dir, 'user', 'user.pdf')
-    pdf_inst=local_env.InstallAs(target=pdf_path, source=pdf)
+    pdf_inst=local_env.InstallAs(target=pdf_path, source='user.tex')
     env.Alias('user_pdf', pdf_inst)
 else:
     env.Alias('user_pdf', '', 'echo "PDF output not supported!"')
