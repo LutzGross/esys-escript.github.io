@@ -236,7 +236,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 	    k=A_p->pattern->index[iptr_ik];
 	    Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
 	 }
-	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed)
+	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed);
       }
    }
    /* backward substitution */
