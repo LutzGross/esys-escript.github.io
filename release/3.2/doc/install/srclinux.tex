@@ -350,6 +350,16 @@ boost_prefix = ['x/stand/pkg/boost/include/boost-1_39', 'x/stand/pkg/boost/lib']
 \end{python}
 
 \begin{python}
+#boost_libs = ['boost_python-mt']
+\end{python}
+
+should be
+\begin{python}
+boost_libs= ['boost_python-gcc43-mt-1_39']
+\end{python}
+
+
+\begin{python}
 #netcdf = True
 \end{python}
 
