@@ -104,6 +104,10 @@ verbose = True
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = 'C:/python'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = ['C:/Temp/boost_1_33', 'C:/Temp/boost_1_33/windows_binary/lib']
 

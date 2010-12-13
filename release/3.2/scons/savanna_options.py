@@ -92,6 +92,10 @@ mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.
 # MPI libraries to link against
 mpi_libs = ['mpi']
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = '/usr/local'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = ['/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/include/boost-1_39', '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/lib']
 

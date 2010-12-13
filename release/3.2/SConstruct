@@ -71,6 +71,7 @@ vars.AddVariables(
   ('omp_flags', 'OpenMP compiler flags', 'default'),
   ('omp_ldflags', 'OpenMP linker flags', 'default'),
 # Mandatory libraries
+  ('python_prefix', 'Prefix/Paths of python installation', ''),
   ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
   ('boost_libs', 'Boost libraries to link with', ['boost_python-mt']),
 # Optional libraries and options
@@ -376,40 +377,39 @@ else:
 if conf.CheckFunc('gethostname'):
     conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
+# Commit changes to environment
+env = conf.Finish()
+
 ######## Python headers & library (required)
 
-python_inc_path=sysconfig.get_python_inc()
-if IS_WINDOWS:
-    python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
-elif env['PLATFORM']=='darwin':
-    python_lib_path=sysconfig.get_config_var('LIBPL')
-else:
-    python_lib_path=sysconfig.get_config_var('LIBDIR')
-#python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
 if IS_WINDOWS:
     python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+elif env['PLATFORM']=='darwin':
+    python_libs=['Python']
 else:
     python_libs=['python'+sysconfig.get_python_version()]
 
+if env['python_prefix']=='':
+    python_inc_path=sysconfig.get_python_inc()
+    if IS_WINDOWS:
+        python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+    elif env['PLATFORM']=='darwin':
+        python_lib_path=sysconfig.get_config_var('prefix')
+    else:
+        python_lib_path=sysconfig.get_config_var('LIBDIR')
+    #python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
+    env['python_prefix']=[python_inc_path, python_lib_path]
+
+python_inc_path,python_lib_path=findLibWithHeader(env, python_libs, 'Python.h', env['python_prefix'], lang='c')
 if sysheaderopt == '':
-    conf.env.AppendUnique(CPPPATH = [python_inc_path])
+    env.AppendUnique(CPPPATH = [python_inc_path])
 else:
-    conf.env.Append(CCFLAGS = [sysheaderopt, python_inc_path])
+    env.Append(CCFLAGS = [sysheaderopt, python_inc_path])
 
-conf.env.AppendUnique(LIBPATH = [python_lib_path])
-conf.env.AppendUnique(LIBS = python_libs)
+env.AppendUnique(LIBPATH = [python_lib_path])
+env.AppendUnique(LIBS = python_libs)
 # The wrapper script needs to find the libs
-conf.env.PrependENVPath(LD_LIBRARY_PATH_KEY, python_lib_path)
-
-if not conf.CheckCHeader('Python.h'):
-    print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
-    Exit(1)
-if not conf.CheckFunc('Py_Exit'):
-    print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
-    Exit(1)
-
-# Commit changes to environment
-env = conf.Finish()
+env.PrependENVPath(LD_LIBRARY_PATH_KEY, python_lib_path)
 
 ######## boost (required)
 
@@ -592,7 +592,7 @@ print("")
 print("*** Config Summary (see config.log and lib/buildvars for details) ***")
 print("Escript/Finley revision %s"%global_revision)
 print("  Install prefix:  %s"%env['prefix'])
-print("          Python:  %s"%sysconfig.PREFIX)
+print("          Python:  %s"%env['python_prefix'])
 print("           boost:  %s"%env['boost_prefix'])
 print("           numpy:  YES")
 if env['usempi']:
@@ -681,6 +681,8 @@ buildvars.write("cc="+env['CC']+"\n")
 buildvars.write("cxx="+env['CXX']+"\n")
 buildvars.write("python="+sys.executable+"\n")
 buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
+buildvars.write("python_inc_path="+python_inc_path+"\n")
+buildvars.write("python_lib_path="+python_lib_path+"\n")
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")

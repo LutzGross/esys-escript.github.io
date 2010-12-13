@@ -328,8 +328,17 @@ For example the options file for \texttt{bob-desktop} would be named \file{bob_d
 If you wish to build with OpenMP, MPI or configure other aspects of the system take a quick look at Section~\ref{sec:compilesrc}.
 
 
-You will need to edit your options file and specify where to find boost and netcdf.
+You will need to edit your options file and specify where to find python, boost and netcdf.
 (replace \file{x/stand} with the path to \file{stand})
+
+\begin{python}
+#python_prefix = '/usr/local'
+\end{python}
+
+should be
+\begin{python}
+python_prefix = ['x/stand/pkg/python/include/python2.6', 'x/stand/pkg/python/lib']
+\end{python}
 
 \begin{python}
 #boost_prefix = '/usr/local'
@@ -337,7 +346,7 @@ You will need to edit your options file and specify where to find boost and netc
 
 should be
 \begin{python}
-boost_prefix = ['x/stand/pkg/boost/include/boost-1_39/', 'x/stand/pkg/boost/lib/']
+boost_prefix = ['x/stand/pkg/boost/include/boost-1_39', 'x/stand/pkg/boost/lib']
 \end{python}
 
 \begin{python}
@@ -353,9 +362,9 @@ netcdf = True
 #netcdf_prefix = '/usr/local'
 \end{python}
 
-should be \begin{python}
-netcdf_prefix = ['x/stand/pkg/netcdf/include/', 
-			'x/stand/pkg/netcdf/lib/']}
+should be
+\begin{python}
+netcdf_prefix = ['x/stand/pkg/netcdf/include', 'x/stand/pkg/netcdf/lib']
 \end{python}
 
 % 

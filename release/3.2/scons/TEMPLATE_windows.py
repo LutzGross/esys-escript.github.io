@@ -108,6 +108,10 @@ escript_opts_version = 200
 # MPI libraries to link against
 #mpi_libs = ['mpi']
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = 'C:/python26'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 #boost_prefix = 'C:/boost'
 

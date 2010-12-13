@@ -112,6 +112,10 @@ mpi_libs = ['msmpi']
 
 dotdot = os.path.realpath('..')
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = 'C:/python'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = [os.path.join(dotdot, 'boost_1_39_0'), os.path.join(dotdot, 'boost_1_39_0','windows_binary','lib')]
 

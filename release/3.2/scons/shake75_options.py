@@ -92,6 +92,10 @@ mpi_prefix = '/usr/lib/openmpi'
 # MPI libraries to link against
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = '/usr/local'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 #boost_prefix = '/usr/local'
 
@@ -178,7 +182,7 @@ silo_libs = ['siloh5', 'hdf5']
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit/2.2.0/linux-intel/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']

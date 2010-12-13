@@ -105,6 +105,10 @@ mpi_prefix = '/usr/lib/openmpi'
 # MPI libraries to link against
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = '/usr/local'
+
 # Prefix or paths to boost-python headers and libraries. See note above.
 #boost_prefix = '/usr/local'
 
