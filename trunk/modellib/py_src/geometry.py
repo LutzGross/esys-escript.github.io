@@ -31,7 +31,7 @@ class DomainReader(ParameterSet):
           """
           initializes the object
           """
-          super(DudleyReader,self).__init__(**kwargs)
+          super(DomainReader,self).__init__(**kwargs)
           self.declareParameter(source="none",
                                 dim=None,
                                 optimizeLabeling=True,
@@ -66,7 +66,7 @@ class DomainReader(ParameterSet):
 		
 class FinleyReader(DomainReader):
 	def __init__(self, **kw):
-		DomainReader.__init__(self, esys.finley, kw)
+		DomainReader.__init__(self, esys.finley, **kw)
 		
 class RectangularDomain(ParameterSet):
        """
