@@ -36,7 +36,7 @@
 
 void Paso_UMFPACK_free(Paso_SparseMatrix* A) {
      Paso_UMFPACK_Handler* pt =NULL;
-      if ( (A->solver_p!=NULL) && (A->solver_package == PASO_UMFPACK) ) {
+     if ( (A->solver_p!=NULL) && (A->solver_package == PASO_UMFPACK) ) {
            pt=(Paso_UMFPACK_Handler*)(A->solver_p);
 	   #ifdef UMFPACK
 	   umfpack_di_free_symbolic(&(pt->symbolic));
@@ -77,6 +77,7 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	time0=Esys_timer();
 	if (Esys_checkPtr(pt)) return;
 	A->solver_p = (void*) pt;
+        A->solver_package=PASO_UMFPACK;
 	/* call LDU symbolic factorization: */
 	error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
 	if (error != UMFPACK_OK) {
