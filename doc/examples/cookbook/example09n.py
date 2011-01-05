@@ -25,7 +25,7 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 
 ############################################################FILE HEADER
-# example09m.py
+# example09n.py
 # Create a simple 3D model for use in example09. This is the low res
 # mesh for illustration purposes only.
 #
