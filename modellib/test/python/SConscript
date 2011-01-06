@@ -20,6 +20,7 @@ local_env = env.Clone()
 testruns = ['run_convection.py']
 testruns += ['run_flow.py']
 testruns += ['run_temp.py']
+testruns += ['run_domainreaders.py']
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
