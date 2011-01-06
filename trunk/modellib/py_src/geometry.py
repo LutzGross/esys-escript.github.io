@@ -37,9 +37,9 @@ class DomainReader(ParameterSet):
                                 optimizeLabeling=True,
                                 reducedIntegrationOrder=-1,
                                 integrationOrder=-1)
-	  if domainmodule==None:
-  		domainmodule=esys.finley
-	  self.__domainModule=domainmodule
+          if domainmodule==None:
+              domainmodule=esys.finley
+          self.__domainModule=domainmodule
           self.__domain=None
 
 
@@ -52,22 +52,22 @@ class DomainReader(ParameterSet):
           """
           if self.__domain == None:
              if  self.source.fileformat == "fly":
-                self.__domain=self.__domainmodule.ReadMesh(self.source.getLocalFileName(),self.integrationOrder)
+                self.__domain=self.__domainModule.ReadMesh(self.source.getLocalFileName(),self.integrationOrder)
              elif self.source.fileformat == "gmsh":
                 if self.dim==None:
                    dim=3
                 else:
                    dim=self.dim
-                self.__domain=self.__domainmodule.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling)
+                self.__domain=self.__domainModule.ReadGmsh(self.source.getLocalFileName(),dim,self.integrationOrder,self.reducedIntegrationOrder, self.optimizeLabeling)
              else:
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
 		
 class FinleyReader(DomainReader):
-	def __init__(self, **kw):
-		DomainReader.__init__(self, esys.finley, **kw)
-		
+        def __init__(self, **kw):
+            DomainReader.__init__(self, esys.finley, **kw)
+
 class RectangularDomain(ParameterSet):
        """
        Generates a mesh over a rectangular domain.
