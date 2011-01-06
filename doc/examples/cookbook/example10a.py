@@ -38,11 +38,11 @@ import os, sys #This package is necessary to handle saving our data.
 from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector
-from cblib import toRegGrid
 
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
+from cblib import toRegGrid
 import pylab as pl #Plotting package
 import numpy as np
 
