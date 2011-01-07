@@ -411,7 +411,7 @@ class SolverOptions(object):
         """
         return self.__coarsening
       
-    def setMinCoarseMatrixSize(self,size=5000):
+    def setMinCoarseMatrixSize(self,size=None):
         """
         Sets the minumum size of the coarsest level matrix in AMG or AMLI
 
