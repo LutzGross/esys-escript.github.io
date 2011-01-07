@@ -411,7 +411,7 @@ class SolverOptions(object):
         """
         return self.__coarsening
       
-    def setMinCoarseMatrixSize(self,size=500):
+    def setMinCoarseMatrixSize(self,size=5000):
         """
         Sets the minumum size of the coarsest level matrix in AMG or AMLI
 
@@ -707,7 +707,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__sweeps
-    def setNumPreSweeps(self,sweeps=2):
+    def setNumPreSweeps(self,sweeps=1):
         """
         Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
@@ -725,7 +725,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__pre_sweeps
-    def setNumPostSweeps(self,sweeps=2):
+    def setNumPostSweeps(self,sweeps=1):
         """
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
@@ -1019,21 +1019,6 @@ class SolverOptions(object):
         else:
             self.setUseLocalPreconditionerOff()
             
-    def setMinCoarseMatrixSparsity(self,sparsity=0.05):
-       """
-       Sets the minimum sparsity on the coarsest level. Typically 
-       a direct solver is used when the sparsity becomes bigger than 
-       the set limit.
-       
-       :param sparsity: minimual sparsity
-       :type sparsity: ``float``
-       """
-       sparsity=float(sparsity)
-       if factor<0: 
-	 raise ValueError,"sparsity must be non-negative."
-       if factor>1: 
-           raise ValueError,"sparsity must be less than 1."
-       self.__min_sparsity=factor
     def setMinCoarseMatrixSparsity(self,sparsity=0.05):
        """
        Sets the minimum sparsity on the coarsest level. Typically 
