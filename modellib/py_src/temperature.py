@@ -19,10 +19,10 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
+from esys.escript import Data, inf, sup, length, grad, inner
 from esys.escript.modelframe import Model,IterationDivergenceError
 from esys.escript.linearPDEs import LinearPDE
-
+import numpy
 
 
 class TemperatureAdvection(Model):

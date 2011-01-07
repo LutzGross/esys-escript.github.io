@@ -31,7 +31,6 @@ some mesh handling
 
 __author__="Lutz Gross, l.gross@uq.edu.au, Joel Fenwick"
 
-from esys.escript import *
 from esys.pycad.gmsh import Design as GMSHDesign
 from dudleycpp import ReadGmsh
 

@@ -19,10 +19,11 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
+from esys.escript import length, wherePositive, whereNegative, exp, inf, sup
 from esys.escript.modelframe import Model,ParameterSet
 from esys.escript.linearPDEs import LinearPDE
 from math import log
+import numpy
 
 class Sequencer(Model):
     """

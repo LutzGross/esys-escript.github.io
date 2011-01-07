@@ -31,7 +31,7 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from escript import *
+import escript
 import util
 from flows import StokesProblemCartesian
 from pdetools import MaxIterReached
@@ -333,11 +333,11 @@ class Rheology(object):
          #
          # state variables:
          #
-         if stress == None: stress=Tensor(0.,Function(self.__domain))
-         if v == None: v=Vector(0.,Solution(self.__domain))
-         if p == None: p=Vector(0.,ReducedSolution(self.__domain))
+         if stress == None: stress=Tensor(0.,escript.Function(self.__domain))
+         if v == None: v=Vector(0.,escript.Solution(self.__domain))
+         if p == None: p=Vector(0.,Reducedescript.Solution(self.__domain))
          self.setStatus(t, v, p, stress)
-         self.setExternals(F=Data(), f=Data(), fixed_v_mask=Data(), v_boundary=Data(), restoration_factor=0)
+         self.setExternals(F=escript.Data(), f=escript.Data(), fixed_v_mask=escript.Data(), v_boundary=escript.Data(), restoration_factor=0)
          
       def getDomain(self):
           """
@@ -464,7 +464,7 @@ class Rheology(object):
           :type stress: `Data` of rank 2
           """
           dom=self.getDomain()
-          s=util.interpolate(stress,Function(dom))
+          s=util.interpolate(stress,escript.Function(dom))
           self.__stress=util.deviatoric(s)
 
       def getPressure(self):
@@ -482,7 +482,7 @@ class Rheology(object):
           :param p: new deviatoric stress
           :type p: scalar `Data`
           """
-          self.__p=util.interpolate(p,ReducedSolution(self.getDomain()))
+          self.__p=util.interpolate(p,escript.ReducedSolution(self.getDomain()))
 
       def getVelocity(self):
           """
@@ -500,7 +500,7 @@ class Rheology(object):
           :param v: new current velocity
           :type v: vector `Data` 
           """
-          self.__v=util.interpolate(v,Solution(self.getDomain()))
+          self.__v=util.interpolate(v,escript.Solution(self.getDomain()))
       def setStatus(self,t, v, p, stress):
           """
           Resets the current status given by pressure p and velocity v.
@@ -531,7 +531,7 @@ class Rheology(object):
           if D==None: 
               self.__D=self.getDeviatoricStrain(self.getVelocity())
           else:
-              self.__D=util.deviatoric(util.interpolate(D,Function(self.getDomain())))
+              self.__D=util.deviatoric(util.interpolate(D,escript.Function(self.getDomain())))
 
       def getDeviatoricStrain(self, v=None):
           """
@@ -566,7 +566,7 @@ class Rheology(object):
           :type gammadot: `Data` of rank 1
           """
           if gammadot == None:
-               self.__gammadot = Scalar(0.,Function(self.getDomain()))
+               self.__gammadot = escript.Scalar(0.,escript.Function(self.getDomain()))
           else:
                self.__gammadot=gammadot
           
@@ -657,7 +657,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
 
          if mu==None:          
-             stress0=Data()
+             stress0=escript.Data()
          else:
              stress0=-(self.__eta_eff_save/(dt*mu))*s_last
  

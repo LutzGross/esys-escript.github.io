@@ -18,7 +18,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
+from esys.escript import sqrt, EPSILON, cos, sin, Lsup, atan, length, matrixmult, wherePositive, matrix_mult, inner, Scalar, whereNonNegative, whereNonPositive, maximum, minimum, sign, whereNegative, whereZero
 from esys.escript.pdetools import Locator
 import numpy
 import math
