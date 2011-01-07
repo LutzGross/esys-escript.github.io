@@ -32,7 +32,7 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from escript import *
+import escript
 import util
 from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
 from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
@@ -80,8 +80,8 @@ class DarcyFlow(object):
       # if self.useReduced: self.__pde_l.setReducedOrderOn()
       self.setTolerance()
       self.setAbsoluteTolerance()
-      self.__f=Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
-      self.__g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
+      self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
       
    def getSolverOptionsFlux(self):
       """
@@ -176,14 +176,14 @@ class DarcyFlow(object):
       if f !=None:
 	 f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("X"))
 	 if f.isEmpty():
-	    f=Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
+	    f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
 	 else:
 	    if f.getRank()>0: raise ValueError,"illegal rank of f."
 	    self.__f=f
       if g !=None:
 	 g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	 if g.isEmpty():
-	    g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+	    g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	 else:
 	    if not g.getShape()==(self.domain.getDim(),):
 	       raise ValueError,"illegal shape of g"
@@ -241,7 +241,7 @@ class DarcyFlow(object):
 
    def __Aprod_v(self,dv):
       # calculates: (a,b,c) = (K^{-1}(dv + KG * dp), L^{-1}Ddv, dp)  with (G*KG)dp = - G^*dv  
-      dp=self.__getPressure(dv, p0=Data()) # dp = (G*KG)^{-1} (0-G^*dv)
+      dp=self.__getPressure(dv, p0=escript.Data()) # dp = (G*KG)^{-1} (0-G^*dv)
       a=util.tensor_mult(self.__permeability_inv,dv)+util.grad(dp) # a= K^{-1}u+G*dp
       b= - self.__applWeight(dv) # b = - (D K D^*)^{-1} (0-Dv) 
       return ArithmeticTuple(a,b,-dp)
@@ -249,7 +249,7 @@ class DarcyFlow(object):
    def __Msolve_PCG_v(self,r):
       # K^{-1} u = r[0] + D^*r[1] = K^{-1}(dv + KG * dp) + D^*L^{-1}Ddv
       if self.getSolverOptionsFlux().isVerbose() or self.verbose: print "DarcyFlux: Applying preconditioner"
-      self.__pde_k.setValue(X=r[1]*util.kronecker(self.domain), Y=r[0], r=Data())
+      self.__pde_k.setValue(X=r[1]*util.kronecker(self.domain), Y=r[0], r=escript.Data())
       # self.__pde_p.getOperator().saveMM("prec.mm")
       return self.__pde_k.getSolution()
 
@@ -259,7 +259,7 @@ class DarcyFlow(object):
    def __Aprod_p(self,dp):
       if self.getSolverOptionsFlux().isVerbose(): print "DarcyFlux: Applying operator"
       Gdp=util.grad(dp)
-      self.__pde_k.setValue(Y=-Gdp,X=Data(), r=Data())
+      self.__pde_k.setValue(Y=-Gdp,X=escript.Data(), r=escript.Data())
       du=self.__pde_k.getSolution()
       # self.__pde_v.getOperator().saveMM("proj.mm")
       return ArithmeticTuple(util.tensor_mult(self.__permeability,Gdp),-du)
@@ -279,7 +279,7 @@ class DarcyFlow(object):
       #v=self.__getFlux(p, u0, f=self.__f, g=g2)      
    def __Msolve_PCG_p(self,r):
       if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
-      self.__pde_p.setValue(X=r[0]-r[1], Y=Data(), r=Data(), y=Data())
+      self.__pde_p.setValue(X=r[0]-r[1], Y=escript.Data(), r=escript.Data(), y=escript.Data())
       # self.__pde_p.getOperator().saveMM("prec.mm")
       return self.__pde_p.getSolution()
 	    
@@ -287,7 +287,7 @@ class DarcyFlow(object):
        return util.integrate(util.inner(util.grad(p), r[0]-r[1]))
 
    def __L2(self,v):
-      return util.sqrt(util.integrate(util.length(util.interpolate(v,Function(self.domain)))**2))
+      return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))
 
    def solve(self,u0,p0, max_iter=100, verbose=False, max_num_corrections=10):
       """
@@ -474,8 +474,8 @@ class DarcyFlowOld(object):
         self.__pde_p=LinearSinglePDE(domain)
         self.__pde_p.setSymmetryOn()
         if useReduced: self.__pde_p.setReducedOrderOn()
-        self.__f=Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
-        self.__g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
+        self.__f=escript.Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
+        self.__g=escript.Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
         self.setTolerance()
         self.setAbsoluteTolerance()
 	self.__adaptSubTolerance=adaptSubTolerance
@@ -546,14 +546,14 @@ class DarcyFlowOld(object):
         if f !=None:
            f=util.interpolate(f, self.__pde_v.getFunctionSpaceForCoefficient("X"))
            if f.isEmpty():
-               f=Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
+               f=escript.Scalar(0,self.__pde_v.getFunctionSpaceForCoefficient("X"))
            else:
                if f.getRank()>0: raise ValueError,"illegal rank of f."
            self.__f=f
         if g !=None:
            g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
            if g.isEmpty():
-             g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
+             g=escript.Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
            else:
              if not g.getShape()==(self.domain.getDim(),):
                raise ValueError,"illegal shape of g"
@@ -698,19 +698,19 @@ class DarcyFlowOld(object):
                if self.verbose: 
                     print "DarcyFlux: L2 norm of v = %e."%norm_v
                     print "DarcyFlux: L2 norm of k.util.grad(p) = %e."%norm_Qp
-                    print "DarcyFlux: L2 defect u = %e."%(util.integrate(util.length(self.__g-util.interpolate(v,Function(self.domain))-Qp)**2)**(0.5),)
+                    print "DarcyFlux: L2 defect u = %e."%(util.integrate(util.length(self.__g-util.interpolate(v,escript.Function(self.domain))-Qp)**2)**(0.5),)
                     print "DarcyFlux: L2 defect div(v) = %e."%(util.integrate((self.__f-util.div(v))**2)**(0.5),)
                     print "DarcyFlux: absolute tolerance ATOL = %e."%ATOL
                if norm_r == None or norm_r>ATOL:
                    if num_corrections>max_num_corrections:
                          raise ValueError,"maximum number of correction steps reached."
-                   p,r, norm_r=PCG(self.__g-util.interpolate(v,Function(self.domain))-Qp,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.5*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
+                   p,r, norm_r=PCG(self.__g-util.interpolate(v,escript.Function(self.domain))-Qp,self.__Aprod,p,self.__Msolve_PCG,self.__inner_PCG,atol=0.5*ATOL, rtol=0.,iter_max=max_iter, verbose=self.verbose)
                    num_corrections+=1
                else: 
                    converged=True
          return v,p 
     def __L2(self,v):
-         return util.sqrt(util.integrate(util.length(util.interpolate(v,Function(self.domain)))**2))
+         return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))
 
     def __Q(self,p):
           return util.tensor_mult(self.__permeability,util.grad(p))
@@ -718,7 +718,7 @@ class DarcyFlowOld(object):
     def __Aprod(self,dp):
           if self.getSolverOptionsFlux().isVerbose(): print "DarcyFlux: Applying operator"
           Qdp=self.__Q(dp)
-          self.__pde_v.setValue(Y=-Qdp,X=Data(), r=Data())
+          self.__pde_v.setValue(Y=-Qdp,X=escript.Data(), r=escript.Data())
           du=self.__pde_v.getSolution()
           # self.__pde_v.getOperator().saveMM("proj.mm")
           return Qdp+du
@@ -730,11 +730,11 @@ class DarcyFlowOld(object):
 
     def __Msolve_PCG(self,r):
 	  if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
-          self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=Data(), r=Data())
+          self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=escript.Data(), r=escript.Data())
           # self.__pde_p.getOperator().saveMM("prec.mm")
           return self.__pde_p.getSolution()
 
-    def getFlux(self,p=None, fixed_flux=Data()):
+    def getFlux(self,p=None, fixed_flux=escript.Data()):
         """
         returns the flux for a given pressure ``p`` where the flux is equal to ``fixed_flux``
         on locations where ``location_of_fixed_flux`` is positive (see `setValue`).
@@ -874,7 +874,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         if eta !=None:
             k=util.kronecker(self.domain.getDim())
             kk=util.outer(k,k)
-            self.eta=util.interpolate(eta, Function(self.domain))
+            self.eta=util.interpolate(eta, escript.Function(self.domain))
 	    self.__pde_prec.setValue(D=1/self.eta)
             self.__pde_u.setValue(A=self.eta*(util.swap_axes(kk,0,3)+util.swap_axes(kk,1,3)))
         if restoration_factor!=None:
@@ -886,7 +886,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         if surface_stress!=None: self.__surface_stress=surface_stress
         if stress!=None: self.__stress=stress
 
-     def initialize(self,f=Data(),fixed_u_mask=Data(),eta=1,surface_stress=Data(),stress=Data(), restoration_factor=0):
+     def initialize(self,f=escript.Data(),fixed_u_mask=escript.Data(),eta=1,surface_stress=escript.Data(),stress=escript.Data(), restoration_factor=0):
         """
         assigns values to the model parameters
 
@@ -926,7 +926,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of element p and Bv=-div(v)
          :rtype: ``float``
          """
-         return util.integrate(util.interpolate(p,Function(self.domain))*util.interpolate(Bv,Function(self.domain)))
+         return util.integrate(util.interpolate(p,escript.Function(self.domain))*util.interpolate(Bv, escript.Function(self.domain)))
 
      def inner_p(self,p0,p1):
          """
@@ -937,8 +937,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of p0 and p1
          :rtype: ``float``
          """
-         s0=util.interpolate(p0,Function(self.domain))
-         s1=util.interpolate(p1,Function(self.domain))
+         s0=util.interpolate(p0, escript.Function(self.domain))
+         s1=util.interpolate(p1, escript.Function(self.domain))
          return util.integrate(s0*s1)
 
      def norm_v(self,v):
@@ -978,7 +978,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         :rtype: equal to the type of p
         :note: boundary conditions on p should be zero!
         """
-        return util.sqrt(util.integrate(util.interpolate(Bv,Function(self.domain))**2))
+        return util.sqrt(util.integrate(util.interpolate(Bv, escript.Function(self.domain))**2))
 
      def solve_AinvBt(self,p, tol):
          """
@@ -988,7 +988,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: the solution of *Av=B^*p*
          :note: boundary conditions on v should be zero!
          """
-         self.__pde_u.setValue(Y=Data(), y=Data(), X=-p*util.kronecker(self.domain))
+         self.__pde_u.setValue(Y=escript.Data(), y=escript.Data(), X=-p*util.kronecker(self.domain))
          out=self.__pde_u.getSolution()
          return  out
 

@@ -19,7 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
+from esys.escript import inf, atan, Lsup, log, whereZero, Vector, Solution, Scalar, length, interpolate, vol, integrate
+import esys.escript as escript
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 
 import math
@@ -50,7 +51,7 @@ class Mountains:
     :param domain: the domain where the mountains is used
     :param eps: the smoothing parameter for (1)
     """
-    order=Solution(domain).getApproximationOrder()
+    order=escript.Solution(domain).getApproximationOrder()
     if order>1:
         reduced = True
         if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
@@ -65,10 +66,10 @@ class Mountains:
 
     self.__PDE_W = LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
-    A=kronecker(domain)*eps*0
-    A[self.__DIM-1,self.__DIM-1]=(0.3*(sup(z)-inf(z))/log(2.))**2
+    A=escript.kronecker(domain)*eps*0
+    A[self.__DIM-1,self.__DIM-1]=(0.3*(escript.sup(z)-inf(z))/log(2.))**2
     # A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
-    self.__PDE_W.setValue(D=1, A=A, q=whereZero(sup(z)-z)+whereZero(inf(z)-z)) 
+    self.__PDE_W.setValue(D=1, A=A, q=whereZero(escript.sup(z)-z)+whereZero(inf(z)-z)) 
 
     self.__PDE_H = LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
@@ -108,7 +109,7 @@ class Mountains:
       self.__v=Vector(0.,Solution(self.getDomain()))
       if not v == None:
         xi=self.getDomain().getX()[self.getDomain().getDim()-1]
-        v=(xi-inf(xi))/(sup(xi)-inf(xi))*v
+        v=(xi-inf(xi))/(escript.sup(xi)-inf(xi))*v
         for d in range(self.__DIM):
            self.__PDE_W.setValue(r=v[d])
            self.__v[d]=self.__PDE_W.getSolution()
