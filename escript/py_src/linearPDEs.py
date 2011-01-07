@@ -689,7 +689,7 @@ class SolverOptions(object):
         :rtype: ``float``
         """
         return self.__coarsening_threshold
-    def setNumSweeps(self,sweeps=2):
+    def setNumSweeps(self,sweeps=1):
         """
         Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
@@ -725,7 +725,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__pre_sweeps
-    def setNumPostSweeps(self,sweeps=1):
+    def setNumPostSweeps(self,sweeps=2):
         """
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 
