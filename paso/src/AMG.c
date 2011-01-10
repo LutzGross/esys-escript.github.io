@@ -98,15 +98,39 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
-  
+
   
   /*
       is the input matrix A suitable for coarsening
       
   */
   if ( (A_p->pattern->len >= options->min_coarse_sparsity * n * n ) || (n <= options->min_coarse_matrix_size) || (level > options->level_max) ) {
-     if (verbose) printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
-	level,  options->level_max, A_p->pattern->len/(1.*n * n), options->min_coarse_sparsity, n, options->min_coarse_matrix_size  );  
+
+    if (verbose) { 
+	      /* 
+	          print stopping condition:
+                      - 'SPAR' = min_coarse_matrix_sparsity exceeded
+                      - 'SIZE' = min_coarse_matrix_size exceeded
+                      - 'LEVEL' = level_max exceeded
+	      */
+	      printf("Paso_Preconditioner: Stopping condition: "); 
+
+	      if (A_p->pattern->len >= options->min_coarse_sparsity * n * n)
+	          printf("SPAR ");
+
+	      if (n <= options->min_coarse_matrix_size)
+	          printf("SIZE ");
+
+	      if (level > options->level_max)
+	          printf("LEVEL ");
+
+	      printf("\n");
+
+        printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
+                    level,  options->level_max, A_p->pattern->len/(1.*n * n), options->min_coarse_sparsity, n, options->min_coarse_matrix_size);  
+
+    } 
+
      return NULL;
   } 
      /* Start Coarsening : */
