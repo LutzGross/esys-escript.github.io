@@ -707,7 +707,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__sweeps
-    def setNumPreSweeps(self,sweeps=2):
+    def setNumPreSweeps(self,sweeps=1):
         """
         Sets the number of sweeps in the pre-smoothing step of a multi level solver or preconditioner
 
@@ -725,7 +725,7 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__pre_sweeps
-    def setNumPostSweeps(self,sweeps=2):
+    def setNumPostSweeps(self,sweeps=1):
         """
         Sets the number of sweeps in the post-smoothing step of a multi level solver or preconditioner
 

@@ -55,7 +55,7 @@ except KeyError:
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 # number of elements in the spatial directions
-NE_TOTAL=5000
+NE_TOTAL=4096
 
 class Test_AMG(unittest.TestCase):
 
@@ -86,7 +86,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_PoissonSqueezedX(self):
         x=self.domain.getX().copy()
@@ -118,7 +118,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
 
    def test_Poisson2(self):
@@ -153,7 +153,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson3(self):
         x=Solution(self.domain).getX()
@@ -190,7 +190,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson4(self):
         x=Solution(self.domain).getX()
@@ -230,7 +230,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled2(self):
         x=Solution(self.domain).getX()
@@ -270,7 +270,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled3(self):
         x=Solution(self.domain).getX()
@@ -314,7 +314,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled4(self):
         x=Solution(self.domain).getX()
@@ -362,7 +362,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_StrongCoupled2(self):
         x=Solution(self.domain).getX()
@@ -402,7 +402,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_StrongCoupled3(self):
         x=Solution(self.domain).getX()
@@ -446,7 +446,7 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
    def test_StrongCoupled4(self):
         x=Solution(self.domain).getX()
         # --- set exact solution ----
@@ -493,7 +493,75 @@ class Test_AMG(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
-        self.failUnless(error<self.RES_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_Square(self):
+        # PDE constants
+        h1 = 0.5
+        h2 = 0.5
+        beta = 1.
+        alpha1 = 2.
+        alpha2 = 1.
+
+        # domain masks and domain-specific constants
+        x = Solution(self.domain).getX(); x0 = x[0]; x1 = x[1]
+        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2) 
+        omega1 = 1-omega2
+        ratio = alpha1/alpha2
+        alpha = alpha1*omega1 + alpha2*omega2
+
+        # --- set exact solution ----
+        a1 = 1.
+        d1 = 1.
+        b1 = -d1*h2
+        c1 = -d1*h1
+
+        a2 = a1 - (1.-ratio)*d1*h1*h2
+        b2 = ratio*b1
+        c2 = ratio*c1
+        d2 = ratio*d1
+        
+        u_ex = omega1*(a1 + b1*x0 + c1*x1 + d1*x0*x1) + \
+                omega2*(a2 + b2*x0 + c2*x1 + d2*x0*x1)
+
+        # create PDE:
+        pde = LinearPDE(self.domain,numEquations=1)
+
+        # set the value to that of the solution on the boundary
+        q = whereZero(x0) + whereZero(x1) + \
+            whereZero(sup(x0)-x0) + whereZero(sup(x1)-x1)
+        pde.setValue(q=q,r=u_ex)
+              
+        # create X points in the centre of the grid elements
+        xe = Function(self.domain).getX()
+        x0 = xe[0]
+        x1 = xe[1]
+
+        # redefine omega so that apha is more precise on the diagonal (?)
+        omega2 = wherePositive(x0-h1)*wherePositive(x1-h2) 
+        omega1 = 1-omega2
+        ratio = alpha1/alpha2
+        alpha = alpha1*omega1 + alpha2*omega2
+        
+        # set up PDE coefficients
+        pde.setValue(A=alpha*kronecker(self.domain), D=beta, Y=beta*u_ex)
+        pde.setSymmetryOn()
+
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        
+        u = pde.getSolution()
+        
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+        
 
 class Test_AMGOnFinleyHex2DOrder1(Test_AMG):
    RES_TOL=5.e-7
