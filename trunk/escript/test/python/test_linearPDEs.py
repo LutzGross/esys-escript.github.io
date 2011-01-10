@@ -671,15 +671,15 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setNumSweeps(3)
         self.failUnless(so.getNumSweeps() == 3, "Sweeps is wrong.")
 
-        self.failUnless(so.getNumPreSweeps() == 2, "initial  PreSweeps is wrong.")
+        self.failUnless(so.getNumPreSweeps() == 1, "initial  PreSweeps is wrong.")
         self.failUnlessRaises(ValueError,so.setNumPreSweeps,-1)
         so.setNumPreSweeps(4)
         self.failUnless(so.getNumPreSweeps() == 4, "PreSweeps is wrong.")
 
-        self.failUnless(so.getNumPostSweeps() == 2, "initial  PreSweeps is wrong.")
+        self.failUnless(so.getNumPostSweeps() == 1, "initial  PostSweeps is wrong.")
         self.failUnlessRaises(ValueError,so.setNumPostSweeps,-1)
         so.setNumPostSweeps(5)
-        self.failUnless(so.getNumPostSweeps() == 5, "PreSweeps is wrong.")
+        self.failUnless(so.getNumPostSweeps() == 5, "PostSweeps is wrong.")
 
         self.failUnless(so.getTolerance() == 1.e-8, "initial Tolerance is wrong.")
         self.failUnlessRaises(ValueError,so.setTolerance,-1)
