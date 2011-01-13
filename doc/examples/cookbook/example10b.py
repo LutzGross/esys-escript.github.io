@@ -50,9 +50,9 @@ if getMPISizeWorld() > 1:
 mx = 500*m #meters - model length
 my = 500*m #meters - model width
 mz = -4000*m
-ndx = 150 # mesh steps in x direction 
-ndy = 150 # mesh steps in y direction - one dimension means one element
-ndz = 100
+ndx = 15 # mesh steps in x direction 
+ndy = 15 # mesh steps in y direction - one dimension means one element
+ndz = 10
 #PDE related
 rho=100.0
 rholoc=[0,0,-0]
