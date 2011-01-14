@@ -51,7 +51,33 @@ void Paso_Preconditioner_LocalSmoother_Sweep_tiled(Paso_SparseMatrix* A, Paso_Pr
 void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 
 
-/* AMG preconditioner */
+/* Local preconditioner */
+struct Paso_Preconditioner_AMG {
+   dim_t level;
+   dim_t n;
+   dim_t n_F;
+   dim_t n_block;
+   Paso_SystemMatrix * A_C;  /* coarse level matrix */
+   Paso_SystemMatrix * P;   /* prolongation n x n_C*/ 
+   Paso_SystemMatrix * R;   /* restriction  n_C x n */
+   
+   Paso_Preconditioner_Smoother* Smoother;
+   dim_t post_sweeps;
+   dim_t pre_sweeps;
+   index_t reordering;  /* applied reordering in direct solver */
+   dim_t refinements;  /* number of refinements in direct solver (typically =0) */
+   double* r;         /* buffer for residual */
+   double* x_C;       /* solution of coarse level system */
+   double* b_C;       /* right hand side of coarse level system */
+   struct Paso_Preconditioner_AMG * AMG_C;
+};
+typedef struct Paso_Preconditioner_AMG Paso_Preconditioner_AMG;
+
+void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in);
+Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix * A_p,dim_t level,Paso_Options* options);
+void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b);
+
+/* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
    dim_t level;
    dim_t n;
@@ -76,18 +102,21 @@ typedef struct Paso_Preconditioner_LocalAMG Paso_Preconditioner_LocalAMG;
 void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in);
 Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b);
-void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, index_t*split_marker, const bool_t usePanel);
-void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
-void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
-Paso_SparseMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
-void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
-void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
-void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
-void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
+
+void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, index_t*split_marker, const bool_t usePanel);
+void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
+void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
+Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
+void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
+void Paso_Preconditioner_LocalAMG_setDirectProlongation(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
+void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
+void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
 index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in);
 double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in);
 dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in);
-void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
+void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
+
+
 
 /*===============================================*/
 /* ILU preconditioner */
