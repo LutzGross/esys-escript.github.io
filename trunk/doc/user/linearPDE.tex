@@ -690,6 +690,21 @@ sets the \JACOBI or \GAUSSSEIDEL smoother to be used with \AMG.
 returns the key of the smoother used in \AMG.
 \end{methoddesc}
 
+\begin{methoddesc}[SolverOptions]{setAMGInterpolation}{\optional{method=\=\var{None}}}
+sets interpolation method for \AMG to
+\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
+\member{CLASSIC_INTERPOLATION}, or
+\member{DIRECT_INTERPOLATION}.
+\end{methoddesc}
+
+\begin{methoddesc}[SolverOptions]{getAMGInterpolation}{}
+returns the key 
+\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
+\member{CLASSIC_INTERPOLATION}, or
+\member{DIRECT_INTERPOLATION}
+of the interpolation method for \AMG.
+\end{methoddesc}
+
 \begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
 sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \end{methoddesc}
@@ -697,6 +712,8 @@ sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \begin{methoddesc}[SolverOptions]{getNumSweeps}{}
 returns the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
 \end{methoddesc}
+
+
 
 \begin{methoddesc}[SolverOptions]{setNumPreSweeps}{\optional{sweeps=2}}
 sets the number of sweeps in the pre-smoothing step of \AMG.
@@ -960,6 +977,16 @@ the Pastix library~\cite{PASTIX} is used as a solver.
 
 \begin{memberdesc}[SolverOptions]{NO_PRECONDITIONER}
 no preconditioner is applied.
+\end{memberdesc}
+
+\begin{memberdesc}[SolverOptions]{DIRECT_INTERPOLATION}
+direct interpolation in \AMG, see \cite{AMG}
+\end{memberdesc}
+\begin{memberdesc}[SolverOptions]{CLASSIC_INTERPOLATION}
+classic interpolation in \AMG, see \cite{AMG}
+\end{memberdesc}
+\begin{memberdesc}[SolverOptions]{CLASSIC_INTERPOLATION_WITH_FF_COUPLING}
+classic interpolation with enforeced FF coupling in \AMG, see \cite{AMG}
 \end{memberdesc}
 
 \input{lumping}

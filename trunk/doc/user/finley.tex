@@ -378,8 +378,7 @@ Currently the \UMFPACK interface does not support any reordering.
 
 \begin{table}
 {\scriptsize
-\begin{tabular}{l||c|c|c|c|c|c|c|c}
-\member{setPreconditioner}&
+\begin{tabular}{l||c|c|c|c|c|c|c}
 \member{NO_PRECONDITIONER}&
 \member{AMG}&
 \member{JACOBI}&
@@ -389,26 +388,28 @@ Currently the \UMFPACK interface does not support any reordering.
 \member{ILU0}&
 \member{DIRECT}\\
 \hline
-status:& $\checkmark$ & $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&later\\
+status:& $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&later\\
 \hline
 \hline
-\member{setLevelMax}& &$\checkmark$& & & & & &\\
+\member{setLevelMax}&$\checkmark$& & & & & &\\
 \hline
-\member{setCoarseningThreshold}& &$\checkmark$& & & & & &\\
+\member{setCoarseningThreshold}&$\checkmark$& & & & & &\\
 \hline
-\member{setMinCoarseMatrixSize}& &$\checkmark$& & & & & &\\
+\member{setMinCoarseMatrixSize}&$\checkmark$& & & & & &\\
 \hline
-\member{setMinCoarseMatrixSparsity}& &$\checkmark$& & & & & &\\
+\member{setMinCoarseMatrixSparsity}&$\checkmark$& & & & & &\\
 \hline
-\member{setNumSweeps}& & &$\checkmark$&$\checkmark$& & & &\\
+\member{setNumSweeps}& &$\checkmark$&$\checkmark$& & & &\\
 \hline
-\member{setNumPreSweeps}& &$\checkmark$& & & & & &\\
+\member{setNumPreSweeps}&$\checkmark$& & & & & &\\
 \hline
-\member{setNumPostSweeps}& &$\checkmark$& & & & & &\\
+\member{setNumPostSweeps}&$\checkmark$& & & & & &\\
 \hline
-\member{setDiagonalDominanceThreshold}& &$\checkmark$& & & & & &\\
+\member{setDiagonalDominanceThreshold}&$\checkmark$& & & & & &\\
 \hline
-\member{setRelaxationFactor}& & & & & &$\checkmark$& &\\
+\member{setAMGInterpolation}&$\checkmark$& & & & & &\\
+\hline
+\member{setRelaxationFactor}& & & & &$\checkmark$& &\\
 \end{tabular}
 }
 \caption{Preconditioners available for \finley and the \PASO package and the
