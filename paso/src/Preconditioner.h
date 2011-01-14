@@ -79,12 +79,16 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
 void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, index_t*split_marker, const bool_t usePanel);
 void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
 void Paso_Preconditioner_AMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
-Paso_SparseMatrix* Paso_Preconditioner_AMG_getDirectProlongation(const Paso_SparseMatrix* A_p, const dim_t* degree, const index_t* S, const dim_t n_C, const index_t* counter_C); 
+Paso_SparseMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
 void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
 void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p, const Paso_SparseMatrix* A_p, const index_t *counter_C);
+void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
+void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p, Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
 index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in);
 double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in);
 dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in);
+void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
+
 /*===============================================*/
 /* ILU preconditioner */
 struct Paso_Solver_ILU {

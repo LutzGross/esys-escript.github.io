@@ -153,6 +153,13 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
           return PASO_AGGREGATION_COARSENING;
        case  ESCRIPT_NO_PRECONDITIONER:
           return PASO_NO_PRECONDITIONER;
+       case ESCRIPT_CLASSIC_INTERPOLATION_WITH_FF_COUPLING:
+         return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
+       case ESCRIPT_CLASSIC_INTERPOLATION:
+         return PASO_CLASSIC_INTERPOLATION;
+       case ESCRIPT_DIRECT_INTERPOLATION:
+         return PASO_DIRECT_INTERPOLATION;
+
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -339,8 +346,9 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getNumRefinements",refinements, dim_t);
    EXTRACT("getNumCoarseMatrixRefinements",coarse_matrix_refinements, dim_t);
    EXTRACT("usePanel",usePanel, bool_t);
-   EXTRACT("useDirectInterpolation", useDirectInterpolation, bool_t);
+   EXTRACT("getAMGInterpolation", interpolation_method, index_t);
    EXTRACT("getDiagonalDominanceThreshold", diagonal_dominance_threshold, double);
+
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

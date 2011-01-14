@@ -100,6 +100,9 @@ class SolverOptions(object):
     :cvar STANDARD_COARSENING: AMG and AMLI standard coarsening using mesure of importance of the unknowns 
     :cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
     :cvar NO_PRECONDITIONER: no preconditioner is applied.
+    :cvar CLASSIC_INTERPOLATION_WITH_FF_COUPLING: classical interpolation in AMG with enforced 
+    :cvar CLASSIC_INTERPOLATION: classical interpolation in AMG
+    :cvar DIRECT_INTERPOLATION: direct interploation in AMG
     """
     DEFAULT= 0
     DIRECT= 1
@@ -141,6 +144,9 @@ class SolverOptions(object):
     MIN_COARSE_MATRIX_SIZE=37
     AMLI=38
     STANDARD_COARSENING=39
+    CLASSIC_INTERPOLATION_WITH_FF_COUPLING=50
+    CLASSIC_INTERPOLATION=51
+    DIRECT_INTERPOLATION=52
  
     def __init__(self):
         self.setLevelMax()
@@ -175,8 +181,8 @@ class SolverOptions(object):
         self.setNumRefinements()
         self.setNumCoarseMatrixRefinements()
         self.setUsePanel()
-        self.setUseDirectInterpolation()
         self.setDiagonalDominanceThreshold()
+        self.setAMGInterpolation()
         
 
     def __str__(self):
@@ -216,7 +222,7 @@ class SolverOptions(object):
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
                 out+="\nNumber of refinement steps in coarsest level solver = %d"%(self.getNumCoarseMatrixRefinements(),)
                 out+="\nUse node panel = %s"%(self.usePanel())
-                out+="\nUse direct interpolation only = %s"%(self.useDirectInterpolation())
+                out+="\nInterpolation = %s"%(self.getName(self.getAMGInterpolation()))
                 out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
 
             if self.getPreconditioner() == self.AMLI:
@@ -278,6 +284,9 @@ class SolverOptions(object):
         if key == self.STANDARD_COARSENING: return "STANDARD_COARSENING"
         if key == self.AGGREGATION_COARSENING: return "AGGREGATION_COARSENING"
         if key == self.NO_PRECONDITIONER: return "NO_PRECONDITIONER"
+        if key == self.CLASSIC_INTERPOLATION_WITH_FF_COUPLING: return "CLASSIC_INTERPOLATION_WITH_FF"
+        if key == self.CLASSIC_INTERPOLATION: return "CLASSIC_INTERPOLATION"
+        if key == self.DIRECT_INTERPOLATION: return "DIRECT_INTERPOLATION"
         
     def resetDiagnostics(self,all=False):
         """
@@ -476,6 +485,7 @@ class SolverOptions(object):
         :rtype: in the list `SolverOptions.JACOBI`, `SolverOptions.GAUSS_SEIDEL`
         """
         return self.__smoother  
+
     def setSolverMethod(self, method=0):
         """
         Sets the solver method to be used. Use ``method``=``SolverOptions.DIRECT`` to indicate that a direct rather than an iterative
@@ -1120,38 +1130,25 @@ class SolverOptions(object):
         else:
             self.setUsePanelOff()
             
-    def useDirectInterpolation(self):
+    def setAMGInterpolation(self, method=None):
         """
-        Returns ``True`` if direct interpolation is used in AMG.
+        Set the interpolation method for the AMG preconditioner. 
 
-	:return: ``True`` if direct interpolation is used in AMG.
-        :rtype: ``bool``
+        :param method: key of the interpolation method to be used.
+        :type method: in `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
         """
-        return self.__use_direct_interpolation
+	if method==None: method=self.DIRECT_INTERPOLATION
+        if not method in [ SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING, SolverOptions.CLASSIC_INTERPOLATION, SolverOptions.DIRECT_INTERPOLATION ]:
+             raise ValueError,"unknown AMG interpolation method %s"%method
+        self.__amg_interpolation_method=method
 
-    def setUseDirectInterpolationOn(self):
+    def getAMGInterpolation(self):
         """
-        Sets the flag to use direct interpolation in AMG
-        """
-        self.__use_direct_interpolation=True
-        
-    def setUseDirectInterpolationOff(self):
-        """
-        Sets the flag to use direct interpolation in AMG
-        """
-        self.__use_direct_interpolation=False
-        
-    def setUseDirectInterpolation(self,use=False):
-        """
-        Sets the flag to use direct interpolation in AMG
+        Returns key of the interpolation method for the AMG preconditioner
 
-	:param use: If ``True``, direct interpolation in AMG
-	:type use: ``bool``
+        :rtype: in the list `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
         """
-        if use:
-            self.setUseDirectInterpolationOn()
-        else:
-            self.setUseDirectInterpolationOff()
+        return self.__amg_interpolation_method
 
 
 class IllegalCoefficient(ValueError):

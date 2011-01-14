@@ -48,6 +48,7 @@ double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
 index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask);
 index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask);
 index_t Paso_Util_arg_max(dim_t n, dim_t* lambda);
+index_t Paso_Util_iMax(const dim_t N,const index_t* array);
 
 #define Paso_Scale(n, x, a) Paso_Update(n, a, x, 0, x);
 #define Paso_AXPY(n, x, a, y) Paso_Update(n, 1., x, a,  y);

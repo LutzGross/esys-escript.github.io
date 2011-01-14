@@ -69,6 +69,10 @@
 #define PASO_NO_PRECONDITIONER 36
 #define PASO_MIN_COARSE_MATRIX_SIZE 37
 #define PASO_AMLI 38
+#define PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING 50
+#define PASO_CLASSIC_INTERPOLATION 51
+#define PASO_DIRECT_INTERPOLATION 52
+
 
 
 #define PASO_SMOOTHER 99999999
@@ -106,7 +110,7 @@ typedef struct {
     dim_t coarse_matrix_refinements;
     double diagonal_dominance_threshold;
     bool_t usePanel;
-    bool_t useDirectInterpolation;
+    index_t interpolation_method;
     
     /* diagnostic values */
     dim_t num_iter;

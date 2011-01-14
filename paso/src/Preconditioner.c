@@ -93,7 +93,15 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 		   } else {
 		      printf("Gauss-Seidel");
 		   }
-		   printf(" with %d/%d pre/post sweeps.\n",options->pre_sweeps, options->post_sweeps);
+		   printf(" with %d/%d pre/post sweeps",options->pre_sweeps, options->post_sweeps);
+                   if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION) {
+                          printf( " and classical interpolation.\n");
+                   } else if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) {
+                          printf( " and classical interpolation with enforced FF coupling.\n");
+                   } else {
+                          printf( " and direct interpolation.\n");
+                   }
+ 
 	      }
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);
 	      prec->sweeps=options->sweeps;

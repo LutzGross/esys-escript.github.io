@@ -65,13 +65,13 @@ void Paso_solve(Paso_SystemMatrix* A,
 	  options->time=Esys_timer();
 	  Performance_startMonitor(&pp,PERFORMANCE_ALL);
 	  Paso_MKL(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
+          A->solver_package=PASO_MKL;
 	  Performance_stopMonitor(&pp,PERFORMANCE_ALL);
 	  options->time=Esys_timer()-options->time;
 	  options->set_up_time=0;
 	  options->residual_norm=0.;
 	  options->num_iter=0;
 	  if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
-          A->solver_package=PASO_MKL;
           break;
 
 	 case PASO_UMFPACK:
@@ -83,13 +83,13 @@ void Paso_solve(Paso_SystemMatrix* A,
 	    options->time=Esys_timer();
 	    Performance_startMonitor(&pp,PERFORMANCE_ALL);
 	    Paso_UMFPACK(A->mainBlock, out, in, options->refinements, options->verbose);
+	    A->solver_package=PASO_UMFPACK;
 	    Performance_stopMonitor(&pp,PERFORMANCE_ALL);
 	    options->time=Esys_timer()-options->time;
 	    options->set_up_time=0;
 	    options->residual_norm=0.;
 	    options->num_iter=0;
 	    if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
-	    A->solver_package=PASO_UMFPACK;
             break;
 
         default:
