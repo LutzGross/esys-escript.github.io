@@ -37,6 +37,8 @@ import util
 from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
 from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
+print dir(escript)
+
 class DarcyFlow(object):
    """
    solves the problem
@@ -49,7 +51,7 @@ class DarcyFlow(object):
    :note: The problem is solved in a least squares formulation.
    """
    
-   def __init__(self, domain, useReduced=False, adaptSubTolerance=True, solveForFlux=False):
+   def __init__(self, domain, useReduced=False, adaptSubTolerance=True, solveForFlux=False, useVPIteration=True, weighting_scale=0.1):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -60,28 +62,39 @@ class DarcyFlow(object):
       :type adaptSubTolerance: ``bool``	
       :param solveForFlux: if True the solver solves for the flux (do not use!)
       :type solveForFlux: ``bool``	
+      :param useVPIteration: if True altenative iteration over v and p is performed. Otherwise V and P are calculated in a single PDE.
+      :type useVPIteration: ``bool``	
       """
       self.domain=domain
-      self.solveForFlux=solveForFlux
+      self.useVPIteration=useVPIteration
       self.useReduced=useReduced
-      self.__adaptSubTolerance=adaptSubTolerance
-      self.verbose=False
-      
-      self.__pde_k=LinearPDESystem(domain)
-      self.__pde_k.setSymmetryOn()
-      if self.useReduced: self.__pde_k.setReducedOrderOn()
-
-      self.__pde_p=LinearSinglePDE(domain)
-      self.__pde_p.setSymmetryOn()
-      if self.useReduced: self.__pde_p.setReducedOrderOn()
-
-      self.__pde_l=LinearSinglePDE(domain)   # this is here for getSolverOptionsWeighting
-      # self.__pde_l.setSymmetryOn()
-      # if self.useReduced: self.__pde_l.setReducedOrderOn()
-      self.setTolerance()
-      self.setAbsoluteTolerance()
-      self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
-      self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.weighting_scale=weighting_scale
+      if self.useVPIteration:
+         self.solveForFlux=solveForFlux
+         self.__adaptSubTolerance=adaptSubTolerance
+         self.verbose=False
+         
+         self.__pde_k=LinearPDESystem(domain)
+         self.__pde_k.setSymmetryOn()
+         if self.useReduced: self.__pde_k.setReducedOrderOn()
+   
+         self.__pde_p=LinearSinglePDE(domain)
+         self.__pde_p.setSymmetryOn()
+         if self.useReduced: self.__pde_p.setReducedOrderOn()
+         self.setTolerance()
+         self.setAbsoluteTolerance()
+      else:
+         self.__pde_k=LinearPDE(self.domain, numEquations=self.domain.getDim()+1)
+         self.__pde_k.setSymmetryOn()
+         if self.useReduced: self.__pde_k.setReducedOrderOn()
+         C=self.__pde_k.createCoefficient("C")
+         B=self.__pde_k.createCoefficient("B")
+         for i in range(self.domain.getDim()):
+            C[i,self.domain.getDim(),i]=1
+            B[self.domain.getDim(),i,i]=1
+         self.__pde_k.setValue(C=C, B=B)
+      self.__f=escript.Scalar(0,self.__pde_k.getFunctionSpaceForCoefficient("X"))
+      self.__g=escript.Vector(0,self.__pde_k.getFunctionSpaceForCoefficient("Y"))
       
    def getSolverOptionsFlux(self):
       """
@@ -129,166 +142,99 @@ class DarcyFlow(object):
       """
       return self.__pde_p.setSolverOptions(options)
 
-   def getSolverOptionsWeighting(self):
-      """
-      Returns the solver options used to solve the pressure problems
-
-      *(D K D^*)p=-D F*
-
-      :return: `SolverOptions`
-      """
-      return self.__pde_l.getSolverOptions()
-
-   def setSolverOptionsWeighting(self, options=None):
-      """
-      Sets the solver options used to solve the pressure problems 
-
-      *(D K D^*)p=-D F*
-
-      If ``options`` is not present, the options are reset to default
-
-      :param options: `SolverOptions`
-      :note: if the adaption of subtolerance is choosen, the tolerance set by ``options`` will be overwritten before the solver is called.
-      """
-      return self.__pde_l.setSolverOptions(options)
-
 
    def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
       """
       assigns values to model parameters
 
       :param f: volumetic sources/sinks
-      :type f: scalar value on the domain (e.g. `Data`)
+      :type f: scalar value on the domain (e.g. `escript.Data`)
       :param g: flux sources/sinks
-      :type g: vector values on the domain (e.g. `Data`)
+      :type g: vector values on the domain (e.g. `escript.Data`)
       :param location_of_fixed_pressure: mask for locations where pressure is fixed
-      :type location_of_fixed_pressure: scalar value on the domain (e.g. `Data`)
+      :type location_of_fixed_pressure: scalar value on the domain (e.g. `escript.Data`)
       :param location_of_fixed_flux:  mask for locations where flux is fixed.
-      :type location_of_fixed_flux: vector values on the domain (e.g. `Data`)
+      :type location_of_fixed_flux: vector values on the domain (e.g. `escript.Data`)
       :param permeability: permeability tensor. If scalar ``s`` is given the tensor with ``s`` on the main diagonal is used. 
-      :type permeability: scalar or tensor values on the domain (e.g. `Data`)
+      :type permeability: scalar or tensor values on the domain (e.g. `escript.Data`)
 
       :note: the values of parameters which are not set by calling ``setValue`` are not altered.
       :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
       or the normal component of the flux (``location_of_fixed_flux[i]>0``) if direction of the normal is along the *x_i* axis.
 
       """
-      if f !=None:
-	 f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("X"))
-	 if f.isEmpty():
-	    f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
-	 else:
-	    if f.getRank()>0: raise ValueError,"illegal rank of f."
-	    self.__f=f
-      if g !=None:
-	 g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
-	 if g.isEmpty():
-	    g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
-	 else:
-	    if not g.getShape()==(self.domain.getDim(),):
-	       raise ValueError,"illegal shape of g"
-	    self.__g=g
-      if location_of_fixed_pressure!=None: 
-	       self.__pde_p.setValue(q=location_of_fixed_pressure)
-	       #self.__pde_l.setValue(q=location_of_fixed_pressure)
-      if location_of_fixed_flux!=None: 
-	       self.__pde_k.setValue(q=location_of_fixed_flux)
+      if self.useVPIteration: 
+         if location_of_fixed_pressure!=None: self.__pde_p.setValue(q=location_of_fixed_pressure)
+         if location_of_fixed_flux!=None: self.__pde_k.setValue(q=location_of_fixed_flux)
+      else:
+         q=self.__pde_k.getCoefficient("q")
+         if q.isEmpty(): q=self.__pde_k.createCoefficient("q")
+         if location_of_fixed_pressure!=None: q[self.domain.getDim()]=location_of_fixed_pressure
+         if location_of_fixed_flux!=None: q[:self.domain.getDim()]=location_of_fixed_flux
+         self.__pde_k.setValue(q=q)
 			
+      # flux is rescaled by the factor mean value(perm_inv)*length where length**self.domain.getDim()=vol(self.domain)
       if permeability!=None:
-	 perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
+	 perm=util.interpolate(permeability,self.__pde_k.getFunctionSpaceForCoefficient("A"))
+         V=util.vol(self.domain)
 	 if perm.getRank()==0:
-	    perm_inv=(1./perm)*util.kronecker(self.domain.getDim())
-	    perm=perm*util.kronecker(self.domain.getDim())
+	    perm_inv=(1./perm)
+            if self.useVPIteration:
+              self.scale=1.
+            else:
+              self.scale=util.integrate(perm_inv)*V**(1./self.domain.getDim()-1.)
+
+	    perm_inv=perm_inv*((1./self.scale)*util.kronecker(self.domain.getDim()))
+	    perm=perm*(self.scale*util.kronecker(self.domain.getDim()))
 	 elif perm.getRank()==2:
 	    perm_inv=util.inverse(perm)
+            if self.useVPIteration:
+              self.scale=1.
+            else:
+              self.scale=util.sqrt(util.integrate(util.length(perm_inv)**2)*V**(2./self.domain.getDim()-1.)/self.domain.getDim())
+	      perm_inv*=(1./self.scale)
+	      perm=perm*self.scale
 	 else:
 	    raise ValueError,"illegal rank of permeability."
 
 	 self.__permeability=perm
 	 self.__permeability_inv=perm_inv
-	 self.__l =(util.longestEdge(self.domain)**2*util.length(self.__permeability_inv))/10
-	 #self.__l =(self.domain.getSize()**2*util.length(self.__permeability_inv))/10
-	 if  self.solveForFlux:
-	    self.__pde_k.setValue(D=self.__permeability_inv)
+
+	 self.__l2 =(util.longestEdge(self.domain)**2*util.length(self.__permeability_inv))*self.weighting_scale
+         if self.useVPIteration:
+	    if  self.solveForFlux:
+	       self.__pde_k.setValue(D=self.__permeability_inv)
+	    else:
+	       self.__pde_k.setValue(D=self.__permeability_inv, A=self.__l2*util.outer(util.kronecker(self.domain),util.kronecker(self.domain)))
+	    self.__pde_p.setValue(A=self.__permeability)
+         else:
+            D=self.__pde_k.createCoefficient("D")
+            A=self.__pde_k.createCoefficient("A")
+            D[:self.domain.getDim(),:self.domain.getDim()]=self.__permeability_inv
+            for i in range(self.domain.getDim()):
+               for j in range(self.domain.getDim()):
+                 A[i,i,j,j]=self.__l2
+            A[self.domain.getDim(),:,self.domain.getDim(),:]=self.__permeability
+            self.__pde_k.setValue(A=A, D=D)
+      if g !=None:
+	 g=util.interpolate(g, self.__pde_k.getFunctionSpaceForCoefficient("Y"))
+	 if g.isEmpty():
+	      g=Vector(0,self.__pde_k.getFunctionSpaceForCoefficient("Y"))
 	 else:
-	    self.__pde_k.setValue(D=self.__permeability_inv, A=self.__l*util.outer(util.kronecker(self.domain),util.kronecker(self.domain)))
-	 self.__pde_p.setValue(A=self.__permeability)
-	 #self.__pde_l.setValue(D=1/self.__l)
-         #self.__pde_l.setValue(A=self.__permeability)
+	    if not g.getShape()==(self.domain.getDim(),):
+	          raise ValueError,"illegal shape of g"
+	    self.__g=g
+      elif permeability!=None:
+             X
+      if f !=None:
+	 f=util.interpolate(f, self.__pde_k.getFunctionSpaceForCoefficient("X"))
+	 if f.isEmpty():
+	      f=Scalar(0,self.__pde_k.getFunctionSpaceForCoefficient("X"))
+	 else:
+	     if f.getRank()>0: raise ValueError,"illegal rank of f."
+	     self.__f=f
 
-   def __applWeight(self, v, f=None):
-      # solves L p = f-Dv with p = 0 
-      if self.getSolverOptionsWeighting().isVerbose() or self.verbose: print "DarcyFlux: Applying weighting operator"
-      if f == None:
-	 return -util.div(v)*self.__l
-      else:
-	 return (f-util.div(v))*self.__l
-      # if f == None:
-      # 	 self.__pde_l.setValue(Y=-util.div(v))	
-      # else:
-      # 	 return (f-util.div(v))/self.__l
-      # return self.__pde_l.getSolution()
       
-   def __getPressure(self, v, p0, g=None):
-      # solves (G*KG)p = G^(g-v) with p = p0 where location_of_fixed_pressure>0
-      if self.getSolverOptionsPressure().isVerbose() or self.verbose: print "DarcyFlux: Pressure update"
-      if g == None:
-	 self.__pde_p.setValue(X=-v, r=p0)
-      else:
-	 self.__pde_p.setValue(X=g-v, r=p0)	     
-      p=self.__pde_p.getSolution()
-      return p
-
-   def __Aprod_v(self,dv):
-      # calculates: (a,b,c) = (K^{-1}(dv + KG * dp), L^{-1}Ddv, dp)  with (G*KG)dp = - G^*dv  
-      dp=self.__getPressure(dv, p0=escript.Data()) # dp = (G*KG)^{-1} (0-G^*dv)
-      a=util.tensor_mult(self.__permeability_inv,dv)+util.grad(dp) # a= K^{-1}u+G*dp
-      b= - self.__applWeight(dv) # b = - (D K D^*)^{-1} (0-Dv) 
-      return ArithmeticTuple(a,b,-dp)
-
-   def __Msolve_PCG_v(self,r):
-      # K^{-1} u = r[0] + D^*r[1] = K^{-1}(dv + KG * dp) + D^*L^{-1}Ddv
-      if self.getSolverOptionsFlux().isVerbose() or self.verbose: print "DarcyFlux: Applying preconditioner"
-      self.__pde_k.setValue(X=r[1]*util.kronecker(self.domain), Y=r[0], r=escript.Data())
-      # self.__pde_p.getOperator().saveMM("prec.mm")
-      return self.__pde_k.getSolution()
-
-   def __inner_PCG_v(self,v,r):
-      return util.integrate(util.inner(v,r[0])+util.div(v)*r[1])
-      
-   def __Aprod_p(self,dp):
-      if self.getSolverOptionsFlux().isVerbose(): print "DarcyFlux: Applying operator"
-      Gdp=util.grad(dp)
-      self.__pde_k.setValue(Y=-Gdp,X=escript.Data(), r=escript.Data())
-      du=self.__pde_k.getSolution()
-      # self.__pde_v.getOperator().saveMM("proj.mm")
-      return ArithmeticTuple(util.tensor_mult(self.__permeability,Gdp),-du)
-
-   def __getFlux(self,p, v0, f=None, g=None):
-      # solves (K^{-1}+D^*L^{-1} D) v = D^*L^{-1}f + K^{-1}g - Gp 
-      if f!=None:
-	 self.__pde_k.setValue(X=self.__applWeight(v0*0,self.__f)*util.kronecker(self.domain))
-      self.__pde_k.setValue(r=v0)
-      g2=util.tensor_mult(self.__permeability_inv,g)
-      if p == None:
-	 self.__pde_k.setValue(Y=g2)
-      else:
-	 self.__pde_k.setValue(Y=g2-util.grad(p))
-      return self.__pde_k.getSolution()  
-      
-      #v=self.__getFlux(p, u0, f=self.__f, g=g2)      
-   def __Msolve_PCG_p(self,r):
-      if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
-      self.__pde_p.setValue(X=r[0]-r[1], Y=escript.Data(), r=escript.Data(), y=escript.Data())
-      # self.__pde_p.getOperator().saveMM("prec.mm")
-      return self.__pde_p.getSolution()
-	    
-   def __inner_PCG_p(self,p,r):
-       return util.integrate(util.inner(util.grad(p), r[0]-r[1]))
-
-   def __L2(self,v):
-      return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))
-
    def solve(self,u0,p0, max_iter=100, verbose=False, max_num_corrections=10):
       """
       solves the problem.
@@ -296,20 +242,68 @@ class DarcyFlow(object):
       The iteration is terminated if the residual norm is less then self.getTolerance().
 
       :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
-      :type u0: vector value on the domain (e.g. `Data`).
+      :type u0: vector value on the domain (e.g. `escript.Data`).
       :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
-      :type p0: scalar value on the domain (e.g. `Data`).
+      :type p0: scalar value on the domain (e.g. `escript.Data`).
       :param verbose: if set some information on iteration progress are printed
       :type verbose: ``bool``
       :return: flux and pressure
-      :rtype: ``tuple`` of `Data`.
+      :rtype: ``tuple`` of `escript.Data`.
+
+      :note: The problem is solved as a least squares form
+      *(K^[-1]+D^* l2 D)u+G p=D^* l2 * f + K^[-1]g*
+      *G^*u+*G^* K Gp=G^*g*
+      where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
+      """
+      self.verbose=verbose
+      if self.useVPIteration: 
+          return self.__solveVP(u0,p0,max_iter,max_num_corrections)
+      else:
+          X=self.__pde_k.createCoefficient("X")
+          Y=self.__pde_k.createCoefficient("Y")
+          Y[:self.domain.getDim()]=self.scale*util.tensor_mult(self.__permeability_inv,self.__g)
+          rtmp=self.__f * self.__l2 * self.scale
+          for i in range(self.domain.getDim()): X[i,i]=rtmp
+          X[self.domain.getDim(),:]=self.__g*self.scale
+          r=self.__pde_k.createCoefficient("r")
+          r[:self.domain.getDim()]=u0*self.scale
+          r[self.domain.getDim()]=p0
+          self.__pde_k.setValue(X=X, Y=Y, r=r)
+          self.__pde_k.getSolverOptions().setVerbosity(self.verbose)
+          #self.__pde_k.getSolverOptions().setPreconditioner(self.__pde_k.getSolverOptions().AMG)
+          self.__pde_k.getSolverOptions().setSolverMethod(self.__pde_k.getSolverOptions().DIRECT)
+          U=self.__pde_k.getSolution()
+          # self.__pde_k.getOperator().saveMM("k.mm")
+          u=U[:self.domain.getDim()]*(1./self.scale)
+          p=U[self.domain.getDim()]
+          if self.verbose:
+	    KGp=util.tensor_mult(self.__permeability,util.grad(p)/self.scale)
+	    def_p=self.__g-(u+KGp)
+	    def_v=self.__f-util.div(u, self.__pde_k.getFunctionSpaceForCoefficient("X"))
+	    print "DarcyFlux: L2: g-v-K*grad(p) = %e (v = %e)."%(self.__L2(def_p),self.__L2(u))
+	    print "DarcyFlux: L2: f-div(v) = %e (grad(v) = %e)."%(self.__L2(def_v),self.__L2(util.grad(u)))
+          return u,p
+
+   def __solveVP(self,u0,p0, max_iter=100, max_num_corrections=10):
+      """
+      solves the problem.
+      
+      The iteration is terminated if the residual norm is less then self.getTolerance().
+
+      :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
+      :type u0: vector value on the domain (e.g. `escript.Data`).
+      :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
+      :type p0: scalar value on the domain (e.g. `escript.Data`).
+      :param verbose: if set some information on iteration progress are printed
+      :type verbose: ``bool``
+      :return: flux and pressure
+      :rtype: ``tuple`` of `escript.Data`.
 
       :note: The problem is solved as a least squares form
       *(K^[-1]+D^* (DKD^*)^[-1] D)u+G p=D^* (DKD^*)^[-1] f + K^[-1]g*
       *G^*u+*G^* K Gp=G^*g*
       where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
       """
-      self.verbose=verbose
       rtol=self.getTolerance()
       atol=self.getAbsoluteTolerance()
       self.setSubProblemTolerance()
@@ -371,6 +365,74 @@ class DarcyFlow(object):
 	    if self.verbose: print "DarcyFlux: stopping criterium reached." 
 	    converged=True
       return v,p+p0 
+
+   def __applWeight(self, v, f=None):
+      # solves L p = f-Dv with p = 0 
+      if self.verbose: print "DarcyFlux: Applying weighting operator"
+      if f == None:
+	 return -util.div(v)*self.__l2
+      else:
+	 return (f-util.div(v))*self.__l2
+   def __getPressure(self, v, p0, g=None):
+      # solves (G*KG)p = G^(g-v) with p = p0 where location_of_fixed_pressure>0
+      if self.getSolverOptionsPressure().isVerbose() or self.verbose: print "DarcyFlux: Pressure update"
+      if g == None:
+	 self.__pde_p.setValue(X=-v, r=p0)
+      else:
+	 self.__pde_p.setValue(X=g-v, r=p0)	     
+      p=self.__pde_p.getSolution()
+      return p
+
+   def __Aprod_v(self,dv):
+      # calculates: (a,b,c) = (K^{-1}(dv + KG * dp), L^{-1}Ddv, dp)  with (G*KG)dp = - G^*dv  
+      dp=self.__getPressure(dv, p0=escript.Data()) # dp = (G*KG)^{-1} (0-G^*dv)
+      a=util.tensor_mult(self.__permeability_inv,dv)+util.grad(dp) # a= K^{-1}u+G*dp
+      b= - self.__applWeight(dv) # b = - (D K D^*)^{-1} (0-Dv) 
+      return ArithmeticTuple(a,b,-dp)
+
+   def __Msolve_PCG_v(self,r):
+      # K^{-1} u = r[0] + D^*r[1] = K^{-1}(dv + KG * dp) + D^*L^{-1}Ddv
+      if self.getSolverOptionsFlux().isVerbose() or self.verbose: print "DarcyFlux: Applying preconditioner"
+      self.__pde_k.setValue(X=r[1]*util.kronecker(self.domain), Y=r[0], r=escript.Data())
+      return self.__pde_k.getSolution()
+
+   def __inner_PCG_v(self,v,r):
+      return util.integrate(util.inner(v,r[0])+util.div(v)*r[1])
+      
+   def __Aprod_p(self,dp):
+      if self.getSolverOptionsFlux().isVerbose(): print "DarcyFlux: Applying operator"
+      Gdp=util.grad(dp)
+      self.__pde_k.setValue(Y=-Gdp,X=escript.Data(), r=escript.Data())
+      du=self.__pde_k.getSolution()
+      return ArithmeticTuple(util.tensor_mult(self.__permeability,Gdp),-du)
+
+   def __getFlux(self,p, v0, f=None, g=None):
+      # solves (K^{-1}+D^*L^{-1} D) v = D^*L^{-1}f + K^{-1}g - Gp 
+      if f!=None:
+	 self.__pde_k.setValue(X=self.__applWeight(v0*0,self.__f)*util.kronecker(self.domain))
+      self.__pde_k.setValue(r=v0)
+      g2=util.tensor_mult(self.__permeability_inv,g)
+      if p == None:
+	 self.__pde_k.setValue(Y=g2)
+      else:
+	 self.__pde_k.setValue(Y=g2-util.grad(p))
+      return self.__pde_k.getSolution()  
+      
+      #v=self.__getFlux(p, u0, f=self.__f, g=g2)      
+   def __Msolve_PCG_p(self,r):
+      if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
+      self.__pde_p.setValue(X=r[0]-r[1], Y=escript.Data(), r=escript.Data(), y=escript.Data())
+      return self.__pde_p.getSolution()
+	    
+   def __inner_PCG_p(self,p,r):
+       return util.integrate(util.inner(util.grad(p), r[0]-r[1]))
+
+   def __L2(self,v):
+      return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))
+
+   def __L2_r(self,v):
+      return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.ReducedFunction(self.domain)))**2))
+
    def setTolerance(self,rtol=1e-4):
       """
       sets the relative tolerance ``rtol`` used to terminate the solution process. The iteration is terminated if
@@ -432,8 +494,6 @@ class DarcyFlow(object):
 	 self.getSolverOptionsFlux().setAbsoluteTolerance(0.)
 	 self.getSolverOptionsPressure().setTolerance(sub_tol)
 	 self.getSolverOptionsPressure().setAbsoluteTolerance(0.)
-	 self.getSolverOptionsWeighting().setTolerance(sub_tol)
-	 self.getSolverOptionsWeighting().setAbsoluteTolerance(0.)
 	 if self.verbose: print "DarcyFlux: relative subtolerance is set to %e."%sub_tol
 
 
@@ -462,15 +522,15 @@ class DarcyFlowOld(object):
         self.domain=domain
         if weight == None:
            s=self.domain.getSize()
-           self.__l=(3.*util.longestEdge(self.domain)*s/util.sup(s))**2
-           # self.__l=(3.*util.longestEdge(self.domain))**2
-           #self.__l=(0.1*util.longestEdge(self.domain)*s/util.sup(s))**2
+           self.__l2=(3.*util.longestEdge(self.domain)*s/util.sup(s))**2
+           # self.__l2=(3.*util.longestEdge(self.domain))**2
+           #self.__l2=(0.1*util.longestEdge(self.domain)*s/util.sup(s))**2
         else:
-           self.__l=weight
+           self.__l2=weight
         self.__pde_v=LinearPDESystem(domain)
         if useReduced: self.__pde_v.setReducedOrderOn()
         self.__pde_v.setSymmetryOn()
-        self.__pde_v.setValue(D=util.kronecker(domain), A=self.__l*util.outer(util.kronecker(domain),util.kronecker(domain)))
+        self.__pde_v.setValue(D=util.kronecker(domain), A=self.__l2*util.outer(util.kronecker(domain),util.kronecker(domain)))
         self.__pde_p=LinearSinglePDE(domain)
         self.__pde_p.setSymmetryOn()
         if useReduced: self.__pde_p.setReducedOrderOn()
@@ -526,17 +586,17 @@ class DarcyFlowOld(object):
         assigns values to model parameters
 
         :param f: volumetic sources/sinks
-        :type f: scalar value on the domain (e.g. `Data`)
+        :type f: scalar value on the domain (e.g. `escript.Data`)
         :param g: flux sources/sinks
-        :type g: vector values on the domain (e.g. `Data`)
+        :type g: vector values on the domain (e.g. `escript.Data`)
         :param location_of_fixed_pressure: mask for locations where pressure is fixed
-        :type location_of_fixed_pressure: scalar value on the domain (e.g. `Data`)
+        :type location_of_fixed_pressure: scalar value on the domain (e.g. `escript.Data`)
         :param location_of_fixed_flux:  mask for locations where flux is fixed.
-        :type location_of_fixed_flux: vector values on the domain (e.g. `Data`)
+        :type location_of_fixed_flux: vector values on the domain (e.g. `escript.Data`)
         :param permeability: permeability tensor. If scalar ``s`` is given the tensor with
                              ``s`` on the main diagonal is used. If vector ``v`` is given the tensor with
                              ``v`` on the main diagonal is used.
-        :type permeability: scalar, vector or tensor values on the domain (e.g. `Data`)
+        :type permeability: scalar, vector or tensor values on the domain (e.g. `escript.Data`)
 
         :note: the values of parameters which are not set by calling ``setValue`` are not altered.
         :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
@@ -646,13 +706,13 @@ class DarcyFlowOld(object):
          The iteration is terminated if the residual norm is less then self.getTolerance().
 
          :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
-         :type u0: vector value on the domain (e.g. `Data`).
+         :type u0: vector value on the domain (e.g. `escript.Data`).
          :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
-         :type p0: scalar value on the domain (e.g. `Data`).
+         :type p0: scalar value on the domain (e.g. `escript.Data`).
          :param verbose: if set some information on iteration progress are printed
          :type verbose: ``bool``
          :return: flux and pressure
-         :rtype: ``tuple`` of `Data`.
+         :rtype: ``tuple`` of `escript.Data`.
 
          :note: The problem is solved as a least squares form
 
@@ -720,7 +780,6 @@ class DarcyFlowOld(object):
           Qdp=self.__Q(dp)
           self.__pde_v.setValue(Y=-Qdp,X=escript.Data(), r=escript.Data())
           du=self.__pde_v.getSolution()
-          # self.__pde_v.getOperator().saveMM("proj.mm")
           return Qdp+du
     def __inner_GMRES(self,r,s):
          return util.integrate(util.inner(r,s))
@@ -731,7 +790,6 @@ class DarcyFlowOld(object):
     def __Msolve_PCG(self,r):
 	  if self.getSolverOptionsPressure().isVerbose(): print "DarcyFlux: Applying preconditioner"
           self.__pde_p.setValue(X=util.transposed_tensor_mult(self.__permeability,r), Y=escript.Data(), r=escript.Data())
-          # self.__pde_p.getOperator().saveMM("prec.mm")
           return self.__pde_p.getSolution()
 
     def getFlux(self,p=None, fixed_flux=escript.Data()):
@@ -741,18 +799,18 @@ class DarcyFlowOld(object):
         Note that ``g`` and ``f`` are used, see `setValue`.
 
         :param p: pressure.
-        :type p: scalar value on the domain (e.g. `Data`).
+        :type p: scalar value on the domain (e.g. `escript.Data`).
         :param fixed_flux: flux on the locations of the domain marked be ``location_of_fixed_flux``.
-        :type fixed_flux: vector values on the domain (e.g. `Data`).
+        :type fixed_flux: vector values on the domain (e.g. `escript.Data`).
         :return: flux
-        :rtype: `Data`
+        :rtype: `escript.Data`
         :note: the method uses the least squares solution *u=(I+D^*D)^{-1}(D^*f-g-Qp)* where *D* is the *div* operator and *(Qp)_i=k_{ij}p_{,j}*
                for the permeability *k_{ij}*
         """
 	self.setSubProblemTolerance()
         g=self.__g
         f=self.__f
-        self.__pde_v.setValue(X=self.__l*f*util.kronecker(self.domain), r=fixed_flux)
+        self.__pde_v.setValue(X=self.__l2*f*util.kronecker(self.domain), r=fixed_flux)
         if p == None:
            self.__pde_v.setValue(Y=g)
         else:

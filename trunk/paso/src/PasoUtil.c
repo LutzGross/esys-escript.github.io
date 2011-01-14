@@ -50,6 +50,27 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
    return out;
 }
 
+/* returnsthe maximum value in array */
+index_t Paso_Util_iMax(const dim_t N,const index_t* array) {
+   index_t out=INDEX_T_MIN;
+   register index_t out2;
+   dim_t i;
+   if (N>0) {
+       #pragma omp parallel private(i, out2) 
+       {
+	   out2=INDEX_T_MIN;
+           #pragma omp for schedule(static)
+           for (i=0;i<N;i++) out2 = MAX(out2, array[i]);
+
+           #pragma omp critical
+           {
+	               out = MAX(out, out2);
+	   }
+       }
+   }
+   return out;
+}
+
 /**************************************************************/
 
 /* calculates the cummultative sum in array and returns the total sum */

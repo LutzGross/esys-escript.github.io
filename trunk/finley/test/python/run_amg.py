@@ -77,11 +77,107 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        #if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_PoissonWithDirectInterpolation(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Scalar(1,Solution(self.domain))
+        g_ex=Vector(0.,Solution(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex+=(i+1)*x[i]
+           g_ex[i]=(i+1)
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=1)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=kronecker(self.domain),y=inner(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setNumPreSweeps(3)
+        pde.getSolverOptions().setNumPostSweeps(3)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().DIRECT_INTERPOLATION)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_PoissonClassic(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Scalar(1,Solution(self.domain))
+        g_ex=Vector(0.,Solution(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex+=(i+1)*x[i]
+           g_ex[i]=(i+1)
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=1)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=kronecker(self.domain),y=inner(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        pde.getSolverOptions().setNumPreSweeps(3)
+        pde.getSolverOptions().setNumPostSweeps(3)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_PoissonClassicWithFFCoupling(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Scalar(1,Solution(self.domain))
+        g_ex=Vector(0.,Solution(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex+=(i+1)*x[i]
+           g_ex[i]=(i+1)
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=1)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=kronecker(self.domain),y=inner(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        pde.getSolverOptions().setNumPreSweeps(3)
+        pde.getSolverOptions().setNumPostSweeps(3)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -113,7 +209,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -148,7 +244,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -185,7 +281,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -225,7 +321,120 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+   def test_Poisson2Classic(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Data(1.,(2,),Solution(self.domain))
+        g_ex=Data(0.,(2,self.domain.getDim()), Solution(self.domain))
+        A=Data(0.,(2,self.domain.getDim(),2,self.domain.getDim()), Function(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex[0]+= 1*(i+1) *x[i]
+           g_ex[0,i]=1*(i+1)
+           u_ex[1]+= 2*(i+1)*x[i]
+           g_ex[1,i]=2*(i+1)
+           A[0,i,0,i]=1
+           A[1,i,1,i]=1
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=2)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])*[1,1]
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=A,y=matrixmult(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_Poisson3Classic(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Data(1.,(3,),Solution(self.domain))
+        g_ex=Data(0.,(3,self.domain.getDim()), Solution(self.domain))
+        A=Data(0.,(3,self.domain.getDim(),3,self.domain.getDim()), Function(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex[0]+= 1*(i+1) *x[i]
+           g_ex[0,i]=1*(i+1)
+           u_ex[1]+= 2*(i+1)*x[i]
+           g_ex[1,i]=2*(i+1)
+           u_ex[2]+= 3*(i+1)*x[i]
+           g_ex[2,i]=3*(i+1)
+           A[0,i,0,i]=1
+           A[1,i,1,i]=1
+           A[2,i,2,i]=1
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=3)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])*[1,1,1]
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=A,y=matrixmult(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+
+        u=pde.getSolution()
+        # -------- test the solution ---------------------------
+        error=Lsup(u-u_ex)/Lsup(u_ex)
+        self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
+   def test_Poisson4Classic(self):
+        x=Solution(self.domain).getX()
+        # --- set exact solution ----
+        u_ex=Data(1.,(4,),Solution(self.domain))
+        g_ex=Data(0.,(4,self.domain.getDim()), Solution(self.domain))
+        A=Data(0.,(4,self.domain.getDim(),4,self.domain.getDim()), Function(self.domain))
+        for i in xrange(self.domain.getDim()):
+           u_ex[0]+= 1*(i+1) *x[i]
+           g_ex[0,i]=1*(i+1)
+           u_ex[1]+= 2*(i+1)*x[i]
+           g_ex[1,i]=2*(i+1)
+           u_ex[2]+= 3*(i+1)*x[i]
+           g_ex[2,i]=3*(i+1)
+           u_ex[3]+= 4*(i+1)*x[i]
+           g_ex[3,i]=4*(i+1)
+           A[0,i,0,i]=1
+           A[1,i,1,i]=1
+           A[2,i,2,i]=1
+           A[3,i,3,i]=1
+
+        # create PDE:
+        pde=LinearPDE(self.domain,numEquations=4)
+        pde.setSymmetryOn()
+        mask=whereZero(x[0])*[1,1,1,1]
+        pde.setValue(r=u_ex,q=mask)
+        pde.setValue(A=A,y=matrixmult(g_ex,self.domain.getNormal()))
+        # -------- get the solution ---------------------------
+        pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
+        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
+        if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
+        if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -265,7 +474,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -309,8 +518,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -357,8 +565,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -397,8 +604,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -441,7 +647,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -488,8 +694,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -554,8 +759,7 @@ class Test_AMG(unittest.TestCase):
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        if MAX_LEVEL!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
-        
+        if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
         u = pde.getSolution()
         
         # -------- test the solution ---------------------------
@@ -584,7 +788,6 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
    suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
-   #suite.addTest(Test_AMGOnFinleyHex2DOrder1("test_PoissonSqueezedX"))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

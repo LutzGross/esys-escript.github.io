@@ -45,7 +45,7 @@
 #define MIN3(_arg1_,_arg2_,_arg3_) MIN(_arg1_,MIN(_arg2_,_arg3_))
 #define ABS(_arg_) MAX((_arg_),-(_arg_))
 #define SIGN(_arg_) ((_arg_)>0 ?  1  : ((_arg_)<0 ? -1 : 0 ))
-#define SAMESIGN(_arg0_, _arg1_) ( ( ( (_arg1_)>=0 ) && ( (_arg2_)>=0 ) ) || ((_arg1_)<=0 ) && ( (_arg2_)<=0 ) )
+#define SAMESIGN(_arg1_, _arg2_) ( ( ( (_arg1_)>=0 ) && ( (_arg2_)>=0 ) ) || ( ((_arg1_)<=0 ) && ( (_arg2_)<=0 ) ) )
 #define SWAP(_a0_,_a1_,_type_) { \
                                 _type_ s; \
                                 s=(_a0_); \
