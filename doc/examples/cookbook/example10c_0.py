@@ -25,7 +25,8 @@ from esys.pycad.gmsh import Design
 from esys.finley import MakeDomain
 from esys.escript.unitsSI import *
 from math import tan
-
+#the folder to put our outputs in, leave blank "" for script path 
+save_path= os.path.join("data","example10")
 #
 #   input data:
 #
@@ -175,10 +176,10 @@ FF.append(-PlaneSurface(CurveLoop(*tuple([ -fault_line_top_back,fault_line_bot_b
 
 
 # war 120
-des=Design(dim=3, order=1, element_size = 40*m, keep_files=True)
+des=Design(dim=3, order=1, element_size = 400*m, keep_files=True)
 des.addItems(*tuple(PS.values()))
 des.addItems(PropertySet("fault",Volume(SurfaceLoop( *tuple(FF)))))
-des.setMeshFileName("fault.msh")
+des.setMeshFileName(os.path.join(save_path,"fault.msh"))
 dom=MakeDomain(des)
-dom.write("fault.fly")
+dom.write(os.path.join(save_path,"fault.fly"))
 

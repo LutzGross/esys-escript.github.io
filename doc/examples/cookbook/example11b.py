@@ -32,15 +32,18 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
+from esys.weipa import saveVTK
 from esys.finley import Rectangle # This imports the rectangle domain function from finley
 import os, sys #This package is necessary to handle saving our data.
 from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector
-from cblib import toRegGrid
 
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
+
+from cblib import toRegGrid
+
 
 import pylab as pl #Plotting package
 import numpy as np
