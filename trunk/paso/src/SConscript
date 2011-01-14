@@ -49,8 +49,8 @@ sources = """
 	Smoother.c
 	ILU.c
 	RILU.c
-	AMG.c
-	AMG_Prolongation.c
+	LocalAMG.c
+	LocalAMG_Prolongation.c
 	SchurComplement.c
 	Preconditioner.c
 	SparseMatrix.c

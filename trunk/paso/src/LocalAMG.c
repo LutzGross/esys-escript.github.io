@@ -35,13 +35,13 @@
 
 /* free all memory used by AMG                                */
 
-void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in) {
+void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in) {
      if (in!=NULL) {
-	Paso_Preconditioner_Smoother_free(in->Smoother);
-	Paso_SystemMatrix_free(in->P);
-	Paso_SystemMatrix_free(in->R);
-	Paso_SystemMatrix_free(in->A_C);
-	Paso_Preconditioner_AMG_free(in->AMG_C);
+	Paso_Preconditioner_LocalSmoother_free(in->Smoother);
+	Paso_SparseMatrix_free(in->P);
+	Paso_SparseMatrix_free(in->R);
+	Paso_SparseMatrix_free(in->A_C);
+	Paso_Preconditioner_LocalAMG_free(in->AMG_C);
 	MEMFREE(in->r);
 	MEMFREE(in->x_C);
 	MEMFREE(in->b_C);
@@ -51,14 +51,14 @@ void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in) {
      }
 }
 
-index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in) {
+index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in) {
    if (in->AMG_C == NULL) {
       return in->level; 
    } else {
-      return Paso_Preconditioner_AMG_getMaxLevel(in->AMG_C);
+      return Paso_Preconditioner_LocalAMG_getMaxLevel(in->AMG_C);
    }
 }
-double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_AMG * in) {
+double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in) {
       if (in->AMG_C == NULL) {
 	 if (in->A_C == NULL) {
 	    return 1.;
@@ -66,10 +66,10 @@ double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_
 	    return DBLE(in->A_C->pattern->len)/DBLE(in->A_C->numRows)/DBLE(in->A_C->numRows);
 	 }
       } else {
-	    return Paso_Preconditioner_AMG_getCoarseLevelSparsity(in->AMG_C);
+	    return Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
       }
 }
-dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in) {
+dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in) {
    if (in->AMG_C == NULL) {
       if (in->A_C == NULL) {
 	 return 0;
@@ -77,7 +77,7 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
 	 return in->A_C->numRows;
       }
    } else {
- 	 return Paso_Preconditioner_AMG_getNumCoarseUnknwons(in->AMG_C);
+ 	 return Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(in->AMG_C);
    }
 }
 /*****************************************************************
@@ -85,12 +85,12 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
    constructs AMG
    
 ******************************************************************/
-Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,dim_t level,Paso_Options* options) {
+Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
 
-  Paso_Preconditioner_AMG* out=NULL;
+  Paso_Preconditioner_LocalAMG* out=NULL;
   bool_t verbose=options->verbose;
   
-  Paso_SystemMatrix *Atemp=NULL, *A_C=NULL;
+  Paso_SparseMatrix *Atemp=NULL, *A_C=NULL;
   const dim_t n=A_p->numRows;
   const dim_t n_block=A_p->row_block_size;
   index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
@@ -146,15 +146,15 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
     	 */
 	 time0=Esys_timer();
 	 if (n_block>1) {
-	       Paso_Preconditioner_AMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
+	       Paso_Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
 	 } else {
-	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, S, theta,tau);
+	       Paso_Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
 	 }
-	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
+	 Paso_Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
          /* in BoomerAMG interpolation is used FF connectiovity is required :*/
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
-                             Paso_Preconditioner_AMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
+                             Paso_Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
 	 
 	 if (Esys_noError() ) {
@@ -171,7 +171,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
 	    } else {
-	       out=MEMALLOC(1,Paso_Preconditioner_AMG);
+	       out=MEMALLOC(1,Paso_Preconditioner_LocalAMG);
 	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
 		  out->n = n;
@@ -232,7 +232,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			      get Prolongation :	 
 			   */					
 			   time0=Esys_timer();
-			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
+			   out->P=Paso_Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
 			}
 			/*      
@@ -240,17 +240,17 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			*/
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-			   out->R=Paso_SystemMatrix_getTranspose(out->P);
-			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
+			   out->R=Paso_SparseMatrix_getTranspose(out->P);
+			   if (SHOW_TIMING) printf("timing: level %d: Paso_SparseMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
 			/* 
 			construct coarse level matrix:
 			*/
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
-			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
-			   Paso_SystemMatrix_free(Atemp);
+			   Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
+			   A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
+			   Paso_SparseMatrix_free(Atemp);
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
 
@@ -260,7 +260,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			   
 			*/
 			if ( Esys_noError()) {
-			   out->AMG_C=Paso_Preconditioner_AMG_alloc(A_C,level+1,options);
+			   out->AMG_C=Paso_Preconditioner_LocalAMG_alloc(A_C,level+1,options);
 			}
 			if ( Esys_noError()) {
 			   if ( out->AMG_C == NULL ) { 
@@ -268,14 +268,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			      out->refinements = options->coarse_matrix_refinements;
 			      /* no coarse level matrix has been constructed. use direct solver */
 			      #ifdef MKL
-				    out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
-				    Paso_SystemMatrix_free(A_C);
+				    out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
+				    Paso_SparseMatrix_free(A_C);
 				    out->A_C->solver_package = PASO_MKL;
 				    if (verbose) printf("Paso_Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
 			      #else
 				    #ifdef UMFPACK
-				       out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
-				       Paso_SystemMatrix_free(A_C);
+				       out->A_C=Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
+				       Paso_SparseMatrix_free(A_C);
 				       out->A_C->solver_package = PASO_UMFPACK;
 				       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
 				    #else
@@ -305,13 +305,13 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   if (Esys_noError()) {
      return out;
   } else  {
-     Paso_Preconditioner_AMG_free(out);
+     Paso_Preconditioner_LocalAMG_free(out);
      return NULL;
   }
 }
 
 
-void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b) {
+void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b) {
      const dim_t n = amg->n * amg->n_block;
      double time0=0;
      const dim_t post_sweeps=amg->post_sweeps;
@@ -327,8 +327,8 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
          time0=Esys_timer();
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
          time0=Esys_timer()-time0;
 	 /* coarse level solve */
 	 if ( amg->AMG_C == NULL) {
@@ -347,10 +347,10 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
 	    }
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
 	 } else {
-	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
+	    Paso_Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
 	 }  
   	 time0=time0+Esys_timer();
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
+	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
 	
          /*postsmoothing*/
       
@@ -373,7 +373,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
 in the sense that |A_{ij}| >= theta * max_k |A_{ik}| 
 */
 
-void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A, 
+void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A, 
 					  dim_t *degree_S, index_t *S,
 					  const double theta, const double tau)
 {
@@ -424,7 +424,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
 in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F 
 */
-void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, 
+void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* A, 
 							dim_t *degree_S, index_t *S,
 							const double theta, const double tau)
 
@@ -487,7 +487,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 }   
 
 /* the runge stueben coarsening algorithm: */
-void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
+void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
 						index_t*split_marker, const bool_t usePanel)
 {
@@ -658,7 +658,7 @@ void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* of
    TMPMEMFREE(notInPanel);
 }
 /* ensures that two F nodes are connected via a C node :*/
-void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
+void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
 						index_t*split_marker)
 {
