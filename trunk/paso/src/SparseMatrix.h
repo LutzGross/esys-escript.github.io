@@ -108,8 +108,10 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 dim_t Paso_SparseMatrix_maxDeg(Paso_SparseMatrix * A_p);
 dim_t Paso_SparseMatrix_getTotalNumRows(const Paso_SparseMatrix* A);
 dim_t Paso_SparseMatrix_getTotalNumCols(const Paso_SparseMatrix*A);
-dim_t Paso_SparseMatrix_getNumRows(Paso_SparseMatrix*A);
-dim_t Paso_SparseMatrix_getNumCols(Paso_SparseMatrix*A);
+dim_t Paso_SparseMatrix_getNumRows(const Paso_SparseMatrix*A);
+dim_t Paso_SparseMatrix_getNumCols(const Paso_SparseMatrix*A);
+double Paso_SparseMatrix_getSize(const Paso_SparseMatrix*A);
+double Paso_SparseMatrix_getSparsity(const Paso_SparseMatrix*A);
 
 
 #endif /* #ifndef INC_PASO_SPARSEMATRIX */

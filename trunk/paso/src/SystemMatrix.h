@@ -106,8 +106,12 @@ double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
 
 dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A);
 dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix*);
-dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix*);
-dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix*);
+dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix*);
+dim_t Paso_SystemMatrix_getGlobalNumCols(const Paso_SystemMatrix*);
+dim_t Paso_SystemMatrix_getGlobalTotalNumRows(const Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A);
+double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A);
+double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A);
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
@@ -133,6 +137,8 @@ void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double*
 void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b);
 void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A);
+
+
 
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */

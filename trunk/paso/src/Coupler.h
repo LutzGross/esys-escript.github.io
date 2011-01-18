@@ -99,4 +99,14 @@ void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target);
 
 PASO_DLL_API
 dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in);
+
+PASO_DLL_API
+dim_t Paso_Coupler_getNumSharedValues(const Paso_Coupler* in);
+
+PASO_DLL_API
+dim_t Paso_Coupler_getNumOverlapValues(const Paso_Coupler* in);
+
+PASO_DLL_API
+void Paso_Coupler_add(const dim_t my_n, double* x, const double a, const double* y, Paso_Coupler *couple);
+   
 #endif 
