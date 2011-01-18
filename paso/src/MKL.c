@@ -123,12 +123,12 @@ void Paso_MKL(Paso_SparseMatrix* A,
         /* allocate address pointer */
         pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
         if (Esys_checkPtr(pt)) return;
+        for (i=0;i<64;++i) pt[i]=NULL;
         A->solver_p=(void*) pt;
 	A->solver_package=PASO_MKL;
-        for (i=0;i<64;++i) pt[i]=NULL;
-        time0=Esys_timer();
         /* symbolic factorization */
         phase = MKL_PHASE_SYMBOLIC_FACTORIZATION;
+        time0=Esys_timer();
         PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                  &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);

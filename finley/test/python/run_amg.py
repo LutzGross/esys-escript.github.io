@@ -456,16 +456,17 @@ class Test_AMG(unittest.TestCase):
            A[1,i,1,i]=1
 
         Y=Data(0.,(2,),Function(self.domain))
-        Y[0]=        u_ex[1]
-        Y[1]=u_ex[0]
+        a=-1./2.*0.01
+        Y[0]=    u_ex[0] + a * u_ex[1]
+        Y[1]=a * u_ex[0] +     u_ex[1]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=2)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-0.01*(numpy.ones((2,2))-kronecker(2)),
-                     Y=-0.01*Y,
+                     D=kronecker(2)+a*(numpy.ones((2,2))-kronecker(2)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -498,18 +499,19 @@ class Test_AMG(unittest.TestCase):
            A[1,i,1,i]=1
            A[2,i,2,i]=1
 
+        a=-1./3.*0.01
         Y=Data(0.,(3,),Function(self.domain))
-        Y[0]=        u_ex[1]+u_ex[2]
-        Y[1]=u_ex[0]+        u_ex[2]
-        Y[2]=u_ex[0]+u_ex[1] 
+        Y[0]=     u_ex[0]+ a * u_ex[1]+ a * u_ex[2]
+        Y[1]= a * u_ex[0]+     u_ex[1]+ a * u_ex[2]
+        Y[2]= a * u_ex[0]+ a * u_ex[1]+     u_ex[2]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=3)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-0.01*(numpy.ones((3,3))-kronecker(3)),
-                     Y=-0.01*Y,
+                     D=kronecker(3)+a*(numpy.ones((3,3))-kronecker(3)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -544,19 +546,21 @@ class Test_AMG(unittest.TestCase):
            A[2,i,2,i]=1
            A[3,i,3,i]=1
 
+        a=-1./4.*0.01
+
         Y=Data(0.,(4,),Function(self.domain))
-        Y[0]=        u_ex[1]+u_ex[2]+u_ex[3]
-        Y[1]=u_ex[0]+        u_ex[2]+u_ex[3]
-        Y[2]=u_ex[0]+u_ex[1]+        u_ex[3]
-        Y[3]=u_ex[0]+u_ex[1]+u_ex[2]
+        Y[0]=     u_ex[0]+ a * u_ex[1]+ a * u_ex[2]+ a * u_ex[3]
+        Y[1]= a * u_ex[0]+     u_ex[1]+ a * u_ex[2]+ a * u_ex[3]
+        Y[2]= a * u_ex[0]+ a * u_ex[1]+     u_ex[2]+ a * u_ex[3]
+        Y[3]= a * u_ex[0]+ a * u_ex[1]+ a * u_ex[2]+     u_ex[3]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=4)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1,1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-0.01*(numpy.ones((4,4))-kronecker(4)),
-                     Y=-0.01*Y,
+                     D=kronecker(4)+a*(numpy.ones((4,4))-kronecker(4)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -586,16 +590,17 @@ class Test_AMG(unittest.TestCase):
            A[1,i,1,i]=1
 
         Y=Data(0.,(2,),Function(self.domain))
-        Y[0]=        u_ex[1]
-        Y[1]=u_ex[0]
+        a=-1./2.*0.99
+        Y[0]=    u_ex[0] + a * u_ex[1]
+        Y[1]=a * u_ex[0] +     u_ex[1]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=2)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-20.*(numpy.ones((2,2))-kronecker(2)),
-                     Y=-20.*Y,
+                     D=kronecker(2)+a*(numpy.ones((2,2))-kronecker(2)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -605,6 +610,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
+
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
@@ -627,18 +633,19 @@ class Test_AMG(unittest.TestCase):
            A[1,i,1,i]=1
            A[2,i,2,i]=1
 
+        a=-1./3.*0.99
         Y=Data(0.,(3,),Function(self.domain))
-        Y[0]=        u_ex[1]+u_ex[2]
-        Y[1]=u_ex[0]+        u_ex[2]
-        Y[2]=u_ex[0]+u_ex[1]
+        Y[0]=     u_ex[0]+ a * u_ex[1]+ a * u_ex[2]
+        Y[1]= a * u_ex[0]+     u_ex[1]+ a * u_ex[2]
+        Y[2]= a * u_ex[0]+ a * u_ex[1]+     u_ex[2]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=3)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-20.*(numpy.ones((3,3))-kronecker(3)),
-                     Y=-20.*Y,
+                     D=kronecker(3)+a*(numpy.ones((3,3))-kronecker(3)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -648,11 +655,11 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
    def test_StrongCoupled4(self):
         x=Solution(self.domain).getX()
         # --- set exact solution ----
@@ -673,19 +680,21 @@ class Test_AMG(unittest.TestCase):
            A[2,i,2,i]=1
            A[3,i,3,i]=1
 
+        a=-1./4.*0.99
+
         Y=Data(0.,(4,),Function(self.domain))
-        Y[0]=        u_ex[1]+u_ex[2]+u_ex[3]
-        Y[1]=u_ex[0]+        u_ex[2]+u_ex[3]
-        Y[2]=u_ex[0]+u_ex[1]+        u_ex[3]
-        Y[3]=u_ex[0]+u_ex[1]+u_ex[2]
+        Y[0]=     u_ex[0]+ a * u_ex[1]+ a * u_ex[2]+ a * u_ex[3]
+        Y[1]= a * u_ex[0]+     u_ex[1]+ a * u_ex[2]+ a * u_ex[3]
+        Y[2]= a * u_ex[0]+ a * u_ex[1]+     u_ex[2]+ a * u_ex[3]
+        Y[3]= a * u_ex[0]+ a * u_ex[1]+ a * u_ex[2]+     u_ex[3]
         # create PDE:
         pde=LinearPDE(self.domain,numEquations=4)
         pde.setSymmetryOn()
         mask=whereZero(x[0])*[1,1,1,1]
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=A,
-                     D=-20.*(numpy.ones((4,4))-kronecker(4)),
-                     Y=-20.*Y,
+                     D=kronecker(4)+a*(numpy.ones((4,4))-kronecker(4)),
+                     Y=Y,
                      y=matrixmult(g_ex,self.domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
@@ -699,6 +708,7 @@ class Test_AMG(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
+
 
    def test_Square(self):
         # PDE constants
@@ -786,9 +796,9 @@ class Test_AMGOnFinleyHex3DOrder1(Test_AMG):
         del self.domain
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   #suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
-   #suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
-   suite.addTest(Test_AMGOnFinleyHex3DOrder1("test_WeakCoupled4"))
+   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
+   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
+   #suite.addTest(Test_AMGOnFinleyHex2DOrder1("test_WeakCoupled4"))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(12)
