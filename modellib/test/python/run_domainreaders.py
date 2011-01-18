@@ -30,6 +30,7 @@ import os
 import esys.finley
 import esys.dudley
 
+from esys.escript import getMPISizeWorld
 from esys.escript.modelframe import DataSource
 from esys.modellib.geometry import *
 from esys.pycad.gmsh import *
@@ -41,12 +42,6 @@ try:
 except KeyError:
      MODELLIB_WORKDIR='.'
 
-
-des=Design()
-b=Volume(Brick(Point(0,0,0), Point(1,1,1)))
-des.addItems(b)
-des.setMeshFileName(os.path.join(MODELLIB_WORKDIR,"TESTgmsh_test.msh"))
-esys.finley.MakeDomain(des)
 
 def Test_domain(dommodule, f):
     dom=RectangularDomain(dommodule)
@@ -61,13 +56,24 @@ def Test_domain(dommodule, f):
     bdomm=r2.domain()
     del bdomm
 
-Test_domain(None,os.path.join(MODELLIB_WORKDIR,'TESTnone'))
-Test_domain(esys.finley,os.path.join(MODELLIB_WORKDIR,'TESTfin'))
-Test_domain(esys.dudley,os.path.join(MODELLIB_WORKDIR,'TESTDud'))
 
-#Now we need to test using the FinleyReader
+if getMPISizeWorld() > 1: 
+    print "Warning: modellib/test/python/run_domainreaders.py has not been executed as number of MPI ranks is greater than 1."
+else:
 
-rf=FinleyReader()
-rf.source=DataSource(uri=os.path.join(MODELLIB_WORKDIR,"TESTfindr.fly"), fileformat="fly")
-rf.domain()
-
+   des=Design()
+   b=Volume(Brick(Point(0,0,0), Point(1,1,1)))
+   des.addItems(b)
+   des.setMeshFileName(os.path.join(MODELLIB_WORKDIR,"TESTgmsh_test.msh"))
+   esys.finley.MakeDomain(des)
+   
+   Test_domain(None,os.path.join(MODELLIB_WORKDIR,'TESTnone'))
+   Test_domain(esys.finley,os.path.join(MODELLIB_WORKDIR,'TESTfin'))
+   Test_domain(esys.dudley,os.path.join(MODELLIB_WORKDIR,'TESTDud'))
+   
+   #Now we need to test using the FinleyReader
+   
+   rf=FinleyReader()
+   rf.source=DataSource(uri=os.path.join(MODELLIB_WORKDIR,"TESTfindr.fly"), fileformat="fly")
+   rf.domain()
+   
