@@ -263,10 +263,10 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 }
 
 dim_t Paso_Coupler_getNumSharedValues(const Paso_Coupler* in) {
-   return in->connector->send->numSharedComponents * coupler->block_size;
+   return in->connector->send->numSharedComponents * in->block_size;
 }
 dim_t Paso_Coupler_getNumOverlapValues(const Paso_Coupler* in) {
-   return in->connector->recv->numSharedComponents * coupler->block_size;
+   return in->connector->recv->numSharedComponents * in->block_size;
 }
 
 dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in) {

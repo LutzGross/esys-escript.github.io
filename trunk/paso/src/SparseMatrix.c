@@ -345,6 +345,7 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
    const dim_t col_block_size = A_p->col_block_size;
    const dim_t row_block_size = A_p->row_block_size;
    const dim_t block_size = A_p->block_size;
+   const index_t offset=(A_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
    
    if (col_block_size !=row_block_size) {
       Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_saveMM: currently only square blocks are supported.");
@@ -372,8 +373,8 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
       
       if (A_p->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
 	 for (i=0; i<N; i++) {
-	    for (iptr = A_p->pattern->ptr[i];iptr<A_p->pattern->ptr[i+1]; ++iptr) {
-	       j=A_p->pattern->index[iptr];
+	    for (iptr = A_p->pattern->ptr[i]-offset;iptr<A_p->pattern->ptr[i+1]-offset; ++iptr) {
+	       j=A_p->pattern->index[iptr]-offset;
 	       for (ib=0;ib<block_size;ib++) {
 		  irow=ib+row_block_size*i;
 		  icol=ib+col_block_size*j;
@@ -383,8 +384,8 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
 	 }
       } else {
 	 for (i=0; i<N; i++) {
-	    for (iptr = A_p->pattern->ptr[i];iptr<A_p->pattern->ptr[i+1]; ++iptr) {
-	       j=A_p->pattern->index[iptr]; 
+	    for (iptr = A_p->pattern->ptr[i]-offset;iptr<A_p->pattern->ptr[i+1]-offset; ++iptr) {
+	       j=A_p->pattern->index[iptr]-offset; 
 	       for (irb=0;irb<row_block_size;irb++) {
 		  irow=irb+row_block_size*i;
 		  for (icb=0;icb<col_block_size;icb++) {
