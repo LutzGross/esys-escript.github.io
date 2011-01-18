@@ -786,8 +786,9 @@ class Test_AMGOnFinleyHex3DOrder1(Test_AMG):
         del self.domain
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
-   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
+   #suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
+   #suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
+   suite.addTest(Test_AMGOnFinleyHex3DOrder1("test_WeakCoupled4"))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+   if not s.wasSuccessful(): sys.exit(12)

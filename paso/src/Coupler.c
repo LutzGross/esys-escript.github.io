@@ -191,9 +191,6 @@ void Paso_Coupler_free(Paso_Coupler* in) {
         MEMFREE(in->mpi_stati);
         Esys_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
-        #ifdef Paso_TRACE
-        printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
-        #endif
      }
    }
 }
@@ -264,6 +261,14 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 
   return coupler->recv_buffer;
 }
+
+dim_t Paso_Coupler_getNumSharedValues(const Paso_Coupler* in) {
+   return in->connector->send->numSharedComponents * coupler->block_size;
+}
+dim_t Paso_Coupler_getNumOverlapValues(const Paso_Coupler* in) {
+   return in->connector->recv->numSharedComponents * coupler->block_size;
+}
+
 dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in) {
      return in->connector->send->local_length;
 }
@@ -281,4 +286,44 @@ void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target)
           target->data[i]=src->data[i];
      }
   }
+}
+
+/* adds a local vector x * a to the vector y including overlap :*/ 
+void Paso_Coupler_add(const dim_t my_n, double* x, const double a, const double* y, Paso_Coupler *coupler)
+{
+   double *remote_values = NULL;
+   const dim_t overlap_n = Paso_Coupler_getNumOverlapValues(coupler) ;
+   const dim_t n= my_n + overlap_n;
+   dim_t i;
+   
+   if (ABS(a) > 0 ) {
+      Paso_Coupler_startCollect(coupler, x);
+      
+      if ( a == 1.) {
+	 #pragma omp parallel for private(i)
+	 for (i=0; i<my_n; i++) {
+	    x[i]+=y[i];
+	 }
+      } else {
+	 #pragma omp parallel for private(i)
+	 for (i=0; i<my_n; i++) {
+	    x[i]+=a*y[i];
+	 }
+      }
+      
+      Paso_Coupler_finishCollect(coupler);
+      remote_values=coupler->recv_buffer;
+      
+      if ( a == 1.) {
+	 #pragma omp parallel for private(i)
+	 for (i=0;i<overlap_n; ++i) {
+	    x[i+overlap_n]+=remote_values[i];
+	 }
+      } else {
+	 #pragma omp parallel for private(i)
+	 for (i=0;i<overlap_n; ++i) {
+	    x[i+overlap_n]+=a*remote_values[i];
+	 }
+      }
+   }
 }

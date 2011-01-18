@@ -46,7 +46,6 @@ void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in) {
 	MEMFREE(in->x_C);
 	MEMFREE(in->b_C);
 
-	
 	MEMFREE(in);
      }
 }
@@ -63,7 +62,7 @@ double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_
 	 if (in->A_C == NULL) {
 	    return 1.;
 	 } else {
-	    return DBLE(in->A_C->pattern->len)/DBLE(in->A_C->numRows)/DBLE(in->A_C->numRows);
+	    return Paso_SystemMatrix_getSparsity(in->A_C);
 	 }
       } else {
 	    return Paso_Preconditioner_AMG_getCoarseLevelSparsity(in->AMG_C);
@@ -74,7 +73,7 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
       if (in->A_C == NULL) {
 	 return 0;
       } else {
-	 return in->A_C->numRows;
+	 Paso_SystemMatrix_getTotalNumRows(in->A_C);
       }
    } else {
  	 return Paso_Preconditioner_AMG_getNumCoarseUnknwons(in->AMG_C);
@@ -98,13 +97,17 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
+  const double sparsity=Paso_SystemMatrix_getSparsity(A_p);
+  const dim_t total_n=Paso_SystemMatrix_getGlobalTotalNumRows(A_p);
 
   
   /*
       is the input matrix A suitable for coarsening
       
   */
-  if ( (A_p->pattern->len >= options->min_coarse_sparsity * n * n ) || (n <= options->min_coarse_matrix_size) || (level > options->level_max) ) {
+  if ( (sparsity >= options->min_coarse_sparsity) || 
+       (total_n <= options->min_coarse_matrix_size) || 
+       (level > options->level_max) ) {
 
     if (verbose) { 
 	      /* 
@@ -113,12 +116,12 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
                       - 'SIZE' = min_coarse_matrix_size exceeded
                       - 'LEVEL' = level_max exceeded
 	      */
-	      printf("Paso_Preconditioner AMG: termination of coarsening by "); 
+	      printf("Paso_Preconditioner: AMG: termination of coarsening by "); 
 
-	      if (A_p->pattern->len >= options->min_coarse_sparsity * n * n)
+	      if (sparsity >= options->min_coarse_sparsity)
 	          printf("SPAR ");
 
-	      if (n <= options->min_coarse_matrix_size)
+	      if (total_n <= options->min_coarse_matrix_size)
 	          printf("SIZE ");
 
 	      if (level > options->level_max)
@@ -127,7 +130,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	      printf("\n");
 
         printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
-                    level,  options->level_max, A_p->pattern->len/(1.*n * n), options->min_coarse_sparsity, n, options->min_coarse_matrix_size);  
+	       level,  options->level_max, sparsity, options->min_coarse_sparsity, total_n, options->min_coarse_matrix_size);  
 
     } 
 
@@ -150,11 +153,17 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, S, theta,tau);
 	 }
-	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
+/*MPI: 
+	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
+*/
+	 
          /* in BoomerAMG interpolation is used FF connectiovity is required :*/
+/*MPI:
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
                              Paso_Preconditioner_AMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
+*/
+
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
 	 
 	 if (Esys_noError() ) {
@@ -194,7 +203,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
 
-		  out->Smoother = Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
+		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
 	  
 		  if (n_C != 0) {
 			   /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
@@ -232,7 +241,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			      get Prolongation :	 
 			   */					
 			   time0=Esys_timer();
+/*MPI: 
 			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
+*/
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
 			}
 			/*      
@@ -240,7 +251,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			*/
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
+/*MPI:
 			   out->R=Paso_SystemMatrix_getTranspose(out->P);
+*/
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
 			/* 
@@ -248,9 +261,13 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			*/
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
+/*MPI:
 			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
 			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
+			   
 			   Paso_SystemMatrix_free(Atemp);
+*/
+
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
 
@@ -280,7 +297,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 				       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
 				    #else
 				       out->A_C=A_C;
-				       out->A_C->solver_p=Paso_Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
+				       out->A_C->solver_p=Paso_Preconditioner_Smoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
 				       out->A_C->solver_package = PASO_SMOOTHER;
 				       if (verbose) printf("Paso_Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
 				    #endif
@@ -319,7 +336,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
 
      /* presmoothing */
      time0=Esys_timer();
-     Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
+     Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Presmooting: %e\n",amg->level, time0); 
      /* end of presmoothing */
@@ -342,7 +359,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
 		  Paso_UMFPACK(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
 		  break;
 	       case (PASO_SMOOTHER):
-		  Paso_Preconditioner_LocalSmoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
+		  Paso_Preconditioner_Smoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
 		  break;
 	    }
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
@@ -356,7 +373,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
       
         /*solve Ax=b with initial guess x */
         time0=Esys_timer();
-        Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
+        Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
         time0=Esys_timer()-time0;
         if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
         /*end of postsmoothing*/
@@ -695,4 +712,52 @@ void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t*
                }
             }
        }
+}
+
+void Paso_Preconditioner_AMG_CIJPCoarsening( )
+{
+  const dim_t my_n;
+  const dim_t overlap_n;
+  const dim_t n= my_n + overlap_n;
+   /* set local lambda + overlap */
+   #pragma omp parallel for private(i)
+   for (i=0; i<n ++i) {
+       w[i]=degree_ST[i];
+   }
+   for (i=0; i<my_n; i++) {
+      w2[i]=random;
+   }
+
+
+Paso_Coupler_add(w, 1., w2, 
+   /* adjust w accross processors */
+   
+   /*  */
+   global_n_C=0;
+   global_n_F=..;
+   
+   while (global_n_C + global_n_F < global_n) {
+
+      
+      is_in_D[i]=FALSE;
+      /*  test  local connectivit*/
+      for i ..
+         for k in S_i:
+             w2[i]=MAX(w2[i],w[k]);
+             w2[k]=MAX(w2[k],w[i]);
+      /* adjust overlaps by MAX */
+      ...
+      /* points with w[i]>w2[i] become C nodes */
+      
+          
+      
+      
+      
+
+
+      global_n_C=?
+      global_n_F=?
+
+   }
+   
 }

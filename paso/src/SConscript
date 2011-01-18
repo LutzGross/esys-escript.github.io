@@ -16,6 +16,7 @@ local_env = env.Clone()
 
 lib_name = 'paso'
 
+#	AMG.c
 sources = """
 	BiCGStab.c
 	BlockOps.c

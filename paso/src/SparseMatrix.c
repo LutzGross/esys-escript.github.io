@@ -425,9 +425,22 @@ dim_t Paso_SparseMatrix_getTotalNumRows(const Paso_SparseMatrix* A){
 dim_t Paso_SparseMatrix_getTotalNumCols(const Paso_SparseMatrix* A){
    return A->numCols * A->col_block_size;
 }
-dim_t Paso_SparseMatrix_getNumRows(Paso_SparseMatrix* A) {
+dim_t Paso_SparseMatrix_getNumRows(const Paso_SparseMatrix* A) {
    return A->numRows;
 }
-dim_t Paso_SparseMatrix_getNumCols(Paso_SparseMatrix* A) {
+dim_t Paso_SparseMatrix_getNumCols(const Paso_SparseMatrix* A) {
    return A->numCols;  
+}
+
+double Paso_SparseMatrix_getSize(const Paso_SparseMatrix* A) 
+{
+   if (A!=NULL) {
+      return DBLE(A->len);
+   } else {
+      return DBLE(0.);
+   }
+}
+
+double Paso_SparseMatrix_getSparsity(const Paso_SparseMatrix* A){
+   return Paso_SparseMatrix_getSize(A)/(DBLE(Paso_SparseMatrix_getTotalNumRows(A))*DBLE(Paso_SparseMatrix_getTotalNumCols(A)));
 }

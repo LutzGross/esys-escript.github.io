@@ -226,14 +226,14 @@ dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){
 dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
   return A->mainBlock->numCols * A->col_block_size;
 }
-dim_t Paso_SystemMatrix_getGlobalNumRows(Paso_SystemMatrix* A) {
+dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {
       return  Paso_Distribution_getGlobalNumComponents(A->pattern->input_distribution);
   }  else {
       return  Paso_Distribution_getGlobalNumComponents(A->pattern->output_distribution);
   }
 }
-dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix* A) {
+dim_t Paso_SystemMatrix_getGlobalNumCols(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {
       return  Paso_Distribution_getGlobalNumComponents(A->pattern->output_distribution);
   }  else {
@@ -241,6 +241,35 @@ dim_t Paso_SystemMatrix_getGlobalNumCols(Paso_SystemMatrix* A) {
   }
 
 }
+dim_t Paso_SystemMatrix_getGlobalTotalNumRows(const Paso_SystemMatrix* A){
+   return Paso_SystemMatrix_getGlobalNumRows(A) * A->row_block_size;
+}
+
+dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A){
+   return Paso_SystemMatrix_getGlobalNumCols(A) * A->col_block_size;
+}
+double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A) {
+   double global_size=0;
+   if (A!=NULL) {
+	 double my_size=Paso_SparseMatrix_getSize(A->mainBlock)+Paso_SparseMatrix_getSize(A->col_coupleBlock);
+	 if (A->mpi_info->size > 1) {
+	 
+	    #ifdef ESYS_MPI 
+	       MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+	    #else
+	       global_size=my_size;
+	    #endif
+
+       } else {
+	    global_size=my_size;
+	 }
+   }
+   return global_size;
+}
+double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A) {
+   return Paso_SystemMatrix_getGlobalSize(A)/(DBLE(Paso_SystemMatrix_getGlobalTotalNumRows(A))*DBLE(Paso_SystemMatrix_getGlobalTotalNumCols(A)));
+}
+
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A) {
    return Paso_SystemMatrixPattern_getNumOutput(A->pattern);
 }
