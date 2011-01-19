@@ -219,13 +219,33 @@ double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A)
  return A->row_coupler->recv_buffer;
 }
 
-dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){
-  return A->mainBlock->numRows * A->row_block_size;
+
+dim_t Paso_SystemMatrix_getNumRows(const Paso_SystemMatrix* A){
+  return A->mainBlock->numRows;
 }
 
-dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
-  return A->mainBlock->numCols * A->col_block_size;
+dim_t Paso_SystemMatrix_getNumCols(const Paso_SystemMatrix* A){
+  return A->mainBlock->numCols;
 }
+
+dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){
+  return  Paso_SystemMatrix_getNumRows(A) * A->row_block_size;
+}
+dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
+  return Paso_SystemMatrix_getNumCols(A) * A->col_block_size;
+}
+
+dim_t Paso_SystemMatrix_getRowOverlap(const Paso_SystemMatrix* A) 
+{
+  return Paso_Coupler_getNumOverlapComponents(A->row_coupler);
+}
+dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A)
+{
+  return Paso_Coupler_getNumOverlapComponents(A->col_coupler);
+}
+
+
+
 dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {
       return  Paso_Distribution_getGlobalNumComponents(A->pattern->input_distribution);

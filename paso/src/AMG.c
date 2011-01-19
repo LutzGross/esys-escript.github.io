@@ -73,7 +73,7 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
       if (in->A_C == NULL) {
 	 return 0;
       } else {
-	 Paso_SystemMatrix_getTotalNumRows(in->A_C);
+	 return Paso_SystemMatrix_getTotalNumRows(in->A_C);
       }
    } else {
  	 return Paso_Preconditioner_AMG_getNumCoarseUnknwons(in->AMG_C);
@@ -88,11 +88,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   Paso_Preconditioner_AMG* out=NULL;
   bool_t verbose=options->verbose;
-  
   Paso_SystemMatrix *Atemp=NULL, *A_C=NULL;
-  const dim_t n=A_p->numRows;
+
+  const dim_t my_n=Paso_SystemMatrix_getNumRows(A_p);
+  const dim_t overlap_n=Paso_SystemMatrix_getColOverlap(A_p);
+  const dim_t n = my_n + overlap_n;
+
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
+  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL;
   dim_t n_F=0, n_C=0, i;
   double time0=0;
   const double theta = options->coarsening_threshold;
@@ -109,7 +112,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
        (total_n <= options->min_coarse_matrix_size) || 
        (level > options->level_max) ) {
 
-    if (verbose) { 
+        if (verbose) { 
 	      /* 
 	          print stopping condition:
                       - 'SPAR' = min_coarse_matrix_sparsity exceeded
@@ -132,26 +135,29 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
         printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
 	       level,  options->level_max, sparsity, options->min_coarse_sparsity, total_n, options->min_coarse_matrix_size);  
 
-    } 
+       } 
 
-     return NULL;
-  } 
-     /* Start Coarsening : */
+       return NULL;
+  }  else {
+      /* Start Coarsening : */
+      const dim_t len_S=A_p->mainBlock->pattern->len+A_p->col_coupleBlock->pattern->len;
 
      F_marker=TMPMEMALLOC(n,index_t);
      counter=TMPMEMALLOC(n,index_t);
-     degree_S=TMPMEMALLOC(n, dim_t);
-     S=TMPMEMALLOC(A_p->pattern->len, index_t);
-     if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(S) ) ) {
+
+     dim_t* degree_S=TMPMEMALLOC(my_n, dim_t);
+     index_t *offset_S=TMPMEMALLOC(my_n, index_t);
+     index_t *S=TMPMEMALLOC(len_S, index_t);
+     if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) ) ) {
 	 /* 
 	      set splitting of unknows:
 	   
     	 */
 	 time0=Esys_timer();
 	 if (n_block>1) {
-	       Paso_Preconditioner_AMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
+	       Paso_Preconditioner_AMG_setStrongConnections_Block(A_p, degree_S, offset_S, S, theta,tau);
 	 } else {
-	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, S, theta,tau);
+	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
 
 /*MPI: 
@@ -165,7 +171,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 */
 
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
-	 
+
+#ifdef AAAAA
 	 if (Esys_noError() ) {
 	    #pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
@@ -313,11 +320,15 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       TMPMEMFREE(rows_in_F);
 	    }
 	 }
+#endif
+
   }
   TMPMEMFREE(counter);
   TMPMEMFREE(F_marker);
   TMPMEMFREE(degree_S);
+  TMPMEMFREE(offset_S);
   TMPMEMFREE(S);
+  }
 
   if (Esys_noError()) {
      return out;
@@ -345,12 +356,13 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
          time0=Esys_timer();
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
          time0=Esys_timer()-time0;
 	 /* coarse level solve */
 	 if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
+#ifdef FIXME
 	    switch (amg->A_C->solver_package) {
 	       case (PASO_MKL):
 		  Paso_MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
@@ -362,12 +374,14 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
 		  Paso_Preconditioner_Smoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
 		  break;
 	    }
+#endif
+   	    Paso_Preconditioner_Smoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
 	 } else {
 	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
 	 }  
   	 time0=time0+Esys_timer();
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
+	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
 	
          /*postsmoothing*/
       
@@ -391,24 +405,22 @@ in the sense that |A_{ij}| >= theta * max_k |A_{ik}|
 */
 
 void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A, 
-					  dim_t *degree_S, index_t *S,
+	    				  dim_t *degree_S, index_t *offset_S, index_t *S,
 					  const double theta, const double tau)
 {
-   const dim_t n=A->numRows;
-   index_t iptr, i,j;
-   dim_t kdeg;
-   double max_offdiagonal, threshold, sum_row, main_row, fnorm;
+   const dim_t my_n=Paso_SystemMatrix_getNumRows(A);
+   index_t iptr, i;
 
 
-      #pragma omp parallel for private(i,iptr,max_offdiagonal, threshold,j, kdeg, sum_row, main_row, fnorm) schedule(static)
-      for (i=0;i<n;++i) {        
-	 max_offdiagonal = 0.;
-	 sum_row=0;
-	 main_row=0;
+      #pragma omp parallel for private(i,iptr) schedule(static)
+      for (i=0;i<my_n;++i) {        
+	 register double max_offdiagonal = 0.;
+	 register double sum_row=0;
+	 register double main_row=0;
 	 #pragma ivdep
-	 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	    j=A->pattern->index[iptr];
-	    fnorm=ABS(A->val[iptr]);
+	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+	    register index_t j=A->mainBlock->pattern->index[iptr];
+	    register double fnorm=ABS(A->mainBlock->val[iptr]);
 	    
 	    if( j != i) {
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
@@ -416,23 +428,41 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    } else {
 	       main_row=fnorm;
 	    }
+
 	 }
-	 threshold = theta*max_offdiagonal;
-	 kdeg=0;
-	 
+	 #pragma ivdep
+	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	    register index_t j=A->col_coupleBlock->pattern->index[iptr];
+	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
+	    max_offdiagonal = MAX(max_offdiagonal,fnorm);
+	    sum_row+=fnorm;
+	 }
+
+
+	 const double threshold = theta*max_offdiagonal;
+	 register dim_t kdeg=0;
+         register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 	 if (tau*main_row < sum_row) { /* no diagonal domainance */
 	    #pragma ivdep
-	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	       j=A->pattern->index[iptr];
-	       if(ABS(A->val[iptr])>threshold && i!=j) {
-		  S[A->pattern->ptr[i]+kdeg] = j;
+	    for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+	       register index_t j=A->mainBlock->pattern->index[iptr];
+	       if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
+		  S[koffset+kdeg] = j;
+		  kdeg++;
+	       }
+	    }
+	    #pragma ivdep
+	    for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	       register index_t j=A->col_coupleBlock->pattern->index[iptr];
+	       if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
+		  S[koffset+kdeg] = j + my_n;
 		  kdeg++;
 	       }
 	    }
          }
+         offset_S[i]=koffset;
 	 degree_S[i]=kdeg;
       }
-
 }
 
 /* theta = threshold for strong connections */
@@ -442,40 +472,43 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F 
 */
 void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, 
-							dim_t *degree_S, index_t *S,
+							dim_t *degree_S, index_t *offset_S, index_t *S,
 							const double theta, const double tau)
 
 {
+   const dim_t my_n=Paso_SystemMatrix_getNumRows(A);
+   index_t iptr, i, bi;
    const dim_t n_block=A->row_block_size;
-   const dim_t n=A->numRows;
-   index_t iptr, i,j, bi;
-   dim_t kdeg, max_deg;
-   register double max_offdiagonal, threshold, fnorm, sum_row, main_row;
-   double *rtmp;
    
    
-      #pragma omp parallel private(i,iptr,max_offdiagonal, kdeg, threshold,j, max_deg, fnorm, sum_row, main_row, rtmp) 
+      #pragma omp parallel private(i,iptr, bi) 
       {
-	 max_deg=0;
+	 dim_t max_deg=0;
 	 #pragma omp for schedule(static)
-	 for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
+	 for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
+                                                +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
       
-	 rtmp=TMPMEMALLOC(max_deg, double);
+	 double *rtmp=TMPMEMALLOC(max_deg, double);
       
 	 #pragma omp for schedule(static)
-	 for (i=0;i<n;++i) {
+	 for (i=0;i<my_n;++i) {
 	 
-	    max_offdiagonal = 0.;
-	    sum_row=0;
-	    main_row=0;
+	    register double max_offdiagonal = 0.;
+	    register double sum_row=0;
+	    register double main_row=0;
+            register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
 
-	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	       j=A->pattern->index[iptr];
-	       fnorm=0;
+	    for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+	       register index_t j=A->mainBlock->pattern->index[iptr];
+	       register double fnorm=0;
 	       #pragma ivdep
-	       for(bi=0;bi<n_block*n_block;++bi) fnorm+=A->val[iptr*n_block*n_block+bi]*A->val[iptr*n_block*n_block+bi];
+	       for(bi=0;bi<n_block*n_block;++bi) {
+                     register double rtmp2 = A->mainBlock->val[iptr*n_block*n_block+bi];
+                     fnorm+=rtmp2*rtmp2;
+               }
 	       fnorm=sqrt(fnorm);
-	       rtmp[iptr-A->pattern->ptr[i]]=fnorm;
+
+	       rtmp[iptr+rtmp_offset]=fnorm;
 	       if( j != i) {
 		  max_offdiagonal = MAX(max_offdiagonal,fnorm);
 		  sum_row+=fnorm;
@@ -483,26 +516,56 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 		  main_row=fnorm;
 	       }
 	    }
-	    threshold = theta*max_offdiagonal;
-      
-	    kdeg=0;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+            rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
+	    for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	       register index_t j=A->col_coupleBlock->pattern->index[iptr];
+	       register double fnorm=0;
 	       #pragma ivdep
-	       for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-		  j=A->pattern->index[iptr];
-		  if(rtmp[iptr-A->pattern->ptr[i]] > threshold && i!=j) {
-		     S[A->pattern->ptr[i]+kdeg] = j;
+	       for(bi=0;bi<n_block*n_block;++bi) {
+                     register double rtmp2 = A->col_coupleBlock->val[iptr*n_block*n_block+bi];
+                     fnorm+=rtmp2*rtmp2;
+               }
+	       fnorm=sqrt(fnorm);
+
+	       rtmp[iptr+rtmp_offset]=fnorm;
+	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
+	       sum_row+=fnorm;
+	    }
+            
+	    const double threshold = theta*max_offdiagonal;
+	    register dim_t kdeg=0;
+            register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+
+	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+               rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	       #pragma ivdep
+	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+		  register index_t j=A->mainBlock->pattern->index[iptr];
+		  if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
+		     S[koffset+kdeg] = j;
 		     kdeg++;
 		  }
 	       }
+               rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
+	       #pragma ivdep
+	       for (iptr=A->col_coupleBlock->pattern->index[iptr]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+		  register index_t j=A->col_coupleBlock->pattern->index[iptr];
+		  if(rtmp[iptr+rtmp_offset] > threshold) {
+		     S[koffset+kdeg] = j + my_n;
+		     kdeg++;
+		  }
+	       }
+              
 	    }
 	    degree_S[i]=kdeg;
+            offset_S[i]=koffset;
 	 }      
 	 TMPMEMFREE(rtmp);
       } /* end of parallel region */
  
 }   
 
+#ifdef AAAAA
 /* the runge stueben coarsening algorithm: */
 void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
@@ -713,9 +776,13 @@ void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t*
             }
        }
 }
+#endif
 
+#ifdef DFG
 void Paso_Preconditioner_AMG_CIJPCoarsening( )
 {
+
+  
   const dim_t my_n;
   const dim_t overlap_n;
   const dim_t n= my_n + overlap_n;
@@ -729,9 +796,9 @@ void Paso_Preconditioner_AMG_CIJPCoarsening( )
    }
 
 
-Paso_Coupler_add(w, 1., w2, 
-   /* adjust w accross processors */
-   
+   /* add noise to w */
+   Paso_Coupler_add(n, w, 1., w2, col_coupler);
+
    /*  */
    global_n_C=0;
    global_n_F=..;
@@ -741,23 +808,22 @@ Paso_Coupler_add(w, 1., w2,
       
       is_in_D[i]=FALSE;
       /*  test  local connectivit*/
-      for i ..
-         for k in S_i:
+      /* w2[i] = max(w[k] | k in S_i or k in S^T_i */
+      #pragma omp parallel for private(i)
+      for (i=0; i<n; ++i) w2[i]=0;
+             
+      for (i=0; i<my_n; ++i) {
+         for( iPtr =0 ; iPtr < degree_S[i]; ++iPtr) {
+             k=S[offset_S[i]+iPtr];
              w2[i]=MAX(w2[i],w[k]);
              w2[k]=MAX(w2[k],w[i]);
+         }
+      }
       /* adjust overlaps by MAX */
-      ...
+      Paso_Coupler_max(n, w2, col_coupler);
+
       /* points with w[i]>w2[i] become C nodes */
-      
-          
-      
-      
-      
-
-
-      global_n_C=?
-      global_n_F=?
-
    }
    
 }
+#endif

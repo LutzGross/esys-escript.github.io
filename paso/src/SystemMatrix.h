@@ -112,6 +112,12 @@ dim_t Paso_SystemMatrix_getGlobalTotalNumRows(const Paso_SystemMatrix* A);
 dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A);
 double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A);
 double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A);
+dim_t Paso_SystemMatrix_getNumRows(const Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getNumCols(const Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getRowOverlap(const Paso_SystemMatrix* A);
+dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A);
+
+
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
 void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);

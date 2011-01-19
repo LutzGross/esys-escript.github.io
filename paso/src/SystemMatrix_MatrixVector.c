@@ -84,12 +84,20 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   /* start exchange */
   Paso_SystemMatrix_startCollect(A,in);
   /* process main block */
-  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
+  if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->mainBlock,in,beta,out);
+  } else {
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
+  }
   /* finish exchange */
   remote_values=Paso_SystemMatrix_finishCollect(A);
   /* process couple block */
   if (A->col_coupleBlock->pattern->ptr!=NULL) {
-      Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
+      if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->col_coupleBlock,remote_values,1.,out); 
+      } else {
+         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
+      }
   }
   
 }
