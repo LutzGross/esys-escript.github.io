@@ -93,20 +93,21 @@ void Paso_Coupler_free(Paso_Coupler* in);
 
 #define Paso_Coupler_borrowLocalData(_in_) (_in_)->data
 #define Paso_Coupler_borrowRemoteData(_in_) (_in_)->recv_buffer
+#define Paso_Coupler_getNumSharedComponents(_in_)  ((_in_)->connector->send->numSharedComponents)
+#define Paso_Coupler_getNumOverlapComponents(_in_) ((_in_)->connector->recv->numSharedComponents)
+#define Paso_Coupler_getNumSharedValues(_in_) ( Paso_Coupler_getNumSharedComponents(_in_) * (_in_)->block_size )
+#define Paso_Coupler_getNumOverlapValues(_in_) ( Paso_Coupler_getNumOverlapComponents(_in_) * (_in_)->block_size )
+#define Paso_Coupler_getLocalLength(_in_) ( (_in_)->connector->send->local_length )
 
 PASO_DLL_API
 void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target);
 
-PASO_DLL_API
-dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in);
 
 PASO_DLL_API
-dim_t Paso_Coupler_getNumSharedValues(const Paso_Coupler* in);
+void Paso_Coupler_add(const dim_t n, double* x, const double a, const double* y, Paso_Coupler *couple);
 
 PASO_DLL_API
-dim_t Paso_Coupler_getNumOverlapValues(const Paso_Coupler* in);
+void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler);
 
-PASO_DLL_API
-void Paso_Coupler_add(const dim_t my_n, double* x, const double a, const double* y, Paso_Coupler *couple);
    
 #endif 

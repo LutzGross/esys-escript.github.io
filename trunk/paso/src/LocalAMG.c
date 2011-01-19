@@ -383,20 +383,18 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A,
 					  const double theta, const double tau)
 {
    const dim_t n=A->numRows;
-   index_t iptr, i,j;
-   dim_t kdeg;
-   double max_offdiagonal, threshold, sum_row, main_row, fnorm;
+   index_t iptr, i;
 
 
-      #pragma omp parallel for private(i,iptr,max_offdiagonal, threshold,j, kdeg, sum_row, main_row, fnorm) schedule(static)
+      #pragma omp parallel for private(i,iptr) schedule(static)
       for (i=0;i<n;++i) {        
-	 max_offdiagonal = 0.;
-	 sum_row=0;
-	 main_row=0;
+	 register double max_offdiagonal = 0.;
+	 register double sum_row=0;
+	 register double main_row=0;
 	 #pragma ivdep
 	 for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	    j=A->pattern->index[iptr];
-	    fnorm=ABS(A->val[iptr]);
+	    register index_t j=A->pattern->index[iptr];
+	    register double fnorm=ABS(A->val[iptr]);
 	    
 	    if( j != i) {
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
@@ -405,13 +403,13 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A,
 	       main_row=fnorm;
 	    }
 	 }
-	 threshold = theta*max_offdiagonal;
-	 kdeg=0;
+	 const double threshold = theta*max_offdiagonal;
+	 register dim_t kdeg=0;
 	 
 	 if (tau*main_row < sum_row) { /* no diagonal domainance */
 	    #pragma ivdep
 	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	       j=A->pattern->index[iptr];
+	       register index_t j=A->pattern->index[iptr];
 	       if(ABS(A->val[iptr])>threshold && i!=j) {
 		  S[A->pattern->ptr[i]+kdeg] = j;
 		  kdeg++;
@@ -436,33 +434,34 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 {
    const dim_t n_block=A->row_block_size;
    const dim_t n=A->numRows;
-   index_t iptr, i,j, bi;
-   dim_t kdeg, max_deg;
-   register double max_offdiagonal, threshold, fnorm, sum_row, main_row;
-   double *rtmp;
+   index_t iptr, i, bi;
    
    
-      #pragma omp parallel private(i,iptr,max_offdiagonal, kdeg, threshold,j, max_deg, fnorm, sum_row, main_row, rtmp) 
+      #pragma omp parallel private(i, iptr,  bi)
       {
-	 max_deg=0;
+	 dim_t max_deg=0; /* this is local on each thread */
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
       
-	 rtmp=TMPMEMALLOC(max_deg, double);
+	 double* rtmp=TMPMEMALLOC(max_deg, double);
       
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) {
 	 
-	    max_offdiagonal = 0.;
-	    sum_row=0;
-	    main_row=0;
+	    register double max_offdiagonal = 0.;
+	    register double sum_row=0;
+	    register double main_row=0;
 
 	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	       j=A->pattern->index[iptr];
-	       fnorm=0;
+	       register index_t j=A->pattern->index[iptr];
+	       register double fnorm=0;
 	       #pragma ivdep
-	       for(bi=0;bi<n_block*n_block;++bi) fnorm+=A->val[iptr*n_block*n_block+bi]*A->val[iptr*n_block*n_block+bi];
+	       for(bi=0;bi<n_block*n_block;++bi) {
+	           register double rtmp2 = A->val[iptr*n_block*n_block+bi];
+                   fnorm+=rtmp2*rtmp2;
+               }
 	       fnorm=sqrt(fnorm);
+
 	       rtmp[iptr-A->pattern->ptr[i]]=fnorm;
 	       if( j != i) {
 		  max_offdiagonal = MAX(max_offdiagonal,fnorm);
@@ -471,13 +470,13 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 		  main_row=fnorm;
 	       }
 	    }
-	    threshold = theta*max_offdiagonal;
+	    const double threshold = theta*max_offdiagonal;
       
-	    kdeg=0;
+	    register dim_t kdeg=0;
 	    if (tau*main_row < sum_row) { /* no diagonal domainance */
 	       #pragma ivdep
 	       for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-		  j=A->pattern->index[iptr];
+		  register index_t j=A->pattern->index[iptr];
 		  if(rtmp[iptr-A->pattern->ptr[i]] > threshold && i!=j) {
 		     S[A->pattern->ptr[i]+kdeg] = j;
 		     kdeg++;

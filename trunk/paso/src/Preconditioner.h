@@ -76,6 +76,8 @@ typedef struct Paso_Preconditioner_AMG Paso_Preconditioner_AMG;
 void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in);
 Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b);
+void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,  dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
+void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
 
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {

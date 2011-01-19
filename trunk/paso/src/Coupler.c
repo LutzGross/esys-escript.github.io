@@ -262,16 +262,6 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
   return coupler->recv_buffer;
 }
 
-dim_t Paso_Coupler_getNumSharedValues(const Paso_Coupler* in) {
-   return in->connector->send->numSharedComponents * in->block_size;
-}
-dim_t Paso_Coupler_getNumOverlapValues(const Paso_Coupler* in) {
-   return in->connector->recv->numSharedComponents * in->block_size;
-}
-
-dim_t Paso_Coupler_getLocalLength(const Paso_Coupler* in) {
-     return in->connector->send->local_length;
-}
 void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target) 
 {
    dim_t i;
@@ -288,12 +278,12 @@ void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target)
   }
 }
 
-/* adds a local vector x * a to the vector y including overlap :*/ 
-void Paso_Coupler_add(const dim_t my_n, double* x, const double a, const double* y, Paso_Coupler *coupler)
+/* aadds a local vector x * a to the vector y including overlap :*/ 
+void Paso_Coupler_add(const dim_t n, double* x, const double a, const double* y, Paso_Coupler *coupler)
 {
    double *remote_values = NULL;
    const dim_t overlap_n = Paso_Coupler_getNumOverlapValues(coupler) ;
-   const dim_t n= my_n + overlap_n;
+   const dim_t my_n= n - overlap_n;
    dim_t i;
    
    if (ABS(a) > 0 ) {
@@ -317,13 +307,28 @@ void Paso_Coupler_add(const dim_t my_n, double* x, const double a, const double*
       if ( a == 1.) {
 	 #pragma omp parallel for private(i)
 	 for (i=0;i<overlap_n; ++i) {
-	    x[i+overlap_n]+=remote_values[i];
+	    x[my_n+i]+=remote_values[i];
 	 }
       } else {
 	 #pragma omp parallel for private(i)
 	 for (i=0;i<overlap_n; ++i) {
-	    x[i+overlap_n]+=a*remote_values[i];
+	    x[my_n+i]+=a*remote_values[i];
 	 }
       }
    }
+}
+
+/* adjusts max values across shared values x */
+void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler)
+{
+   double *remote_values = NULL;
+   const dim_t overlap_n = Paso_Coupler_getNumOverlapValues(coupler) ;
+   const dim_t my_n= n - overlap_n;
+   dim_t i;
+   
+   Paso_Coupler_startCollect(coupler, x);
+   Paso_Coupler_finishCollect(coupler);
+   remote_values=coupler->recv_buffer;
+   #pragma omp parallel for private(i)
+   for (i=0;i<overlap_n; ++i) x[my_n+i]=MAX(x[my_n+i], remote_values[i]);
 }
