@@ -78,6 +78,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix * A_p,d
 void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b);
 void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,  dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
 void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
+double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_AMG * in);
+dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in);
+index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in);
 
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
@@ -119,6 +122,20 @@ dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditione
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
 
 
+
+struct Paso_Preconditioner_AMG_Root 
+{
+  bool_t is_local;
+  Paso_Preconditioner_AMG* amg;
+  Paso_Preconditioner_LocalAMG* localamg;
+  dim_t sweeps;
+  Paso_Preconditioner_Smoother* amgsubstitute;
+};
+typedef struct Paso_Preconditioner_AMG_Root Paso_Preconditioner_AMG_Root;
+
+Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatrix *A, Paso_Options* options);
+void Paso_Preconditioner_AMG_Root_free(Paso_Preconditioner_AMG_Root * in);
+void Paso_Preconditioner_AMG_Root_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG_Root * amg, double * x, double * b);
 
 /*===============================================*/
 /* ILU preconditioner */
@@ -163,8 +180,7 @@ typedef struct Paso_Preconditioner {
   /* Gauss-Seidel preconditioner */
   Paso_Preconditioner_Smoother* gs;  
   /* amg preconditioner */
-  Paso_Preconditioner_LocalAMG* localamg;
-  Paso_Preconditioner_LocalSmoother* localamgsubstitute;
+  Paso_Preconditioner_AMG_Root *amg;
   
   /* ilu preconditioner */
   Paso_Solver_ILU* ilu;

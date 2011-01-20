@@ -18,6 +18,7 @@ lib_name = 'paso'
 
 sources = """
 	AMG.c
+	AMG_Root.c
 	BiCGStab.c
 	BlockOps.c
 	Coupler.c
