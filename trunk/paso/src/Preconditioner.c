@@ -14,11 +14,10 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix: sets-up the preconditioner           */
+/* Paso: preconditioner  set up                               */
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003/04 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
 /**************************************************************/
@@ -36,8 +35,7 @@ void Paso_Preconditioner_free(Paso_Preconditioner* in) {
     if (in!=NULL) {
       Paso_Preconditioner_Smoother_free(in->jacobi);
       Paso_Preconditioner_Smoother_free(in->gs);
-      Paso_Preconditioner_LocalAMG_free(in->localamg);
-      Paso_Preconditioner_LocalSmoother_free(in->localamgsubstitute);
+      Paso_Preconditioner_AMG_Root_free(in->amg);
       /*********************************/
       Paso_Solver_ILU_free(in->ilu);
       Paso_Solver_RILU_free(in->rilu);
@@ -60,8 +58,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	
 	prec->jacobi=NULL;
 	prec->gs=NULL;
-	prec->localamg=NULL;
-	prec->localamgsubstitute=NULL;
+	prec->amg=NULL;
 	
 	/*********************************/	
         prec->rilu=NULL;
@@ -86,46 +83,8 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	      break;
 	   case PASO_AMLI:
 	   case PASO_AMG:
-	      if (options->verbose) {
-		   printf("Paso_Preconditioner: AMG preconditioner is used. Smoother is ");
-		   if (options->smoother == PASO_JACOBI) {
-		      printf("Jacobi");
-		   } else {
-		      printf("Gauss-Seidel");
-		   }
-		   printf(" with %d/%d pre/post sweeps",options->pre_sweeps, options->post_sweeps);
-                   if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION) {
-                          printf( " and classical interpolation.\n");
-                   } else if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) {
-                          printf( " and classical interpolation with enforced FF coupling.\n");
-                   } else {
-                          printf( " and direct interpolation.\n");
-                   }
- 
-	      }
-	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);
-	      prec->sweeps=options->sweeps;
-	      /* if NULL is returned (and no error) no AMG has been constructed because the system is too small or not big enough 
-	         we now use the Smoother as a preconditioner                                                                      */
-	      if ( Esys_noError() ) {
-		 if (prec->localamg == NULL)  {
-		     if (options->verbose) { 
-			if (options->smoother == PASO_JACOBI) {
-			   printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
-			} else {
-			   printf("PPaso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
-			}
-		     }
-		     options->num_level=0;
-		     prec->localamgsubstitute=Paso_Preconditioner_LocalSmoother_alloc(A->mainBlock, (options->smoother == PASO_JACOBI), options->verbose);
-		  } else {
-		     options->num_level=Paso_Preconditioner_LocalAMG_getMaxLevel(prec->localamg);
-		     options->coarse_level_sparsity=Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(prec->localamg);
-		     options->num_coarse_unknowns=Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(prec->localamg);
-		  }
-	      }
+	      prec->amg=Paso_Preconditioner_AMG_Root_alloc(A, options);
 	      prec->type=PASO_AMG;
-	      Esys_MPIInfo_noError(A->mpi_info);
 	      break;
 	      
 	   /***************************************************************************************/   
@@ -143,7 +102,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
               break;
         }
     }
-    if (! Esys_MPIInfo_noError(A->mpi_info ) ){
+    if (! Esys_noError() ){
          Paso_Preconditioner_free(prec);
 	return NULL;
     } else {
@@ -165,11 +124,7 @@ void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,d
 	   Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps, FALSE);
 	   break;
 	case PASO_AMG:
-	   if (prec->localamg == NULL) {
-	      Paso_Preconditioner_LocalSmoother_solve(A->mainBlock, prec->localamgsubstitute,x,b,prec->sweeps, FALSE);
-	   } else {
-	      Paso_Preconditioner_LocalAMG_solve(A->mainBlock, prec->localamg,x,b);
-	   }
+           Paso_Preconditioner_AMG_Root_solve(A, prec->amg ,x,b);
 	   break;
 	   
 	/*=========================================================*/   

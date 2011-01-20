@@ -548,7 +548,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	       }
                rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
 	       #pragma ivdep
-	       for (iptr=A->col_coupleBlock->pattern->index[iptr]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	       for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 		  register index_t j=A->col_coupleBlock->pattern->index[iptr];
 		  if(rtmp[iptr+rtmp_offset] > threshold) {
 		     S[koffset+kdeg] = j + my_n;

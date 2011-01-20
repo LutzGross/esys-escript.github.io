@@ -63,7 +63,7 @@ werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
-#debug = True
+debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -71,7 +71,7 @@ verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = True
+# openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -84,7 +84,7 @@ omp_flags = '-openmp -openmp-report2'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'INTELMPI'
+# mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.0.0.027/lib64']
@@ -165,7 +165,7 @@ lapack_libs = ['mkl_lapack']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+# silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2'
