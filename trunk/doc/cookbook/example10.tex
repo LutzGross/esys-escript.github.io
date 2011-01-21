@@ -243,31 +243,31 @@ various sized domains.}
 \end{figure}
 \clearpage
 
-\section{Gravity Surface over a fault model.}
-\sslist{example10c.py,example10m.py}
-This model demonstrates the gravity result for a more complicated domain which
-contains a fault. Additional information will be added when geophysical boundary
-conditions for a gravity scenario have been established.
-
-\begin{figure}[htp]
-\centering
-\subfigure[The geometry of the fault model in example10c.py.]
-	{\label{fig:ex10cgeo}
-	 \includegraphics[width=0.8\textwidth]{figures/ex10potfaultgeo.png}} \\
-\subfigure[The fault of interest from the fault model in
-	example10c.py.] 
-	{\label{fig:ex10cmsh}
-	 \includegraphics[width=0.8\textwidth]{figures/ex10potfaultmsh.png}}
-\end{figure}
-
-\begin{figure}[htp]
-\centering
-	\includegraphics[width=0.8\textwidth]{figures/ex10cpot.png}
-	\caption{Gravitational potential of the fault model with primary layers and
-	faults identified as isosurfaces.}
-	\label{fig:ex10cpot}
-\end{figure}
-\clearpage
+% \section{Gravity Surface over a fault model.}
+% \sslist{example10c.py,example10m.py}
+% This model demonstrates the gravity result for a more complicated domain which
+% contains a fault. Additional information will be added when geophysical boundary
+% conditions for a gravity scenario have been established.
+% 
+% \begin{figure}[htp]
+% \centering
+% \subfigure[The geometry of the fault model in example10c.py.]
+% 	{\label{fig:ex10cgeo}
+% 	 \includegraphics[width=0.8\textwidth]{figures/ex10potfaultgeo.png}} \\
+% \subfigure[The fault of interest from the fault model in
+% 	example10c.py.] 
+% 	{\label{fig:ex10cmsh}
+% 	 \includegraphics[width=0.8\textwidth]{figures/ex10potfaultmsh.png}}
+% \end{figure}
+% 
+% \begin{figure}[htp]
+% \centering
+% 	\includegraphics[width=0.8\textwidth]{figures/ex10cpot.png}
+% 	\caption{Gravitational potential of the fault model with primary layers and
+% 	faults identified as isosurfaces.}
+% 	\label{fig:ex10cpot}
+% \end{figure}
+% \clearpage
 
 \section{Variable mesh-element sizes}
 \sslist{example10m.py}
@@ -422,10 +422,10 @@ via the horizontal and vertical displacements respectively.
 The accuracy of the solution was tested using a square domain. For each test the
 dimensions of the domain were modified, being set to 5, 10, 20 and 40 Km. The
 results are compared with the analytic solution and are depicted in
-\autoref{fig:ex10q boundeff} and \autoref{fig:ex10q boundeff zoom}. Clearly, 
-as the domain size increases, the results are valid at greater
-distances from the source. The same is true at the anomaly peak, where the
-variation around the source diminishes with an increasing domain size.
+\autoref{fig:ex10q boundeff} and \autoref{fig:ex10q boundeff zoom}. Clearly, as
+the domain size increases, the \esc approximation becomes more accurate at
+greater distances from the source. The same is true at the anomaly peak, where
+the variation around the source diminishes with an increasing domain size.
 
 \begin{figure}[ht]
 \centering
@@ -441,6 +441,7 @@ increases.}
 \caption{Magnification of \autoref{fig:ex10q boundeff}.}
 \label{fig:ex10q boundeff zoom}
 \end{figure}
-\clearpage
 
-\subsection{Inversion using scipy}
+There is a methodology which can help establish an appropriate zero mass region
+to a domain. 
+\clearpage
