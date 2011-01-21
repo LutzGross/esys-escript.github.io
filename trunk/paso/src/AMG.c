@@ -159,6 +159,15 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
+{
+   dim_t p;
+   for (i=0; i< my_n; ++i) {
+         printf("%d: ",i);
+        for (p=0; p<degree_S[i];++p) printf("%d ",S[offset_S[i]+p]);
+        printf("\n");
+   }
+}
+      
 
 /*MPI: 
 	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
@@ -786,6 +795,22 @@ void Paso_Preconditioner_AMG_CIJPCoarsening( )
   const dim_t my_n;
   const dim_t overlap_n;
   const dim_t n= my_n + overlap_n;
+
+
+      /* initialize  split_marker and split_marker :*/
+      /* those unknows which are not influenced go into F, the rest is available for F or C */
+      #pragma omp parallel for private(i) schedule(static)
+      for (i=0;i<n;++i) {
+	 degree_ST[i]=0;
+	 if (degree_S[i]>0) {
+	    lambda[i]=0;
+	    split_marker[i]=PASO_AMG_UNDECIDED;
+	 } else {
+	    split_marker[i]=PASO_AMG_IN_F;
+	    lambda[i]=-1;
+	 } 
+      }
+
    /* set local lambda + overlap */
    #pragma omp parallel for private(i)
    for (i=0; i<n ++i) {

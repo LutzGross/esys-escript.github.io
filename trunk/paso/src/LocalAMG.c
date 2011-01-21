@@ -155,6 +155,17 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	 } else {
 	       Paso_Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
 	 }
+/*
+{
+   dim_t p;
+   for (i=0; i< n; ++i) {
+         printf("%d: ",i);
+        for (p=0; p<degree_S[i];++p) printf("%d ",S[A_p->pattern->ptr[i]+p]);
+        printf("\n");
+   }
+}
+*/
+
 	 Paso_Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
          /* in BoomerAMG interpolation is used FF connectiovity is required :*/

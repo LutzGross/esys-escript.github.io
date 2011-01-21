@@ -40,9 +40,11 @@ from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
-OPTIMIZE=True
-SOLVER_VERBOSE=True
+OPTIMIZE=True # and False
+SOLVER_VERBOSE=True and False
 
+MIN_MATRIX_SIZE=1
+MIN_SPARSITY=1.
 MIN_MATRIX_SIZE=None
 MIN_SPARSITY=None
 MAX_LEVEL=None
@@ -56,6 +58,7 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 # number of elements in the spatial directions
 NE_TOTAL=4096
+#NE_TOTAL=4
 
 class Test_AMG(unittest.TestCase):
 
@@ -77,7 +80,7 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        #if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
+        if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
@@ -798,7 +801,8 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
    suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
-   #suite.addTest(Test_AMGOnFinleyHex2DOrder1("test_WeakCoupled4"))
+   # suite.addTest(Test_AMGOnFinleyHex3DOrder1("test_Poisson4"))
+   # suite.addTest(Test_AMGOnFinleyHex2DOrder1("test_WeakCoupled4"))
 
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(12)
