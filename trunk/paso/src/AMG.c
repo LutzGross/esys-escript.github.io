@@ -88,15 +88,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   Paso_Preconditioner_AMG* out=NULL;
   bool_t verbose=options->verbose;
-  Paso_SystemMatrix *Atemp=NULL, *A_C=NULL;
 
   const dim_t my_n=Paso_SystemMatrix_getNumRows(A_p);
   const dim_t overlap_n=Paso_SystemMatrix_getColOverlap(A_p);
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL;
-  dim_t n_F=0, n_C=0, i;
+  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL;
+  dim_t i;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
@@ -441,7 +440,6 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	 }
 	 #pragma ivdep
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-	    register index_t j=A->col_coupleBlock->pattern->index[iptr];
 	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
 	    max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	    sum_row+=fnorm;
@@ -527,7 +525,6 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    }
             rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
 	    for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-	       register index_t j=A->col_coupleBlock->pattern->index[iptr];
 	       register double fnorm=0;
 	       #pragma ivdep
 	       for(bi=0;bi<n_block*n_block;++bi) {
