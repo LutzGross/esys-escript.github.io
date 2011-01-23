@@ -94,7 +94,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL;
+  index_t* F_marker=NULL, *counter=NULL;
   dim_t i;
   double time0=0;
   const double theta = options->coarsening_threshold;
@@ -138,15 +138,15 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
        return NULL;
   }  else {
-      /* Start Coarsening : */
-      const dim_t len_S=A_p->mainBlock->pattern->len+A_p->col_coupleBlock->pattern->len;
+     /* Start Coarsening : */
+     const dim_t len_S=A_p->mainBlock->pattern->len+A_p->col_coupleBlock->pattern->len;
+     dim_t* degree_S=TMPMEMALLOC(my_n, dim_t);
+     index_t *offset_S=TMPMEMALLOC(my_n, index_t);
+     index_t *S=TMPMEMALLOC(len_S, index_t);
 
      F_marker=TMPMEMALLOC(n,index_t);
      counter=TMPMEMALLOC(n,index_t);
 
-     dim_t* degree_S=TMPMEMALLOC(my_n, dim_t);
-     index_t *offset_S=TMPMEMALLOC(my_n, index_t);
-     index_t *S=TMPMEMALLOC(len_S, index_t);
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) ) ) {
 	 /* 
 	      set splitting of unknows:
@@ -425,6 +425,8 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	 register double max_offdiagonal = 0.;
 	 register double sum_row=0;
 	 register double main_row=0;
+	 register dim_t kdeg=0;
+         register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 	 #pragma ivdep
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
@@ -445,27 +447,26 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    sum_row+=fnorm;
 	 }
 
-
-	 const double threshold = theta*max_offdiagonal;
-	 register dim_t kdeg=0;
-         register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
-	 if (tau*main_row < sum_row) { /* no diagonal domainance */
-	    #pragma ivdep
-	    for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-	       register index_t j=A->mainBlock->pattern->index[iptr];
-	       if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
-		  S[koffset+kdeg] = j;
-		  kdeg++;
+         {
+	    const double threshold = theta*max_offdiagonal;
+	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	       #pragma ivdep
+	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+	          register index_t j=A->mainBlock->pattern->index[iptr];
+	          if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
+		     S[koffset+kdeg] = j;
+		     kdeg++;
+	          }
 	       }
-	    }
-	    #pragma ivdep
-	    for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-	       register index_t j=A->col_coupleBlock->pattern->index[iptr];
-	       if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
-		  S[koffset+kdeg] = j + my_n;
-		  kdeg++;
+	       #pragma ivdep
+	       for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	          register index_t j=A->col_coupleBlock->pattern->index[iptr];
+	          if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
+		     S[koffset+kdeg] = j + my_n;
+		     kdeg++;
+	          }
 	       }
-	    }
+            }
          }
          offset_S[i]=koffset;
 	 degree_S[i]=kdeg;
@@ -491,11 +492,12 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
       #pragma omp parallel private(i,iptr, bi) 
       {
 	 dim_t max_deg=0;
+	 double *rtmp=TMPMEMALLOC(max_deg, double);
+
 	 #pragma omp for schedule(static)
 	 for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
                                                 +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
       
-	 double *rtmp=TMPMEMALLOC(max_deg, double);
       
 	 #pragma omp for schedule(static)
 	 for (i=0;i<my_n;++i) {
@@ -504,6 +506,8 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    register double sum_row=0;
 	    register double main_row=0;
             register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	    register dim_t kdeg=0;
+            register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 
 	    for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	       register index_t j=A->mainBlock->pattern->index[iptr];
@@ -537,32 +541,30 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	       sum_row+=fnorm;
 	    }
-            
-	    const double threshold = theta*max_offdiagonal;
-	    register dim_t kdeg=0;
-            register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+            {
+	        const double threshold = theta*max_offdiagonal;
 
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
-               rtmp_offset=-A->mainBlock->pattern->ptr[i];
-	       #pragma ivdep
-	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-		  register index_t j=A->mainBlock->pattern->index[iptr];
-		  if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
-		     S[koffset+kdeg] = j;
-		     kdeg++;
-		  }
-	       }
-               rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
-	       #pragma ivdep
-	       for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-		  register index_t j=A->col_coupleBlock->pattern->index[iptr];
-		  if(rtmp[iptr+rtmp_offset] > threshold) {
-		     S[koffset+kdeg] = j + my_n;
-		     kdeg++;
-		  }
-	       }
-              
-	    }
+	        if (tau*main_row < sum_row) { /* no diagonal domainance */
+                   rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	           #pragma ivdep
+	           for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+		      register index_t j=A->mainBlock->pattern->index[iptr];
+		      if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
+		         S[koffset+kdeg] = j;
+		         kdeg++;
+		      }
+	           }
+                   rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
+	           #pragma ivdep
+	           for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+		      register index_t j=A->col_coupleBlock->pattern->index[iptr];
+		      if(rtmp[iptr+rtmp_offset] > threshold) {
+		         S[koffset+kdeg] = j + my_n;
+		         kdeg++;
+		      }
+	           }
+	        }
+            }
 	    degree_S[i]=kdeg;
             offset_S[i]=koffset;
 	 }      
