@@ -25,20 +25,6 @@
 
 using namespace boost::python;
 
-/*! \mainpage Esys Documentation
- *
- * \version 3.0.0
- *
- * - \ref escript
- *
- * - \ref esys_exception "Esys Exception"
- *
- * - \ref finley
- *
- * - <a href="../../epydoc/index.html">Python module documentation (epydoc generated)</a>
- *
- */
-
 /*! \page weipa Weipa
  * Weipa is the python module that contains the interfaces
  * to the C++ side of the escript data exporter.
