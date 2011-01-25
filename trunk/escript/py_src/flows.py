@@ -159,8 +159,10 @@ class DarcyFlow(object):
       :type permeability: scalar or tensor values on the domain (e.g. `escript.Data`)
 
       :note: the values of parameters which are not set by calling ``setValue`` are not altered.
-      :note: at any point on the boundary of the domain the pressure (``location_of_fixed_pressure`` >0)
-      or the normal component of the flux (``location_of_fixed_flux[i]>0``) if direction of the normal is along the *x_i* axis.
+      :note: at any point on the boundary of the domain the pressure
+             (``location_of_fixed_pressure`` >0) or the normal component of the
+             flux (``location_of_fixed_flux[i]>0``) if direction of the normal
+             is along the *x_i* axis.
 
       """
       if self.useVPIteration: 
@@ -251,9 +253,9 @@ class DarcyFlow(object):
       :rtype: ``tuple`` of `escript.Data`.
 
       :note: The problem is solved as a least squares form
-      *(K^[-1]+D^* l2 D)u+G p=D^* l2 * f + K^[-1]g*
-      *G^*u+*G^* K Gp=G^*g*
-      where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
+             *(K^[-1]+D^* l2 D)u+G p=D^* l2 * f + K^[-1]g*
+             *G^*u+*G^* K Gp=G^*g*
+             where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
       """
       self.verbose=verbose
       if self.useVPIteration: 
@@ -288,21 +290,19 @@ class DarcyFlow(object):
       """
       solves the problem.
       
-      The iteration is terminated if the residual norm is less then self.getTolerance().
+      The iteration is terminated if the residual norm is less than self.getTolerance().
 
       :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
       :type u0: vector value on the domain (e.g. `escript.Data`).
       :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
       :type p0: scalar value on the domain (e.g. `escript.Data`).
-      :param verbose: if set some information on iteration progress are printed
-      :type verbose: ``bool``
       :return: flux and pressure
       :rtype: ``tuple`` of `escript.Data`.
 
       :note: The problem is solved as a least squares form
-      *(K^[-1]+D^* (DKD^*)^[-1] D)u+G p=D^* (DKD^*)^[-1] f + K^[-1]g*
-      *G^*u+*G^* K Gp=G^*g*
-      where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
+             *(K^[-1]+D^* (DKD^*)^[-1] D)u+G p=D^* (DKD^*)^[-1] f + K^[-1]g*
+             *G^*u+*G^* K Gp=G^*g*
+             where *D* is the *div* operator and *(Gp)_i=p_{,i}* for the permeability *K=k_{ij}*.
       """
       rtol=self.getTolerance()
       atol=self.getAbsoluteTolerance()

@@ -18,9 +18,6 @@ local_env = env.Clone(tools=['pdflatex'])
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.cls')
 fig_src = Glob('figures/*.png')+Glob('figures/*.pdf')
 
-
-
-
 if 'PDF' in dir(local_env):
     if local_env['verbose']:
         interaction='-interaction=nonstopmode'

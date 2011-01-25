@@ -28,12 +28,12 @@ class FaultSystem:
   The FaultSystem class defines a system of faults in the Earth's crust.
 
   A fault system is defined by set of faults index by a tag. Each fault is defined by a starting point V0 and a list of 
-  strikes ``strike`` and length ``l``. The strikes and the length is used to define a polyline with points ``V[i]`` such that
+  strikes ``strikes`` and length ``l``. The strikes and the length is used to define a polyline with points ``V[i]`` such that
 
   - ``V[0]=V0``
-  - ``V[i]=V[i]+ls[i]*array(cos(strike[i]),sin(strike[i]),0)``
+  - ``V[i]=V[i]+ls[i]*array(cos(strikes[i]),sin(strikes[i]),0)``
 
-  So ``strike`` defines the angle between the direction of the fault segment and the x0 axis. ls[i]==0 is allowed.
+  So ``strikes`` defines the angle between the direction of the fault segment and the x0 axis. ls[i]==0 is allowed.
 
   In case of a 3D model a fault plane is defined through a dip and depth. 
 
@@ -308,7 +308,7 @@ class FaultSystem:
      - ``V[0]=V0``
      - ``V[i]=V[i]+ls[i]*array(cos(strikes[i]),sin(strikes[i]),0)``
 
-     So ``strikes`` defines the angle between the direction of the fault segment and the x0 axis. In 3D ``ls[i]``==0 is allowed.
+     So ``strikes`` defines the angle between the direction of the fault segment and the x0 axis. In 3D ``ls[i]`` ==0 is allowed.
 
      In case of a 3D model a fault plane is defined through a dip ``dips`` and depth ``depths``. 
      From the dip and the depth the polyline ``bottom`` of the bottom of the fault is computed.
