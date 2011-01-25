@@ -452,11 +452,12 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
       #pragma omp parallel private(i, iptr,  bi)
       {
 	 dim_t max_deg=0; /* this is local on each thread */
-	 double* rtmp=TMPMEMALLOC(max_deg, double);
+	 double* rtmp=NULL;
 
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
       
+	 rtmp=TMPMEMALLOC(max_deg, double);
       
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) {
