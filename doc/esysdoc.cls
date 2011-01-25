@@ -170,8 +170,3 @@
 \renewcommand*{\thechapter}{\Alph{chapter}}	%How hyperref generates chapters
 }
 
-\newcommand{\etableofcontents}{\cleardoublepage\pdfbookmark[0]{Contents}{contents}%
-\tableofcontents}
-
-
-
