@@ -414,20 +414,21 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A,
 	       main_row=fnorm;
 	    }
 	 }
-	 const double threshold = theta*max_offdiagonal;
-	 register dim_t kdeg=0;
-	 
-	 if (tau*main_row < sum_row) { /* no diagonal domainance */
-	    #pragma ivdep
-	    for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-	       register index_t j=A->pattern->index[iptr];
-	       if(ABS(A->val[iptr])>threshold && i!=j) {
-		  S[A->pattern->ptr[i]+kdeg] = j;
-		  kdeg++;
+	 {
+	    const double threshold = theta*max_offdiagonal;
+	    register dim_t kdeg=0;
+	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	       #pragma ivdep
+	       for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+	          register index_t j=A->pattern->index[iptr];
+	          if(ABS(A->val[iptr])>threshold && i!=j) {
+		     S[A->pattern->ptr[i]+kdeg] = j;
+		     kdeg++;
+	          }
 	       }
-	    }
+            }
+	    degree_S[i]=kdeg;
          }
-	 degree_S[i]=kdeg;
       }
 
 }
@@ -451,10 +452,11 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
       #pragma omp parallel private(i, iptr,  bi)
       {
 	 dim_t max_deg=0; /* this is local on each thread */
+	 double* rtmp=TMPMEMALLOC(max_deg, double);
+
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
       
-	 double* rtmp=TMPMEMALLOC(max_deg, double);
       
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) {
@@ -481,20 +483,21 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 		  main_row=fnorm;
 	       }
 	    }
-	    const double threshold = theta*max_offdiagonal;
-      
-	    register dim_t kdeg=0;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
-	       #pragma ivdep
-	       for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-		  register index_t j=A->pattern->index[iptr];
-		  if(rtmp[iptr-A->pattern->ptr[i]] > threshold && i!=j) {
-		     S[A->pattern->ptr[i]+kdeg] = j;
-		     kdeg++;
-		  }
+            {
+	       const double threshold = theta*max_offdiagonal;
+	       register dim_t kdeg=0;
+	       if (tau*main_row < sum_row) { /* no diagonal domainance */
+	          #pragma ivdep
+	          for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+		     register index_t j=A->pattern->index[iptr];
+		     if(rtmp[iptr-A->pattern->ptr[i]] > threshold && i!=j) {
+		        S[A->pattern->ptr[i]+kdeg] = j;
+		        kdeg++;
+		     }
+	          }
 	       }
-	    }
-	    degree_S[i]=kdeg;
+	       degree_S[i]=kdeg;
+            }
 	 }      
 	 TMPMEMFREE(rtmp);
       } /* end of parallel region */
