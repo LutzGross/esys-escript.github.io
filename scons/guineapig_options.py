@@ -47,7 +47,7 @@ escript_opts_version = 200
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '--std=c99 -isystem /usr/local/py2.6.2/silo4.7.2/include'
+cc_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
