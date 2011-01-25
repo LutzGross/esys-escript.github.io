@@ -67,6 +67,7 @@ namespace dudley {
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
+     \param useMacroElements
   */
   DUDLEY_DLL_API
 //   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
@@ -75,7 +76,7 @@ namespace dudley {
 				     int integrationOrder=-1,
 				     int reducedIntegrationOrder=-1, 
 				     int optimize=0,
-                                     int useMacroElements=0);
+				     int useMacroElements=0);
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
@@ -92,7 +93,6 @@ namespace dudley {
      \param periodic0, periodic1, periodic2 Input - whether or not boundary 
      conditions of the dimension are periodic
      \param useFullElementOrder
-     \param useMacroElements
      \param optimize
   */
   DUDLEY_DLL_API

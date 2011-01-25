@@ -337,7 +337,6 @@ namespace DataTypes {
      \param data - vector containing the datapoint
      \param shape - shape of the datapoint
      \param offset - start of the datapoint within data
-     \param prefix - string to prepend to the output
      \param needsep - Does this output need to start with a separator
      \param sep - separator string to print between components
    */

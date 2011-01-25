@@ -185,7 +185,6 @@ public:
   \param mask scalar mask to select values.
   \param left DataAbstract to use for true mask.
   \param right DataAbstract to use for false mask.
-  \param tol tolerance
   */
   ESCRIPT_DLL_API
   DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_ptr right/*, double tol*/);
