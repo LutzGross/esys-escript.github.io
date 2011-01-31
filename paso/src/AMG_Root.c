@@ -48,6 +48,7 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
 	prec->localamg=NULL;
 	prec->amgsubstitute=NULL;
         prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
+        prec->is_local=FALSE;
         prec->is_local=TRUE;
         
         if (prec->is_local) {

@@ -30,6 +30,8 @@
 #include "PasoUtil.h"
 #include "UMFPACK.h"
 #include "MKL.h"
+#include<stdio.h>
+
 
 /**************************************************************/
 
@@ -148,9 +150,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      counter=TMPMEMALLOC(n,index_t);
 
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) ) ) {
-	 /* 
+	/*
+	       make sure that corresponding values in the row_coupleBlock and col_coupleBlock are identical 
+	*/
+	Paso_SystemMatrix_copyColCoupleBlock(A_p);
+
+	/* 
 	      set splitting of unknows:
-	   
+	    
     	 */
 	 time0=Esys_timer();
 	 if (n_block>1) {
@@ -158,6 +165,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
+	Esys_setError(SYSTEM_ERROR, "AMG:DONE."); 
+	return NULL;
 {
    dim_t p;
    for (i=0; i< my_n; ++i) {

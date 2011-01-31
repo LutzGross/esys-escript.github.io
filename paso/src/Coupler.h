@@ -42,6 +42,7 @@ typedef struct Paso_Coupler {
 
   Paso_Connector* connector;
 
+  bool_t in_use;
   double *data; /* unmanaged pointer to data be send */
   double *send_buffer;
   double *recv_buffer;
