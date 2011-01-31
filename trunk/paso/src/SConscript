@@ -70,6 +70,7 @@ sources = """
 	SystemMatrix.c
 	SystemMatrixPattern.c
 	SystemMatrixPattern_unrollBlocks.c
+	SystemMatrix_copyColCoupleBlock.c
 	SystemMatrix_MatrixVector.c
         SparseMatrix_MatrixMatrix.c
 	SystemMatrix_balancing.c
@@ -82,6 +83,7 @@ sources = """
 	SystemMatrix_saveHB.c
 	SystemMatrix_saveMM.c
 	SystemMatrix_setValues.c
+	SystemMatrix_debug.c
 	TFQMR.c
 	MINRES.c
 	UMFPACK.c

@@ -147,6 +147,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
       out->mpi_stati=NULL;
       out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
       out->reference_counter=1;
+      out->in_use = FALSE;
       
       #ifdef ESYS_MPI
          out->mpi_requests=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Request);
@@ -204,6 +205,9 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
   dim_t i;
   coupler->data=(double*) in;
   if ( mpi_info->size>1) {
+     if (coupler->in_use) {
+	Esys_setError(SYSTEM_ERROR,"Paso_Coupler_startCollect: Coupler in use.");
+     }
      /* start reveiving input */
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
@@ -244,6 +248,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
         }
      }
      mpi_info->msg_tag_counter+=mpi_info->size;
+     coupler->in_use=TRUE;
   }
 }
 
@@ -251,12 +256,17 @@ double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 {
   Esys_MPIInfo *mpi_info = coupler->mpi_info;  
   if ( mpi_info->size>1) {
+     if (! coupler->in_use) {
+	Esys_setError(SYSTEM_ERROR,"Paso_Coupler_finishCollect: Communication has not been initiated.");
+	return NULL;
+     }
      /* wait for receive */
-        #ifdef ESYS_MPI
+     #ifdef ESYS_MPI
         MPI_Waitall(coupler->connector->recv->numNeighbors+coupler->connector->send->numNeighbors,
                     coupler->mpi_requests,
                     coupler->mpi_stati);
-        #endif
+      #endif
+      coupler->in_use=FALSE;
   }
 
   return coupler->recv_buffer;
