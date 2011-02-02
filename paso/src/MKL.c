@@ -78,11 +78,6 @@ void Paso_MKL(Paso_SparseMatrix* A,
      double time0;
      index_t i;
 
-     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
-        Esys_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
-        return;
-     }
-     
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      _INTEGER_t n = A->numRows;
      _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
@@ -96,6 +91,12 @@ void Paso_MKL(Paso_SparseMatrix* A,
      _INTEGER_t error=MKL_ERROR_NO;  /* error code */
      _INTEGER_t iparm[64]; /* parameters */
      _MKL_DSS_HANDLE_t* pt = (_MKL_DSS_HANDLE_t *)(A->solver_p);
+     
+     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
+        Esys_setError(TYPE_ERROR,"Paso_MKL: MKL requires CSR format with index offset 1 and block size 1.");
+        return;
+     }
+
      /* set iparm */
      for (i=0;i<64;++i) iparm[i]=0;
      iparm[0] = 1; /* no default settings*/
