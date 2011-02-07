@@ -37,8 +37,6 @@ import util
 from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
 from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
-print dir(escript)
-
 class DarcyFlow(object):
    """
    solves the problem
