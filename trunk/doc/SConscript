@@ -14,30 +14,20 @@
 import os
 Import('*')
 
-haveGMSH=False  # do we have gmsh?
 haveMPL=False   # do we have matplotlib?
 haveGD=False    # does matplotlib have griddata?
-
-# check for gmsh
-try:
-    import subprocess
-    p=subprocess.Popen(['gmsh', '-version'], stderr=subprocess.PIPE)
-    p.poll()
-    haveGMSH=True
-except OSError:
-    print("gmsh not found")
 
 mplmagicversion='0.98.5'
 
 # check for matplotlib
 try:
-   import matplotlib
-   haveMPL=True
-   mplversion=matplotlib.__version__
-   from matplotlib.mlab import griddata
-   haveGD=True
+    import matplotlib
+    haveMPL=True
+    mplversion=matplotlib.__version__
+    from matplotlib.mlab import griddata
+    haveGD=True
 except ImportError:
-   pass
+    pass
 
 if not haveMPL:
     print("matplotlib not found, skipping some tests")
@@ -54,7 +44,7 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
     if needsGD: needsMPL=True
     if needsGMSH: allowsMPI=False
 
-    if (not needsGMSH or haveGMSH) and (not needsMPL or haveMPL) and (not needsMagicMPL or mplversion>=mplmagicversion) and (not needsGD or haveGD):
+    if (not needsGMSH or env['gmsh']) and (not needsMPL or haveMPL) and (not needsMagicMPL or mplversion>=mplmagicversion) and (not needsGD or haveGD):
         if allowsMPI:
             example_files_allow_mpi.append(name)
         else:

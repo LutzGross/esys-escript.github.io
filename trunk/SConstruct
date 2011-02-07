@@ -567,6 +567,16 @@ if env['parmetis']:
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, parmetis_lib_path)
     env.Append(CPPDEFINES = ['USE_PARMETIS'])
 
+######## gmsh (optional, for tests)
+
+try:
+    import subprocess
+    p=subprocess.Popen(['gmsh', '-version'], stderr=subprocess.PIPE)
+    p.poll()
+    env['gmsh']=True
+except OSError:
+    env['gmsh']=False
+
 ######################## Summarize our environment ###########################
 
 # keep some of our install paths first in the list for the unit tests
@@ -612,6 +622,10 @@ for i in e_list:
     print("%16s:  YES"%i)
 for i in d_list:
     print("%16s:  DISABLED"%i)
+if env['gmsh']:
+    print("            gmsh:  FOUND")
+else:
+    print("            gmsh:  NOT FOUND")
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
 else:
