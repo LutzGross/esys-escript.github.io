@@ -172,13 +172,16 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        cmd = self.getCommandString()%self.getScriptHandler()
+        args=self.getCommandString().split()
+        args[-1]=args[-1]%self.getScriptHandler()
         if getMPIRankWorld() == 0:
-            ret = os.system(cmd) / 256
+            import subprocess
+            ret = subprocess.call(args) / 256
         else:
             ret=0
         ret=getMPIWorldMax(ret)
-        if ret > 0: raise RuntimeError, "Could not build mesh: %s"%cmd
+        if ret > 0:
+            raise RuntimeError, "Could not build mesh: %s"%" ".join(args)
         return self.getMeshFileName()
 
         
