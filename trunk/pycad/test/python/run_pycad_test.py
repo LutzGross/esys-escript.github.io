@@ -3830,11 +3830,11 @@ class Test_PyCAD_Design(unittest.TestCase):
        
        d.setOptions(algorithm=d.TETGEN,optimize_quality=False,smoothing=4)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -order 1 -v 3 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd%os.path.join(".","script.geo"))
+       self.failUnless("gmsh -format msh -2 -order 1 -v 3 -o '%s' '%s'"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd%os.path.join(".","script.geo"))
 
        d.setOptions(optimize_quality=True)
        cmd=d.getCommandString()
-       self.failUnless("gmsh -format msh -2 -order 1 -v 3 -o %s %s"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd%os.path.join(".","script.geo"))
+       self.failUnless("gmsh -format msh -2 -order 1 -v 3 -o '%s' '%s'"%(os.path.join(".","mesh.msh"), os.path.join(".","script.geo")) == cmd%os.path.join(".","script.geo"))
 
        p0=Point(0.,0.,0.)
        p1=Point(1.,0.,0.)
