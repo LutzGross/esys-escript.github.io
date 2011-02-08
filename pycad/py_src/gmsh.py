@@ -154,10 +154,11 @@ class Design(design.Design):
         """
         Returns the gmsh command line.
         """
-        exe="gmsh -format %s -%s -order %s -v 3 -o %s %%s" % (
+        exe="gmsh -format %s -%s -order %s -v 3 -o '%s' '%%s'" % (
                 self.getFileFormat(), self.getDim(), self.getElementOrder(), self.getMeshFileName())
 
         return exe
+
     def getScriptHandler(self):
         """
         Returns a handler to the script file to generate the geometry.
@@ -172,7 +173,8 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        args=self.getCommandString().split()
+        import shlex
+        args=shlex.split(self.getCommandString())
         args[-1]=args[-1]%self.getScriptHandler()
         if getMPIRankWorld() == 0:
             import subprocess
