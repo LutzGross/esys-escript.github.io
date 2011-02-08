@@ -129,8 +129,7 @@ class Design(design.Design):
         """
         if self.__cmdLineArgs == "":
             print "warning: using default command line arguments for Triangle"
-        exe="triangle %s %s"%(self.__cmdLineArgs,
-                                self.getScriptFileName())
+        exe="triangle %s %%s"%self.__cmdLineArgs
         return exe
 
     def getMeshHandler(self):
@@ -138,15 +137,17 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in Triangle format is returned.
         """
-        cmd = self.getCommandString()
+        args = self.getCommandString().split()
+        args[-1]=args[-1]%self.getScriptFileName()
         if getMPIRankWorld() == 0:
+            import subprocess
             open(self.getScriptFileName(),"w").write(self.getScriptString())
-            ret = os.system(cmd) / 256
+            ret = subprocess.call(args) / 256
         else:
             ret=0
         ret=getMPIWorldMax(ret)
         if ret > 0:
-          raise RuntimeError, "Could not build mesh: %s"%cmd
+          raise RuntimeError, "Could not build mesh: %s"%" ".join(args)
         else:
             # <hack> so that users can set the mesh filename they want.
             name=self.getScriptFileName()
