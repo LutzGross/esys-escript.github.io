@@ -91,6 +91,12 @@ TODO Note that this constructor will also copy data to all points if it only con
                const DataTypes::ShapeType &shape,
                const DataTypes::ValueType &data);
 
+	       
+  ESCRIPT_DLL_API
+  DataExpanded(const FunctionSpace& what,
+               const DataTypes::ShapeType &shape,
+               const double data);	       
+	       
   /**
      \brief
      Copy constructor for DataExpanded.

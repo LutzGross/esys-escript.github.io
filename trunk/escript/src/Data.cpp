@@ -275,9 +275,9 @@ Data::Data(double value,
            bool expanded)
 	: m_shared(false), m_lazy(false)
 {
-  int len = DataTypes::noValues(dataPointShape);
-  DataVector temp_data(len,value,len);
-  initialise(temp_data, dataPointShape, what, expanded);
+//  int len = DataTypes::noValues(dataPointShape);
+//  DataVector temp_data(len,value,len);
+  initialise(value, dataPointShape, what, expanded);
   m_protected=false;
 }
 
@@ -470,6 +470,28 @@ void Data::initialise(const WrappedArray& value,
 
 void
 Data::initialise(const DataTypes::ValueType& value,
+		 const DataTypes::ShapeType& shape,
+                 const FunctionSpace& what,
+                 bool expanded)
+{
+  //
+  // Construct a Data object of the appropriate type.
+  // Construct the object first as there seems to be a bug which causes
+  // undefined behaviour if an exception is thrown during construction
+  // within the shared_ptr constructor.
+  if (expanded) {
+    DataAbstract* temp=new DataExpanded(what, shape, value);
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
+  } else {
+    DataAbstract* temp=new DataConstant(what, shape, value);
+//     m_data=temp->getPtr();
+    set_m_data(temp->getPtr());
+  }
+}
+
+void
+Data::initialise(const double value,
 		 const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
                  bool expanded)

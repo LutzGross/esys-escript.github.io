@@ -161,6 +161,27 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
 
 }
 
+DataExpanded::DataExpanded(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const double v)
+  : parent(what,shape)
+{
+     ValueType& vec=m_data.getData();
+     //
+     // create the view of the data
+     initialise(what.getNumSamples(),what.getNumDPPSample());
+     // now we copy this value to all elements
+     const int L=getLength();
+     int i;
+     #pragma omp parallel for schedule(static) private(i)
+     for (i=0;i<L;++i)
+     {
+        vec[i]=v;
+     }
+}
+
+
+
 DataExpanded::~DataExpanded()
 {
 }

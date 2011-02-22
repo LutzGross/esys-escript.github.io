@@ -1641,6 +1641,14 @@ template <class BinaryOp>
                  const FunctionSpace& what,
                  bool expanded);
 
+  void
+  initialise(const double value,
+	     const DataTypes::ShapeType& shape,
+             const FunctionSpace& what,
+             bool expanded);
+
+		 
+		 
   //
   // flag to protect the data object against any update
   bool m_protected;
