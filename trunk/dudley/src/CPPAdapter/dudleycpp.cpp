@@ -114,7 +114,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
+,"Creates a tetrahedral mesh by subdividing n0 x n1 x n2 rectangular elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n:param l2:\n"
@@ -136,7 +136,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
+,"Creates a triangular mesh by subdividing n0 x n1 rectangular elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n"
