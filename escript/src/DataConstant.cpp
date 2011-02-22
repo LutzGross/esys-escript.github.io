@@ -75,6 +75,14 @@ DataConstant::DataConstant(const FunctionSpace& what,
   m_data=data;
 }
 
+DataConstant::DataConstant(const FunctionSpace& what,
+                           const DataTypes::ShapeType &shape,
+                           const double v)
+  : parent(what,shape), m_data(DataTypes::noValues(shape),v)
+{
+}
+
+
 bool
 DataConstant::hasNaN() const
 {
