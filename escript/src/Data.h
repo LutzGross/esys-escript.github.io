@@ -1354,6 +1354,20 @@ instead of manually manipulating process and point IDs.
   Data& operator/=(const boost::python::object& right);
 
   /**
+    \brief
+    Newer style division operator for python
+  */
+  ESCRIPT_DLL_API
+  Data truedivD(const Data& right);
+
+  /**
+    \brief
+    Newer style division operator for python
+  */
+  ESCRIPT_DLL_API
+  Data truedivO(const boost::python::object& right);
+
+  /**
 	\brief return inverse of matricies.
   */
   ESCRIPT_DLL_API
@@ -1647,8 +1661,6 @@ template <class BinaryOp>
              const FunctionSpace& what,
              bool expanded);
 
-		 
-		 
   //
   // flag to protect the data object against any update
   bool m_protected;
@@ -2008,6 +2020,30 @@ C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,
                      int axis_offset=0,
                      int transpose=0);
+
+/**
+  \brief
+  Operator/
+  Takes RHS Data object.
+*/
+inline
+Data
+Data::truedivD(const Data& right)
+{
+    return *this / right;
+}
+
+/**
+  \brief
+  Operator/
+  Takes RHS python::object.
+*/
+inline
+Data
+Data::truedivO(const boost::python::object& right)
+{
+    return *this / right;
+}
 
 /**
   \brief

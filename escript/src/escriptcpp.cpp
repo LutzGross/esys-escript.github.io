@@ -424,14 +424,17 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("__neg__",&escript::Data::neg, ":return: negation of the values in this object\n:rtype: `Data`")
     // following implements the python "+" identity operator
     .def("__pos__",&escript::Data::pos, "\nThe unary + operator\n\n:rtype: `Data`")
-    // following two functions implement the python [] operator
+    // following three functions implement the python [] operator
     .def("__getitem__",&escript::Data::getItem,"Used by the python [] operator\n\n:rtype: `Data`")
     .def("__setitem__",&escript::Data::setItemO,"Used by the python [] operator")
     .def("__setitem__",&escript::Data::setItemD,"Used by the python [] operator")
-    // following two functions implement the python ** operator
+    // following three functions implement the python ** operator
     .def("__pow__",&escript::Data::powO,"Used by the python ** operator\n\n:rtype: `Data`")
     .def("__pow__",&escript::Data::powD)
     .def("__rpow__",&escript::Data::rpowO,"\nUsed by the python ** operator\n\n:rtype: `Data`")
+    // following two functions implement the newer python / operator
+    .def("__truediv__",&escript::Data::truedivD)
+    .def("__truediv__",&escript::Data::truedivO)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 
