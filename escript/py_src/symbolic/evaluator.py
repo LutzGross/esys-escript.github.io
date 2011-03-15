@@ -1,0 +1,112 @@
+
+########################################################
+#
+# Copyright (c) 2003-2010 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+Earth Systems Science Computational Center (ESSCC)
+http://www.uq.edu.au/esscc
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="https://launchpad.net/escript-finley"
+
+"""
+Symbolic expression evaluator for escript
+"""
+
+class Evaluator:
+    def __init__(self, *expressions):
+        """
+        Returns a symbolic evaluator.
+
+        :param expressions: optional expressions to initialise with
+        """
+        self.expressions=[]
+        self.symbols=[]
+        self.lambdas=[]
+        self._subsdict={}
+        for ex in expressions:
+            self.addExpression(ex)
+
+    def addExpression(self, expression):
+        """
+        Adds an expression to this evaluator.
+
+        :return: the modified Evaluator object
+        """
+        from sympy import Symbol, lambdify
+        if not hasattr(expression, "atoms"):
+            raise TypeError("Argument is not an expression")
+        self.expressions.append(expression)
+        sym=tuple(expression.atoms(Symbol))
+        self.symbols.append(sym)
+        self.lambdas.append(lambdify(sym, expression, ["escript","math","numpy"]))
+        return self
+
+    def subs(self, **args):
+        """
+        Symbol substitution.
+
+        :return: the modified Evaluator object
+        """
+        self._subsdict.update(args)
+        return self
+
+    def evaluate(self):
+        """
+        Evaluates all expressions in this evaluator and returns the result
+        as a tuple.
+
+        :return: the evaluated expressions in the order they were added to
+                 this Evaluator.
+        """
+        res=()
+        for i in range(len(self.lambdas)):
+            x=self.symbols[i]
+            subslist=[self._subsdict[a.name] for a in x if self._subsdict.has_key(a.name)]
+            if len(x)==len(subslist):
+                res+=self.lambdas[i](*subslist),
+            else:
+                raise RuntimeError("Not all symbols have a value")
+        return res
+
+    def __call__(self, **args):
+        """
+        Convenience method to substitute and evaluate at once.
+        """
+        return self.subs(**args).evaluate()
+
+    def __getitem__(self, index):
+        """
+        Expression accessor.
+        """
+        return self.expressions[index]
+
+    def __iadd__(self, expression):
+        """
+        Same as addExpression(expression).
+        """
+        return self.addExpression(expression)
+
+    def __str__(self):
+        ret="\n".join([str(e) for e in self.expressions])+"\n"
+        for k in self._subsdict:
+            v=self._subsdict[k]
+            if hasattr(v, "getShape"):
+                ret+="%s=<Data object>"%k
+            else:
+                ret+="%s=%s"%(k,v)
+            ret+=", "
+        return ret
+
+#
+# vim: expandtab shiftwidth=4:
