@@ -117,5 +117,105 @@ class whereNonNegative(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
+class whereZero(Function):
+    """Returns:
+         1 where expr == 0
+         0 else
+    """
+    nargs = 1
+    is_bounded = True
+    is_negative = False
+    is_real = True
+
+    @classmethod
+    def eval(cls, arg):
+        if arg is S.NaN:
+            return S.NaN
+        if arg.is_zero: return S.One
+        if arg.is_nonzero: return S.Zero
+        if arg.is_Function:
+            if arg.func is whereZero: return 1-arg
+
+    def _eval_conjugate(self):
+        return self
+
+    def _eval_derivative(self, x):
+        return S.Zero
+
+class whereNonZero(Function):
+    """Returns:
+         0 where expr == 0
+         1 else
+    """
+    nargs = 1
+    is_bounded = True
+    is_negative = False
+    is_real = True
+
+    @classmethod
+    def eval(cls, arg):
+        return 1-whereZero(arg)
+
+    def _eval_conjugate(self):
+        return self
+
+    def _eval_derivative(self, x):
+        return S.Zero
+
+class log10(Function):
+    """Returns the base-10 logarithm of the argument (same as log(x,10))
+    """
+    nargs = 1
+
+    @classmethod
+    def eval(cls, arg):
+        from sympy.functions.elementary.exponential import log
+        return log(arg,10)
+
+class inverse(Function):
+    """Returns the inverse of the argument
+    """
+    nargs = 1
+
+class minval(Function):
+    """Returns the minimum value over all components of the argument
+    """
+    nargs = 1
+
+class maxval(Function):
+    """Returns the maximum value over all components of the argument
+    """
+    nargs = 1
+
+class trace(Function):
+    """Returns the trace of the argument with optional axis_offset
+    """
+    nargs = (1,2)
+
+class transpose(Function):
+    """Returns the transpose of the argument
+    """
+    nargs = (1,2)
+
+class symmetric(Function):
+    """Returns the symmetric part of the argument
+    """
+    nargs = 1
+
+class nonsymmetric(Function):
+    """Returns the non-symmetric part of the argument
+    """
+    nargs = 1
+
+class swap_axes(Function):
+    """Returns the 'swap' of the argument
+    """
+    nargs = (1,2,3)
+
+class grad(Function):
+    """Returns the spatial gradient of the argument
+    """
+    nargs = (1,2)
+
 #
 # vim: expandtab shiftwidth=4:
