@@ -91,6 +91,12 @@ class Evaluator:
         """
         return self.expressions[index]
 
+    def __len__(self):
+        """
+        Returns the number of expressions in this evaluator.
+        """
+        return len(self.expressions)
+
     def __iadd__(self, expression):
         """
         Same as addExpression(expression).
