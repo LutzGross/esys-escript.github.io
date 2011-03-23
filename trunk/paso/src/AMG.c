@@ -91,8 +91,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   Paso_Preconditioner_AMG* out=NULL;
   bool_t verbose=options->verbose;
 
-  const dim_t my_n=Paso_SystemMatrix_getNumRows(A_p);
-  const dim_t overlap_n=Paso_SystemMatrix_getColOverlap(A_p);
+  const dim_t my_n=A_p->mainBlock->numRows;
+  const dim_t overlap_n=A_p->row_coupleBlock->numRows;
+  
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
@@ -141,19 +142,28 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
        return NULL;
   }  else {
      /* Start Coarsening : */
-     const dim_t len_S=A_p->mainBlock->pattern->len+A_p->col_coupleBlock->pattern->len;
-     dim_t* degree_S=TMPMEMALLOC(my_n, dim_t);
-     index_t *offset_S=TMPMEMALLOC(my_n, index_t);
-     index_t *S=TMPMEMALLOC(len_S, index_t);
+     
+     /* this is the table for strong connections combining mainBlock, col_coupleBlock and row_coupleBlock */
+     const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len;
 
+     dim_t* degree_S=TMPMEMALLOC(n, dim_t);
+     index_t *offset_S=TMPMEMALLOC(n, index_t);
+     index_t *S=TMPMEMALLOC(len_S, index_t);
+     dim_t* degree_ST=TMPMEMALLOC(n, dim_t);
+     index_t *offset_ST=TMPMEMALLOC(n, index_t);
+     index_t *ST=TMPMEMALLOC(len_S, index_t);
+     
+     
      F_marker=TMPMEMALLOC(n,index_t);
      counter=TMPMEMALLOC(n,index_t);
 
-     if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) ) ) {
+     if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) 
+	|| Esys_checkPtr(degree_ST) || Esys_checkPtr(offset_ST) || Esys_checkPtr(ST) ) ) {
 	/*
 	       make sure that corresponding values in the row_coupleBlock and col_coupleBlock are identical 
 	*/
-	Paso_SystemMatrix_copyColCoupleBlock(A_p);
+        Paso_SystemMatrix_copyColCoupleBlock(A_p);
+        /* Paso_SystemMatrix_copyRemoteCoupleBlock(A_p, FALSE); */
 
 	/* 
 	      set splitting of unknows:
@@ -165,16 +175,21 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
-	Esys_setError(SYSTEM_ERROR, "AMG:DONE."); 
-	return NULL;
+	 Paso_Preconditioner_AMG_transposeStrongConnections(n, degree_S, offset_S, S, n, degree_ST, offset_ST, ST);
+	 
 {
    dim_t p;
-   for (i=0; i< my_n; ++i) {
+   for (i=0; i<n; ++i) {
          printf("%d: ",i);
         for (p=0; p<degree_S[i];++p) printf("%d ",S[offset_S[i]+p]);
         printf("\n");
    }
 }
+	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
+					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
+						A_p->col_coupler->connector,A_p->col_distribution);
+Esys_setError(SYSTEM_ERROR, "AMG:DONE."); 
+return NULL;
       
 
 /*MPI: 
@@ -288,7 +303,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 /*MPI:
 			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
 			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
-			   
+			   Paso_Preconditioner_AMG_setStrongConnections
 			   Paso_SystemMatrix_free(Atemp);
 */
 
@@ -345,6 +360,10 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   TMPMEMFREE(degree_S);
   TMPMEMFREE(offset_S);
   TMPMEMFREE(S);
+  TMPMEMFREE(degree_ST);
+  TMPMEMFREE(offset_ST);
+  TMPMEMFREE(ST);
+  
   }
 
   if (Esys_noError()) {
@@ -425,17 +444,26 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    				  dim_t *degree_S, index_t *offset_S, index_t *S,
 					  const double theta, const double tau)
 {
-   const dim_t my_n=Paso_SystemMatrix_getNumRows(A);
+
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   
    index_t iptr, i;
+   double *threshold_p=NULL; 
 
 
-      #pragma omp parallel for private(i,iptr) schedule(static)
-      for (i=0;i<my_n;++i) {        
+   threshold_p = TMPMEMALLOC(2*my_n, double);
+   
+   #pragma omp parallel for private(i,iptr) schedule(static)
+   for (i=0;i<my_n;++i) {        
+	 
 	 register double max_offdiagonal = 0.;
 	 register double sum_row=0;
 	 register double main_row=0;
 	 register dim_t kdeg=0;
-         register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+         const register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+         
+	 /* collect information for row i: */
 	 #pragma ivdep
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
@@ -449,6 +477,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    }
 
 	 }
+	 
 	 #pragma ivdep
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
@@ -456,9 +485,12 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    sum_row+=fnorm;
 	 }
 
+         /* inspect row i: */
          {
 	    const double threshold = theta*max_offdiagonal;
+            threshold_p[2*i+1]=threshold;
 	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+               threshold_p[2*i]=1;
 	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->mainBlock->pattern->index[iptr];
@@ -475,11 +507,50 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 		     kdeg++;
 	          }
 	       }
+            } else {
+               threshold_p[2*i]=-1;
             }
          }
          offset_S[i]=koffset;
 	 degree_S[i]=kdeg;
       }
+      /* now we need to distribute the threshold and the diagonal dominance indicator */
+      if (A->mpi_info->size > 1) {
+
+          const index_t koffset_0=A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
+				 -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
+	  
+          double *remote_threshold=NULL;
+          
+	  Paso_Coupler* threshold_coupler=Paso_Coupler_alloc(A->row_coupler->connector  ,2);
+          Paso_Coupler_startCollect(threshold_coupler,threshold_p);
+          Paso_Coupler_finishCollect(threshold_coupler);
+          remote_threshold=threshold_coupler->recv_buffer;
+
+          #pragma omp parallel for private(i,iptr) schedule(static)
+          for (i=0; i<overlap_n; i++) {
+	     
+	      const double threshold = remote_threshold[2*i+1];
+	      register dim_t kdeg=0;
+              const register index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+              if (remote_threshold[2*i]>0) {
+	         #pragma ivdep
+	         for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	          register index_t j=A->row_coupleBlock->pattern->index[iptr];
+	          if(ABS(A->row_coupleBlock->val[iptr])>threshold) {
+		     S[koffset+kdeg] = j ;
+		     kdeg++;
+	          }
+	       }
+
+              }
+              offset_S[i+my_n]=koffset;
+	      degree_S[i+my_n]=kdeg;
+          }
+
+          Paso_Coupler_free(threshold_coupler);
+     }
+     TMPMEMFREE(threshold_p);
 }
 
 /* theta = threshold for strong connections */
@@ -493,370 +564,382 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 							const double theta, const double tau)
 
 {
-   const dim_t my_n=Paso_SystemMatrix_getNumRows(A);
+   const dim_t n_block=A->block_size;
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   
    index_t iptr, i, bi;
-   const dim_t n_block=A->row_block_size;
+   double *threshold_p=NULL; 
    
    
-      #pragma omp parallel private(i,iptr, bi) 
-      {
-	 dim_t max_deg=0;
-	 double *rtmp=TMPMEMALLOC(max_deg, double);
+   threshold_p = TMPMEMALLOC(2*my_n, double);
+   
+   #pragma omp parallel private(i,iptr, bi)
+   {
+   
+      dim_t max_deg=0;
+      double *rtmp=NULL;
 
-	 #pragma omp for schedule(static)
-	 for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
-                                                +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
+      #pragma omp for schedule(static)
+      for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
+				     +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
       
+      rtmp=TMPMEMALLOC(max_deg, double);
       
-	 #pragma omp for schedule(static)
-	 for (i=0;i<my_n;++i) {
+      #pragma omp for schedule(static) 
+      for (i=0;i<my_n;++i) {        
+	 register double max_offdiagonal = 0.;
+	 register double sum_row=0;
+	 register double main_row=0;
+	 register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	 register dim_t kdeg=0;
+	 const register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 	 
-	    register double max_offdiagonal = 0.;
-	    register double sum_row=0;
-	    register double main_row=0;
-            register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
-	    register dim_t kdeg=0;
-            register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
-
-	    for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-	       register index_t j=A->mainBlock->pattern->index[iptr];
-	       register double fnorm=0;
-	       #pragma ivdep
-	       for(bi=0;bi<n_block*n_block;++bi) {
-                     register double rtmp2 = A->mainBlock->val[iptr*n_block*n_block+bi];
-                     fnorm+=rtmp2*rtmp2;
-               }
-	       fnorm=sqrt(fnorm);
-
-	       rtmp[iptr+rtmp_offset]=fnorm;
-	       if( j != i) {
-		  max_offdiagonal = MAX(max_offdiagonal,fnorm);
-		  sum_row+=fnorm;
-	       } else {
-		  main_row=fnorm;
-	       }
+	 /* collect information for row i: */
+	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+	    register index_t j=A->mainBlock->pattern->index[iptr];
+	    register double fnorm=0;
+	    #pragma ivdep
+	    for(bi=0;bi<n_block;++bi) {
+   	        register double  rtmp2= A->mainBlock->val[iptr*n_block+bi];
+	       fnorm+=rtmp2*rtmp2;
 	    }
-            rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
-	    for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-	       register double fnorm=0;
-	       #pragma ivdep
-	       for(bi=0;bi<n_block*n_block;++bi) {
-                     register double rtmp2 = A->col_coupleBlock->val[iptr*n_block*n_block+bi];
-                     fnorm+=rtmp2*rtmp2;
-               }
-	       fnorm=sqrt(fnorm);
-
-	       rtmp[iptr+rtmp_offset]=fnorm;
+	    fnorm=sqrt(fnorm);
+	    rtmp[iptr+rtmp_offset]=fnorm;
+	    
+	    if( j != i) {
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	       sum_row+=fnorm;
+	    } else {
+	       main_row=fnorm;
 	    }
-            {
-	        const double threshold = theta*max_offdiagonal;
-
-	        if (tau*main_row < sum_row) { /* no diagonal domainance */
-                   rtmp_offset=-A->mainBlock->pattern->ptr[i];
-	           #pragma ivdep
-	           for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
-		      register index_t j=A->mainBlock->pattern->index[iptr];
-		      if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
-		         S[koffset+kdeg] = j;
-		         kdeg++;
-		      }
-	           }
-                   rtmp_offset=A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]-A->col_coupleBlock->pattern->ptr[i];
-	           #pragma ivdep
-	           for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-		      register index_t j=A->col_coupleBlock->pattern->index[iptr];
-		      if(rtmp[iptr+rtmp_offset] > threshold) {
-		         S[koffset+kdeg] = j + my_n;
-		         kdeg++;
-		      }
-	           }
-	        }
-            }
-	    degree_S[i]=kdeg;
-            offset_S[i]=koffset;
-	 }      
-	 TMPMEMFREE(rtmp);
-      } /* end of parallel region */
- 
-}   
-
-#ifdef AAAAA
-/* the runge stueben coarsening algorithm: */
-void Paso_Preconditioner_AMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
-						const dim_t* degree_S, const index_t* S, 
-						index_t*split_marker, const bool_t usePanel)
-{
-   
-   index_t *lambda=NULL, *ST=NULL, *notInPanel=NULL, *panel=NULL, lambda_max, lambda_k;
-   dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
-   register index_t j, itmp;
-   
-   if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
-   
-   lambda=TMPMEMALLOC(n, index_t); Esys_checkPtr(lambda);
-   degree_ST=TMPMEMALLOC(n, dim_t); Esys_checkPtr(degree_ST);
-   ST=TMPMEMALLOC(offset_S[n], index_t);  Esys_checkPtr(ST);
-   if (usePanel) {
-      notInPanel=TMPMEMALLOC(n, bool_t); Esys_checkPtr(notInPanel);
-      panel=TMPMEMALLOC(n, index_t); Esys_checkPtr(panel);
-   }
-   
-   
-   
-   if (Esys_noError() ) {
-      /* initialize  split_marker and split_marker :*/
-      /* those unknows which are not influenced go into F, the rest is available for F or C */
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<n;++i) {
-	 degree_ST[i]=0;
-	 if (degree_S[i]>0) {
-	    lambda[i]=0;
-	    split_marker[i]=PASO_AMG_UNDECIDED;
-	 } else {
-	    split_marker[i]=PASO_AMG_IN_F;
-	    lambda[i]=-1;
-	 } 
-      }
-      /* create transpose :*/
-      for (i=0;i<n;++i) {
-	    for (p=0; p<degree_S[i]; ++p) {
-	       j=S[offset_S[i]+p];
-	       ST[offset_S[j]+degree_ST[j]]=i;
-	       degree_ST[j]++;
-	    }
-      }
-      /* lambda[i] = |undecided k in ST[i]| + 2 * |F-unknown in ST[i]| */
-      #pragma omp parallel for private(i, j, itmp) schedule(static)
-      for (i=0;i<n;++i) {
-	 if (split_marker[i]==PASO_AMG_UNDECIDED) {
-	    itmp=lambda[i];
-	    for (p=0; p<degree_ST[i]; ++p) {
-	       j=ST[offset_S[i]+p];
-	       if (split_marker[j]==PASO_AMG_UNDECIDED) {
-		  itmp++;
-	       } else {  /* at this point there are no C points */
-		  itmp+=2;
-	       }
-	    }
-	    lambda[i]=itmp;
+	 
 	 }
+      
+         rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
+	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	    register double fnorm=0;
+	    #pragma ivdep
+	    for(bi=0;bi<n_block;++bi) {
+	       register double rtmp2 = A->col_coupleBlock->val[iptr*n_block+bi];
+	       fnorm+=rtmp2*rtmp2;
+	    }
+	    fnorm=sqrt(fnorm);
+	    
+	    rtmp[iptr+rtmp_offset]=fnorm;
+	    max_offdiagonal = MAX(max_offdiagonal,fnorm);
+	    sum_row+=fnorm;
+	 }
+	 
+      
+	 /* inspect row i: */
+	 {
+	    const double threshold = theta*max_offdiagonal;
+	    rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	    
+	    threshold_p[2*i+1]=threshold;
+	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	       threshold_p[2*i]=1;
+	       rtmp_offset=-A->mainBlock->pattern->ptr[i];
+	       #pragma ivdep
+	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
+		  register index_t j=A->mainBlock->pattern->index[iptr];
+		  if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
+		     S[koffset+kdeg] = j;
+		     kdeg++;
+		  }
+	       }
+	       rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
+	       #pragma ivdep
+	       for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+		  register index_t j=A->col_coupleBlock->pattern->index[iptr];
+		  if( rtmp[iptr+rtmp_offset] >threshold) {
+		     S[koffset+kdeg] = j + my_n;
+		     kdeg++;
+		  }
+	       }
+	    } else {
+	       threshold_p[2*i]=-1;
+	    }
+	 }
+	 offset_S[i]=koffset;
+	 degree_S[i]=kdeg;
       }
-      if (usePanel) {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0;i<n;++i) notInPanel[i]=TRUE;
-      }
-      /* start search :*/
-      i=Paso_Util_arg_max(n,lambda); 
-      while (lambda[i]>-1) { /* is there any undecided unknown? */
-
-	 if (usePanel) {
-	    len_panel=0;
-	    do {
-	       /* the unknown i is moved to C */
-	       split_marker[i]=PASO_AMG_IN_C;
-	       lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
+      TMPMEMFREE(rtmp);
+   }
+   /* now we need to distribute the threshold and the diagonal dominance indicator */
+   if (A->mpi_info->size > 1) {
+      
+      const index_t koffset_0=A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
+                             -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
+      
+      double *remote_threshold=NULL;
+      
+      Paso_Coupler* threshold_coupler=Paso_Coupler_alloc(A->row_coupler->connector  ,2);
+      Paso_Coupler_startCollect(threshold_coupler,threshold_p);
+      Paso_Coupler_finishCollect(threshold_coupler);
+      remote_threshold=threshold_coupler->recv_buffer;
+      
+      #pragma omp parallel for private(i,iptr) schedule(static)
+      for (i=0; i<overlap_n; i++) {
+	 
+	 const double threshold2 = remote_threshold[2*i+1]*remote_threshold[2*i+1];
+	 register dim_t kdeg=0;
+	 const register index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+	 if (remote_threshold[2*i]>0) {
+	    #pragma ivdep
+	    for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+	       register index_t j=A->row_coupleBlock->pattern->index[iptr];
+	       register double fnorm2=0;
+	       #pragma ivdepremote_threshold[2*i]
+	       for(bi=0;bi<n_block;++bi) {
+		  register double rtmp2 = A->row_coupleBlock->val[iptr*n_block+bi];
+		  fnorm2+=rtmp2*rtmp2;
+	       }
 	       
-	       /* all undecided unknown strongly coupled to i are moved to F */
-	       for (p=0; p<degree_ST[i]; ++p) {
-		  j=ST[offset_S[i]+p];
-		  
-		  if (split_marker[j]==PASO_AMG_UNDECIDED) {
-		     
-		     split_marker[j]=PASO_AMG_IN_F;
-		     lambda[j]=-1;
-		     
-		     for (q=0; q<degree_ST[j]; ++q) {
-			k=ST[offset_S[j]+q];
-			if (split_marker[k]==PASO_AMG_UNDECIDED) {
-			   lambda[k]++;
-			   if (notInPanel[k]) { 
-			      notInPanel[k]=FALSE; 
-			      panel[len_panel]=k;
-			      len_panel++; 
-			   }
-
-			}	 /* the unknown i is moved to C */
-			split_marker[i]=PASO_AMG_IN_C;
-			lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
-		     }
-		     
-		  }
+	       if(fnorm2 > threshold2 ) {
+		  S[koffset+kdeg] = j ;
+		  kdeg++;
 	       }
-	       for (p=0; p<degree_S[i]; ++p) {
-		  j=S[offset_S[i]+p];
-		  if (split_marker[j]==PASO_AMG_UNDECIDED) {
-		     lambda[j]--;
-		     if (notInPanel[j]) { 
-			notInPanel[j]=FALSE; 
-			panel[len_panel]=j;
-			len_panel++; 
-		     }
-		  }
-	       }
-
-	       /* consolidate panel */
-	       /* remove lambda[q]=-1 */
-	       lambda_max=-1;
-	       i=-1;
-	       len_panel_new=0;
-	       for (q=0; q<len_panel; q++) {
-		     k=panel[q];
-		     lambda_k=lambda[k];
-		     if (split_marker[k]==PASO_AMG_UNDECIDED) {
-			panel[len_panel_new]=k;
-			len_panel_new++;
-
-			if (lambda_max == lambda_k) {
-			   if (k<i) i=k;
-			} else if (lambda_max < lambda_k) {
-			   lambda_max =lambda_k;
-			   i=k;
-			}
-		     }
-	       }
-	       len_panel=len_panel_new;
-	    } while (len_panel>0);    
-	 } else {
-	    /* the unknown i is moved to C */
-	    split_marker[i]=PASO_AMG_IN_C;
-	    lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
-	    
-	    /* all undecided unknown strongly coupled to i are moved to F */
-	    for (p=0; p<degree_ST[i]; ++p) {
-	       j=ST[offset_S[i]+p];
-	       if (split_marker[j]==PASO_AMG_UNDECIDED) {
-	    
-		  split_marker[j]=PASO_AMG_IN_F;
-		  lambda[j]=-1;
-	    
-		  for (q=0; q<degree_ST[j]; ++q) {
-		     k=ST[offset_S[j]+q];
-		     if (split_marker[k]==PASO_AMG_UNDECIDED) lambda[k]++;
-		  }
-
-	       }
-	    }
-	    for (p=0; p<degree_S[i]; ++p) {
-	       j=S[offset_S[i]+p];
-	       if(split_marker[j]==PASO_AMG_UNDECIDED) lambda[j]--;
 	    }
 	    
 	 }
-	 i=Paso_Util_arg_max(n,lambda);
+	 offset_S[i+my_n]=koffset;
+	 degree_S[i+my_n]=kdeg;
       }
-          
+      Paso_Coupler_free(threshold_coupler);
    }
-   TMPMEMFREE(lambda);
-   TMPMEMFREE(ST);
-   TMPMEMFREE(degree_ST);
-   TMPMEMFREE(panel);
-   TMPMEMFREE(notInPanel);
+   TMPMEMFREE(threshold_p);
 }
-/* ensures that two F nodes are connected via a C node :*/
-void Paso_Preconditioner_AMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
-						const dim_t* degree_S, const index_t* S, 
-						index_t*split_marker)
+void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S,
+							const dim_t nT, dim_t* degree_ST, index_t* offset_ST,index_t* ST)
 {
-      dim_t i, p, q;
-
-      /* now we make sure that two (strongly) connected F nodes are (strongly) connected via a C node. */
-      for (i=0;i<n;++i) {
-            if ( (split_marker[i]==PASO_AMG_IN_F) && (degree_S[i]>0) ) {
-	       for (p=0; p<degree_S[i]; ++p) {
-                  register index_t j=S[offset_S[i]+p];
-                  if ( (split_marker[j]==PASO_AMG_IN_F)  && (degree_S[j]>0) )  {
-                      /* i and j are now two F nodes which are strongly connected */
-                      /* is there a C node they share ? */
-                      register index_t sharing=-1;
-	              for (q=0; q<degree_S[i]; ++q) {
-                         index_t k=S[offset_S[i]+q];
-                         if (split_marker[k]==PASO_AMG_IN_C) {
-                            register index_t* where_k=(index_t*)bsearch(&k, &(S[offset_S[j]]), degree_S[j], sizeof(index_t), Paso_comparIndex);
-                            if (where_k != NULL) {
-                               sharing=k;
-                               break;
-                            }
-                         }
-                      }
-                      if (sharing<0) {
-                           if (i<j) {
-                              split_marker[j]=PASO_AMG_IN_C; 
-                           } else {
-                              split_marker[i]=PASO_AMG_IN_C; 
-                              break;  /* no point to look any further as i is now a C node */
-                           }
-                      }
-                  }
-               }
-            }
-       }
+   index_t i, j;
+   dim_t p;
+   dim_t len=0;
+   #pragma omp parallel private(i) schedule(static)
+   for (i=0; i<nT ;++i) {
+      degree_ST[i]=0;
+   }
+   for (i=0; i<n ;++i) {
+      for (p=0; p<degree_S[i]; ++p) degree_ST[ S[offset_S[i]+p] ]++;
+   }
+   for (i=0; i<nT ;++i) {
+      offset_ST[i]=len;
+      len+=degree_ST[i];
+      degree_ST[i]=0;
+   }
+   for (i=0; i<n ;++i) {
+      for (p=0; p<degree_S[i]; ++p) {
+	   j=S[offset_S[i]+p];
+	   ST[offset_ST[j]+degree_ST[j]]=i;
+	   degree_ST[j]++;
+      }
+   }
 }
-#endif
 
-#ifdef DFG
-void Paso_Preconditioner_AMG_CIJPCoarsening( )
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
+					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
+					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
+					    Paso_Connector* col_connector, Paso_Distribution* col_dist) 
 {
+   dim_t i, numUndefined,   iter=0;
+  index_t iptr, jptr, kptr;
+  double *random=NULL, *w=NULL, *Status=NULL;
+  index_t * ST_flag=NULL;
+
+  Paso_Coupler* w_coupler=Paso_Coupler_alloc(col_connector  ,1);
+   
+  w=TMPMEMALLOC(n, double);
+  Status=TMPMEMALLOC(n, double);
+  random = Paso_Distribution_createRandomVector(col_dist,1);
+  ST_flag=TMPMEMALLOC(offset_ST[n-1]+ degree_ST[n-1], index_t);
+   
+  #pragma omp parallel for private(i)
+  for (i=0; i< my_n; ++i) {
+      w[i]=degree_ST[i]+random[i];
+      if (degree_ST[i] < 1) {
+	   Status[i]=-100; /* F point  */
+      } else {
+	   Status[i]=1; /* status undefined */
+      }
+  }
+  #pragma omp parallel for private(i, iptr)
+  for (i=0; i< n; ++i) {
+      for( iptr =0 ; iptr < degree_ST[i]; ++iptr)  {
+	 ST_flag[offset_ST[i]+iptr]=1;
+      }
+  }   
 
   
-  const dim_t my_n;
-  const dim_t overlap_n;
-  const dim_t n= my_n + overlap_n;
+  numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+  printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined); 
+
+  
+  iter=0; 
+  while (numUndefined > 0) {
+     Paso_Coupler_fillOverlap(n, w, w_coupler);
+     {
+	int p;
+	for (p=0; p<my_n; ++p) {
+	   printf(" %d : %f %f \n",p, w[p], Status[p]);
+	}
+	for (p=my_n; p<n; ++p) {
+	   printf(" %d : %f \n",p, w[p]);
+	}
+	
+	
+     }
+     
+      /* calculate the maximum value of naigbours following active strong connections:
+	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) conenction is still active  */       
+      #pragma omp parallel for private(i, iptr)
+      for (i=0; i<my_n; ++i) {
+	 if (Status[i]>0) { /* status is still undefined */
+
+	    register bool_t inD=TRUE;
+	    const double wi=w[i];
 
 
-      /* initialize  split_marker and split_marker :*/
-      /* those unknows which are not influenced go into F, the rest is available for F or C */
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<n;++i) {
-	 degree_ST[i]=0;
-	 if (degree_S[i]>0) {
-	    lambda[i]=0;
-	    split_marker[i]=PASO_AMG_UNDECIDED;
+	    for( iptr =0 ; iptr < degree_S[i]; ++iptr) {
+
+	       const index_t k=S[offset_S[i]+iptr];
+	       const index_t* start_p = &ST[offset_ST[k]];
+	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), Paso_comparIndex);
+
+	       if (ST_flag[(index_t)(where_p-start_p)]>0) {
+printf("S: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
+		  if (wi <= w[k] ) {
+		     inD=FALSE;
+		     break;
+		  }
+	       }
+	    
+	    }
+	    
+	    if (inD) {
+		  for( iptr =0 ; iptr < degree_ST[i]; ++iptr) {
+		     const index_t k=ST[offset_ST[i]+iptr];
+		     if ( ST_flag[offset_ST[i]+iptr] > 0 ) {
+printf("ST: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
+			
+                       if (wi <= w[k] ) {
+			   inD=FALSE;
+			   break;
+			}
+		     }
+		  }
+	    }    
+	    if (inD) { 
+	       Status[i]=0.; /* is in D */
+printf("%d is in D\n",i);
+	    }
+	 }
+	 
+      }
+
+      Paso_Coupler_fillOverlap(n, Status, w_coupler);
+
+
+	 /*   remove connection to D points : 
+	 
+	       for each i in D:
+		  for each j in S_i:
+		     w[j]--
+		     ST_tag[j,i]=-1
+		  for each j in ST[i]:
+		     ST_tag[i,j]=-1
+		     for each k in ST[j]:
+			if k in ST[i]:
+			   w[j]--;
+			ST_tag[j,k]=-1
+			
+	 */
+	 /* w is updated  for local rows only */
+	 {
+	    #pragma omp parallel for private(j, jptr)
+	    for (i=0; i< my_n; ++i) {
+
+	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
+		  const index_t j=ST[offset_ST[i]+jptr];
+		  if ( (Status[j] == 0.) && (ST_flag[offset_ST[i]+jptr]>0) ) {
+		     w[i]--;
+printf("%d reduced by %d\n",i,j);
+		     ST_flag[offset_ST[i]+jptr]=-1;
+		  }
+	       }
+	       
+	    } 
+	    #pragma omp parallel for private(j)
+	    for (i=my_n; i< n; ++i) {
+	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
+		  const index_t j = ST[offset_ST[i]+jptr];
+		  if ( Status[j] == 0. ) ST_flag[offset_ST[i]+jptr]=-1;
+	       }
+	    }
+
+	    
+	    for (i=0; i< n; ++i) {
+	       if ( Status[i] == 0. ) {
+
+                     const index_t* start_p = &ST[offset_ST[i]];
+
+		     for (jptr=0; jptr<degree_ST[i]; ++jptr) {
+			const index_t j=ST[offset_ST[i]+jptr];
+printf("check connection: %d %d\n",i,j);
+			ST_flag[offset_ST[i]+jptr]=-1;
+			for (kptr=0; kptr<degree_ST[j]; ++kptr) {
+			   const index_t k=ST[offset_ST[j]+kptr]; 
+printf("check connection: %d of %d\n",k,j);
+			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), Paso_comparIndex) ) { /* k in ST[i] ? */
+printf("found!\n");
+			      if (ST_flag[offset_ST[j]+kptr] >0) {
+				 if (j< my_n ) {
+				    w[j]--;
+printf("%d reduced by %d and %d \n",j, i,k);
+				 }
+				 ST_flag[offset_ST[j]+kptr]=-1;
+			      }
+			   }
+			}
+		     }
+		  }
+	    }
+	 }
+	 /* adjust status */
+	 #pragma omp parallel for private(i)
+	 for (i=0; i< my_n; ++i) {
+	    if ( Status[i] == 0. ) {
+	       Status[i] = -10;   /* this is now a C point */
+	    } else if ( w[i]<1.) {
+	       Status[i] = -100;   /* this is now a F point */  
+	    }
+	 }
+	 
+	 
+	 numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+	 iter++;
+	 printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
+  } /* end of while loop */
+
+
+  /* map to output :*/
+  Paso_Coupler_fillOverlap(n, Status, w_coupler);
+  #pragma omp parallel for private(i)
+  for (i=0; i< n; ++i) {
+	 if (Status[i] > -50.) {
+	    split_marker[i]=PASO_AMG_IN_C;
 	 } else {
 	    split_marker[i]=PASO_AMG_IN_F;
-	    lambda[i]=-1;
-	 } 
-      }
+	 }
+  }
 
-   /* set local lambda + overlap */
-   #pragma omp parallel for private(i)
-   for (i=0; i<n ++i) {
-       w[i]=degree_ST[i];
-   }
-   for (i=0; i<my_n; i++) {
-      w2[i]=random;
-   }
-
-
-   /* add noise to w */
-   Paso_Coupler_add(n, w, 1., w2, col_coupler);
-
-   /*  */
-   global_n_C=0;
-   global_n_F=..;
-   
-   while (global_n_C + global_n_F < global_n) {
-
-      
-      is_in_D[i]=FALSE;
-      /*  test  local connectivit*/
-      /* w2[i] = max(w[k] | k in S_i or k in S^T_i */
-      #pragma omp parallel for private(i)
-      for (i=0; i<n; ++i) w2[i]=0;
-             
-      for (i=0; i<my_n; ++i) {
-         for( iPtr =0 ; iPtr < degree_S[i]; ++iPtr) {
-             k=S[offset_S[i]+iPtr];
-             w2[i]=MAX(w2[i],w[k]);
-             w2[k]=MAX(w2[k],w[i]);
-         }
-      }
-      /* adjust overlaps by MAX */
-      Paso_Coupler_max(n, w2, col_coupler);
-
-      /* points with w[i]>w2[i] become C nodes */
-   }
-   
+  /* clean up : */
+  Paso_Coupler_free(w_coupler);
+  TMPMEMFREE(random);
+  TMPMEMFREE(w);
+  TMPMEMFREE(Status);
+  TMPMEMFREE(ST_flag);
+  
+  return;
 }
-#endif

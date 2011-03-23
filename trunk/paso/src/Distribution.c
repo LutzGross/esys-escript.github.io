@@ -23,6 +23,7 @@
 /**************************************************************/
 
 #include "Distribution.h"
+#include "PasoUtil.h"
 #include "esysUtils/error.h"  /* For checkPtr */
 
 Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, 
@@ -103,3 +104,52 @@ dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
  }
 }
 
+/* Pseudo random numbers such that the values are independend from
+   the distribution but the global length yet :*/
+
+static double Paso_Distribution_random_seed=.4142135623730951;
+
+double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t block )
+{
+   
+   index_t i;
+   double *out=NULL;
+   const index_t n_0 = in->first_component[in->mpi_info->rank] * block;
+   const index_t n_1 = in->first_component[in->mpi_info->rank+1] * block;
+   const index_t n = ( Paso_Distribution_getMaxGlobalComponents(in)-Paso_Distribution_getMinGlobalComponents(in) ) * block;
+   const dim_t my_n = n_1-n_0;
+   
+   out=MEMALLOC(my_n , double);
+
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0; i<my_n ;++i) {
+      out[i]=fmod( Paso_Distribution_random_seed*(n_0+i+1) ,1.);
+   }
+   
+   Paso_Distribution_random_seed=fmod( Paso_Distribution_random_seed * (n+1), 1.);
+   
+   return out;
+}
+
+dim_t Paso_Distribution_numPositives(const double* x, const Paso_Distribution *in, const dim_t block )
+{
+   
+   dim_t my_out, out;
+   const index_t n_0 = in->first_component[in->mpi_info->rank] * block;
+   const index_t n_1 = in->first_component[in->mpi_info->rank+1] * block;
+   const dim_t my_n = n_1-n_0;
+   
+
+   my_out = Paso_Util_numPositives(my_n, x);
+   
+   #ifdef ESYS_MPI
+      #pragma omp single
+      {
+	 MPI_Allreduce(&my_out,&out, 1, MPI_INT, MPI_SUM, in->mpi_info->comm);
+      }
+   #else
+      out=my_out;
+   #endif
+   
+   return out;
+}
