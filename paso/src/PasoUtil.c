@@ -50,6 +50,27 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
    return out;
 }
 
+/* returns the number of positive values in x */
+dim_t Paso_Util_numPositives(const dim_t N, const double *x) {
+   dim_t out=0;
+   register dim_t out2;
+   dim_t i;
+   
+   #pragma omp parallel private(i, out2) 
+   {
+      out2=0;
+      #pragma omp for schedule(static)
+      for (i=0;i<N;i++) {
+	 if ( x[i] > 0 ) out2++;
+      }
+      #pragma omp critical
+      {
+	 out = out + out2;
+      }
+   }
+   return out;
+}
+
 /* returnsthe maximum value in array */
 index_t Paso_Util_iMax(const dim_t N,const index_t* array) {
    index_t out=INDEX_T_MIN;
