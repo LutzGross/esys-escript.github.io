@@ -172,7 +172,7 @@ umfpack_libs = ['umfpack']
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-lapack_prefix = '/usr'
+lapack_prefix = ['/usr/include/atlas', '/usr']
 
 # LAPACK library/libraries to link against
 lapack_libs = ['lapack_atlas']
