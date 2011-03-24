@@ -41,7 +41,7 @@ from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
 OPTIMIZE=True # and False
-SOLVER_VERBOSE=True and False
+SOLVER_VERBOSE=True or False
 
 MIN_MATRIX_SIZE=1
 MIN_SPARSITY=1.

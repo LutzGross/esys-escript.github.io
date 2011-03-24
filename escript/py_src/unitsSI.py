@@ -296,6 +296,7 @@ m=Unit("m","meter",0.,1.)
 km=Kilo*m
 cm=Centi*m
 mm=Milli*m
+liter=(Deci*m)**3
 #
 #  time
 #
@@ -315,6 +316,7 @@ kg=Unit("kg","kg",0.,1.)
 gram=Milli*kg
 lb=Unit("lb","pound",0.,0.45359237)
 ton=Kilo*kg
+Barrel=Unit("bbl","barrel", 0., 158.987294928e-3)
 #
 #   electric current
 #
@@ -334,6 +336,7 @@ N = Unit("N","Newton",0.,1.)
 Pa = Unit("Pa","Pascal",0.,1.)
 bar=100*Kilo*Pa
 atm= Unit("atm","atmosphere",0.,101325.024)
+psi= Unit("psi","Psi",0.,6894.76)
 J = Unit("J","Joule",0.,1.)
 W= Unit("W","Watt",0.,1.)
 C=Unit("C","Coulomb",0.,1.)
@@ -346,7 +349,10 @@ DEG=Unit("Ohm","Ohm",0.,pi/180.)
 #  Derived 
 #
 Poise= gram/cm/sec
+cPoise=Poise*Centi
+mPoise=Poise*Milli
 Darcy= 9.869233e-13*m**2
+mDarcy=Darcy*Milli
 #
 #  some constants
 #
@@ -354,3 +360,4 @@ R_Earth_equator=6378.1370*km
 R_Earth_poles=6356.7523*km
 R_Earth=(R_Earth_equator+R_Earth_poles)/2
 v_light=299792458.*m/sec
+

@@ -205,6 +205,7 @@ model = PorosityOneHalfModel(domain,
 			     
 model.setInitialState(p=P_F_0, S_fg=0,  C_mg=None)
 
+
 1/0
 
 
