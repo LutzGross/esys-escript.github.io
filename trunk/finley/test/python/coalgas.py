@@ -513,8 +513,7 @@ class PorosityOneHalfModel(DualPorosity):
 	    :param S_fg: gas saturation in fractured rock 
 	    :param C_mg: gas concentration in coal matrix. if not given it is calculated 
 			using the  gas adsorption curve.
-	    """
-	    
+	    """    
 	    self.u=self.__pde.getNewCoefficient("u")
 	    u[0]=p
 	    u[1]=S_fg

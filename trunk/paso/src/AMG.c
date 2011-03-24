@@ -717,7 +717,7 @@ void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim
    index_t i, j;
    dim_t p;
    dim_t len=0;
-   #pragma omp parallel private(i) schedule(static)
+   #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<nT ;++i) {
       degree_ST[i]=0;
    }
@@ -857,7 +857,7 @@ printf("%d is in D\n",i);
 	 */
 	 /* w is updated  for local rows only */
 	 {
-	    #pragma omp parallel for private(j, jptr)
+	    #pragma omp parallel for private(i, jptr)
 	    for (i=0; i< my_n; ++i) {
 
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
@@ -870,7 +870,7 @@ printf("%d reduced by %d\n",i,j);
 	       }
 	       
 	    } 
-	    #pragma omp parallel for private(j)
+	    #pragma omp parallel for private(i, jptr)
 	    for (i=my_n; i< n; ++i) {
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 		  const index_t j = ST[offset_ST[i]+jptr];
