@@ -21,11 +21,191 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
+from esys.escript import unitsSI as U
 from coalgas import *
+import time
+from esys.finley import Rectangle
+
+L_X=168*U.km
+L_Y=168*U.km
+L_Z=10*U.m
+
+N_X=21 
+N_Y=21 
+
+
+PERM_F_X = 100 * U.mDarcy
+PERM_F_Y = 100 * U.mDarcy
+PERM_F_Z = 1e-4 * U.mDarcy
+PHI_F_0 = 0.01
+P_F_0 = 69 * U.bar
+
+# these object correspond to the ECLIPSE input files 
+PVTW={ "p_ref" :   1000 * U.bar ,  
+       "B_ref" :  0.997  ,
+       "C" :  3.084E-06  /U.bar,
+       "mu_ref" : 0.68673 * U.cPoise,
+       "C_v" : 0/U.bar
+
+     }
+GRAVITY = { "water" : 1.0, 
+            "gas" : .553 }
+ROCK = { "p_ref" :   1000 * U.bar ,
+         "C" : 3.3E-004 * 1./U.bar }
+     
+LANGMUIR = [
+[ 0	* U.bar , 0.00000000 ],
+[ 100	* U.bar , 0.00213886 ],
+[ 200	* U.bar , 0.00383259 ],
+[ 300	* U.bar , 0.00520706 ],
+[ 400	* U.bar , 0.00634474 ],
+[ 500	* U.bar , 0.00730199 ],
+[ 600	* U.bar , 0.00811857 ],
+[ 700	* U.bar , 0.00882336 ],
+[ 800	* U.bar , 0.00943786 ],
+[ 900	* U.bar , 0.00997836 ],
+[ 1000	* U.bar , 0.01045748 ],
+[ 1200	* U.bar , 0.01126912 ] ]
+
+PVDG = [
+[ 14.70 * U.bar ,200.3800 , 0.012025 * U.cPoise ] ,
+[ 20.00 * U.bar ,146.0600 , 0.012030 * U.cPoise ] ,
+[ 25.00 * U.bar ,116.1461 , 0.012034 * U.cPoise ] ,
+[ 30.00 * U.bar ,96.3132 , 0.012038 * U.cPoise ] ,
+[ 35.00 * U.bar ,82.2113 , 0.012043 * U.cPoise ] ,
+[ 49.33 * U.bar ,57.7891 , 0.012055 * U.cPoise ] ,
+[ 59.00 * U.bar ,48.0866 , 0.012064 * U.cPoise ] ,
+[ 69.00 * U.bar ,40.9441 , 0.012073 * U.cPoise ] ,
+[ 75.00 * U.bar ,37.5839 , 0.012078 * U.cPoise ] ,
+[ 83.00 * U.bar ,33.8685 , 0.012085 * U.cPoise ] ,
+[ 90.00 * U.bar ,31.1661 , 0.012092 * U.cPoise ] ,
+[ 95.00 * U.bar ,29.4827 , 0.012097 * U.cPoise ] ,
+[ 100.00 * U.bar ,27.9698 , 0.012101 * U.cPoise ] ,
+[ 105.00 * U.bar ,26.6028 , 0.012106 * U.cPoise ] ,
+[ 118.60 * U.bar ,23.4749 , 0.012119 * U.cPoise ] ,
+[ 120.00 * U.bar ,23.1937 , 0.012120 * U.cPoise ] ,
+[ 140.00 * U.bar ,19.7977 , 0.012140 * U.cPoise ] ,
+[ 153.23 * U.bar ,18.0443 , 0.012153 * U.cPoise ] ,
+[ 160.00 * U.bar ,17.2607 , 0.012159 * U.cPoise ] ,
+[ 170.00 * U.bar ,16.2188 , 0.012169 * U.cPoise ] ,
+[ 187.86 * U.bar ,14.6373 , 0.012188 * U.cPoise ] ,
+[ 222.49 * U.bar ,12.3027 , 0.012224 * U.cPoise ] ,
+[ 257.13 * U.bar ,10.6038 , 0.012262 * U.cPoise ] ,
+[ 291.76 * U.bar ,9.3134 , 0.012301 * U.cPoise ] ,
+[ 326.39 * U.bar ,8.3001 , 0.012341 * U.cPoise ] ,
+[ 361.02 * U.bar ,7.4835 , 0.012383 * U.cPoise ] ,
+[ 395.66 * U.bar ,6.8114 , 0.012425 * U.cPoise ] ,
+[ 430.29 * U.bar ,6.2491 , 0.012470 * U.cPoise ] ,
+[ 464.92 * U.bar ,5.7715 , 0.012515 * U.cPoise ] ,
+[ 499.55 * U.bar ,5.3610 , 0.012562 * U.cPoise ] ,
+[ 534.19 * U.bar ,5.0043 , 0.012610 * U.cPoise ] ,
+[ 568.82 * U.bar ,4.6917 , 0.012659 * U.cPoise ] ,
+[ 603.45 * U.bar ,4.4154 , 0.012710 * U.cPoise ] ,
+[ 638.08 * U.bar ,4.1695 , 0.012762 * U.cPoise ] ,
+[ 672.72 * U.bar ,3.9491 , 0.012815 * U.cPoise ] ,
+[ 707.35 * U.bar ,3.7507 , 0.012869 * U.cPoise ] ,
+[ 741.98 * U.bar ,3.5711 , 0.012925 * U.cPoise ] ,
+[ 776.61 * U.bar ,3.4076 , 0.012982 * U.cPoise ] ,
+[ 811.25 * U.bar ,3.2583 , 0.013041 * U.cPoise ] ,
+[ 845.88 * U.bar ,3.1214 , 0.013100 * U.cPoise ] ,
+[ 880.51 * U.bar ,2.9953 , 0.013161 * U.cPoise ] ,
+[ 915.14 * U.bar ,2.8790 , 0.013223 * U.cPoise ] ,
+[ 949.78 * U.bar ,2.7712 , 0.013287 * U.cPoise ] ,
+[ 984.41 * U.bar ,2.6711 , 0.013352 * U.cPoise ] ,
+[ 1019.00 * U.bar ,2.5781 , 0.013418 * U.cPoise ] ,
+[ 1053.70 * U.bar ,2.4909 , 0.013486 * U.cPoise ] ,
+[ 1088.30 * U.bar ,2.4096 , 0.013554 * U.cPoise ] ,
+[ 1122.90 * U.bar ,2.3334 , 0.013624 * U.cPoise ] ,
+[ 1157.60 * U.bar ,2.2616 , 0.013696 * U.cPoise ] ,
+[ 1192.20 * U.bar ,2.1942 , 0.013768 * U.cPoise ] ,
+[ 1226.80 * U.bar ,2.1307 , 0.013842 * U.cPoise ] ,
+[ 1261.50 * U.bar ,2.0705 , 0.013917 * U.cPoise ] ,
+[ 1296.10 * U.bar ,2.0138 , 0.013994 * U.cPoise ] ,
+[ 1330.70 * U.bar ,1.9600 , 0.014072 * U.cPoise ] ,
+[ 1365.40 * U.bar ,1.9089 , 0.014151  * U.cPoise ] ]  
+
+
+SGFN   = [  
+[ 0  , 0  , 0 ],
+[ 0.05   , 0  , 0 ],
+[ 0.1333  , 0.00610   , 0 ],
+[ 0.2167  , 0.02990   , 0 ],
+[ 0.3  , 0.0759   , 0 ],
+[ 0.3833  , 0.1471     , 0 ],
+[ 0.46667  , 0.2458     , 0 ],
+[ 0.55  , 0.3739     , 0 ],
+[ 0.6333  , 0.53300    , 0 ],
+[ 0.7167  , 0.7246     , 0 ],
+[ 0.8  , 0.95       , 0 ] ]
+SWFN = [
+[ 0.20000  , 0.00000, 0 ],
+[ 0.28330  , 0.03280, 0 ],
+[ 0.36670  , 0.09270, 0 ],
+[ 0.45000  , 0.17030, 0 ],
+[ 0.53330  , 0.26220, 0 ],
+[ 0.61670  , 0.36650, 0 ],
+[ 0.70000  , 0.48170, 0 ], 
+[ 0.78330  , 0.60710, 0 ],
+[ 0.86670  , 0.74170, 0 ],
+[ 0.95000  , 0.88500, 0 ],
+[ 1.00000  , 1.00000, 0 ] ]
+
+
+wellspecs = {
+  'P1' : { "X0" : [106, 106], 
+           "r"  : 0.253*U.m,
+           "s"  : 0,
+           "Q"  : 2000*U.Barrel/U.day*GRAVITY["water"],
+           "BHP" : 75*U.psi,
+           "schedule" : [0.*U.yr, 4*U.yr]
+         }
+}
+
+CELL_X=L_X/N_X
+CELL_Y=L_Y/N_Y
+# print input
+print("<%s> Execution started."%time.asctime())
+
+print "length x-direction = %f km"%(L_X/U.km)
+print "number of cells in x direction = %d"%N_X
+print "cell size in x direction = %f m"%(CELL_X/U.m)
+print "length y-direction = %f km"%(L_Y/U.km)
+print "number of cells in y direction = %d"%N_Y
+print "cell size in y direction = %f m"%(CELL_Y/U.m)
+print "fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy))
+print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
+print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
+print "initial porosity in fractured rock= %f"%PHI_F_0
+
+domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+print("<%s> Mesh set up completed."%time.asctime())
+
+
+model = PorosityOneHalfModel(domain, 
+                             phi_f=Porosity(phi_0=PHI_F_0, p_0=P_F_0, p_ref=ROCK["p_ref"], C = ROCK["C"]),
+                             L_g=InterpolationTable([ l[0] for l in LANGMUIR ], [ l[1] for l in LANGMUIR ] ),
+			     perm_f_0=PERM_F_X, 
+			     perm_f_1=PERM_F_Y, 
+			     perm_f_2=PERM_F_Z,
+			     k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ] ),  
+			     k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ] ),  
+			     mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
+			     mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
+			     rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"]), 
+			     rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]), 
+			     wells=[ VerticalPeacemanWell(i,BHP=wellspecs[i]["BHP"], 
+							    Q=wellspecs[i]["Q"], 
+							    r=wellspecs[i]["r"], 
+							    X0=[ (wellspecs[i]["X0"][0]+0.5)*CELL_X,  (wellspecs[i]["X0"][1]+0.5)*CELL_Y],
+							    D=[CELL_X, CELL_Y, L_Z], 
+							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z], 
+							    schedule=wellspecs[i]["schedule"], 
+							    s=wellspecs[i]["s"]) for i in wellspecs] 
+			     )
+			     
+model.setInitialState(p=P_F_0, S_fg=0,  C_mg=None)
 
 1/0
-
-
 
 
 #=======================================================
