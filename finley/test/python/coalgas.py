@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript import unitsSI as U
-from esys.escript import sqrt, log
+from esys.escript import sqrt, log, whereNegative, sup, inf
 import math
 
 class MaterialProperty(object):
@@ -199,41 +199,45 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       """
       returns the interpolated values of x
       """
-      x0=self.__x[0]
+      X=self.__x
+      Y=self.__y
+      
+      x0=X[0]
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
 	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(x[0],x[-1])
+	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
       out=self.__x[0]
-      for i in range(1,len(self.__x)):
-	  x1=self.__x[i]
-	  z=(y[i]-y[i-1])/(x[i]-x[i-1]) * (x-x[i-1]) + y[i-1]
+      for i in range(1,len(X)):
+	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1]) * (x-X[i-1]) + Y[i-1]
 	  out = out * m0 + z * (1-m0)
-	  m0=whereNegative(x-x[i])
+	  m0=whereNegative(x-X[i])
      
       if self.__obeyBounds:
 	    if inf(m0) < 1:
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(x[0],x[-1])
+	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
       else:
-	    out = out * m0 + y[-1] * (1-m0)
+	    out = out * m0 + V[-1] * (1-m0)
       return out
 
    def getValueDifferential(self, x):
-      x0=self.__x[0]
+      X=self.__x
+      Y=self.__y
+
+      x0=X[0]
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
 	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(x[0],x[-1])
+	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
       out=0.
-      for i in range(1,len(self.__x)):
-	  x1=self.__x[i]
-	  z=(y[i]-y[i-1])/(x[i]-x[i-1])
+      for i in range(1,len(X)):
+	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1])
 	  out = out * m0 + z * (1-m0)
-	  m0=whereNegative(x-x[i])
+	  m0=whereNegative(x-X[i])
      
       if self.__obeyBounds:
 	    if inf(m0) < 1:
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(x[0],x[-1])
+	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
       else:
 	    out = out * m0
       return out   
@@ -436,7 +440,7 @@ class DualPorosity(object):
       self.rho_g = rho_g    
       self.wells=wells
    
-
+    
 
 
 
@@ -505,7 +509,13 @@ class PorosityOneHalfModel(DualPorosity):
 	 """
 	 return self.__pde.getSolverOptions()
 	 
-      def setInitialState(p=1.*U.atm, S_fg=0,  C_mg=None):
+      def getState(self): 
+	 return self.u[0], self.u[1],  self.u[2]
+
+      def getOldState(self): 
+	 return self.u_old[0], self.u_old[1],  self.u_old[2]
+
+      def setInitialState(self, p=1.*U.atm, S_fg=0,  C_mg=None):
 	    """
 	    sets the initial state
 	    
@@ -514,24 +524,18 @@ class PorosityOneHalfModel(DualPorosity):
 	    :param C_mg: gas concentration in coal matrix. if not given it is calculated 
 			using the  gas adsorption curve.
 	    """    
-	    self.u=self.__pde.getNewCoefficient("u")
-	    u[0]=p
-	    u[1]=S_fg
+	    self.u=self.__pde.createSolution()
+	    self.u[0]=p
+	    self.u[1]=S_fg
 	    if C_mg == None:
-	      u[2]= self.L_g(p)
+	      self.u[2]= self.L_g(p)
 	    else:
-	      u[2]=C_mg
+	      self.u[2]=C_mg
 	  
       def solvePDE(self):
 	 
-	 p_f=self.u[0]
-	 S_fg=self.u[1]
-	 C_mg=self.u[3] 
-      
-      
-	 p_f_old=self.u_old[0]
-	 S_fg_old=self.u_old[1]
-	 C_mg_old=self.u_old[3]
+	 p_f, S_fg, C_mg=self.getState() 
+	 p_f_old, S_fg_old, C_mg_old=self.getOldState()
 
 
 	 phi_f   =self.phi_f.getValue(S_fg)
