@@ -278,7 +278,7 @@ void  eigenvalues_and_eigenvectors2(const double A00,const double A01,const doub
                *V11=-(*V00);
             } else {
                *V01=-(*V10);
-               *V11= (*V10);
+               *V11= (*V00);
             }
         } else if (TEMP0>0.) {
             *V00=TEMP0*scale;

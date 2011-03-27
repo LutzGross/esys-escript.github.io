@@ -21,6 +21,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
+from esys.weipa import saveVTK
 from esys.escript import unitsSI as U
 from coalgas import *
 import time
@@ -39,6 +40,7 @@ PERM_F_Y = 100 * U.mDarcy
 PERM_F_Z = 1e-4 * U.mDarcy
 PHI_F_0 = 0.01
 P_F_0 = 69 * U.bar
+DT= *U.day
 
 # these object correspond to the ECLIPSE input files 
 PVTW={ "p_ref" :   1000 * U.bar ,  
@@ -202,10 +204,14 @@ model = PorosityOneHalfModel(domain,
 							    schedule=wellspecs[i]["schedule"], 
 							    s=wellspecs[i]["s"]) for i in wellspecs] 
 			     )
-			     
+
 model.setInitialState(p=P_F_0, S_fg=0,  C_mg=None)
 
 
+p, S_fg, C_mg=model.getState()
+
+
+saveVTK("state.0.vtu",p=p, S_fg=S_fg, C_mg=C_mg)
 1/0
 
 
