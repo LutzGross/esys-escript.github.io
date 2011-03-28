@@ -439,9 +439,36 @@ class DualPorosity(object):
       self.rho_w = rho_w
       self.rho_g = rho_g    
       self.wells=wells
+      self.t =0
+      
+      self.__iter_max=1
+      self.__rtol=1.e-4
+      self.__verbose=False
+   def setIterationControl(self, iter_max=None, rtol=None, verbose=None):
+     """
+     sets parameters to control iteration process
+     """
+     if iter_max !=None: self.__iter_max=iter_max
+     if rtol !=None: self.__rtol = rtol
+     if verbose !=None: self.__verbose=verbose
    
-    
-
+   def update(self, dt): 
+         self.u, self.u_old = self.u.copy(), self.u
+         n=0
+         rerr=1.
+         while n < self.__iter_max and rerr > self.__rtol:
+            u=self.solvePDE(dt)
+	    norm_u=Lsup(u)
+	    norm_e=Lsup(u-self.u)
+	    if norm_u > 0:
+	        rerr=norm_e/norm_u
+	    else:
+	        rerr=norm_e
+	    if self.__verbose: print "iteration step %d: relative change = %e"%(n, rerr)
+	    n+=1
+	    self.u=u
+         print "iteration completed."
+         self.t+=dt
 
 
 class PorosityOneHalfModel(DualPorosity):
@@ -532,11 +559,18 @@ class PorosityOneHalfModel(DualPorosity):
 	    else:
 	      self.u[2]=C_mg
 	  
-      def solvePDE(self):
+      def solvePDE(self, dt):
 	 
 	 p_f, S_fg, C_mg=self.getState() 
 	 p_f_old, S_fg_old, C_mg_old=self.getOldState()
 
+         S_fw=1-S_fg
+
+         k_fw=self.k_w(S_fw)
+         k_fg=self.k_g(S_fg)
+         mu_fw=self.mu_w(p_f)
+         mu_fg=self.mu_g(p_f)
+         
 
 	 phi_f   =self.phi_f.getValue(S_fg)
 	 dphi_fdp=self.phi_f.getValueDifferential(S_fg)
@@ -548,8 +582,9 @@ class PorosityOneHalfModel(DualPorosity):
 	 rho_fg = self.rho_g.getValue(p_f)
 	 drho_fgdp	= self.rho_g.getValueDifferential(p_f)
 	 
-	 L_g       = self.getValue(p_f)
+	 L_g       = self.L_g.getValue(p_f)
 	 dL_gdp =  self.rho_w.getValueDifferential(p_f)
+	 
 	 
 	 A_fw = rho_fw * k_fw/mu_fw 
 	 A_fg = rho_fg * k_fg/mu_fg
