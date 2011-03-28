@@ -34,15 +34,16 @@ L_Z=10*U.m
 N_X=21 
 N_Y=21 
 
+OUTPUT_DIR="results"
 
 PERM_F_X = 100 * U.mDarcy
 PERM_F_Y = 100 * U.mDarcy
 PERM_F_Z = 1e-4 * U.mDarcy
 PHI_F_0 = 0.01
 P_F_0 = 69 * U.bar
-DT= *U.day
+DT=30.5*U.day
+N_T=24
 
-# these object correspond to the ECLIPSE input files 
 PVTW={ "p_ref" :   1000 * U.bar ,  
        "B_ref" :  0.997  ,
        "C" :  3.084E-06  /U.bar,
@@ -179,6 +180,8 @@ print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
 print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
 print "initial porosity in fractured rock= %f"%PHI_F_0
 
+mkDir(OUTPUT_DIR)
+
 domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
 print("<%s> Mesh set up completed."%time.asctime())
 
@@ -206,14 +209,38 @@ model = PorosityOneHalfModel(domain,
 			     )
 
 model.setInitialState(p=P_F_0, S_fg=0,  C_mg=None)
-
+model.getPDEOptions().setVerbosityOn()
+model.setIterationControl(iter_max=1, rtol=1.e-4, verbose=True)
+print "<%s> Problem set up completed."%time.asctime()
 
 p, S_fg, C_mg=model.getState()
 
+FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%0)
+saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
+print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
 
-saveVTK("state.0.vtu",p=p, S_fg=S_fg, C_mg=C_mg)
+
+
+t=0
+n_t = 0
+dt = DT
+while n_t< N_T:
+  print "<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day)
+  
+  model.update(dt)
+
+  p, S_fg, C_mg=model.getState()
+  
+  FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
+  saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
+  print "<%s>State %s saved to file %s."%(time.asctime(),n_t,FN )
+
+  n_t+=1
+  t+=DT
+
+
+
 1/0
-
 
 #=======================================================
 
