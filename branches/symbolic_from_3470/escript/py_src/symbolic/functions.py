@@ -177,15 +177,30 @@ class inverse(Function):
     """
     nargs = 1
 
+    @classmethod
+    def eval(cls, arg):
+        if arg.is_Number:
+            return 1./arg
+
 class minval(Function):
     """Returns the minimum value over all components of the argument
     """
     nargs = 1
 
+    @classmethod
+    def eval(cls, arg):
+        if arg.is_Number:
+            return arg
+
 class maxval(Function):
     """Returns the maximum value over all components of the argument
     """
     nargs = 1
+
+    @classmethod
+    def eval(cls, arg):
+        if arg.is_Number:
+            return arg
 
 class trace(Function):
     """Returns the trace of the argument with optional axis_offset
@@ -202,10 +217,26 @@ class symmetric(Function):
     """
     nargs = 1
 
+    @classmethod
+    def eval(cls, arg):
+        if arg.is_Function:
+            if arg.func is symmetric: return arg
+            if arg.func is nonsymmetric: return S.Zero
+        elif arg.is_Number:
+            return arg
+
 class nonsymmetric(Function):
     """Returns the non-symmetric part of the argument
     """
     nargs = 1
+
+    @classmethod
+    def eval(cls, arg):
+        if arg.is_Function:
+            if arg.func is nonsymmetric: return arg
+            if arg.func is symmetric: return S.Zero
+        elif arg.is_Number:
+            return arg
 
 class swap_axes(Function):
     """Returns the 'swap' of the argument
