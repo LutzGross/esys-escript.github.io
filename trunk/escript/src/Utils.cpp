@@ -337,8 +337,6 @@ bool append)
     }
 
     const double* masksample=0;
-    int maskoffset=0;
-
 
     bool expandedmask=false;		// does the mask act expanded. Are there mask value for each point in the sample
     bool wantrow=true;			// do we output this row?
@@ -346,7 +344,6 @@ bool append)
     {
 	if (mask.actsExpanded())
 	{
-		maskoffset=DataTypes::noValues(mask.getDataPointShape());
 		expandedmask=true;
 	}
     }

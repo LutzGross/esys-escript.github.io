@@ -56,7 +56,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   bool_t reducedIntegrationOrder=FALSE;
   char error_msg[LenErrorMsg_MAX];
   Finley_Assemble_Parameters p;
-  double time0;
   dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
   type_t funcspace;
   double blocktimer_start = blocktimer_time();
@@ -259,7 +258,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
     }
   }
   if (Finley_noError()) {
-     time0=Finley_timer();
      if (p.numEqu == p. numComp) {
         if (p.numEqu > 1) {
           /* system of PDESs */

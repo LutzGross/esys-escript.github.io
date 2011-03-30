@@ -56,20 +56,11 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
     bool_t reducedIntegrationOrder = FALSE;
     char error_msg[LenErrorMsg_MAX];
     Dudley_Assemble_Parameters p;
-    double time0;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
     type_t funcspace;
     double blocktimer_start = blocktimer_time();
 
     Dudley_resetError();
-
-    {
-#ifdef ESYS_MPI
-	int iam, numCPUs;
-	iam = elements->MPIInfo->rank;
-	numCPUs = elements->MPIInfo->size;
-#endif
-    }
 
     if (nodes == NULL || elements == NULL)
 	return;
@@ -329,7 +320,6 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
     }
     if (Dudley_noError())
     {
-	time0 = Dudley_timer();
 	if (p.numEqu == p.numComp)
 	{
 	    if (p.numEqu > 1)

@@ -38,13 +38,8 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
     index_t *map = NULL;
     const double *shapeFns = 0;
     type_t data_type = getFunctionSpaceType(data);
-    type_t type;
     size_t numComps_size;
     Dudley_resetError();
-#define NODES 0
-#define REDUCED_NODES 3
-#define DOF 1
-#define REDUCED_DOF 2
     if (nodes == NULL || elements == NULL)
 	return;
     reduced_integration = Dudley_Assemble_reducedIntegrationOrder(interpolated_data);
@@ -54,13 +49,11 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 
     if (data_type == DUDLEY_NODES)
     {
-	type = NODES;
 	numNodes = Dudley_NodeFile_getNumNodes(nodes);
 	map = Dudley_NodeFile_borrowTargetNodes(nodes);
     }
     else if (data_type == DUDLEY_REDUCED_NODES)
     {
-	type = REDUCED_NODES;
 	numNodes = Dudley_NodeFile_getNumReducedNodes(nodes);
 	map = Dudley_NodeFile_borrowTargetReducedNodes(nodes);
     }
@@ -72,7 +65,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 			    "Dudley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
 	    return;
 	}
-	type = DOF;
 	numNodes = Dudley_NodeFile_getNumDegreesOfFreedom(nodes);
 	map = Dudley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
     }
@@ -84,7 +76,6 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 			    "Dudley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
 	    return;
 	}
-	type = REDUCED_DOF;
 	numNodes = Dudley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
 	map = Dudley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
     }
@@ -153,8 +144,4 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 	    THREAD_MEMFREE(local_data);
 	}			/* end of parallel region */
     }
-#undef NODES
-#undef REDUCED_NODES
-#undef DOF
-#undef REDUCED_DOF
 }

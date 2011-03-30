@@ -2178,8 +2178,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   next[1] = numSamples;
   int lowProc = 0;
   double *globalMins = new double[get_MPISize()*2+1];
-  int error;
-  error = MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  /*int error =*/ MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
 
   if( get_MPIRank()==0 ){
 	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
@@ -2265,8 +2264,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   next[1] = numSamples;
   int highProc = 0;
   double *globalMaxs = new double[get_MPISize()*2+1];
-  int error;
-  error = MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  /*int error =*/ MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
   if( get_MPIRank()==0 ){
     for (highProc=0; highProc<get_MPISize(); highProc++)
 	if (globalMaxs[highProc*2+1] > 0) break;
@@ -3879,8 +3877,7 @@ Data::get_MPISize() const
 {
 	int size;
 #ifdef ESYS_MPI
-	int error;
-	error = MPI_Comm_size( get_MPIComm(), &size );
+	/*int error =*/ MPI_Comm_size( get_MPIComm(), &size );
 #else
 	size = 1;
 #endif
@@ -3892,8 +3889,7 @@ Data::get_MPIRank() const
 {
 	int rank;
 #ifdef ESYS_MPI
-	int error;
-	error = MPI_Comm_rank( get_MPIComm(), &rank );
+	/*int error =*/ MPI_Comm_rank( get_MPIComm(), &rank );
 #else
 	rank = 0;
 #endif

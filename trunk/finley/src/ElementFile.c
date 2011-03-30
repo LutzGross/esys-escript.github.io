@@ -85,7 +85,7 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
   }
 }
 void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
-  dim_t local_num_elements,e,num_elements=0, size;
+  dim_t local_num_elements,e,num_elements=0;
   Esys_MPI_rank myRank;
   if (in == NULL) {
       distribution[0]=num_elements;
@@ -93,7 +93,6 @@ void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* di
       if (in->MPIInfo->size>1) {
          num_elements=0;
          myRank=in->MPIInfo->rank;
-         size=in->MPIInfo->size;
          #pragma omp parallel private(local_num_elements)
          {
             local_num_elements=0;

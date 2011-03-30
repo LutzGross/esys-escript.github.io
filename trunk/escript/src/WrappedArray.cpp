@@ -26,11 +26,10 @@ namespace
 void checkFeatures(const boost::python::object& obj)
 {
 	using namespace std;
-	int len=0;
 	boost::python::object o2;
 	try
 	{
-	   len=extract<int>(obj.attr("__len__")());
+	   /*int len=*/ extract<int>(obj.attr("__len__")());
 	}
 	catch (...)
 	{

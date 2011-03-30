@@ -38,13 +38,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   dim_t numComps=getDataPointSize(data);
   index_t *resort_nodes=NULL, *map=NULL;
   type_t data_type=getFunctionSpaceType(data);
-  type_t type;
   size_t numComps_size;
   Finley_resetError();
-  #define NODES 0
-  #define REDUCED_NODES 3
-  #define DOF 1
-  #define REDUCED_DOF 2
   if (nodes==NULL || elements==NULL) return;
   reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
   reference_element= Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, reduced_integration);
@@ -53,7 +48,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   /* set some parameter */
 
   if (data_type==FINLEY_NODES) {
-	   type=NODES;
 	   resort_nodes=reference_element->Type->subElementNodes;
 	   numSub=reference_element->Type->numSubElements;
 	   basis=reference_element->BasisFunctions;
@@ -65,7 +59,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 	            dof_offset=reference_element->Type->offsets[0];
            }
   } else if (data_type==FINLEY_REDUCED_NODES) {
-	   type=REDUCED_NODES;
 	   numSub=1;
 	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
@@ -81,7 +74,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 		  Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
 		  return;
 	   }
-	   type=DOF;
 	   numSub=reference_element->Type->numSubElements;
 	   resort_nodes=reference_element->Type->subElementNodes;
 	   basis=reference_element->BasisFunctions;	
@@ -97,7 +89,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 		  Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
 		  return;
 	   }
-	   type=REDUCED_DOF;
 	   numSub=1;
 	   resort_nodes=reference_element->Type->linearNodes;
 	   basis=reference_element->LinearBasisFunctions;
@@ -157,8 +148,4 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 		   THREAD_MEMFREE(local_data);
 	 	} /* end of parallel region */
   }
-  #undef NODES 
-  #undef REDUCED_NODES 
-  #undef DOF 
-  #undef REDUCED_DOF 
 }

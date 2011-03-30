@@ -76,7 +76,6 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
 {
      Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
      Paso_TransportProblem* out=NULL;
-     Paso_SystemMatrixPattern *transport_pattern;
      dim_t n,i;
 
      out=MEMALLOC(1,Paso_TransportProblem);
@@ -107,7 +106,6 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
 
      if (Esys_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         transport_pattern=out->transport_matrix->pattern;
          out->constraint_weights=MEMALLOC(n,double);
          out->lumped_mass_matrix=MEMALLOC(n,double);
          out->reactive_matrix=MEMALLOC(n,double);;

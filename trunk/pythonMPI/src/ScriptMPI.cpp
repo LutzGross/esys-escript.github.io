@@ -41,11 +41,11 @@ int main( int argc, char **argv ) {
 
     if( mpi_info->rank )
     {
-      FILE *fp_out;
+      //FILE *fp_out;
       #ifdef _WIN32
-      fp_out = freopen( "NUL", "w+", stdout );
+      /*fp_out =*/ freopen( "NUL", "w+", stdout );
       #else
-      fp_out = freopen( "/dev/null", "w+", stdout );
+      /*fp_out =*/ freopen( "/dev/null", "w+", stdout );
       #endif
     }
     /*
