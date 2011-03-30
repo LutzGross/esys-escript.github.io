@@ -461,7 +461,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	 register double sum_row=0;
 	 register double main_row=0;
 	 register dim_t kdeg=0;
-         const register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+         register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
          
 	 /* collect information for row i: */
 	 #pragma ivdep
@@ -532,7 +532,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	     
 	      const double threshold = remote_threshold[2*i+1];
 	      register dim_t kdeg=0;
-              const register index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+              register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
               if (remote_threshold[2*i]>0) {
 	         #pragma ivdep
 	         for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
@@ -593,7 +593,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 register double main_row=0;
 	 register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
 	 register dim_t kdeg=0;
-	 const register index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+	 register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 	 
 	 /* collect information for row i: */
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
@@ -685,7 +685,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 
 	 const double threshold2 = remote_threshold[2*i+1]*remote_threshold[2*i+1];
 	 register dim_t kdeg=0;
-	 const register index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+	 register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
 	 if (remote_threshold[2*i]>0) {
 	    #pragma ivdep
 	    for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
