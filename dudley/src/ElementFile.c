@@ -86,7 +86,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 
 void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * distribution)
 {
-    dim_t local_num_elements, e, num_elements = 0, size;
+    dim_t local_num_elements, e, num_elements = 0;
     Esys_MPI_rank myRank;
     if (in == NULL)
     {
@@ -98,7 +98,6 @@ void Dudley_ElementFile_setElementDistribution(Dudley_ElementFile * in, dim_t * 
 	{
 	    num_elements = 0;
 	    myRank = in->MPIInfo->rank;
-	    size = in->MPIInfo->size;
 #pragma omp parallel private(local_num_elements)
 	    {
 		local_num_elements = 0;

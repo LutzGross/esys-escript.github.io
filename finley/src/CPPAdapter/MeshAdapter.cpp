@@ -1075,8 +1075,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
-         escriptDataC _in2 = temp.getDataC();
+         //escript::Data temp=escript::Data( in,  continuousFunction(*this) );
+         //escriptDataC _in2 = temp.getDataC();
       } else {
          Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
       }

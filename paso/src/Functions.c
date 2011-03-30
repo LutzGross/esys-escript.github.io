@@ -29,11 +29,10 @@ err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, co
    dim_t i;
    register double aw;
    const double epsnew=sqrt(EPSILON);
-   double norm_x0, tt, ttt, s=epsnew, local_s, norm_w=0.;
+   double /*norm_x0,*/ ttt, s=epsnew, local_s, norm_w=0.;
    
-   norm_x0=Paso_lsup(n,x0,F->mpi_info);
+   /*norm_x0=Paso_lsup(n,x0,F->mpi_info);*/
    norm_w=Paso_lsup(n,w,F->mpi_info);
-   tt=EPSILON*norm_x0;
    ttt=sqrt(EPSILON)*norm_w;
    #pragma omp parallel private(local_s) 
    {
