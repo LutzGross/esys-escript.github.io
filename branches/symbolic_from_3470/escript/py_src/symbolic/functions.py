@@ -23,10 +23,11 @@ __url__="https://launchpad.net/escript-finley"
 extra functions that can be used in symbolic expressions
 """
 
-from sympy.core.function import Function
+import sympy
+from sympy.functions import *
 from sympy import S
 
-class wherePositive(Function):
+class wherePositive(sympy.Function):
     """Returns:
          1 where expr > 0
          0 else
@@ -52,7 +53,7 @@ class wherePositive(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class whereNonPositive(Function):
+class whereNonPositive(sympy.Function):
     """Returns:
          0 where expr > 0
          1 else
@@ -72,7 +73,7 @@ class whereNonPositive(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class whereNegative(Function):
+class whereNegative(sympy.Function):
     """Returns:
          1 where expr < 0
          0 else
@@ -97,7 +98,7 @@ class whereNegative(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class whereNonNegative(Function):
+class whereNonNegative(sympy.Function):
     """Returns:
          0 where expr < 0
          1 else
@@ -117,7 +118,7 @@ class whereNonNegative(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class whereZero(Function):
+class whereZero(sympy.Function):
     """Returns:
          1 where expr == 0
          0 else
@@ -142,7 +143,7 @@ class whereZero(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class whereNonZero(Function):
+class whereNonZero(sympy.Function):
     """Returns:
          0 where expr == 0
          1 else
@@ -162,7 +163,7 @@ class whereNonZero(Function):
     def _eval_derivative(self, x):
         return S.Zero
 
-class log10(Function):
+class log10(sympy.Function):
     """Returns the base-10 logarithm of the argument (same as log(x,10))
     """
     nargs = 1
@@ -172,7 +173,7 @@ class log10(Function):
         from sympy.functions.elementary.exponential import log
         return log(arg,10)
 
-class inverse(Function):
+class inverse(sympy.Function):
     """Returns the inverse of the argument
     """
     nargs = 1
@@ -182,7 +183,7 @@ class inverse(Function):
         if arg.is_Number:
             return 1./arg
 
-class minval(Function):
+class minval(sympy.Function):
     """Returns the minimum value over all components of the argument
     """
     nargs = 1
@@ -192,7 +193,7 @@ class minval(Function):
         if arg.is_Number:
             return arg
 
-class maxval(Function):
+class maxval(sympy.Function):
     """Returns the maximum value over all components of the argument
     """
     nargs = 1
@@ -202,17 +203,47 @@ class maxval(Function):
         if arg.is_Number:
             return arg
 
-class trace(Function):
+class maximum(sympy.Function):
+    """Returns the maximum over the arguments
+    """
+    pass
+
+class minimum(sympy.Function):
+    """Returns the minimum over the arguments
+    """
+    pass
+
+class integrate(sympy.Function):
+    """Returns the integral of the argument
+    """
+    nargs = (1,2)
+
+class interpolate(sympy.Function):
+    """Returns the argument interpolated on the function space provided
+    """
+    nargs = 2
+
+class L2(sympy.Function):
+    """Returns the L2 norm of the argument
+    """
+    nargs = 1
+
+class clip(sympy.Function):
+    """Returns the argument clipped to a minimum and maximum value
+    """
+    nargs = (1,2,3)
+
+class trace(sympy.Function):
     """Returns the trace of the argument with optional axis_offset
     """
     nargs = (1,2)
 
-class transpose(Function):
+class transpose(sympy.Function):
     """Returns the transpose of the argument
     """
     nargs = (1,2)
 
-class symmetric(Function):
+class symmetric(sympy.Function):
     """Returns the symmetric part of the argument
     """
     nargs = 1
@@ -225,7 +256,7 @@ class symmetric(Function):
         elif arg.is_Number:
             return arg
 
-class nonsymmetric(Function):
+class nonsymmetric(sympy.Function):
     """Returns the non-symmetric part of the argument
     """
     nargs = 1
@@ -238,15 +269,25 @@ class nonsymmetric(Function):
         elif arg.is_Number:
             return arg
 
-class swap_axes(Function):
+class swap_axes(sympy.Function):
     """Returns the 'swap' of the argument
     """
     nargs = (1,2,3)
 
-class grad(Function):
+class grad(sympy.Function):
     """Returns the spatial gradient of the argument
     """
     nargs = (1,2)
+
+class inner(sympy.Function):
+    """Returns the inner product of the arguments
+    """
+    nargs = 2
+
+class outer(sympy.Function):
+    """Returns the outer product of the arguments
+    """
+    nargs = 2
 
 #
 # vim: expandtab shiftwidth=4:
