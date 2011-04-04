@@ -32,11 +32,13 @@ Test suite for the escript.symbolic module
 
 __author__="Cihan Altinay"
 
-from esys.escript import Data, RandomData, FunctionSpace
-from esys.escript.symbolic import *
+from esys.escript import *
 import unittest
 
 class SymbolicTestCase(unittest.TestCase):
+
+    # number of digits that have to match for results to be considered equal
+    TOL_DIGITS=8
 
     def test_Evaluator(self):
         e=Evaluator()
@@ -73,95 +75,355 @@ class SymbolicTestCase(unittest.TestCase):
         self.assertEqual(res, ref, "wrong result after substitution with Data object")
 
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def test_Functions(self):
-        import esys.escript as es
+    def test_wherePositive_Symbol(self):
         x=Symbol('x')
-        xx=RandomData((4,4), FunctionSpace())
-        TOL_DIGITS=8
-
         y=wherePositive(x)
-        ref=es.wherePositive(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for wherePositive()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=wherePositive(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_whereNonPositive_Symbol(self):
+        x=Symbol('x')
         y=whereNonPositive(x)
-        ref=es.whereNonPositive(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for whereNonPositive()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=whereNonPositive(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_whereNegative_Symbol(self):
+        x=Symbol('x')
         y=whereNegative(x)
-        ref=es.whereNegative(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for whereNegative()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=whereNegative(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_whereNonNegative_Symbol(self):
+        x=Symbol('x')
         y=whereNonNegative(x)
-        ref=es.whereNonNegative(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for whereNonNegative()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=whereNonNegative(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_whereZero_Symbol(self):
+        x=Symbol('x')
         y=whereZero(x)
-        ref=es.whereZero(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for whereZero()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=whereZero(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_whereNonZero_Symbol(self):
+        x=Symbol('x')
         y=whereNonZero(x)
-        ref=es.whereNonZero(xx).toListOfTuples()
-        res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        self.assertEqual(res, ref, "wrong result for whereNonZero()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=whereNonZero(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_log10_Symbol(self):
+        x=Symbol('x')
         y=log10(x)
-        ref=es.log10(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for log10()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=log10(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_inverse_Symbol(self):
+        x=Symbol('x')
         y=inverse(x)
-        ref=es.inverse(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for inverse()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=inverse(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_minval_Symbol(self):
+        x=Symbol('x')
         y=minval(x)
-        ref=es.minval(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for minval()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=minval(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_maxval_Symbol(self):
+        x=Symbol('x')
         y=maxval(x)
-        ref=es.maxval(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for maxval()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=maxval(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_trace_Symbol(self):
+        x=Symbol('x')
         y=trace(x)
-        ref=es.trace(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for trace()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=trace(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_transpose_Symbol(self):
+        x=Symbol('x')
         y=transpose(x)
-        ref=es.transpose(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for transpose()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=transpose(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_symmetric_Symbol(self):
+        x=Symbol('x')
         y=symmetric(x)
-        ref=es.symmetric(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for symmetric()")
-
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=symmetric(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_nonsymmetric_Symbol(self):
+        x=Symbol('x')
         y=nonsymmetric(x)
-        ref=es.nonsymmetric(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for nonsymmetric()")
-
-        y=swap_axes(x)
-        ref=es.swap_axes(xx)
-        res=Evaluator(y)(x=xx)[0]
-        self.assertAlmostEqual(es.Lsup(res-ref), 0.0, TOL_DIGITS, "wrong result for swap_axes()")
-
-        #y=grad(x)
-        #ref=es.grad(xx).toListOfTuples()
-        #res=Evaluator(y)(x=xx)[0].toListOfTuples()
-        #self.assertEqual(res, ref, "wrong result for grad()")
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=nonsymmetric(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_swapaxes_Symbol(self):
+        x=Symbol('x')
+        y=swap_axes(x, 1, 0)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=swap_axes(xx, 1, 0)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_sin_Symbol(self):
+        x=Symbol('x')
+        y=sin(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=sin(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_cos_Symbol(self):
+        x=Symbol('x')
+        y=cos(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=cos(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_tan_Symbol(self):
+        x=Symbol('x')
+        y=tan(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=tan(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_asin_Symbol(self):
+        x=Symbol('x')
+        y=asin(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=asin(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_acos_Symbol(self):
+        x=Symbol('x')
+        y=acos(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=acos(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_atan_Symbol(self):
+        x=Symbol('x')
+        y=atan(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=atan(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_sinh_Symbol(self):
+        x=Symbol('x')
+        y=sinh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=sinh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_cosh_Symbol(self):
+        x=Symbol('x')
+        y=cosh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=cosh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_tanh_Symbol(self):
+        x=Symbol('x')
+        y=tanh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=tanh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_asinh_Symbol(self):
+        x=Symbol('x')
+        y=asinh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=asinh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_acosh_Symbol(self):
+        x=Symbol('x')
+        y=acosh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=acosh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_atanh_Symbol(self):
+        x=Symbol('x')
+        y=atanh(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=atanh(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_exp_Symbol(self):
+        x=Symbol('x')
+        y=exp(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=exp(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_sqrt_Symbol(self):
+        x=Symbol('x')
+        y=sqrt(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=sqrt(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_log_Symbol(self):
+        x=Symbol('x')
+        y=log(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=log(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_sign_Symbol(self):
+        x=Symbol('x')
+        y=sign(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=sign(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_abs_Symbol(self):
+        x=Symbol('x')
+        y=abs(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=abs(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_inner_Symbol(self):
+        x,y=symbols('xy')
+        z=inner(x,y)
+        self.assertTrue(isinstance(z, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        yy=RandomData((4,4), FunctionSpace())
+        ref=inner(xx,yy)
+        res=Evaluator(z)(x=xx, y=yy)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_outer_Symbol(self):
+        x,y=symbols('xy')
+        z=outer(x,y)
+        self.assertTrue(isinstance(z, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        yy=RandomData((4,4), FunctionSpace())
+        ref=outer(xx,yy)
+        res=Evaluator(z)(x=xx, y=yy)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_clip_Symbol(self):
+        x=Symbol('x')
+        y=clip(x, 0.4, 0.6)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=clip(xx, 0.4, 0.6)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_length_Symbol(self):
+        x=Symbol('x')
+        y=length(x)
+        self.assertTrue(isinstance(y, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        ref=length(xx)
+        res=Evaluator(y)(x=xx)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_maximum_Symbol(self):
+        x,y=symbols('xy')
+        z=maximum(x,y)
+        self.assertTrue(isinstance(z, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        yy=RandomData((4,4), FunctionSpace())
+        ref=maximum(xx,yy)
+        res=Evaluator(z)(x=xx, y=yy)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_minimum_Symbol(self):
+        x,y=symbols('xy')
+        z=minimum(x,y)
+        self.assertTrue(isinstance(z, Basic), "wrong type of result")
+        xx=RandomData((4,4), FunctionSpace())
+        yy=RandomData((4,4), FunctionSpace())
+        ref=minimum(xx,yy)
+        res=Evaluator(z)(x=xx, y=yy)
+        self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
 
 
 if __name__ == "__main__":
+    import sys
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(SymbolicTestCase))
     s=unittest.TextTestRunner(verbosity=2).run(suite)

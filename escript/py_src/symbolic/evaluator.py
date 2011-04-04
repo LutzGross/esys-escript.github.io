@@ -49,7 +49,7 @@ class Evaluator:
         self.expressions.append(expression)
         sym=tuple(expression.atoms(Symbol))
         self.symbols.append(sym)
-        self.lambdas.append(lambdify(sym, expression, ["escript","math","numpy"]))
+        self.lambdas.append(lambdify(sym, expression, ["escript","numpy"]))
         return self
 
     def subs(self, **args):
@@ -77,7 +77,10 @@ class Evaluator:
                 res+=self.lambdas[i](*subslist),
             else:
                 raise RuntimeError("Not all symbols have a value")
-        return res
+        if len(res)==1:
+            return res[0]
+        else:
+            return res
 
     def __call__(self, **args):
         """

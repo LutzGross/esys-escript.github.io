@@ -19,9 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from sympy import *
+from sympy.core import Basic,Symbol,diff,evalf,expand,oo,pi,symbols
 from evaluator import *
-from functions import *
 
 # prefer escript's implementation of functions such as 'sign' etc.
 from sympy.utilities.lambdify import MODULES
