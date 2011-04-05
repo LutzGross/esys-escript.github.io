@@ -1756,100 +1756,6 @@ def eigenvalues_and_eigenvectors(arg):
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
 
-#=======================================================
-#  Binary operations:
-#=======================================================
-def add(arg0,arg1):
-       """
-       Adds ``arg0`` and ``arg1`` together.
-
-       :param arg0: first term
-       :type arg0: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :param arg1: second term
-       :type arg1: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :return: the sum of ``arg0`` and ``arg1``
-       :rtype: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`.
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return args[1]
-       elif testForZero(args[1]):
-          return args[0]
-       else:
-          if isinstance(args[0],numpy.ndarray):
-              return args[1]+args[0]
-          else:
-              return args[0]+args[1]
-
-def mult(arg0,arg1):
-       """
-       Product of ``arg0`` and ``arg1``.
-
-       :param arg0: first term
-       :type arg0: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :param arg1: second term
-       :type arg1: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :return: the product of ``arg0`` and ``arg1``
-       :rtype: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`.
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]) or testForZero(args[1]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
-       else:
-          if isinstance(args[0],numpy.ndarray):
-              return args[1]*args[0]
-          else:
-              return args[0]*args[1]
-
-def quotient(arg0,arg1):
-       """
-       Quotient of ``arg0`` and ``arg1``.
-
-       :param arg0: numerator
-       :type arg0: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :param arg1: denominator
-       :type arg1: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :return: the quotient of ``arg0`` and ``arg1``
-       :rtype: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`.
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
-       else:
-          if isinstance(args[0],numpy.ndarray) and not isinstance(args[1],numpy.ndarray):
-             return 1./args[1]*args[0]
-          else:
-             return args[0]/args[1]
-
-def power(arg0,arg1):
-       """
-       Raises ``arg0`` to the power of ``arg1``.
-
-       :param arg0: basis
-       :type arg0: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :param arg1: exponent
-       :type arg1: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :return: ``arg0`` to the power of ``arg1``
-       :rtype: ``float``, ``int``, `escript.Data`, ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
-       elif testForZero(args[1]):
-          return numpy.ones(getShape(args[1]),numpy.float64)
-       elif isinstance(args[0],numpy.ndarray) and not isinstance(args[1],numpy.ndarray):
-          return exp(args[1]*log(args[0]))
-       else:
-          return args[0]**args[1]
-
 def maximum(*args):
     """
     The maximum over arguments ``args``.
@@ -1880,8 +1786,11 @@ def maximum(*args):
              else:
                 out.copyWithMask(a,wherePositive(a-out))
           else:
-             diff=add(a,-out)
-             out=add(out,mult(wherePositive(diff),diff))
+             if isinstance(a,numpy.ndarray):
+                diff=-out+a
+             else:
+                diff=a-out
+             out=wherePositive(diff)*diff+out
     return out
 
 def minimum(*args):
@@ -1900,11 +1809,7 @@ def minimum(*args):
     out=None
     for a in args:
        if out==None:
-          #out=a*1
-          if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
-             out=a.copy()
-          else:
-             out=a*1
+          out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
              if out.getRank()==0 and a.getRank()>0:
@@ -1918,8 +1823,11 @@ def minimum(*args):
              else:
                 out.copyWithMask(a,whereNegative(a-out))
           else:
-             diff=add(a,-out)
-             out=add(out,mult(whereNegative(diff),diff))
+             if isinstance(a,numpy.ndarray):
+                diff=-out+a
+             else:
+                diff=a-out
+             out=whereNegative(diff)*diff+out
     return out
 
 def clip(arg,minval=None,maxval=None):
