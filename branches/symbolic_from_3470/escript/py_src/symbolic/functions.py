@@ -289,5 +289,15 @@ class outer(sympy.Function):
     """
     nargs = 2
 
+class eigenvalues(sympy.Function):
+    """Returns the Eigenvalues of the argument
+    """
+    nargs = 1
+
+class eigenvalues_and_eigenvectors(sympy.Function):
+    """Returns the Eigenvalues and Eigenvectors of the argument
+    """
+    nargs = 1
+
 #
 # vim: expandtab shiftwidth=4:
