@@ -479,7 +479,7 @@ def Lsup(arg):
     elif isinstance(arg,int):
         return abs(float(arg))
     else:
-      raise TypeError,"Lsup: Unknown argument type."
+        raise TypeError,"Lsup: Unknown argument type."
 
 def sup(arg):
     """
@@ -500,7 +500,7 @@ def sup(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-      raise TypeError,"sup: Unknown argument type."
+        raise TypeError,"sup: Unknown argument type."
 
 def inf(arg):
     """
@@ -983,6 +983,8 @@ def erf(arg):
    """
    if isinstance(arg,escript.Data):
       return arg._erf()
+   elif isinstance(arg,Basic):
+      return symfn.erf(arg)
    else:
       raise TypeError,"erf: Unknown argument type."
 
@@ -1727,6 +1729,8 @@ def eigenvalues(arg):
       return arg
     elif isinstance(arg,int):
       return float(arg)
+    elif isinstance(arg,Basic):
+      return symfn.eigenvalues(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
 
@@ -1753,6 +1757,8 @@ def eigenvalues_and_eigenvectors(arg):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
+    elif isinstance(arg,Basic):
+      return symfn.eigenvalues_and_eigenvectors(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
 
