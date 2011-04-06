@@ -202,8 +202,7 @@ print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
 print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
 print "initial porosity in fractured rock= %f"%EQUIL["DATUM_PRESS"]
 
-print PERM_F_X
-1/0
+
 mkDir(OUTPUT_DIR)
 
 domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
@@ -260,7 +259,7 @@ for dt in DT:
   
   FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
   saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
-  print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi
+  print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi, well_P1.getGasProduction(), well_P1.getWaterProduction()/U.Barrel*U.day
   print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
 
   n_t+=1
