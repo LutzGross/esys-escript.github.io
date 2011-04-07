@@ -89,6 +89,12 @@ void Paso_SparseMatrix_MatrixMatrix_DB(Paso_SparseMatrix *C, const Paso_SparseMa
 void Paso_SparseMatrix_MatrixMatrix_BD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
 void Paso_SparseMatrix_MatrixMatrix_BB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B);
 
+Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrixTranspose(const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T);
+void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T);
+void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T);
+void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T);
+void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix *C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T);
+
 Paso_SparseMatrix* Paso_SparseMatrix_unroll(const Paso_SparseMatrixType type, const Paso_SparseMatrix* A);
 Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* P);
 
