@@ -18,11 +18,13 @@
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au, l.gross@uq.edu.au                                */
+/* Author: artak@uq.edu.au, l.gross@uq.edu.au l.gao@uq.edu.au */
 
 /**************************************************************/
 
 #define SHOW_TIMING FALSE
+#define USE_TRANSPOSE TRUE
+#define SMALL_PANEL TRUE
 
 #include "Paso.h"
 #include "Preconditioner.h"
@@ -102,7 +104,6 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   const double sparsity=Paso_SparseMatrix_getSparsity(A_p);
   const dim_t total_n=Paso_SparseMatrix_getTotalNumRows(A_p);
   
-  
   /*
   is the input matrix A suitable for coarsening
   
@@ -155,16 +156,6 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	 } else {
 	       Paso_Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
 	 }
-/*
-{
-   dim_t p;
-   for (i=0; i< n; ++i) {
-         printf("%d: ",i);
-        for (p=0; p<degree_S[i];++p) printf("%d ",S[A_p->pattern->ptr[i]+p]);
-        printf("\n");
-   }
-}
-*/
 
 	 Paso_Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
@@ -264,7 +255,10 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			*/
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-			   Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
+			   if (USE_TRANSPOSE)
+			     Atemp=Paso_SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
+			   else
+			     Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
 			   A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
 			   Paso_SparseMatrix_free(Atemp);
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
@@ -521,7 +515,9 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
    degree_ST=TMPMEMALLOC(n, dim_t); Esys_checkPtr(degree_ST);
    ST=TMPMEMALLOC(offset_S[n], index_t);  Esys_checkPtr(ST);
    if (usePanel) {
-      notInPanel=TMPMEMALLOC(n, bool_t); Esys_checkPtr(notInPanel);
+      if (!SMALL_PANEL) {
+	 notInPanel=TMPMEMALLOC(n, bool_t); Esys_checkPtr(notInPanel);
+      }
       panel=TMPMEMALLOC(n, index_t); Esys_checkPtr(panel);
    }
    
@@ -549,6 +545,7 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 	       degree_ST[j]++;
 	    }
       }
+
       /* lambda[i] = |undecided k in ST[i]| + 2 * |F-unknown in ST[i]| */
       #pragma omp parallel for private(i, j, itmp) schedule(static)
       for (i=0;i<n;++i) {
@@ -565,15 +562,60 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 	    lambda[i]=itmp;
 	 }
       }
-      if (usePanel) {
+      if (usePanel && !SMALL_PANEL) {
 	 #pragma omp parallel for private(i) schedule(static)
 	 for (i=0;i<n;++i) notInPanel[i]=TRUE;
       }
       /* start search :*/
       i=Paso_Util_arg_max(n,lambda); 
       while (lambda[i]>-1) { /* is there any undecided unknown? */
+         if (SMALL_PANEL) {
+            do {
+               len_panel=0;
+               /* the unknown i is moved to C */
+               split_marker[i]=PASO_AMG_IN_C;
+               lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
 
-	 if (usePanel) {
+               /* all undecided unknown strongly coupled to i are moved to F */
+               for (p=0; p<degree_ST[i]; ++p) {
+                  j=ST[offset_S[i]+p];
+
+                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
+
+                     split_marker[j]=PASO_AMG_IN_F;
+                     lambda[j]=-1;
+                     for (q=0; q<degree_S[j]; ++q) {
+                        k=S[offset_S[j]+q];
+                        if (split_marker[k]==PASO_AMG_UNDECIDED) {
+                           lambda[k]++;
+                           panel[len_panel]=k;
+                           len_panel++;
+
+                        } 
+                     }
+
+                  }
+               }
+               for (p=0; p<degree_S[i]; ++p) {
+                  j=S[offset_S[i]+p];
+                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                     lambda[j]--;
+                     panel[len_panel]=j;
+                     len_panel++;
+                  }
+               }
+
+               lambda_max=-1;
+               for (q=0; q<len_panel; q++) {
+                  k = panel[q];
+                  j = lambda[k];
+                  if (lambda_max < j) {
+                    lambda_max = j;
+                    i = k;
+                  }
+               } 
+            } while (len_panel>0);
+	 } else if (usePanel) {
 	    len_panel=0;
 	    do {
 	       /* the unknown i is moved to C */
@@ -589,8 +631,8 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 		     split_marker[j]=PASO_AMG_IN_F;
 		     lambda[j]=-1;
 		     
-		     for (q=0; q<degree_ST[j]; ++q) {
-			k=ST[offset_S[j]+q];
+		     for (q=0; q<degree_S[j]; ++q) {
+			k=S[offset_S[j]+q];
 			if (split_marker[k]==PASO_AMG_UNDECIDED) {
 			   lambda[k]++;
 			   if (notInPanel[k]) { 
@@ -653,8 +695,8 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 		  split_marker[j]=PASO_AMG_IN_F;
 		  lambda[j]=-1;
 	    
-		  for (q=0; q<degree_ST[j]; ++q) {
-		     k=ST[offset_S[j]+q];
+		  for (q=0; q<degree_S[j]; ++q) {
+		     k=S[offset_S[j]+q];
 		     if (split_marker[k]==PASO_AMG_UNDECIDED) lambda[k]++;
 		  }
 
@@ -673,8 +715,10 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
    TMPMEMFREE(lambda);
    TMPMEMFREE(ST);
    TMPMEMFREE(degree_ST);
-   TMPMEMFREE(panel);
-   TMPMEMFREE(notInPanel);
+   if (usePanel) {
+     TMPMEMFREE(panel);
+     if (!SMALL_PANEL) TMPMEMFREE(notInPanel);
+   }
 }
 /* ensures that two F nodes are connected via a C node :*/
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
