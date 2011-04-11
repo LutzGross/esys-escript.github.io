@@ -49,7 +49,7 @@ class DarcyFlowVeryNew(object):
    
    :note: The problem is solved in a stabelized formulation.
    """
-   def __init__(self, domain, useReduced=False, *args, **kargs):
+   def __init__(self, domain, useReduced=False, useVPIteration=True, *args, **kargs):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -57,16 +57,11 @@ class DarcyFlowVeryNew(object):
       :param useReduced: uses reduced oreder on flux and pressure
       :type useReduced: ``bool``
       :param adaptSubTolerance: switches on automatic subtolerance selection
-      :type adaptSubTolerance: ``bool``	
-      :param solveForFlux: if True the solver solves for the flux (do not use!)
-      :type solveForFlux: ``bool``	
       :param useVPIteration: if True altenative iteration over v and p is performed. Otherwise V and P are calculated in a single PDE.
       :type useVPIteration: ``bool``	
       """
       self.domain=domain
-      useVPIteration=False
-      self.useVPIteration=useVPIteration or True
-      #self.useVPIteration=False
+      self.useVPIteration=useVPIteration
       self.useReduced=useReduced
       self.verbose=False
 
@@ -97,15 +92,18 @@ class DarcyFlowVeryNew(object):
       self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_k.getFunctionSpaceForCoefficient("q"))
       self.location_of_fixed_flux = escript.Vector(0, self.__pde_k.getFunctionSpaceForCoefficient("q"))
       self.scale=1.
+      self.setTolerance()
+      
+
    def __L2(self,v):
          return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))  
    def __inner_GMRES(self,r,s):
          return util.integrate(util.inner(r,s))
          
    def __Aprod_GMRES(self,p):
-      self.__pde_k.setValue(Y=0.5*util.grad(p), X=p*util.kronecker(self.__pde_k.getDomain()) )
+      self.__pde_k.setValue(Y=-0.5*util.grad(p), X=-p*util.kronecker(self.__pde_k.getDomain()) )
       du=self.__pde_k.getSolution()
-      self.__pde_p.setValue(Y=util.div(du), X=0.5*(du+util.tensor_mult(self.__permeability,util.grad(p))))
+      self.__pde_p.setValue(Y=-util.div(du), X=0.5*(-du+util.tensor_mult(self.__permeability,util.grad(p))))
       return self.__pde_p.getSolution()
          
    def getSolverOptionsFlux(self):
@@ -197,7 +195,7 @@ class DarcyFlowVeryNew(object):
 	     if f.getRank()>0: raise ValueError,"illegal rank of f."
 	     self.__f=f
 	     
-   def solve(self,u0,p0, max_iter=100, verbose=False, max_num_corrections=10):
+   def solve(self,u0,p0, max_iter=100, verbose=False, max_num_corrections=10, iter_restart=20):
       """
       solves the problem.
       
@@ -220,6 +218,7 @@ class DarcyFlowVeryNew(object):
       self.verbose=verbose
       if self.useVPIteration:
 	    # get u:
+            rtol=self.getTolerance()
 	    self.__pde_k.setValue(Y=0.5*util.tensor_mult(self.__permeability_inv,g),X=escript.Data())
 	    du=self.__pde_k.getSolution()
 	    self.__pde_p.setValue(Y=f-util.div(du), X=0.5*(g-du))
@@ -228,11 +227,12 @@ class DarcyFlowVeryNew(object):
 		    p0_b*0, 
 		    self.__inner_GMRES, 
 		    atol=0, 
-		    rtol=1.e-4, 
-		    iter_max=100, 
-		    iter_restart=20, verbose=self.verbose,P_R=None)
+		    rtol=rtol, 
+		    iter_max=max_iter,
+		    iter_restart=iter_restart, verbose=self.verbose,P_R=None)
       	    self.__pde_k.setValue(Y=0.5*( util.tensor_mult(self.__permeability_inv,g) + util.grad(p)) ,
       	                          X=p*util.kronecker(self.__pde_k.getDomain()))
+            #self.__pde_k.setValue(Y=0.5*util.grad(p), X=p*util.kronecker(self.__pde_k.getDomain()) )
 	    u=self.__pde_k.getSolution()
       else:
           X=self.__pde_k.createCoefficient("X")
