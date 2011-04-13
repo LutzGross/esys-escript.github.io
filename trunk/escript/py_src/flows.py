@@ -38,7 +38,8 @@ from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOption
 from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
 
-class DarcyFlowVeryNew(object):
+
+class DarcyFlowNew(object):
    """
    solves the problem
    
@@ -138,8 +139,8 @@ class DarcyFlowVeryNew(object):
              is along the *x_i* axis.
 
       """
-      if location_of_fixed_pressure!=None: self.location_of_fixed_pressure=location_of_fixed_pressure
-      if location_of_fixed_flux!=None: self.location_of_fixed_flux=location_of_fixed_flux
+      if location_of_fixed_pressure!=None: self.location_of_fixed_pressure=util.wherePositive(location_of_fixed_pressure)
+      if location_of_fixed_flux!=None: self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
       
       if self.useVPIteration: 
          if location_of_fixed_pressure!=None: self.__pde_p.setValue(q=self.location_of_fixed_pressure)
@@ -219,12 +220,14 @@ class DarcyFlowVeryNew(object):
       if self.useVPIteration:
 	    # get u:
             rtol=self.getTolerance()
-	    self.__pde_k.setValue(Y=0.5*util.tensor_mult(self.__permeability_inv,g),X=escript.Data())
+            p_init=0*p0_b
+	    self.__pde_k.setValue(Y=0.5*(util.tensor_mult(self.__permeability_inv,g)+util.grad(p_init)) ,
+      	                          X=p_init*util.kronecker(self.__pde_k.getDomain()))
 	    du=self.__pde_k.getSolution()
 	    self.__pde_p.setValue(Y=f-util.div(du), X=0.5*(g-du))
   	    p=GMRES(self.__pde_p.getSolution(), 
 	            self.__Aprod_GMRES, 
-		    p0_b*0, 
+		    p_init, 
 		    self.__inner_GMRES, 
 		    atol=0, 
 		    rtol=rtol, 
@@ -278,6 +281,7 @@ class DarcyFlowVeryNew(object):
       :rtype: ``float``
       """
       return self.__rtol
+      
 class DarcyFlow(object):
    """
    solves the problem
@@ -290,7 +294,7 @@ class DarcyFlow(object):
    :note: The problem is solved in a least squares formulation.
    """
    
-   def __init__(self, domain, useReduced=False, adaptSubTolerance=True, solveForFlux=False, useVPIteration=True, weighting_scale=0.1):
+   def __init__(self, domain, useReduced=False, adaptSubTolerance=True, solveForFlux=False, useVPIteration=True, weighting_scale=1.):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -405,19 +409,20 @@ class DarcyFlow(object):
 
       """
       if self.useVPIteration: 
-         if location_of_fixed_pressure!=None: self.__pde_p.setValue(q=location_of_fixed_pressure)
-         if location_of_fixed_flux!=None: self.__pde_k.setValue(q=location_of_fixed_flux)
+         if location_of_fixed_pressure!=None: self.__pde_p.setValue(q=util.wherePositive(location_of_fixed_pressure))
+         if location_of_fixed_flux!=None: self.__pde_k.setValue(q=util.wherePositive(location_of_fixed_flux))
       else:
          q=self.__pde_k.getCoefficient("q")
          if q.isEmpty(): q=self.__pde_k.createCoefficient("q")
-         if location_of_fixed_pressure!=None: q[self.domain.getDim()]=location_of_fixed_pressure
-         if location_of_fixed_flux!=None: q[:self.domain.getDim()]=location_of_fixed_flux
+         if location_of_fixed_pressure!=None: q[self.domain.getDim()]=util.wherePositive(location_of_fixed_pressure)
+         if location_of_fixed_flux!=None: q[:self.domain.getDim()]=util.wherePositive(location_of_fixed_flux)
          self.__pde_k.setValue(q=q)
 			
       # flux is rescaled by the factor mean value(perm_inv)*length where length**self.domain.getDim()=vol(self.domain)
+      V=util.vol(self.domain)
       if permeability!=None:
 	 perm=util.interpolate(permeability,self.__pde_k.getFunctionSpaceForCoefficient("A"))
-         V=util.vol(self.domain)
+         
 	 if perm.getRank()==0:
 	    perm_inv=(1./perm)
             if self.useVPIteration:
@@ -441,7 +446,7 @@ class DarcyFlow(object):
 	 self.__permeability=perm
 	 self.__permeability_inv=perm_inv
 
-	 self.__l2 =(util.longestEdge(self.domain)**2*util.length(self.__permeability_inv))*self.weighting_scale
+	 self.__l2 = V**(1./self.domain.getDim())*util.length(self.__permeability_inv)*self.domain.getSize()*self.weighting_scale
          if self.useVPIteration:
 	    if  self.solveForFlux:
 	       self.__pde_k.setValue(D=self.__permeability_inv)

@@ -653,30 +653,27 @@ class PorosityOneHalfModel(DualPorosity):
       	 if self.verbose: print "rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp)) 
 	 
 	 L_g_0       = self.L_g(p_f)
-	 dL_g_0dp    = self.L_g.getValueDifferential(p_f)
 	 FF_g=self.rho_g.getFormationFactor(p_f)
-	 dFF_gdp=self.rho_g.getFormationFactorDifferential(p_f)
-	 
 	 L_g = L_g_0 * FF_g
-	 dL_gdp =  0 * (dL_g_0dp * FF_g + L_g_0 * dFF_gdp)
 
       	 if self.verbose: 
 	      print "L_g_0 range = ",inf(L_g_0),sup(L_g_0) 
-	      print "L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp)) 
+	      print "FF_g range = ",inf(FF_g),sup(FF_g) 
+	      print "L_g range = ",inf(L_g),sup(L_g)
 	 
 	 
 	 A_fw = rho_fw * k_fw/mu_fw 
 	 A_fg = rho_fg * k_fg/mu_fg
 	 
 	 m = whereNegative(L_g - C_mg)
-	 B = self.sigma * self.A_mg * (m + (1-m) * self.f_rg * S_fg )
-	 print "XXXX B =",B
+	 H = self.sigma * self.A_mg * (m + (1-m) * self.f_rg * S_fg )
+	 print "XXXX H =",H
 	 print "XXXX self.sigma  =",self.sigma 
 	 print "XXXX self.A_mg  =",self.A_mg 
 	 
 	 E_fpp= S_fw * (  rho_fw * dphi_fdp + phi_f  * drho_fwdp )
 	 E_fps=  -  phi_f * rho_fw 
-	 E_fsp= S_fg *( rho_fg * dphi_fdp - phi_f *  drho_fgdp )
+	 E_fsp= S_fg * rho_fg * dphi_fdp + (phi_f * S_fg + C_mg) * drho_fgdp
 	 E_fss= phi_f * rho_fg 
 	 
 	 F_fw=0.
@@ -737,8 +734,7 @@ class PorosityOneHalfModel(DualPorosity):
 	    F_fp_X = 0 * kronecker(self.domain)[1]
 	    F_fs_X = 0 * kronecker(self.domain)[1]
 	    
-	 #F_mg_Y = B * ( L_g - dL_gdp * p_f )
-         F_mg_Y = B * L_g
+         F_mg_Y = -H * L_g
 
 
 	 D=self.__pde.createCoefficient("D")
@@ -755,7 +751,7 @@ class PorosityOneHalfModel(DualPorosity):
 	 D[1,1]=E_fss 
 	 D[1,2]=rho_fg * C_couple
 	 #D[2,0]= - dtXI * B * dL_gdp
-	 D[2,2]= 1 + dtXI * B
+	 D[2,2]= 1 - dtXI * H
 	 
 	 
 	 for i in range(self.domain.getDim()):
@@ -768,7 +764,7 @@ class PorosityOneHalfModel(DualPorosity):
 
 	 Y[0] = E_fpp *  p_f_old + E_fps * S_fg_old +                                dt * F_fp_Y - dtcXI * D_fpp * p_f_old
 	 Y[1] = E_fsp *  p_f_old + E_fss * S_fg_old + C_couple * rho_fg * C_mg_old + dt * F_fs_Y - dtcXI * D_fsp * p_f_old
-	 Y[2] = C_mg_old                                                           + dt * F_mg_Y - dtcXI * B * C_mg_old  # - dL_gdp * p_f_old)
+	 Y[2] = C_mg_old                                                           + dt * F_mg_Y + dtcXI * H * C_mg_old
 	 
  	 print "HHH Y[0] =", Y[0]
  	 print "HHH A_fw = ",A_fw
@@ -782,23 +778,7 @@ class PorosityOneHalfModel(DualPorosity):
 	 print "HHH D[0,0] = ",D[0,0]
 	 print "HHH D[0,1] = ",D[0,1]
 	 print "HHH D[0,2] = ",D[0,2]
-	 
-	 print "hhh B= ",B
-	 
 
-       
-         
-	 #print "HHH Y[1] = ",Y[1]
-	 #print "HHH X[1,:] = ",X[1,:]
-	 #print "HHH D[1,0] = ",D[1,0]
-	 #print "HHH D[1,1] = ",D[1,1]
-	 #print "HHH D[1,2] = ",D[1,2]
-	 #print "HHH A_fg =",  A_fg
-	 
-
-
-
-	 #1/0
 	 self.__pde.setValue(A=A, D=D, X=X, Y=Y)
 	 
 	 u2 = self.__pde.getSolution()
@@ -815,29 +795,31 @@ class PorosityOneHalfModel(DualPorosity):
 	      q_I = I.getFlowRate()
 	      A_fw_I= loc(A_fw)
 	      A_fg_I= loc(A_fg)
-	      p_f_I=loc(A_fg)
+	      p_f_I=loc(p_f)
 	      BHP_limit_I=I.getBHPLimit()
 	      BHP=I.getBHP()
 	      
 	      
-	      rho_fw_I = loc(rho_fw)
-	      rho_fg_I = loc(rho_fg)
-	      A_fg = rho_fg * k_fg/mu_fg
-	 
+	      
+	      rho_fw_I = self.rho_w.getValue(p_f_I)
+	      rho_fg_I = self.rho_g.getValue(p_f_I)
+	      if self.verbose: print "reservoir pressure for well %s = %e gas rho= %e)."%(I.name, p_f_I, rho_fg_I)
+	      
 	      if I.isOpen(self.t+dt):
 		if BHP_limit_I < BHP:
 		  if I.getPhase() == Well.WATER:
-		      q_I_w =  q_I
-		      q_I_g =  A_fg_I/A_fw_I *  q_I 
+		      q_I_w =  q_I 
+		      q_I_g =  A_fg_I/A_fw_I *  q_I
+		      print "ASDFASDFDF ", q_I_g/rho_fg_I, A_fg_I/A_fw_I
 		  else:
-		      q_I_g =  q_I
+		      q_I_g =  q_I 
 		      q_I_w =  A_fw_I/A_fg_I *  q_I 
 		else:
-		    q_I_w = Pi_I * A_fw_I/rho_fw_I * (p_f_I - BHP_I)
-		    q_I_g = Pi_I * A_fg_I/rho_fg_I * (p_f_I - BHP_I) 
+		    q_I_w = Pi_I * A_fw_I * (p_f_I - BHP_I)/ self.rho_w.rho_0
+		    q_I_g = Pi_I * A_fg_I * (p_f_I - BHP_I)  /self.rho_g.rho_0 
 	      else:
 		  q_I_g =0 
 		  q_I_w =0 
-	      I.setWaterProduction(q_I_w * rho_fw_I/self.rho_w.rho_0)
-	      I.setGasProduction(q_I_g * rho_fg_I/self.rho_g.rho_0 )
+	      I.setWaterProduction(q_I_w)
+	      I.setGasProduction(q_I_g)
 	 return u2

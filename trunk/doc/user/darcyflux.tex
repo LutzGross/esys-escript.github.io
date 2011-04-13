@@ -41,6 +41,63 @@ $\alpha_{1}$ which are independent from the location in $\Omega$ such that
 \end{equation}
 for all $x_{i}$.
 
+We set $u=\hat{u}+u^{N}$ and
+$p=\hat{p}+p^D$ where $\hat{u}$ and $\hat{p}$ fullfill the homogeneous boundary conditions~\label{DARCY BOUNDARY} and
+the PDE
+\begin{equation}\label{DARCY PROBLEM 2}
+\begin{array}{rcl}
+\hat{u}_{i} + \kappa_{ij} \hat{p}_{,j} & = & \hat{g}_{i} = g_{i} -u^{N} - \kappa_{ij} p^D_{,j} \\
+\hat{u}_{k,k} & = & f - u^N_{k,k} = \hat{f} 
+\end{array}
+\end{equation} 
+In the following the hat is dropped.
+
+
+\subsection{Solution Method \label{DARCY SOLVE}}
+We set 
+\begin{align}
+Q=\{ q: \Omega \to R | q = 0 \mbox{ on } \Gamma_{D} \} \label{DARCY SPACE P} \\
+V=\{ v: \Omega \to R^3 |v_{i}  \; n_{i}  =0 \mbox{ on }  \Gamma_{N}  \} \label{DARCY SPACE P} 
+\end{align}
+We define the gardient operator $G: Q \to V$ as
+\begin{equation}
+(Gp)_{i} =  p_{,j}
+\end{equation}
+for all $p \in Q$ and the 
+divergence operator $D: V \to Q$
+and for velocity $v$ we set
+\begin{equation}
+Dv = v_{k,k}
+\end{equation}
+As $\Gamma_{D}, \Gamma_{N}$ are a subdivision of the boundary of $\Omega$ we have
+\begin{equation}
+D^*= - G
+\end{equation}
+With $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
+\begin{equation}
+\begin{array}{rcl}
+K^{-1} u - D^* p & = & K^{-1} g \\
+Du & = & f 
+\end{array}
+\end{equation} 
+This problem needs to be stabalized in the following way:
+\begin{equation}
+\begin{array}{rcl}
+K^{-1} u - D^* p - \frac{1}{2} \left( K^{-1} u +G  p \right) & = & K^{-1} g - \frac{1}{2} K^{-1} g \\
+Du + \frac{1}{2} G^* K \left( K^{-1} u +G  p \right) & = & f + \frac{1}{2} G^* K K^{-1} g
+\end{array}
+\end{equation} 
+which can be simplified to
+\begin{equation}
+\begin{array}{rcl}
+\frac{1}{2}  K^{-1} u - D^* p - \frac{1}{2} G  p & = & \frac{1}{2} K^{-1} g \\
+Du + \frac{1}{2} G^* u + \frac{1}{2} G^* K G  p  & = & f + \frac{1}{2} G^* g
+\end{array}
+\end{equation} 
+
+
+
+%===========================================================================
 \subsection{Solution Method \label{DARCY SOLVE}}
 It is useful to write \eqn{DARCY PROBLEM} in operator form.
 For any pressure $p$ we set
