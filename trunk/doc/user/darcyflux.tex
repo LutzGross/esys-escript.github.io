@@ -41,220 +41,135 @@ $\alpha_{1}$ which are independent from the location in $\Omega$ such that
 \end{equation}
 for all $x_{i}$.
 
-We set $u=\hat{u}+u^{N}$ and
-$p=\hat{p}+p^D$ where $\hat{u}$ and $\hat{p}$ fullfill the homogeneous boundary conditions~\label{DARCY BOUNDARY} and
-the PDE
-\begin{equation}\label{DARCY PROBLEM 2}
-\begin{array}{rcl}
-\hat{u}_{i} + \kappa_{ij} \hat{p}_{,j} & = & \hat{g}_{i} = g_{i} -u^{N} - \kappa_{ij} p^D_{,j} \\
-\hat{u}_{k,k} & = & f - u^N_{k,k} = \hat{f} 
-\end{array}
-\end{equation} 
-In the following the hat is dropped.
-
 
 \subsection{Solution Method \label{DARCY SOLVE}}
-We set 
-\begin{align}
-Q=\{ q: \Omega \to R | q = 0 \mbox{ on } \Gamma_{D} \} \label{DARCY SPACE P} \\
-V=\{ v: \Omega \to R^3 |v_{i}  \; n_{i}  =0 \mbox{ on }  \Gamma_{N}  \} \label{DARCY SPACE P} 
-\end{align}
-We define the gardient operator $G: Q \to V$ as
-\begin{equation}
-(Gp)_{i} =  p_{,j}
-\end{equation}
-for all $p \in Q$ and the 
-divergence operator $D: V \to Q$
-and for velocity $v$ we set
-\begin{equation}
-Dv = v_{k,k}
-\end{equation}
-As $\Gamma_{D}, \Gamma_{N}$ are a subdivision of the boundary of $\Omega$ we have
-\begin{equation}
-D^*= - G
-\end{equation}
-With $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
-\begin{equation}
+Unfortunate equation~\ref{DARCY PROBLEM} can not solved directly in an easy way and requires mixed FEM.  
+We consider a few options to solve equation~\ref{DARCY PROBLEM}
+\subsubsection{Simple Solver}\label{SEC DARCY SIMPLE}
+The first equation of equation~\ref{DARCY PROBLEM} is inserted into the second one:
+\begin{equation}\label{DARCY PROBLEM SIMPLE}
+- (\kappa_{ij} p_{,j})_{,i}  =  f  - (g_{i})_{,i}
+\end{equation} 
+with boundary conditions
+\begin{equation}\label{DARCY BOUNDARY SIMPLE}
 \begin{array}{rcl}
-K^{-1} u - D^* p & = & K^{-1} g \\
-Du & = & f 
+\kappa_{ij} p_{,j} \; n_{i}  = ( g_{i} - u^{N}_{i} )  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
 \end{equation} 
-This problem needs to be stabalized in the following way:
-\begin{equation}
-\begin{array}{rcl}
-K^{-1} u - D^* p - \frac{1}{2} \left( K^{-1} u +G  p \right) & = & K^{-1} g - \frac{1}{2} K^{-1} g \\
-Du + \frac{1}{2} G^* K \left( K^{-1} u +G  p \right) & = & f + \frac{1}{2} G^* K K^{-1} g
-\end{array}
+Then the flux field is recovred by solving
+\begin{equation}\label{DARCY PROBLEM SIMPLE FLUX}
+ u_{j} = g_j -  \kappa_{ij} p_{,j}  
 \end{equation} 
-which can be simplified to
-\begin{equation}
-\begin{array}{rcl}
-\frac{1}{2}  K^{-1} u - D^* p - \frac{1}{2} G  p & = & \frac{1}{2} K^{-1} g \\
-Du + \frac{1}{2} G^* u + \frac{1}{2} G^* K G  p  & = & f + \frac{1}{2} G^* g
-\end{array}
+with boundary conditions
+\begin{equation}\label{DARCY SIMPLE BOUNDARY FLUX}
+u_{i} = u^{N}_{i}  \mbox{ on }  \Gamma_{N}
 \end{equation} 
 
-
-
-%===========================================================================
-\subsection{Solution Method \label{DARCY SOLVE}}
-It is useful to write \eqn{DARCY PROBLEM} in operator form.
-For any pressure $p$ we set
-\begin{equation}
-(Gp)_{i} =  p_{,j}
-\end{equation}
-and for velocity $v$ we set
-\begin{equation}
-Dv = v_{k,k}
-\end{equation}
-With $K=(\kappa_{ij})$ we can write the Darcy problem~\ref{DARCY PROBLEM} as
-\begin{equation}
+\subsubsection{Global Postprocessing \label{SEC DARCY POST}}
+An improved flux recovery can be achieved by solving a modified version of equation~\ref{DARCY PROBLEM SIMPLE FLUX}
+adding the the gradient of the divergence of the flux:
+\begin{equation}\label{DARCY PROBLEM POST FLUX}
+\kappa^{-1}_{ij} u_{j} - 
+(\lambda \cdot u_{k,k} )_{,i}= 
+\kappa^{-1}_{ij} g_j- p_{,i} 
+- (\lambda \cdot f )_{,i} 
+\end{equation} 
+where
+\begin{equation}\label{DARCY PROBLEM POST FLUX A}
+\lambda = \omega \cdot |\kappa^{-1}| \cdot vol(\Omega)^{1/d} \cdot h 
+\end{equation} 
+with a non-negative factor $\omega$, $d$ is the spatial dimension and $h$ is the local element size.
+\begin{equation}\label{DARCY PROBLEM POST FLUX BOUNDARY}
 \begin{array}{rcl}
-u + K \, Gp & = & g \\
-Du & = & f 
+u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+u_{k,k} = f & \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
+\end{equation}   
+Notice that the second condition is a natural boundray condition.
+
+\subsubsection{Stabilization \label{SEC DARCY STAB}}
+Stabilization term can be added to the original problem~\ref{DARCY PROBLEM SIMPLE FLUX}, see~\cite{MasudHughes2002a}.
+Firstly we subtract half of the first equation from the first eqaution
+\begin{equation}\label{DARCY STAB PROBLEM A}
+\kappa^{-1}_{ij} u_{j} + (p)_{,i} - \frac{1}{2} \left(  \kappa^{-1}_{ij} u_{j} + p_{,i} \right) = \kappa^{-1}_{ij} g_j -\frac{1}{2} \kappa^{-1}_{ij} g_j 
 \end{equation} 
-We solve this equation by minimising the functional
-\begin{equation}\label{DARCY COST}
-J(u,p):=\|K^{-\frac{1}{2}}(u + K \, G p - g)\|^2_{0} +  \|\lambda (Du-f) \|_{0}^2 
-\end{equation} 
-over all suitable $u$ and $p$.
-In this equation we set $\|p\|^2_{0}=(p,p)_{0}$ with
-\begin{equation}
-(p,q)_{0} = \int_{\Omega } p\cdot q \, dx
-\end{equation} 
-The factor $\lambda>0$ is a weighting factor.
-A simple calculation shows that one has to solve
-\begin{equation}
-( K^{-1} (v + K \, Gq) , u +K \, G p - g)_{0} +  (\lambda Dv,\lambda (Du-f) )_{0} =0 
-\end{equation} 
-for all velocities $v$ and pressure $q$ which fulfill the homogeneous boundary
-conditions~\ref{DARCY BOUNDARY}.
-This so-called variational equation can be translated back into operator notation
-\begin{equation}
+and then subtract half of the dievregence of the first equation from the second equation:
+\begin{equation}\label{DARCY STAB PROBLEM}
 \begin{array}{rcl}
-(K^{-1}+ D^*\lambda^2 D)u + Gp & = &  D^*\lambda f + K^{-1} g \\
-G^*u  + G^*K \, G p & = & G^*g \\ 
+\frac{1}{2} \kappa^{-1}_{ij} u_{j} + (p)_{,i} -  \frac{1}{2}  p_{,i}  & = &  \frac{1}{2} \kappa^{-1}_{ij} g_j \\
+u_{i,i} - \frac{1}{2}  \left(u_{i} +   \kappa_{ij} p_{,j} \right)_{,i} & = & f - \frac{1}{2} \left(g_{i} \right)_{,i}   
 \end{array}
 \end{equation} 
-where $D^*$ and $Q^*$ denote the adjoint operators with respect to $(.,.)_{0}$.
-In~\cite{LEASTSQUARESFEM1994} it has been shown that this problem is
-continuous and coercive and therefore has a unique solution.
-Standard FEM methods can be used for discretization. It is also possible to
-solve the problem in coupled form, however this approach leads in some cases
-to a very ill-conditioned stiffness matrix, in particular in the case of a
-very small or large permeability ($\alpha_{1} \ll 1$ or $\alpha_{0} \gg 1$).
-
-The approach we are taking is to eliminate the velocity $v$ from the problem.
-Assuming that $p$ is known we have\footnote{notice
-that $K^{-1}+\lambda D^*D$ is coercive}
-\begin{equation}\label{DARCY V FORM}
-v= (K^{-1}+ D^*\lambda^2 D)^{-1} ( D^*\lambda f + K^{-1} g - Gp)
-\end{equation} 
-which is inserted into the second equation
-\begin{equation}
-G^* (K^{-1}+\lambda D^*D)^{-1} (\lambda D^*f + K^{-1} g - Gp) + G^* KG p = G^*g 
-\end{equation} 
-which is
-\begin{equation}
-G^* ( K - (K^{-1}+ D^*\lambda^2 D)^{-1} ) G p = G^* (g-(K^{-1}+D^*\lambda^2 D)^{-1} ( D^*\lambda f + K^{-1} g) ) 
-\end{equation} 
-We use the PCG\index{linear solver!PCG}\index{PCG} method to solve this.
-The residual $r$ is given as
-\begin{equation}
+We apply the boundary conditions:
+\begin{equation}\label{DARCY SYM STAB PROBLEM BOUNDARY}
 \begin{array}{rcl}
-r & =&  G^* \left( g - K\, G p - v \right)
+u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
+\frac{1}{2} \left( u_{i} +   \kappa^{-1}_{ij} p_{,j} - g_{i} \right ) \; n_{i} = 0 &  \mbox{ on } & \Gamma_{N} \\
 \end{array}
 \end{equation} 
-for the current pressure approximation $p$ and current velocity $v$ defined by
-\eqn{DARCY V FORM}.
-So in a particular implementation we use $\hat{r}=g-K\, Gp-v$ to represent the residual.
-The evaluation of the iteration operator for a given $p$ is then returning
-$Qp+v$ where $v$ is the solution of
-\begin{equation}\label{UPDATE W}
-(K^{-1}+ D^*\lambda^2 D)v = Gp
-\end{equation}
-To derive a preconditioner we use the identity
-\begin{equation}
- \begin{array}{rcl}
+Notice that due to the term $(p)_{,i}$ boundary condition $p = p^{D}$ acts as a natural boundary condition for the
+first equation of~\ref{DARCY STAB PROBLEM} (in the form $p  \;  n_i = p^{D}  \;  n_i$ while the last two boundary conditions act as constraint and natural boundary conditions for the second equation.
 
-G^* ( K - (K^{-1}+ D^*\lambda^2 D)^{-1} ) G  & = & G^* (I - (I + K D^*\lambda^2 D)^{-1}) K G \\
-                               & \approx &  G^* (K D^*\lambda^2 D) K G  \\
-			       & =  & G^*  K ( D^*  \lambda^2 D) K G \\
-			       & \approx  & G^* \frac{\lambda^2}{dx^2} K^2 G
+\subsubsection{Symmetric Stabilization \label{SEC DARCY SYM STAB}}
+Symmetric stabilization term can be added to the original problem~\ref{DARCY PROBLEM SIMPLE FLUX}, see~\cite{LoulaCorrea2006a}. In this approach divergence of the first equation
+is subtracted from $2 \times$ the second equation  
+\begin{equation}\label{DARCY SYM STAB PROBLEM A}
+- (u_{i})_{,i} + \frac{1}{2} \left( u_{i} + \kappa_{ij} p_{,j} \right)_{,i} = -  f + \frac{1}{2} \left( g_{i}\right)_{,i} 
+\end{equation} 
+The first equation is rescaled by the factor $\frac{1}{2}$ to maintain symmetry. This leads to
+\begin{equation}\label{DARCY SYM STAB PROBLEM}
+\begin{array}{rcl}
+\frac{1}{2}   \kappa^{-1}_{ij} u_{j} + \frac{1}{2}  p_{,i}& = &  \frac{1}{2}  \kappa^{-1}_{ij} g_{j} \\
+\frac{1}{2}  \left(  \kappa_{ij} p_{,j} - u_{i} \right)_{,i} & = & -  f + \frac{1}{2}  \left(g_{i}\right)_{,i} 
 \end{array}
 \end{equation} 
-where $dx$ is the local mesh size and we use the approximation
-\begin{equation}
-D^*  \lambda^2 D \approx \frac{\lambda^2}{dx^2}
+We add the boundary conditions 
+\begin{equation}\label{DARCY SYM STAB PROBLEM BOUNDARY}
+\begin{array}{rcl}
+u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
+\frac{1}{2} \left( \kappa_{ij} p_{,j} - g_{i} - u_{i} \right ) \; n_{i}
+=  - u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
+\end{array}
 \end{equation} 
-Therefore we use $G^* \frac{\lambda^2}{dx^2} K^2 G$ as a preconditioner.
-To evaluate the preconditioner we need to solve the equation
-\begin{equation}\label{UPDATE P}
- G^* \frac{\lambda^2}{dx^2} K^2 G p =  G^* \hat{r}
-\end{equation}
-It remains to answer the question how to choose $\lambda$.
-We need to balance the first and second term in $J(u,p)$ in \eqn{DARCY COST}.
-We inspect $J$ for $(\hat{u}, \hat{p})$ which is a perturbed exact solution $(u,p)$.
-Assuming $\hat{u}=u+u_{0}e^{ik^tx}$ and $\hat{p}=p+p_{0}e^{ik^tx}$ and
-constant $K$ we get
-\begin{equation}
-J(\hat{u},\hat{p}) = C \left[ ( \|K^{-1}\|_{2} |u_{0}|^2 + \|K\|_{2} \|k\|_{2}^2 |p_{0}|^2| )
-+ \lambda^2 \|k\|_{2}^2 |u_{0}|^2  \right]
-\end{equation} 
-with some constant $C>0$.
-The first two terms and the third term correspond to the first term and
-second term in the definition of $J(u,p)$ in \eqn{DARCY COST}.
-For small $\|k\|_{2}$ (i.e. for a smooth perturbation) $J(\hat{u},\hat{p})$ is
-dominated by $\|K^{-1}\|_{2} |u_{0}|^2$.
-To scale the second term which corresponds to the incompressibility condition
-for the velocity we need to meet the condition $\|K^{-1}\|_{2} = \lambda^2 \|k\|_{2}^2$.
-Taking the boundary conditions into consideration the smallest possible value
-for $\|k\|_{2} = \frac{\pi}{l}$ where $l$ is the longest edge of the domain.
-This leads to
-\begin{equation}\label{DARCY LAMBDA}
-\lambda = \|K^{-1}\|_{2}^{\frac{1}{2}} \frac{l}{\pi}
-\end{equation} 
-Notice that with this setting the preconditioner
-$G^* \frac{\lambda^2}{dx^2} K^2 G$ becomes equivalent to $G^* K G$ if $K$ is a
-diagonal matrix and the mesh has a constant mesh size.
+Notice that the last contion provides natural boundary conditons for the last eqaution of~\ref{DARCY SYM STAB PROBLEM}.
 
-The residual norm used in PCG is given as
-\begin{equation}\label{DARCY R NORM}
-\|r\|_{PCG}^2 = \int r (G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1} r \; dx =\int \hat{r}  G ( G^* \frac{\lambda^2}{dx^2} K^2 G)^{-1}  G^* \hat{r} \; dx \approx
-\int \hat{r} K^{-1}  \hat{r} \; dx 
-\end{equation}
-The iteration is terminated if
-\begin{equation}\label{DARCY STOP}
-\|r\|_{PCG} \le \mbox{ATOL}
-\end{equation}
-where we set
-\begin{equation}\label{DARCY ATOL DEF}
-\mbox{ATOL} = \mbox{atol} + \mbox{rtol} \cdot \left(\frac{1}{\|K^{-\frac{1}{2}}v\|_{0}} + \frac{1}{\|K^{\frac{1}{2}} G p\|_{0}} \right)^{-1} 
-\end{equation}
-where rtol is a given relative tolerance and atol is a given absolute
-tolerance (typically $=0$).
-Notice that if $Gp$ and $v$ both are zero, the pair $(0,p)$ is a solution.
-The problem is that ATOL is depending on the solution $p$ and $v$ calculated
-form~\ref{DARCY V FORM}.
-In practice one can use the initial guess for $p$ to get a first value for ATOL.
-If the stopping criterion is met in the PCG iteration, a new $v$ is calculated
-from the current pressure approximation and ATOL is recalculated.
-If \ref{DARCY STOP} is still fulfilled the calculation is terminated and
-$(v,p)$ is returned. Otherwise PCG is restarted with a new ATOL.
+
 
 \subsection{Functions}
-\begin{classdesc}{DarcyFlow}{domain}
-opens the Darcy flux problem\index{Darcy flux} on the \Domain domain.
+\begin{classdesc}{DarcyFlow}{domain, \optional{w=1., \optional{solver=\member{DarcyFlow.SYMSTAB},  \optional{
+useReduced=\True, \optional{ verbose=\True} } }}}
+opens the Darcy flux problem\index{Darcy flux} on the \Domain domain. 
+Reduced approximations for pressure and flux are used if \var{useReduced} is set.
+Argument \var{solver} defines the solver method. 
+If \var{verbose} is set some information are printed.
+\var{w} defines the weighting factor $\omega$ for global postprocessing pf the flux (see equation~\ref{DARCY PROBLEM POST FLUX A}.)
 \end{classdesc}
+
+\begin{memberdesc}[DarcyFlow]{SIMPLE}
+simple solver, see section~\ref{SEC DARCY SIMPLE}.
+\end{memberdesc}
+
+\begin{memberdesc}[DarcyFlow]{POST}
+solver using global postprocessing of flux, see section~\ref{SEC DARCY POST}. 
+\end{memberdesc}
+
+\begin{memberdesc}[DarcyFlow]{STAB}
+ solver uses (non-symmetric) stabilization, see section~\ref{SEC DARCY STAB}. 
+\end{memberdesc}
+
+\begin{memberdesc}[DarcyFlow]{SYMSTAB}
+ solver uses symmetric stabilization, see section~\ref{SEC DARCY SYM STAB}.   
+\end{memberdesc}
 
 \begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, 
 \\\optional{permeability=None}}}}}}
 assigns values to the model parameters. Values can be assigned using various
 calls -- in particular in a time dependent problem only values that change
 over time need to be reset. The permeability can be defined as a scalar
-(isotropic), a vector (orthotropic) or a matrix (anisotropic).
+(isotropic), or a symmetrix matrix (anisotropic).
 \var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.
 The locations and components where the flux is prescribed are set by positive
 values in \var{location_of_fixed_flux}.
@@ -268,32 +183,39 @@ The method will try to cast the given values to appropriate \Data class objects.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
-sets the relative tolerance \var{rtol} in \ref{DARCY ATOL DEF}.
+sets the relative tolerance \var{rtol} for the pressure in the stabilized solvers.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{setAbsoluteTolerance}{\optional{atol=0.}}
-sets the absolute tolerance \var{atol} in \ref{DARCY ATOL DEF}.
-\end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
-returns the solver options used to solve the flux problems~(\ref{DARCY V FORM}) and~(\ref{UPDATE W}).
+returns the solver options used to solve the flux problems.
 Use this \SolverOptions object to control the solution algorithms.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
 returns a \SolverOptions object with the options used to solve the pressure
-problem~(\ref{UPDATE P}) as a preconditioner.
+problems.
 Use this object to control the solution algorithms.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{max_iter=100, \optional{verbose=False}}}
+\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{ iter_restart=20, \optional{max_iter=100}}}
 solves the problem and returns approximations for the flux $v$ and the pressure $p$.
 \var{u0} and \var{p0} define initial guesses for flux and pressure.
 Values marked by positive values \var{location_of_fixed_flux} and
 \var{location_of_fixed_pressure}, respectively, are kept unchanged.
-\var{max_iter} sets the maximum number of iteration steps allowed for solving
-the coupled problem.
+\var{max_iter} sets the maximum number of outer iteration steps allowed for solving the stabilzed 
+problems. \var{iter_restart} sets the number of iteration after which the 
+iteration is restarted\footnote{the larger \var{iter_restart} the more memory is required. The smaller
+\var{iter_restart} the more iteration steps are required.}.
 \end{methoddesc}
+
+\begin{methoddesc}[DarcyFlow]{getFlux}{p, \optional{ u0 = None}}
+returns the flux for a given pressure \var{p} where the flux is equal to \var{u0}
+on locations where \var{location_of_fixed_flux} is positive,  see \member{setValue}.
+Notice that \var{g} and \var{f} are used.
+\end{methoddesc}
+
+
 
 %\subsection{Example: Gravity Flow}
 %later

@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.escript import sqrt, log, whereNegative, sup, inf, whereNonPositive, integrate, Function, kronecker, grad, Lsup, clip
+from esys.escript import sqrt, log, whereNegative, sup, inf, whereNonPositive, integrate, Function, kronecker, grad, Lsup, clip, maximum, exp
 from esys.weipa import saveVTK
 import math
 
@@ -233,7 +233,7 @@ class InterpolationTable(MaterialPropertyWithDifferential):
 	    if inf(m0) < 1 :
 	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
       else:
-	    out = out * m0 + V[-1] * (1-m0)
+	    out = out * m0 + X[-1] * (1-m0)
       return out
 
    def getValueDifferential(self, x):
@@ -364,7 +364,8 @@ class VerticalPeacemanWell(Well):
    defines a well using Peaceman's formula
    """
    def __init__(self,name, domain, schedule = [0.], BHP_limit=1.*U.atm, Q=0, r=10*U.cm, X0=[0.,0.,0.], D=[1.*U.km,1.*U.km, 1.*U.m], 
-		     perm=[1.*U.cPoise,1.*U.cPoise, 1.*U.cPoise], phase=Well.WATER, s=0):
+		     perm=[1.*U.cPoise,1.*U.cPoise, 1.*U.cPoise], phase=Well.WATER, s=0, decay_factor = 5.):
+		     # reset_factor=0.1):
        """
        set up well 
        
@@ -388,11 +389,18 @@ class VerticalPeacemanWell(Well):
        
        x=Function(domain).getX()
        self.chi = 1.
+       decay_factor
        for i in range(domain.getDim()):
-	    self.chi = self.chi * whereNegative(abs(x[i]-X0[i])-D[i]/2)
+	    r=decay_factor * D[i]
+	    self.chi = self.chi * clip( (D[i]/2.+r-abs(X0[i]-x[i]))/r, maxval=1., minval=0.)
+	    #if reset_factor > 0:
+	    #     f=maximum(0., abs(x[i]-X0[i])-D[i]/2*(1.-reset_factor))
+	    #     self.chi = self.chi * exp(-(f/(reset_factor*D[i]/2))**2/2)
+	    #else: 
+            #     self.chi = self.chi * whereNegative(abs(x[i]-X0[i])-D[i]/2)
 
-       self.chi*=1./(D[0]*D[1]*D[2])
-       
+       l=integrate(self.chi)
+       self.chi*=1./l
        
        #self.chi=0.00000001
    def getLocation(self):
@@ -405,7 +413,10 @@ class VerticalPeacemanWell(Well):
        
        :note: needs to be overwritten
        """
-       return self.chi
+       if self.domain.getDim() <3: 
+          return self.chi/self.__D[2]
+       else:
+	  return self.chi
 
    def getProductivityIndex(self):
        """
@@ -651,7 +662,9 @@ class PorosityOneHalfModel(DualPorosity):
          rho_fg = self.rho_g.getValue(p_f)
 	 drho_fgdp	= self.rho_g.getValueDifferential(p_f)
       	 if self.verbose: print "rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp)) 
-	 
+	      
+ 
+
 	 L_g_0       = self.L_g(p_f)
 	 FF_g=self.rho_g.getFormationFactor(p_f)
 	 L_g = L_g_0 * FF_g
@@ -683,40 +696,45 @@ class PorosityOneHalfModel(DualPorosity):
 	 
 	 for I in self.wells:
 	      chi_I= I.getGeometry()
-	      loc=Locator(Function(self.domain),I.getLocation())
 	      Pi_I = I.getProductivityIndex()
-	      A_fw_I= loc(A_fw)
-	      A_fg_I= loc(A_fg)
 	      BHP_limit_I=I.getBHPLimit()
+	      p_f_I=integrate(p_f*I.chi)
+	      S_fg_I=integrate(S_fg*I.chi)
+	      
+	      A_fw_I= self.rho_w.getValue(p_f_I) * self.k_w(1-S_fg_I)/self.mu_w(p_f_I) 
+	      A_fg_I= self.rho_g.getValue(p_f_I) * self.k_g(S_fg_I)/self.mu_g(p_f_I)
 	      
 	      if I.isOpen(self.t+dt):
 		if self.verbose: print "well %s is open."%I.name
 		if I.getPhase() == Well.WATER:
 		    q_I = self.rho_w.rho_0 * I.getFlowRate()
-		    p_I_ref=loc(p_f)-q_I/(A_fw_I * Pi_I) 
+		    p_I_ref=p_f_I-q_I/(A_fw_I * Pi_I) 
 		else:
 		    q_I = self.rho_g.rho_0 * I.getFlowRate()
-		    p_I_ref=loc(p_f)-q_I/(A_fg_I * Pi_I) 
+		    p_I_ref=p_f_I-q_I/(A_fg_I * Pi_I) 
 		    
-		print "ZZZ =",loc(p_f), q_I, self.rho_w.rho_0, I.getFlowRate(), A_fw_I, Pi_I, q_I/(A_fw_I * Pi_I)
+		print "ZZZ =",p_f_I, q_I, self.rho_w.rho_0, I.getFlowRate(), A_fw_I, Pi_I, q_I/(A_fw_I * Pi_I)
 
 		if BHP_limit_I > p_I_ref:
 		  BHP_I=BHP_limit_I
-		  D_fw = D_fw + Pi_I * A_fw_I *              chi_I
-		  F_fw = F_fw - Pi_I * A_fw_I * BHP_limit_I *chi_I 
-		  D_fg = D_fg + Pi_I * A_fg_I *              chi_I
-		  F_fg = F_fg - Pi_I * A_fg_I * BHP_limit_I *chi_I 
+		  D_fw = D_fw + Pi_I * A_fw_I *        chi_I
+		  F_fw = F_fw - Pi_I * A_fw_I * BHP_I *chi_I 
+		  D_fg = D_fg + Pi_I * A_fg_I *        chi_I
+		  F_fg = F_fg - Pi_I * A_fg_I * BHP_I *chi_I 
 		else:
+		  BHP_I=p_I_ref
 		  if I.getPhase() == Well.WATER:
 		      F_fw = F_fw +  q_I  * chi_I 
-		      F_fg = F_fg +  A_fg_I/A_fw_I *  q_I *chi_I 
+		      D_fg = D_fg + Pi_I * A_fg_I *         chi_I
+		      F_fg = F_fg - Pi_I * A_fg_I * BHP_I * chi_I 
 		  else:
 		      F_fg = F_fg +  q_I  * chi_I 
-		      F_fw = F_fw +  A_fw_I/A_fg_I *  q_I *chi_I 
-		  BHP_I=p_I_ref
+		      D_fw = D_fw + Pi_I * A_fw_I *        chi_I
+		      F_fw = F_fw - Pi_I * A_fw_I * BHP_I *chi_I 
+		  
 	      else:
 		  if self.verbose: print "well %s is closed."%I.name
-		  BHP_I=loc(p_f)
+		  BHP_I=p_f_I
 		  
 	      if self.verbose: print "well %s:BHP = %e"%(I.name, BHP_I)
 	      I.setBHP(BHP_I)
@@ -789,31 +807,32 @@ class PorosityOneHalfModel(DualPorosity):
 	 
 	 # update well production
 	 p_f=u2[0]
+	 S_fg=u2[1]
 	 for I in self.wells:
-	      loc=Locator(Function(self.domain),I.getLocation())
 	      Pi_I = I.getProductivityIndex()
 	      q_I = I.getFlowRate()
-	      A_fw_I= loc(A_fw)
-	      A_fg_I= loc(A_fg)
-	      p_f_I=loc(p_f)
-	      BHP_limit_I=I.getBHPLimit()
-	      BHP=I.getBHP()
-	      
-	      
-	      
+	      p_f_I=integrate(p_f*I.chi)
+	      S_fg_I=integrate(S_fg*I.chi)
 	      rho_fw_I = self.rho_w.getValue(p_f_I)
-	      rho_fg_I = self.rho_g.getValue(p_f_I)
+	      rho_fg_I = self.rho_g.getValue(p_f_I)	      
+	      A_fw_I= rho_fw_I * self.k_w(1-S_fg_I)/self.mu_w(p_f_I) 
+	      A_fg_I= rho_fg_I * self.k_g(S_fg_I)/self.mu_g(p_f_I)
+
+              BHP_limit_I=I.getBHPLimit()
+	      BHP_I=I.getBHP()
+	      
+	      
+
 	      if self.verbose: print "reservoir pressure for well %s = %e gas rho= %e)."%(I.name, p_f_I, rho_fg_I)
 	      
 	      if I.isOpen(self.t+dt):
-		if BHP_limit_I < BHP:
+		if BHP_limit_I < BHP_I:
 		  if I.getPhase() == Well.WATER:
 		      q_I_w =  q_I 
-		      q_I_g =  A_fg_I/A_fw_I *  q_I
-		      print "ASDFASDFDF ", q_I_g/rho_fg_I, A_fg_I/A_fw_I
+		      q_I_g = Pi_I * A_fg_I * (p_f_I - BHP_I)  /self.rho_g.rho_0 
 		  else:
 		      q_I_g =  q_I 
-		      q_I_w =  A_fw_I/A_fg_I *  q_I 
+		      q_I_w = Pi_I * A_fw_I * (p_f_I - BHP_I)/ self.rho_w.rho_0
 		else:
 		    q_I_w = Pi_I * A_fw_I * (p_f_I - BHP_I)/ self.rho_w.rho_0
 		    q_I_g = Pi_I * A_fg_I * (p_f_I - BHP_I)  /self.rho_g.rho_0 

@@ -26,22 +26,26 @@ from esys.weipa import saveVTK
 from esys.escript import unitsSI as U
 from coalgas import *
 import time
-from esys.finley import Rectangle
+from esys.finley import ReadMesh, Rectangle
 from esys.escript.pdetools import Locator
 
-L_X=168*U.km/5
-L_Y=168*U.km/5
+CELL_X=800*U.m
+CELL_Y=800*U.m
+CELL_Z=10*U.m
+
+
 L_Z=10*U.m
 
-N_X=210/5
-N_Y=210/5
-N_Z=1
+L_X=168*U.km/3
+L_Y=168*U.km/3
+N_X=int(L_X/CELL_X)
+N_Y=int(L_Y/CELL_Y)
 
 OUTPUT_DIR="results"
 
 
-PERM_F_X = 100 * U.mDarcy
-PERM_F_Y = 100 * U.mDarcy
+PERM_F_X = 10 * U.mDarcy
+PERM_F_Y = 10 * U.mDarcy
 PERM_F_Z = 1e-4 * U.mDarcy
 
 EQUIL = {
@@ -175,7 +179,7 @@ SWFN = [
 
 
 wellspecs = {
-  'P1' : { "X0" : [N_X/2, N_Y/2], 
+  'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y], 
            "r"  : 0.8333 * U.ft,
            "s"  : 0,
            "Q"  : 2000*U.Barrel/U.day, 
@@ -185,17 +189,16 @@ wellspecs = {
 }
 
 
-CELL_X=L_X/N_X
-CELL_Y=L_Y/N_Y
-CELL_Z=L_Z/N_Z
+
 # print input
 print("<%s> Execution started."%time.asctime())
+domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+#domain=ReadMesh("reservoir.fly",2)
+print("<%s> Domain has been generated."%time.asctime())
 
-print "length x-direction = %f km"%(L_X/U.km)
-print "number of cells in x direction = %d"%N_X
+print "length x-direction = %f km"%(sup(domain.getX()[0])/U.km)
 print "cell size in x direction = %f m"%(CELL_X/U.m)
-print "length y-direction = %f km"%(L_Y/U.km)
-print "number of cells in y direction = %d"%N_Y
+print "length y-direction = %f km"%(sup(domain.getX()[1])/U.km)
 print "cell size in y direction = %f m"%(CELL_Y/U.m)
 print "fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy))
 print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
@@ -205,17 +208,17 @@ print "initial porosity in fractured rock= %f"%EQUIL["DATUM_PRESS"]
 
 mkDir(OUTPUT_DIR)
 
-domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+
+
 print("<%s> Mesh set up completed."%time.asctime())
-well_loc= Locator(Solution(domain), [N_X/2*CELL_X, N_Y/2*CELL_Y])
 well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"], 
 							    Q=wellspecs['P1']["Q"], 
 							    r=wellspecs['P1']["r"], 
-							    X0=[ (wellspecs['P1' ]["X0"][0]+0.5)*CELL_X,  (wellspecs['P1']["X0"][1]+0.5)*CELL_Y],
+							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1]] ,
 							    D=[CELL_X, CELL_Y, L_Z], 
 							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
 							    schedule=wellspecs['P1']["schedule"], 
-							    s=wellspecs['P1']["s"]) 
+							    s=wellspecs['P1']["s"], decay_factor = 1) 
 
 model = PorosityOneHalfModel(domain, 
                              phi_f=Porosity(phi_0=PHI_F_0, p_0=EQUIL["DATUM_PRESS"], p_ref=ROCK["p_ref"], C = ROCK["C"]),
@@ -223,8 +226,8 @@ model = PorosityOneHalfModel(domain,
 			     perm_f_0=PERM_F_X, 
 			     perm_f_1=PERM_F_Y, 
 			     perm_f_2=PERM_F_Z,
-			     k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ] ),  
-			     k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ] ),  
+			     k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ], obeyBounds=False ),  
+			     k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),  
 			     mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
 			     mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
 			     rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"]), 
@@ -259,8 +262,16 @@ for dt in DT:
   
   FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
   saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
-  print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi, well_P1.getGasProduction(), well_P1.getWaterProduction()/U.Barrel*U.day
+  print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi, well_P1.getGasProduction()/U.Mcf*U.day, well_P1.getWaterProduction()/U.Barrel*U.day
   print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
 
   n_t+=1
   t+=dt
+
+#DDD 1.0 620.718083467 0.0 2000.0
+#DDD 4.0 616.356950541 0.0 2000.0
+#DDD 13.0 602.731301066 0.0 2000.0
+#DDD 30.5 559.432880289 0.0210138086777 2000.0
+#DDD 61.0 476.375599867 0.242467255289 2000.0
+#DDD 91.5 292.277380173 2.30397035606 2000.0
+#DDD 122.0 75.0 7942.07091041 1748.12930007
