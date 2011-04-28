@@ -4272,3 +4272,75 @@ Data escript::randomData(const boost::python::tuple& shape,
     de->randomFill(seed);
     return towipe;
 }
+
+
+namespace{
+  
+boost::python::object getNotImplemented()
+{
+    static object notimpl=object(handle<>(borrowed(PyImport_AddModule("__main__"))))
+			.attr("__builtins__").attr("NotImplemented");  
+    return notimpl;
+}
+  
+}
+
+boost::python::object Data::__add__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this+data_extractor());
+    }
+    return boost::python::object(*this+Data(right, this->getFunctionSpace()));    
+}
+
+boost::python::object Data::__sub__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this-data_extractor());
+    }
+    return boost::python::object(*this-Data(right, this->getFunctionSpace()));  
+}
+
+boost::python::object Data::__rsub__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(data_extractor()-*this);
+    }
+    return boost::python::object(Data(right, this->getFunctionSpace())-*this);  
+}
+
+boost::python::object Data::__mul__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this*data_extractor());
+    }
+    return boost::python::object(*this*Data(right, this->getFunctionSpace()));  
+}
+
+boost::python::object Data::__div__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this/data_extractor());
+    }
+    return boost::python::object(*this/Data(right, this->getFunctionSpace()));  
+}
+
+boost::python::object Data::__rdiv__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(data_extractor()/(*this));
+    }
+    return boost::python::object(Data(right, this->getFunctionSpace())/(*this));  
+}
