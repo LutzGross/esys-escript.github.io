@@ -163,6 +163,21 @@ class Data {
 
   /**
      \brief
+     Constructor which copies data from a wrapped array.
+
+     \param value - Input - Input data.
+     \param what - Input - A description of what this data represents.
+     \param expanded - Input - Flag, if true fill the entire container with
+                       the value. Otherwise a more efficient storage
+                       mechanism will be used.
+  */       
+  ESCRIPT_DLL_API     
+  Data(const WrappedArray& w, const FunctionSpace& what,
+           bool expanded=false);       
+       
+
+  /**
+     \brief
      Constructor which creates a DataConstant.
      Copies data from any object that can be treated like a python array/sequence.
      All other parameters are copied from other.
