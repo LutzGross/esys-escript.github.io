@@ -103,6 +103,7 @@ vars.AddVariables(
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   BoolVariable('pyvisi', 'Enable pyvisi (deprecated, requires VTK module)', False),
+  BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
@@ -526,6 +527,10 @@ if env['silo']:
     # weipa library and tools.
     #env.AppendUnique(LIBS = [env['silo_libs']])
 
+######## VSL random numbers (optional)
+if env['vsl_random']:
+    env.Append(CPPDEFINES = ['MKLRANDOM'])
+
 ######## VisIt (optional)
 
 visit_inc_path=''
@@ -615,7 +620,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','silo','visit','pyvisi':
+for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','silo','visit':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:
@@ -626,6 +631,8 @@ if env['gmsh']:
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")
+print("      vsl_random:  %s"%env['vsl_random'])
+     
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
 else:
@@ -705,6 +712,7 @@ buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
 buildvars.write("pyvisi=%d\n"%env['pyvisi'])
+buildvars.write("vsl_random=%d"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
     if env[i]:
