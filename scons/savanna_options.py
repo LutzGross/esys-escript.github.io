@@ -189,6 +189,9 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/l
 #pyvisi = True
 
 
+#Use intel's VSL library for random data
+vsl_random = True
+
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 

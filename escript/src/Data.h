@@ -1846,7 +1846,7 @@ template <class BinaryOp>
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
   friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
-  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, double seed);
+  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed);
 
 };
 
@@ -1870,7 +1870,7 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
-       double seed);
+       long seed);
 
 
 }   // end namespace escript
