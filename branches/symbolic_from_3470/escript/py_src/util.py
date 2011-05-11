@@ -44,8 +44,9 @@ from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
 from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
+from esys.escript.symbolic.symbols import *
+from esys.escript.symbolic.evaluator import *
 from esys.escript.symbolic import functions as symfn
-from esys.escript.symbolic import *
 
 #=========================================================
 #   some helpers:
@@ -532,7 +533,8 @@ def getRank(arg):
     Identifies the rank of the argument.
 
     :param arg: an object whose rank is to be returned
-    :type arg: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``,
+               ``Symbol``
     :return: the rank of the argument
     :rtype: ``int``
     :raise TypeError: if type of ``arg`` cannot be processed
@@ -546,6 +548,8 @@ def getRank(arg):
         return 0
     elif isinstance(arg,int):
         return 0
+    elif isinstance(arg,Symbol):
+        return arg.getRank()
     else:
       raise TypeError,"getRank: Unknown argument type."
 
@@ -554,7 +558,8 @@ def getShape(arg):
     Identifies the shape of the argument.
 
     :param arg: an object whose shape is to be returned
-    :type arg: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``,
+               ``Symbol``
     :return: the shape of the argument
     :rtype: ``tuple`` of ``int``
     :raise TypeError: if type of ``arg`` cannot be processed
@@ -570,6 +575,8 @@ def getShape(arg):
         return ()
     elif isinstance(arg,int):
         return ()
+    elif isinstance(arg,Symbol):
+        return arg.getShape()
     else:
       raise TypeError,"getShape: Cannot identify shape"
 
@@ -664,10 +671,11 @@ def matchType(arg0=0.,arg1=0.):
     `escript.Data`
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``,`escript.Data`,``float``, ``int``
+    :type arg0: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, ``Symbol``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``,`escript.Data`,``float``, ``int``
-    :return: a tuple representing ``arg0`` and ``arg1`` with the same type
+    :type arg1: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, ``Symbol``
+    :return: a tuple representing ``arg0`` and ``arg1`` with the same type or
+             with at least one of them being a `Symbol`
     :rtype: ``tuple`` of two ``numpy.ndarray`` or two `escript.Data`
     :raise TypeError: if type of ``arg0`` or ``arg1`` cannot be processed
     """
@@ -680,6 +688,8 @@ def matchType(arg0=0.,arg1=0.):
           arg1=numpy.array(arg1,dtype=numpy.float64)
        elif isinstance(arg1,int):
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
+       elif isinstance(arg1,Symbol):
+          pass
        else:
           raise TypeError,"function: Unknown type of second argument."
     elif isinstance(arg0,escript.Data):
@@ -691,6 +701,21 @@ def matchType(arg0=0.,arg1=0.):
           arg1=escript.Data(arg1,(),arg0.getFunctionSpace())
        elif isinstance(arg1,int):
           arg1=escript.Data(float(arg1),(),arg0.getFunctionSpace())
+       elif isinstance(arg1,Symbol):
+          pass
+       else:
+          raise TypeError,"function: Unknown type of second argument."
+    elif isinstance(arg0,Symbol):
+       if isinstance(arg1,numpy.ndarray):
+          pass
+       elif isinstance(arg1,escript.Data):
+          pass
+       elif isinstance(arg1,float):
+          pass
+       elif isinstance(arg1,int):
+          pass
+       elif isinstance(arg1,Symbol):
+          pass
        else:
           raise TypeError,"function: Unknown type of second argument."
     elif isinstance(arg0,float):
@@ -704,6 +729,8 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,int):
           arg0=numpy.array(arg0,dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
+       elif isinstance(arg1,Symbol):
+          pass
        else:
           raise TypeError,"function: Unknown type of second argument."
     elif isinstance(arg0,int):
@@ -717,6 +744,8 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,int):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
+       elif isinstance(arg1,Symbol):
+          pass
        else:
           raise TypeError,"function: Unknown type of second argument."
     else:
@@ -729,9 +758,9 @@ def matchShape(arg0,arg1):
     Returns a representation of ``arg0`` and ``arg1`` which have the same shape.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``,`escript.Data`,``float``, ``int``
+    :type arg0: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, `Symbol`
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``,`escript.Data`,``float``, ``int``
+    :type arg1: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, `Symbol`
     :return: ``arg0`` and ``arg1`` where copies are returned when the shape has
              to be changed
     :rtype: ``tuple``
@@ -751,8 +780,8 @@ def log10(arg):
    Returns base-10 logarithm of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -764,8 +793,8 @@ def log10(arg):
       return math.log10(arg)
    elif isinstance(arg,int):
       return math.log10(float(arg))
-   elif isinstance(arg,Basic):
-      return symfn.log10(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.log10)
    else:
       raise TypeError,"log10: Unknown argument type."
 
@@ -774,8 +803,8 @@ def wherePositive(arg):
    Returns mask of positive values of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``.
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -795,8 +824,8 @@ def wherePositive(arg):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Basic):
-      return symfn.wherePositive(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.wherePositive)
    else:
       raise TypeError,"wherePositive: Unknown argument type."
 
@@ -805,8 +834,8 @@ def whereNegative(arg):
    Returns mask of negative values of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -826,8 +855,8 @@ def whereNegative(arg):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Basic):
-      return symfn.whereNegative(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.whereNegative)
    else:
       raise TypeError,"whereNegative: Unknown argument type."
 
@@ -836,8 +865,8 @@ def whereNonNegative(arg):
    Returns mask of non-negative values of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -857,8 +886,8 @@ def whereNonNegative(arg):
         return 0.
       else:
         return 1.
-   elif isinstance(arg,Basic):
-      return symfn.whereNonNegative(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.whereNonNegative)
    else:
       raise TypeError,"whereNonNegative: Unknown argument type."
 
@@ -867,8 +896,8 @@ def whereNonPositive(arg):
    Returns mask of non-positive values of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -888,8 +917,8 @@ def whereNonPositive(arg):
         return 0.
       else:
         return 1.
-   elif isinstance(arg,Basic):
-      return symfn.whereNonPositive(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.whereNonPositive)
    else:
       raise TypeError,"whereNonPositive: Unknown argument type."
 
@@ -898,18 +927,18 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    Returns mask of zero entries of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used. 
    :type tol: ``float``
    :param rtol: relative tolerance used to define the absolute tolerance if ``tol`` is not present.
    :type rtol: non-negative ``float``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise ValueError: if ``rtol`` is non-negative.
    :raise TypeError: if the type of the argument is not expected
    """
-   if tol == None and not isinstance(arg, Basic):
+   if tol == None and not isinstance(arg, Symbol):
       if rtol<0: raise ValueError,"rtol must be non-negative."
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
@@ -928,8 +957,8 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Basic):
-      return symfn.whereZero(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.whereZero)
    else:
       raise TypeError,"whereZero: Unknown argument type."
 
@@ -938,11 +967,11 @@ def whereNonZero(arg,tol=0.):
    Returns mask of values different from zero of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used. 
    :type tol: ``float``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise ValueError: if ``rtol`` is non-negative.
    :raise TypeError: if the type of the argument is not expected
@@ -966,8 +995,8 @@ def whereNonZero(arg,tol=0.):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Basic):
-      return symfn.whereNonZero(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.whereNonZero)
    else:
       raise TypeError,"whereNonZero: Unknown argument type."
 
@@ -976,15 +1005,15 @@ def erf(arg):
    Returns the error function *erf* of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``.
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,escript.Data):
       return arg._erf()
-   elif isinstance(arg,Basic):
-      return symfn.erf(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.erf)
    else:
       raise TypeError,"erf: Unknown argument type."
 
@@ -993,8 +1022,8 @@ def sin(arg):
    Returns sine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``.
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1006,8 +1035,8 @@ def sin(arg):
       return math.sin(arg)
    elif isinstance(arg,int):
       return math.sin(arg)
-   elif isinstance(arg,Basic):
-      return symfn.sin(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.sin)
    else:
       raise TypeError,"sin: Unknown argument type."
 
@@ -1016,8 +1045,8 @@ def cos(arg):
    Returns cosine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1029,8 +1058,8 @@ def cos(arg):
       return math.cos(arg)
    elif isinstance(arg,int):
       return math.cos(arg)
-   elif isinstance(arg,Basic):
-      return symfn.cos(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.cos)
    else:
       raise TypeError,"cos: Unknown argument type."
 
@@ -1039,8 +1068,8 @@ def tan(arg):
    Returns tangent of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1052,8 +1081,8 @@ def tan(arg):
       return math.tan(arg)
    elif isinstance(arg,int):
       return math.tan(arg)
-   elif isinstance(arg,Basic):
-      return symfn.tan(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.tan)
    else:
       raise TypeError,"tan: Unknown argument type."
 
@@ -1062,8 +1091,8 @@ def asin(arg):
    Returns the inverse sine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1075,8 +1104,8 @@ def asin(arg):
       return math.asin(arg)
    elif isinstance(arg,int):
       return math.asin(arg)
-   elif isinstance(arg,Basic):
-      return symfn.asin(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.asin)
    else:
       raise TypeError,"asin: Unknown argument type."
 
@@ -1085,8 +1114,8 @@ def acos(arg):
    Returns the inverse cosine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1098,8 +1127,8 @@ def acos(arg):
       return math.acos(arg)
    elif isinstance(arg,int):
       return math.acos(arg)
-   elif isinstance(arg,Basic):
-      return symfn.acos(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.acos)
    else:
       raise TypeError,"acos: Unknown argument type."
 
@@ -1108,8 +1137,8 @@ def atan(arg):
    Returns inverse tangent of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1121,8 +1150,8 @@ def atan(arg):
       return math.atan(arg)
    elif isinstance(arg,int):
       return math.atan(arg)
-   elif isinstance(arg,Basic):
-      return symfn.atan(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.atan)
    else:
       raise TypeError,"atan: Unknown argument type."
 
@@ -1131,8 +1160,8 @@ def sinh(arg):
    Returns the hyperbolic sine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1144,8 +1173,8 @@ def sinh(arg):
       return math.sinh(arg)
    elif isinstance(arg,int):
       return math.sinh(arg)
-   elif isinstance(arg,Basic):
-      return symfn.sinh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.sinh)
    else:
       raise TypeError,"sinh: Unknown argument type."
 
@@ -1154,8 +1183,8 @@ def cosh(arg):
    Returns the hyperbolic cosine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1167,8 +1196,8 @@ def cosh(arg):
       return math.cosh(arg)
    elif isinstance(arg,int):
       return math.cosh(arg)
-   elif isinstance(arg,Basic):
-      return symfn.cosh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.cosh)
    else:
       raise TypeError,"cosh: Unknown argument type."
 
@@ -1177,8 +1206,8 @@ def tanh(arg):
    Returns the hyperbolic tangent of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1190,8 +1219,8 @@ def tanh(arg):
       return math.tanh(arg)
    elif isinstance(arg,int):
       return math.tanh(arg)
-   elif isinstance(arg,Basic):
-      return symfn.tanh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.tanh)
    else:
       raise TypeError,"tanh: Unknown argument type."
 
@@ -1200,8 +1229,8 @@ def asinh(arg):
    Returns the inverse hyperbolic sine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1213,8 +1242,8 @@ def asinh(arg):
       return numpy.arcsinh(arg)
    elif isinstance(arg,int):
       return numpy.arcsinh(float(arg))
-   elif isinstance(arg,Basic):
-      return symfn.asinh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.asinh)
    else:
       raise TypeError,"asinh: Unknown argument type."
 
@@ -1223,8 +1252,8 @@ def acosh(arg):
    Returns the inverse hyperbolic cosine of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1236,8 +1265,8 @@ def acosh(arg):
       return numpy.arccosh(arg)
    elif isinstance(arg,int):
       return numpy.arccosh(float(arg))
-   elif isinstance(arg,Basic):
-      return symfn.acosh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.acosh)
    else:
       raise TypeError,"acosh: Unknown argument type."
 
@@ -1246,8 +1275,8 @@ def atanh(arg):
    Returns the inverse hyperbolic tangent of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1259,8 +1288,8 @@ def atanh(arg):
       return numpy.arctanh(arg)
    elif isinstance(arg,int):
       return numpy.arctanh(float(arg))
-   elif isinstance(arg,Basic):
-      return symfn.atanh(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.atanh)
    else:
       raise TypeError,"atanh: Unknown argument type."
 
@@ -1269,8 +1298,8 @@ def exp(arg):
    Returns *e* to the power of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``.
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of arg
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1282,8 +1311,8 @@ def exp(arg):
       return math.exp(arg)
    elif isinstance(arg,int):
       return math.exp(arg)
-   elif isinstance(arg,Basic):
-      return symfn.exp(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.exp)
    else:
       raise TypeError,"exp: Unknown argument type."
 
@@ -1292,8 +1321,8 @@ def sqrt(arg):
    Returns the square root of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
            depending on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1305,8 +1334,8 @@ def sqrt(arg):
       return math.sqrt(arg)
    elif isinstance(arg,int):
       return math.sqrt(arg)
-   elif isinstance(arg,Basic):
-      return symfn.sqrt(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.sqrt)
    else:
       raise TypeError,"sqrt: Unknown argument type."
 
@@ -1315,8 +1344,8 @@ def log(arg):
    Returns the natural logarithm of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``.
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1328,8 +1357,8 @@ def log(arg):
       return math.log(arg)
    elif isinstance(arg,int):
       return math.log(arg)
-   elif isinstance(arg,Basic):
-      return symfn.log(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.log)
    else:
       raise TypeError,"log: Unknown argument type."
 
@@ -1338,8 +1367,8 @@ def sign(arg):
    Returns the sign of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float``, `escript.Data`, ``numpy.ndarray`` depending
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
@@ -1361,8 +1390,8 @@ def sign(arg):
         return -1.
       else:
         return 0.
-   elif isinstance(arg,Basic):
-      return symfn.sign(arg)
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.sign)
    else:
       raise TypeError,"sign: Unknown argument type."
 
@@ -1371,8 +1400,8 @@ def minval(arg):
    Returns the minimum value over all components of ``arg`` at each data point.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float`` or `escript.Data` depending on the type of ``arg``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol` depending on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
@@ -1386,7 +1415,7 @@ def minval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,Basic):
+   elif isinstance(arg,Symbol):
       return symfn.minval(arg)
    else:
       raise TypeError,"minval: Unknown argument type."
@@ -1396,8 +1425,8 @@ def maxval(arg):
    Returns the maximum value over all components of ``arg`` at each data point.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float`` or `escript.Data` depending on the type of ``arg``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol` depending on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
    if isinstance(arg,numpy.ndarray):
@@ -1411,7 +1440,7 @@ def maxval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,Basic):
+   elif isinstance(arg,Symbol):
       return symfn.maxval(arg)
    else:
       raise TypeError,"maxval: Unknown argument type."
@@ -1421,8 +1450,8 @@ def length(arg):
    Returns the length (Euclidean norm) of argument ``arg`` at each data point.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data`, ``numpy.ndarray``
-   :rtype: ``float`` or `escript.Data` depending on the type of ``arg``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
+   :rtype: ``float``, `escript.Data`, `Symbol` depending on the type of ``arg``
    """
    return sqrt(inner(arg,arg))
 
@@ -1431,7 +1460,7 @@ def trace(arg,axis_offset=0):
    Returns the trace of ``arg`` which is the sum of ``arg[k,k]`` over k.
 
    :param arg: argument
-   :type arg: `escript.Data`, ``numpy.ndarray``
+   :type arg: `escript.Data`, `Symbol`, ``numpy.ndarray``
    :param axis_offset: ``axis_offset`` to components to sum over. ``axis_offset``
                        must be non-negative and less than the rank of ``arg`` +1.
                        The dimensions of component ``axis_offset`` and
@@ -1439,7 +1468,8 @@ def trace(arg,axis_offset=0):
    :type axis_offset: ``int``
    :return: trace of arg. The rank of the returned object is rank of ``arg``
             minus 2.
-   :rtype: `escript.Data` or ``numpy.ndarray`` depending on the type of ``arg``
+   :rtype: `escript.Data`, `Symbol` or ``numpy.ndarray`` depending on the type
+           of ``arg``
    """
    if isinstance(arg,numpy.ndarray):
       sh=arg.shape
@@ -1469,8 +1499,15 @@ def trace(arg,axis_offset=0):
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
       return arg._trace(axis_offset)
-   elif isinstance(arg,Basic):
-      return symfn.trace(arg,axis_offset)
+   elif isinstance(arg,Symbol):
+      if arg.getRank()<2:
+        raise ValueError,"rank of argument must be greater than 1"
+      if axis_offset<0 or axis_offset>arg.getRank()-2:
+        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
+      s=list(arg.getShape())
+      if not s[axis_offset] == s[axis_offset+1]:
+        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+      return arg.trace(axis_offset)
    elif isinstance(arg,float):
       raise TypeError,"illegal argument type float."
    elif isinstance(arg,int):
@@ -1480,11 +1517,11 @@ def trace(arg,axis_offset=0):
 
 def transpose(arg,axis_offset=None):
    """
-   Returns the transpose of ``arg`` by swapping the first ``axis_offset`` and the
-   last ``rank-axis_offset`` components.
+   Returns the transpose of ``arg`` by swapping the first ``axis_offset`` and
+   the last ``rank-axis_offset`` components.
 
    :param arg: argument
-   :type arg: `escript.Data`, ``numpy.ndarray``, ``float``, ``int``
+   :type arg: `escript.Data`, `Symbol`, ``numpy.ndarray``, ``float``, ``int``
    :param axis_offset: the first ``axis_offset`` components are swapped with the
                        rest. ``axis_offset`` must be non-negative and less or
                        equal to the rank of ``arg``. If ``axis_offset`` is not
@@ -1492,7 +1529,7 @@ def transpose(arg,axis_offset=None):
                        used.
    :type axis_offset: ``int``
    :return: transpose of ``arg``
-   :rtype: `escript.Data`, ``numpy.ndarray``, ``float``, ``int``
+   :rtype: `escript.Data`, `Symbol`, ``numpy.ndarray``, ``float``, ``int``
            depending on the type of ``arg``
    """
    if isinstance(arg,numpy.ndarray):
@@ -1512,8 +1549,12 @@ def transpose(arg,axis_offset=None):
       if not ( axis_offset==0 or axis_offset==None):
         raise ValueError,"axis_offset must be 0 for int argument"
       return float(arg)
-   elif isinstance(arg,Basic):
-      return symfn.transpose(arg,axis_offset)
+   elif isinstance(arg,Symbol):
+      r=arg.getRank()
+      if axis_offset==None: axis_offset=int(r/2)
+      if axis_offset<0 or axis_offset>r:
+        raise ValueError,"axis_offset must be between 0 and %s"%r
+      return arg.transpose(axis_offset)
    else:
       raise TypeError,"Unknown argument type."
 
@@ -1522,7 +1563,7 @@ def swap_axes(arg,axis0=0,axis1=1):
    Returns the swap of ``arg`` by swapping the components ``axis0`` and ``axis1``.
 
    :param arg: argument
-   :type arg: `escript.Data`, ``numpy.ndarray``
+   :type arg: `escript.Data`, `Symbol`, ``numpy.ndarray``
    :param axis0: first axis. ``axis0`` must be non-negative and less than the
                  rank of ``arg``.
    :type axis0: ``int``
@@ -1530,7 +1571,8 @@ def swap_axes(arg,axis0=0,axis1=1):
                  rank of ``arg``.
    :type axis1: ``int``
    :return: ``arg`` with swapped components
-   :rtype: `escript.Data` or ``numpy.ndarray`` depending on the type of ``arg``
+   :rtype: `escript.Data`, `Symbol` or ``numpy.ndarray`` depending on the type
+           of ``arg``
    """
    if axis0 > axis1:
       axis0,axis1=axis1,axis0
@@ -1538,12 +1580,12 @@ def swap_axes(arg,axis0=0,axis1=1):
       return numpy.swapaxes(arg,axis0,axis1)
    elif isinstance(arg,escript.Data):
       return arg._swap_axes(axis0,axis1)
+   elif isinstance(arg,Symbol):
+      return arg.swap_axes(axis0,axis1)
    elif isinstance(arg,float):
       raise TypeError,"float argument is not supported."
    elif isinstance(arg,int):
       raise TypeError,"int argument is not supported."
-   elif isinstance(arg,Basic):
-      return symfn.swap_axes(arg, axis0, axis1)
    else:
       raise TypeError,"Unknown argument type."
 
@@ -1553,9 +1595,9 @@ def symmetric(arg):
     *(arg+transpose(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
-    :type arg: ``numpy.ndarray``, `escript.Data`
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: symmetric part of ``arg``
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
@@ -1578,12 +1620,20 @@ def symmetric(arg):
         return arg._symmetric()
       else:
         raise ValueError,"rank 2 or 4 is required."
+    elif isinstance(arg, Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError,"symmetric: argument must be square."
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError,"symmetric: argument must be square."
+        else:
+            raise ValueError,"symmetric: rank 2 or 4 is required."
+        return (arg+transpose(arg))/2
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
       return float(arg)
-    elif isinstance(arg,Basic):
-      return symfn.symmetric(arg)
     else:
       raise TypeError,"symmetric: Unknown argument type."
 
@@ -1593,9 +1643,9 @@ def nonsymmetric(arg):
     *(arg-transpose(arg))/2*.
 
     :param arg: input matrix. Must have rank 2 or 4 and be square.
-    :type arg: ``numpy.ndarray``, `escript.Data`
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: non-symmetric part of ``arg``
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
@@ -1618,14 +1668,22 @@ def nonsymmetric(arg):
         return arg._nonsymmetric()
       else:
         raise ValueError,"rank 2 or 4 is required."
+    elif isinstance(arg, Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError,"nonsymmetric: argument must be square."
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError,"nonsymmetric: argument must be square."
+        else:
+            raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+        return (arg-transpose(arg))/2
     elif isinstance(arg,float):
-      return arg
+        return arg
     elif isinstance(arg,int):
-      return float(arg)
-    elif isinstance(arg,Basic):
-      return symfn.nonsymmetric(arg)
+        return float(arg)
     else:
-      raise TypeError,"nonsymmetric: Unknown argument type."
+        raise TypeError,"nonsymmetric: Unknown argument type."
 
 def inverse(arg):
     """
@@ -1633,10 +1691,10 @@ def inverse(arg):
 
     :param arg: square matrix. Must have rank 2 and the first and second
                 dimension must be equal.
-    :type arg: ``numpy.ndarray``, `escript.Data`
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: inverse of the argument. ``matrix_mult(inverse(arg),arg)`` will be
              almost equal to ``kronecker(arg.getShape()[0])``
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :note: for `escript.Data` objects the dimension is restricted to 3.
     """
     import numpy.linalg
@@ -1648,7 +1706,7 @@ def inverse(arg):
       return 1./arg
     elif isinstance(arg,int):
       return 1./float(arg)
-    elif isinstance(arg,Basic):
+    elif isinstance(arg,Symbol):
       return symfn.inverse(arg)
     else:
       raise TypeError,"inverse: Unknown argument type."
@@ -1714,10 +1772,11 @@ def eigenvalues(arg):
     :param arg: square matrix. Must have rank 2 and the first and second
                 dimension must be equal. It must also be symmetric, ie.
                 ``transpose(arg)==arg`` (this is not checked).
-    :type arg: ``numpy.ndarray``, `escript.Data`
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the eigenvalues in increasing order
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
-    :note: for `escript.Data` objects the dimension is restricted to 3.
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
+    :note: for `escript.Data` and `Symbol` objects the dimension is
+           restricted to 3.
     """
     if isinstance(arg,numpy.ndarray):
       out=numpy.linalg.eigvals((arg+numpy.transpose(arg))/2.)
@@ -1729,7 +1788,7 @@ def eigenvalues(arg):
       return arg
     elif isinstance(arg,int):
       return float(arg)
-    elif isinstance(arg,Basic):
+    elif isinstance(arg,Symbol):
       return symfn.eigenvalues(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
@@ -1757,7 +1816,7 @@ def eigenvalues_and_eigenvectors(arg):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
-    elif isinstance(arg,Basic):
+    elif isinstance(arg,Symbol):
       return symfn.eigenvalues_and_eigenvectors(arg)
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
@@ -1767,13 +1826,14 @@ def maximum(*args):
     The maximum over arguments ``args``.
 
     :param args: arguments
-    :type args: ``numpy.ndarray``, `escript.Data`, ``int`` or ``float``
+    :type args: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
+                ``float``
     :return: an object which in each entry gives the maximum of the
              corresponding values in ``args``
-    :rtype: ``numpy.ndarray``, `escript.Data`, ``int`` or
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
             ``float`` depending on the input
     """
-    if max([isinstance(v,Basic) for v in args]):
+    if max([isinstance(v,Symbol) for v in args]):
         return symfn.maximum(*args)
     out=None
     for a in args:
@@ -1804,13 +1864,14 @@ def minimum(*args):
     The minimum over arguments ``args``.
 
     :param args: arguments
-    :type args: ``numpy.ndarray``, `escript.Data`, ``int`` or ``float``
+    :type args: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
+                ``float``
     :return: an object which gives in each entry the minimum of the
              corresponding values in ``args``
-    :rtype: ``numpy.ndarray``, `escript.Data`, ``int`` or ``float``
-            depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
+            ``float`` depending on the input
     """
-    if max([isinstance(v,Basic) for v in args]):
+    if max([isinstance(v,Symbol) for v in args]):
         return symfn.minimum(*args)
     out=None
     for a in args:
@@ -1841,19 +1902,21 @@ def clip(arg,minval=None,maxval=None):
     Cuts the values of ``arg`` between ``minval`` and ``maxval``.
 
     :param arg: argument
-    :type arg: ``numpy.ndarray``, `escript.Data`, ``int`` or ``float``
+    :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
+               ``float``
     :param minval: lower range. If None no lower range is applied
     :type minval: ``float`` or ``None``
     :param maxval: upper range. If None no upper range is applied
     :type maxval: ``float`` or ``None``
     :return: an object that contains all values from ``arg`` between ``minval``
              and ``maxval``
-    :rtype: ``numpy.ndarray``, `escript.Data`, ``int`` or ``float``
-            depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
+            ``float`` depending on the input
     :raise ValueError: if ``minval>maxval``
     """
-    if isinstance(arg, Basic):
-        return symfn.clip(arg,minval,maxval)
+    if isinstance(arg, Symbol):
+        clip_item=lambda item: symfn.clip(item, minval, maxval)
+        return arg.applyfunc(clip_item)
     if not minval==None and not maxval==None:
        if minval>maxval:
           raise ValueError,"minval = %s must be less than maxval %s"%(minval,maxval)
@@ -1877,17 +1940,14 @@ def inner(arg0,arg1):
     ``arg0`` and ``arg1`` must have the same shape.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the inner product of ``arg0`` and ``arg1`` at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, ``float``
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``
             depending on the input
     :raise ValueError: if the shapes of the arguments are not identical
     """
-    if isinstance(arg0,Basic) and isinstance(arg1,Basic):
-        return symfn.inner(arg0,arg1)
-
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not sh0==sh1:
@@ -1905,15 +1965,12 @@ def outer(arg0,arg1):
         - t runs through ``arg1.Shape``
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the outer product of ``arg0`` and ``arg1`` at each data point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
-    if isinstance(arg0,Basic) and isinstance(arg1,Basic):
-        return symfn.outer(arg0,arg1)
-
     return generalTensorProduct(arg0,arg1,axis_offset=0)
 
 def matrixmult(arg0,arg1):
@@ -1936,12 +1993,12 @@ def matrix_mult(arg0,arg1):
     match.
 
     :param arg0: first argument of rank 2
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of at least rank 1
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the matrix-matrix or matrix-vector product of ``arg0`` and ``arg1``
              at each data point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -1987,12 +2044,12 @@ def tensor_mult(arg0,arg1):
     must match the two first dimensions of ``arg1``.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater than 1 or 2 depending on the
                  rank of ``arg0``
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of ``arg0`` and ``arg1`` at each data point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
@@ -2015,17 +2072,29 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
         - t runs through ``arg1.Shape[axis_offset:]``
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``arg0`` and ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray``, `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data
-    if isinstance(arg0,numpy.ndarray):
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       if not sh0[arg0.getRank()-axis_offset:]==sh1[:axis_offset]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.tensorproduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
        arg0_c=arg0.copy()
@@ -2045,6 +2114,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        return out
     elif isinstance(arg0,escript.Data):
        return escript_generalTensorProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+    raise TypeError("generalTensorProduct: Unsupported argument type")
 
 def escript_generalTensorProduct(arg0,arg1,axis_offset,transpose=0):
     "arg0 and arg1 are both Data objects but not necessarily on the same function space. They could be identical!!!"
@@ -2067,12 +2137,12 @@ def transposed_matrix_mult(arg0,arg1):
     The first dimension of ``arg0`` and ``arg1`` must match.
 
     :param arg0: first argument of rank 2
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of at least rank 1
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the product of the transpose of ``arg0`` and ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -2115,12 +2185,12 @@ def transposed_tensor_mult(arg0,arg1):
     ``tensor_mult(transpose(arg0),arg1)``.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater of 1 or 2 depending on the
                  rank of ``arg0``
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of transpose of arg0 and arg1 at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
@@ -2147,12 +2217,12 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     ``generalTensorProduct(transpose(arg0,arg0.ndim-axis_offset),arg1,axis_offset)``.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``transpose(arg0)`` and ``arg1`` at
              each data point
-    :rtype: ``numpy.ndarray``, `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
@@ -2196,12 +2266,12 @@ def matrix_transposed_mult(arg0,arg1):
     The last dimensions of ``arg0`` and ``arg1`` must match.
 
     :param arg0: first argument of rank 2
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of rank 1 or 2
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the product of ``arg0`` and the transposed of ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -2236,13 +2306,13 @@ def tensor_transposed_mult(arg0,arg1):
     ``tensor_mult(arg0,transpose(arg1))``.
 
     :param arg0: first argument of rank 2 or 4
-    :type arg0: ``numpy.ndarray``, `escript.Data`
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :param arg1: second argument of shape greater of 1 or 2 depending on rank
                  of ``arg0``
-    :type arg1: ``numpy.ndarray``, `escript.Data`
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of the transposed of ``arg0`` and ``arg1`` at
              each data point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
@@ -2269,12 +2339,12 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     ``generalTensorProduct(arg0,transpose(arg1,arg1.ndim-axis_offset),axis_offset)``.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``arg0`` and ``transpose(arg1)`` at
              each data point
-    :rtype: ``numpy.ndarray`` or `escript.Data` depending on the input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
@@ -2326,20 +2396,20 @@ def grad(arg,where=None):
 
     :param arg: function of which the gradient is to be calculated. Its rank
                 has to be less than 3.
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param where: FunctionSpace in which the gradient is calculated.
                   If not present or ``None`` an appropriate default is used.
     :type where: ``None`` or `escript.FunctionSpace`
     :return: gradient of ``arg``
-    :rtype: `escript.Data`
+    :rtype: `escript.Data` or `Symbol`
     """
-    if isinstance(arg,escript.Data):
+    if isinstance(arg,Symbol):
+       return symfn.grad(arg, where)
+    elif isinstance(arg,escript.Data):
        if where==None:
           return arg._grad()
        else:
           return arg._grad(where)
-    elif isinstance(arg,Basic):
-       return symfn.grad(arg, where)
     else:
        raise TypeError,"grad: Unknown argument type."
 
@@ -2349,12 +2419,12 @@ def integrate(arg,where=None):
     present ``arg`` is interpolated to ``where`` before integration.
 
     :param arg: the function which is integrated
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param where: FunctionSpace in which the integral is calculated.
                   If not present or ``None`` an appropriate default is used.
     :type where: ``None`` or `escript.FunctionSpace`
     :return: integral of ``arg``
-    :rtype: ``float`` or ``numpy.ndarray``
+    :rtype: ``float``, ``numpy.ndarray`` or `Symbol`
     """
     if isinstance(arg,escript.Data):
        if not where==None: arg=escript.Data(arg,where)
@@ -2362,7 +2432,7 @@ def integrate(arg,where=None):
           return arg._integrateToTuple()[0]
        else:
           return numpy.array(arg._integrateToTuple())
-    elif isinstance(arg,Basic):
+    elif isinstance(arg,Symbol):
        return symfn.integrate(arg, where)
     else:
        arg2=escript.Data(arg,where)
@@ -2378,11 +2448,11 @@ def interpolate(arg,where):
     is performed and ``arg`` is returned.
 
     :param arg: interpolant
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param where: `FunctionSpace` to be interpolated to
     :type where: `escript.FunctionSpace`
     :return: interpolated argument
-    :rtype: ``escript.Data``
+    :rtype: ``escript.Data`` or `Symbol`
     """
     if isinstance(arg,escript.Data):
        if arg.isEmpty():
@@ -2391,7 +2461,7 @@ def interpolate(arg,where):
           return arg
        else:
           return escript.Data(arg,where)
-    elif isinstance(arg,Basic):
+    elif isinstance(arg,Symbol):
        return symfn.interpolate(arg, where)
     else:
        return escript.Data(arg,where)
@@ -2402,18 +2472,18 @@ def div(arg,where=None):
 
     :param arg: function of which the divergence is to be calculated. Its
                 shape has to be (d,) where d is the spatial dimension.
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param where: `FunctionSpace` in which the divergence will be calculated.
                   If not present or ``None`` an appropriate default is used.
     :type where: ``None`` or `escript.FunctionSpace`
     :return: divergence of ``arg``
-    :rtype: `escript.Data`
+    :rtype: `escript.Data` or `Symbol`
     """
     if isinstance(arg,escript.Data):
         dim=arg.getDomain().getDim()
         if not arg.getShape()==(dim,):
             raise ValueError,"div: expected shape is (%s,)"%dim
-    elif not isinstance(arg, Basic):
+    elif not isinstance(arg, Symbol):
         raise TypeError,"div: argument type not supported"
     return trace(grad(arg,where))
 
@@ -2422,12 +2492,12 @@ def jump(arg,domain=None):
     Returns the jump of ``arg`` across the continuity of the domain.
 
     :param arg: argument
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param domain: the domain where the discontinuity is located. If domain is
                    not present or equal to ``None`` the domain of ``arg`` is used.
     :type domain: ``None`` or `escript.Domain`
     :return: jump of ``arg``
-    :rtype: `escript.Data`
+    :rtype: `escript.Data` or `Symbol`
     """
     if domain==None: domain=arg.getDomain()
     return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
@@ -2437,12 +2507,12 @@ def L2(arg):
     Returns the L2 norm of ``arg`` at ``where``.
 
     :param arg: function of which the L2 norm is to be calculated
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :return: L2 norm of ``arg``
-    :rtype: `float`
+    :rtype: `float` or `Symbol`
     :note: L2(arg) is equivalent to ``sqrt(integrate(inner(arg,arg)))``
     """
-    if isinstance(arg,Basic):
+    if isinstance(arg,Symbol):
         return symfn.L2(arg)
     return sqrt(integrate(inner(arg,arg)))
 
@@ -2464,11 +2534,11 @@ def normalize(arg,zerolength=0):
     Returns the normalized version of ``arg`` (=``arg/length(arg)``).
 
     :param arg: function
-    :type arg: `escript.Data`
+    :type arg: `escript.Data` or `Symbol`
     :param zerolength: relative tolerance for arg == 0
     :type zerolength: ``float``
     :return: normalized ``arg`` where ``arg`` is non-zero, and zero elsewhere
-    :rtype: `escript.Data`
+    :rtype: `escript.Data` or `Symbol`
     """
     l=length(arg)
     m=whereZero(l,zerolength*Lsup(l))

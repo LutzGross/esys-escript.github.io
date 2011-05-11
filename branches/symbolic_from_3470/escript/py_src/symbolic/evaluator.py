@@ -43,13 +43,24 @@ class Evaluator:
 
         :return: the modified Evaluator object
         """
-        from sympy import Symbol, lambdify
+        import sympy
+        from esys import escript
         if not hasattr(expression, "atoms"):
             raise TypeError("Argument is not an expression")
         self.expressions.append(expression)
-        sym=tuple(expression.atoms(Symbol))
-        self.symbols.append(sym)
-        self.lambdas.append(lambdify(sym, expression, ["escript","numpy"]))
+        if isinstance(expression, sympy.Function):
+            sym=set()
+            for arg in expression.args:
+                sym.update(arg.atoms(sympy.Symbol))
+            self.symbols.append(tuple(sym))
+        else:
+            sym=tuple(expression.atoms(sympy.Symbol))
+            self.symbols.append(sym)
+
+        if isinstance(expression, escript.Symbol):
+            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"]))
+        else:
+            self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"]))
         return self
 
     def subs(self, **args):

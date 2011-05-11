@@ -180,8 +180,9 @@ class inverse(sympy.Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_Number:
-            return 1./arg
+        if isinstance(arg,sympy.Basic):
+            if arg.is_Number:
+                return 1./arg
 
 class minval(sympy.Function):
     """Returns the minimum value over all components of the argument
@@ -190,8 +191,9 @@ class minval(sympy.Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_Number:
-            return arg
+        if isinstance(arg,sympy.Basic):
+            if arg.is_Number:
+                return arg
 
 class maxval(sympy.Function):
     """Returns the maximum value over all components of the argument
@@ -200,8 +202,9 @@ class maxval(sympy.Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_Number:
-            return arg
+        if isinstance(arg,sympy.Basic):
+            if arg.is_Number:
+                return arg
 
 class maximum(sympy.Function):
     """Returns the maximum over the arguments
@@ -250,11 +253,12 @@ class symmetric(sympy.Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_Function:
-            if arg.func is symmetric: return arg
-            if arg.func is nonsymmetric: return S.Zero
-        elif arg.is_Number:
-            return arg
+        if isinstance(arg,sympy.Basic):
+            if arg.is_Function:
+                if arg.func is symmetric: return arg
+                if arg.func is nonsymmetric: return S.Zero
+            elif arg.is_Number:
+                return arg
 
 class nonsymmetric(sympy.Function):
     """Returns the non-symmetric part of the argument
@@ -263,11 +267,12 @@ class nonsymmetric(sympy.Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_Function:
-            if arg.func is nonsymmetric: return arg
-            if arg.func is symmetric: return S.Zero
-        elif arg.is_Number:
-            return arg
+        if isinstance(arg,sympy.Basic):
+            if arg.is_Function:
+                if arg.func is nonsymmetric: return arg
+                if arg.func is symmetric: return S.Zero
+            elif arg.is_Number:
+                return arg
 
 class swap_axes(sympy.Function):
     """Returns the 'swap' of the argument
