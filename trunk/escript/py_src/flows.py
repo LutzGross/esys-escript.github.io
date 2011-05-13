@@ -265,7 +265,7 @@ class DarcyFlow(object):
       if self.solver  == self.SIMPLE or self.solver  == self.POST :
 	    self.__pde_p.setValue(X=self.__g , 
 	                          Y=self.__f, 
-	                          y=-util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
+	                          y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
 	                          r=p0)
 	    p=self.__pde_p.getSolution()
 	    u = self.getFlux(p, u0)
@@ -343,6 +343,7 @@ class DarcyFlow(object):
                                  X=0.5*(self.__g - u - util.tensor_mult(self.__permeability,util.grad(p0)) ), 
                                  y= escript.Data(), 
                                  r=escript.Data())
+
 	  dp=self.__pde_p.getSolution()
 	  p=GMRES(dp, 
 	          self.__STAB_Aprod, 
@@ -362,9 +363,13 @@ class DarcyFlow(object):
 	  u=self.getFlux(p0, u0)  
           self.__pde_p.setValue( Y= self.__f, 
                                  X=  0.5*(self.__g + u - util.tensor_mult(self.__permeability,util.grad(p0)) ), 
-                                 y= -   util.inner(self.domain.getNormal(), u), 
+                                 y=  -  util.inner(self.domain.getNormal(), u), 
                                  r=escript.Data())
 	  dp=self.__pde_p.getSolution()
+	  
+	  print dp
+          print p0+dp
+          
 	  p=GMRES(dp, 
 	          self.__SYMSTAB_Aprod, 
 		  p0, 
@@ -410,7 +415,7 @@ class DarcyFlow(object):
       u = -self.__pde_v.getSolution()
       self.__pde_p.setValue(Y=escript.Data(), 
                             X=0.5*(-u+util.tensor_mult(self.__permeability,gp)),
-                            y=   util.inner(self.domain.getNormal(), u), 
+                            y=escript.Data(), 
                             r=escript.Data())
      
       return  self.__pde_p.getSolution()

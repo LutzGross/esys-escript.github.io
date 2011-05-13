@@ -130,9 +130,7 @@ void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const ind
 
 struct Paso_Preconditioner_BoomerAMG
 {
-#ifdef BOOMERAMG
   Paso_BOOMERAMG_Handler* pt;
-#endif
 };
 typedef struct Paso_Preconditioner_BoomerAMG Paso_Preconditioner_BoomerAMG;
 void Paso_Preconditioner_BoomerAMG_free(Paso_Preconditioner_BoomerAMG * in);

@@ -61,7 +61,7 @@ void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix* A, index_t** p_ptr,
 void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val) {
 
   index_t i, j, i_ub, j_lb, j_ub, row, num_vals, main_num_vals;
-  index_t couple_num_vals, idx, idx2, rank, row_offset, ij_ptr;
+  index_t couple_num_vals, rank, row_offset, ij_ptr=0, idx=0, idx2=0;
   index_t main_num_rows, couple_num_rows, col_offset;
   index_t *main_ptr, *main_idx, *couple_ptr, *couple_idx;
   double  *main_val, *couple_val, *rows;
@@ -172,7 +172,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
 
 
 void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val) {
-
+/*
   index_t i, j, i_ub, j_ub, col, num_vals, main_num_vals;
   index_t couple_num_vals, idx, rank, main_offset;
   index_t main_num_cols=A->mainBlock->pattern->numOutput;
@@ -185,6 +185,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix* A, inde
   double  *couple_val=A->col_coupleBlock->val;
   index_t *couple_global=NULL;
   Paso_Coupler* coupler=A->col_coupler;
+*/
 
   return;
 }

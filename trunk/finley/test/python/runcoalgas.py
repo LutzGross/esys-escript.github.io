@@ -26,26 +26,34 @@ from esys.weipa import saveVTK
 from esys.escript import unitsSI as U
 from coalgas import *
 import time
-from esys.finley import ReadMesh, Rectangle
+from esys.finley import ReadMesh, Rectangle, Brick
 from esys.escript.pdetools import Locator
-
-CELL_X=800*U.m
-CELL_Y=800*U.m
-CELL_Z=10*U.m
+CONST_G = 9.81  * U.m/U.sec**2
+P_0=1.*U.atm
 
 
-L_Z=10*U.m
+CELL_X=2640*U.ft
+CELL_Y=2640*U.ft
+CELL_Z=33*U.ft
 
-L_X=168*U.km/3
-L_Y=168*U.km/3
+TOP=2310*U.ft
+
+
+L_Z=CELL_Z
+
+L_X=CELL_X*70
+L_Y=CELL_Y*70
+
 N_X=int(L_X/CELL_X)
 N_Y=int(L_Y/CELL_Y)
+N_Z=int(L_Z/CELL_Z)
+
 
 OUTPUT_DIR="results"
 
 
-PERM_F_X = 10 * U.mDarcy
-PERM_F_Y = 10 * U.mDarcy
+PERM_F_X = 100 * U.mDarcy
+PERM_F_Y = 100 * U.mDarcy
 PERM_F_Z = 1e-4 * U.mDarcy
 
 EQUIL = {
@@ -56,11 +64,13 @@ EQUIL = {
     "GWC_PCOW" : 0. * U.psi
 }
 
-
+TOPS = 2310 * U.ft
 PHI_F_0=0.01
 SIGMA = 1. /U.ft**2 
 
+#DT=[0.1* U.day]*9+[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
 DT=[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
+# DT=[1 * U.day,2* U.day] + [4*U.day ] *200
 
 #[0.1 * U.day ] *20
 
@@ -93,6 +103,7 @@ LANGMUIR = [
 [ 900	* U.psi , 0.00997836 * U.Mscf/U.ft**3],
 [ 1000	* U.psi , 0.01045748 * U.Mscf/U.ft**3],
 [ 1200	* U.psi , 0.01126912 * U.Mscf/U.ft**3] ]
+
 
 PVDG = [
 [ 14.70 * U.psi ,200.3800 * U.Barrel/U.Mscf , 0.012025 * U.cPoise ] , # psi, rb/Mscf,  
@@ -179,12 +190,12 @@ SWFN = [
 
 
 wellspecs = {
-  'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y], 
+  'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y, 0.5*CELL_Z], 
            "r"  : 0.8333 * U.ft,
            "s"  : 0,
-           "Q"  : 2000*U.Barrel/U.day, 
+           "Q"  : [0., 2000*U.Barrel/U.day, 2000*U.Barrel/U.day, 0.],
            "BHP" : 75*U.psi,
-           "schedule" : [0.*U.yr, 2*U.yr]
+           "schedule" : [0.*U.yr,  1.*U.day, 2.*U.yr-1*U.day, 2*U.yr]
          }
 }
 
@@ -193,6 +204,8 @@ wellspecs = {
 # print input
 print("<%s> Execution started."%time.asctime())
 domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+#domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
+
 #domain=ReadMesh("reservoir.fly",2)
 print("<%s> Domain has been generated."%time.asctime())
 
@@ -203,7 +216,6 @@ print "cell size in y direction = %f m"%(CELL_Y/U.m)
 print "fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy))
 print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
 print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
-print "initial porosity in fractured rock= %f"%EQUIL["DATUM_PRESS"]
 
 
 mkDir(OUTPUT_DIR)
@@ -214,14 +226,17 @@ print("<%s> Mesh set up completed."%time.asctime())
 well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"], 
 							    Q=wellspecs['P1']["Q"], 
 							    r=wellspecs['P1']["r"], 
-							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1]] ,
-							    D=[CELL_X, CELL_Y, L_Z], 
+							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
+							    D=[CELL_X, CELL_Y, CELL_Z], 
 							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
 							    schedule=wellspecs['P1']["schedule"], 
-							    s=wellspecs['P1']["s"], decay_factor = 1) 
+							    s=wellspecs['P1']["s"], decay_factor = 0.) 
+rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"])
+p_top = EQUIL["DATUM_PRESS"] + P_0
+p_bottom=p_top + CONST_G * CELL_Z * rho_w(p_top)
 
 model = PorosityOneHalfModel(domain, 
-                             phi_f=Porosity(phi_0=PHI_F_0, p_0=EQUIL["DATUM_PRESS"], p_ref=ROCK["p_ref"], C = ROCK["C"]),
+                             phi_f=Porosity(phi_0=PHI_F_0, p_0=(p_bottom +p_top)/2., p_ref=ROCK["p_ref"], C = ROCK["C"]),
                              L_g=InterpolationTable([ l[0] for l in LANGMUIR ], [ l[1] for l in LANGMUIR ] ),
 			     perm_f_0=PERM_F_X, 
 			     perm_f_1=PERM_F_Y, 
@@ -230,23 +245,23 @@ model = PorosityOneHalfModel(domain,
 			     k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),  
 			     mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
 			     mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
-			     rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"]), 
+			     rho_w = rho_w, 
 			     rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]), 
 			     sigma=SIGMA,
 			     A_mg=DIFFCOAL["D"], 
    	   		     f_rg=DIFFCOAL["f_r"],
-			     wells=[ well_P1, ] )
-    
-model.setInitialState(p=EQUIL["DATUM_PRESS"], S_fg=0,  C_mg=None)
+			     wells=[ well_P1, ], g= CONST_G)
+# this needs to be revised:.
+model.setInitialState(S_fg=0,  c_mg=None, p_top=p_top, p_bottom=p_bottom)
 model.getPDEOptions().setVerbosityOn()
 model.getPDEOptions().setSolverMethod(model.getPDEOptions().DIRECT)
-model.setIterationControl(iter_max=1, rtol=1.e-4, verbose=True, xi=1.0)
+model.setIterationControl(iter_max=22, rtol=1.e-4, verbose=True)
 print "<%s> Problem set up completed."%time.asctime()
 
-p, S_fg, C_mg=model.getState()
+p, S_fg, c_mg=model.getState()
 
 FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%0)
-saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
+saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
 print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
 
 
@@ -258,20 +273,14 @@ for dt in DT:
   
   model.update(dt)
 
-  p, S_fg, C_mg=model.getState()
+  p, S_fg, c_mg=model.getState()
   
   FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
-  saveVTK(FN,p=p, S_fg=S_fg, C_mg=C_mg)
+  saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
   print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi, well_P1.getGasProduction()/U.Mcf*U.day, well_P1.getWaterProduction()/U.Barrel*U.day
   print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
 
   n_t+=1
   t+=dt
-
-#DDD 1.0 620.718083467 0.0 2000.0
-#DDD 4.0 616.356950541 0.0 2000.0
-#DDD 13.0 602.731301066 0.0 2000.0
-#DDD 30.5 559.432880289 0.0210138086777 2000.0
-#DDD 61.0 476.375599867 0.242467255289 2000.0
-#DDD 91.5 292.277380173 2.30397035606 2000.0
-#DDD 122.0 75.0 7942.07091041 1748.12930007
+  if n_t > 2: 
+    1/0
