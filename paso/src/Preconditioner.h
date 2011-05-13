@@ -17,6 +17,7 @@
 
 #include "SystemMatrix.h"
 #include "performance.h"
+#include "BOOMERAMG.h"
 
 
 #define PASO_AMG_UNDECIDED -1
@@ -127,12 +128,24 @@ dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditione
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
 
 
+struct Paso_Preconditioner_BoomerAMG
+{
+#ifdef BOOMERAMG
+  Paso_BOOMERAMG_Handler* pt;
+#endif
+};
+typedef struct Paso_Preconditioner_BoomerAMG Paso_Preconditioner_BoomerAMG;
+void Paso_Preconditioner_BoomerAMG_free(Paso_Preconditioner_BoomerAMG * in);
+Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(Paso_SystemMatrix * A_p,Paso_Options* options);
+void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_BoomerAMG * amg, double * x, double * b);
+
 
 struct Paso_Preconditioner_AMG_Root 
 {
   bool_t is_local;
   Paso_Preconditioner_AMG* amg;
   Paso_Preconditioner_LocalAMG* localamg;
+  Paso_Preconditioner_BoomerAMG* boomeramg;
   dim_t sweeps;
   Paso_Preconditioner_Smoother* amgsubstitute;
 };

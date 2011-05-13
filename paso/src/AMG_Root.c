@@ -24,6 +24,7 @@
 
 #include "Paso.h"
 #include "Preconditioner.h"
+#include "BOOMERAMG.h"
 
 /***********************************************************************************/
 
@@ -33,13 +34,13 @@ void Paso_Preconditioner_AMG_Root_free(Paso_Preconditioner_AMG_Root* in) {
     if (in!=NULL) {
       Paso_Preconditioner_AMG_free(in->amg);
       Paso_Preconditioner_LocalAMG_free(in->localamg);
+      Paso_Preconditioner_BoomerAMG_free(in->boomeramg);
       Paso_Preconditioner_Smoother_free(in->amgsubstitute);
       MEMFREE(in);
     }
 }
 
 Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatrix* A,Paso_Options* options) {
-
     Paso_Preconditioner_AMG_Root* prec=MEMALLOC(1,Paso_Preconditioner_AMG_Root);
 
     if (! Esys_checkPtr(prec)) {
@@ -47,19 +48,25 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
 	prec->amg=NULL;
 	prec->localamg=NULL;
 	prec->amgsubstitute=NULL;
-        prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
-        prec->is_local=FALSE;
-        prec->is_local=TRUE; 
+        prec->boomeramg=NULL;
+	if (options->preconditioner == PASO_BOOMERAMG){
+	  prec->boomeramg = Paso_Preconditioner_BoomerAMG_alloc(A,options);
+	} else {
+          prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
+          prec->is_local=FALSE;
+          prec->is_local=TRUE; 
         
-        if (prec->is_local) {
+          if (prec->is_local) {
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);
 	      Esys_MPIInfo_noError(A->mpi_info);
-        } else {
+          } else {
               prec->amg=Paso_Preconditioner_AMG_alloc(A,1,options);
-        }
+          }
+	}
 	if ( Esys_noError() ) {
 	      if (options->verbose) {
-                if ( (prec->localamg != NULL) || ( prec->amg != NULL) )  {
+                if ( (prec->localamg != NULL) || ( prec->amg != NULL) ||
+		     (prec->boomeramg != NULL) )  {
 	           printf("Paso_Preconditioner_AMG_Root:  Smoother is ");
 	           if (options->smoother == PASO_JACOBI) {
 		           printf("Jacobi");
@@ -87,7 +94,7 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
 		     options->num_level=Paso_Preconditioner_AMG_getMaxLevel(prec->amg);
 		     options->coarse_level_sparsity=Paso_Preconditioner_AMG_getCoarseLevelSparsity(prec->amg);
 		     options->num_coarse_unknowns=Paso_Preconditioner_AMG_getNumCoarseUnknwons(prec->amg);
-             } else {
+             } else if (prec->boomeramg == NULL) {
                      prec->sweeps=options->sweeps;
 		     prec->amgsubstitute=Paso_Preconditioner_Smoother_alloc(A, (options->smoother == PASO_JACOBI), prec->is_local, options->verbose);
 		     options->num_level=0;
@@ -118,6 +125,8 @@ void Paso_Preconditioner_AMG_Root_solve(Paso_SystemMatrix* A, Paso_Preconditione
 	             Paso_Preconditioner_LocalAMG_solve(A->mainBlock, prec->localamg,x,b);
              } else if ( prec->amg != NULL) {
 	             Paso_Preconditioner_AMG_solve(A, prec->amg,x,b);
+	     } else if ( prec->boomeramg != NULL) {
+		     Paso_Preconditioner_BoomerAMG_solve(A, prec->boomeramg,x,b);
              } else {
 	             Paso_Preconditioner_Smoother_solve(A, prec->amgsubstitute,x,b,prec->sweeps,FALSE);
 	    }
