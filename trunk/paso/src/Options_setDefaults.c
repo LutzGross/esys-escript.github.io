@@ -62,6 +62,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->refinements=2;
   options->coarse_matrix_refinements=0;
   options->diagonal_dominance_threshold=0.5;
+  options->cycle_type=1;
   options->usePanel=TRUE;
   options->interpolation_method=PASO_DIRECT_INTERPOLATION;
   
@@ -135,6 +136,8 @@ const char* Paso_Options_name(const index_t key){
           return "MKL";
        case  PASO_UMFPACK:
           return "UMFPACK";
+       case  PASO_BOOMERAMG:
+	  return "BOOMERAMG";
        case  PASO_ITERATIVE:
           return "ITERATIVE";
        case  PASO_PASO:
@@ -173,6 +176,16 @@ const char* Paso_Options_name(const index_t key){
           return "STANDARD_COARSENING";
        case  PASO_NO_PRECONDITIONER:
           return "NO_PRECONDITIONER";
+       case PASO_CIJP_FIXED_RANDOM_COARSENING:
+	  return "CIJP_FIXED_RANDOM_COARSENING";
+       case PASO_CIJP_COARSENING:
+	  return "CIJP_COARSENING";
+       case PASO_FALGOUT_COARSENING:
+	  return "FALGOUT_COARSENING";
+       case PASO_PMIS_COARSENING:
+	  return "PMIS_COARSENING";
+       case PASO_HMIS_COARSENING:
+	  return "HMIS_COARSENING";
        default:
 	  return "<unknown>";
     }
@@ -207,5 +220,6 @@ void Paso_Options_show(const Paso_Options* options ) {
 	printf("\tmin_coarse_sparsity = %e\n",options->min_coarse_sparsity);
 	printf("\trefinements = %d\n",options->refinements);
 	printf("\tcoarse_matrix_refinements = %d\n",options->coarse_matrix_refinements);
+	printf("\tcycle_type = %d\n",options->cycle_type);
 	
 }

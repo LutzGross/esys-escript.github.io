@@ -159,6 +159,18 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
          return PASO_CLASSIC_INTERPOLATION;
        case ESCRIPT_DIRECT_INTERPOLATION:
          return PASO_DIRECT_INTERPOLATION;
+       case ESCRIPT_BOOMERAMG:
+	 return PASO_BOOMERAMG;
+       case ESCRIPT_CIJP_FIXED_RANDOM_COARSENING:
+	 return PASO_CIJP_FIXED_RANDOM_COARSENING;
+       case ESCRIPT_CIJP_COARSENING:
+	 return PASO_CIJP_COARSENING;
+       case ESCRIPT_FALGOUT_COARSENING:
+	 return PASO_FALGOUT_COARSENING;
+       case ESCRIPT_PMIS_COARSENING:
+	 return PASO_PMIS_COARSENING;
+       case ESCRIPT_HMIS_COARSENING:
+	 return PASO_HMIS_COARSENING;
 
        default:
            stringstream temp;

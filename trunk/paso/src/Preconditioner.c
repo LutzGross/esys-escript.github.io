@@ -81,6 +81,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	      prec->type=PASO_GS;
 	      prec->sweeps=options->sweeps;
 	      break;
+	   case PASO_BOOMERAMG:
 	   case PASO_AMLI:
 	   case PASO_AMG:
 	      prec->amg=Paso_Preconditioner_AMG_Root_alloc(A, options);

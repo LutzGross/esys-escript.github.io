@@ -159,6 +159,18 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
          return PASO_CLASSIC_INTERPOLATION;
        case ESCRIPT_DIRECT_INTERPOLATION:
          return PASO_DIRECT_INTERPOLATION;
+       case ESCRIPT_BOOMERAMG:
+	 return PASO_BOOMERAMG;
+       case ESCRIPT_CIJP_FIXED_RANDOM_COARSENING:
+	 return PASO_CIJP_FIXED_RANDOM_COARSENING;
+       case ESCRIPT_CIJP_COARSENING:
+	 return PASO_CIJP_COARSENING;
+       case ESCRIPT_FALGOUT_COARSENING:
+	 return PASO_FALGOUT_COARSENING;
+       case ESCRIPT_PMIS_COARSENING:
+	 return PASO_PMIS_COARSENING;
+       case ESCRIPT_HMIS_COARSENING:
+	 return PASO_HMIS_COARSENING;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -334,6 +346,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("getNumSweeps", sweeps, index_t);
    EXTRACT("getNumPreSweeps", pre_sweeps, dim_t);
    EXTRACT("getNumPostSweeps", post_sweeps, dim_t);
+   EXTRACT("getCycleType", cycle_type, dim_t);
    EXTRACT("getLevelMax", level_max, dim_t);
    EXTRACT("getMinCoarseMatrixSize", min_coarse_matrix_size, dim_t);
    EXTRACT("getCoarseningThreshold", coarsening_threshold, double);
