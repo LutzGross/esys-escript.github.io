@@ -35,8 +35,10 @@
 #include <HYPRE_krylov.h> 
 #include <HYPRE.h>
 #include <HYPRE_parcsr_ls.h>
+#endif
 
 typedef struct {
+#ifdef BOOMERAMG
   HYPRE_IJMatrix A;
   HYPRE_ParCSRMatrix parcsr_A;
   HYPRE_IJVector b;
@@ -44,7 +46,8 @@ typedef struct {
   HYPRE_IJVector x;
   HYPRE_ParVector par_x;
   HYPRE_Solver solver;
-} Paso_BOOMERAMG_Handler;
-
+#else
+  void* n;
 #endif
+} Paso_BOOMERAMG_Handler;
 #endif
