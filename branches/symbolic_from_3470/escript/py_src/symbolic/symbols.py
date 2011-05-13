@@ -70,7 +70,10 @@ class Symbol(object):
             shape=args[1]
             if len(shape)>4:
                 raise ValueError("Symbol only supports tensors up to order 4")
-            self.__arr=sympy.symarray(shape, '['+name+']')
+            if len(shape)==0:
+                self.__arr=numpy.array(sympy.Symbol(name, **kwargs))
+            else:
+                self.__arr=sympy.symarray(shape, '['+name+']')
         else:
             raise TypeError("Unsupported number of arguments")
         if self.__arr.ndim==0:
@@ -181,7 +184,7 @@ class Symbol(object):
     def swap_axes(self, axis0, axis1):
         return Symbol(numpy.swapaxes(self.__arr, axis0, axis1))
 
-    def tensorproduct(self, other, axis_offset):
+    def tensorProduct(self, other, axis_offset):
         arg0_c=self.__arr.copy()
         sh0=self.__arr.shape
         if isinstance(other, Symbol):
@@ -201,6 +204,52 @@ class Symbol(object):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
         out.resize(sh0[:self.__arr.ndim-axis_offset]+sh1[axis_offset:])
+        return Symbol(out)
+
+    def transposedTensorProduct(self, other, axis_offset):
+        arg0_c=self.__arr.copy()
+        sh0=self.__arr.shape
+        if isinstance(other, Symbol):
+            arg1_c=other.__arr.copy()
+            sh1=other.getShape()
+        else:
+            arg1_c=other.copy()
+            sh1=other.shape
+        d0,d1,d01=1,1,1
+        for i in sh0[axis_offset:]: d0*=i
+        for i in sh1[axis_offset:]: d1*=i
+        for i in sh1[:axis_offset]: d01*=i
+        arg0_c.resize((d01,d0))
+        arg1_c.resize((d01,d1))
+        out=numpy.zeros((d0,d1),numpy.object)
+        for i0 in range(d0):
+            for i1 in range(d1):
+                out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
+        out.resize(sh0[axis_offset:]+sh1[axis_offset:])
+        return Symbol(out)
+
+    def tensorTransposedProduct(self, other, axis_offset):
+        arg0_c=self.__arr.copy()
+        sh0=self.__arr.shape
+        if isinstance(other, Symbol):
+            arg1_c=other.__arr.copy()
+            sh1=other.getShape()
+            r1=other.getRank()
+        else:
+            arg1_c=other.copy()
+            sh1=other.shape
+            r1=other.ndim
+        d0,d1,d01=1,1,1
+        for i in sh0[:self.__arr.ndim-axis_offset]: d0*=i
+        for i in sh1[:r1-axis_offset]: d1*=i
+        for i in sh1[r1-axis_offset:]: d01*=i
+        arg0_c.resize((d0,d01))
+        arg1_c.resize((d1,d01))
+        out=numpy.zeros((d0,d1),numpy.object)
+        for i0 in range(d0):
+            for i1 in range(d1):
+                out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
+        out.resize(sh0[:self.__arr.ndim-axis_offset]+sh1[:r1-axis_offset])
         return Symbol(out)
 
     def trace(self, axis_offset):
@@ -403,7 +452,7 @@ def combineData(array, shape):
     if len(fs)>0:
         d=Data(0., shape, fs.pop()) #FIXME: interpolate instead of using first?
     else:
-        d=0.
+        d=numpy.zeros(shape)
     for idx in numpy.ndindex(shape):
         #z=numpy.zeros(shape)
         #z[idx]=1.

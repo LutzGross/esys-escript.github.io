@@ -2091,7 +2091,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        if isinstance(arg1,float):
           return arg0*arg1
        elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
-          return arg0.tensorproduct(arg1, axis_offset)
+          return arg0.tensorProduct(arg1, axis_offset)
        elif isinstance(arg1, escript.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
@@ -2113,6 +2113,8 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
        return out
     elif isinstance(arg0,escript.Data):
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
        return escript_generalTensorProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
     raise TypeError("generalTensorProduct: Unsupported argument type")
 
@@ -2226,8 +2228,20 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data
-    if isinstance(arg0,numpy.ndarray):
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       if not sh0[:axis_offset]==sh1[:axis_offset]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.transposedTensorProduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
            raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
        arg0_c=arg0.copy()
@@ -2246,6 +2260,8 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[axis_offset:]+sh1[axis_offset:])
        return out
     elif isinstance(arg0,escript.Data):
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
        return escript_generalTransposedTensorProduct(arg0,arg1,axis_offset)
 
@@ -2348,8 +2364,21 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data
-    if isinstance(arg0,numpy.ndarray):
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       r1=getRank(arg1)
+       if not sh0[arg0.getRank()-axis_offset:]==sh1[r1-axis_offset:]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.tensorTransposedProduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
        arg0_c=arg0.copy()
@@ -2368,6 +2397,8 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
        return out
     elif isinstance(arg0,escript.Data):
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
        return escript_generalTensorTransposedProduct(arg0,arg1,axis_offset)
 
