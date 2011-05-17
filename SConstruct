@@ -563,9 +563,10 @@ if env['usempi']:
 
 ######## BOOMERAMG (optional)
 
-if env['boomeramg'] and env['mpi'] == 'none':
-    print("boomeramg requires mpi!")
-    Exit(1)
+#if env['boomeramg'] and env['mpi'] == 'none':
+#    print("boomeramg requires mpi!")
+#    Exit(1)
+if env['mpi'] == 'none': env['boomeramg'] = False
 
 boomeramg_inc_path=''
 boomeramg_lib_path=''
