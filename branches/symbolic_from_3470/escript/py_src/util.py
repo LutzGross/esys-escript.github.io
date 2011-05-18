@@ -2435,7 +2435,10 @@ def grad(arg,where=None):
     :rtype: `escript.Data` or `Symbol`
     """
     if isinstance(arg,Symbol):
-       return symfn.grad(arg, where)
+       if where is None:
+           return arg.grad()
+       else:
+           return arg.grad(where)
     elif isinstance(arg,escript.Data):
        if where==None:
           return arg._grad()
@@ -2443,6 +2446,9 @@ def grad(arg,where=None):
           return arg._grad(where)
     else:
        raise TypeError,"grad: Unknown argument type."
+
+def grad_n(arg, n, where=None):
+    return grad(arg, where)[n]
 
 def integrate(arg,where=None):
     """

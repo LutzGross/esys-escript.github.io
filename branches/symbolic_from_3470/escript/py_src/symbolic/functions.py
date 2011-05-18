@@ -173,64 +173,6 @@ class log10(sympy.Function):
         from sympy.functions.elementary.exponential import log
         return log(arg,10)
 
-class inverse(sympy.Function):
-    """Returns the inverse of the argument
-    """
-    nargs = 1
-
-    @classmethod
-    def eval(cls, arg):
-        if isinstance(arg,sympy.Basic):
-            if arg.is_Number:
-                return 1./arg
-
-class minval(sympy.Function):
-    """Returns the minimum value over all components of the argument
-    """
-    nargs = 1
-
-    @classmethod
-    def eval(cls, arg):
-        if isinstance(arg,sympy.Basic):
-            if arg.is_Number:
-                return arg
-
-class maxval(sympy.Function):
-    """Returns the maximum value over all components of the argument
-    """
-    nargs = 1
-
-    @classmethod
-    def eval(cls, arg):
-        if isinstance(arg,sympy.Basic):
-            if arg.is_Number:
-                return arg
-
-class maximum(sympy.Function):
-    """Returns the maximum over the arguments
-    """
-    pass
-
-class minimum(sympy.Function):
-    """Returns the minimum over the arguments
-    """
-    pass
-
-class integrate(sympy.Function):
-    """Returns the integral of the argument
-    """
-    nargs = (1,2)
-
-class interpolate(sympy.Function):
-    """Returns the argument interpolated on the function space provided
-    """
-    nargs = 2
-
-class L2(sympy.Function):
-    """Returns the L2 norm of the argument
-    """
-    nargs = 1
-
 class clip(sympy.Function):
     """Returns the argument clipped to a minimum and maximum value
     """
@@ -279,11 +221,6 @@ class swap_axes(sympy.Function):
     """
     nargs = (1,2,3)
 
-class grad(sympy.Function):
-    """Returns the spatial gradient of the argument
-    """
-    nargs = (1,2)
-
 class inner(sympy.Function):
     """Returns the inner product of the arguments
     """
@@ -294,15 +231,64 @@ class outer(sympy.Function):
     """
     nargs = 2
 
+class grad_n(sympy.Function):
+    """Returns the spatial gradient of the argument
+    """
+    nargs = (2,3)
+
+    @classmethod
+    def eval(cls, *args):
+        if args[0].is_zero: return S.Zero
+
 class eigenvalues(sympy.Function):
     """Returns the Eigenvalues of the argument
     """
-    nargs = 1
+    pass
 
 class eigenvalues_and_eigenvectors(sympy.Function):
     """Returns the Eigenvalues and Eigenvectors of the argument
     """
-    nargs = 1
+    pass
+
+class inverse(sympy.Function):
+    """Returns the inverse of the argument
+    """
+    pass
+
+class minval(sympy.Function):
+    """Returns the minimum value over all components of the argument
+    """
+    pass
+
+class maxval(sympy.Function):
+    """Returns the maximum value over all components of the argument
+    """
+    pass
+
+class maximum(sympy.Function):
+    """Returns the maximum over the arguments
+    """
+    pass
+
+class minimum(sympy.Function):
+    """Returns the minimum over the arguments
+    """
+    pass
+
+class integrate(sympy.Function):
+    """Returns the integral of the argument
+    """
+    pass
+
+class interpolate(sympy.Function):
+    """Returns the argument interpolated on the function space provided
+    """
+    pass
+
+class L2(sympy.Function):
+    """Returns the L2 norm of the argument
+    """
+    pass
 
 #
 # vim: expandtab shiftwidth=4:
