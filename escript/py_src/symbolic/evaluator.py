@@ -51,7 +51,8 @@ class Evaluator:
         if isinstance(expression, sympy.Function):
             sym=set()
             for arg in expression.args:
-                sym.update(arg.atoms(sympy.Symbol))
+                if arg is not None:
+                    sym.update(arg.atoms(sympy.Symbol))
             self.symbols.append(tuple(sym))
         else:
             sym=tuple(expression.atoms(sympy.Symbol))
