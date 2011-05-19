@@ -1382,6 +1382,12 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   Data truedivO(const boost::python::object& right);
 
+  /**
+    \brief
+    Newer style division operator for python
+  */
+  ESCRIPT_DLL_API
+  Data rtruedivO(const boost::python::object& left);
 
   /**
     \brief
@@ -2101,7 +2107,21 @@ inline
 Data
 Data::truedivO(const boost::python::object& right)
 {
-    return *this / right;
+    Data tmp(right, getFunctionSpace(), false);
+    return truedivD(tmp);
+}
+
+/**
+  \brief
+  Operator/
+  Takes LHS python::object.
+*/
+inline
+Data
+Data::rtruedivO(const boost::python::object& left)
+{
+    Data tmp(left, getFunctionSpace(), false);
+    return tmp.truedivD(*this);
 }
 
 /**
