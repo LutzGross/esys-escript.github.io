@@ -503,7 +503,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":rtype: `FunctionSpace`");
   def("Solution",escript::solution, args("domain"), ":rtype: `FunctionSpace`");
   def("ReducedSolution",escript::reducedSolution, args("domain"), ":rtype: `FunctionSpace`");
-  def("DiracDeltaFunction",escript::diracDeltaFunction, args("domain"), ":rtype: `FunctionSpace`");
+  def("DiracDeltaFunctions",escript::diracDeltaFunctions, args("domain"), ":rtype: `FunctionSpace`");
 
 
 

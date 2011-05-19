@@ -28,6 +28,7 @@ from coalgas import *
 import time
 from esys.finley import ReadMesh, Rectangle, Brick
 from esys.escript.pdetools import Locator
+SAVE_VTK=True
 CONST_G = 9.81  * U.m/U.sec**2
 P_0=1.*U.atm
 
@@ -41,8 +42,8 @@ TOP=2310*U.ft
 
 L_Z=CELL_Z
 
-L_X=CELL_X*70
-L_Y=CELL_Y*70
+L_X=CELL_X*210
+L_Y=CELL_Y*210
 
 N_X=int(L_X/CELL_X)
 N_Y=int(L_Y/CELL_Y)
@@ -70,6 +71,18 @@ SIGMA = 1. /U.ft**2
 
 #DT=[0.1* U.day]*9+[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
 DT=[1 * U.day,3* U.day,9* U.day, 17.5*U.day] + [ 30.5*U.day ] *20
+DT=[.5 * U.day, .5 * U.day, 0.5*3* U.day, 0.5*3* U.day, 0.5*9* U.day, 0.5*9* U.day, 17.5 *.5 *U.day, 17.5*0.5*U.day] + [ 15.25*U.day ] *40
+DT=[.25 * U.day, .25 * U.day, .25 * U.day, .25 * U.day, 
+     0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day, 0.25*3* U.day, 
+     0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day, 0.25*9* U.day, 
+     17.5 *.25 *U.day, 17.5*0.25*U.day, 17.5 *.25 *U.day, 17.5*0.25*U.day] + \
+    [ 15.25*U.day * 0.5] *80
+DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day,
+     0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day, 0.125*3* U.day,
+     0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day, 0.125*9* U.day,
+     17.5 *.125 *U.day, 17.5*0.125*U.day, 17.5 *.125 *U.day, 17.5*0.125*U.day, 17.5 *.125 *U.day, 17.5*0.125*U.day, 17.5 *.125 *U.day, 17.5*0.125*U.day] + \
+    [ 15.25*U.day * 0.25] *160
+DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day]
 # DT=[1 * U.day,2* U.day] + [4*U.day ] *200
 
 #[0.1 * U.day ] *20
@@ -193,9 +206,9 @@ wellspecs = {
   'P1' : { "X0" :[ (N_X/2+0.5)*CELL_X,  (N_Y/2+0.5)*CELL_Y, 0.5*CELL_Z], 
            "r"  : 0.8333 * U.ft,
            "s"  : 0,
-           "Q"  : [0., 2000*U.Barrel/U.day, 2000*U.Barrel/U.day, 0.],
+           "Q"  : [0., 2000*U.Barrel/U.day ],
            "BHP" : 75*U.psi,
-           "schedule" : [0.*U.yr,  1.*U.day, 2.*U.yr-1*U.day, 2*U.yr]
+           "schedule" : [0.*U.yr,  2*U.yr]
          }
 }
 
@@ -203,10 +216,22 @@ wellspecs = {
 
 # print input
 print("<%s> Execution started."%time.asctime())
-domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+#domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
 #domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
 
-#domain=ReadMesh("reservoir.fly",2)
+
+#domain=ReadMesh("reservoir_402.fly")
+#WELL_CELL=402.336 
+
+#domain=ReadMesh("reservoir_27.fly")
+#WELL_CELL=27.7473103448
+
+
+domain=ReadMesh("reservoir_6.fly")
+WELL_CELL= 6.76194957983
+
+print domain.getSize()
+
 print("<%s> Domain has been generated."%time.asctime())
 
 print "length x-direction = %f km"%(sup(domain.getX()[0])/U.km)
@@ -227,7 +252,8 @@ well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"],
 							    Q=wellspecs['P1']["Q"], 
 							    r=wellspecs['P1']["r"], 
 							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
-							    D=[CELL_X, CELL_Y, CELL_Z], 
+							    #D=[CELL_X, CELL_Y, CELL_Z], 
+							    D=[WELL_CELL, WELL_CELL, CELL_Z], 
 							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
 							    schedule=wellspecs['P1']["schedule"], 
 							    s=wellspecs['P1']["s"], decay_factor = 0.) 
@@ -255,32 +281,33 @@ model = PorosityOneHalfModel(domain,
 model.setInitialState(S_fg=0,  c_mg=None, p_top=p_top, p_bottom=p_bottom)
 model.getPDEOptions().setVerbosityOn()
 model.getPDEOptions().setSolverMethod(model.getPDEOptions().DIRECT)
-model.setIterationControl(iter_max=22, rtol=1.e-4, verbose=True)
+model.setIterationControl(iter_max=5, rtol=1.e-4, verbose=True)
 print "<%s> Problem set up completed."%time.asctime()
-
-p, S_fg, c_mg=model.getState()
-
-FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%0)
-saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-
-
-
 t=0
 n_t = 0
+
+p, S_fg, c_mg, wells=model.getState()
+
+if SAVE_VTK:
+   FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
+   saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
+   print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
+   print "DDD", t/U.day, wells["P1"]["bhp"]/U.psi, wells["P1"]["q_gas"]/U.Mcf*U.day,  wells["P1"]["q_water"]/U.Barrel*U.day
+
+
+
 for dt in DT:
   print "<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day)
   
   model.update(dt)
 
-  p, S_fg, c_mg=model.getState()
+  p, S_fg, c_mg, wells =model.getState()
   
-  FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
-  saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-  print "DDD", (t+dt)/U.day, well_P1.getBHP()/U.psi, well_P1.getGasProduction()/U.Mcf*U.day, well_P1.getWaterProduction()/U.Barrel*U.day
-  print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
+  if SAVE_VTK:
+     FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
+     saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
+     print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
+     print "DDD", (t+dt)/U.day, wells["P1"]["bhp"]/U.psi, wells["P1"]["q_gas"]/U.Mcf*U.day,  wells["P1"]["q_water"]/U.Barrel*U.day
 
   n_t+=1
   t+=dt
-  if n_t > 2: 
-    1/0

@@ -165,6 +165,7 @@ void Finley_Mesh_saveVTK(const char * filename_p, Finley_Mesh *mesh_p, const dim
 void Finley_Mesh_setTagsInUse(Finley_Mesh* in);
 
 int  Finley_Mesh_getStatus(Finley_Mesh* in);
+void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const double *points_ptr, const index_t *tags_ptr);
 
 #endif /* #ifndef INC_FINLEY_MESH */
 

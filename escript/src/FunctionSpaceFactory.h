@@ -96,7 +96,7 @@ namespace escript {
      \brief
      Return a FunctionSpace
   */
-  ESCRIPT_DLL_API FunctionSpace diracDeltaFunction(const AbstractDomain& domain);
+  ESCRIPT_DLL_API FunctionSpace diracDeltaFunctions(const AbstractDomain& domain);
 
 } // end of namespace
 #endif

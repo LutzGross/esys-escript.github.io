@@ -367,9 +367,6 @@ class DarcyFlow(object):
                                  r=escript.Data())
 	  dp=self.__pde_p.getSolution()
 	  
-	  print dp
-          print p0+dp
-          
 	  p=GMRES(dp, 
 	          self.__SYMSTAB_Aprod, 
 		  p0, 
