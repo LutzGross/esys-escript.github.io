@@ -97,7 +97,7 @@ FunctionSpace reducedSolution(const AbstractDomain& domain)
   return FunctionSpace(domain.getPtr(),temp->getReducedSolutionCode());
 }
 
-FunctionSpace diracDeltaFunction(const AbstractDomain& domain)
+FunctionSpace diracDeltaFunctions(const AbstractDomain& domain)
 {
   CTS_CHECK
   return FunctionSpace(domain.getPtr(),temp->getDiracDeltaFunctionCode());

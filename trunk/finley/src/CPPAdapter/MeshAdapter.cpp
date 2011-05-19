@@ -2413,4 +2413,70 @@ ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
   Finley_ReferenceElementSet_dealloc(m_refSet);
 }
 
+void MeshAdapter:: addDiracPoints(const boost::python::list& points, const boost::python::list& tags) const
+{
+      const int dim = getDim();
+      int numPoints=boost::python::extract<int>(points.attr("__len__")());
+      int numTags=boost::python::extract<int>(tags.attr("__len__")());
+      Finley_Mesh* mesh=m_finleyMesh.get();
+      
+      if  ( (numTags > 0) and ( numPoints !=  numTags ) )
+	 throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
+      
+      double* points_ptr=TMPMEMALLOC(numPoints * dim, double);
+      int*    tags_ptr= TMPMEMALLOC(numPoints, int);
+      
+      for (int i=0;i<numPoints;++i) {
+	   int tag_id=-1;
+	   int numComps=boost::python::extract<int>(points[i].attr("__len__")());
+	   if  ( numComps !=   dim ) {
+               stringstream temp;	        
+               temp << "Error - illegal number of components " << numComps << " for point " << i;               
+               throw FinleyAdapterException(temp.str());
+	   }
+	   points_ptr[ i * dim     ] = boost::python::extract<double>(points[i][0]);
+	   if ( dim > 1 ) points_ptr[ i * dim + 1 ] = boost::python::extract<double>(points[i][1]);
+	   if ( dim > 2 ) points_ptr[ i * dim + 2 ] = boost::python::extract<double>(points[i][2]);
+	   
+	   if ( numTags > 0) {
+	          boost::python::extract<string> ex_str(tags[i]);
+		  if  ( ex_str.check() ) {
+		      tag_id=getTag( ex_str());
+		  } else {
+		       boost::python::extract<int> ex_int(tags[i]);
+		       if ( ex_int.check() ) {
+		           tag_id=ex_int();
+		       } else { 
+			    stringstream temp;	         
+		            temp << "Error - unable to extract tag for point " << i; 
+			    throw FinleyAdapterException(temp.str());
+		      }
+		  }
+	   }	  
+           tags_ptr[i]=tag_id;
+      }
+      
+      Finley_Mesh_addPoints(mesh, numPoints, points_ptr, tags_ptr);
+      checkPasoError();
+      
+      TMPMEMFREE(points_ptr);
+      TMPMEMFREE(tags_ptr);
+}
+
+void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int tag) const
+{   
+    boost::python::list points =  boost::python::list();
+    boost::python::list tags =  boost::python::list();
+    points.append(point);
+    tags.append(tag);
+    addDiracPoints(points, tags);
+}
+void MeshAdapter:: addDiracPointWithTagName( const boost::python::list& point, const std::string& tag) const
+{
+        boost::python::list points =   boost::python::list();
+        boost::python::list tags =   boost::python::list();
+        points.append(point);
+        tags.append(tag);
+        addDiracPoints(points, tags);
+}  
 }  // end of namespace

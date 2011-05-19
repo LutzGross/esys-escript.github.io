@@ -45,6 +45,7 @@ extern "C" {
 
 namespace finley {
 
+  const boost::python::list EmptyPythonList = boost::python::list();
 struct null_deleter
 {
   void operator()(void const *ptr) const
@@ -669,7 +670,16 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   bool supportsContactElements() const;
-
+  
+  /**
+   \brief  adds points to support more Dirac delta function.
+   */
+  FINLEY_DLL_API
+  void addDiracPoints( const boost::python::list& points, const boost::python::list& tags=EmptyPythonList) const;
+  FINLEY_DLL_API
+  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
+  FINLEY_DLL_API
+  void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
 
  protected:
 

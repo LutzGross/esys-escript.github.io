@@ -323,7 +323,26 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
       .def("getMPISize",&finley::MeshAdapter::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
       .def("getMPIRank",&finley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
       .def("MPIBarrier",&finley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+      .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
+      .def("addDiracPoints", &finley::MeshAdapter::addDiracPoints,(arg("points"), arg("tags")=finley::EmptyPythonList),
+      "adds points to support more Dirac delta function.\n\n"
+       	":param points: list of points where Dirac delta function are to be defined. The location will be adjusted to\n"
+	"               to match the nearest node of the finite element mesh.\n:type points: ``list`` of ``list``s of ``floats``\n"
+	":param tags: list of tags to be assigned to the points.\n:type tags: ``list`` of ``int``s or ``strings``\n"     
+      )
+      .def("addDiracPoint", &finley::MeshAdapter::addDiracPoint,(arg("point"), arg("tag")=-1),
+        "adds a point to support more Dirac delta function.\n\n"
+       	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
+	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
+	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
+      ) 
+      .def("addDiracPoint", &finley::MeshAdapter::addDiracPointWithTagName,(arg("point"), arg("tag")),
+        "adds a point to support more Dirac delta function.\n\n"
+       	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
+	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
+	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
+      ) 
+;
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)

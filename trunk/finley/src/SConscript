@@ -84,6 +84,7 @@ sources = """
     Mesh_saveDX.c
     Mesh_setCoordinates.c
     Mesh_tagmaps.c
+    Mesh_addPoints.c
     Mesh_write.c
     NodeFile.c
     NodeFile_allocTable.c

@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.escript import sqrt, log, whereNegative, sup, inf, whereNonPositive, integrate, Function, kronecker, grad, Lsup, clip, maximum, exp, ContinuousFunction
+from esys.escript import *
 from esys.weipa import saveVTK
 import math
 
@@ -304,15 +304,11 @@ class Well(object):
       """
       returns the flow rate
       """
-      if t <= self.__schedule[0]:
-         out = self.__Q[0]
-      elif t>= self.__schedule[-1]:
-         out=self.__Q[-1]
-      else:
-        for i in range(1, len(self.__schedule)) :
-            if t < self.__schedule[i]:
-                out = ( self.__Q[i]-self.__Q[i-1] )/(self.__schedule[i] - self.__schedule[i-1]) * ( t - self.__schedule[i-1] ) + self.__Q[i-1]
-                break
+      out=0.
+      for i in range(len(self.__schedule)):
+         if t <= self.__schedule[i]:
+             out=self.__Q[i]
+             break
       return out
  	
    def getBHPLimit(self):
@@ -343,15 +339,6 @@ class Well(object):
       """
       return self.__phase
       
-   def setWaterProduction(self, v):
-      self.water_production=v
-   def getWaterProduction(self):
-      return self.water_production
-   def setGasProduction(self, v):
-      self.gas_production=v
-   def getGasProduction(self):
-      return self.gas_production
-      
 class VerticalPeacemanWell(Well):
    """
    defines a well using Peaceman's formula
@@ -378,50 +365,17 @@ class VerticalPeacemanWell(Well):
 
        self.__D=D
        self.r_el=r_el
-       if USE_NODAL_WELL:
-           self.X0=Locator(ContinuousFunction(self.domain),X0[:self.domain.getDim()]).getX()
-       else:
-           self.X0=X0[:self.domain.getDim()]
-       
-       if USE_NODAL_WELL:
-           x=domain.getX()
-           self.chi = 1.
-           for i in range(domain.getDim()):
-                 self.chi = self.chi * exp(-((x[i]-self.X0[i])/(0.1*D[i]))**2)
-           #saveVTK("t.vtu", chi=self.chi)
-           #1/0
-       else:
-          x=Function(domain).getX()
-          self.chi = 1.
-          if decay_factor > 0:
-               for i in range(domain.getDim()):
-	            r=decay_factor * D[i]
-	            self.chi = self.chi * clip( (D[i]/2.+r-abs(X0[i]-x[i]))/r, maxval=1., minval=0.)
-          else:
-               for i in range(domain.getDim()):
-	            r=D[i]
-	            self.chi = self.chi * whereNonPositive(abs(X0[i]-x[i])-D[i]/2.)
+       self.locator=Locator(ContinuousFunction(self.domain),X0[:self.domain.getDim()])
+       self.X0=self.locator.getX()
+       # this needs to be done differently
+       self.chi=whereZero(length(self.domain.getX()-self.X0))
+       self.chi*=1./integrate(self.chi)
+       if self.domain.getDim() <3: 
+          self.chi*=1/self.__D[2]
 
-       l=integrate(self.chi)
-       self.chi*=1./l
-
-       
-       #self.chi=0.00000001
    def getLocation(self):
        return self.X0
        
-   def getGeometry(self):
-       """
-       returns a function representing the geometry of the well.
-       typically a Gaussian profile around the location of the well.
-       
-       :note: needs to be overwritten
-       """
-       if self.domain.getDim() <3: 
-          return self.chi/self.__D[2]
-       else:
-	  return self.chi
-
    def getProductivityIndex(self):
        """
        returns the productivity index of the well.
@@ -515,19 +469,27 @@ class DualPorosity(object):
      if xi !=None: self.XI=xi
    
    def update(self, dt): 
-         self.u, self.u_old = self.u.copy(), self.u
+         self.u, self.u_old =tuple([ v.copy() for v in self.u ] ), self.u
          n=0
-         rerr=1.
-         while n < self.__iter_max and rerr > self.__rtol:
+         converged=False
+         while n < self.__iter_max and not converged:
             u=self.solvePDE(dt)
-	    norm_u=Lsup(u)
-	    norm_e=Lsup(u-self.u)
+            if self.verbose: print "iteration step %d:"
+            converged=True
+            for i in range(len(u)):
+               if isinstance(u[i], Data):
+	         norm_u=Lsup(u[i])
+	         norm_e=Lsup(u[i]-self.u[i])
+               else:
+                 norm_e=0.
+                 norm_u=1.
 	    
-	    if norm_u > 0:
-	        rerr=norm_e/norm_u
-	    else:
-	        rerr=norm_e
-	    if self.verbose: print "iteration step %d: relative change = %e"%(n, rerr)
+	       if norm_u > 0:
+	           rerr=norm_e/norm_u
+	       else:
+	           rerr=norm_e
+               if rerr>self.__rtol: converged=False
+	       if self.verbose: print "   comp %i: relative change = %e"%(i, rerr)
 	    n+=1
 	    self.u=u
          print "iteration completed."
@@ -606,10 +568,10 @@ class PorosityOneHalfModel(DualPorosity):
 	 return self.__pde.getSolverOptions()
 	 
       def getState(self): 
-	 return self.u[0], self.u[1],  self.u[2]
+	 return self.u
 
       def getOldState(self): 
-	 return self.u_old[0], self.u_old[1],  self.u_old[2]
+	 return self.u_old
 
       def setInitialState(self, p_top=1.*U.atm, p_bottom= 1.*U.atm, S_fg=0,  c_mg=None):
 	    """
@@ -620,26 +582,39 @@ class PorosityOneHalfModel(DualPorosity):
 	    :param c_mg: gas concentration in coal matrix at standart conditions. if not given it is calculated 
 			using the  gas adsorption curve.
 	    """    
-	    self.u=self.__pde.createSolution()
-	    if self.u.getDomain().getDim() == 2:
-	       self.u[0]=(p_top + p_bottom) /2
+	    if self.domain.getDim() == 2:
+	       p_init=Scalar((p_top + p_bottom) /2, Solution(self.domain))
 	    else:
 	       z=self.u.getDomain().getX()[0]
 	       z_top=sup(z)
 	       z_bottom=inf(z)
-	       self.u[0]=(p_bottom-p_top)/(z_bottom-z_top)*(z-z_top) + p_top
-	    self.u[1]=S_fg
+	       p_init=(p_bottom-p_top)/(z_bottom-z_top)*(z-z_top) + p_top
+
+            S_fg_init=Scalar(S_fg, Solution(self.domain))
+
 	    if c_mg == None:
-	      self.u[2]= self.L_g(self.u[0])
+              c_mg_init=self.L_g(p_init)
 	    else:
-	      self.u[2]=c_mg
+              c_mg_init=Scalar(c_mg, Solution(self.domain))
 	  
+            wells_init={}
+            for I in self.wells:
+                BHP_limit_I=I.getBHPLimit()
+                p_f_I=I.locator(p_init)
+	        q_I = I.getFlowRate(0)
+                if abs(q_I)>0:
+                  raise ValueError,"initial flux must be zero."
+ 
+                if p_f_I < BHP_limit_I:  # fix me!
+                  raise ValueError,"initial pressure must be greater than BHP limit."
+                wells_init[I.name]={ "bhp" : p_f_I, "q_gas": 0., "q_water": 0.}
+
+            self.u=(p_init,S_fg_init, c_mg_init, wells_init)
+
       def solvePDE(self, dt):
 	 
-	 C_couple=1
-	 
-	 p_f, S_fg, c_mg=self.getState() 
-	 p_f_old, S_fg_old, c_mg_old=self.getOldState()
+	 p_f, S_fg, c_mg, wells_state =self.getState() 
+	 p_f_old, S_fg_old, c_mg_old, wells_sate_old=self.getOldState()
 
          S_fw=1-S_fg
 
@@ -648,9 +623,11 @@ class PorosityOneHalfModel(DualPorosity):
 	      print "S_fg range = ",inf(S_fg),sup(S_fg)
 	      print "S_fw range = ",inf(S_fw),sup(S_fw)
 	      print "c_mg range = ",inf(c_mg),sup(c_mg)
+              print "wells state =",wells_state
 
          k_fw=self.k_w(S_fw)
        	 if self.verbose: print "k_fw range = ",inf(k_fw),sup(k_fw) 
+
 
          k_fg=self.k_g(S_fg)
        	 if self.verbose: print "k_fg range = ",inf(k_fg),sup(k_fg) 
@@ -696,49 +673,23 @@ class PorosityOneHalfModel(DualPorosity):
 	 F_fg=0.
 	 D_fw=0.
 	 D_fg=0.
-	 
-	 for I in self.wells:
-	      chi_I= I.getGeometry()
-	      Pi_I = I.getProductivityIndex()
-	      BHP_limit_I=I.getBHPLimit()
-	      p_f_I=integrate(p_f*I.chi)
-	      S_fg_I=integrate(S_fg*I.chi)
-	      if not self.t > 0:
-	           print "AAA", self.t/U.day, p_f_I/U.psi, inf(p_f)/U.psi, S_fg_I, integrate(c_mg*I.chi)/U.Mscf*U.ft**3	      
-	      A_fw_I= self.k_w(1-S_fg_I)/self.mu_w(p_f_I) 
-	      A_fg_I= self.k_g(S_fg_I)/self.mu_g(p_f_I)
-	      
-	      if self.verbose: print "well %s is open."%I.name
-              if I.getPhase() == Well.WATER:
-		    q_I = I.getFlowRate(self.t+dt)
-		    p_I_ref=p_f_I-q_I/(A_fw_I * Pi_I) 
-	      else:
-		    q_I = I.getFlowRate(self.t+dt)
-		    p_I_ref=p_f_I-q_I/(A_fg_I * Pi_I) 
 
-	      if BHP_limit_I > p_I_ref:
-		  BHP_I=BHP_limit_I
-		  D_fw = D_fw + Pi_I * A_fw_I *        chi_I
-		  F_fw = F_fw - Pi_I * A_fw_I * BHP_I *chi_I 
-		  D_fg = D_fg + Pi_I * A_fg_I *        chi_I
-		  F_fg = F_fg - Pi_I * A_fg_I * BHP_I *chi_I 
-	      else:
-		  BHP_I=p_I_ref
-		  if I.getPhase() == Well.WATER:
-		      F_fw = F_fw +  q_I  * chi_I 
-		      F_fg = F_fg + A_fg_I/A_fw_I * q_I * chi_I 
-		  else:
-		      F_fg = F_fg +  q_I  * chi_I 
-		      F_fw = F_fw + A_fw_I/A_fg_I * q_I *chi_I 
-		  
-		  
-	      if self.verbose: print "well %s:BHP = %e"%(I.name, BHP_I)
-	      I.setBHP(BHP_I)
+         for I in self.wells:
+             Pi_I = I.getProductivityIndex()
+             p_f_I=I.locator(p_f)
+             S_fg_I=I.locator(S_fg)
+             BHP_I=wells_state[I.name]["bhp"]
+	     if self.verbose: print "well %s: BHP = %e"%(I.name, BHP_I)
 
-	 F_fp_Y = - rho_fw * F_fw
-	 F_fs_Y = - rho_fg * F_fg
-	 D_fpp =  rho_fw * D_fw
-	 D_fsp =  rho_fg * D_fg
+	     D_fw = D_fw + Pi_I *        I.chi
+	     F_fw = F_fw + Pi_I * BHP_I *I.chi
+	     D_fg = D_fg + Pi_I *        I.chi
+	     F_fg = F_fg + Pi_I * BHP_I *I.chi
+
+	 F_fp_Y = A_fw * F_fw
+	 F_fs_Y = A_fg * F_fg
+	 D_fpp =  A_fw * D_fw
+	 D_fsp =  A_fg * D_fg
 
 	 
 	 if self.domain.getDim() == 3:
@@ -761,7 +712,6 @@ class PorosityOneHalfModel(DualPorosity):
 	 D[0,1]=E_fps
 	 D[1,0]=E_fsp + dt * D_fsp
 	 D[1,1]=E_fss 
-	 #D[1,2]=rho_g_surf * C_couple
 	 D[1,2]= rho_g_surf # rho_g_surf
 	 D[0,2]= -dt * H * dL_gdp * 0
 	 D[2,2]= 1 + dt * H
@@ -774,9 +724,9 @@ class PorosityOneHalfModel(DualPorosity):
          X[0,:]=  dt * F_fp_X
 	 X[1,:]=  dt * F_fs_X
 
-	 Y[0] = E_fpp *  p_f_old + E_fps * S_fg_old +                                  dt * F_fp_Y 
-	 Y[1] = E_fsp *  p_f_old + E_fss * S_fg_old + C_couple * rho_g_surf * c_mg_old + dt * F_fs_Y 
-	 Y[2] = c_mg_old                                                             + dt * ( F_mg_Y -  H * dL_gdp * p_f *0 )
+	 Y[0] = E_fpp *  p_f_old + E_fps * S_fg_old +                         dt * F_fp_Y 
+	 Y[1] = E_fsp *  p_f_old + E_fss * S_fg_old + rho_g_surf * c_mg_old + dt * F_fs_Y 
+	 Y[2] = c_mg_old                                                    + dt * ( F_mg_Y -  H * dL_gdp * p_f *0 )
 	 
 	 print "HHH D[0,0] = ",D[0,0]
 	 print "HHH D[0,1] = ",D[0,1]
@@ -806,42 +756,30 @@ class PorosityOneHalfModel(DualPorosity):
 	 u2 = self.__pde.getSolution()
 	 # this is deals with round-off errors to maintain physical meaningful values
 	 # we should do this in a better way to detect values that are totally wrong
-	 u2[1]=clip(u2[1],minval=0, maxval=1)
-	 u2[2]=clip(u2[2],minval=0)
-
-         #saveVTK("t.vtu", chi = u2[0] )
-
-         print "XXX dc_mg_,t = ", (u2[2]-c_mg_old)/dt
-         print "XXX d_Sfg_,t = ", (u2[1]- S_fg_old)/dt
-	 
-	 # update well production
 	 p_f=u2[0]
-	 S_fg=u2[1]
+	 S_fg=clip(u2[1],minval=0, maxval=1)
+	 c_mg=clip(u2[2],minval=0)
+         
+
+	 # update well production and BHP
+         wells_state_new={}
 	 for I in self.wells:
+	     q_I = I.getFlowRate(self.t+dt)
+             Pi_I = I.getProductivityIndex()
+             p_f_I=I.locator(p_f)
+             S_fg_I=I.locator(S_fg)
+             BHP_limit_I=I.getBHPLimit()
 
-	      Pi_I = I.getProductivityIndex()
-	      q_I = I.getFlowRate(self.t+dt)
-	      p_f_I=integrate(p_f*I.chi)
-	      S_fg_I=integrate(S_fg*I.chi)
-	      A_fw_I= self.k_w(1-S_fg_I)/self.mu_w(p_f_I) 
-	      A_fg_I= self.k_g(S_fg_I)/self.mu_g(p_f_I)
-	      print "AAA", (self.t+dt)/U.day, p_f_I/U.psi, inf(p_f)/U.psi, S_fg_I, integrate(u2[2]*I.chi)/U.Mscf*U.ft**3
-
-              BHP_limit_I=I.getBHPLimit()
-	      BHP_I=I.getBHP()
-	      
-	      if self.verbose: print "reservoir pressure for well %s = %e gas)."%(I.name, p_f_I)
-	      
-	      if BHP_limit_I < BHP_I:
-		  if I.getPhase() == Well.WATER:
-		      q_I_w =  q_I 
-		      q_I_g = Pi_I * A_fg_I * (p_f_I - BHP_I)  
-		  else:
-		      q_I_g =  q_I 
-		      q_I_w = Pi_I * A_fw_I * (p_f_I - BHP_I)
-	      else:
-		    q_I_w = Pi_I * A_fw_I * (p_f_I - BHP_I)
-		    q_I_g = Pi_I * A_fg_I * (p_f_I - BHP_I)
-	      I.setWaterProduction(q_I_w)
-	      I.setGasProduction(q_I_g)
-	 return u2
+             A_fw_I= self.k_w(1-S_fg_I)/self.mu_w(p_f_I)*self.rho_w(p_f_I)
+             A_fg_I= self.k_g(S_fg_I)/self.mu_g(p_f_I)*self.rho_g(p_f_I)
+	     if I.getPhase() == Well.WATER:
+                 BHP= p_f_I - self.rho_w.rho_surf*q_I/(A_fw_I * Pi_I)
+             else:
+                 BHP= p_f_I - self.rho_g.rho_surf*q_I/(A_fg_I * Pi_I)
+             BHP=max(BHP, BHP_limit_I)
+	     if self.verbose: print "well %s: BHP = %e"%(I.name, BHP)
+             
+             wells_state_new[I.name]={ "bhp" : BHP, "q_gas": A_fg_I * Pi_I*(p_f_I-BHP)/self.rho_g.rho_surf, "q_water": A_fw_I * Pi_I*(p_f_I-BHP)/self.rho_w.rho_surf }
+       
+         print wells_state_new
+         return (p_f,S_fg, c_mg, wells_state_new)
