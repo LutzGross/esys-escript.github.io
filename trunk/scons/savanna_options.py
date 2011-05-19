@@ -59,7 +59,7 @@ ld_extra = '-shared-intel' # fix warning about feupdate in icc v10
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-werror = True
+werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
