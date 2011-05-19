@@ -433,8 +433,9 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("__pow__",&escript::Data::powD)
     .def("__rpow__",&escript::Data::rpowO,"\nUsed by the python ** operator\n\n:rtype: `Data`")
     // following two functions implement the newer python / operator
-    .def("__truediv__",&escript::Data::truedivD)
     .def("__truediv__",&escript::Data::truedivO)
+    .def("__truediv__",&escript::Data::truedivD)
+    .def("__rtruediv__",&escript::Data::rtruedivO)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 
