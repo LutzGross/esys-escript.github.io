@@ -100,7 +100,6 @@ void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t N, dim_t* local_N,index_t
 
 dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
    int rest=0, p;
-   dim_t out;
    int s=mpi_info->size;
    dim_t N=max_id-min_id+1;
    if (N>0) {
@@ -109,7 +108,6 @@ dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* mpi_info ,index_t min_id,index_
       for (p=0; p<s; ++p) {
          if (p<rest) {
              distribution[p]=min_id+(local_N+1)*p;
-             out=local_N+1;
          } else {
              distribution[p]=min_id+rest+local_N*p;
          }

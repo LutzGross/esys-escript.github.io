@@ -278,7 +278,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   //
   // Interface for Data
   //
-  class_<escript::Data>("Data","Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
+  class_<escript::Data>("Data"/*,shared_ptr<Data>*/, "Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>() )
     // various constructors for Data objects
     .def(init<const object&, optional<const escript::FunctionSpace&, bool> >(args("value","what","expand")))
     .def(init<const double, const tuple&, optional<const escript::FunctionSpace&, bool> >(args("value","shape","what","expand")))
@@ -433,39 +433,50 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("__pow__",&escript::Data::powD)
     .def("__rpow__",&escript::Data::rpowO,"\nUsed by the python ** operator\n\n:rtype: `Data`")
     // following two functions implement the newer python / operator
-    .def("__truediv__",&escript::Data::truedivD)
     .def("__truediv__",&escript::Data::truedivO)
+    .def("__truediv__",&escript::Data::truedivD)
+    .def("__rtruediv__",&escript::Data::rtruedivO)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 
-    .def(self + other<object>())
-    .def(other<object>() + self)
-    .def(self + self)
+//    .def(self + other<object>())
+//    .def(other<object>() + self)
+//    .def(self + self)
     .def(self += other<object>())
     .def(self += self)
 
-    .def(self - other<object>())
-    .def(other<object>() - self)
-    .def(self - self)
+//     .def(self - other<object>())
+//     .def(other<object>() - self)
+//     .def(self - self)
     .def(self -= other<object>())
     .def(self -= self)
 
-    .def(self * other<object>())
-    .def(other<object>() * self)
-    .def(self * self)
+//     .def(self * other<object>())
+//     .def(other<object>() * self)
+//     .def(self * self)
     .def(self *= other<object>())
     .def(self *= self)
 
-    .def(self / other<object>())
-    .def(other<object>() / self)
-    .def(self / self)
+//     .def(self / other<object>())
+//     .def(other<object>() / self)
+//     .def(self / self)
     .def(self /= other<object>())
     .def(self /= self)
     // Need scope resolution due to a bug either in the compiler or
     // the boost code. This calls operator << for Data.
     .def(self_ns::str(self))
-    .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matricies\n");
-
+    .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matricies\n")
+//    .def("__add__", &escript::Data::addOperatorD)
+    .def("__add__", &escript::Data::__add__)
+    .def("__radd__", &escript::Data::__add__)  // its the same coz + is commutative
+    .def("__sub__", &escript::Data::__sub__)
+    .def("__rsub__", &escript::Data::__rsub__)
+    .def("__mul__", &escript::Data::__mul__)   
+    .def("__rmul__", &escript::Data::__mul__)   // commutative
+    .def("__div__", &escript::Data::__div__)   
+    .def("__rdiv__", &escript::Data::__rdiv__)   // commutative
+    
+    ;
 
   //
   // Factory methods for function space
@@ -563,11 +574,11 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 	arg("expanded")=false));
 
 
- def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0.0),
+ def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0),
 "Creates a new expanded Data object containing (not very) random values.\n\n"
 ":param shape: datapoint shape\n:type shape: tuple\n"
 ":param fs: function space for data object.\n:type fs: `FunctionSpace`\n"
-":param seed: seed for random number generator.\n:type seed: double\n");
+":param seed: seed for random number generator.\n:type seed: long\n");
 
   //
   // Binary operators

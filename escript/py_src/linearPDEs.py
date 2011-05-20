@@ -97,12 +97,19 @@ class SolverOptions(object):
     :cvar YAIR_SHAPIRA_COARSENING: AMG and AMLI coarsening method by Yair-Shapira
     :cvar RUGE_STUEBEN_COARSENING: AMG and AMLI coarsening method by Ruge and Stueben
     :cvar AGGREGATION_COARSENING: AMG and AMLI coarsening using (symmetric) aggregation
-    :cvar STANDARD_COARSENING: AMG and AMLI standard coarsening using mesure of importance of the unknowns 
+    :cvar STANDARD_COARSENING: AMG and AMLI standard coarsening using mesure of importance of the unknowns
     :cvar MIN_COARSE_MATRIX_SIZE: minimum size of the coarsest level matrix to use direct solver.
     :cvar NO_PRECONDITIONER: no preconditioner is applied.
     :cvar CLASSIC_INTERPOLATION_WITH_FF_COUPLING: classical interpolation in AMG with enforced 
     :cvar CLASSIC_INTERPOLATION: classical interpolation in AMG
     :cvar DIRECT_INTERPOLATION: direct interploation in AMG
+    :cvar BOOMERAMG: Boomer AMG in hypre library
+    :cvar CIJP_FIXED_RANDOM_COARSENING: BoomerAMG parallel coarsening method CIJP by using fixed random vector
+    :cvar CIJP_COARSENING: BoomerAMG parallel coarsening method CIJP
+    :cvar PASO_FALGOUT_COARSENING: BoomerAMG parallel coarsening method falgout
+    :cvar PASO_PMIS_COARSENING: BoomerAMG parallel coarsening method PMIS
+    :cvar PASO_HMIS_COARSENING: BoomerAMG parallel coarsening method HMIS
+
     """
     DEFAULT= 0
     DIRECT= 1
@@ -147,6 +154,12 @@ class SolverOptions(object):
     CLASSIC_INTERPOLATION_WITH_FF_COUPLING=50
     CLASSIC_INTERPOLATION=51
     DIRECT_INTERPOLATION=52
+    BOOMERAMG=60
+    CIJP_FIXED_RANDOM_COARSENING=61
+    CIJP_COARSENING=62
+    FALGOUT_COARSENING=63
+    PMIS_COARSENING=64
+    HMIS_COARSENING=65
  
     def __init__(self):
         self.setLevelMax()
@@ -183,6 +196,7 @@ class SolverOptions(object):
         self.setUsePanel()
         self.setDiagonalDominanceThreshold()
         self.setAMGInterpolation()
+	self.setCycleType()
         
 
     def __str__(self):
@@ -231,6 +245,14 @@ class SolverOptions(object):
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+	    if self.getPreconditioner() == self.BOOMERAMG:
+		out+="\nMaximum number of levels = %s"%self.getLevelMax()
+		out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+		out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
+		out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
+		out+="\nV-cycle (1) or W-cyle (2) = %s"%self.getCycleType()
+		out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+		out+="\nSmoother = %s"%self.getName(self.getSmoother())
 	    if self.getPreconditioner() == self.GAUSS_SEIDEL:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
             if self.getPreconditioner() == self.ILUT:
@@ -287,6 +309,12 @@ class SolverOptions(object):
         if key == self.CLASSIC_INTERPOLATION_WITH_FF_COUPLING: return "CLASSIC_INTERPOLATION_WITH_FF"
         if key == self.CLASSIC_INTERPOLATION: return "CLASSIC_INTERPOLATION"
         if key == self.DIRECT_INTERPOLATION: return "DIRECT_INTERPOLATION"
+	if key == self.BOOMERAMG: return "BOOMERAMG"
+	if key == self.CIJP_FIXED_RANDOM_COARSENING: return "CIJP_FIXED_RANDOM_COARSENING"
+	if key == self.CIJP_COARSENING: return "CIJP_COARSENING"
+	if key == self.FALGOUT_COARSENING: return "FALGOUT_COARSENING"
+	if key == self.PMIS_COARSENING: return "PMIS_COARSENING"
+	if key == self.HMIS_COARSENING: return "HMIS_COARSENING"
         
     def resetDiagnostics(self,all=False):
         """
@@ -402,21 +430,21 @@ class SolverOptions(object):
         return self.getDiagnostics("converged")
     def setCoarsening(self,method=0):
         """
-        Sets the key of the coarsening method to be applied in AMG or AMLI
+        Sets the key of the coarsening method to be applied in AMG or AMLI or BoomerAMG
 
         :param method: selects the coarsening method .
-        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
+        :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`, `SolverOptions.CIJP_FIXED_RANDOM_COARSENING`, `SolverOptions.CIJP_COARSENING`, `SolverOptions.FALGOUT_COARSENING`, `SolverOptions.PMIS_COARSENING`, `SolverOptions.HMIS_COARSENING`
         """
 	if method==None: method=0
-        if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING, self.STANDARD_COARSENING,]:
+        if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING, self.STANDARD_COARSENING, self.CIJP_FIXED_RANDOM_COARSENING, self.CIJP_COARSENING, self.FALGOUT_COARSENING, self.PMIS_COARSENING, self.HMIS_COARSENING,]:
              raise ValueError,"unknown coarsening method %s"%method
         self.__coarsening=method
     
     def getCoarsening(self):
         """
-        Returns the key of the coarsening algorithm to be applied AMG or AMLI
+        Returns the key of the coarsening algorithm to be applied AMG or AMLI or BoomerAMG
 
-        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`
+        :rtype: in the list `SolverOptions.DEFAULT`, `SolverOptions.YAIR_SHAPIRA_COARSENING`, `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`, `SolverOptions.CIJP_FIXED_RANDOM_COARSENING`, `SolverOptions.CIJP_COARSENING`, `SolverOptions.FALGOUT_COARSENING`, `SolverOptions.PMIS_COARSENING`, `SolverOptions.HMIS_COARSENING`
         """
         return self.__coarsening
       
@@ -447,13 +475,13 @@ class SolverOptions(object):
 
         :param preconditioner: key of the preconditioner to be used.
         :type preconditioner: in `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`, `SolverOptions.BOOMERAMG`,
                                     `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
 	if preconditioner==None: preconditioner=10
         if not preconditioner in [  SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
-                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU,
+                                    SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU, SolverOptions.BOOMERAMG,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError,"unknown preconditioner %s"%preconditioner
         self.__preconditioner=preconditioner    
@@ -462,7 +490,7 @@ class SolverOptions(object):
         Returns key of the preconditioner to be used. 
 
         :rtype: in the list `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, SolverOptions.AMLI,
-                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`,
+                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`, `Solveroptions.BOOMERAMG`,
                                     `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
@@ -681,6 +709,22 @@ class SolverOptions(object):
         :rtype: ``int``
         """
         return self.__level_max
+    def setCycleType(self, cycle_type=1): 
+        """
+        Sets the cycle type (V-cycle or W-cycle) to be used in an algebraic multi level solver or preconditioner
+
+        :param cycle_type: the type of cycle
+        :type cycle_type: ``int``
+        """
+        cycle_type=int(cycle_type)
+        self.__cycle_type=cycle_type
+    def getCycleType(self):
+        """
+        Returns the cyle type (V- or W-cycle) to be used in an algebraic multi level solver or preconditioner
+
+        :rtype: ``int``
+        """
+        return self.__cycle_type
     def setCoarseningThreshold(self,theta=0.25):
         """
         Sets the threshold for coarsening in the algebraic multi level solver or preconditioner

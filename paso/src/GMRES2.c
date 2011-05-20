@@ -28,7 +28,7 @@ err_t Paso_Solver_GMRES2(
     double* tolerance,
     Paso_Performance* pp) 
 {
-  double static RENORMALIZATION_CONST=0.001;
+  static double RENORMALIZATION_CONST=0.001;
   const dim_t l=(*iter)+1, iter_max=*iter;
   dim_t k=0,i,j;
   const dim_t n=F->n;

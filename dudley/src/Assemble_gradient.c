@@ -33,7 +33,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elem
     register dim_t e, q, l, s, n;
     register __const double *data_array;
     register double *grad_data_e;
-    dim_t numNodes = 0, numShapesTotal = 0, numComps, NN = 0, numDim = 0, numShapesTotal2 = 0, numQuad = 0;
+    dim_t numNodes = 0, numShapesTotal = 0, numComps, NN = 0, numDim = 0, numQuad = 0;
     type_t data_type = getFunctionSpaceType(data);
     bool_t reducedIntegrationOrder = FALSE;
     Dudley_ElementFile_Jacobeans *jac = NULL;
@@ -86,7 +86,6 @@ void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elem
 	numShapesTotal = jac->numShapes;
 	numQuad = jac->numQuad;
 	localGradSize = sizeof(double) * numDim * numQuad * numComps;
-	numShapesTotal2 = elements->numShapes;
 	/* check the dimensions of data */
 
 	if (!numSamplesEqual(grad_data, numQuad, elements->numElements))

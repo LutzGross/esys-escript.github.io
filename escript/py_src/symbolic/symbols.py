@@ -142,8 +142,6 @@ class Symbol(object):
 
     def lambdarepr(self):
         from sympy.printing.lambdarepr import lambdarepr
-        if self.getRank()==0:
-            return lambdarepr(self._arr.item())
         temp_arr=numpy.empty(self.getShape(), dtype=object)
         for idx,el in numpy.ndenumerate(self._arr):
             atoms=el.atoms(sympy.Symbol)
@@ -161,7 +159,10 @@ class Symbol(object):
             for key in symdict:
                 s=s.replace(key, symdict[key])
             temp_arr[idx]=s
-        return 'combineData(%s,%s)'%(str(temp_arr.tolist()).replace("'",""),str(self.getShape()))
+        if self.getRank()==0:
+            return temp_arr.item()
+        else:
+            return 'combineData(%s,%s)'%(str(temp_arr.tolist()).replace("'",""),str(self.getShape()))
 
     def diff(self, *symbols, **assumptions):
         symbols=Symbol._symbolgen(*symbols)
@@ -200,6 +201,58 @@ class Symbol(object):
                     out[index]=grad_n(out[index],d)
                 else:
                     out[index]=grad_n(out[index],d,where)
+        return Symbol(out)
+
+    def inverse(self):
+        if not self.getRank()==2:
+            raise ValueError("inverse: Only rank 2 supported")
+        s=self.getShape()
+        if not s[0] == s[1]:
+            raise ValueError("inverse: Only square shapes supported")
+        out=numpy.zeros(s, numpy.object)
+        arr=self._arr
+        if s[0]==1:
+            if arr[0,0].is_zero:
+                raise ZeroDivisionError("inverse: Symbol not invertible")
+            out[0,0]=1./arr[0,0]
+        elif s[0]==2:
+            A11=arr[0,0]
+            A12=arr[0,1]
+            A21=arr[1,0]
+            A22=arr[1,1]
+            D = A11*A22-A12*A21
+            if D.is_zero:
+                raise ZeroDivisionError("inverse: Symbol not invertible")
+            D=1./D
+            out[0,0]= A22*D
+            out[1,0]=-A21*D
+            out[0,1]=-A12*D
+            out[1,1]= A11*D
+        elif s[0]==3:
+            A11=arr[0,0]
+            A21=arr[1,0]
+            A31=arr[2,0]
+            A12=arr[0,1]
+            A22=arr[1,1]
+            A32=arr[2,1]
+            A13=arr[0,2]
+            A23=arr[1,2]
+            A33=arr[2,2]
+            D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22)
+            if D.is_zero:
+                raise ZeroDivisionError("inverse: Symbol not invertible")
+            D=1./D
+            out[0,0]=(A22*A33-A23*A32)*D
+            out[1,0]=(A31*A23-A21*A33)*D
+            out[2,0]=(A21*A32-A31*A22)*D
+            out[0,1]=(A13*A32-A12*A33)*D
+            out[1,1]=(A11*A33-A31*A13)*D
+            out[2,1]=(A12*A31-A11*A32)*D
+            out[0,2]=(A12*A23-A13*A22)*D
+            out[1,2]=(A13*A21-A11*A23)*D
+            out[2,2]=(A11*A22-A12*A21)*D
+        else:
+           raise TypeError("inverse: Only matrix dimensions 1,2,3 are supported")
         return Symbol(out)
 
     def swap_axes(self, axis0, axis1):
@@ -308,6 +361,23 @@ class Symbol(object):
     def _sympy_(self):
         return self.applyfunc(sympy.sympify)
 
+    def _ensureShapeCompatible(self, other):
+        """
+        Checks for compatible shapes for binary operations.
+        Raises TypeError if not compatible.
+        """
+        sh0=self.getShape()
+        if isinstance(other, Symbol):
+            sh1=other.getShape()
+        elif isinstance(other, numpy.ndarray):
+            sh1=other.shape
+        elif isinstance(other,int) or isinstance(other,float):
+            sh1=()
+        else:
+            raise TypeError("Unsupported argument type '%s' for binary operation"%other.__class__.__name__)
+        if not sh0==sh1 and not sh0==() and not sh1==():
+            raise TypeError("Incompatible shapes for binary operation")
+
     @staticmethod
     def _symComp(sym):
         n=sym.name
@@ -372,51 +442,61 @@ class Symbol(object):
         return Symbol(abs(self._arr))
 
     def __add__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(self._arr+other._arr)
         return Symbol(self._arr+other)
 
     def __radd__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(other._arr+self._arr)
         return Symbol(other+self._arr)
 
     def __sub__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(self._arr-other._arr)
         return Symbol(self._arr-other)
 
     def __rsub__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(other._arr-self._arr)
         return Symbol(other-self._arr)
 
     def __mul__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(self._arr*other._arr)
         return Symbol(self._arr*other)
 
     def __rmul__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(other._arr*self._arr)
         return Symbol(other*self._arr)
 
     def __div__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(self._arr/other._arr)
         return Symbol(self._arr/other)
 
     def __rdiv__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(other._arr/self._arr)
         return Symbol(other/self._arr)
 
     def __pow__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(self._arr**other._arr)
         return Symbol(self._arr**other)
 
     def __rpow__(self, other):
+        self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             return Symbol(other._arr**self._arr)
         return Symbol(other**self._arr)
@@ -483,4 +563,41 @@ def combineData(array, shape):
         else:
             d[idx]=n[idx]
     return d
+
+
+class SymFunction(Symbol):
+    """
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        Initializes a new symbolic function object.
+        """
+        super(SymFunction, self).__init__(self.__class__.__name__, **kwargs)
+        self.args=args
+
+    def __repr__(self):
+        return self.name+"("+", ".join([str(a) for a in self.args])+")"
+
+    def __str__(self):
+        return self.name+"("+", ".join([str(a) for a in self.args])+")"
+
+    def lambdarepr(self):
+        return self.name+"("+", ".join([a.lambdarepr() for a in self.args])+")"
+
+    def atoms(self, *types):
+        s=set()
+        for el in self.args:
+            atoms=el.atoms(*types)
+            for a in atoms:
+                if a.is_Symbol:
+                    n,c=Symbol._symComp(a)
+                    s.add(sympy.Symbol(n))
+                else:
+                    s.add(a)
+        return s
+
+    def __neg__(self):
+        res=self.__class__(*self.args)
+        res._arr=-res._arr
+        return res
 

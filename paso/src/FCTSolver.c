@@ -195,7 +195,7 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
    const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
    const double critical_rate=0.8;   /* expected value of convergence rate */
    
-   double norm_u_tilde, ATOL, norm_u, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, *du=NULL, rate;
+   double norm_u_tilde, ATOL, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, *du=NULL, rate;
    err_t errorCode=SOLVER_NO_ERROR;
    Paso_FCTSolver *more=(Paso_FCTSolver *) (F->more);
    const double omega=1./(dt*Paso_Transport_getTheta(more->transportproblem));
@@ -234,7 +234,6 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
 	            errorCode=Paso_FCTSolver_Function_call(F,du, u, pp);
                     options->num_iter++;
                     Paso_Update(n,1.,u,omega,du);
-                     norm_u=Paso_lsup(n,u, fctp->mpi_info);
 		     norm_du_old=norm_du;
                      norm_du=Paso_lsup(n,du, fctp->mpi_info);
 		     if (m ==0) {

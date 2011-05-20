@@ -383,12 +383,10 @@ TODO Note that this constructor will also copy data to all points if it only con
   /**
   \brief Fill the object with random values
 
-  At the moment this is "slow" and not particularly random.
-
   \param seed - random seed
   */
   ESCRIPT_DLL_API
-  void randomFill(double seed);
+  void randomFill(long seed);
 
  protected:
 

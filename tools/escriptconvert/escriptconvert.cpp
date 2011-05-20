@@ -108,6 +108,11 @@ int main(int argc, char** argv)
     doVTK = true;
 #endif
 
+    if (!doVTK && !doSilo) {
+        cleanup();
+        return usage();
+    }
+    
     ifstream in(esdFile.c_str());
     if (!in.is_open()) {
         cerr << "Could not open " << esdFile << "." << endl;

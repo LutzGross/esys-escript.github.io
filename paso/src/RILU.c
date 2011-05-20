@@ -78,7 +78,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   index_t iPtr,*index, *where_p;
   dim_t i,k;
   Paso_SparseMatrix * schur=NULL;
-  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0,time2=0;
+  double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0;/*,time2=0;*/
    
 
   /* identify independend set of rows/columns */
@@ -105,7 +105,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
      Paso_Pattern_mis(A_p->pattern,mis_marker);
-     time2=Esys_timer()-time0;
+     /*time2=Esys_timer()-time0;*/
      if (Esys_noError()) {
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];

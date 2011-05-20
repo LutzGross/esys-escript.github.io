@@ -43,7 +43,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
   __const double *D_p=NULL;
   double *S=NULL, *EM_lumpedMat=NULL, *Vol=NULL, *lumpedMat_p=NULL;
   register double rtmp;
-  size_t len_EM_lumpedMat_size;
   register double m_t=0., diagS=0., rtmp2=0.;
 
   Finley_resetError();
@@ -100,7 +99,6 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
     requireWrite(lumpedMat);
     lumpedMat_p=getSampleDataRW(lumpedMat,0);
     len_EM_lumpedMat=p.row_numShapesTotal*p.numEqu;
-    len_EM_lumpedMat_size=len_EM_lumpedMat*sizeof(double);
     
     expandedD=isExpanded(D);
     S=p.row_jac->BasisFunctions->S;

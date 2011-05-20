@@ -74,6 +74,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->mainBlock=NULL;
      out->row_coupleBlock=NULL;
      out->col_coupleBlock=NULL;
+     out->remote_coupleBlock=NULL;
      out->is_balanced=FALSE;
      out->balance_vector=NULL; 
      out->solver_package=PASO_PASO;  
@@ -170,6 +171,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
+	
 	Paso_solve_free(in);
         Paso_SystemMatrixPattern_free(in->pattern);
         Paso_Distribution_free(in->row_distribution);
@@ -180,6 +182,8 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SparseMatrix_free(in->mainBlock);
         Paso_SparseMatrix_free(in->col_coupleBlock);
         Paso_SparseMatrix_free(in->row_coupleBlock);
+	Paso_SparseMatrix_free(in->remote_coupleBlock);
+	
 	MEMFREE(in->balance_vector);
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);

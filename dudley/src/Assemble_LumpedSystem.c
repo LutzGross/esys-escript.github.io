@@ -45,7 +45,6 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     const double *S = NULL;
     double *EM_lumpedMat = NULL, *lumpedMat_p = NULL;
     register double rtmp;
-    size_t len_EM_lumpedMat_size;
     register double m_t = 0., diagS = 0.;
 
 
@@ -127,7 +126,6 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	requireWrite(lumpedMat);
 	lumpedMat_p = getSampleDataRW(lumpedMat, 0);
 	len_EM_lumpedMat = p.numShapes * p.numEqu;
-	len_EM_lumpedMat_size = len_EM_lumpedMat * sizeof(double);
 
 	expandedD = isExpanded(D);
 	if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))

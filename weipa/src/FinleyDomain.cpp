@@ -49,7 +49,8 @@ FinleyDomain::FinleyDomain() :
 //
 //
 //
-FinleyDomain::FinleyDomain(const FinleyDomain& m)
+FinleyDomain::FinleyDomain(const FinleyDomain& m) :
+    boost::enable_shared_from_this<FinleyDomain>()
 {
     nodes = FinleyNodes_ptr(new FinleyNodes(*m.nodes));
     cells = FinleyElements_ptr(new FinleyElements(*m.cells));

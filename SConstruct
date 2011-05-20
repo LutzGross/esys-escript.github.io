@@ -93,6 +93,9 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
+  BoolVariable('boomeramg', 'Enable BoomerAMG', False),
+  ('boomeramg_prefix', 'Prefix/Paths to BoomerAMG installation', default_prefix),
+  ('boomeramg_libs', 'BoomerAMG libraries to link with', ['boomeramg']),
   EnumVariable('lapack', 'Set LAPACK flavour', 'none', allowed_values=lapack_flavours),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -103,6 +106,7 @@ vars.AddVariables(
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   BoolVariable('pyvisi', 'Enable pyvisi (deprecated, requires VTK module)', False),
+  BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
@@ -526,6 +530,10 @@ if env['silo']:
     # weipa library and tools.
     #env.AppendUnique(LIBS = [env['silo_libs']])
 
+######## VSL random numbers (optional)
+if env['vsl_random']:
+    env.Append(CPPDEFINES = ['MKLRANDOM'])
+
 ######## VisIt (optional)
 
 visit_inc_path=''
@@ -552,6 +560,25 @@ if env['usempi']:
     # do that here
     if env['netcdf'] and env['mpi'] in ['MPT','OPENMPI']:
         env.Append(CPPDEFINES = ['MPI_INCLUDED'])
+
+######## BOOMERAMG (optional)
+
+#if env['boomeramg'] and env['mpi'] == 'none':
+#    print("boomeramg requires mpi!")
+#    Exit(1)
+if env['mpi'] == 'none': env['boomeramg'] = False
+
+boomeramg_inc_path=''
+boomeramg_lib_path=''
+if env['boomeramg']:
+    boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c')
+    env.AppendUnique(CPPPATH = [boomeramg_inc_path])
+    env.AppendUnique(LIBPATH = [boomeramg_lib_path])
+    # Note that we do not add the libs since they are only needed for the
+    # weipa library and tools.
+    env.AppendUnique(LIBS = env['boomeramg_libs'])
+    env.PrependENVPath(LD_LIBRARY_PATH_KEY, boomeramg_lib_path)
+    env.Append(CPPDEFINES = ['BOOMERAMG'])
 
 ######## ParMETIS (optional)
 
@@ -615,7 +642,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','silo','visit','pyvisi':
+for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:
@@ -626,6 +653,8 @@ if env['gmsh']:
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")
+print("      vsl_random:  %s"%env['vsl_random'])
+     
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
 else:
@@ -705,7 +734,8 @@ buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
 buildvars.write("pyvisi=%d\n"%env['pyvisi'])
-for i in 'netcdf','parmetis','papi','mkl','umfpack','silo','visit':
+buildvars.write("vsl_random=%d"%int(env['vsl_random']))
+for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
     if env[i]:
         buildvars.write("%s_inc_path=%s\n"%(i, eval(i+'_inc_path')))

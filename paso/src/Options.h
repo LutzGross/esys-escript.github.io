@@ -72,6 +72,12 @@
 #define PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING 50
 #define PASO_CLASSIC_INTERPOLATION 51
 #define PASO_DIRECT_INTERPOLATION 52
+#define PASO_BOOMERAMG 60
+#define PASO_CIJP_FIXED_RANDOM_COARSENING 61
+#define PASO_CIJP_COARSENING 62
+#define PASO_FALGOUT_COARSENING 63
+#define PASO_PMIS_COARSENING 64
+#define PASO_HMIS_COARSENING 65
 
 
 
@@ -97,6 +103,7 @@ typedef struct {
     dim_t sweeps;
     dim_t pre_sweeps;
     dim_t post_sweeps;
+    dim_t cycle_type;
     dim_t level_max;
     dim_t min_coarse_matrix_size;
     dim_t smoother;

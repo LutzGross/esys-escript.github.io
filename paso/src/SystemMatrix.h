@@ -65,6 +65,8 @@ typedef struct Paso_SystemMatrix {
   Paso_SparseMatrix* mainBlock;                      /* main block */
   Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */
   Paso_SparseMatrix* row_coupleBlock;                /* coupling to naighbouring processors (col - row)  */
+  Paso_SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on naighbouring processors 
+                                                           don't assume that this is set */
 
   bool_t is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
@@ -144,8 +146,14 @@ void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double
 void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
 void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A);
 void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A);
+void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool_t recreatePattern);
 void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const double f1);
 void Paso_SystemMatrix_print(Paso_SystemMatrix *A);
+
+void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
+void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
+void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
+void Paso_SystemMatrix_copyMain_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
 
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */

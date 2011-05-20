@@ -1386,8 +1386,6 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset)
     throw DataException("Programmer error - resolveNodeCondEval should only be called on CONDEVAL nodes.");
   }
   size_t subroffset;
-  size_t offset;
-
 
   const ValueType* maskres=m_mask->resolveNodeSample(tid, sampleNo, subroffset);
   const ValueType* srcres=0;
@@ -1403,7 +1401,6 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset)
   // Now we need to copy the result
 
   roffset=m_samplesize*tid;
-  offset=roffset;
   for (int i=0;i<m_samplesize;++i)
   {
 	m_samples[roffset+i]=(*srcres)[subroffset+i];	

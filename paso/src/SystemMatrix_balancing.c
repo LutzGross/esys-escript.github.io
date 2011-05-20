@@ -114,7 +114,7 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
                     }
                 }
              }
-             {
+            {
 		  /* rescale matrix: */
 		  double *remote_values=NULL;
 		  /* start exchange */

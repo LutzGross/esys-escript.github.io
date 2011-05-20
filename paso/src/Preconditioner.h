@@ -17,6 +17,7 @@
 
 #include "SystemMatrix.h"
 #include "performance.h"
+#include "BOOMERAMG.h"
 
 
 #define PASO_AMG_UNDECIDED -1
@@ -81,13 +82,18 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, di
 double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_AMG * in);
 dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in);
 index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in);
-
+void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, const dim_t nT, dim_t *degree_ST, index_t* offset_ST,index_t* ST);
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
+					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
+					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
+					    Paso_Connector* col_connector, Paso_Distribution* col_dist);
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
    dim_t level;
    dim_t n;
    dim_t n_F;
    dim_t n_block;
+   
    Paso_SparseMatrix * A_C;  /* coarse level matrix */
    Paso_SparseMatrix * P;   /* prolongation n x n_C*/ 
    Paso_SparseMatrix * R;   /* restriction  n_C x n */
@@ -122,12 +128,22 @@ dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditione
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
 
 
+struct Paso_Preconditioner_BoomerAMG
+{
+  Paso_BOOMERAMG_Handler* pt;
+};
+typedef struct Paso_Preconditioner_BoomerAMG Paso_Preconditioner_BoomerAMG;
+void Paso_Preconditioner_BoomerAMG_free(Paso_Preconditioner_BoomerAMG * in);
+Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(Paso_SystemMatrix * A_p,Paso_Options* options);
+void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_BoomerAMG * amg, double * x, double * b);
+
 
 struct Paso_Preconditioner_AMG_Root 
 {
   bool_t is_local;
   Paso_Preconditioner_AMG* amg;
   Paso_Preconditioner_LocalAMG* localamg;
+  Paso_Preconditioner_BoomerAMG* boomeramg;
   dim_t sweeps;
   Paso_Preconditioner_Smoother* amgsubstitute;
 };
