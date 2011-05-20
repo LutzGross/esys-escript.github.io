@@ -1707,7 +1707,7 @@ def inverse(arg):
     elif isinstance(arg,int):
       return 1./float(arg)
     elif isinstance(arg,Symbol):
-      return symfn.inverse(arg)
+      return arg.inverse()
     else:
       raise TypeError,"inverse: Unknown argument type."
 

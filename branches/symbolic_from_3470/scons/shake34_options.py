@@ -77,7 +77,7 @@ escript_opts_version = 200
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = True
+#debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -85,7 +85,7 @@ debug = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = True and False
+#openmp = True 
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -98,7 +98,7 @@ openmp = True and False
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/usr/lib/openmpi'
@@ -172,7 +172,7 @@ umfpack_libs = ['umfpack']
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-lapack_prefix = '/usr'
+lapack_prefix = ['/usr/include/atlas', '/usr']
 
 # LAPACK library/libraries to link against
 lapack_libs = ['lapack_atlas']

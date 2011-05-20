@@ -163,6 +163,21 @@ class Data {
 
   /**
      \brief
+     Constructor which copies data from a wrapped array.
+
+     \param value - Input - Input data.
+     \param what - Input - A description of what this data represents.
+     \param expanded - Input - Flag, if true fill the entire container with
+                       the value. Otherwise a more efficient storage
+                       mechanism will be used.
+  */       
+  ESCRIPT_DLL_API     
+  Data(const WrappedArray& w, const FunctionSpace& what,
+           bool expanded=false);       
+       
+
+  /**
+     \brief
      Constructor which creates a DataConstant.
      Copies data from any object that can be treated like a python array/sequence.
      All other parameters are copied from other.
@@ -1368,6 +1383,56 @@ instead of manually manipulating process and point IDs.
   Data truedivO(const boost::python::object& right);
 
   /**
+    \brief
+    Newer style division operator for python
+  */
+  ESCRIPT_DLL_API
+  Data rtruedivO(const boost::python::object& left);
+
+  /**
+    \brief
+    wrapper for python add operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __add__(const boost::python::object& right);
+  
+
+  /**
+    \brief
+    wrapper for python subtract operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __sub__(const boost::python::object& right);
+  
+  /**
+    \brief
+    wrapper for python reverse subtract operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __rsub__(const boost::python::object& right);  
+
+  /**
+    \brief
+    wrapper for python multiply operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __mul__(const boost::python::object& right);
+    
+  /**
+    \brief
+    wrapper for python divide operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __div__(const boost::python::object& right);
+  
+  /**
+    \brief
+    wrapper for python reverse divide operation
+  */
+  ESCRIPT_DLL_API
+  boost::python::object __rdiv__(const boost::python::object& right);    
+  
+  /**
 	\brief return inverse of matricies.
   */
   ESCRIPT_DLL_API
@@ -1787,7 +1852,7 @@ template <class BinaryOp>
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
   friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
-  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, double seed);
+  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed);
 
 };
 
@@ -1811,7 +1876,7 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
-       double seed);
+       long seed);
 
 
 }   // end namespace escript
@@ -2042,7 +2107,21 @@ inline
 Data
 Data::truedivO(const boost::python::object& right)
 {
-    return *this / right;
+    Data tmp(right, getFunctionSpace(), false);
+    return truedivD(tmp);
+}
+
+/**
+  \brief
+  Operator/
+  Takes LHS python::object.
+*/
+inline
+Data
+Data::rtruedivO(const boost::python::object& left)
+{
+    Data tmp(left, getFunctionSpace(), false);
+    return tmp.truedivD(*this);
 }
 
 /**

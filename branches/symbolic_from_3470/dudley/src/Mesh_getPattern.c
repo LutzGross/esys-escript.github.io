@@ -85,7 +85,6 @@ Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool_t reduce_ro
 
 Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_row_order, bool_t reduce_col_order)
 {
-    double time0;
     Paso_SystemMatrixPattern *out = NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
     Paso_Connector *col_connector, *row_connector;
@@ -95,7 +94,6 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_r
 
     index_t i;
     Dudley_resetError();
-    time0 = Dudley_timer();
 
     if (reduce_col_order)
     {

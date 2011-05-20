@@ -390,6 +390,15 @@ Data::Data(const object& value,
 }
 
 
+Data::Data(const WrappedArray& w, const FunctionSpace& what,
+           bool expanded)
+           :m_shared(false), m_lazy(false)
+{
+    initialise(w,what,expanded);  
+    m_protected=false; 
+}
+
+
 Data::Data(const object& value,
            const Data& other)
 	: m_shared(false), m_lazy(false)
@@ -2178,8 +2187,7 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   next[1] = numSamples;
   int lowProc = 0;
   double *globalMins = new double[get_MPISize()*2+1];
-  int error;
-  error = MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  /*int error =*/ MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
 
   if( get_MPIRank()==0 ){
 	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
@@ -2265,8 +2273,7 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
   next[1] = numSamples;
   int highProc = 0;
   double *globalMaxs = new double[get_MPISize()*2+1];
-  int error;
-  error = MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  /*int error =*/ MPI_Gather ( next, 2, MPI_DOUBLE, globalMaxs, 2, MPI_DOUBLE, 0, get_MPIComm() );
   if( get_MPIRank()==0 ){
     for (highProc=0; highProc<get_MPISize(); highProc++)
 	if (globalMaxs[highProc*2+1] > 0) break;
@@ -3879,8 +3886,7 @@ Data::get_MPISize() const
 {
 	int size;
 #ifdef ESYS_MPI
-	int error;
-	error = MPI_Comm_size( get_MPIComm(), &size );
+	/*int error =*/ MPI_Comm_size( get_MPIComm(), &size );
 #else
 	size = 1;
 #endif
@@ -3892,8 +3898,7 @@ Data::get_MPIRank() const
 {
 	int rank;
 #ifdef ESYS_MPI
-	int error;
-	error = MPI_Comm_rank( get_MPIComm(), &rank );
+	/*int error =*/ MPI_Comm_rank( get_MPIComm(), &rank );
 #else
 	rank = 0;
 #endif
@@ -4265,7 +4270,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 
 Data escript::randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
-       double seed)
+       long seed)
 {
     Data   towipe(0, shape, what, true);
     DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
@@ -4275,4 +4280,165 @@ Data escript::randomData(const boost::python::tuple& shape,
     }
     de->randomFill(seed);
     return towipe;
+}
+
+
+namespace{
+  
+boost::python::object getNotImplemented()
+{
+    static object notimpl=object(handle<>(borrowed(PyImport_AddModule("__main__"))))
+			.attr("__builtins__").attr("NotImplemented");  
+    return notimpl;
+}
+  
+}
+
+/* Implement part of pythons operator methods.
+** We are doing this rather than just using boost's overloading shortcuts because we
+** want to be able to return NotImplemented.
+*/
+boost::python::object Data::__add__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this+data_extractor());
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(*this+Data(w, this->getFunctionSpace()));    
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }
+}
+
+boost::python::object Data::__sub__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this-data_extractor());
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(*this-Data(w, this->getFunctionSpace()));  
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }    
+}
+
+boost::python::object Data::__rsub__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(data_extractor()-*this);
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(Data(w, this->getFunctionSpace())-*this); 
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }      
+ 
+}
+
+boost::python::object Data::__mul__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this*data_extractor());
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(*this*Data(w, this->getFunctionSpace()));  
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }       
+}
+
+boost::python::object Data::__div__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(*this/data_extractor());
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(*this/Data(w, this->getFunctionSpace()));  
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }     
+}
+
+boost::python::object Data::__rdiv__(const boost::python::object& right)
+{
+    extract<Data> data_extractor(right);
+    if (data_extractor.check())   // if this is wrapping a Data
+    {
+        return boost::python::object(data_extractor()/(*this));
+    }
+    bool wrapok=false;	// If the object can't be wrapped we should return NotImplemented
+    try			// if the exception is due to something else we should rethrow it
+    {
+       WrappedArray w(right);
+       wrapok=true;
+       return boost::python::object(Data(w, this->getFunctionSpace())/(*this));  
+    }
+    catch (DataException e)
+    {
+        if (wrapok)
+	{
+	    throw e;
+	}
+        return getNotImplemented();
+    }         
 }

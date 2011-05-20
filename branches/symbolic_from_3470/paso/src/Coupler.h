@@ -105,7 +105,7 @@ void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target);
 
 
 PASO_DLL_API
-void Paso_Coupler_add(const dim_t n, double* x, const double a, const double* y, Paso_Coupler *couple);
+void Paso_Coupler_fillOverlap(const dim_t n, double* x, Paso_Coupler *coupler);
 
 PASO_DLL_API
 void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler);

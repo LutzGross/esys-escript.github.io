@@ -288,44 +288,24 @@ void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target)
   }
 }
 
-/* aadds a local vector x * a to the vector y including overlap :*/ 
-void Paso_Coupler_add(const dim_t n, double* x, const double a, const double* y, Paso_Coupler *coupler)
+/*  */ 
+void Paso_Coupler_fillOverlap(const dim_t n, double* x, Paso_Coupler *coupler)
 {
    double *remote_values = NULL;
    const dim_t overlap_n = Paso_Coupler_getNumOverlapValues(coupler) ;
    const dim_t my_n= n - overlap_n;
+   const dim_t block_size = coupler->block_size;
+   const dim_t offset = block_size * my_n;
    dim_t i;
    
-   if (ABS(a) > 0 ) {
-      Paso_Coupler_startCollect(coupler, x);
+    Paso_Coupler_startCollect(coupler, x);
+    Paso_Coupler_finishCollect(coupler);
+    remote_values=coupler->recv_buffer;
       
-      if ( a == 1.) {
-	 #pragma omp parallel for private(i)
-	 for (i=0; i<my_n; i++) {
-	    x[i]+=y[i];
-	 }
-      } else {
-	 #pragma omp parallel for private(i)
-	 for (i=0; i<my_n; i++) {
-	    x[i]+=a*y[i];
-	 }
-      }
-      
-      Paso_Coupler_finishCollect(coupler);
-      remote_values=coupler->recv_buffer;
-      
-      if ( a == 1.) {
-	 #pragma omp parallel for private(i)
-	 for (i=0;i<overlap_n; ++i) {
-	    x[my_n+i]+=remote_values[i];
-	 }
-      } else {
-	 #pragma omp parallel for private(i)
-	 for (i=0;i<overlap_n; ++i) {
-	    x[my_n+i]+=a*remote_values[i];
-	 }
-      }
-   }
+    #pragma omp parallel for private(i)
+    for (i=0;i<overlap_n * block_size; ++i) {
+         x[offset+i]=remote_values[i];
+    } 
 }
 
 /* adjusts max values across shared values x */

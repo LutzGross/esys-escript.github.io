@@ -85,6 +85,7 @@ omp_flags = '-openmp -openmp-report2'
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
 mpi = 'INTELMPI'
+#mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.0.0.027/lib64']
@@ -152,6 +153,17 @@ umfpack_prefix = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2'
 # UMFPACK library/libraries to link against
 umfpack_libs = ['umfpack', 'amd', 'blas']
 
+# Whether to use BoomerAMG
+# DEFAULT: False
+boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. 
+boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
+
+# BoomerAMG library/libraries to link against
+boomeramg_libs = ['HYPRE']
+#boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
+
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
@@ -188,6 +200,9 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/l
 # DEFAULT: False
 #pyvisi = True
 
+
+#Use intel's VSL library for random data
+vsl_random = True
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do

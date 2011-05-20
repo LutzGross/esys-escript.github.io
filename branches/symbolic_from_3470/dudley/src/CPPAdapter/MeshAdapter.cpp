@@ -802,8 +802,6 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _Y=Y.getDataC();
    escriptDataC _d=d.getDataC();
    escriptDataC _y=y.getDataC();
-   escriptDataC _d_contact=d_contact.getDataC();
-   escriptDataC _y_contact=y_contact.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
@@ -968,8 +966,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target,const escript::Data&
       break;
       case(Points):
       if (getMPISize()>1) {
-         escript::Data temp=escript::Data( in,  continuousFunction(*this) );
-         escriptDataC _in2 = temp.getDataC();
+         //escript::Data temp=escript::Data( in,  continuousFunction(*this) );
+         //escriptDataC _in2 = temp.getDataC();
       } else {
          Dudley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
       }

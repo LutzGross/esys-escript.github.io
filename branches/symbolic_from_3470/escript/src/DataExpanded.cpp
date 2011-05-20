@@ -17,6 +17,7 @@
 #include "DataException.h"
 #include "DataConstant.h"
 #include "DataTagged.h"
+#include <limits>
 
 #include "esysUtils/Esys_MPI.h"
 
@@ -26,6 +27,13 @@
 
 #include <boost/python/extract.hpp>
 #include "DataMaths.h"
+
+//#define MKLRANDOM
+
+#ifdef MKLRANDOM
+#include <mkl_vsl.h>
+
+#endif
 
 using namespace std;
 using namespace boost::python;
@@ -837,20 +845,92 @@ DataExpanded::getVectorRO() const
 	return m_data.getData();
 }
 
-void DataExpanded::randomFill(double seed)
+
+// Idea here is to create an array of seeds by feeding the original seed into the random generator
+// The code at the beginning of the function to compute the seed if one is given is
+// just supposed to introduce some variety (and ensure that multiple ranks don't get the same seed).
+// I make no claim about how well these initial seeds are distributed
+void DataExpanded::randomFill(long seed)
 {
     CHECK_FOR_EX_WRITE
-    if (seed==0)
+    static unsigned prevseed=0;	// So if we create a bunch of objects we don't get the same start seed 
+    if (seed==0)		// for each one
     {
-	time_t s=time(0);
-	seed=s;
+	if (prevseed==0) 
+	{
+	    time_t s=time(0);
+	    seed=s;
+	}
+	else
+	{
+	    seed=prevseed+419;	// these numbers are arbitrary
+	    if (seed>3040101)		// I want to avoid overflow on 32bit systems
+	    {
+		seed=((int)(seed)%0xABCD)+1;
+	    }
+	}
     }
+    // now we need to consider MPI since we don't want each rank to start with the same seed
+    seed+=getFunctionSpace().getDomain()->getMPIRank()*getFunctionSpace().getDomain()->getMPISize()*3;
+    prevseed=seed;
+#ifdef _OPENMP
+    int numthreads=omp_get_max_threads();
+#else
+    int numthreads=1;
+#endif
+
+#ifdef MKLRANDOM
+    double* seeds=new double[numthreads];
+    VSLStreamStatePtr sstream;
+
+    int status=vslNewStream(&sstream, VSL_BRNG_MT19937, seed);	// use a Mersenne Twister
+    numeric_limits<double> dlim;
+    vdRngUniform(VSL_METHOD_DUNIFORM_STD, sstream , numthreads, seeds, -1, 1);
+    vslDeleteStream(&sstream);
+    DataVector& dv=getVectorRW();
+    size_t dvsize=dv.size();
+    #pragma omp parallel
+    {
+	int tnum=0;
+	#ifdef _OPENMP
+	tnum=omp_get_thread_num();
+	#endif
+	VSLStreamStatePtr stream;
+	// the 12345 is a hack to give us a better chance of getting different integer seeds.
+    	int status=vslNewStream(&stream, VSL_BRNG_MT19937, seeds[tnum]*12345);	// use a Mersenne Twister
+	int bigchunk=(dvsize/numthreads+1);
+	int smallchunk=dvsize-bigchunk*(numthreads-1);
+	int chunksize=(tnum<(numthreads-1))?bigchunk:smallchunk;
+    	vdRngUniform(VSL_METHOD_DUNIFORM_STD, stream, chunksize, &(dv[bigchunk*tnum]), 0,1);
+    	vslDeleteStream(&stream);
+    }
+    delete[] seeds;
+#else
     srand(seed);
-    DataVector&  dv=getVectorRW();
-    for (long i=0;i<dv.size();++i)
+    unsigned* seeds=new unsigned[numthreads];
+    for (int i=0;i<numthreads;++i)
     {
-	dv[i]=(double)rand()/RAND_MAX;
+	seeds[i]=rand();
     }
+    DataVector&  dv=getVectorRW();
+    long i;
+    const size_t dvsize=dv.size();
+    #pragma omp parallel private(i)
+    {
+	int tnum=0;
+	#ifdef _OPENMP
+	tnum=omp_get_thread_num();
+	#endif
+	unsigned info=seeds[tnum];
+	
+    	#pragma omp for schedule(static)
+    	for (i=0;i<dvsize;++i)
+    	{
+	    dv[i]=(double)rand_r(&info)/RAND_MAX;
+    	}
+    }
+    delete[] seeds;
+#endif
 }
 
 }  // end of namespace

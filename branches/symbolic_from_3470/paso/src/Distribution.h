@@ -72,4 +72,11 @@ dim_t Paso_Distribution_getMinGlobalComponents(Paso_Distribution *in );
 
 PASO_DLL_API
 dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in );
+
+PASO_DLL_API
+double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t block );
+
+PASO_DLL_API
+dim_t Paso_Distribution_numPositives(const double* x, const Paso_Distribution *in, const dim_t block );
 #endif
+

@@ -73,6 +73,7 @@ sources = """
 	SystemMatrix_copyColCoupleBlock.c
 	SystemMatrix_MatrixVector.c
         SparseMatrix_MatrixMatrix.c
+        SparseMatrix_MatrixMatrixTranspose.c
 	SystemMatrix_balancing.c
 	SystemMatrix_getSystemMatrixTypeId.c
 	SystemMatrix_loadMM.c
@@ -84,9 +85,11 @@ sources = """
 	SystemMatrix_saveMM.c
 	SystemMatrix_setValues.c
 	SystemMatrix_debug.c
+	SystemMatrix_mergeMainAndCouple.c
 	TFQMR.c
 	MINRES.c
 	UMFPACK.c
+	BOOMERAMG.c
 	mmio.c
 	performance.c
 	solve.c
@@ -114,10 +117,15 @@ headers = """
         SystemMatrix_MIS.h
 	SystemMatrixPattern.h
 	UMFPACK.h
+	BOOMERAMG.h
 	mmio.h
 	BlockOps.h
 	performance.h
 """.split()
+
+#if local_env['boomeramg']:
+#    env.Append(CPPDEFINES = ['BOOMERAMG'])
+#    local_env.AppendUnique(LIBS = env['boomeramg_libs'])
 
 # And just for blocktimer cancer.....
 local_env.Append(LIBS = ['esysUtils'])
