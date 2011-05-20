@@ -178,59 +178,6 @@ class clip(sympy.Function):
     """
     nargs = (1,2,3)
 
-class trace(sympy.Function):
-    """Returns the trace of the argument with optional axis_offset
-    """
-    nargs = (1,2)
-
-class transpose(sympy.Function):
-    """Returns the transpose of the argument
-    """
-    nargs = (1,2)
-
-class symmetric(sympy.Function):
-    """Returns the symmetric part of the argument
-    """
-    nargs = 1
-
-    @classmethod
-    def eval(cls, arg):
-        if isinstance(arg,sympy.Basic):
-            if arg.is_Function:
-                if arg.func is symmetric: return arg
-                if arg.func is nonsymmetric: return S.Zero
-            elif arg.is_Number:
-                return arg
-
-class nonsymmetric(sympy.Function):
-    """Returns the non-symmetric part of the argument
-    """
-    nargs = 1
-
-    @classmethod
-    def eval(cls, arg):
-        if isinstance(arg,sympy.Basic):
-            if arg.is_Function:
-                if arg.func is nonsymmetric: return arg
-                if arg.func is symmetric: return S.Zero
-            elif arg.is_Number:
-                return arg
-
-class swap_axes(sympy.Function):
-    """Returns the 'swap' of the argument
-    """
-    nargs = (1,2,3)
-
-class inner(sympy.Function):
-    """Returns the inner product of the arguments
-    """
-    nargs = 2
-
-class outer(sympy.Function):
-    """Returns the outer product of the arguments
-    """
-    nargs = 2
-
 class grad_n(sympy.Function):
     """Returns the spatial gradient of the argument
     """
@@ -247,11 +194,6 @@ class eigenvalues(sympy.Function):
 
 class eigenvalues_and_eigenvectors(sympy.Function):
     """Returns the Eigenvalues and Eigenvectors of the argument
-    """
-    pass
-
-class inverse(sympy.Function):
-    """Returns the inverse of the argument
     """
     pass
 
