@@ -145,7 +145,7 @@ class Symbol(object):
         temp_arr=numpy.empty(self.getShape(), dtype=object)
         for idx,el in numpy.ndenumerate(self._arr):
             atoms=el.atoms(sympy.Symbol)
-            # create a dictionary to convert names like x_0_0 to x[0,0]
+            # create a dictionary to convert names like [x]_0_0 to x[0,0]
             symdict={}
             for a in atoms:
                 n,c=Symbol._symComp(a)
@@ -171,7 +171,7 @@ class Symbol(object):
             if isinstance(s, Symbol):
                 if s.getRank()>0:
                     if s.getShape()!=self.getShape():
-                        raise ValueError("Incompatible shapes")
+                        raise ValueError("diff: Incompatible shapes")
                     a=result._arr.flat
                     b=s._arr.flat
                     for idx in range(len(a)):
@@ -188,7 +188,7 @@ class Symbol(object):
     def grad(self, where=None):
         if isinstance(where, Symbol):
             if where.getRank()>0:
-                raise ValueError("'where' must be a scalar symbol")
+                raise ValueError("grad: 'where' must be a scalar symbol")
             where=where._arr.item()
 
         from functions import grad_n
