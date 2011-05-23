@@ -19,18 +19,20 @@
 #include "Mesh.h"
 
 #ifdef ESYS_MPI    
-void Finley_Mesh_MPI_minimizeDistance( double *, double*, int *, MPI_Datatype * );
+void Finley_Mesh_MPI_minimizeDistance( void *, void*, int *, MPI_Datatype * );
  
-void Finley_Mesh_MPI_minimizeDistance(double *invec, double *inoutvec, int *len, MPI_Datatype *dtype)
+void Finley_Mesh_MPI_minimizeDistance(void *invec_p, void *inoutvec_p, int *len, MPI_Datatype *dtype)
 {
     const dim_t numPoints = (*len)/2;
+    double *invec = (double*) invec_p;
+    double *inoutvec = (double*)  inoutvec_p;
     int i;
-    for ( i=0; i<numPoints; i++ )
+    for ( i=0; i<numPoints; i++ ) {
         if ( invec[2*i] < inoutvec[2*i] ) { 
 	     inoutvec[2*i]=invec[2*i];
 	     inoutvec[2*i+1]=invec[2*i+1];
 	} 
-     }
+    }
 }
 #endif
 
@@ -164,12 +166,12 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
 	      sendbuf[2*i+1]= (double) (mesh-> Nodes->Id[node_id_p[i]]);
          }
 	 MPI_Op_create(Finley_Mesh_MPI_minimizeDistance, TRUE,&op);
-         MPI_Allreduce ( sendbuf,  recvbuf, count, MPI_DOUBLE, op, mpi_info->Comm);
+         MPI_Allreduce ( sendbuf,  recvbuf, count, MPI_DOUBLE, op, mpi_info->comm);
 	 MPI_Op_free(&op);
 	 /* if the node id has changed we found another node which is closer elsewhere */
          for (i=0; i< numPoints; ++i) {
-	      const register best_fit_Id = (int) (recvbuf[2*i+1] + 0.5);
-	      if ( best_fit_Id != mesh-> Nodes->Id[node_index[i]] ) {
+	      const register int best_fit_Id = (int) (recvbuf[2*i+1] + 0.5);
+	      if ( best_fit_Id != mesh-> Nodes->Id[node_id_p[i]] ) {
 		    node_id_p[i] =-1;
 	      }
          }
