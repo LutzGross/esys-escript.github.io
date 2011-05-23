@@ -584,7 +584,7 @@ int MeshAdapter::getReducedSolutionCode() const
    return ReducedDegreesOfFreedom;
 }
 
-int MeshAdapter::getDiracDeltaFunctionCode() const
+int MeshAdapter::getDiracDeltaFunctionsCode() const
 {
    return Points;
 }

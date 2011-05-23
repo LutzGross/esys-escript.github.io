@@ -321,10 +321,10 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     Return a DiracDeltaFunction code
+     Return a DiracDeltaFunctions code
   */
   DUDLEY_DLL_API
-  virtual int getDiracDeltaFunctionCode() const;
+  virtual int getDiracDeltaFunctionsCode() const;
 
   /**
 		 5B
