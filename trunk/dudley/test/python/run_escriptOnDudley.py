@@ -108,7 +108,7 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
 	self.domain=Brick(4,4,4)
 	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
-	    #We aren't testing DiracDeltaFunction
+	    #We aren't testing DiracDeltaFunctions
 	self.xn=5	# number of grids on x axis
 	self.yn=5	# number of grids on y axis
 	self.zn=5
@@ -135,7 +135,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 	fname=os.path.join(DUDLEY_WORKDIR, "test_singlefs.csv")
 	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-	DiracDeltaFunction(self.domain)]
+	DiracDeltaFunctions(self.domain)]
 	for f in fss:
 		d=Data(7,f)
 		print "Testing "+str(f)+"\n"
@@ -146,7 +146,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 	sol=Data(8,Solution(self.domain))
 	ctsfn=Data(9,ContinuousFunction(self.domain))
 	#test line 0
-	dirac=Data(-1,DiracDeltaFunction(self.domain))
+	dirac=Data(-1,DiracDeltaFunctions(self.domain))
 	saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
 	#test line 1
 	fun=Data(5,Function(self.domain))

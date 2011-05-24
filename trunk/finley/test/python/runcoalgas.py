@@ -216,21 +216,18 @@ wellspecs = {
 
 # print input
 print("<%s> Execution started."%time.asctime())
-#domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+DIM=2
+domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
+
+N=1000
+for I in wellspecs:
+     domain.setTagMap(I, N)
+     N+=1
+     domain.addDiracPoint(wellspecs[I]["X0"][:DIM], I)
+     print("<%s> Well %s introduced to domain."%(time.asctime(), I))
+     
+
 #domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
-
-
-#domain=ReadMesh("reservoir_402.fly")
-#WELL_CELL=402.336 
-
-#domain=ReadMesh("reservoir_27.fly")
-#WELL_CELL=27.7473103448
-
-
-domain=ReadMesh("reservoir_6.fly")
-WELL_CELL= 6.76194957983
-
-print domain.getSize()
 
 print("<%s> Domain has been generated."%time.asctime())
 
@@ -252,11 +249,10 @@ well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"],
 							    Q=wellspecs['P1']["Q"], 
 							    r=wellspecs['P1']["r"], 
 							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
-							    #D=[CELL_X, CELL_Y, CELL_Z], 
-							    D=[WELL_CELL, WELL_CELL, CELL_Z], 
+							    D=[CELL_X, CELL_Y, CELL_Z], 
 							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
 							    schedule=wellspecs['P1']["schedule"], 
-							    s=wellspecs['P1']["s"], decay_factor = 0.) 
+							    s=wellspecs['P1']["s"]) 
 rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"])
 p_top = EQUIL["DATUM_PRESS"] + P_0
 p_bottom=p_top + CONST_G * CELL_Z * rho_w(p_top)
