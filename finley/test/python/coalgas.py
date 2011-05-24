@@ -342,11 +342,19 @@ class VerticalPeacemanWell(Well):
        Well.__init__(self, name, domain, Q=Q, schedule=schedule, phase=phase,BHP_limit=BHP_limit, X0=X0)
        r_el=0.28 * sqrt( sqrt(perm[1]/perm[0]) * D[0]**2 +  sqrt(perm[0]/perm[1]) * D[1]**2 )\
                          / ( (perm[1]/perm[0])**0.25 + (perm[1]/perm[0])**0.25 )
+
+       r_el=0.11271331774384821*D[0]
        self.__PI = 2 * math.pi * D[2] * sqrt(perm[1]*perm[0]) / (log(r_el/r) + s)
        self.__r = r 
 
        self.__D=D
        self.r_el=r_el
+ 
+       if self.domain.getDim() == 3:
+           self.geo_fac=1
+       else:
+           self.geo_fac=1./D[2]
+
 
        
    def getProductivityIndex(self):
@@ -447,7 +455,7 @@ class DualPorosity(object):
          converged=False
          while n < self.__iter_max and not converged:
             u=self.solvePDE(dt)
-            if self.verbose: print "iteration step %d:"
+            if self.verbose: print "iteration step %d:"%n
             converged=True
             for i in range(len(u)):
                if isinstance(u[i], Data):
@@ -644,13 +652,15 @@ class PorosityOneHalfModel(DualPorosity):
 	 D_fg=0.
 
          prod_index=Scalar(0., DiracDeltaFunctions(self.domain))
+         geo_fac=Scalar(0., DiracDeltaFunctions(self.domain))
          for I in self.wells:
 	     prod_index.setTaggedValue(I.name, I.getProductivityIndex() )
+	     geo_fac.setTaggedValue(I.name, I.geo_fac)
 
-	 F_fp_Y = A_fw * prod_index * BHP 
-	 F_fs_Y = A_fg * prod_index * BHP
-	 D_fpp =  A_fw * prod_index
-	 D_fsp =  A_fg * prod_index
+	 F_fp_Y = A_fw * prod_index * BHP  * geo_fac
+	 F_fs_Y = A_fg * prod_index * BHP * geo_fac
+	 D_fpp =  A_fw * prod_index * geo_fac
+	 D_fsp =  A_fg * prod_index * geo_fac
 
 	 
 	 if self.domain.getDim() == 3:
@@ -750,6 +760,7 @@ class PorosityOneHalfModel(DualPorosity):
          
          BHP=clip( p_f_wells - q/prod_index * ( m * self.rho_w.rho_surf/A_fw_wells + (1-m)* self.rho_g.rho_surf/A_fg_wells ), minval = BHP_limit)
          BHP=clip( p_f_wells - q/prod_index * self.rho_w.rho_surf/A_fw_wells, minval = BHP_limit)
-         
-         print "AAA",BHP
+         q_gas    = prod_index * A_fg_wells * (p_f_wells - BHP)/self.rho_g.rho_surf
+         q_water = prod_index * A_fw_wells * (p_f_wells - BHP)/self.rho_w.rho_surf
+
          return (p_f,S_fg, c_mg, BHP, q_gas, q_water )
