@@ -117,7 +117,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
           /*========================== dim = 1 ============================================== */
           if (out->numDim==1) {
              if (refElement->numLocalDim==0) {
-		  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D does not support local dimension 0.");
+		  	          /* all done */
              } else if (refElement->numLocalDim==1) {
                   if (out->numSides==2) {
 				       Finley_Assemble_jacobeans_1D(nodes->Coordinates,out->numQuadTotal,shape->QuadWeights,
@@ -133,7 +133,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
           /*========================== dim = 2 ============================================== */
           } else if (out->numDim==2) {
              if (refElement->numLocalDim==0) {
-				 Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D does not support local dimension 0.");
+	          /* all done */
              } else if (refElement->numLocalDim==1) {
                   if (out->BasisFunctions->Type->numDim==2) {
                      if (out->numSides==1) {
@@ -182,7 +182,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
           /*========================== dim = 3 ============================================== */
           } else if (out->numDim==3) {
              if (refElement->numLocalDim==0) {
-		  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D does not support local dimension 0.");
+		  	          /* all done */
              } else if (refElement->numLocalDim==2) {
                   if (out->BasisFunctions->Type->numDim==3) {
                      if (out->numSides==1) {

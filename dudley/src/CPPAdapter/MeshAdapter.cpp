@@ -684,7 +684,8 @@ void MeshAdapter::addPDEToSystem(
                                  AbstractSystemMatrix& mat, escript::Data& rhs,
                                  const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                  const escript::Data& d, const escript::Data& y,
-				 const escript::Data& d_contact, const escript::Data& y_contact) const
+				 const escript::Data& d_contact, const escript::Data& y_contact,
+                                 const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty())
     {
@@ -700,7 +701,7 @@ void MeshAdapter::addPDEToSystem(
 	throw DudleyAdapterException("Dudley only accepts its own system matrices");
    }
    escriptDataC _rhs=rhs.getDataC();
-   escriptDataC _A  =A.getDataC();
+   escriptDataC _A =A.getDataC();
    escriptDataC _B=B.getDataC();
    escriptDataC _C=C.getDataC();
    escriptDataC _D=D.getDataC();
@@ -708,17 +709,19 @@ void MeshAdapter::addPDEToSystem(
    escriptDataC _Y=Y.getDataC();
    escriptDataC _d=d.getDataC();
    escriptDataC _y=y.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
+
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,smat->getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
    checkDudleyError();
 
-
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, smat->getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
    checkDudleyError();
 
-
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, smat->getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d_dirac, 0, &_y_dirac );
    checkDudleyError();
 }
 
@@ -726,11 +729,13 @@ void  MeshAdapter::addPDEToLumpedSystem(
                                         escript::Data& mat,
                                         const escript::Data& D,
                                         const escript::Data& d,
+                                        const escript::Data& d_dirac,
 					const bool useHRZ) const
 {
    escriptDataC _mat=mat.getDataC();
    escriptDataC _D=D.getDataC();
    escriptDataC _d=d.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
 
@@ -740,13 +745,16 @@ void  MeshAdapter::addPDEToLumpedSystem(
    Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d, useHRZ);
    checkDudleyError();
 
+   Dudley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d_dirac, useHRZ);
+   checkDudleyError();
+
 }
 
 
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
    if (!y_contact.isEmpty())
    {
@@ -758,6 +766,7 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _X=X.getDataC();
    escriptDataC _Y=Y.getDataC();
    escriptDataC _y=y.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkDudleyError();
@@ -765,6 +774,7 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y );
    checkDudleyError();
 
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs, 0, 0, 0, 0, 0, &_y_dirac );
    checkDudleyError();
 }
 //
@@ -775,7 +785,8 @@ void MeshAdapter::addPDEToTransportProblem(
                                            const escript::Data& A, const escript::Data& B, const escript::Data& C,
                                            const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                            const escript::Data& d, const escript::Data& y, 
-					const escript::Data& d_contact,const escript::Data& y_contact) const
+					   const escript::Data& d_contact,const escript::Data& y_contact,
+					   const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty())
     {
@@ -802,6 +813,8 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _Y=Y.getDataC();
    escriptDataC _d=d.getDataC();
    escriptDataC _y=y.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
@@ -815,6 +828,7 @@ void MeshAdapter::addPDEToTransportProblem(
    Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, _tp->transport_matrix, &_source, 0, 0, 0, &_d, 0, &_y );
    checkDudleyError();
 
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, _tp->transport_matrix, &_source, 0, 0, 0, &_d_dirac, 0, &_y_dirac );
    checkDudleyError();
 }
 

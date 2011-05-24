@@ -79,6 +79,7 @@ void  Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters, Finley_ElementF
 void  Finley_Assemble_PDE_Single2_1D(Finley_Assemble_Parameters, Finley_ElementFile*,Paso_SystemMatrix*,escriptDataC*,
                                      escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
 void  Finley_Assemble_PDE_Single2_C(Finley_Assemble_Parameters p, Finley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*);
+void  Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p, Finley_ElementFile *, Paso_SystemMatrix *, escriptDataC *, escriptDataC *, escriptDataC *);
 
 
 void Finley_Assemble_NodeCoordinates(Finley_NodeFile*,escriptDataC*);
@@ -90,7 +91,8 @@ void Finley_Assemble_getSize(Finley_NodeFile*,Finley_ElementFile*, escriptDataC*
 void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,escriptDataC* out,escriptDataC* in);
 void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
 void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in);
-void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
+void  Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in, const dim_t NN_Equa, const  index_t* Nodes_Equa, const dim_t num_Equa, 
+                                        const dim_t NN_Sol, const index_t* Nodes_Sol, const dim_t num_Sol, const double* array);
 
 void Finley_Assemble_jacobeans_1D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
 void Finley_Assemble_jacobeans_2D(double*, dim_t, double*, dim_t, dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);

@@ -32,6 +32,7 @@ sources = """
 	Assemble_LumpedSystem.c
 	Assemble_NodeCoordinates.c
 	Assemble_PDE.c
+        Assemble_PDE_Points.c
 	Assemble_PDE_Single2_2D.c
 	Assemble_PDE_Single2_3D.c
 	Assemble_PDE_System2_2D.c

@@ -647,7 +647,7 @@ int MeshAdapter::getReducedSolutionCode() const
    return ReducedDegreesOfFreedom;
 }
 
-int MeshAdapter::getDiracDeltaFunctionCode() const
+int MeshAdapter::getDiracDeltaFunctionsCode() const
 {
    return Points;
 }
@@ -771,7 +771,8 @@ void MeshAdapter::addPDEToSystem(
                                  AbstractSystemMatrix& mat, escript::Data& rhs,
                                  const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                  const escript::Data& d, const escript::Data& y, 
-                                 const escript::Data& d_contact,const escript::Data& y_contact) const
+                                 const escript::Data& d_contact,const escript::Data& y_contact, 
+                                 const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
    SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
    if (smat==0)
@@ -789,6 +790,8 @@ void MeshAdapter::addPDEToSystem(
    escriptDataC _y=y.getDataC();
    escriptDataC _d_contact=d_contact.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -800,17 +803,22 @@ void MeshAdapter::addPDEToSystem(
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, smat->getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
+
+    Finley_Assemble_PDE(mesh->Nodes,mesh->Points, smat->getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_dirac, 0, &_y_dirac );
+   checkFinleyError();
 }
 
 void  MeshAdapter::addPDEToLumpedSystem(
                                         escript::Data& mat,
                                         const escript::Data& D,
                                         const escript::Data& d,
+                                        const escript::Data& d_dirac,
                                         const bool useHRZ) const
 {
    escriptDataC _mat=mat.getDataC();
    escriptDataC _D=D.getDataC();
    escriptDataC _d=d.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -820,13 +828,16 @@ void  MeshAdapter::addPDEToLumpedSystem(
    Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d, useHRZ);
    checkFinleyError();
 
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Points,&_mat, &_d_dirac, useHRZ);
+   checkFinleyError();
+
 }
 
 
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact,  const escript::Data& y_dirac) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -835,6 +846,7 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _Y=Y.getDataC();
    escriptDataC _y=y.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkFinleyError();
@@ -844,6 +856,10 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs , 0, 0, 0, 0, 0, &_y_contact );
    checkFinleyError();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs , 0, 0, 0, 0, 0, &_y_dirac );
+   checkFinleyError();
+
 }
 //
 // adds PDE of second order into a transport problem
@@ -853,7 +869,8 @@ void MeshAdapter::addPDEToTransportProblem(
                                            const escript::Data& A, const escript::Data& B, const escript::Data& C,
                                            const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                            const escript::Data& d, const escript::Data& y, 
-                                           const escript::Data& d_contact,const escript::Data& y_contact) const
+                                           const escript::Data& d_contact,const escript::Data& y_contact,
+                                           const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
    if (tpa==0)
@@ -876,6 +893,9 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y=y.getDataC();
    escriptDataC _d_contact=d_contact.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
+
 
    Finley_Mesh* mesh=m_finleyMesh.get();
    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
@@ -891,6 +911,10 @@ void MeshAdapter::addPDEToTransportProblem(
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, _tp->transport_matrix, &_source , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
+ 
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Points, _tp->transport_matrix, &_source , 0, 0, 0, &_d_dirac, 0, &_y_dirac );
+   checkFinleyError();
+
 }
 
 //
