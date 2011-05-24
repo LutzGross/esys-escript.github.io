@@ -1460,8 +1460,8 @@ class Test_FaultSystem(unittest.TestCase):
  
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   # suite.addTest(unittest.makeSuite(Test_FaultSystem))
-   # suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
+   suite.addTest(unittest.makeSuite(Test_FaultSystem))
+   suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
    suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
    suite.addTest(unittest.makeSuite(Test_Mountains3D))
    suite.addTest(unittest.makeSuite(Test_Mountains2D))
@@ -1469,3 +1469,4 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_IncompressibleIsotropicFlowCartesian))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
+
