@@ -84,7 +84,7 @@ omp_flags = '-openmp -openmp-report2'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'INTELMPI'
+#mpi = 'INTELMPI'
 #mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
@@ -155,7 +155,7 @@ umfpack_libs = ['umfpack', 'amd', 'blas']
 
 # Whether to use BoomerAMG
 # DEFAULT: False
-boomeramg = True
+boomeramg = False
 
 # Prefix or paths to BoomerAMG headers and libraries. 
 boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
@@ -177,7 +177,7 @@ lapack_libs = ['mkl_lapack']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2'

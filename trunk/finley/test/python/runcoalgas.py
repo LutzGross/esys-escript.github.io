@@ -28,7 +28,7 @@ from coalgas import *
 import time
 from esys.finley import ReadMesh, Rectangle, Brick
 from esys.escript.pdetools import Locator
-SAVE_VTK=True
+SAVE_VTK=True and False
 CONST_G = 9.81  * U.m/U.sec**2
 P_0=1.*U.atm
 
@@ -44,6 +44,8 @@ L_Z=CELL_Z
 
 L_X=CELL_X*210
 L_Y=CELL_Y*210
+L_X=CELL_X*70
+L_Y=CELL_Y*70
 
 N_X=int(L_X/CELL_X)
 N_Y=int(L_Y/CELL_Y)
@@ -85,6 +87,8 @@ DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 *
 DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day]
 # DT=[1 * U.day,2* U.day] + [4*U.day ] *200
 DT=[.25 * U.day, .25 * U.day, .25 * U.day, .25 * U.day]
+#DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day]
+DT=[1./10. * U.day]*10 + [3./10. * U.day]*10 + [ 9./10.* U.day ] *10 + [ 17.5/10 *U.day] * 10 + [ 30.5/10*U.day ] *200
 
 #[0.1 * U.day ] *20
 
@@ -289,7 +293,8 @@ if SAVE_VTK:
    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
    print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-   print "DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+print "EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
+print "DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
 
 
 
@@ -304,7 +309,8 @@ for dt in DT:
      FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
      saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
      print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
-     print "DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+  print "EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
+  print "DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
 
   n_t+=1
   t+=dt
