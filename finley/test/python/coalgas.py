@@ -281,7 +281,7 @@ class Well(object):
        self.__BHP_limit=BHP_limit
        self.name=name
        self.domain=domain
-       self.locator=Locator(ContinuousFunction(self.domain),X0[:self.domain.getDim()])
+       self.locator=Locator(DiracDeltaFunctions(self.domain),X0[:self.domain.getDim()])
        self.X0=self.locator.getX()
        
    def getLocation(self):
@@ -569,18 +569,11 @@ class PorosityOneHalfModel(DualPorosity):
               c_mg_init=self.L_g(p_init)
 	    else:
               c_mg_init=Scalar(c_mg, Solution(self.domain))
-	  
-            wells_init={}
-            for I in self.wells:
-                BHP_limit_I=I.getBHPLimit()
-                p_f_I=I.locator(p_init)
-	        q_I = I.getFlowRate(0)
-                if abs(q_I)>0:
-                  raise ValueError,"initial flux must be zero."
- 
-                if p_f_I < BHP_limit_I:  # fix me!
-                  raise ValueError,"initial pressure must be greater than BHP limit."
-                wells_init[I.name]={ "bhp" : p_f_I, "q_gas": 0., "q_water": 0.}
+
+            q_gas=Scalar(0., DiracDeltaFunctions(self.domain))
+            q_water=Scalar(0., DiracDeltaFunctions(self.domain))
+            BHP=interpolate(p_init, DiracDeltaFunctions(self.domain))
+            wells_init={ "bhp" : BHP, "q_gas": q_gas, "q_water": q_water}
 
             self.u=(p_init,S_fg_init, c_mg_init, wells_init)
 
@@ -755,8 +748,9 @@ class PorosityOneHalfModel(DualPorosity):
          A_fg_wells= self.k_g(S_fg_wells)/self.mu_g(p_f_wells)*self.rho_g(p_f_wells)
          
          BHP=clip( p_f_wells - q/prod_index * ( m * self.rho_w.rho_surf/A_fw_wells + (1-m)* self.rho_g.rho_surf/A_fg_wells ), minval = BHP_limit)
-                 
+         BHP=clip( p_f_wells - q/prod_index * self.rho_w.rho_surf/A_fw_wells, minval = BHP_limit)
+         
+         print "AAA",BHP
          wells_state_new={ "bhp" : BHP, "q_gas": A_fg_wells * prod_index*(p_f_wells-BHP)/self.rho_g.rho_surf, "q_water": A_fw_wells * prod_index*(p_f_wells-BHP)/self.rho_w.rho_surf }
-       
-         print wells_state_new
+
          return (p_f,S_fg, c_mg, wells_state_new)

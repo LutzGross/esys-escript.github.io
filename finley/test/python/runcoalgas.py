@@ -288,7 +288,7 @@ if SAVE_VTK:
    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
    print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-   print "DDD", t/U.day, wells["P1"]["bhp"]/U.psi, wells["P1"]["q_gas"]/U.Mcf*U.day,  wells["P1"]["q_water"]/U.Barrel*U.day
+   print "DDD", t/U.day, well_P1.locator(wells["bhp"])/U.psi, well_P1.locator(wells["q_gas"])/U.Mcf*U.day,  well_P1.locator(wells["q_water"])/U.Barrel*U.day
 
 
 
@@ -303,7 +303,7 @@ for dt in DT:
      FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
      saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
      print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
-     print "DDD", (t+dt)/U.day, wells["P1"]["bhp"]/U.psi, wells["P1"]["q_gas"]/U.Mcf*U.day,  wells["P1"]["q_water"]/U.Barrel*U.day
+     print "DDD", (t+dt)/U.day, well_P1.locator(wells["bhp"])/U.psi, well_P1.locator(wells["q_gas"])/U.Mcf*U.day,  well_P1.locator(wells["q_water"])/U.Barrel*U.day
 
   n_t+=1
   t+=dt

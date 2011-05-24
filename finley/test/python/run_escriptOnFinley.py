@@ -130,7 +130,7 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
 	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
 	    FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
 	    ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain)]
-	    #We aren't testing DiracDeltaFunction
+	    #We aren't testing DiracDeltaFunctions
 	self.xn=3	# number of grids on x axis
 	self.yn=3	# number of grids on y axis
 	self.zn=3	# number of grids on z axis
@@ -159,7 +159,7 @@ class Test_CSVOnFinley(Test_saveCSV):
 	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
 	FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
 	ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain),
-	DiracDeltaFunction(self.domain)]
+	DiracDeltaFunctions(self.domain)]
 	for f in fss:
 		d=Data(7,f)
 		print "Testing "+str(f)+"\n"
@@ -170,7 +170,7 @@ class Test_CSVOnFinley(Test_saveCSV):
 	sol=Data(8,Solution(self.domain))
 	ctsfn=Data(9,ContinuousFunction(self.domain))
 	#test line 0
-	dirac=Data(-1,DiracDeltaFunction(self.domain))
+	dirac=Data(-1,DiracDeltaFunctions(self.domain))
 	saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
 	#test line 1
 	fun=Data(5,Function(self.domain))
