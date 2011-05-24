@@ -321,10 +321,10 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   /**
      \brief
-     Return a DiracDeltaFunction code
+     Return a DiracDeltaFunctions code
   */
   FINLEY_DLL_API
-  virtual int getDiracDeltaFunctionCode() const;
+  virtual int getDiracDeltaFunctionsCode() const;
 
   /**
 		 5B
@@ -549,7 +549,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact, const escript::Data& y_contact) const;
+                     const escript::Data& d_contact, const escript::Data& y_contact,
+                     const escript::Data& d_dirac, const escript::Data& y_dirac) const;
   /**
      \brief
      adds a PDE onto the lumped stiffness matrix matrix
@@ -559,6 +560,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      escript::Data& mat,
                      const escript::Data& D, 
                      const escript::Data& d,
+                     const escript::Data& d_dirac,
 		     const bool useHRZ) const;
 
   /**
@@ -568,7 +570,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& y, const escript::Data& y_contact) const;
+                     const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
   /**
      \brief
      adds a PDE onto a transport problem
@@ -581,7 +583,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
                      const  escript::Data& X,const  escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact,const escript::Data& y_contact) const;
+                     const escript::Data& d_contact,const escript::Data& y_contact, const escript::Data& d_dirac,const escript::Data& y_dirac) const;
 
 
   /**

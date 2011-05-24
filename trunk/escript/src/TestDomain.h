@@ -174,7 +174,7 @@ class TestDomain : public AbstractDomain {
      Return a FunctionSpace.
   */
   ESCRIPT_DLL_API
-  virtual int getDiracDeltaFunctionCode() const;
+  virtual int getDiracDeltaFunctionsCode() const;
 
   /**
      \brief

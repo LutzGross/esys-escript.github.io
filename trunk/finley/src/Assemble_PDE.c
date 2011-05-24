@@ -121,6 +121,8 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
        reducedIntegrationOrder=TRUE;
   } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
        reducedIntegrationOrder=TRUE;
+  } else if (funcspace==FINLEY_POINTS)  {
+       reducedIntegrationOrder=FALSE;
   } else {
        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: assemblage failed because of illegal function space.");
   }
@@ -263,7 +265,17 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
           /* system of PDESs */
           if (p.numDim==3) {
             if ( p.numSides == 1 ) {
-               Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
+
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+	       
             } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
@@ -275,7 +287,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             }
           } else if (p.numDim==2) {
             if ( p.numSides == 1 ) {
-               Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
             } else if (  p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
@@ -287,7 +307,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             }
           } else if (p.numDim==1) {
             if ( p.numSides == 1  ) {
-               Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
             } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
@@ -304,7 +332,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
           /* single PDES */
           if (p.numDim==3) {
             if ( p.numSides == 1  ) {
-               Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
             } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
@@ -316,7 +352,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             }
           } else if (p.numDim==2) {
             if ( p.numSides == 1 ) {
-               Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
             } else if ( p.numSides == 2 ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
@@ -328,7 +372,15 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             }
           } else if (p.numDim==1) {
             if ( p.numSides == 1 ) {
-               Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
             } else if ( p.numSides == 2  ) {
                if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
                   Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");

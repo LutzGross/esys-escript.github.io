@@ -111,9 +111,9 @@ int AbstractContinuousDomain::getReducedSolutionCode() const
   return 0;
 }
 
-int AbstractContinuousDomain::getDiracDeltaFunctionCode() const
+int AbstractContinuousDomain::getDiracDeltaFunctionsCode() const
 {
-  throwStandardException("AbstractContinuousDomain::getDiracDeltaFunctionCode");
+  throwStandardException("AbstractContinuousDomain::getDiracDeltaFunctionsCode");
   return 0;
 }
 
@@ -138,7 +138,7 @@ void AbstractContinuousDomain::addPDEToSystem(
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact, const escript::Data& y_contact) const
+                     const escript::Data& d_contact, const escript::Data& y_contact, const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
   throwStandardException("AbstractContinuousDomain::addPDEToSystem");
   return;
@@ -146,7 +146,7 @@ void AbstractContinuousDomain::addPDEToSystem(
 
 void AbstractContinuousDomain::addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
-                     const escript::Data& y, const escript::Data& y_contact) const
+                     const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
   throwStandardException("AbstractContinuousDomain::addPDEToRHS");
   return;
@@ -158,7 +158,7 @@ void AbstractContinuousDomain::addPDEToTransportProblem(
                      const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
                      const  escript::Data& X,const  escript::Data& Y,
                      const escript::Data& d, const escript::Data& y,
-                     const escript::Data& d_contact,const escript::Data& y_contact) const
+                     const escript::Data& d_contact,const escript::Data& y_contact, const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
   throwStandardException("AbstractContinuousDomain::addPDEToTransportProblem");
   return;

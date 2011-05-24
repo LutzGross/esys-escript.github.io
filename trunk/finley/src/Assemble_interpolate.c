@@ -110,7 +110,6 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
   
   /* check the dimensions of interpolated_data and data */
 
-  printf("XXX numQuad, numSub , >numElements = %d, %d %d\n", numQuad, numSub,elements->numElements);
   if (! numSamplesEqual(interpolated_data,numQuad*numSub,elements->numElements)) {
 	   Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: illegal number of samples of output Data object");
   } else if (! numSamplesEqual(data,1,numNodes)) {

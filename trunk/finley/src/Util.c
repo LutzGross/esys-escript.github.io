@@ -77,7 +77,7 @@ void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in,
 /*        out(1:numData,index[p])+=in(1:numData,p) where p = {k=1...len , index[k]<upperBound}*/
 
 
-void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t upperBound){
+void Finley_Util_AddScatter(const dim_t len, const index_t* index, const dim_t numData, const  double* in,double * out, const index_t upperBound){
    dim_t i,s;
    for (s=0;s<len;s++) {
        for(i=0;i<numData;i++) {

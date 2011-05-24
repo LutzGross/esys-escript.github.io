@@ -108,7 +108,7 @@ int NullDomain::getReducedSolutionCode() const
   return NullDomainFS;
 }
 
-int NullDomain::getDiracDeltaFunctionCode() const
+int NullDomain::getDiracDeltaFunctionsCode() const
 {
   return NullDomainFS;
 }
