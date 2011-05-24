@@ -461,8 +461,8 @@ class DualPorosity(object):
 	           rerr=norm_e/norm_u
 	       else:
 	           rerr=norm_e
-               if rerr>self.__rtol: converged=False
-	       if self.verbose: print "   comp %i: relative change = %e"%(i, rerr)
+               if norm_e>self.__rtol * norm_u + 1.e-10: converged=False
+	       if self.verbose: print "   comp %i: change = %e (value = %e)"%(i, norm_e,norm_u)
 	    n+=1
 	    self.u=u
          print "iteration completed."
@@ -573,14 +573,13 @@ class PorosityOneHalfModel(DualPorosity):
             q_gas=Scalar(0., DiracDeltaFunctions(self.domain))
             q_water=Scalar(0., DiracDeltaFunctions(self.domain))
             BHP=interpolate(p_init, DiracDeltaFunctions(self.domain))
-            wells_init={ "bhp" : BHP, "q_gas": q_gas, "q_water": q_water}
 
-            self.u=(p_init,S_fg_init, c_mg_init, wells_init)
+            self.u=(p_init,S_fg_init, c_mg_init, BHP, q_gas, q_water)
 
       def solvePDE(self, dt):
 	 
-	 p_f, S_fg, c_mg, wells_state =self.getState() 
-	 p_f_old, S_fg_old, c_mg_old, wells_sate_old=self.getOldState()
+	 p_f, S_fg, c_mg, BHP_old, q_gas_old, q_water_old =self.getState() 
+	 p_f_old, S_fg_old, c_mg_old, BHP, q_gas, q_water =self.getOldState()
 
          S_fw=1-S_fg
 
@@ -589,7 +588,9 @@ class PorosityOneHalfModel(DualPorosity):
 	      print "S_fg range = ",inf(S_fg),sup(S_fg)
 	      print "S_fw range = ",inf(S_fw),sup(S_fw)
 	      print "c_mg range = ",inf(c_mg),sup(c_mg)
-              print "wells state =",wells_state
+              print "BHP =",BHP
+              print "q_gas =",q_gas
+              print "q_water =",q_water
 
          k_fw=self.k_w(S_fw)
        	 if self.verbose: print "k_fw range = ",inf(k_fw),sup(k_fw) 
@@ -646,8 +647,8 @@ class PorosityOneHalfModel(DualPorosity):
          for I in self.wells:
 	     prod_index.setTaggedValue(I.name, I.getProductivityIndex() )
 
-	 F_fp_Y = A_fw * prod_index * wells_state["bhp"] 
-	 F_fs_Y = A_fg * prod_index * wells_state["bhp"]
+	 F_fp_Y = A_fw * prod_index * BHP 
+	 F_fs_Y = A_fg * prod_index * BHP
 	 D_fpp =  A_fw * prod_index
 	 D_fsp =  A_fg * prod_index
 
@@ -751,6 +752,4 @@ class PorosityOneHalfModel(DualPorosity):
          BHP=clip( p_f_wells - q/prod_index * self.rho_w.rho_surf/A_fw_wells, minval = BHP_limit)
          
          print "AAA",BHP
-         wells_state_new={ "bhp" : BHP, "q_gas": A_fg_wells * prod_index*(p_f_wells-BHP)/self.rho_g.rho_surf, "q_water": A_fw_wells * prod_index*(p_f_wells-BHP)/self.rho_w.rho_surf }
-
-         return (p_f,S_fg, c_mg, wells_state_new)
+         return (p_f,S_fg, c_mg, BHP, q_gas, q_water )
