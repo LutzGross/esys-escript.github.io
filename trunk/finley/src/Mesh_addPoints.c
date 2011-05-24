@@ -170,7 +170,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
 	 MPI_Op_free(&op);
 	 /* if the node id has changed we found another node which is closer elsewhere */
          for (i=0; i< numPoints; ++i) {
-	      const register int best_fit_Id = (int) (recvbuf[2*i+1] + 0.5);
+	      register const int best_fit_Id = (int) (recvbuf[2*i+1] + 0.5);
 	      if ( best_fit_Id != mesh-> Nodes->Id[node_id_p[i]] ) {
 		    node_id_p[i] =-1;
 	      }
@@ -186,7 +186,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
 
         if  ( mesh-> Nodes->globalReducedDOFIndex[node_id_p[i]]  >-1) { /* the point also used in the reduced mesh */
 
-	  const register index_t global_id=mesh->Nodes->globalDegreesOfFreedom[node_id_p[i]];
+	  register const index_t global_id=mesh->Nodes->globalDegreesOfFreedom[node_id_p[i]];
 	  if ( (firstDOF<= global_id) && ( global_id <lastDOF) ) {  /* is this point actally relevant */
 
 
@@ -233,7 +233,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
    }
    #pragma omp parallel for private(n) schedule(static)
    for(n=0;n<numNewPoints;n++) {
-             const register index_t idx = point_index_p[n];
+             register const index_t idx = point_index_p[n];
              newPoints->Owner[numOldPoints+n]=mpi_info->rank;
              newPoints->Id[numOldPoints+n]   =0;
              newPoints->Tag[numOldPoints+n]  =tags_ptr[idx];
