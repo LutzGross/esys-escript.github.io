@@ -84,6 +84,7 @@ DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 *
     [ 15.25*U.day * 0.25] *160
 DT=[.125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day, .125 * U.day]
 # DT=[1 * U.day,2* U.day] + [4*U.day ] *200
+DT=[.25 * U.day, .25 * U.day, .25 * U.day, .25 * U.day]
 
 #[0.1 * U.day ] *20
 
@@ -277,18 +278,18 @@ model = PorosityOneHalfModel(domain,
 model.setInitialState(S_fg=0,  c_mg=None, p_top=p_top, p_bottom=p_bottom)
 model.getPDEOptions().setVerbosityOn()
 model.getPDEOptions().setSolverMethod(model.getPDEOptions().DIRECT)
-model.setIterationControl(iter_max=5, rtol=1.e-4, verbose=True)
+model.setIterationControl(iter_max=10, rtol=1.e-4, verbose=True)
 print "<%s> Problem set up completed."%time.asctime()
 t=0
 n_t = 0
 
-p, S_fg, c_mg, wells=model.getState()
+p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
 
 if SAVE_VTK:
    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
    print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-   print "DDD", t/U.day, well_P1.locator(wells["bhp"])/U.psi, well_P1.locator(wells["q_gas"])/U.Mcf*U.day,  well_P1.locator(wells["q_water"])/U.Barrel*U.day
+   print "DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
 
 
 
@@ -297,13 +298,13 @@ for dt in DT:
   
   model.update(dt)
 
-  p, S_fg, c_mg, wells =model.getState()
+  p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
   
   if SAVE_VTK:
      FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
      saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
      print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
-     print "DDD", (t+dt)/U.day, well_P1.locator(wells["bhp"])/U.psi, well_P1.locator(wells["q_gas"])/U.Mcf*U.day,  well_P1.locator(wells["q_water"])/U.Barrel*U.day
+     print "DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
 
   n_t+=1
   t+=dt
