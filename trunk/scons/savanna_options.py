@@ -155,7 +155,7 @@ umfpack_libs = ['umfpack', 'amd', 'blas']
 
 # Whether to use BoomerAMG
 # DEFAULT: False
-boomeramg = False
+#boomeramg = True
 
 # Prefix or paths to BoomerAMG headers and libraries. 
 boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
@@ -177,7 +177,7 @@ lapack_libs = ['mkl_lapack']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-#silo = True
+silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2'
@@ -187,10 +187,10 @@ silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-#visit = True
+visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/libsim/V2'
+visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -200,8 +200,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/l
 # DEFAULT: False
 #pyvisi = True
 
-
-#Use intel's VSL library for random data
+# Use intel's VSL library for random data
 vsl_random = True
 
 ### ADVANCED OPTIONS ###

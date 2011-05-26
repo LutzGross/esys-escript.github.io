@@ -26,11 +26,11 @@ escript_opts_version = 200
 
 # C compiler command name or full path.
 # DEFAULT: auto-detected
-#cc = 'gcc'
+cc = 'gcc-4.6'
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
-#cxx = 'g++'
+cxx = 'g++-4.6'
 
 # Flags to use with both C and C++ compilers. Do not set unless you know
 # what you are doing - use cc_extra to specify additional flags!
@@ -47,11 +47,11 @@ cc_optim = '-O3 -mmmx -msse'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-#cc_extra = ''
+cc_extra = '-Wextra -Wno-unused-parameter'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-#cxx_extra = ''
+cxx_extra = '-Wextra -Wno-unused-parameter'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
