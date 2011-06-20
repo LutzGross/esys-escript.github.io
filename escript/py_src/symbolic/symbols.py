@@ -386,10 +386,13 @@ class Symbol(object):
         axes=range(axis_offset, self._arr.ndim)+range(0,axis_offset)
         return Symbol(numpy.transpose(self._arr, axes=axes), dim=self.dim)
 
-    def applyfunc(self, f):
+    def applyfunc(self, f, on_type=None):
         assert callable(f)
         if self._arr.ndim==0:
-            el=f(self._arr.item())
+            if on_type is None or isinstance(self._arr.item(),on_type):
+                el=f(self._arr.item())
+            else:
+                el=self._arr.item()
             if el is not None:
                 out=Symbol(el, dim=self.dim)
             else:
@@ -397,9 +400,15 @@ class Symbol(object):
         else:
             out=numpy.empty(self.getShape(), dtype=object)
             for idx in numpy.ndindex(self.getShape()):
-                out[idx]=f(self._arr[idx])
+                if on_type is None or isinstance(self._arr[idx],on_type):
+                    out[idx]=f(self._arr[idx])
+                else:
+                    out[idx]=self._arr[idx]
             out=Symbol(out, dim=self.dim)
         return out
+
+    def simplify(self):
+        return self.applyfunc(sympy.simplify, sympy.Basic)
 
     def _sympy_(self):
         return self.applyfunc(sympy.sympify)
