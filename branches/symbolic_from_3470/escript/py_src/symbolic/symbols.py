@@ -37,11 +37,47 @@ __author__="Cihan Altinay"
 
 class Symbol(object):
     """
+    `Symbol` objects are placeholders for a single mathematic symbol, such as
+    'x', or for arbitrarily complex mathematic expressions such as
+    'c*x**4+alpha*exp(x)-2*sin(beta*x)', where 'alpha', 'beta', 'c', and 'x'
+    are also `Symbol`s (the symbolic 'atoms' of the expression).
+
+    With the help of the 'Evaluator' class these symbols and expressions can
+    be resolved by substituting numeric values and/or escript `Data` objects
+    for the atoms. To facilitate the use of `Data` objects a `Symbol` has a
+    shape (and thus a rank) as well as a dimension (see constructor).
+    `Symbol`s are useful to perform mathematic simplifications, compute
+    derivatives and as coefficients for nonlinear PDEs which can be solved by
+    the `NonlinearPDE` class.
     """
 
     def __init__(self, *args, **kwargs):
         """
-        Initializes a new Symbol object.
+        Initialises a new `Symbol` object in one of three ways::
+
+            u=Symbol('u')
+
+        returns a scalar symbol by the name 'u'.
+
+            a=Symbol('alpha', (3,2))
+
+        returns a rank 2 symbol with the shape (4,3), whose elements are
+        named '[alpha]_i_j' (with i=0..3, j=0..2).
+
+            a,b,c=symbols('a,b,c')
+            x=Symbol([[a+b,0,0],[0,b-c,0],[0,0,c-a]])
+
+        returns a rank 2 symbol with the shape (3,3) whose elements are
+        explicitely specified by numeric values and other symbols/expressions
+        within a list or numpy array.
+
+        The dimensionality of the symbol can be specified through the `dim`
+        keyword. All other keywords are passed to the underlying symbolic
+        library (currently sympy).
+
+        :param args: initialisation arguments as described above
+        :keyword dim: dimensionality of the new Symbol (default: 2)
+        :type dim: ``int``
         """
         if 'dim' in kwargs:
             self.dim=kwargs.pop('dim')
@@ -52,26 +88,33 @@ class Symbol(object):
             arg=args[0]
             if isinstance(arg, str):
                 if arg.find('[')>=0 or arg.find(']')>=0:
-                    raise TypeError("Name must not contain '[' or ']'")
+                    raise ValueError("Name must not contain '[' or ']'")
                 self._arr=numpy.array(sympy.Symbol(arg, **kwargs))
-            elif hasattr(arg, "__array__"):
+            elif hasattr(arg, "__array__") or isinstance(arg, list):
+                if isinstance(arg, list): arg=numpy.array(arg)
                 arr=arg.__array__()
                 if len(arr.shape)>4:
                     raise ValueError("Symbol only supports tensors up to order 4")
-                self._arr=arr.copy()
-            elif isinstance(arg, list) or isinstance(arg, sympy.Basic):
+                res=numpy.empty(arr.shape, dtype=object)
+                for idx in numpy.ndindex(arr.shape):
+                    if hasattr(arr[idx], "item"):
+                        res[idx]=arr[idx].item()
+                    else:
+                        res[idx]=arr[idx]
+                self._arr=res
+            elif isinstance(arg, sympy.Basic):
                 self._arr=numpy.array(arg)
             else:
                 raise TypeError("Unsupported argument type %s"%str(type(arg)))
         elif len(args)==2:
             if not isinstance(args[0], str):
                 raise TypeError("First argument must be a string")
-            if args[0].find('[')>=0 or args[0].find(']')>=0:
-                raise TypeError("Name must not contain '[' or ']'")
             if not isinstance(args[1], tuple):
                 raise TypeError("Second argument must be a tuple")
             name=args[0]
             shape=args[1]
+            if name.find('[')>=0 or name.find(']')>=0:
+                raise ValueError("Name must not contain '[' or ']'")
             if len(shape)>4:
                 raise ValueError("Symbol only supports tensors up to order 4")
             if len(shape)==0:
@@ -104,30 +147,82 @@ class Symbol(object):
         return self._arr[key]
 
     def __setitem__(self, key, value):
-        if isinstance(value,Symbol):
+        if isinstance(value, Symbol):
             if value.getRank()==0:
-                self._arr[key]=value
+                self._arr[key]=value.item()
             elif hasattr(self._arr[key], "shape"):
                 if self._arr[key].shape==value.getShape():
-                    self._arr[key]=value
+                    for idx in numpy.ndindex(self._arr[key].shape):
+                        self._arr[key][idx]=value[idx]
                 else:
                     raise ValueError("Wrong shape of value")
             else:
                 raise ValueError("Wrong shape of value")
-        elif isinstance(value,sympy.Basic):
+        elif isinstance(value, sympy.Basic):
             self._arr[key]=value
         elif hasattr(value, "__array__"):
             self._arr[key]=map(sympy.sympify,value.flat)
         else:
             self._arr[key]=sympy.sympify(value)
 
+    def getDim(self):
+        """
+        Returns the spatial dimensionality of this symbol.
+
+        :return: the symbol's spatial dimensionality
+        :rtype: ``int``
+        """
+        return self.dim
+
     def getRank(self):
+        """
+        Returns the rank of this symbol.
+
+        :return: the symbol's rank which is equal to the length of the shape.
+        :rtype: ``int``
+        """
         return self._arr.ndim
 
     def getShape(self):
+        """
+        Returns the shape of this symbol.
+
+        :return: the symbol's shape
+        :rtype: ``tuple`` of ``int``
+        """
         return self._arr.shape
 
+    def item(self, *args):
+        """
+        Returns an element of this symbol.
+        This method behaves like the item() method of numpy.ndarray.
+        If this is a scalar Symbol, no arguments are allowed and the only
+        element in this Symbol is returned.
+        Otherwise, 'args' specifies a flat or nd-index and the element at
+        that index is returned.
+
+        :param args: index of item to be returned
+        :return: the requested element
+        :rtype: ``sympy.Symbol``, ``int``, or ``float``
+        """
+        return self._arr.item(args)
+
     def atoms(self, *types):
+        """
+        Returns the atoms that form the current Symbol.
+
+        By default, only objects that are truly atomic and cannot be divided
+        into smaller pieces are returned: symbols, numbers, and number
+        symbols like I and pi. It is possible to request atoms of any type,
+        however.
+
+        Note that if this symbol contains components such as [x]_i_j then
+        only their main symbol 'x' is returned.
+
+        :param types: types to restrict result to
+        :return: list of atoms of specified type
+        :rtype: ``set``
+        """
         s=set()
         for el in self._arr.flat:
             if isinstance(el,sympy.Basic):
@@ -138,9 +233,8 @@ class Symbol(object):
                         s.add(sympy.Symbol(n))
                     else:
                         s.add(a)
-            else:
-                # TODO: Numbers?
-                pass
+            elif len(types)==0 or type(el) in types:
+                s.add(el)
         return s
 
     def _sympystr_(self, printer):
@@ -203,6 +297,8 @@ class Symbol(object):
         return result
 
     def diff(self, *symbols, **assumptions):
+        """
+        """
         symbols=Symbol._symbolgen(*symbols)
         result=Symbol(self._arr, dim=self.dim)
         for s in symbols:
@@ -226,6 +322,8 @@ class Symbol(object):
         return result
 
     def grad(self, where=None):
+        """
+        """
         if isinstance(where, Symbol):
             if where.getRank()>0:
                 raise ValueError("grad: 'where' must be a scalar symbol")
@@ -243,8 +341,10 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def inverse(self):
+        """
+        """
         if not self.getRank()==2:
-            raise ValueError("inverse: Only rank 2 supported")
+            raise TypeError("inverse: Only rank 2 supported")
         s=self.getShape()
         if not s[0] == s[1]:
             raise ValueError("inverse: Only square shapes supported")
@@ -295,9 +395,13 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def swap_axes(self, axis0, axis1):
+        """
+        """
         return Symbol(numpy.swapaxes(self._arr, axis0, axis1), dim=self.dim)
 
     def tensorProduct(self, other, axis_offset):
+        """
+        """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
         if isinstance(other, Symbol):
@@ -320,6 +424,8 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def transposedTensorProduct(self, other, axis_offset):
+        """
+        """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
         if isinstance(other, Symbol):
@@ -342,6 +448,8 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def tensorTransposedProduct(self, other, axis_offset):
+        """
+        """
         arg0_c=self._arr.copy()
         sh0=self.getShape()
         if isinstance(other, Symbol):
@@ -366,6 +474,8 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def trace(self, axis_offset):
+        """
+        """
         sh=self.getShape()
         s1=1
         for i in range(axis_offset): s1*=sh[i]
@@ -381,12 +491,16 @@ class Symbol(object):
         return Symbol(out, dim=self.dim)
 
     def transpose(self, axis_offset):
+        """
+        """
         if axis_offset is None:
             axis_offset=int(self._arr.ndim/2)
         axes=range(axis_offset, self._arr.ndim)+range(0,axis_offset)
         return Symbol(numpy.transpose(self._arr, axes=axes), dim=self.dim)
 
     def applyfunc(self, f, on_type=None):
+        """
+        """
         assert callable(f)
         if self._arr.ndim==0:
             if on_type is None or isinstance(self._arr.item(),on_type):
@@ -408,9 +522,13 @@ class Symbol(object):
         return out
 
     def simplify(self):
+        """
+        """
         return self.applyfunc(sympy.simplify, sympy.Basic)
 
     def _sympy_(self):
+        """
+        """
         return self.applyfunc(sympy.sympify)
 
     def _ensureShapeCompatible(self, other):
@@ -581,6 +699,9 @@ def symbols(*names, **kwargs):
     return res
 
 def combineData(array, shape):
+    """
+    """
+
     # array could just be a single value
     if not hasattr(array,'__len__') and shape==():
         return array
@@ -622,7 +743,7 @@ class SymFunction(Symbol):
     """
     def __init__(self, *args, **kwargs):
         """
-        Initializes a new symbolic function object.
+        Initialises a new symbolic function object.
         """
         super(SymFunction, self).__init__(self.__class__.__name__, **kwargs)
         self.args=args
