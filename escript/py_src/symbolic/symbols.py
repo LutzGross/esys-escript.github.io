@@ -68,7 +68,7 @@ class Symbol(object):
             x=Symbol([[a+b,0,0],[0,b-c,0],[0,0,c-a]])
 
         returns a rank 2 symbol with the shape (3,3) whose elements are
-        explicitely specified by numeric values and other symbols/expressions
+        explicitly specified by numeric values and other symbols/expressions
         within a list or numpy array.
 
         The dimensionality of the symbol can be specified through the `dim`
@@ -265,36 +265,54 @@ class Symbol(object):
             return 'combineData(%s,%s)'%(str(temp_arr.tolist()).replace("'",""),str(self.getShape()))
 
     def coeff(self, x, expand=True):
-        self._ensureShapeCompatible(x)
-        result=Symbol(self._arr, dim=self.dim)
-        if isinstance(x, Symbol):
-            if x.getRank()>0:
-                a=result._arr.flat
-                b=x._arr.flat
-                for idx in range(len(a)):
-                    s=b.next()
-                    if s==0:
-                        a[idx]=0
-                    else:
-                        a[idx]=a[idx].coeff(s, expand)
-            else:
-                if x._arr.item()==0:
-                    result=Symbol(numpy.zeros(self.getShape()), dim=self.dim)
-                else:
-                    coeff_item=lambda item: getattr(item, 'coeff')(x._arr.item(), expand)
-                    result=result.applyfunc(coeff_item)
-        elif x==0:
-            result=Symbol(numpy.zeros(self.getShape()), dim=self.dim)
-        else:
-            coeff_item=lambda item: getattr(item, 'coeff')(x, expand)
-            result=result.applyfunc(coeff_item)
+        """
+        Returns the coefficient of the term "x" or 0 if there is no "x".
 
-        # replace None by 0
-        if result is None: return 0
-        a=result._arr.flat
-        for idx in range(len(a)):
-            if a[idx] is None: a[idx]=0
-        return result
+        If "x" is a scalar symbol then "x" is searched in all components of
+        this symbol. Otherwise the shapes must match and the coefficients are
+        checked component by component.
+
+        Example::
+        
+            x=Symbol('x', (2,2))
+            y=3*x
+            print y.coeff(x)
+            print y.coeff(x[1,1])
+
+        will print::
+
+            [[3 3]
+             [3 3]]
+
+            [[0 0]
+             [0 3]]
+
+        :param x: the term whose coefficients are to be found
+        :type x: ``Symbol``, ``numpy.ndarray``, `list`
+        :return: the coefficient(s) of the term
+        :rtype: ``Symbol``
+        """
+        self._ensureShapeCompatible(x)
+        if hasattr(x, '__array__'):
+            y=x.__array__()
+        else:
+            y=numpy.array(x)
+
+        if y.ndim>0:
+            result=numpy.zeros(self.getShape(), dtype=object)
+            for idx in numpy.ndindex(y.shape):
+                if y[idx]!=0:
+                    res=self[idx].coeff(y[idx], expand)
+                    if res is not None:
+                        result[idx]=res
+        elif y.item()==0:
+            result=numpy.zeros(self.getShape(), dtype=object)
+        else:
+            coeff_item=lambda item: getattr(item, 'coeff')(y.item(), expand)
+            none_to_zero=lambda item: 0 if item is None else item
+            result=self.applyfunc(coeff_item)
+            result=result.applyfunc(none_to_zero)._arr
+        return Symbol(result, dim=self.dim)
 
     def diff(self, *symbols, **assumptions):
         """
@@ -541,6 +559,8 @@ class Symbol(object):
             sh1=other.getShape()
         elif isinstance(other, numpy.ndarray):
             sh1=other.shape
+        elif isinstance(other, list):
+            sh1=numpy.array(other).shape
         elif isinstance(other,int) or isinstance(other,float) or isinstance(other,sympy.Basic):
             sh1=()
         else:
@@ -599,6 +619,9 @@ class Symbol(object):
                     yield s
             else:
                 yield s
+
+    def __array__(self):
+        return self._arr
 
     # unary/binary operations follow
 
