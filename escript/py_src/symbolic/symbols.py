@@ -59,7 +59,7 @@ class Symbol(object):
 
         returns a scalar symbol by the name 'u'.
 
-            a=Symbol('alpha', (3,2))
+            a=Symbol('alpha', (4,3))
 
         returns a rank 2 symbol with the shape (4,3), whose elements are
         named '[alpha]_i_j' (with i=0..3, j=0..2).
