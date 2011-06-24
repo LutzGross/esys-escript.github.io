@@ -46,6 +46,7 @@ from esys.escript import listEscriptParams
 from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
 from esys.escript.symbolic.symbols import *
 from esys.escript.symbolic.evaluator import *
+from esys.escript.symbolic.pretty import pretty_print, pprint
 from esys.escript.symbolic import functions as symfn
 
 #=========================================================
