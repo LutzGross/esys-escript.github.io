@@ -74,6 +74,8 @@ typedef struct Paso_SystemMatrix {
 		              When the system of linear equations is solved we solve D*A*D*y=c.
 		              so to solve A*x=b one needs to set c=D*b and x=D*y. */
 
+  index_t *global_id; /* store the global ids for all cols in col_couplerBlock */
+
   
   
   index_t solver_package;  /* package controling the solver pointer */
@@ -154,6 +156,8 @@ void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix *A, index_t **p_ptr,
 void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
 void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
 void Paso_SystemMatrix_copyMain_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
+
+void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST, index_t* offset_ST, index_t* ST);
 
   
 #endif /* #ifndef INC_PASO_SYSTEMMATRIX */

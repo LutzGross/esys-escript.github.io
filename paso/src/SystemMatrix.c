@@ -77,6 +77,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->remote_coupleBlock=NULL;
      out->is_balanced=FALSE;
      out->balance_vector=NULL; 
+     out->global_id=NULL;
      out->solver_package=PASO_PASO;  
      out->solver_p=NULL;  
      out->trilinos_data=NULL;
@@ -185,6 +186,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
 	Paso_SparseMatrix_free(in->remote_coupleBlock);
 	
 	MEMFREE(in->balance_vector);
+        if (in->global_id) MEMFREE(in->global_id);
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);
         #endif

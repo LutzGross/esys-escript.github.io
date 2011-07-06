@@ -129,8 +129,9 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool_t recreatePattern)
 {
    Paso_Pattern* couple_pattern=Null;
+   index_t *ptr=NULL, *idx=NULL;
    /* const dim_t n=Paso_SystemMatrix_getNumRows(A); */
-   dim_t p;
+   dim_t p, num_rows, num_cols;
    index_t z0, iPtr, rPtr;
    const dim_t block_size=A->block_size;
    const size_t block_size_size=block_size*sizeof(double);
@@ -150,6 +151,8 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool_t 
         A ->col_coupler->connector->send->shared[rPtr...] rptr=A->col_coupler->connector->send->offsetInShared[p]
         
    where the order in the list corresponds to the order in which the columns are ordered on processor p.
+   this is not enough. for each row connected to p, we also need to identify the list of columns in col_coupleBlock which are used by processor p
+   this list is suppose to be the intersection columns of both processor p's col_coupleBlock and current processor's col_coupleBlocks. It's not trival to get the intersection and reorder the columns. 
    
    
    the algorithm:
