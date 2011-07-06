@@ -46,94 +46,320 @@
    
 */
 
+#define MY_DEBUG 1
  
-Paso_SparseMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SparseMatrix* A_p, 
+Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, 
                                                            const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 							   const dim_t n_C, const index_t* counter_C, const index_t interpolation_method) 
 {
-   Paso_SparseMatrix* out=NULL;
-   Paso_Pattern *outpattern=NULL;
-   const dim_t n_block=A_p->row_block_size;
-   index_t *ptr=NULL, *index=NULL,j, iptr;
-   const dim_t n =A_p->numRows; 
-   dim_t i,p,z, len_P;
-   
-   ptr=MEMALLOC(n+1,index_t);
-   if (! Esys_checkPtr(ptr)) {
+   Esys_MPIInfo *mpi_info=A_p->mpi_info;
+   Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
+   Paso_SystemMatrix *out=NULL;
+   Paso_SystemMatrixPattern *pattern=NULL;
+   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
+   Paso_SharedComponents *send =NULL, *recv=NULL;
+   Paso_Connector *col_connector=NULL, *row_connector=NULL;
+   Paso_Coupler *coupler=NULL;
+   Paso_Pattern *main_pattern=NULL, *couple_pattern=NULL;
+   const dim_t row_block_size=A_p->row_block_size;
+   const dim_t col_block_size=A_p->col_block_size;
+   const dim_t my_n=A_p->mainBlock->numCols;
+   const dim_t overlap_n=A_p->col_coupleBlock->numCols;
+   const dim_t n = my_n + overlap_n;
+   const dim_t num_threads=omp_get_max_threads();
+   double *couple_marker=NULL;
+   index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
+   index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
+   index_t *shared=NULL, *offsetInShared=NULL;
+   index_t sum, j, iptr;;
+   dim_t i, my_n_C, k, l, p, q, global_label, num_neighbors;
+   dim_t *recv_len=NULL, *send_len=NULL;
+   Esys_MPI_rank *neighbor=NULL;
 
-      
-      /* count the number of entries per row in the Prolongation matrix :*/
-   
-      #pragma omp parallel for private(i,z,iptr,j,p) schedule(static)
-      for (i=0;i<n;++i) {
-	 if (counter_C[i]>=0) {
-	    z=1;    /* i is a C unknown */
-	 } else {
-	    z=0;
-	    iptr=offset_S[i];
-	    for (p=0; p<degree_S[i]; ++p) { 
-	       j=S[iptr+p];  /* this is a strong connection */
-	       if (counter_C[j]>=0) z++; /* and is in C */
-	    }
-	 }
-	 ptr[i]=z;
+   if (MY_DEBUG) {
+     fprintf(stderr, "size=%d rank=%d n=%d my_n=%d overlap_n=%d\n", 
+		size, rank, n, my_n, overlap_n);
+   }
+
+   /* number of C points in current distribution */
+   my_n_C = 0;
+   if (num_threads>1) {
+     #pragma omp parallel private(i,sum)
+     {
+	sum=0;
+	#pragma omp for schedule(static)
+	for (i=0;i<my_n;++i) {
+	  if (counter_C[i] != -1) {
+	    sum++;
+	  }
+	}
+	#pragma omp critical
+	{
+	    my_n_C += sum;
+	}
+     }
+   } else { /* num_threads=1 */
+     for (i=0;i<my_n;++i) {
+         if (counter_C[i] != -1) {
+            my_n_C++;
+         }
       }
-      len_P=Paso_Util_cumsum(n,ptr);
-      ptr[n]=len_P;
-      
-      /* allocate and create index vector for prolongation: */
-      index=MEMALLOC(len_P,index_t);
-   
-      if (! Esys_checkPtr(index)) {
-	 #pragma omp parallel for private(i,z,iptr,j,p)  schedule(static)
-	 for (i=0;i<n;++i) {
-	    if (counter_C[i]>=0) {
-	       index[ptr[i]]=counter_C[i];  /* i is a C unknown */
-	    } else {
-	       z=0;
-	       iptr=offset_S[i];
-	       for (p=0; p<degree_S[i]; ++p) { 
-		  j=S[iptr+p];  /* this is a strong connection */
-		  if (counter_C[j]>=0) {  /* and is in C */
-		     index[ptr[i]+z]=counter_C[j];
-		     z++; /* and is in C */
-		  }
-	       }
+   }
+
+   if (MY_DEBUG) {
+     fprintf(stderr, "my_n_C=%d\n", my_n_C);
+   }
+
+   /* create row distribution (output_distribution) and col distribution 
+      (input_distribution) */
+   /* ??? should I alloc an new Esys_MPIInfo object or reuse the one in
+      system matrix A. for now, I'm reuse A->mpi_info ??? */
+   dist = A_p->pattern->output_distribution->first_component;
+   output_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   dist = TMPMEMALLOC(size+1, index_t); /* now prepare for col distribution */
+   Esys_checkPtr(dist);
+   MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
+   global_label=0;
+   for (i=0; i<size; i++) {
+     k = dist[i];
+     dist[i] = global_label;
+     global_label += k;
+   }
+   dist[size] = global_label;
+   input_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   TMPMEMFREE(dist);
+
+   /* create pattern for mainBlock and coupleBlock */
+   main_p = MEMALLOC(my_n+1, index_t);
+   couple_p = MEMALLOC(my_n+1, index_t);
+   couple_marker = MEMALLOC(overlap_n, double);
+   #pragma omp parallel for private(i) schedule(static)
+   for (i=0; i<overlap_n; i++) couple_marker[i] = 0;
+   if (!(Esys_checkPtr(main_p) || Esys_checkPtr(couple_p))) {
+     /* count the number of entries per row in the Prolongation matrix :*/
+     /* #pragma omp parallel for private(i,k,iptr,j,p) schedule(static) */
+     for (i=0; i<my_n; i++) {
+	l = 0;
+	if (counter_C[i]>=0) {
+	  k = 1;    /* i is a C unknown */
+	} else {
+	  k = 0;
+	  iptr = offset_S[i];
+	  for (p=0; p<degree_S[i]; p++) {
+	    j = S[iptr+p];  /* this is a strong connection */
+	    if (counter_C[j]>=0) { /* and is in C */
+		if (j <my_n) k++;
+		else {
+		  couple_marker[j-my_n] = 1;
+		  l++; 
+		}
 	    }
-	 } 
-      }
-   }   
-   if (Esys_noError()) {
-	 outpattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
+	  }
+	}
+	main_p[i] = k;
+	couple_p[i] = l;
+     }
+
+     /* number of unknowns in the col-coupleBlock of the interplation matrix */
+     sum = 0;
+     if (num_threads>1) {
+	#pragma omp parallel private(i,p)
+	{
+          p=0;
+	  #pragma omp for schedule(static)
+	  for (i=0;i<overlap_n;++i) {
+	    if (couple_marker[i] > 0) {
+	      p++;
+	    }
+	  }
+	}
+	#pragma omp critical
+	{
+	  sum += p;
+	}
+     } else { /* num_threads=1 */
+	for (i=0;i<overlap_n;++i) {
+	  if (couple_marker[i] > 0) {
+            sum++;
+	  }
+	}
+     }
+
+     /* allocate and create index vector for prolongation: */
+     p = Paso_Util_cumsum(my_n, main_p);
+     main_p[my_n] = p;
+     main_idx = MEMALLOC(p, index_t);
+     p = Paso_Util_cumsum(my_n, couple_p);
+     couple_p[my_n] = p;
+     couple_idx = MEMALLOC(p, index_t);
+     if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
+	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
+	for (i=0; i<my_n; i++) {
+	  if (counter_C[i]>=0) {
+	    main_idx[main_p[i]]=counter_C[i];  /* i is a C unknown */
+	  } else {
+	    k = 0;
+	    l = 0;
+	    iptr = offset_S[i]; 
+	    for (p=0; p<degree_S[i]; p++) {
+	      j = S[iptr+p]; /* this is a strong connection */
+	      if (counter_C[j] >=0) { /* and is in C */
+		if (j < my_n) {
+		  main_idx[main_p[i]+k] = counter_C[j];
+		  k++; 
+		} else {
+		  couple_idx[couple_p[i]+l] = counter_C[j];
+		  l++;
+		}
+	      }
+	    }
+	  }
+	}
+     }
+   }
+
+   if (Esys_noError()) {   
+     main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
+			my_n_C, main_p, main_idx);
+     couple_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
+			sum, couple_p, couple_idx);
    } else {
-      MEMFREE(ptr);
-      MEMFREE(index);
+     MEMFREE(main_p);
+     MEMFREE(main_idx);
+     MEMFREE(couple_p);
+     MEMFREE(couple_idx);
    }
-   /* now we need to create a matrix and fill it */
+
+   /* now we need to create the Sparse Matrix (mainBlock and coupleBlock) */
    if (Esys_noError()) {
-      out=Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK,outpattern,n_block,n_block,FALSE);
+     main_block = Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, 
+		couple_pattern, row_block_size, col_block_size, FALSE);
+     couple_block = Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, 
+		couple_pattern, row_block_size, col_block_size, FALSE);
+   }
+
+   /* now fill in the matrix */
+/*   if (Esys_noError()) {
+     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
+	|| ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
+	if (row_block_size == 1) {
+	  Paso_Preconditioner_AMG_setClassicProlongation();
+	} else {
+	  Paso_Preconditioner_AMG_setClassicProlongation_Block();
+	}
+     } else {
+	if (row_block_size == 1) {
+	  Paso_Preconditioner_AMG_setDirectProlongation();
+	} else {
+	  Paso_Preconditioner_AMG_setDirectProlongation_Block();
+	}
+     }
+   }
+*/
+   /* prepare the receiver for the col_connector. 
+      Note that the allocation for "shared" assumes the send and receive buffer
+      of the interpolation matrix P is no larger than that of matrix A_p. */
+   coupler = Paso_Coupler_alloc(A_p->row_coupler->connector, 1);
+   Paso_Coupler_startCollect(coupler, couple_marker);
+   recv_len = TMPMEMALLOC(size,dim_t);
+   send_len = TMPMEMALLOC(size,dim_t);
+   neighbor = TMPMEMALLOC(size, Esys_MPI_rank);
+   offsetInShared = TMPMEMALLOC(size+1, index_t);
+   recv = A_p->col_coupler->connector->recv;
+   i = recv->numSharedComponents;
+   k = A_p->col_coupler->connector->send->numSharedComponents;
+   if (k > i) i = k;
+   shared = TMPMEMALLOC(i, index_t);
+   memset(recv_len, 0, sizeof(dim_t)*size);
+   num_neighbors = 0;
+   q = 0;
+   p = recv->numNeighbors;
+   offsetInShared[0]=0;
+   for (i=0; i<p; i++) {
+     l = 0;
+     k = recv->offsetInShared[i+1];
+     for (j=recv->offsetInShared[i]; j<k; j++) {
+	if (couple_marker[j] == 1) {
+	  shared[q] = my_n_C + q;
+	  q++;
+	  l = 1;
+	}
+     }
+     if (l == 1) {
+	iptr = recv->neighbor[i];
+	neighbor[num_neighbors] = iptr;
+        recv_len[iptr] = q - offsetInShared[num_neighbors];
+	num_neighbors++;
+	offsetInShared[num_neighbors] = q;
+     }
+   }
+   Paso_Coupler_finishCollect(coupler);
+   recv = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
+                                      offsetInShared, 1, 0, mpi_info);
+
+   /* now we can build the sender */
+   #ifdef ESYS_MPI
+     MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
+   #else
+     for (p=0; p<size; p++) snd_len[p] = rcv_len[p];
+   #endif
+   send = A_p->col_coupler->connector->send;
+   num_neighbors = 0;
+   q = 0;
+   p = send->numNeighbors;
+   offsetInShared[0]=0;
+   for (i=0; i<p; i++) {
+     l = 0;
+     k = send->offsetInShared[i+1];
+     for (j=send->offsetInShared[i]; j<k; j++) {
+        if (coupler->recv_buffer[j] == 1) {
+          shared[q] = counter_C[send->shared[j]];
+          q++;
+          l = 1;
+        }
+     }
+     if (l == 1) {
+        iptr = send->neighbor[i];
+        neighbor[num_neighbors] = iptr;
+        num_neighbors++;
+        offsetInShared[num_neighbors] = q;
+     }
+   }
+   Paso_Coupler_free(coupler);
+   send = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
+				      offsetInShared, 1, 0, mpi_info);
+   col_connector = Paso_Connector_alloc(send, recv);
+   Paso_SharedComponents_free(recv);
+   Paso_SharedComponents_free(send);
+   TMPMEMFREE(recv_len);
+   TMPMEMFREE(send_len);
+   TMPMEMFREE(neighbor);
+   TMPMEMFREE(offsetInShared);
+   TMPMEMFREE(shared);
+
+   /* now we need to create the System Matrix 
+      TO BE FIXED: at this stage, we only construction col_couple_pattern
+      and col_connector for interpolation matrix P. To be completed, 
+      row_couple_pattern and row_connector need to be constructed as well */
+   if (Esys_noError()) {
+     pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT, 
+		output_dist, input_dist, main_pattern, couple_pattern, 
+		couple_pattern, col_connector, col_connector);
+     out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+		row_block_size, col_block_size, FALSE);
    } 
-   
-   if (Esys_noError()) {
-      if ( (interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) || ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
-      	if (n_block == 1) {
-		Paso_Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C); 
-      	} else {
-	 	Paso_Preconditioner_AMG_setClassicProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
-      	}
-      } else {
-      	if (n_block == 1) {
-	        Paso_Preconditioner_AMG_setDirectProlongation(out, A_p, counter_C);
-      	} else {
-	 	Paso_Preconditioner_AMG_setDirectProlongation_Block(out, A_p, counter_C);
-      	}
-      }
-   }
-   Paso_Pattern_free(outpattern);
+  
+   /* clean up */ 
+   Paso_SystemMatrixPattern_free(pattern);
+   Paso_Pattern_free(main_pattern);
+   Paso_Pattern_free(couple_pattern);
+   Paso_Connector_free(col_connector);
+   Paso_Distribution_free(output_dist);
+   Paso_Distribution_free(input_dist);
    if (Esys_noError()) {
       return out;
    } else {
-      Paso_SparseMatrix_free(out);
+      Paso_SystemMatrix_free(out);
       return NULL;
    }
    

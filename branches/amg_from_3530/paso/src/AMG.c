@@ -97,8 +97,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL;
-  dim_t i;
+  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
+  dim_t i, n_F, n_C;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
@@ -145,13 +145,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      
      /* this is the table for strong connections combining mainBlock, col_coupleBlock and row_coupleBlock */
      const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len;
+     const dim_t len_ST=len_S + A_p->row_coupleBlock->numRows * A_p->col_coupleBlock->numCols;
 
      dim_t* degree_S=TMPMEMALLOC(n, dim_t);
      index_t *offset_S=TMPMEMALLOC(n, index_t);
      index_t *S=TMPMEMALLOC(len_S, index_t);
      dim_t* degree_ST=TMPMEMALLOC(n, dim_t);
      index_t *offset_ST=TMPMEMALLOC(n, index_t);
-     index_t *ST=TMPMEMALLOC(len_S, index_t);
+     index_t *ST=TMPMEMALLOC(len_ST, index_t);
      
      
      F_marker=TMPMEMALLOC(n,index_t);
@@ -176,19 +177,28 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
 	 Paso_Preconditioner_AMG_transposeStrongConnections(n, degree_S, offset_S, S, n, degree_ST, offset_ST, ST);
+	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
 	 
 {
    dim_t p;
+   fprintf(stderr, "n=%d my_n=%d\n", n, my_n);
    for (i=0; i<n; ++i) {
-         printf("%d: ",i);
-        for (p=0; p<degree_S[i];++p) printf("%d ",S[offset_S[i]+p]);
-        printf("\n");
+         fprintf(stderr, "rank%d %d(%d): ", A_p->mpi_info->rank, i, degree_S[i]);
+        for (p=0; p<degree_S[i];++p) fprintf(stderr, "%d ",S[offset_S[i]+p]);
+        fprintf(stderr, "\n");
+   }
+
+   for (i=0; i<n; ++i) {
+         fprintf(stderr, "rank%d %dST(%d): ", A_p->mpi_info->rank, i, degree_ST[i]);
+        for (p=0; p<degree_ST[i];++p) fprintf(stderr, "%d ",ST[offset_ST[i]+p]);
+        fprintf(stderr, "\n");
    }
 }
+
 	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
 					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
 						A_p->col_coupler->connector,A_p->col_distribution);
-Esys_setError(SYSTEM_ERROR, "AMG:DONE."); 
+Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
 return NULL;
       
 
@@ -203,8 +213,6 @@ return NULL;
 */
 
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
-
-#ifdef AAAAA
 	 if (Esys_noError() ) {
 	    #pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
@@ -214,7 +222,7 @@ return NULL;
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
 	    n_C=n-n_F;
-	    if (verbose) printf("Paso_Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
 	 
 	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
@@ -242,7 +250,7 @@ return NULL;
 	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
 
-		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
+		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
 		  if (n_C != 0) {
 			   /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
@@ -266,23 +274,16 @@ return NULL;
 			      }
 			   }
 			   /*  create mask of C nodes with value >-1 gives new id */
-			   i=Paso_Util_cumsum_maskedFalse(n,counter, F_marker);
-
-			   #pragma omp parallel for private(i) schedule(static)
-			   for (i = 0; i < n; ++i) {
-			      if  (F_marker[i]) {
-				 mask_C[i]=-1;
-			      } else {
-				 mask_C[i]=counter[i];;
-			      }
-			   }
+			   i=Paso_Util_cumsum_maskedFalse(n, mask_C, F_marker);
 			   /*
 			      get Prolongation :	 
 			   */					
 			   time0=Esys_timer();
-/*MPI: 
-			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
-*/
+ 
+			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->mainBlock->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
+Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
+return NULL;
+
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
 			}
 			/*      
@@ -310,7 +311,7 @@ return NULL;
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
 
-			
+#ifdef AAAAA
 			/*
 			   constructe courser level:
 			   
@@ -346,13 +347,13 @@ return NULL;
 			      out->A_C=A_C;
 			   }
 			}		  
+#endif
 		  }
 	       }
 	       TMPMEMFREE(mask_C);
 	       TMPMEMFREE(rows_in_F);
 	    }
 	 }
-#endif
 
   }
   TMPMEMFREE(counter);
@@ -450,7 +451,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
    
    index_t iptr, i;
    double *threshold_p=NULL; 
-
+index_t rank=A->mpi_info->rank;
 
    threshold_p = TMPMEMALLOC(2*my_n, double);
    
@@ -462,13 +463,15 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	 register double main_row=0;
 	 register dim_t kdeg=0;
          register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+
+//fprintf(stderr, "rank%d row%d: ", rank, i);
          
 	 /* collect information for row i: */
 	 #pragma ivdep
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
 	    register double fnorm=ABS(A->mainBlock->val[iptr]);
-	    
+//fprintf(stderr, "%d(%g) ", j, fnorm);
 	    if( j != i) {
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	       sum_row+=fnorm;
@@ -477,13 +480,18 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    }
 
 	 }
-	 
+
 	 #pragma ivdep
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
+
+//register index_t j=A->col_coupleBlock->pattern->index[iptr];
+//fprintf(stderr, "%d(%g) ", j, fnorm);
+
 	    max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	    sum_row+=fnorm;
 	 }
+//fprintf(stderr, "\n");
 
          /* inspect row i: */
          {
@@ -529,7 +537,6 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
           #pragma omp parallel for private(i,iptr) schedule(static)
           for (i=0; i<overlap_n; i++) {
-	     
 	      const double threshold = remote_threshold[2*i+1];
 	      register dim_t kdeg=0;
               register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
@@ -738,6 +745,11 @@ void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim
    }
 }
 
+int compareindex(const void *a, const void *b)
+{
+  return (*(int *)a - *(int *)b);
+}
+
 void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
@@ -747,6 +759,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   index_t iptr, jptr, kptr;
   double *random=NULL, *w=NULL, *Status=NULL;
   index_t * ST_flag=NULL;
+index_t rank=col_connector->mpi_info->rank;
 
   Paso_Coupler* w_coupler=Paso_Coupler_alloc(col_connector  ,1);
    
@@ -782,13 +795,11 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
      {
 	int p;
 	for (p=0; p<my_n; ++p) {
-	   printf(" %d : %f %f \n",p, w[p], Status[p]);
+	   fprintf(stderr, "rank%d %d : %f %f \n",rank, p, w[p], Status[p]);
 	}
 	for (p=my_n; p<n; ++p) {
-	   printf(" %d : %f \n",p, w[p]);
+	   fprintf(stderr, "rank%d %d : %f \n",rank, p, w[p]);
 	}
-	
-	
      }
      
       /* calculate the maximum value of naigbours following active strong connections:
@@ -800,15 +811,13 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	    register bool_t inD=TRUE;
 	    const double wi=w[i];
 
-
 	    for( iptr =0 ; iptr < degree_S[i]; ++iptr) {
-
 	       const index_t k=S[offset_S[i]+iptr];
 	       const index_t* start_p = &ST[offset_ST[k]];
 	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), Paso_comparIndex);
 
-	       if (ST_flag[(index_t)(where_p-start_p)]>0) {
-printf("S: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
+	       if (ST_flag[offset_ST[k] + (index_t)(where_p-start_p)]>0) {
+fprintf(stderr, "rank%d S: %d (%e) -> %d	(%e)\n",rank, i, wi, k, w[k]);	  
 		  if (wi <= w[k] ) {
 		     inD=FALSE;
 		     break;
@@ -821,7 +830,7 @@ printf("S: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);
 		  for( iptr =0 ; iptr < degree_ST[i]; ++iptr) {
 		     const index_t k=ST[offset_ST[i]+iptr];
 		     if ( ST_flag[offset_ST[i]+iptr] > 0 ) {
-printf("ST: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
+fprintf(stderr, "rank%d ST: %d (%e) -> %d	(%e)\n",rank, i, wi, k, w[k]);
 			
                        if (wi <= w[k] ) {
 			   inD=FALSE;
@@ -832,7 +841,7 @@ printf("ST: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);
 	    }    
 	    if (inD) { 
 	       Status[i]=0.; /* is in D */
-printf("%d is in D\n",i);
+fprintf(stderr, "rank%d %d is in D\n",rank, i);
 	    }
 	 }
 	 
@@ -862,9 +871,10 @@ printf("%d is in D\n",i);
 
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 		  const index_t j=ST[offset_ST[i]+jptr];
+
 		  if ( (Status[j] == 0.) && (ST_flag[offset_ST[i]+jptr]>0) ) {
 		     w[i]--;
-printf("%d reduced by %d\n",i,j);
+fprintf(stderr, "rank%d %d reduced by %d\n",rank, i,j);
 		     ST_flag[offset_ST[i]+jptr]=-1;
 		  }
 	       }
@@ -886,17 +896,17 @@ printf("%d reduced by %d\n",i,j);
 
 		     for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 			const index_t j=ST[offset_ST[i]+jptr];
-printf("check connection: %d %d\n",i,j);
+fprintf(stderr, "rank%d check connection: %d %d\n",rank, i,j);
 			ST_flag[offset_ST[i]+jptr]=-1;
 			for (kptr=0; kptr<degree_ST[j]; ++kptr) {
 			   const index_t k=ST[offset_ST[j]+kptr]; 
-printf("check connection: %d of %d\n",k,j);
+fprintf(stderr, "rank%d check connection: %d of %d\n",rank, k,j); 
 			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), Paso_comparIndex) ) { /* k in ST[i] ? */
-printf("found!\n");
+fprintf(stderr, "rank%d found!\n", rank);
 			      if (ST_flag[offset_ST[j]+kptr] >0) {
 				 if (j< my_n ) {
 				    w[j]--;
-printf("%d reduced by %d and %d \n",j, i,k);
+fprintf(stderr, "rank%d %d reduced by %d and %d \n",rank, j, i,k); 
 				 }
 				 ST_flag[offset_ST[j]+kptr]=-1;
 			      }
@@ -906,34 +916,39 @@ printf("%d reduced by %d and %d \n",j, i,k);
 		  }
 	    }
 	 }
+
 	 /* adjust status */
 	 #pragma omp parallel for private(i)
 	 for (i=0; i< my_n; ++i) {
 	    if ( Status[i] == 0. ) {
 	       Status[i] = -10;   /* this is now a C point */
-	    } else if ( w[i]<1.) {
+	    } else if (Status[i] == 1. && w[i]<1.) {
 	       Status[i] = -100;   /* this is now a F point */  
 	    }
 	 }
 	 
-	 
+	 i = numUndefined;
 	 numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+	 if (numUndefined == i) {
+	   Esys_setError(SYSTEM_ERROR, "Can NOT reduce numUndefined."); 
+	   return;
+	 }
+
 	 iter++;
 	 printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
   } /* end of while loop */
 
-
   /* map to output :*/
   Paso_Coupler_fillOverlap(n, Status, w_coupler);
-  #pragma omp parallel for private(i)
+//  #pragma omp parallel for private(i)
   for (i=0; i< n; ++i) {
 	 if (Status[i] > -50.) {
 	    split_marker[i]=PASO_AMG_IN_C;
+fprintf(stderr, "rank%d CIJP C sets: %d\n",rank, i);
 	 } else {
 	    split_marker[i]=PASO_AMG_IN_F;
 	 }
   }
-
   /* clean up : */
   Paso_Coupler_free(w_coupler);
   TMPMEMFREE(random);
