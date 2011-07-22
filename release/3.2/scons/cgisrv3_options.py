@@ -107,13 +107,14 @@ mpi_prefix = 'C:/Program Files/MPICH2'
 mpi_libs = ['mpi']
 
 dotdot = os.path.realpath('..')
+system_builddeps = os.path.join('c:',os.sep, 'buildlibs')
 
 # Prefix or paths to python headers and libraries. See note above.
 # By default, this is determined using the running python executable.
 #python_prefix = 'C:/Python26'
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = [os.path.join(dotdot, 'boost_1_41_0'), os.path.join(dotdot, 'boost_1_41_0','windows_binary','lib')]
+boost_prefix = [os.path.join(system_builddeps, 'boost_1_41_0'), os.path.join(system_builddeps, 'boost_1_41_0','windows_binary','lib')]
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-vc71-mt-1_41']
@@ -123,7 +124,7 @@ boost_libs = ['boost_python-vc71-mt-1_41']
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = [os.path.join(dotdot, 'netcdf', 'src', 'include'), os.path.join(dotdot, 'netcdf', 'lib')]
+netcdf_prefix = [os.path.join(system_builddeps, 'netcdf', 'src', 'include'), os.path.join(system_builddeps, 'netcdf', 'lib')]
 
 # netCDF library/libraries to link against
 netcdf_libs = ['netcdf_cpp', 'netcdf']
