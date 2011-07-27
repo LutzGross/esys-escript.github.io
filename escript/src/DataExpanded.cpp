@@ -926,7 +926,11 @@ void DataExpanded::randomFill(long seed)
     	#pragma omp for schedule(static)
     	for (i=0;i<dvsize;++i)
     	{
-	    dv[i]=(double)rand_r(&info)/RAND_MAX;
+#ifdef _WIN32
+	    dv[i]=((double)rand())/RAND_MAX;
+#else
+	    dv[i]=((double)rand_r(&info))/RAND_MAX;
+#endif
     	}
     }
     delete[] seeds;
