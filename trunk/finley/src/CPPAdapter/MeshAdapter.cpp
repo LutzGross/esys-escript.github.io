@@ -2444,7 +2444,7 @@ void MeshAdapter:: addDiracPoints(const boost::python::list& points, const boost
       int numTags=boost::python::extract<int>(tags.attr("__len__")());
       Finley_Mesh* mesh=m_finleyMesh.get();
       
-      if  ( (numTags > 0) and ( numPoints !=  numTags ) )
+      if  ( (numTags > 0) && ( numPoints !=  numTags ) )
 	 throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
       
       double* points_ptr=TMPMEMALLOC(numPoints * dim, double);
