@@ -84,8 +84,8 @@ omp_flags = '-openmp -openmp-report2'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-#mpi = 'INTELMPI'
-mpi = 'none'
+mpi = 'INTELMPI'
+#mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.0.0.027/lib64']
@@ -167,8 +167,8 @@ boomeramg_libs = ['HYPRE']
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-#lapack = 'mkl'
-lapack = 'none'
+lapack = 'mkl'
+#lapack = 'none'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 lapack_prefix = mkl_prefix
