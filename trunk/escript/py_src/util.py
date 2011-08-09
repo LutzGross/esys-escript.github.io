@@ -4796,7 +4796,11 @@ def maximum(*args):
              	out.copyWithMask(a,wherePositive(a-out))
           else:
              diff=add(a,-out)
-             out=add(out,mult(wherePositive(diff),diff))
+             temp=add(mult(out, whereNonPositive(diff)), mult(a, wherePositive(diff)))
+             if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
+	       # we need to convert the result to an array 
+	       temp=numpy.array(temp)             
+             out=temp
     return out
 
 def minimum(*args):
@@ -4833,7 +4837,12 @@ def minimum(*args):
 		out.copyWithMask(a,whereNegative(a-out))
           else:
              diff=add(a,-out)
-             out=add(out,mult(whereNegative(diff),diff))
+             #out=add(out,mult(whereNegative(diff),diff))
+             temp=add(mult(out, whereNonNegative(diff)), mult(a, whereNegative(diff)))
+             if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
+	       # we need to convert the result to an array 
+	       temp=numpy.array(temp)
+             out=temp
     return out
 
 def clip(arg,minval=None,maxval=None):
