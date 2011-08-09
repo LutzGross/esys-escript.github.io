@@ -109,7 +109,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-#boost_libs = ['boost_python']
+boost_libs = ['libboost_python-mt-py26']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
@@ -171,7 +171,8 @@ parmetis = True
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-lapack_prefix = ['/usr/include','/usr/lib/atlas']
+#lapack_prefix = ['/usr/include','/usr/lib/atlas']
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 
 # LAPACK library/libraries to link against
 lapack_libs = ['lapack_atlas']
