@@ -111,8 +111,8 @@ class Test_Darcy(unittest.TestCase):
         v,p=df.solve(u_ref,p, max_iter=100)
 
         
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
     def testConstF_FixedBottom_mediumK(self):
         k=1.
         mp=self.getScalarMask(include_bottom=True)
@@ -129,8 +129,8 @@ class Test_Darcy(unittest.TestCase):
         v,p=df.solve(u,p,max_iter=100 )
 
         
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
 
     def testConstF_FixedBottom_largeK(self):
         k=1.e8
@@ -146,8 +146,8 @@ class Test_Darcy(unittest.TestCase):
                       permeability=Scalar(k,Function(self.dom)))
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testVarioF_FixedBottom_smallK(self):
         k=1.e-8
@@ -165,8 +165,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
 
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testVarioF_FixedBottom_mediumK(self):
         k=1.
@@ -183,8 +183,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100) 
 
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
  
     def testVarioF_FixedBottom_largeK(self):
         k=1.e8
@@ -202,8 +202,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
 
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testConstF_FreeBottom_smallK(self):
         k=1.e-8
@@ -221,8 +221,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
   
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testConstF_FreeBottom_mediumK(self):
         k=1.
@@ -240,8 +240,8 @@ class Test_Darcy(unittest.TestCase):
         v,p=df.solve(u,p, max_iter=100)
 
         
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testConstF_FreeBottom_largeK(self):
         k=1.e8
@@ -258,8 +258,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
 
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testVarioF_FreeBottom_smallK(self):
         k=1.e-8
@@ -276,8 +276,8 @@ class Test_Darcy(unittest.TestCase):
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
 
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")  
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")  
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testVarioF_FreeBottom_mediumK(self):
         k=1.
@@ -293,8 +293,8 @@ class Test_Darcy(unittest.TestCase):
                       permeability=Scalar(k,Function(self.dom)))
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
     def testVarioF_FreeBottom_largeK(self):
         k=1.e8
@@ -310,8 +310,8 @@ class Test_Darcy(unittest.TestCase):
                       permeability=Scalar(k,Function(self.dom)))
         df.setTolerance(rtol=self.TOL)
         v,p=df.solve(u,p, max_iter=100)
-        self.failUnless(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
-        self.failUnless(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+        self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
+        self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
 class Test_Darcy2D(Test_Darcy):
     TOL=1e-4

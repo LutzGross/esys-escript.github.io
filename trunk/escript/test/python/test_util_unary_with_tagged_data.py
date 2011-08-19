@@ -49,9 +49,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log10(arg)
       ref=Data(1.74166569349,self.functionspace)
       ref.setTaggedValue(1,1.02460272017)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_taggedData_rank1(self):
       arg=Data(numpy.array([72.282406932431243, 35.729324148665768]),self.functionspace)
@@ -59,9 +59,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log10(arg)
       ref=Data(numpy.array([1.8590326057050119, 1.5530248012211607]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.3766574041024322, 1.916308343937587]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_taggedData_rank2(self):
       arg=Data(numpy.array([[51.453194171526192, 13.570707659190413, 60.521549437302234, 31.599538694833306, 14.891175253445139], [98.173449179193497, 5.0087678798438278, 52.481382734493792, 29.128158011918146, 98.064075237764598], [36.407550507350827, 89.884167676960288, 39.308304837547745, 75.538185852569995, 33.601340111371606], [63.889377928887228, 4.6186118848356488, 69.136277385337451, 2.6710200091532696, 63.918258275478514]]),self.functionspace)
@@ -69,9 +69,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log10(arg)
       ref=Data(numpy.array([[1.7114123405757837, 1.1326024950044853, 1.7819100380467305, 1.4996807426262928, 1.1729289748471519], [1.9919940495580575, 0.69973090574844821, 1.7200052689371468, 1.464313021855508, 1.991509937212202], [1.5611914606717532, 1.9536832012319965, 1.5944843153649138, 1.8781665504719267, 1.5263565985615033], [1.8054286595616771, 0.66451146877260103, 1.8397059914266514, 0.4266771414217112, 1.8056249322687863]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.57745438179108843, 1.1199478535847189, 1.7742382564867842, 1.309778872484638, 1.8583628167754329], [0.29197270307270162, 1.2375685187503027, 1.9245735633402872, 1.6584681709302851, 1.516806594890489], [1.4271258951849872, 1.5743916732030367, 1.7091067758161855, 1.8932382443844189, 1.7200764595510651], [1.8003122449866822, 1.3744574176029094, 1.9132103589710923, 1.5672473166998622, 1.2843338296326507]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_taggedData_rank3(self):
       arg=Data(numpy.array([[[90.690037899671296, 23.785411821546496], [91.533710749831201, 35.110847145935921]], [[31.790987742717761, 80.73086172262245], [76.879402834581697, 85.744103669605451]], [[8.1269631331611549, 52.871037837294452], [9.1059277056430368, 62.81826904111756]], [[91.343888112038101, 42.790045009836057], [98.923113540366373, 76.508459842843422]], [[75.511345908209677, 53.05029465716877], [21.756665086458423, 84.34627478690912]], [[20.881744462723443, 21.498514780242811], [94.039541086706947, 63.040386118170531]]]),self.functionspace)
@@ -79,9 +79,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log10(arg)
       ref=Data(numpy.array([[[1.9575595833906394, 1.3763106752125882], [1.9615810688900812, 1.5454413081428469]], [[1.50230402160926, 1.9070395881750126], [1.885810001264896, 1.9332042647871273]], [[0.90992828964073624, 1.7232178355155006], [0.95932419800764912, 1.7980859652326844]], [[1.9606794936916605, 1.6313427433082643], [1.9952977770394453, 1.8837094594664194]], [[1.8780122111672353, 1.7246878004452211], [1.3375923264330749, 1.9260659064246666]], [[1.3197667768440355, 1.3324084578214161], [1.9733105010994656, 1.7996188645144506]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.6905468471583012, 1.6739739462120611], [1.1269811891924277, 1.9052979203898317]], [[1.9765366629687919, 1.855401348340298], [1.3436768880708625, 1.8921159850039784]], [[1.5150582432096382, 1.5366855590999351], [1.9571272882619251, 1.59052174202249]], [[1.9893767950999692, 1.3240501072063162], [1.7838989877160136, 0.96847017941343561]], [[1.964570475228363, 1.1110392687676565], [1.9531036091864897, 1.0683408704968049]], [[1.5258614442649203, 1.0175318977566594], [1.3694269472799274, 1.6881374575925516]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log10_taggedData_rank4(self):
       arg=Data(numpy.array([[[[90.916803177883821, 54.525338275396493, 13.364424356447465, 51.314413977784419], [80.231561588327807, 82.162456273997748, 8.3566662162590539, 94.730819165987], [77.473176646131762, 20.972609574388059, 74.896335161378119, 88.10387415596874]], [[11.595133878605829, 29.493110939671826, 31.490679142790391, 39.161104201178077], [32.61379799879397, 58.334287443171277, 88.246072805422187, 35.746693154753984], [88.031724708015759, 42.086782575753446, 76.30576562684233, 41.664454917294485]]], [[[73.805732338880929, 29.722157924518495, 11.979308129040467, 56.678829139293917], [6.1110346378486105, 61.420099159473246, 24.460988572874975, 9.9837108208795708], [29.304214355701266, 69.239538294798919, 43.726703031386528, 96.453481611027584]], [[83.748022272324235, 32.953465755838039, 34.11675054427031, 16.642877884588994], [64.574790966313543, 42.938611636354324, 46.810954363884647, 91.97971646326387], [96.485547539718311, 42.855584051837369, 73.227470310618529, 73.565844556183777]]], [[[88.201355962594207, 41.836289548798113, 69.197678273827108, 31.32522051118902], [44.933739003053383, 82.304262181531868, 46.662125485783939, 25.216812874514684], [37.715123702749331, 0.33654002188789439, 77.616411403471773, 19.152072401340583]], [[92.715182555824981, 51.479018971675195, 58.389552448640487, 11.079825716836668], [66.120381536086015, 54.696122559623113, 74.602124135737157, 46.764404847359458], [92.441508878592927, 49.13843332363826, 84.277334637691311, 61.375020008040991]]]]),self.functionspace)
@@ -89,9 +89,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log10(arg)
       ref=Data(numpy.array([[[[1.958644156632638, 1.7365983686236373, 1.1259502572038609, 1.7102393735278381], [1.9043452451825991, 1.9146734141614923, 0.92203305583094985, 1.9764912927969005], [1.8891513637839643, 1.3216524721079508, 1.8744605672571355, 1.9449950058872605]], [[1.0642757674116168, 1.4697205844431256, 1.4981820269365049, 1.5928549288337999], [1.5134013769682526, 1.7659238973023306, 1.9456953871829765, 1.5532358724009305], [1.9446392105900805, 1.6241457263418644, 1.8825573542762462, 1.6197657044633726]]], [[[1.8680900938889471, 1.4730803374132002, 1.0784317358816056, 1.7534208700934903], [0.78611474534376435, 1.7883105132528869, 1.3884740047472364, 0.99929199314012029], [1.4669300824636733, 1.8403541632373015, 1.640746733021623, 1.9843179086742269]], [[1.9229745598717729, 1.5179010966078323, 1.5329676600131747, 1.2212284266018456], [1.8100630090021725, 1.6328479979852315, 1.670347495447966, 1.9636920664836188], [1.9844622657395339, 1.6320074182054687, 1.8646740314178081, 1.8666762251564302]]], [[[1.9454752618046733, 1.6215531600863007, 1.8400915232171524, 1.4958941368555099], [1.652572558384511, 1.9154223260262504, 1.6689645172636371, 1.4016901956994581], [1.5765155365073076, -0.47296328136118848, 1.8899535592530265, 1.2822157748461316]], [[1.9671508577724528, 1.7116302620231869, 1.766335146430758, 1.0445329290917416], [1.8203353509269165, 1.7379565400327668, 1.8727511932541194, 1.6699154116173478], [1.9658670256463047, 1.6914213057918996, 1.9257107921182273, 1.787991646709524]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.7988462059099257, 1.8928858152534429, 1.3746543458291129, 1.8886266114703387], [1.0547575768197655, 0.70019694597262339, 1.8181667671078665, 1.8627544640480471], [1.6643189533177833, 1.6630551579903574, 1.8070179796377215, 1.7144435945053167]], [[1.355629661691661, 1.7991842584914508, 1.1389694245123259, 1.7770253444715181], [1.1515844579186774, 1.4895779815869408, 1.8858844230448231, 1.329593611797627], [1.808599357832434, 1.660434205884993, 1.9391054996884767, 1.7960546369405848]]], [[[1.8805986233038012, 1.8460010205206747, 1.886110065083187, 1.7904219485998918], [1.8910502341136941, 1.1842861559437698, 1.7023464199899885, 1.7972963795632348], [1.6961622236947298, 1.6666670194238626, 1.7527286121825749, 1.4461465476300437]], [[1.8811619412061271, 1.9100667945637591, 1.8445906490239146, 1.9214690479550947], [1.8025624219423253, 1.8448172095369506, 1.4966660544104895, 1.2832725829781746], [1.8094267027962698, 1.1375885826765326, 1.5030546817757668, 1.8182491033032764]]], [[[1.9961733690924155, 1.9385604064782116, 0.15598226954758712, 0.92136887176784188], [1.5378624067983235, 1.5523151950355665, 1.6887015673518488, 1.1504252079046915], [1.9913169740527836, 1.4142152721675985, 0.1385613878659461, 1.9804898262088639]], [[1.6964053061705062, 1.1013957616632397, 1.4272095231877091, 1.9227714792212125], [1.6075069939758382, 1.8372545596256498, 1.9989242604737723, 1.9788380467284004], [1.7262236374426407, 1.5430785586149354, 1.0224032299396042, 0.96651914162145247]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_taggedData_rank0(self):
       arg=Data(-77.2124777804,self.functionspace)
@@ -99,9 +99,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=wherePositive(arg)
       ref=Data(0.0,self.functionspace)
       ref.setTaggedValue(1,0.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_taggedData_rank1(self):
       arg=Data(numpy.array([95.507404522977254, 85.699228977736311]),self.functionspace)
@@ -109,9 +109,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=wherePositive(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.0, 0.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_taggedData_rank2(self):
       arg=Data(numpy.array([[-76.258485344070493, -13.031569421642786, 56.331314317015853, 76.297860126066155, 88.130561052243763], [-6.1668191468469757, 54.331037054715466, -81.929096086646751, 11.266746882647325, 48.963064080280049], [60.302120288359191, -98.222376211103324, 24.902263686516406, 76.321693298041907, -15.612529577369273], [-89.36373926383007, -99.797095905565556, 55.669412249479365, 73.050408854136265, 58.641360635396893]]),self.functionspace)
@@ -119,9 +119,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=wherePositive(arg)
       ref=Data(numpy.array([[0.0, 0.0, 1.0, 1.0, 1.0], [0.0, 1.0, 0.0, 1.0, 1.0], [1.0, 0.0, 1.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0, 1.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.0, 0.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 1.0, 0.0], [1.0, 1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0, 1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_taggedData_rank3(self):
       arg=Data(numpy.array([[[80.508473585546227, -73.527464319061067], [-63.562066924370612, -27.980541518495002]], [[-41.335157425780203, -43.662467900732139], [19.157012696460683, -20.184083339906508]], [[35.870058595838856, 72.278036946039947], [75.339493834805268, -9.1707737241088836]], [[-68.38683588297539, -47.88605412318423], [-20.399875642984753, -29.241844531878812]], [[-67.76044429517556, 55.107326245665774], [59.476906111528308, 65.132080499441145]], [[39.011636203343926, 68.793212772548998], [-5.2117301620619116, -37.964739068093408]]]),self.functionspace)
@@ -129,9 +129,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=wherePositive(arg)
       ref=Data(numpy.array([[[1.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [1.0, 0.0]], [[1.0, 1.0], [1.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [0.0, 0.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.0, 1.0], [0.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[0.0, 0.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 0.0]], [[1.0, 1.0], [1.0, 0.0]], [[1.0, 1.0], [0.0, 0.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_wherePositive_taggedData_rank4(self):
       arg=Data(numpy.array([[[[88.580956068056565, 14.00279382125251, 99.108011223826338, 45.511681652958828], [82.854668978990787, -71.320284703817521, -47.231688078520051, -87.449857804724985], [93.257616694753921, 52.060412772871643, 18.537844019590111, 53.497901549669848]], [[-46.91724689666372, -75.312992998386903, 24.379946633037505, 3.6136809288494618], [55.419075241203274, 64.655875544211057, 5.6929661553654682, -80.668713367017716], [9.6958327067133041, -69.61412534721569, -39.445219790469352, 87.567956888590658]]], [[[-73.321457711307843, 10.82305253374048, -40.400284930212905, -92.490874982007981], [-79.425928971727643, -75.222388693443605, 89.503284861115134, 83.502961391303643], [-88.448173270777147, -50.193426055655976, -70.923108466792598, -25.976738197547292]], [[-8.5488119421924864, -1.9838167877165915, -56.838230691876412, -35.192343099118673], [-14.387471763442306, -65.661449017261418, 75.22011478664038, -84.87320516882086], [98.450531686197365, -81.019483890591289, -94.982842703436916, -49.156850403858819]]], [[[75.118284154717031, -51.311615796136792, -89.182477325683962, 55.44041573353897], [-80.77776129565197, -34.097004704596088, 75.361574051712552, -16.248241864062635], [84.169901667127789, 74.398090927221261, 86.145123497406473, 88.071402053067715]], [[93.648624647556488, 1.6348597078223719, 6.0244027607641755, 19.383999786570769], [-41.76041050584827, 10.228798270020405, -47.174639917060254, -7.0250102695790275], [-48.870699185907625, -19.365332607009293, 51.663276846691986, -68.319951789687167]]]]),self.functionspace)
@@ -139,9 +139,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=wherePositive(arg)
       ref=Data(numpy.array([[[[1.0, 1.0, 1.0, 1.0], [1.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]], [[0.0, 0.0, 1.0, 1.0], [1.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, 1.0]]], [[[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 0.0, 0.0]]], [[[1.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 1.0, 0.0]], [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 1.0]]], [[[1.0, 1.0, 1.0, 1.0], [1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0]], [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 1.0]]], [[[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0]], [[0.0, 1.0, 0.0, 0.0], [1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 0.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_taggedData_rank0(self):
       arg=Data(-19.2850342868,self.functionspace)
@@ -149,9 +149,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNegative(arg)
       ref=Data(1.0,self.functionspace)
       ref.setTaggedValue(1,1.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_taggedData_rank1(self):
       arg=Data(numpy.array([-69.991852168228164, -51.135726516141467]),self.functionspace)
@@ -159,9 +159,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNegative(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.0, 0.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_taggedData_rank2(self):
       arg=Data(numpy.array([[48.844728607913282, -72.785354714899881, 53.3081372120038, 18.65599332913655, -46.488345451249288], [-82.483069621758148, -33.022373579278181, -62.408982644197899, -30.801150776046654, -3.1747181449523367], [68.051986644816708, -10.324492516248156, -35.538799676186628, -76.221649010357453, -10.365176815811154], [12.925649512488647, -69.48406607854993, -14.171821915240514, 66.552057082826508, -98.385243996883332]]),self.functionspace)
@@ -169,9 +169,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNegative(arg)
       ref=Data(numpy.array([[0.0, 1.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [0.0, 1.0, 1.0, 1.0, 1.0], [0.0, 1.0, 1.0, 0.0, 1.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, 0.0, 0.0, 1.0, 0.0], [1.0, 1.0, 1.0, 1.0, 0.0], [1.0, 1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0, 1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_taggedData_rank3(self):
       arg=Data(numpy.array([[[69.353620509386616, -74.080076314847517], [-30.249703014852415, -95.672525613399003]], [[-8.5039415761560377, 60.253313051648774], [-13.801342152251323, 40.764779434191979]], [[-36.581197219625516, 75.047667541458054], [-77.793778451165309, -72.594277712095419]], [[-72.619314204148793, -14.806208252588647], [87.915581023315411, 95.105365322376201]], [[15.147306304672597, 14.666885700887903], [81.180471023319853, 85.165436080616928]], [[43.823915191016482, -49.98290658400564], [-72.588576349996117, 96.137982642309737]]]),self.functionspace)
@@ -179,9 +179,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNegative(arg)
       ref=Data(numpy.array([[[0.0, 1.0], [1.0, 1.0]], [[1.0, 0.0], [1.0, 0.0]], [[1.0, 0.0], [1.0, 1.0]], [[1.0, 1.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.0, 1.0], [0.0, 0.0]], [[1.0, 1.0], [1.0, 0.0]], [[0.0, 1.0], [0.0, 1.0]], [[1.0, 0.0], [1.0, 0.0]], [[1.0, 0.0], [1.0, 1.0]], [[0.0, 0.0], [0.0, 0.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNegative_taggedData_rank4(self):
       arg=Data(numpy.array([[[[78.567215316552364, 73.624001898494328, 6.6089006903017093, -16.066074308908668], [4.6493463096686014, 90.440517625816341, -39.347037075742385, -33.297969929859519], [64.699949994741132, 29.115653652245214, 37.822018084896769, 40.128249957713678]], [[-55.450069727212096, 81.466719888892953, -14.393705514447504, 50.041870644315622], [-26.112384871019117, 91.0126228352174, -89.730765921875076, 49.059538764459973], [38.483838119837088, -96.69931018125024, 20.572376725250095, -19.453405707808002]]], [[[13.464674311866403, -63.957052627899927, 27.769891567982711, -33.550495063440906], [43.131655313012601, 4.7880717355257048, 11.709216606284343, -73.375330948322741], [24.471638138818889, -70.587099709547374, 42.297065361106633, -34.039431318624949]], [[21.857294994809905, -19.704682667449276, -86.108666845333829, -75.436492450552578], [87.94303965840291, 97.530458057774098, 25.97064557505557, -36.945527429857819], [90.911480668328323, 6.1671903724853223, 25.709485934911285, -21.355346056419705]]], [[[67.782998886788846, 70.917380141486149, 13.823579458254926, 18.402548374224679], [-15.060657679519679, 82.09963819729029, -31.92180428664399, -97.536671374116139], [37.669076925828392, -75.58771930699335, 45.895049803831114, 35.48815045691137]], [[12.714019161158106, -57.944653564941675, 62.430334339808155, -66.857496337271897], [-6.4429554795663648, -8.3994486590568158, -80.192945429058966, -93.438462560326158], [34.875330751872951, 69.588212740586386, -70.503265404744013, 35.080768936736405]]]]),self.functionspace)
@@ -189,9 +189,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNegative(arg)
       ref=Data(numpy.array([[[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]], [[1.0, 0.0, 1.0, 0.0], [1.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 1.0]]], [[[0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0]], [[0.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0]]], [[[0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0]], [[0.0, 1.0, 0.0, 1.0], [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 1.0, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]], [[0.0, 0.0, 1.0, 1.0], [1.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 1.0]]], [[[1.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0]], [[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0], [1.0, 1.0, 0.0, 0.0]]], [[[1.0, 0.0, 0.0, 1.0], [1.0, 1.0, 0.0, 0.0], [1.0, 1.0, 0.0, 0.0]], [[0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_taggedData_rank0(self):
       arg=Data(-78.1544615646,self.functionspace)
@@ -199,9 +199,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonNegative(arg)
       ref=Data(0.0,self.functionspace)
       ref.setTaggedValue(1,0.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_taggedData_rank1(self):
       arg=Data(numpy.array([17.602013218893518, 29.547786128150307]),self.functionspace)
@@ -209,9 +209,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonNegative(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.0, 1.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.38327384036398371, -34.645139490102878, 65.429233454558641, 95.235253228502785, 29.097950082051085], [-43.855663256862009, 55.686325731330783, -67.824366444401477, 16.702344987904212, 22.218041380401374], [78.969508595512451, -60.305312026473089, -59.523292190062982, 74.808651981782504, 79.872897022513683], [63.606277951467064, -76.462470884188775, -72.691576180524351, -49.079190521880697, 45.394053081951711]]),self.functionspace)
@@ -219,9 +219,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonNegative(arg)
       ref=Data(numpy.array([[0.0, 0.0, 1.0, 1.0, 1.0], [0.0, 1.0, 0.0, 1.0, 1.0], [1.0, 0.0, 0.0, 1.0, 1.0], [1.0, 0.0, 0.0, 0.0, 1.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, 0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0, 1.0], [0.0, 1.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0, 1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_taggedData_rank3(self):
       arg=Data(numpy.array([[[-13.892573110308774, 43.478804863362512], [-36.040457512639264, -51.981819940572649]], [[-62.169201833468925, 57.986370401331953], [-4.1036429741114802, 48.023435568940073]], [[-80.645707040180412, -10.141695439237907], [-4.8056301100563417, 48.75486098147897]], [[-91.963242822660888, 88.059478204857612], [43.320911501208769, -22.30145015628095]], [[-86.786948436003428, 31.120205822215894], [34.433146395475489, 87.18740518030657]], [[-9.4220225035139435, -20.184163123649284], [-19.921535324926339, 25.857031424846014]]]),self.functionspace)
@@ -229,9 +229,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonNegative(arg)
       ref=Data(numpy.array([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 1.0]], [[0.0, 1.0], [1.0, 0.0]], [[0.0, 1.0], [1.0, 1.0]], [[0.0, 0.0], [0.0, 1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.0, 1.0], [0.0, 0.0]], [[1.0, 1.0], [1.0, 0.0]], [[1.0, 1.0], [0.0, 1.0]], [[1.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonNegative_taggedData_rank4(self):
       arg=Data(numpy.array([[[[31.064058622394185, -23.221839301023678, 68.763472697005085, 59.65832614821349], [-40.149807242440751, 55.03145271535027, -64.4959578656334, -2.1518498706666946], [55.404104858000437, 49.396652662387567, -49.624666695838648, -62.848812119970042]], [[-91.389556659029211, 72.332633311747458, -52.32546838722876, -38.634885477981307], [-71.603348675002792, -2.4791274164933697, 24.130510966659983, -5.0112124293864042], [-25.546226826848041, 27.236363562768304, -61.886267845384936, -60.880197873757623]]], [[[27.658384194987519, 84.510658257152215, -58.927887590834139, 49.108023674331434], [-70.267015166041148, -79.457401602686048, 56.127202277200126, 25.839278403805395], [26.875154742009613, 1.4487959347651866, -88.070139902975072, -38.510490284412093]], [[-47.959868897350646, -5.7819206338316036, -56.800386597248306, -55.237835036677076], [28.516757929967042, 90.778719180512979, 15.739130130788766, -74.040382579111679], [-71.111296754698344, 12.107778742152561, -79.104526891456999, -41.005699875297388]]], [[[18.567303332583634, -73.676314650547354, -97.749794073567415, 59.159591299795522], [29.97705193558275, 90.413624368349787, 24.306766472883965, -69.797371947362393], [-39.289453466471549, -40.65110745107021, -59.028684721855718, -20.270569577803272]], [[83.125187150431088, 27.563776588259614, -9.5176832989115212, -90.5959013499223], [-69.524801083902418, -31.838028445081164, 14.626332705121882, 38.303372039757761], [-9.2077846008452156, -84.558594581494532, -15.169395910120073, 39.522809676227837]]]]),self.functionspace)
@@ -239,9 +239,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonNegative(arg)
       ref=Data(numpy.array([[[[1.0, 0.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0], [1.0, 1.0, 0.0, 0.0]], [[0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 0.0]]], [[[1.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0], [1.0, 1.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 0.0], [0.0, 1.0, 0.0, 0.0]]], [[[1.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[1.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.0, 0.0, 1.0, 1.0], [1.0, 0.0, 0.0, 1.0], [1.0, 0.0, 0.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 0.0, 1.0, 1.0]]], [[[0.0, 0.0, 0.0, 1.0], [1.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 0.0]], [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0]]], [[[0.0, 0.0, 0.0, 1.0], [1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 0.0]], [[0.0, 1.0, 0.0, 1.0], [1.0, 1.0, 0.0, 0.0], [0.0, 1.0, 1.0, 1.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_taggedData_rank0(self):
       arg=Data(59.5300640359,self.functionspace)
@@ -249,9 +249,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonPositive(arg)
       ref=Data(0.0,self.functionspace)
       ref.setTaggedValue(1,1.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_taggedData_rank1(self):
       arg=Data(numpy.array([-35.653771579383431, -57.809515571795679]),self.functionspace)
@@ -259,9 +259,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonPositive(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.0, 1.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_taggedData_rank2(self):
       arg=Data(numpy.array([[66.312754795349093, 82.034605718677227, -46.821806782974143, -87.117091329676626, 79.995435394657591], [23.928044089256971, 37.587150540719591, 8.7201565013642579, 16.527262198522521, 43.468010592942164], [-58.095116913299293, 29.439827568578721, -0.091616442994578051, -54.761434852877166, -11.808816784702444], [-69.299763869285897, -13.113050785108982, -5.1976088703165289, 21.099974177713761, 6.0733045244008679]]),self.functionspace)
@@ -269,9 +269,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonPositive(arg)
       ref=Data(numpy.array([[0.0, 0.0, 1.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 0.0, 0.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, 1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 1.0, 0.0, 0.0], [1.0, 0.0, 1.0, 1.0, 1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_taggedData_rank3(self):
       arg=Data(numpy.array([[[25.436500051631739, -52.748846289150244], [41.085054249733929, 37.28010897113333]], [[99.576478076717791, -9.9679696571838718], [-61.344641894951302, -3.7437435600148774]], [[-50.906089775590772, 64.943203676394404], [42.050588774194182, 63.118383844777753]], [[-35.778055648047726, -63.920957612224157], [15.37985889218254, -68.424348417967053]], [[-56.55550570286416, 42.304324718922885], [70.622324649491162, -12.596055870540511]], [[34.100758417960179, 8.1628573265152085], [-32.962482469141108, 81.284708270077232]]]),self.functionspace)
@@ -279,9 +279,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonPositive(arg)
       ref=Data(numpy.array([[[0.0, 1.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 1.0]], [[1.0, 0.0], [0.0, 0.0]], [[1.0, 1.0], [0.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [1.0, 0.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.0, 0.0], [1.0, 1.0]], [[1.0, 0.0], [1.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]], [[0.0, 1.0], [1.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]], [[1.0, 1.0], [0.0, 0.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonPositive_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-97.589886785634022, 75.704136798826028, 72.570441980077703, 41.142807006068949], [52.186886198585341, -81.13583733115226, 19.645361321685243, 25.969196500252664], [90.98310621636935, 91.207424784752419, 32.52582221573229, -46.376838969725199]], [[-24.243208827988809, 20.526435158270147, 46.439239753806106, -33.65061411585431], [-50.041229640131604, -49.061380582231109, -39.874744210873516, -36.550968632191804], [32.736481368599613, -75.040028568765322, 46.201877528037613, 66.414419319197265]]], [[[2.5037656480006802, -29.171488642086899, 37.367016013632622, -70.265534203155468], [-5.0615104556033259, -75.110477824991989, 7.1287630039422965, -17.239036014080057], [-28.096242015816813, -7.528715826985021, -85.497229220965764, 22.546758335502105]], [[74.817640632876163, 40.267037402027995, 10.981140051252439, -15.739056364934243], [-11.202000266050078, 76.223681897029763, -17.41622944432541, -3.2765461050635594], [-25.659541213077148, 80.506749270081087, -1.000794733449311, 98.399202561993803]]], [[[-46.153348025882913, 64.301872580934884, 67.551433419371364, 86.776352830516998], [28.558361132430576, 78.958726721940224, -35.553376040555037, -17.553520543738372], [11.165619248232318, -97.969411066483929, 50.903682207966739, -10.289318584097984]], [[22.570215658384171, 75.89748134306177, -89.388639375388706, -54.6472406344094], [-33.869164257400811, 38.645420950299723, -3.8841219051897156, 28.668559253094486], [-82.413441576756185, -78.700513819287238, -75.50816982500163, -52.061106946967861]]]]),self.functionspace)
@@ -289,9 +289,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonPositive(arg)
       ref=Data(numpy.array([[[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]], [[1.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0]]], [[[0.0, 1.0, 0.0, 1.0], [1.0, 1.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]], [[0.0, 0.0, 0.0, 1.0], [1.0, 0.0, 1.0, 1.0], [1.0, 0.0, 1.0, 0.0]]], [[[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0], [0.0, 1.0, 0.0, 1.0]], [[0.0, 0.0, 1.0, 1.0], [1.0, 0.0, 1.0, 0.0], [1.0, 1.0, 1.0, 1.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.0, 1.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [1.0, 1.0, 1.0, 0.0]], [[0.0, 0.0, 1.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 1.0]]], [[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 1.0, 0.0], [1.0, 0.0, 1.0, 0.0]], [[1.0, 1.0, 1.0, 1.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]], [[[0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 0.0]], [[0.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 1.0, 0.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_taggedData_rank0(self):
       arg=Data(-60.3073206028,self.functionspace)
@@ -299,9 +299,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereZero(arg)
       ref=Data(0.0,self.functionspace)
       ref.setTaggedValue(1,0.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_taggedData_rank1(self):
       arg=Data(numpy.array([57.478569368864356, 25.206882696210428]),self.functionspace)
@@ -309,9 +309,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereZero(arg)
       ref=Data(numpy.array([0.0, 0.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.0, 0.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_taggedData_rank2(self):
       arg=Data(numpy.array([[23.125617746775646, -41.981698421134659, 88.634083806667888, 85.022668924224405, 35.388273276293091], [-85.767444923711466, 47.859030088870099, -69.395187041220851, 35.5734575739055, 24.859215630808464], [45.04844052116951, -95.695008500839691, -94.766369979921919, -29.956871512177429, -11.074586010585591], [-20.148312524898017, -79.433644676490502, -19.87738780106119, 58.95117313559922, 50.971789815159298]]),self.functionspace)
@@ -319,9 +319,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereZero(arg)
       ref=Data(numpy.array([[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_taggedData_rank3(self):
       arg=Data(numpy.array([[[3.4027245130060919, -61.09284878347885], [-57.399713635858582, -71.643573213948272]], [[-11.523234389426221, -44.578343090400388], [83.731526181974061, -65.104529547136394]], [[-12.081015577295332, -4.172878078793758], [-89.292376152335635, -25.743293720522729]], [[53.199172477134539, 60.186513433215026], [67.767250940092424, 89.139480682860551]], [[17.059488076066813, 37.190593835102874], [-19.912772973905007, -65.497513416201755]], [[-25.360470411847373, 43.142714268731936], [21.199116504341944, 37.635585100309612]]]),self.functionspace)
@@ -329,9 +329,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereZero(arg)
       ref=Data(numpy.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereZero_taggedData_rank4(self):
       arg=Data(numpy.array([[[[93.831260447485874, 7.7407513574382989, 78.739371854572369, -68.363475865430772], [72.824139460523099, 69.006620095233416, -67.000181405109601, 95.691658959713436], [-46.580816493258205, -19.62723037000471, 7.1964131702848562, -94.003505042058904]], [[85.06939733259054, -12.729485711394545, -95.590773804649672, 66.129455034149544], [52.5485700301343, 1.8469556361458359, 59.238187186745563, 0.89938435519005111], [50.763202555174757, 38.515989700998915, 14.509412952688436, 19.098524401100889]]], [[[15.441947994447844, -87.547935450574357, -15.093661946970599, -34.577822306130841], [47.655788884739167, -13.593073478163831, 73.901883902793401, 50.766658802389429], [93.106292386838589, -26.449736171409441, -32.523468497737113, -36.825111629796645]], [[-71.149835259772914, -77.966052917274098, -40.594142361637765, -93.497294871292127], [-37.049924286179639, -49.307577406565684, 68.805856372840026, -83.077598973248371], [-35.950769604858124, 53.444154742123146, -29.736934427716307, -0.43882835811794507]]], [[[-28.804291026424494, 36.420207954120713, 44.975880956788671, -18.160405554758484], [-15.015205668084675, -36.844405430803782, -55.648827533689385, -63.666847070332658], [-38.323848308813055, -86.094993931559884, -47.504890814498715, 75.386260617980327]], [[-49.43361721674431, -48.467520039782322, -13.393183500735859, 33.478259837688171], [-46.591630982573548, -15.732761279461855, 55.398884354877111, 42.656388373806152], [20.973563827725044, -83.810921836893868, 37.036944354976555, 95.055268401462797]]]]),self.functionspace)
@@ -339,9 +339,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereZero(arg)
       ref=Data(numpy.array([[[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]], [[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]], [[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]], [[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]], [[[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_taggedData_rank0(self):
       arg=Data(-1.9710533403,self.functionspace)
@@ -349,9 +349,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonZero(arg)
       ref=Data(1.0,self.functionspace)
       ref.setTaggedValue(1,1.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_taggedData_rank1(self):
       arg=Data(numpy.array([-59.49925191560812, 86.042241301467669]),self.functionspace)
@@ -359,9 +359,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonZero(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.0, 1.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_taggedData_rank2(self):
       arg=Data(numpy.array([[-6.8281814038072071, -59.600553597455487, -83.253618903284348, -55.555714436842266, -58.64125306605785], [-54.669636874026729, -40.668963536281467, 48.151126090125331, -82.810118365697718, -2.0625309958108886], [-50.145961443418784, 33.196540210116666, 18.939660902081542, -35.312472223501246, 45.025825447182569], [-91.787750952036063, -19.219817615082405, 30.739339723723532, 46.808225524785058, -53.347997111730059]]),self.functionspace)
@@ -369,9 +369,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonZero(arg)
       ref=Data(numpy.array([[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0, 1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_taggedData_rank3(self):
       arg=Data(numpy.array([[[-77.400629617637264, -7.8585991909028223], [79.37731461196492, -78.311221968888802]], [[-2.2871031341482109, 61.613282578413418], [14.239083629293276, -86.60455578579527]], [[32.648402678335373, 67.120663891666482], [-16.40250641841989, -45.441109646024543]], [[-88.814372300408252, 96.863741115845073], [-53.568931159701449, 61.772732453745817]], [[12.78118059732283, 61.665805717605537], [81.736967250564334, -79.838957222371846]], [[-45.746992316765287, -50.359908369594095], [67.084057007701773, -77.367125763337725]]]),self.functionspace)
@@ -379,9 +379,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonZero(arg)
       ref=Data(numpy.array([[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_whereNonZero_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-56.530041249956064, -75.595773656477377, 57.930726925789344, -35.064711718518922], [89.927579325782204, -71.292052004298981, 74.426753570770302, 9.9254833972331795], [66.426699960830888, -79.419436482993362, 70.191990839107291, 25.664966939851837]], [[91.588972225813166, 75.24780363003768, 22.708376398136238, 79.829437424982274], [78.426467246737957, 34.311496583740819, -45.051218540773853, 21.126634987063937], [0.93545608150542137, -64.07783608516722, 50.0880392185164, 3.0383401979216416]]], [[[33.521385232890651, 65.495547288295967, -36.26432133678432, 43.817943477527393], [25.622359237391734, 46.879767530213655, 44.264770652047645, -82.611848465548164], [8.6931324018650855, 98.705476157468638, -69.064996470241397, -82.140570519506227]], [[50.341676972542217, -57.113225217844878, 23.496128915773994, -84.4500434098574], [-42.826308284507533, -40.068614099685277, -64.107129980786979, -64.752370052337284], [-68.77258294388686, -65.093744454055411, -2.0441147238691144, 38.710454571834248]]], [[[23.964849311323277, -9.8504539937835318, -24.01385095241659, -65.609734597116542], [-34.482955634964824, -55.357317162052141, -29.891659032054235, -59.722077669432629], [24.465604000129801, -3.1488488615906647, 90.185493485946637, -9.9469471059439201]], [[47.887647758738581, -18.650373829652906, -88.084195156027434, -50.216336238949744], [84.137883656735909, -12.149905093038768, 96.23351445652429, -70.450849093320912], [79.18622708472455, 93.448904090150648, 15.570836279018437, -91.458357264821544]]]]),self.functionspace)
@@ -389,9 +389,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=whereNonZero(arg)
       ref=Data(numpy.array([[[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]], [[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]], [[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]], [[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]], [[[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]], [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_taggedData_rank0(self):
       arg=Data(-24.7105931613,self.functionspace)
@@ -399,9 +399,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sin(arg)
       ref=Data(0.40972088744,self.functionspace)
       ref.setTaggedValue(1,0.0605693981609)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_taggedData_rank1(self):
       arg=Data(numpy.array([19.860974255803598, 48.899013130941427]),self.functionspace)
@@ -409,9 +409,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sin(arg)
       ref=Data(numpy.array([0.84758534887649317, -0.97919776342443343]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.98351066065067827, -0.3560220138624291]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_taggedData_rank2(self):
       arg=Data(numpy.array([[37.890743553866486, -52.175642782800914, 61.917008025503975, -8.538416676807941, -94.304749798245496], [-17.787570828089727, -19.048274463511873, -8.2634570563295142, -56.253500812466228, 87.627404284894396], [-14.454217499387354, 73.713310630128319, -52.818033941567855, 90.807246316901796, 59.632923220807299], [2.3430650859352511, 56.726750975618302, -69.98474018040875, -30.128841460819984, 0.11683572211893534]]),self.functionspace)
@@ -419,9 +419,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sin(arg)
       ref=Data(numpy.array([[0.19046098975424755, -0.94296657311066345, -0.7924680880494267, -0.77477635663664268, -0.056939378452443026], [0.87332421967504115, -0.1974132538348578, -0.91732979816211846, 0.29089958624583467, -0.33083665313437571], [-0.95015908369497537, -0.99349574918962724, -0.55556403598677151, 0.29450799309098907, 0.057305786038470398], [0.71632946014175625, 0.17714342493014262, -0.76413661669322097, 0.96002319680218495, 0.11657009080686483]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.36056248350542847, 0.38137387117559401, 0.84588700623357704, 0.17502331279847, 0.2733177892111176], [0.056364979209719938, 0.89384032979663164, -0.13223553506078178, 0.98521137495670197, -0.94308411592712293], [0.22091275938263169, -0.67821155091384655, -0.65726119089937152, -0.18514670365491534, 0.5599375367095778], [-0.056519892938693105, 0.7144278132655969, -0.38895255454538685, -0.44796245325739548, 0.2769693862212248]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_taggedData_rank3(self):
       arg=Data(numpy.array([[[-55.804968616645148, 58.560992915206214], [42.652192703056301, -91.42882116095241]], [[39.310441995226739, 33.870993341596233], [80.401033234710297, 73.000828209637689]], [[5.7360515152169285, 82.330874482727353], [-75.426134234758621, 7.5453684113771118]], [[-19.895965390103115, -88.950469683568315], [31.355932404642459, 36.487846363447858]], [[67.666456279782437, 58.020389340319895], [-37.89476101041673, -42.399630457776482]], [[-23.830782444196501, 6.0849055767691738], [91.294861085921525, -52.847710860098182]]]),self.functionspace)
@@ -429,9 +429,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sin(arg)
       ref=Data(numpy.array([[[0.67701499649890673, 0.90409941974537544], [-0.97117328078000487, 0.31706594876811195]], [[0.99917861697072197, 0.63385392022976472], [-0.95812352836612924, -0.67738144661254696]], [[-0.52024157266400017, 0.60476080407034305], [-0.027906925031102141, 0.95275570243286156]], [[-0.8656310935760867, -0.83375573809919057], [-0.059958148294456545, -0.93606199112953326]], [[-0.99254113222478446, 0.99509611012034227], [-0.19440335819459723, 0.99992954803650558]], [[0.96408030914008547, -0.19698305893325982], [-0.18755672118757361, -0.53064744896026339]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.66221880833880609, -0.92166239454618104], [-0.95447604942411934, 0.72000463780845769]], [[0.89707725485516432, 0.95995773196345946], [0.9936384606300962, 0.50765297031738676]], [[-0.99526034460150747, -0.74458387237142676], [-0.95798362538691173, -0.98033782538997782]], [[0.95477283132130442, -0.72483027934968591], [0.80893159374577939, -0.56970402250150143]], [[-0.6083342836862955, -0.63189999754289639], [-0.78468240482370322, -0.9108809171944825]], [[0.77140583862359613, 0.96806942866170043], [-0.99700488005111876, 0.51024422262880564]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sin_taggedData_rank4(self):
       arg=Data(numpy.array([[[[95.057014858860498, -50.023546676067944, -19.520550887074563, -14.915416158905259], [-72.276262048791182, -57.778697211921127, -10.589425732964969, 25.789691603835237], [71.432158308304565, 83.59773672148529, 32.062292384526415, -22.527648292677569]], [[-39.074624167039062, 92.303231204531414, -1.4192851682411742, -68.883629510294497], [46.825962360174429, 85.58307574133471, 83.176640836526758, -93.888543574320394], [59.195891546840528, -43.884372920271829, 46.885208516026694, -24.330067940056807]]], [[[-85.391419005371418, -52.993590690134319, 41.1653245235631, 70.963880995127738], [-6.8099927112965162, 14.755258748362692, -77.400445539133742, -3.6276152651411877], [-88.775588041032492, 89.080955577757038, 0.97522108268380236, 11.904044693769748]], [[28.114564123404421, 17.406751514150216, -90.824155259332073, 66.590378374684491], [-23.314357242078572, 66.459924224373196, 1.190010463508969, -19.129294185825657], [12.759163310131783, 94.16098679455763, -80.470912052594556, -87.769040453881502]]], [[[-68.103901459227245, 96.524362598603318, -3.2834594710336376, -25.520289808877067], [56.393892750276962, 17.548302326605253, 15.721717465663659, 76.20380788007958], [-65.13810360798314, -4.9406764890286041, 65.373960553505867, -11.670204391287569]], [[54.171569268655503, 53.359368061868707, -46.012260984758143, -78.151318891542985], [20.615711960999178, 40.160242458140658, -80.640118059335776, -94.602105820605374], [58.356391780158305, -78.074396086921837, 69.50163735189372, -68.547938015025153]]]]),self.functionspace)
@@ -439,9 +439,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sin(arg)
       ref=Data(numpy.array([[[[0.72375966950305115, 0.23958247784190015, -0.62176555507714748, -0.71214373694684574], [0.019629755360536964, -0.94249864392330207, 0.9186492389762253, 0.61070482468498899], [0.73418989352805997, 0.9408956015682427, 0.60228932671485913, 0.51113062555018463]], [[-0.98099259974089892, -0.93096397739276848, -0.98854412433116323, 0.22934906491349744], [0.29353958469160507, -0.68897514951619387, 0.99714636265035372, 0.35155913660386867], [0.47447618324952018, 0.097767803237166412, 0.23642150489763264, 0.71921602354647907]]], [[[0.53829894600069828, -0.4018025366804851, -0.31894868102661073, 0.96159352277239407], [-0.50277617521839357, 0.8149857013480003, -0.90837056606621547, 0.46711279434815001], [-0.7249719991634016, 0.89850915924785046, 0.82782593247756842, -0.61495265106171171]], [[0.15909090210144514, -0.99182021016560207, -0.27830764816239967, -0.57853598042401821], [0.96950642440138313, -0.46751584043254807, 0.92837285606475217, -0.27610409657055596], [0.19160059401890014, -0.086683885904533534, 0.93579131574343599, 0.19430985516438759]]], [[[0.84743598014352139, 0.76110153119788515, 0.14139142291111614, -0.37791993461054291], [-0.15415780695875661, -0.96389276338977681, -0.013753764053628931, 0.72123543134514545], [-0.74152608990617153, 0.97405537665333219, 0.56421749260196419, 0.78093804490852481]], [[-0.69217200421492153, 0.04768895464089825, -0.89642177035913229, -0.37879826270669459], [0.98097790580385125, 0.62915222544178329, 0.86305700540000696, -0.34695851228481017], [0.97206368588434766, -0.44879839287225581, 0.37704058161193998, 0.53718857715535373]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.9578823534926072, 0.54124816795457964, -0.43929370911716231, -0.96557502749159507], [0.97455749834004068, 0.99401345246169626, 0.66401590677623057, -0.99619607619697281], [0.94731148656605035, -0.99284417199371577, 0.99751195316042607, 0.62441237853622522]], [[-0.78305944951663353, 0.52429620121273146, 0.0096855803621312825, -0.95610712166060408], [0.49533020111560083, -0.9155481075478985, 0.91177208072521287, -0.65482579444370448], [0.73702027966623906, -0.8779702346494217, -0.88218472628424938, -0.72758863915572014]]], [[[-0.95324448144023388, -0.9896294977803074, 0.83785349282853971, -0.99128491043904499], [0.42957507779222781, 0.75159719546211767, 0.73673567820434016, -0.71927034677937474], [-0.48285656690859402, 0.89043473057109679, -0.60256841133763539, -0.23472014974367561]], [[-0.98178130166608535, 0.75163971078732728, 0.093593967784617274, -0.98550749523114423], [0.66996424044290459, -0.99578170573160452, 0.95057449576530817, -0.48520180467023327], [0.092469940703161432, 0.11572541384732027, 0.2887366377307638, -0.99163895037731464]]], [[[-0.7676438791646546, 0.45132255753166978, -0.89789686094785226, -0.23452586033429529], [-0.091958006320412053, -0.14408689254970225, -0.99737060586631121, 0.99603916939064607], [0.74960719408299126, -0.77496816002780011, -0.9061156382123059, -0.99999103487825647]], [[-0.77281036418314564, -0.17641158915267149, -0.99925644477650222, -0.95848189929893357], [-0.90056129662048501, -0.73393688041745886, -0.77976304128985197, -0.99697306576558797], [0.91583747858958031, -0.25356559568768045, -0.37371120994166129, -0.95548059670784435]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_taggedData_rank0(self):
       arg=Data(52.3923651613,self.functionspace)
@@ -449,9 +449,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cos(arg)
       ref=Data(-0.527866301451,self.functionspace)
       ref.setTaggedValue(1,-0.0270483432209)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_taggedData_rank1(self):
       arg=Data(numpy.array([-74.897126998165533, 76.673400450800756]),self.functionspace)
@@ -459,9 +459,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cos(arg)
       ref=Data(numpy.array([0.87705625402072684, 0.29133259267605394]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.10508243263067833, 0.34712991573165969]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_taggedData_rank2(self):
       arg=Data(numpy.array([[40.593544538866865, -8.8839015039393558, -49.468879573084436, -24.708042838510465, 20.413703995745891], [-79.108713409558405, -68.647136982462371, -80.858963259372672, -43.373193372132903, -19.507573187625411], [64.214585816318845, -78.826300537435486, 57.661889712775803, 95.493641862455291, -48.386749127960769], [67.334847000926004, -34.70671409523483, -36.873199353443709, 3.6386929918643176, 35.181153901083945]]),self.functionspace)
@@ -469,9 +469,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cos(arg)
       ref=Data(numpy.array([[-0.96961115090719441, -0.85725773398423355, 0.69913962613000602, 0.91116305149951837, 0.0066482036132297587], [-0.84249563945044104, 0.8925167529418252, 0.68043098049226469, 0.82016110495020733, 0.79120632545455827], [0.18695697167168232, -0.95924330257900359, 0.44177331900046657, 0.3192463084776716, -0.3030933270774539], [-0.20786820316301155, -0.98889106925546555, 0.67788641598410604, -0.87896904245554386, -0.81176118995632829]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.80922972543055438, 0.92389756193357364, 0.9403918665642913, -0.10028616065108438, 0.6119531025181365], [-0.9410747774886985, -0.60143262098807782, 0.8495995978399381, -0.94526988131298229, 0.26338463011163266], [-0.79214526943475394, 0.91703450582859369, 0.63068646834096875, -0.30701028605243086, 0.3763461069696134], [0.5115898554852758, -0.22867682408200724, -0.60902205590663616, -0.95763905321643927, -0.5890447354610614]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_taggedData_rank3(self):
       arg=Data(numpy.array([[[-36.309518950317376, 0.93081070250144649], [31.019427711604664, -74.09863093545404]], [[-38.496677203305893, -85.824133574935331], [95.203836891504238, 22.838846451350705]], [[60.75609230931488, 6.003670139700219], [-31.49567872236139, -63.206983059929222]], [[-9.6812822737183666, 0.078728886948780996], [66.900652835446493, -94.869473621923703]], [[-6.6770163744116076, 22.876520146740972], [-55.737787303088737, 6.2425399184533319]], [[-81.429470177177521, -81.6116687923749], [-97.082967034525325, -67.37269287178016]]]),self.functionspace)
@@ -479,9 +479,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cos(arg)
       ref=Data(numpy.array([[[0.18021343448473101, 0.59718391060744369], [0.92241876797360978, 0.26789121482669265]], [[0.69845114643777229, -0.53934947535935607], [0.57674535988171327, -0.66171093596184249]], [[-0.48377631503826568, 0.96118931155712628], [0.99682147963778267, 0.93046000296873854]], [[-0.967282744906935, 0.99690248160545425], [-0.60007048402362761, 0.81289300751647198]], [[0.92344574856902162, -0.63300189293768494], [0.68886045878833047, 0.99917408990060674]], [[0.96843093014337922, 0.99756913767256539], [-0.95342403093885042, -0.17070899404470352]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.76555810931252977, 0.62794880060935965], [0.14479801574845574, -0.73792168383216183]], [[0.57987832415218665, -0.15028015665535041], [-0.29714910041836201, -0.69188358205701828]], [[-0.21969811854411034, 0.85528080687409014], [0.74349177468513394, 0.98815406589512933]], [[-0.75019910814961466, 0.032258506831785543], [0.90368477270236081, -0.78841749829099372]], [[-0.45541567307928488, 0.82980773284067688], [-0.12603373471688831, -0.0079562249516561077]], [[-0.82955287573817371, -0.9854033904934385], [0.75349957000523238, -0.054323621236985108]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cos_taggedData_rank4(self):
       arg=Data(numpy.array([[[[37.610264246462435, -85.560668463311075, 92.790982866326573, -21.753674410293172], [-23.164181244709354, 64.496397223384463, 69.277186049494105, 6.3927475799028457], [67.583896168477764, 36.111360823700437, 30.266912701944563, -54.963319263159384]], [[-58.145969583496672, -97.225443498755453, -56.934313916342269, 35.421162068171839], [65.866615855863898, -57.072034755161027, -95.488754117534285, 81.149953518095799], [-18.30949886526929, -89.680457620572071, -73.87886392983259, 81.259366551703209]]], [[[1.8677491996480029, 36.828382975770609, -80.40672114911041, -49.292595896369647], [-37.983864569797767, 35.583525872048824, -42.451157688857613, 33.755615612774108], [32.674252940671579, 90.058275023987306, -96.26155980692819, -90.500098763836021]], [[90.079955965660446, -70.687430685137031, -51.111371179982747, -74.109677346578138], [-32.896920002886091, 62.26499948195692, -59.833741060334056, 11.794198300820895], [43.437452546746755, 97.455115222231768, 87.354131572829402, 3.2818247457694412]]], [[[78.306182680183269, -64.892175839143391, -55.104588214315342, -96.744717049677931], [-38.337933398739985, -72.796076467431135, 60.379171901212146, -81.927733276050247], [63.885059436029167, -31.980639093805863, -57.261994523508044, 17.357515328643643]], [[77.429908518363192, 9.5882415367278355, 72.484182388500756, 63.089077313098954], [84.07047179403375, -21.092477779767819, 41.614178023999727, -98.204118862286279], [-71.275012546567766, 78.730240012789466, -11.573247145900382, 33.098945113087012]]]]),self.functionspace)
@@ -489,9 +489,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cos(arg)
       ref=Data(numpy.array([[[[0.99605564800414159, -0.74003978479165422, 0.11375282452021319, -0.97193527337579688], [-0.38735756213150352, -0.09361056558100582, 0.98688284383678593, 0.99400405568827155], [0.039643724768732305, -0.016953880290015939, 0.40938737891293392, -0.014551661058647967]], [[-0.026502388661538694, -0.98659374258249288, 0.92655557103089836, -0.6496724166496719], [-0.99429911442146879, 0.86614127304686683, 0.32387445454567942, 0.86207036562540851], [0.85767934528605649, -0.14455871961558475, 0.051413892338749011, 0.91225420946081004]]], [[[-0.29260780746660703, 0.64426928163414932, 0.29180026978390428, 0.56291609637951678], [0.95973114604298926, -0.51823819807950822, 0.039646471705651949, -0.69533990552752001], [0.3074098932007972, -0.49938120217558235, -0.42863722843891311, -0.82188268941215192]], [[-0.51804635050563663, -0.0015959786891496938, 0.66306628166652848, 0.27851730967463495], [0.089682205138485488, 0.84359470875913611, -0.98972429938704287, 0.71639675290673688], [0.85520784080680545, -0.99783970980023062, 0.81938284847117593, -0.9901835826774219]]], [[[-0.9728315762339087, -0.47020799835491661, 0.12637793045273601, -0.79930700568503443], [0.80279896236009785, -0.85799367135344373, -0.77193843948759455, 0.96981526124126383], [0.49478722014669613, 0.84474246657231211, 0.75618918968201176, 0.078674345855532332]], [[-0.4447440791197817, -0.98666955220849251, -0.97422171127622192, 0.96709984785995873], [-0.7299620834657633, -0.62265062060091214, -0.71548829876243725, -0.68605277637160145], [-0.55567766942870023, -0.98192413256230948, 0.54607588753058456, -0.11198684728536197]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.9532464104225401, -0.67511267180012213, 0.99998614310380007, -0.24305111882757385], [-0.99861396263192814, -0.78501698113748208, 0.68804387880332429, -0.058079923319158462], [0.90367832948274707, -0.24836118666524837, -0.62308777688597838, 0.89065254831191276]], [[0.8368796543112903, 0.99973376956186366, -0.39951907575386714, 0.95224436545888613], [-0.55333911666953939, 0.76602026469360152, 0.97380536659847572, 0.70861811863632929], [0.77224567755776974, 0.89284034215998742, -0.54640627400327102, 0.72309766743732995]]], [[[0.76973301984773468, 0.94028075556243462, 0.93470472120159609, -0.91504217164360968], [0.99525378084999272, -0.8850594108800458, 0.4117079619272091, 0.93424308242332088], [-0.42799571611881249, 0.85635538858959426, 0.040168038134317727, 0.59247321999590674]], [[0.98300708870591891, 0.99784787493267124, 0.83381726388896149, 0.9868653057824498], [-0.67990129583749026, -0.97069204733006775, -0.14635792168284548, -0.9998980572655366], [0.92433186130108524, 0.14079090200582819, 0.89149968128133894, 0.99586349366046734]]], [[[-0.60159909873717321, 0.9580229239875917, 0.97046484832780555, 0.56921448509653549], [0.68937039860779081, 0.99429781336097167, 0.71172390998364865, -0.89258527400759391], [-0.39489284771819805, -0.20977165731745406, 0.84603990208711677, 0.93324045680470225]], [[-0.93745242426842468, 0.5050818721371243, -0.32567073631884641, 0.99495120989406094], [-0.71658296354855922, -0.78676444613630847, -0.82074485588505508, 0.081155964310960879], [-0.40786936285205416, 0.94280949490341759, -0.48481330596382211, -0.99510320754671833]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_taggedData_rank0(self):
       arg=Data(81.2949649872,self.functionspace)
@@ -499,9 +499,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tan(arg)
       ref=Data(-0.406904128478,self.functionspace)
       ref.setTaggedValue(1,-0.207936773642)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_taggedData_rank1(self):
       arg=Data(numpy.array([-95.851047486395899, -87.804262570020512]),self.functionspace)
@@ -509,9 +509,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tan(arg)
       ref=Data(numpy.array([30.785362859177258, 0.16171984883073159]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([3.4882512502950971, 4.6971057126849036]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_taggedData_rank2(self):
       arg=Data(numpy.array([[-6.2123974990845596, 78.448990575809376, -99.326922204393099, 34.466953331401896, 75.081637288912191], [43.152743095243096, -23.515299958653429, -45.139362755422809, 37.555578473020233, 83.674961808589416], [-20.329004079626117, -89.68698187313413, 63.797873117120815, -97.852830452441481, -20.352637389791738], [73.846890877324569, 34.650839207487195, 41.531549740281122, 42.117481567836307, -14.893287864506703]]),self.functionspace)
@@ -519,9 +519,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tan(arg)
       ref=Data(numpy.array([[0.07090628276813575, -0.091076341049522724, 2.6032644546506951, -0.090814285504178624, -0.32760519036327246], [-1.0924542795462242, -21.423000533021405, -2.2775209371153795, -0.14452724439561776, -2.2228009589039441], [-10.916660613554196, 6.5460789983613727, 1.4468186297845727, -0.49976325011584999, -14.745229039106976], [-51.371685347992141, 0.093591861362473022, 0.82675810400212302, 3.3025618500686895, 1.0603382585364733]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.7292248126420149, -1.6500818693323478, 0.44893985316262996, 1.5650975398719362, -0.61967622915013898], [1.3320242181202921, -3.2261605736834746, 0.32651185794691795, 5.6272845624900736, -0.3411363783892129], [0.59719690743737996, -8.962491127283629, -0.42546071042084166, -0.043469475465786209, 0.78003579386887978], [5.1771917698562682, 4.5869701687908737, -37.07146436191114, 0.29092035884983614, -3.8573430010424579]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_taggedData_rank3(self):
       arg=Data(numpy.array([[[-31.363348163296223, -63.428729589813429], [-96.507312106299665, 31.782542686119456]], [[-34.681083479682911, 94.077182149079221], [15.294827923512429, -2.7318887141934312]], [[40.882434195822839, -64.18724581426693], [11.572828840371855, 90.497867255100772]], [[-28.641061694503762, -87.171931801575766], [-11.020127312733962, -30.967479102653854]], [[-7.3186224758889296, -50.786266134306011], [27.048134010190211, 2.5490774473318112]], [[61.949209649501199, 85.202746332031268], [-96.092429938290053, -18.405433004645062]]]),self.functionspace)
@@ -529,9 +529,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tan(arg)
       ref=Data(numpy.array([[[0.052626876950351224, -0.67956116470517647], [1.2147515603304766, 0.38397534066424899]], [[-0.12419702009054982, -0.17227194869809437], [-0.43836392791494461, 0.43427926215657442]], [[0.041753938290720764, -4.5704240024751872], [-1.5355049455338108, -0.69642068661122147]], [[-0.38410347124596128, 1.0146352438416113], [40.719994162243026, 0.48114165299842049]], [[-1.6859462819034383, -0.57360288493474976], [-2.7861599010747122, -0.67320458364148295]], [[-1.2161965333027973, 0.39911670622190515], [3.5598363671486943, 0.47582704782624802]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.54221273929241065, -0.35139316545369953], [-0.80396583079821793, -1.1366271548317615]], [[-2.3211791986595185, 22.764215950312941], [-0.10789436233823439, -3.6616056049070829]], [[5.6030778046056575, 4.8985896068181933], [-1.5314392133091446, -0.88334381751181845]], [[0.13864424980142789, -1.3683712672276451], [-2.9249993656191324, 53.435949643775317]], [[4.2516444503647923, 0.6729153019338332], [0.10788392698491613, -0.2152531375981952]], [[-1.0705573488747255, -2.8639517816691598], [-0.37360951726234692, -0.79422844785382163]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tan_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-97.656975158803732, 86.62989131986555, -77.554231481640841, 3.8669983308735141], [-46.038298726138535, 40.067291705031494, -98.270364197569336, -94.6969458479483], [87.514637704319199, -92.077863733525263, -3.2419643949078676, -63.397042107941658]], [[-78.795717243110204, -15.279620056917338, 80.460981482647753, 58.412764427127541], [78.818186435655377, 37.682189940374087, 44.849206889045604, 44.848625721891608], [-35.5574347957388, -12.199741839763533, 97.654780429841566, -80.88961765682032]]], [[[-22.652246910060853, -67.38886650009394, -23.477307930487527, -10.646755410960651], [28.156205936499333, 61.620904094908099, -68.627816293502761, 67.122379266164245], [-98.867312915684863, -67.45476737752476, -25.299310914293784, 37.934440895232058]], [[49.380808935348227, -39.408417085726846, -20.541815407391638, 83.649278193509474], [-87.485520624890597, 58.270434291856475, 94.943963892353963, -72.626165639298705], [76.160653617847743, -56.169631642306463, -99.798183422398054, -90.426229350215536]]], [[[88.117152264551066, 52.841153774969399, 66.022106559130634, 40.622509829181638], [-4.2428278873716465, -39.006278992668378, 25.439473540797223, 61.543987328178218], [-15.166974840542792, -90.535188054136981, 84.651661558032657, -16.693664047828548]], [[74.767862181117096, -78.437587118526309, -79.957730051825251, -82.440913401255031], [13.979534083611483, 37.832449897143647, -41.090148981970032, -8.6289016011243689], [41.053492503522762, 8.9183240359808309, -66.578380761411694, 66.20182099550621]]]]),self.functionspace)
@@ -539,9 +539,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tan(arg)
       ref=Data(numpy.array([[[[-0.27417913318913278, -4.1566210200104123, 1.5091093500762029, 0.88667753844569219], [1.8966516810504024, -0.97631203132464983, -1.2121104814243526, -0.48202716829016767], [-0.48300153499471354, -1.4644610945344889, -0.10071016976344437, -0.63420186225059838]], [[-0.26163711886038371, 0.45661727740971819, -2.7363785710173922, -3.3111423421076758], [0.2857904741045893, -0.016923518088534008, 1.1779198979973127, 1.1765333132126685], [-1.5571186702709128, 0.38398982640921775, 0.27182083255769302, 1.0128687939892587]]], [[[-0.77786631973260933, -6.3841435669149291, -11.786941762312257, -2.749590141226586], [-0.11868049092962783, -2.6579585972745292, 0.52982517743967028, 2.2281208753465154], [-10.738431613965821, -11.146506047949773, -0.16812749423430426, 0.23977164577867416]], [[-1.2212418866506991, 7.1735230424816061, 8.192421452643833, -2.3846593272264083], [0.51943402007653894, -6.5734237237147752, 0.83578647210017276, -0.38732785222465582], [0.95508720601143937, 0.39829550561729016, 0.89993916898678605, 0.80859125720920677]]], [[[0.15375262833206235, -0.63522917927167522, 0.048699277776481524, -0.22172457509128218], [-1.9707778487603462, -3.7049205779162753, 0.3167282752575496, -3.4396185005903077], [0.60077400519944801, 0.64237874378765658, -0.17303671645831173, -1.5094893398587974]], [[-0.72966855935529684, 0.10258684244697755, -6.4899256428743657, -0.94950861550679122], [6.2912235198952393, 0.13413392183447914, -0.25475027110751947, 1.0211790862248971], [0.21605885016652787, -0.55471233347047222, -0.69140625670162514, 0.23243020992993024]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.60899603533502777, 9.7851675904442956, -14.915637546865332, 2.3764544607985711], [1.2760657540936704, -0.077729601321507483, 1.2090043292697605, -0.48401767690643016], [-5.3886094617159346, 2.200117216306007, -0.44316694059504153, -0.80544075052469299]], [[0.53185115511734737, 0.30206325695557501, 0.80148938350550525, 1.047442535039711], [-2.0709860162340474, -5.1191444088641491, -0.28397859569936534, 1.2792587767882238], [-96.338809394137982, 0.55838397029774967, 1.3060273034426464, 0.67754301675915884]]], [[[1.0539199784527833, 0.62743135353607671, -5.6890981603187942, 1.8052864811134648], [-0.56994582002442928, -0.39550809900908157, -2.2459675092850895, -5.3721562872445512], [0.68352279680128936, 1.4837179824840887, -2.5785739645551788, -1.033580665481149]], [[0.38093975110296807, 3.1845224145186783, -8.6338809194109842, -0.43546576800373976], [-0.20331407344276023, -3.4643985918583193, 1.5424352550195062, -0.91653700413563366], [0.59637912459294451, -25.044476766299347, -0.45811677917613758, -0.55904458203375451]]], [[[0.60311480417088692, 0.11307256431662512, 1.7033508050940664, -7.7156847407432672], [-10.196871172372907, 0.1076307213120567, -3.6831649770066708, -0.53572561021033649], [1.9166401734031362, -1.4728710216778025, 1.8407229850668281, -2.3572817040493903]], [[-1.758855002901736, 0.54110631448591939, 2.8976606059699086, 0.45399233058581712], [0.38682887197477689, 4.6895764808665765, -2.8373957569747743, 1.3357904861442966], [0.19417566417476489, 1.9409854797509967, -10.275523383878257, -0.43837851346057438]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_taggedData_rank0(self):
       arg=Data(0.989657679547,self.functionspace)
@@ -549,9 +549,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asin(arg)
       ref=Data(1.42685052415,self.functionspace)
       ref.setTaggedValue(1,-0.49324888058)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_taggedData_rank1(self):
       arg=Data(numpy.array([-0.60614764750793948, -0.76269603799552499]),self.functionspace)
@@ -559,9 +559,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asin(arg)
       ref=Data(numpy.array([-0.65120801803032125, -0.86747147905375954]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.074500149323603215, 0.48513840344368775]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.38725529068582309, -0.035002566048380368, 0.29215359547572062, -0.74047728151511116, 0.86375088045015236], [-0.32624879922924277, 0.2147493204278017, 0.69593358057302734, -0.67043661608803573, -0.36870988653065229], [0.47510384739864087, -0.76918433519434637, -0.34537195722060143, 0.011183356922037646, -0.11541581215659935], [0.27260362912724068, 0.61437603398068741, -0.25663483045732682, -0.041872856264680069, -0.91618191033723884]]),self.functionspace)
@@ -569,9 +569,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asin(arg)
       ref=Data(numpy.array([[-0.39765272784734212, -0.035009717396994572, 0.29647790574666982, -0.8337802351353637, 1.0426662706606511], [-0.33233251116675155, 0.21643515475826403, 0.76971914249277162, -0.73479708883031969, -0.37762073948486119], [0.49508204578845194, -0.87756375238241691, -0.35263510222938133, 0.011183590047521475, -0.1156735991133048], [0.27609811766175707, 0.66159490472202953, -0.25953880511997846, -0.04188510212750262, -1.1584472025690309]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.42673623857902859, 0.49959114862575316, -0.71052717518368491, -0.1520232503062508, -0.3446210935366435], [-0.78727319189839995, -0.57565690165345518, 0.034214182708838151, -0.33220031031626085, 0.77800568719018426], [0.4801877492089463, 0.21016594677352965, 0.44735491475086192, 1.1063738876172791, -0.21294114010121065], [0.49688012059430242, -1.3846520382811431, 0.12424698835488085, -0.83675707078112471, -0.78846008349356012]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_taggedData_rank3(self):
       arg=Data(numpy.array([[[-0.27078670807121452, -0.6521353392582292], [-0.98935156671000035, 0.71924091352997421]], [[-0.596001253659459, 0.61191364730020958], [0.66651667689067051, 0.90368733535070822]], [[0.73399023574476341, 0.70767255658646566], [-0.13936321871982982, -0.62987342971179183]], [[-0.4948738057441634, 0.49128944743073721], [-0.88331247766967902, -0.86621949805759135]], [[0.14384806329256028, 0.095935576215879115], [-0.69504930628562311, -0.41646976607569797]], [[-0.39226444326380583, 0.2452138366202059], [-0.1518719139549316, 0.93521490540250141]]]),self.functionspace)
@@ -579,9 +579,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asin(arg)
       ref=Data(numpy.array([[[-0.27421017834129852, -0.71039772542571444], [-1.4247320578861771, 0.80270911325546157]], [[-0.63851198939279763, 0.65847783965152196], [0.72952644193099725, 1.1283041433740428]], [[0.82417870001472116, 0.78619861108497946], [-0.13981832890670637, -0.68139024128778247]], [[-0.51768960196670843, 0.51356956389655972], [-1.0828819297210799, -1.0475858703421546]], [[0.1443488307389203, 0.096083348390609224], [-0.76848847834177259, -0.42955884388247545]], [[-0.4030920504517207, 0.2477402572487051], [-0.15246188107240444, 1.2088655180324399]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.22658851752026385, -0.69555772267891613], [0.72149914702634521, -0.57777028882908332]], [[0.59461693452585995, -0.73911287993369601], [-0.26993164239658068, 0.62147348780168055]], [[1.2880241486013853, -0.56626768327750376], [0.016440735350003028, 0.30991934023703022]], [[-0.27606036257642469, 0.26270962685432236], [-0.7029299940282141, -0.097251423034157833]], [[0.091101977070680226, 0.66667810639918901], [-0.76629367807938997, -0.28239443270507703]], [[-0.1819960893458433, -0.21380341867513972], [-0.25001541559304535, -0.1009283906282767]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asin_taggedData_rank4(self):
       arg=Data(numpy.array([[[[0.17667641262684564, -0.20528415608852835, -0.86377896580752189, -0.5808064056077008], [-0.53575131452410674, -0.94973341635526076, -0.94934619991031122, -0.36012502776308042], [0.30866069414823993, -0.22625586744343318, 0.89172233386738275, 0.041379170795829534]], [[-0.74767149169546465, 0.50300329169060554, -0.77484404377979366, -0.8352964117129088], [-0.30013599718442951, -0.10886586640435891, 0.2730681338127674, -0.1615077727930434], [-0.41658644426176838, 0.87939475296716063, -0.86922788571063614, -0.69906009036185479]]], [[[0.12016629383182509, -0.70534585776132253, -0.87839274516803956, 0.2480882290553843], [0.31790318495990477, 0.03461698975366434, -0.027498912345320314, -0.66291073124981814], [0.50626012778834562, 0.77210638834559853, 0.32650848757464579, 0.9203611453694176]], [[-0.47360390489237758, 0.85676222423230053, -0.015787865739628981, -0.37070260942360855], [-0.72961058537924894, -0.14494860353517136, -0.52932600855417877, 0.88281683601885486], [-0.6909459206541444, 0.69160226630289623, -0.54290210856405896, 0.34524619417902236]]], [[[0.36542406478716893, -0.96793946499057182, 0.38442480479198515, -0.57435150997595197], [0.12545758270235607, 0.96934407264412958, -0.24044762690293819, -0.340989156148089], [-0.44460870104468952, 0.88803936519219207, 0.55053765965557822, -0.5546454459624317]], [[0.83841967081685675, 0.50019773286874503, 0.22967486065013221, 0.56354640088505747], [-0.65856710498790327, -0.90765207375799539, -0.58747426169848049, -0.53180638195873375], [-0.83276666060509819, -0.68616293259457728, -0.17418580748690327, -0.62859194512462024]]]]),self.functionspace)
@@ -589,9 +589,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asin(arg)
       ref=Data(numpy.array([[[[0.17760871448276636, -0.20675403804646908, -1.0427220071893906, -0.61971896050972197], [-0.56539728309730153, -1.2523832523933589, -1.2511486870629975, -0.36840190993020011], [0.31378465192018662, -0.2282321452737586, 1.1011365828156379, 0.041390988386389355]], [[-0.84454869639849361, 0.52707016378896132, -0.8864683510196445, -0.98867169122207821], [-0.30483522099816734, -0.10908206377238625, 0.27658094036046738, -0.16221829359885875], [-0.42968718537947675, 1.0745894259046815, -1.0536384870903868, -0.7740822073469662]]], [[[0.12045738832689482, -0.78291093220064634, -1.072488853750152, 0.25070628836034903], [0.32351712207393363, 0.034623907281987255, -0.027502379259771104, -0.72469982402898492], [0.53084255928695823, 0.88214908246269863, 0.33260724413419246, 1.1690029652625629]], [[-0.4933782124574862, 1.0289582745627337, -0.015788521685103963, -0.3797654160853966], [-0.8177523437209665, -0.14546102725991955, -0.55780595912809805, 1.0818256899500005], [-0.76279673253995905, 0.76370505307109449, -0.57388899520112124, 0.35250109635513183]]], [[[0.37408833395292318, -1.3168934796373459, 0.39458466710266937, -0.61181174217240464], [0.12578904459759122, 1.3225470507143868, -0.24282698097084726, -0.34796891551730025], [-0.46073736173792446, 1.0930630422580974, 0.58300815127146821, -0.58793680336412102]], [[0.99437717008195303, 0.52382711290120032, 0.23174359978487752, 0.59867256987095474], [-0.71891304682557911, -1.137655796129406, -0.6279341788586954, -0.56073216019431915], [-0.98408642456901807, -0.75620114331540811, -0.17507887513122425, -0.67974142884518618]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.46684278730023371, -1.1815201100750479, -0.047856225143968707, -0.19754604320899144], [0.091819674168062873, -1.0557942602491508, -0.0045652495079866228, -0.32920830092822206], [0.59277522179959163, -0.22588871606051758, 0.052327446914480526, -0.85271238565039864]], [[0.58233825824309027, 0.36127616478278501, -0.41592063812310764, -0.044841623005844253], [-0.12003665216187458, 1.2265382433727618, -0.72514689608315608, -0.22714269023447864], [-0.78565671511328383, 1.1780552671570363, -0.70218481885046757, -0.47904074383403694]]], [[[0.12966414087424233, -1.3985638911620022, -0.41318311251144624, 0.010632721525817797], [0.031155811146442221, 0.59302809425903769, -0.57394699929636273, 0.050423798063665655], [0.013662648113827933, 0.41936448841432711, -0.8021296351981142, -1.2977925042003347]], [[-0.19392561536532552, -0.75948862127879602, 0.68361662963146053, -0.041881246220352109], [-0.046343412238644396, 1.1836453452376237, -0.80895172981266905, 0.25923682302888701], [0.22233963948715654, 1.1236078001339596, -0.06864601410630812, -0.045164974774920652]]], [[[0.40509178676205976, -0.045003065808640254, 1.1150794983658745, 0.80620405929955008], [-0.99231290343135414, -1.3631154327855153, 0.17196703968158128, 0.2123315842232695], [-0.23013201668885772, -1.1884076378143387, 0.62588891338210939, -0.6127394135964227]], [[-0.30915681905645181, 0.69169133505319369, 0.87574435958173658, 0.59872189267169562], [0.87251631631408044, 1.0203925151294579, -1.2417837981042867, 0.88261263771725229], [0.32554183754839172, -0.33366648106510866, -0.034751247851029093, -0.52657840683397406]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_taggedData_rank0(self):
       arg=Data(-0.291587772644,self.functionspace)
@@ -599,9 +599,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acos(arg)
       ref=Data(1.86668265093,self.functionspace)
       ref.setTaggedValue(1,1.54881134759)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_taggedData_rank1(self):
       arg=Data(numpy.array([0.12826451971761799, 0.33491528109011126]),self.functionspace)
@@ -609,9 +609,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acos(arg)
       ref=Data(numpy.array([1.4421774808126324, 1.2292810095841651]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.3486583675462354, 1.4399467435143751]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.41152758157568659, 0.50648377704044156, 0.004765718148047382, -0.19506763365502267, 0.27315738992922611], [0.33882351517959264, -0.029041529921664644, 0.28655425515791988, -0.58345582451173839, -0.95744850153173044], [0.32067870881780935, -0.59696574288858684, 0.80001515403024226, 0.20766175365526407, -0.92537824876724606], [-0.62608849117550203, 0.49584899163835461, -0.91012458136569108, -0.28964137555570646, -0.019645711019819267]]),self.functionspace)
@@ -619,9 +619,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acos(arg)
       ref=Data(numpy.array([[1.9949258434411383, 1.0396944084450979, 1.566030590606778, 1.7671227348451009, 1.2941226028750279], [1.2251301602101246, 1.5998419405884083, 1.2801680039289014, 2.1937737283320473, 2.8488240011834036], [1.2443503750305041, 2.2105099844323077, 0.64347585165092913, 1.3616123305271102, 2.7528286077860806], [2.2473230240603672, 1.0519841271516832, 2.7143809675072594, 1.8646484580550975, 1.5904433017575812]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.2644114932860036, 1.0727399259992247, 1.9899315573166447, 1.196485454770198, 1.2171113576324784], [0.68750036295992678, 1.1692393692469043, 2.7254164558807252, 2.1876987449669811, 2.1631899258148524], [2.6731322180353185, 1.5762169566759732, 1.8033607174166493, 1.8925943802877971, 1.3211298029884102], [1.9463004481873596, 0.56824804065117174, 2.1619926599703043, 1.2856175077339616, 2.1502446915093585]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_taggedData_rank3(self):
       arg=Data(numpy.array([[[-0.0018967734613412057, 0.59300273345453158], [-0.81381641137830263, 0.11977023446026669]], [[-0.037555176051128791, 0.021140469012053797], [0.19984949833653998, -0.11442177154206457]], [[0.34269780843852971, -0.29360044358101034], [0.53220357878081814, -0.36059448682460116]], [[-0.78355112918456538, -0.083700661501167062], [0.32350069086320987, -0.38066114197452472]], [[-0.97705826933358608, 0.40808141278379839], [-0.42109501987534292, 0.38704401675830336]], [[-0.38925229608360801, -0.94561123734124619], [0.38734879630697328, -0.84315118092500463]]]),self.functionspace)
@@ -629,9 +629,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acos(arg)
       ref=Data(numpy.array([[[1.5726931013935923, 0.93601340923207366], [2.5214858775304476, 1.4507378791003851]], [[1.6083603363688714, 1.5496542827850082], [1.3695920087141873, 1.6854692556999198]], [[1.2210092255140392, 1.8687874345506976], [1.009595077794389, 1.9397015089412193]], [[2.4711571166083619, 1.654595029389675], [1.2413695403820464, 1.9613074868225726]], [[2.9269767557006974, 1.1504447893795458], [2.0054485856592787, 1.1733727421774625]], [[1.970616056541908, 2.8102648289377887], [1.1730421776900686, 2.5739136323477916]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.61801656176645547, 1.5657714632044866], [1.9779646207779984, 0.67379274631597552]], [[1.9852526825543613, 0.93190017823864835], [1.1246806413386898, 1.2848911859657939]], [[2.6539841054134725, 1.9915727464827593], [2.2903872908337721, 2.1122158133671496]], [[1.1818764764700775, 1.7597897566840754], [2.1540652930004773, 1.5702646815562391]], [[2.3145286806652781, 2.3623312612316218], [1.3834908482456931, 2.5710876379804022]], [[2.4628254031317334, 1.9880046639617615], [2.5382167551116179, 1.0371447242973137]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acos_taggedData_rank4(self):
       arg=Data(numpy.array([[[[0.17419378414794906, 0.20877755349477622, -0.9560863974612771, -0.14865727072192525], [-0.17733095703209234, -0.075638384984418994, -0.95407857695419507, 0.6554653414860343], [-0.61341371635489927, -0.52092549325400384, 0.56479500388669734, 0.6212897490792797]], [[0.62874023072485619, 0.23625020456583901, -0.16020531855055364, 0.55591840537558723], [-0.79872077551867249, 0.04557168403173395, 0.3613949288270315, -0.95572639016521221], [0.79815227797346733, 0.17234806171331019, 0.26868955082890489, 0.98424717569008591]]], [[[-0.54543833436541767, 0.13415007696775616, 0.13534722231297658, -0.72252620207541485], [0.72328095946739612, -0.13862718470167823, 0.044552606563023067, -0.69905432254503375], [-0.085225036679073551, 0.98164131149719402, 0.76464095979981717, -0.86551052241781756]], [[0.62239954920343643, -0.70181949407386546, -0.8168814556558559, -0.13547995725989515], [0.82528036114158154, 0.87633827050160984, -0.080143289194266831, 0.83348769953227908], [0.32539673255685431, 0.93803075579628348, -0.27823622244460522, -0.39447875543393573]]], [[[-0.59356695628956446, 0.42068072139579571, -0.2966816048473806, -0.7687956041808558], [-0.71878760019674037, 0.97463077881539117, -0.31728131209986821, -0.73484475981245589], [-0.12727988625513686, -0.94231248176633886, -0.77734468240253696, -0.90444340163288839]], [[-0.18269489759149571, 0.29439735776753762, -0.27185087948144659, -0.62048852806225785], [-0.98053876278297158, -0.26218270695695034, -0.68261964802157793, -0.019759295107996899], [-0.089430250213055507, 0.74948889896974036, -0.75852786166420638, 0.35370400678788205]]]]),self.functionspace)
@@ -639,9 +639,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acos(arg)
       ref=Data(numpy.array([[[[1.3957093511629617, 1.360471526581287, 2.8441407383080222, 1.7200066442732735], [1.7490700866368647, 1.6465070213809823, 2.8373649283858922, 0.85599770843850642], [2.2311721630105854, 2.1187311401011293, 0.97061150484655345, 0.90040872753615897]], [[0.89086421992331588, 1.3322913334783058, 1.7316949814428857, 0.9813289023048628], [2.495962524203899, 1.5252088542888533, 1.2010328242314052, 2.8429148515570239], [0.64657435379029982, 1.3975834206961624, 1.2987640322677911, 0.1777321440297753]]], [[[2.1477083304186579, 1.4362405897686086, 1.4350324256625075, 2.3782457505851391], [0.76225455373160755, 1.7098714069908214, 1.5262289680482763, 2.3448704680068988], [1.6561248714124477, 0.19191216072142248, 0.70031230156130786, 2.616965031785782]], [[0.89899161244489156, 2.3487448168313412, 2.5267798820772609, 1.7066941968405251], [0.60009784920496412, 0.50258924678280592, 1.6510256575906948, 0.5854062256837147], [1.2393650626053583, 0.3538928296356465, 1.8527536586887519, 1.9762968634509979]]], [[[2.2062801487665875, 1.136600790119608, 1.8720122511782569, 2.4477519846112199], [2.3728531862116133, 0.22573089755729248, 1.8936576221249246, 2.3962340910120021], [1.6984224020679184, 2.8002691893334375, 2.4612300776159772, 2.7008694873643462]], [[1.7545231138284718, 1.2719714573571184, 1.8461121498570447, 2.2401618278670212], [2.9439834930659066, 1.8360796668105717, 2.3221377460874395, 1.5905569078982662], [1.6603462151776323, 0.72350662179783332, 2.4318473355004873, 1.2092681825027514]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.7334814462425481, 1.673828455510769, 1.3096226655494099, 2.5386097574192203], [1.9453413548263998, 2.3844003298346768, 2.8991783717530111, 0.41864650952806914], [2.4522863458860922, 1.1689371321766686, 1.0640289187834875, 2.1201670767225766]], [[2.5780194523086384, 2.6391534710101032, 1.9952417407117879, 2.3783020085117652], [2.526465489342848, 1.7690348671872353, 1.8501645764491155, 0.31657329697684766], [0.69873356468677461, 1.0824968212721804, 1.0428705855020852, 1.4774986804685288]]], [[[2.3936783941171464, 1.279105226241779, 2.5191536430590338, 0.94222086861618171], [2.7072381573266595, 1.6439604702314694, 0.82550822412311597, 1.3030507874849933], [2.3003397504688494, 1.8032095431448985, 1.3398253531931346, 1.1064078436784477]], [[2.0299290447557947, 1.2458570544086836, 1.7547042970540918, 0.46241697896834122], [1.8825168384735331, 2.4213232683150521, 0.91234657301380784, 1.5167794070081579], [1.6819301661171466, 1.8201432078142425, 2.3504678570451745, 0.99157974394862303]]], [[[2.2127135213118359, 1.8941453082545316, 1.125519574857567, 1.5868768230835029], [1.0167160158190489, 0.82336874945488769, 2.3250315257063354, 1.9938263516346553], [0.82270597341644369, 1.9886211901601889, 1.149734692650326, 0.90258559607088251]], [[2.3747689167871977, 1.6755391877344084, 0.71766104149909937, 2.1669930068530197], [1.4008428772515369, 2.0379483121019257, 1.9470015447043691, 1.6119892756074885], [2.2725637754510268, 1.6116035001525102, 0.54494956853218945, 0.91523810991933396]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_taggedData_rank0(self):
       arg=Data(-14.7254534244,self.functionspace)
@@ -649,9 +649,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atan(arg)
       ref=Data(-1.50299080856,self.functionspace)
       ref.setTaggedValue(1,-1.53836305618)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_taggedData_rank1(self):
       arg=Data(numpy.array([79.645526314923757, 31.251712111300833]),self.functionspace)
@@ -659,9 +659,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atan(arg)
       ref=Data(numpy.array([1.5582413534867612, 1.5388089940682592]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.5146818449820139, -1.4860127074426057]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_taggedData_rank2(self):
       arg=Data(numpy.array([[-51.014136430165856, -10.355356517133202, 28.251309295456821, 13.133655639607198, -4.4836594247888968], [67.588862677322936, -35.526211499854085, 57.141721412265554, 3.5594116807501166, 24.644697631626315], [-59.211703959261456, -72.046541293224493, -68.738506813922058, 36.183945043854038, 40.813283481240802], [-84.224967550292789, 2.382009962300117, -97.667999664168718, -17.641085801592737, -0.094387632167098445]]),self.functionspace)
@@ -669,9 +669,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atan(arg)
       ref=Data(numpy.array([[-1.5511964273421315, -1.4745264598757113, 1.5354145091343874, 1.494802690678932, -1.3513557426844944], [1.5560020692406058, -1.542655526646358, 1.553297765207124, 1.2969112580541855, 1.5302418945935552], [-1.5539093791983924, -1.5569173012079685, -1.5562494664061093, 1.5431667932509703, 1.5462994014411897], [-1.5589239207380323, 1.1733268586785741, -1.5605579164505456, -1.5141710727583415, -0.094108820426104287]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.5568545563458982, -1.5578375973438927, -1.55490836758775, 1.5567958786717648, -1.5599374287193295], [1.5591862121193236, -1.5576265635211364, -1.5520812830291499, 1.5580163277677324, -1.5600704510968921], [1.5512470322905925, 1.5157110808099072, 1.5309059297790453, -1.5549998176728896, 1.5476282073492109], [1.5586404907725899, -1.5538588285718626, 1.5477692261183333, -1.5604577159532746, 1.5564992621352502]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_taggedData_rank3(self):
       arg=Data(numpy.array([[[-51.439521199073958, -42.19343667612452], [-57.017857592051982, 42.357194430644654]], [[-94.668069377568997, -97.267849956585323], [95.97751393208145, 72.083118529080309]], [[13.931243087317895, 48.314113039294057], [16.667854995256334, 7.2354641537036457]], [[-35.24080770006239, 6.1151782689095882], [7.2809362943481659, -47.744411262592919]], [[-20.3055738368638, 38.892625438958902], [13.233199681154034, -53.915986490531978]], [[-94.858405410928896, 99.82234948258116], [48.503882060032311, 30.917187302988793]]]),self.functionspace)
@@ -679,9 +679,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atan(arg)
       ref=Data(numpy.array([[[-1.5513584698690774, -1.5471003942988308], [-1.5532597596608479, 1.5471919713913882]], [[-1.5602334958935613, -1.5605157996684915], [1.5603775966626152, 1.5569243429573056]], [[1.4991381283805512, 1.5501013957909033], [1.5108724340083037, 1.433458236465541]], [[-1.5424277452541746, 1.4087034902352189], [1.4343053177252822, -1.5498545289386529]], [[-1.5215885210143809, 1.5450901753003594], [1.4953721636022326, -1.5522510785229557]], [[-1.5602546889363347, 1.5607788652232746], [1.5501823406963127, 1.5384631301370586]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.559912823466391, -1.5369226810631742], [-1.5587812739091436, 1.5588701549951265]], [[1.5594622198376147, 1.4843005338925794], [1.1965116310113704, -1.554213155607542]], [[1.5522930567093209, -1.3337034661793217], [1.5287346084657718, 1.5244380631272727]], [[-1.5412506699602671, -1.5579479899433375], [1.547208174948046, -1.5361523528598342]], [[-1.5600268240968616, 1.5512627864671464], [-1.5122662848001094, 1.5520291193633591]], [[-1.5607405660888007, -1.5548390862365009], [-1.5536951554558593, 1.5147513012507214]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atan_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-60.786516054960018, -97.443926672116945, -59.730786105649635, -60.552672183608202], [0.067178496327429116, 76.097886671263439, -10.611506241697001, 62.520570069561273], [98.734673799525353, 84.863778955168158, 38.252515267672806, -5.1350082880344985]], [[77.589460335333513, 84.577328211722374, 67.229876917205758, -27.884169005126182], [-55.428762309397705, -42.909045438315019, 5.4478832792561178, 98.719071343277363], [50.041890457414098, -61.217337389541605, -31.625752675276402, 68.601618873426759]]], [[[-25.801223779222397, -29.445798766093745, -44.798995576077047, -13.060782989795968], [-24.868508822871931, 54.456897228862431, -69.005823306352426, -38.013099364990332], [52.520288283056431, 75.090539051454812, 88.11571157196164, 29.940468771848515]], [[-69.126425092990985, 78.527356119425946, -53.114343044690806, 83.848543031621091], [-33.685382028364685, 20.306687112361828, 32.650151957007466, -81.059070647169236], [83.469680236467951, 97.861914954668038, -43.032363052419306, 45.804898833159399]]], [[[72.4991519048626, -92.751679859513942, 26.266552717005069, 26.556036707565454], [-65.853696462593632, 49.53468229171304, -4.1588537709789364, -98.080606358862553], [-75.680355306374167, 28.449553815517618, -86.195746809070101, -79.665759321116923]], [[-3.0262101017673757, -86.441575573369178, -58.423640738004678, 16.659518568604952], [61.02394512053786, -82.308850756533687, -63.48331127418183, 77.928338187268736], [13.711361913844101, -40.319664743955784, -20.625042794109746, -40.404672515921902]]]]),self.functionspace)
@@ -689,9 +689,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atan(arg)
       ref=Data(numpy.array([[[[-1.554346793780754, -1.5605343748051601, -1.5540561053483741, -1.5542832800750914], [0.06707771134963493, 1.5576561137349634, -1.4768364848555173, 1.5548029547769511], [1.5606685188986997, 1.5590132818747466, 1.5446602078043219, -1.3784619450341296]], [[1.5579086919105407, 1.5589733781788726, 1.5559230843172502, -1.5349490465472442], [-1.5527571087994305, -1.5474954351984298, 1.3892596545420326, 1.560666918317682], [1.5508157282893953, -1.5544625378689159, -1.5391870576196998, 1.5562204436506224]]], [[[-1.53205786478674, -1.5368486716248135, -1.5484781040920352, -1.4943803282798005], [-1.5306064810252038, 1.5524352435915465, -1.5563058104960985, -1.5444956717247109], [1.5517583661301895, 1.5574798570707853, 1.5594481000782767, 1.5374091272945045]], [[-1.5563310879232202, 1.5580625993455297, -1.5519712446798413, 1.5588706265268419], [-1.5411185754107688, 1.5215912143863453, 1.540178169450183, -1.5584602703189787], [1.5588165018096578, 1.5605782026465265, -1.547562184377139, 1.5489680683305043]]], [[[1.5570039366370194, -1.5600152686245654, 1.5327434733828007, 1.5331578889109807], [-1.5556123173747718, 1.550611193130053, -1.3348250771073642, -1.5606009845295099], [-1.5575836270993995, 1.5356608560533649, -1.559195346750025, -1.5582445417846158]], [[-1.2516463284150974, -1.5592283355033394, -1.5536816391795429, 1.5108425198654833], [1.5544107833647154, -1.5586475628061378, -1.5550454580714337, 1.5579647286965086], [1.4979930117462867, -1.5459996168270638, -1.5223495175888366, -1.5460517655438717]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.541769047752825, -1.4592567339075215, 1.5586830280198429, -1.5280924056594469], [1.5585187106853997, 1.5305548882051436, 1.4911517816513042, -1.5377322682685537], [-1.5347683314855143, 1.5517238541043337, 1.5544760048742774, -1.5412620956961551]], [[-1.539501884061409, -1.5579035610577179, -1.5592454944007521, -1.527113658719671], [-1.5562616921013832, 1.544752894838392, 1.5528889663387913, -1.5594803490192568], [1.5378060847306976, 1.3695107286356141, -1.5344589427920325, 1.5576471391021702]]], [[[1.5551902865231184, 1.5574439559923015, -1.5405715366363946, -1.5399854101404904], [1.5471751118445947, 1.5590328331973433, -1.5518584072127872, 1.5545930587248358], [1.5603635268687615, -1.5541729333474901, 1.5108835156383955, -1.5555689685427048]], [[1.5577550959903859, -1.5494339594471369, -1.5581468900546853, 1.5214543797077005], [1.5483904520035858, -1.5274123226048211, -1.5525249334605411, 1.5463383139491345], [1.5520609537393462, -1.5607628293839917, -0.37288575485185699, 1.5373328409638529]]], [[[1.5277698519717662, -1.5463060966366591, 1.4710432191222749, -1.5566665386668717], [1.5475930473251533, -1.5589882171355174, -1.5569452745436581, 1.552900325927786], [-1.5535944562222297, 1.5421308993211618, 1.4765659635152497, -1.5537733852560058]], [[1.5579309596200162, -1.5178814663571647, -1.5584283990382004, -1.5535898757003221], [1.552140063159527, 1.3948501935545574, -1.5364747794967917, -1.5606350122506203], [1.5493399440355367, -1.5551654135988773, -1.5255939766631132, 1.5487133380455611]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_taggedData_rank0(self):
       arg=Data(1.99198759591,self.functionspace)
@@ -699,9 +699,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sinh(arg)
       ref=Data(3.59683227352,self.functionspace)
       ref.setTaggedValue(1,4.93962040641)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_taggedData_rank1(self):
       arg=Data(numpy.array([3.7121592231366236, -4.5205237974298704]),self.functionspace)
@@ -709,9 +709,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sinh(arg)
       ref=Data(numpy.array([20.45884479360328, -45.93641525360411]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.31276737629464152, 6.408690275759203]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_taggedData_rank2(self):
       arg=Data(numpy.array([[-4.8144899441545528, 0.78267245526398277, -3.9902900754326529, 3.5628490203251033, 2.1183518970045636], [-2.5070220439451694, 2.22072356217594, -2.3873817066715231, -3.8412251092257801, -4.7972608158325922], [-3.1935509834404807, -4.3564582503990001, -2.9952608734330868, 2.2478968274432152, -3.5759483501851563], [-1.3426146737839293, 4.3069146426030791, -4.4619207942108039, -0.17652673360272075, -3.3503263854852361]]),self.functionspace)
@@ -719,9 +719,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sinh(arg)
       ref=Data(numpy.array([[-61.637901615656197, 0.86506368613794438, -27.026038642285407, 17.617581367615905, 4.0985943037096586], [-6.093415206821609, 4.5527324006135492, -5.3965433394599067, -23.280520435716621, -60.584890612216782], [-12.166901315420557, -38.983816886070187, -9.9702753219255733, 4.6810906645722357, -17.850249501178922], [-1.7839401011571518, 37.098846158833695, -43.321126637656903, -0.17744497495638895, -14.238482567850086]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-1.1912317449878338, -2.0342457843344053, 8.8875657756020434, 5.0844955627700941, 4.5979066282350889], [1.2036641503921339, 3.3879593528934069, 20.423393864250595, 38.101777842909016, 40.400321013863852], [-1.8562452941244159, 1.0587053970421214, -6.6550738613616067, -13.863522278520332, 51.489045675912898], [1.2807348782797063, -1.0133220385263433, 46.385634798441771, 45.275432746886217, 3.7743794349039121]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_taggedData_rank3(self):
       arg=Data(numpy.array([[[-1.6699752087038435, -0.2455134886023238], [-2.1687245044555992, -1.5692632008931549]], [[4.5726976745572561, -2.7279776977250503], [-2.2847357293147286, 2.6373859093927754]], [[-0.73793065293643068, 0.38302358868877739], [-3.6068322119333249, -2.7337954547102572]], [[-0.45348176104555638, -2.6490340460279951], [-4.3886113896165462, 1.8804425676698937]], [[-2.8375230103816538, 1.111346967580932], [4.1139208151096955, -0.49572589111884202]], [[-2.3299326190666081, -0.62551236912490715], [1.3632704432597551, -2.2917130664840233]]]),self.functionspace)
@@ -729,9 +729,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sinh(arg)
       ref=Data(numpy.array([[[-2.5618921853515806, -0.24798739704939532], [-4.3163983334752745, -2.2974547188559029]], [[48.39728795997064, -7.6182796518722613], [-4.8606444823509278, 6.9525358015487786]], [[-0.80675026447437204, 0.39245790554232302], [-18.410999897933262, -7.6631103274115127]], [[-0.4691851238549285, -7.0348268024411853], [-40.258050303704749, 3.2019416421082258]], [[-8.5074259309283864, 1.3546664880209558], [30.584901942778352, -0.51628045436067105]], [[-5.0899733579461612, -0.66710809345606392], [1.8265668432775661, -4.8953877347643511]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-3.8442018204801496, 0.36715416750958968], [-18.98012788845724, -5.9203664863683336]], [[0.69926678187260138, 35.455407944451679], [2.1426925432268189, -37.633167256872468]], [[43.693083396997459, -39.11202224549578], [-0.99274414975503578, -41.99418680140694]], [[-1.1082307083479541, 0.017485900172098688], [-0.63490086709424287, -13.284436370815889]], [[7.2094126025166956, 0.62293131907508703], [-16.337945591940521, -8.7241305581397839]], [[-2.2209042584132921, -42.27091867492458], [-14.941504453786477, -4.816459660325112]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sinh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-3.261368733617156, -1.7097421056887061, 2.4770674176220533, 2.6184686144257991], [4.2685570141508649, 0.26471561412312994, 1.8677744659878321, 1.2974082786792565], [-3.1644599226939727, -0.98342184660922349, -1.5818484011953915, 1.7453818193010404]], [[-3.1409423348480905, -1.503135136465966, -4.1317701664086295, -2.6487331291018479], [-2.9344044174187998, -3.9794616897516244, -1.0636935004548986, 2.4681705131671574], [1.7248384820876259, -0.61623840444111444, -3.182398118986538, 1.8412600667009382]]], [[[-1.2967881315097731, -3.2351451577555101, 4.2939167700693446, 4.8638089405008476], [2.9825316536154167, 2.5020908411933496, -4.341334514919474, -4.8611901904936659], [2.5682832345839106, 3.1020556388946119, 4.0616444500999389, 0.58287106482411755]], [[-0.92122010658250453, 3.6178485248091157, 4.1247030396785007, -1.7719429245102813], [-4.2954747345288151, -2.1268789753154813, -2.0943498166080774, -3.5016915119012504], [4.0796282018855194, -0.70150021612442082, 3.9968340640276256, -2.8002455053291451]]], [[[2.7768169172372295, 3.5354672331727777, -4.9833519421308301, -2.7281177342220486], [-3.6388062639788132, -0.24005900416176473, -3.9369129849748861, -2.7620876149297002], [3.7327362822865435, 1.1752019535122198, -4.968172850646587, 0.45185628083386664]], [[0.78465593645643406, -4.8933212754874553, -3.887154034060468, -2.5322616232125039], [-1.0742963974782302, 3.3289574703031288, 1.1899668301054973, -2.9336209382110057], [-2.4653189902719017, 1.4461862760456876, 2.7436930808359143, 4.5571819794183686]]]]),self.functionspace)
@@ -739,9 +739,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sinh(arg)
       ref=Data(numpy.array([[[[-13.023440270699259, -2.6733116654343072, 5.9111539019062862, 6.8208952782641425], [35.7022516817728, 0.26781809379022642, 3.1597027400448123, 1.6932800751791159], [-11.816858393542429, -1.1497800913986027, -2.329171645463961, 2.7767549168418548]], [[-11.541203334322933, -2.1366650567825722, -31.136015622546896, -7.0326889417647314], [-9.3785671704044926, -26.734768755711737, -1.2759364890266949, 5.858048933103599], [2.7167063739913448, -0.65598843191103351, -12.031501841254393, 3.072929944227814]]], [[[-1.6920608694436352, -12.685352743257289, 36.619585226109336, 64.754431865133057], [9.8435290579275119, 6.0630393584281839, -38.398477943694964, -64.585057821227878], [6.4833728384402045, 11.099336246706669, 29.026252346926242, 0.61644023180207441]], [[-1.0571603791351021, 18.615241481692724, 30.916635699137355, -2.856134354291088], [-36.67670297233353, -4.1347179890900154, -3.998504686318193, -16.570684097163284], [29.553285005086391, -0.7604675809797572, 27.20359770161199, -8.1939446899377977]]], [[[8.0027790235537211, 17.140948545266145, -72.977985228256998, -7.6193557153388518], [-19.010054278242894, -0.24237135670329799, -25.620303855164558, -7.8848508059247102], [20.884691434092481, 1.4650201726547696, -71.878506579845961, 0.46739024222723913]], [[0.86768804011917233, -66.69419356195327, -24.375691040284792, -6.2512252509030963], [-1.2931970487315634, 13.936699944900679, 1.4913704109166104, -9.3711804841265494], [-5.841126728603502, 2.0057102769093333, 7.7399766017332157, 47.652005601622172]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[4.161752367783798, 1.541926632612777, -3.4255608402399025, -24.483195400361897], [0.3570257223960186, -17.787257314136472, -0.37228079161732119, -1.9165423642645187], [19.981928064707756, -5.2083266003894222, -45.466571941208194, 39.796285782641952]], [[5.8978987635397626, -11.121926851445268, 38.037063069187369, 57.352263445220188], [42.732776058437857, -17.946679307528704, 2.5870158831439984, 14.707018154821265], [0.42884487385080838, 17.654543955312313, 2.4499235521097709, 0.48413477435416613]]], [[[5.5871242630376541, 42.071033145542899, -41.497881296562845, -11.758388262639029], [0.86132781108094103, 0.54496286536137339, 4.9167436772901087, 8.7203896119493791], [-0.94134111336199311, 5.4446471750107008, -2.3531397442848156, -6.9202492513096638]], [[25.380166933590768, 0.32468104508626694, -4.8186311121891992, 5.3938307354249373], [30.71301849893301, 0.62345627965547068, -17.026653430917108, 7.7438863291025068], [27.797482713465271, -53.632308557373527, -1.0351868092899348, 1.9042601111874786]]], [[[25.184561827402003, 0.96561560781209588, 20.386285498772896, -0.21325752577179305], [-3.2162218030768943, 27.589713049238945, -21.552054166525547, -0.48780375093616124], [-2.2223864880448345, 5.21357200785015, 34.116735473841551, -13.275624175244463]], [[-0.05627690347203064, -8.3807569501370018, 7.5683418170849297, -1.8298760541851917], [2.0333516065142763, 39.985598858890903, -2.8794234783627348, -28.814753045485492], [-1.8479935964675063, 56.817448854328696, 5.2216543312111838, -24.87899171972731]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_taggedData_rank0(self):
       arg=Data(-3.33964228765,self.functionspace)
@@ -749,9 +749,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cosh(arg)
       ref=Data(14.1222419084,self.functionspace)
       ref.setTaggedValue(1,43.0603707159)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_taggedData_rank1(self):
       arg=Data(numpy.array([-0.13877438581352841, -0.98259382848166865]),self.functionspace)
@@ -759,9 +759,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cosh(arg)
       ref=Data(numpy.array([1.0096446284726606, 1.5228576115054628]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([39.035549183605326, 2.7687878265704762]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_taggedData_rank2(self):
       arg=Data(numpy.array([[3.6339325575992536, 3.6003092610162302, 1.9584137399530954, 1.0694664510664698, -0.37917195236293022], [2.8785993252032664, -3.0900484176532297, 3.1752833068489892, -3.5111549864703031, 4.255322840622437], [2.0391630012792916, -4.3327016874450539, -2.6982102068084535, -3.0441546421582411, 4.214997939810214], [4.805038197601009, -3.2837195225291618, -2.531898818520947, -2.9915602053560839, 0.95310199737158996]]),self.functionspace)
@@ -769,9 +769,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cosh(arg)
       ref=Data(numpy.array([[18.943914275341193, 18.318434937398699, 3.6145783248028835, 1.6285079976630699, 1.0727510814321364], [8.9227760436425374, 11.011820915712233, 11.987690862915786, 16.758392401505439, 35.246877846320565], [3.9071562261311463, 38.081436864226781, 7.460224902554307, 10.5199571391222, 33.854399380223668], [61.066172085048954, 13.356147253406316, 6.3284367588194961, 9.983470747464299, 1.4896430948431345]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.0287330987029193, 21.735116828944143, 40.299835565663813, 25.743698163829791, 43.211097722447775], [1.3336324938705348, 73.143109653419216, 4.2990004786149294, 1.9683908914628332, 6.5631803398985999], [1.2711935565261079, 1.8368823113377528, 1.2569873598703747, 32.153690276380928, 1.0098774121609404], [4.5511305484919777, 1.2429382704244676, 1.756509148044366, 49.491457436632956, 1.1125291456069766]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_taggedData_rank3(self):
       arg=Data(numpy.array([[[2.2594094214565343, -3.3290383685707656], [4.5122363492198989, 2.3616061614668551]], [[-0.78315440920111534, -4.9445078035481647], [-2.5870583922278079, 0.54336796085071803]], [[-2.2564960296248815, -1.0922215776887101], [1.7220877741473926, -1.2680128955602719]], [[-4.7968660202901106, 1.8820956661735808], [-0.55071124481399369, -2.392255525132474]], [[-1.9561751623976353, 3.6639866209171164], [1.6308692498233102, 1.3156981063393305]], [[0.93858824856890788, -0.37594139126048809], [3.0401317577773099, 3.3062633851984806]]]),self.functionspace)
@@ -779,9 +779,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cosh(arg)
       ref=Data(numpy.array([[[4.8409217004581384, 13.973657885406432], [45.568176435498991, 5.3511222948482491]], [[1.3226633378307002, 70.204425514379224], [6.6829296515419099, 1.1512924649961667]], [[4.8271429171721767, 1.6581796951312628], [2.8874462830250218, 1.9175870101400594]], [[60.569229009714817, 3.3597619421386007], [1.1555129136535931, 5.5147803140711771]], [[3.606811684222702, 19.521103835073294], [2.6520362629520506, 1.9978195651943991]], [[1.4737748024949511, 1.0715021754303207], [10.477913216116429, 13.659820812115026]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[45.386523884584705, 8.090402041223733], [10.066625699236537, 1.371828409565327]], [[10.84001412211161, 7.1135343667655935], [61.046461244057511, 19.342519863210843]], [[2.3296994698881761, 11.222957817551869], [1.3826252214777885, 27.61888954682524]], [[1.1724542565995428, 22.813105331832602], [40.336477634532706, 1.6784609004147599]], [[1.6510224629867831, 72.387139007404855], [52.291231814415738, 50.03344721314393]], [[33.630031580706699, 13.57053373731201], [61.071151819778152, 21.002913453619939]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_cosh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-4.2974496482443385, -4.5141752496351151, 1.279224746016018, 3.6686464638653025], [1.5642465306660078, -3.6550169225724973, -4.783271042866363, 2.3639071234236022], [-4.8837760852087531, -0.92880494563806426, 1.1661108769933435, -2.869160403619524]], [[-3.4776906208283864, -0.40395614262695556, -1.5446529839825116, -2.7579904120989451], [1.8349405477146661, -3.8378201393977585, 1.3433045012858305, 4.3472141505175408], [0.7181640331745669, -0.41398944472294108, 4.6769407318346552, -4.8778258871553088]]], [[[-2.4849883440153242, 2.1345431108307942, -0.09067629606352412, -4.3150106990500738], [4.3118061338163951, 2.4975944032177999, 4.175128675721389, -0.7758441537477232], [-3.9713262603505806, -3.3159913471560118, -0.18233452053653032, -0.66293502941204352]], [[4.9788464217729853, 0.65529004311657868, 3.3675428303822663, -0.079349711831890879], [-1.8723533081093855, -3.0300430916460952, 0.51874134723845078, 4.5086381057403386], [2.9026067240258424, -3.6918617768589703, -4.0661575918193105, -3.5278224263153781]]], [[[0.0015231207730606044, -3.4671950612278115, -4.7151737408852421, 1.3355453672089359], [-3.611921752531714, 1.3179876222783404, 2.4802830245059315, 3.4904987636760065], [1.6663642593810604, 3.9457517334304164, 0.61643625583120443, 2.7089869134481699]], [[1.2885016388929635, -1.4828486104919558, 3.4244574147497708, -2.1274761147070054], [-4.9722256226904884, 2.1224822895404829, -3.3802787629574036, 4.6747109104337454], [3.8750910639279113, 4.8191435251217936, 2.4467943595773542, -0.015571286302071385]]]]),self.functionspace)
@@ -789,9 +789,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=cosh(arg)
       ref=Data(numpy.array([[[[36.762837994027265, 45.65659302281535, 1.9360527151951246, 19.612161951845756], [2.494159154100938, 19.347018267235629, 59.751475973278325, 5.3632322912433219], [66.0681102505865, 1.4632538079216522, 1.7605312973779623, 8.8394814942999496]], [[16.207862700025089, 1.0827058308402404, 2.4498655073561295, 7.9157713718384866], [3.2121923357012863, 23.222853177989286, 2.0463331206435584, 38.637931391546402], [1.2691557688218085, 1.0869245433467289, 53.72509313313838, 65.676204192935117]]], [[[6.0421534482658936, 4.2857410419310309, 1.0041139129568435, 37.413895144702927], [37.294234611722473, 6.1177528566639348, 32.53179123057128, 1.3163701272671944], [26.536848580189528, 13.79299490344593, 1.0166690434382355, 1.2279079665662052]], [[72.656772164263117, 1.2224961982676807, 14.520819069300805, 1.0031498405789798], [3.328672363997796, 10.37321902129923, 1.1375906033763266, 45.404545168785155], [9.1382310638755566, 20.072198262374123, 29.174768845073917, 17.039554903078329]]], [[[1.0000011599486689, 16.038965793559022, 55.818581090736359, 2.032541800778572], [18.532080317128734, 2.001784597279733, 6.0141820470909675, 16.416394943974005], [2.7409109645024752, 25.867268111398666, 1.1960900211712384, 7.5403307581926216]], [[1.9515154764366831, 2.3162337362313838, 15.369273332817901, 4.2563965180112602], [72.17736078389747, 4.2357887581890381, 14.706498851241967, 53.605449988802455], [24.103919322318855, 61.933518473582737, 5.8189143906114449, 1.0001212349281225]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.0960225692535404, 42.948782682946323, 1.171969429063197, 4.3489579207932341], [46.588305110529134, 2.4197279528705185, 9.1002935322558294, 10.880922619136969], [45.570089621262504, 44.315276977830948, 2.07397627472012, 5.0774044710830113]], [[1.7845141072786201, 6.0625759919859421, 46.467361591383025, 1.2356061898862878], [3.7057982822633435, 3.7934099749489825, 32.066670403577341, 1.6045180010307729], [43.975251828592121, 1.6644838293860444, 6.5079975829609102, 2.8226660571902742]]], [[[39.307615406934822, 2.4890619012612207, 47.038065761129225, 5.2036881533245731], [24.434315230816242, 1.0000244553476394, 1.021275808528771, 42.322434694633777], [1.4046322236615734, 1.363790576586579, 32.902111174866675, 8.2708891230076151]], [[45.535460921925825, 19.219040991386912, 1.3543407276740012, 2.8019246386266583], [1.0564971895349591, 17.139468791631344, 14.476442601019187, 54.444398838889946], [36.142312618675867, 1.1638449492852287, 14.254111851189526, 1.0000482467560752]]], [[[48.512120216524281, 48.022915117799073, 43.23137737168971, 23.371402546329659], [6.5494471264698602, 25.385352322226726, 7.2797329080762765, 1.4234584308282261], [10.117954823599094, 70.714328957337898, 37.900142492657835, 1.0915081670348838]], [[37.773699375110674, 42.620437709879383, 24.526665923553246, 6.5642321138931639], [3.8744058806768513, 1.4709944873492109, 44.437024098405821, 3.4828031871171841], [1.3120856335155002, 26.463217744961234, 16.465792043660247, 11.413343128307044]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_taggedData_rank0(self):
       arg=Data(-2.6745098131,self.functionspace)
@@ -799,9 +799,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tanh(arg)
       ref=Data(-0.990539348174,self.functionspace)
       ref.setTaggedValue(1,0.978025866982)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_taggedData_rank1(self):
       arg=Data(numpy.array([4.0429210388498369, -4.553079746235924]),self.functionspace)
@@ -809,9 +809,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tanh(arg)
       ref=Data(numpy.array([0.99938445513124963, -0.99977806439502981]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.99937843153347994, 0.99978118535812588]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_taggedData_rank2(self):
       arg=Data(numpy.array([[0.94929715636828504, -1.1252080104850992, 3.0775450372379431, 0.39392537807042416, 4.6611413956493752], [-2.2781170875126575, 0.39864122049943695, 1.4807319239075429, 0.31907060217879479, 2.7340061400084306], [4.8281201559380023, 0.33278204427698199, -0.03019536420573754, 0.85159999608142201, -2.8485402708762573], [-4.0655536970027297, -2.3543586836588961, -3.0951504374238881, 3.9262504055167966, 4.7776251671833698]]),self.functionspace)
@@ -819,9 +819,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tanh(arg)
       ref=Data(numpy.array([[0.73946469369799694, -0.80937282834822533, 0.99576369263661357, 0.37473932010645611, 0.99982119683898318], [-0.97921520913008431, 0.37878573799455306, 0.90160502733343728, 0.30866631305972148, 0.99159623814157904], [0.99987195863139711, 0.32101834788909706, -0.030186190576096662, 0.69190442064171198, -0.99331095049135554], [-0.99941168874938979, -0.98212846610382587, -0.9959099611394906, 0.99922274519998722, 0.99985835320805616]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-0.99249206904458975, -0.95823735370164276, 0.98652879793628578, -0.75323048485240829, -0.48749022343925108], [0.9966761738303791, 0.99961067033016027, -0.99833377855485317, -0.56274764873125716, -0.99956111435622053], [0.99974876146582037, 0.99875110702314973, -0.99978684584692601, -0.99580782119916667, -0.99986959514911722], [0.90528424625476578, -0.87151032140220963, 0.99668103125140428, -0.11006806410778014, 0.55184645934107424]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_taggedData_rank3(self):
       arg=Data(numpy.array([[[3.9319419321492326, -4.6773949429983581], [-1.6957074074546696, -0.3229077445540991]], [[-1.8266060427348019, -1.730201856159189], [1.5347509785248175, 1.5800451406727483]], [[-3.9746856156268384, -3.378147662479086], [-4.700768864980577, -2.8259083525191455]], [[-4.7178549411356228, 2.3147937121451543], [-2.5287575330841805, -4.9759550410080289]], [[-1.9889442091701359, 2.0763858673555893], [-0.89324314818143424, 4.8435662338741032]], [[1.0855719509476556, 1.3980856479384425], [-3.3411855727218343, 1.1884422150953995]]]),self.functionspace)
@@ -829,9 +829,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tanh(arg)
       ref=Data(numpy.array([[[0.99923153918711738, -0.99982691525909118], [-0.93487029410812394, -0.31213374827028922]], [[-0.94949297086745355, -0.9390797830900246], [0.91123410731563181, 0.91860894220900358]], [[-0.99929448101174156, -0.99767564105310336], [-0.99983481973131216, -0.99300230526074806]], [[-0.99984036849946445, 0.98067105796147169], [-0.98735772705782232, -0.99990473142376457]], [[-0.96323809712209596, 0.96904507128497563], [-0.71299189138499997, 0.99987585339128593]], [[0.79525625932489785, 0.88493715428778319], [-0.99749752737187658, 0.83009511356467591]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.17815326499048401, 0.98984688185870251], [0.5787736291230885, 0.99874610080415804]], [[0.943352763565379, -0.99642757853354436], [-0.97693891859499782, 0.99232248276775581]], [[0.99891983292877162, -0.9983409384133336], [0.99737847288418935, 0.99898794619179809]], [[-0.99896127879588104, -0.95059853090699908], [-0.99859601991351088, 0.1886105895864382]], [[0.93006410027832387, -0.67856517259541438], [-0.88519609925054854, 0.81967404386980236]], [[-0.15891368471195128, -0.80204771283378307], [-0.99972373624583699, 0.63587442674619299]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_tanh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-4.3904786729676273, -1.3677399701000903, 1.2492768693436567, 1.6695091701042077], [-1.1627795517358663, 0.35660855309170714, -0.46129260277138862, -1.7611848739159894], [-3.7810577291663838, -2.0467897156040902, 1.1706919709615651, 3.7103119132055848]], [[-1.2077170353024047, -3.0220575428815022, 0.54424950738834799, -4.0974212221222857], [1.0870071905494978, -3.9509226719566701, 4.9383274385239844, -3.462350798012598], [1.106586239998987, -0.73756837828936561, -1.1154183434553619, -1.010742353319559]]], [[[4.2742091858943052, -4.4776532415095307, 0.78417239720070508, -2.9515811360954225], [0.26505756362717126, 0.20435778865898513, 4.0715597053665036, -0.5982678836059776], [2.3077118446636131, -0.87190481734862324, -3.4819139618408279, 3.2206093747921081]], [[-2.1956521025267159, 2.8685733283260415, -0.16719147893383024, 2.4042635129004015], [0.87519664955802856, -3.7014687212979061, 2.638378779605917, -0.83596449534645867], [2.3208311754025477, 3.8824298417061609, 2.4604804345754143, 3.5948332657865727]]], [[[-0.26749703618618348, -1.2826804689293789, -3.264731588047407, -1.7231794009474299], [1.3682684482114569, -2.0116005895625753, -3.1642117538144801, -3.5928937676969785], [-4.1224336582508689, 3.7918402890951022, 2.1360683781019247, -4.5145324695032318]], [[3.676700537089971, -1.3877142255602957, 2.3563702753938749, 4.6093296257172032], [-0.079417586476702162, -1.4360928554366206, 2.4988989289519861, -3.5116673714054611], [3.720863735327919, 0.38544618147401621, 1.7572959880964749, 3.4491478912053424]]]]),self.functionspace)
@@ -839,9 +839,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=tanh(arg)
       ref=Data(numpy.array([[[[-0.99969278532403616, -0.87817610848912808, 0.84808073894312919, 0.93148676159885946], [-0.8219436543648142, 0.3422232651605423, -0.4311371323644399, -0.94263519675608121], [-0.99896099101301683, -0.96718843060907411, 0.8244938727134159, 0.99880316564106586]], [[-0.83599336463688867, -0.99526766658497667, 0.49619794188256428, -0.99944800485077057], [0.79578320492270638, -0.9992601537435607, 0.99989728568405345, -0.99803553852335436], [0.80285236632034096, -0.6276737849707098, -0.80596936061049773, -0.7660688874136774]]], [[[0.99961237222589605, -0.99974193223298102, 0.65509503516962486, -0.99455328260935616], [0.25901992634275139, 0.20155971686626986, 0.99941871123847936, -0.53581588511280043], [0.98039804226660943, -0.70234062733546598, -0.99811084524004323, 0.99681615203384977]], [[-0.97553386909203443, 0.99357281253397534, -0.16565086856274386, 0.98381234887456548], [0.70400480322945558, -0.99878182267865834, 0.98983399879723288, -0.68366567252371069], [0.98090083462602384, 0.99915158173096452, 0.98552133873443648, 0.99849245594704916]]], [[[-0.26129428984398761, -0.85719744491289385, -0.99708467717848859, -0.93824473321643498], [0.87829697173019017, -0.96483807098709573, -0.99643666929946806, -0.99848660126662192], [-0.99947493196034642, 0.99898314622584328, 0.97248007751598686, -0.99976027967480008]], [[0.99871999858964711, -0.88266698117705134, 0.98219958347946346, 0.99980167654271335], [-0.07925104034615385, -0.892908449932727, 0.98658498639005543, -0.99821988625575575], [0.99882814391514707, 0.36742779628281924, 0.94220023134945963, 0.99798302738464895]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.99228467821875421, 0.11888788724678255, -0.88680309929422041, 0.91525316568888726], [-0.99187748567038492, -0.77673384310464333, -0.28097472652808358, -0.7560840082512007], [0.99599559753350175, -0.88543686564725355, 0.6047423865273871, -0.3469763293343231]], [[0.99983309924459796, -0.58065757519364325, 0.9429620059078242, -0.95686570094178047], [0.99971915694545332, -0.35013016421316723, -0.99989747957363229, 0.99989400444715759], [0.99907026835111246, 0.99088029778882336, 0.98470685939018232, 0.99325719931769052]]], [[[-0.71160741539570893, 0.99964011430124544, 0.94448185426893583, 0.12306852263067239], [0.99986026155085483, 0.89548124193836365, -0.99865069097308279, -0.96351765578941984], [-0.99984831724864787, 0.99980181786870692, 0.18380508703408843, 0.99736878182221311]], [[-0.99980769321539753, 0.97763278263585041, -0.685549085155853, -0.98613910571125796], [0.96897754473209763, -0.9991755175591378, 0.99581647460748857, -0.97861537415463118], [0.5053682585729965, 0.99984977804083497, 0.99773205331379355, -0.99421041813147026]]], [[[-0.95750111372509072, -0.9996297583526631, -0.25478812887481112, -0.61459245431351639], [-0.83052580516350172, 0.99983699446428242, -0.83156705197266667, -0.91476618401113408], [0.97523406991146411, 0.88340949152279369, 0.9637220149745247, -0.94351117775814486]], [[-0.99569763330906691, -0.99847603966904497, 0.36600071186854327, -0.62012380533737677], [-0.97886535761949167, -0.99233870586149786, -0.15923225196341351, 0.82560995086101829], [0.99988967114712812, 0.64312197086910849, 0.99846624581148857, -0.33138582492983976]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_taggedData_rank0(self):
       arg=Data(46.3645811357,self.functionspace)
@@ -849,9 +849,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asinh(arg)
       ref=Data(4.52979928711,self.functionspace)
       ref.setTaggedValue(1,5.28259995573)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_taggedData_rank1(self):
       arg=Data(numpy.array([-50.957589662824198, 43.941100766909756]),self.functionspace)
@@ -859,9 +859,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asinh(arg)
       ref=Data(numpy.array([-4.6242371551287169, 4.4761267522983275]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-4.1546976770753421, 4.3596270535740214]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_taggedData_rank2(self):
       arg=Data(numpy.array([[-20.169170810618326, -4.4530711308543118, -5.3065110218440452, -8.4088220772265316, -56.444316808490115], [-33.229801569473778, -44.603828873814734, 39.260385275691903, -60.813530866399979, -67.011560484373405], [63.34900773972393, 13.17996875841969, -84.621298599133738, -27.161422270695113, 78.248898320973581], [-98.098038498193404, 95.682616010306447, -58.113208847615525, -79.134026237356125, -29.391569621781727]]),self.functionspace)
@@ -869,9 +869,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asinh(arg)
       ref=Data(numpy.array([[-3.6979164153723203, -2.1991164930555258, -2.3708439269598305, -2.8259456306618453, -4.7264802495600335], [-4.1968206188493351, -4.4910925210264905, 4.3635253359028381, -4.8010270839542413, -4.898067997438317], [4.8418687142690242, 3.2732814095310392, -5.1313680826244967, -3.9952835475913395, 5.0530827588070446], [-5.2791405298139438, 5.2542111175109474, -4.7556141841594481, -5.0643300499069621, -4.0741443379636699]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[3.5751677238153401, -5.0446044112554631, -4.8084008830850919, 3.6578034038105751, 5.1855652488628774], [1.7884793917224828, 4.642437253245169, 3.1710583006908988, -2.7890952467104695, 4.9621763496592148], [-4.6235201866096052, 4.3905201792510207, -3.17161767446549, 4.724454508591605, -3.9954885674968175], [-5.109872625312927, -5.2106043127238761, 5.1543177540685887, 4.5683379150373344, -2.0832921903606496]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_taggedData_rank3(self):
       arg=Data(numpy.array([[[-53.045516481019646, -34.703398617100873], [58.744179081028165, 45.73939652168292]], [[88.640179862797964, -15.929739850377061], [20.336500323486419, -26.009231077461465]], [[67.483452353018436, -83.415215077694313], [-43.73819066557256, 0.34649147770160482]], [[94.466567030758256, 57.78821000816265], [-93.07193931131404, -65.081452487206121]], [[-54.611456218841695, 17.51214150630156], [5.6853926345566492, 38.237862836031212]], [[1.5782708895186488, -79.609362925181571], [47.883885039412519, 99.778654373519828]]]),self.functionspace)
@@ -879,9 +879,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asinh(arg)
       ref=Data(numpy.array([[[-4.6643863622180026, -4.2401923259759915], [4.7664116866516526, 4.5162266515773712]], [[5.17776424960676, -3.4623187168170242], [3.7061684380230009, -3.9519680523364986]], [[4.9050844901356578, -5.1170138356918358], [-4.4714994864581099, 0.33990819970999336]], [[5.24142117780635, 4.7500068099460622], [-5.2265487748261839, -4.868845799503112]], [[-4.6934746764153612, 3.5568558212420287], [2.4386934192694749, 4.3371443181086304]], [[1.2374103926768709, -5.0703183356413444], [4.5620352151292289, 5.2961265670636051]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-5.0881911926886616, 0.61887608041426068], [4.1879268588038681, 4.7664765196432715]], [[-3.2053324091778697, -4.9437392306615724], [-1.2998232670923699, -3.997162286806859]], [[4.7088636688405723, -5.2365026413753837], [-4.8330475059782119, -4.008452214765553]], [[4.4213161140266797, 4.4884861572133286], [1.7475584270504236, -4.9066849811247062]], [[4.5465845923807562, -5.1790317883473698], [5.2044621654621297, 3.6268753961564348]], [[4.8962579135667461, -1.8615996019862997], [-5.2858025387415069, -4.7599184690473226]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_asinh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[32.142378157394234, -7.8682084560468724, -32.972614582663724, 50.856847074540553], [72.329877464044415, 6.0619145811457571, 71.261710531993657, 70.2065904388474], [61.147646057937493, -26.137436099401938, 48.323697144662191, 29.857105568663485]], [[81.14862167131389, -28.070075464932472, 54.484029947945999, 53.274297598689998], [51.817829777738496, 55.524654561168546, 31.893469267783274, 98.108247444728335], [25.185957882420567, 56.589702849849886, 29.257428051768414, -49.316002216427599]]], [[[91.093502909783012, 30.593790782804035, -52.906781759597266, 37.807168034506248], [91.33559788100942, 46.479645801342286, 45.285940387630603, 17.009006113589351], [98.990499666054916, 20.732810397625983, -52.586859007443024, -97.39008994479434]], [[60.855541035297279, 43.563415593268758, -10.416755000859922, 19.761378421237396], [45.545393669751689, 34.038254695973365, 61.458790464133983, -93.805588539667809], [70.373745615324566, -69.821983987919253, -17.526059272214738, 99.463265178516878]]], [[[42.375759778528959, -71.513498720101126, 43.403494376930126, 11.702516371887256], [-68.02507709473943, -82.804863052600837, 17.935644233624799, -1.5560052642727271], [1.3086438337024902, 19.0159623777798, -43.415467037283427, -1.6840694232704436]], [[-76.523723879344232, 36.460220047753864, 74.414529475659975, -40.585507061813097], [61.18925351487826, 60.973990669294437, -56.486512227103702, -91.992194442103738], [-50.821095523487195, -8.7683370172323407, 99.212906160042508, -49.787947715823513]]]]),self.functionspace)
@@ -889,9 +889,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=asinh(arg)
       ref=Data(numpy.array([[[[4.1635644265624778, -2.7599915358235867, -4.1890544070007278, 4.6222585911216543], [4.9744322502971672, 2.5019077838324715, 4.9595555706500258, 4.9446400848058811], [4.806505402870445, -3.9568815433193461, 4.5711762859685958, 4.0898503596713338]], [[5.0894674517671321, -4.0281683959008951, 4.6911390175212615, 4.6686892479006827], [4.6409745686395487, 4.7100554093212761, 4.1557941279942145, 5.2792445878073861], [3.9198276751840293, 4.7290522782152147, 4.0695726016881411, -4.5914985748389192]]], [[[5.2050637903432921, 4.1142112460980922, -4.6617680124018888, 4.3258207506496307], [5.2077177590877843, 4.5322773741285998, 4.5062656785445956, 3.5277531738452392], [5.2881965746419173, 3.7254457616153438, -4.6557038316413522, -5.2718979969231512]], [[4.8017175551692963, 4.4674965942390115, -3.0388587872128419, 3.6775161997905594], [4.5119771682426055, 4.2208479181377072, 4.811580237341091, -5.234400023643297], [4.9470179186672389, -4.9391473745425918, -3.5576489640531608, 5.2929608319555426]]], [[[4.4398628679964025, -4.96308228583203, 4.4638198136319165, 3.1547715938291749], [-4.9130776200696218, -5.1096704317305806, 3.5807134591217551, -1.225433176641918], [1.0837103112235609, 3.6391165749315824, -4.4640955479804072, -1.2927150793063693]], [[-5.0307906787819405, 4.2895569942507352, 5.0028435354728717, -4.3967099542129784], [4.8071855230902134, 4.8036618081252804, -4.7272274114351864, -5.214880451554639], [-4.6215554958906369, -2.8675302639627946, 5.2904406860829596, -4.6010209599440053]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[2.3528942953432184, -4.0958744228371096, 5.1903756488916493, 5.1281129886870076], [-4.7174343552973603, 2.0075716195155695, -4.937871144778371, -5.1439945873654223], [4.22230186808053, -4.7457092677460411, -4.8968914542943383, -4.8161335672436891]], [[-4.3503271096734606, 4.5486245418147186, -4.5649658426227173, 5.2876744794258697], [-3.5905779156353059, 4.1144324497476124, 4.8225792420650633, 5.0707784647637046], [4.8353841364967165, 5.1400846170845353, -5.0637553150269641, -4.112778220940899]]], [[[-3.7394231192664891, -4.5432410388930284, -5.0478416752898454, 4.1254753641580617], [4.9529283477765169, -4.4976082378834796, -4.2947153739876791, 3.2541381655755188], [-2.6367133653925436, -4.8240865342451933, -4.448781110277845, -4.726059308101533]], [[-4.1605091983900415, 5.0646324196519528, -5.0290903098032347, -4.6529772433272774], [3.4831569454011433, -4.7011945976992884, -4.5570530599693662, -5.1822780622147535], [5.2437679039808112, -3.5043882377854798, -5.2981514782154209, -4.5583904818282788]]], [[[1.4912530895747718, -4.5381634201485017, -4.4548824695960123, 5.1390839500525125], [-2.2436246899234331, -5.0919328992003212, -5.1407291969411935, -5.2609752679328521], [-5.0731585525994474, 3.7786154625242512, 4.9136585515533389, -4.5434819009655412]], [[-4.8322699827017939, 4.9719089789160158, 4.9315952755712287, 4.0317610464510798], [5.0177129533122331, -4.2503649608354834, -4.0425905960208626, -5.0109066456916977], [-4.3090386599181487, 4.3485357163877962, -4.8477895988422537, 1.3256207429919689]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_taggedData_rank0(self):
       arg=Data(49.9810509193,self.functionspace)
@@ -899,9 +899,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acosh(arg)
       ref=Data(4.60469104168,self.functionspace)
       ref.setTaggedValue(1,4.96056744693)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_taggedData_rank1(self):
       arg=Data(numpy.array([75.872128581964489, 31.270745005346555]),self.functionspace)
@@ -909,9 +909,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acosh(arg)
       ref=Data(numpy.array([5.0221531537701187, 4.1355744181179075]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([5.2061165345882037, 4.7922928301529595]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_taggedData_rank2(self):
       arg=Data(numpy.array([[13.716727126294922, 18.582048298979366, 7.5020529608606203, 37.240476559713919, 47.923636526032062], [23.137297999502238, 93.601586495900719, 44.214564115710346, 36.167402243946711, 46.702642863490553], [23.270622841679405, 9.2774257115223389, 59.291871515770787, 33.506154158989204, 38.271499005024928], [46.757553911983621, 6.8257457794847447, 22.981256925823288, 86.170385026518829, 23.420848755718815]]),self.functionspace)
@@ -919,9 +919,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acosh(arg)
       ref=Data(numpy.array([[3.3104318336497132, 3.6146183386321131, 2.7038519866369914, 4.3103631168831464, 4.5626471481294111], [3.834125802828078, 5.2321659777026861, 4.4820735137429342, 4.2811142287291988, 4.5368332971619001], [3.839876941498396, 2.9178139584744245, 4.7755482825351914, 4.2046535493993629, 4.3376819221817646], [4.5380086345560136, 2.6084392106579743, 3.8273524505590331, 5.1494400678077143, 3.8463177083491402]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[3.4615479170038235, 1.6364755314613311, 4.7911538849173159, 4.4969351619322433, 4.2228259954588951], [4.8238032312056154, 3.7487492070394848, 4.5176837838527817, 4.4031256752655068, 4.7557376697168952], [3.0121467628386225, 4.5729082091092721, 4.4518117430828532, 4.9548373538850878, 2.8085633470967837], [3.9676451082613573, 3.4049343192673835, 4.9762365895508731, 4.1694492579956304, 4.4041861546123844]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_taggedData_rank3(self):
       arg=Data(numpy.array([[[96.020179154808503, 91.79778167929949], [95.326949143229541, 45.421316747623791]], [[30.65219771657458, 74.770295168847696], [77.989358990586055, 11.574100860239977]], [[92.626717442077236, 3.1700861207519435], [81.107542243865836, 58.693576539606504]], [[19.827981381026582, 98.929766771654783], [93.210281085417222, 17.872534507474096]], [[15.212656462365901, 45.839114797078196], [67.995696601337741, 21.57180672061461]], [[88.431893439575802, 86.459272754032739], [93.400261681763538, 3.5041690372595453]]]),self.functionspace)
@@ -929,9 +929,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acosh(arg)
       ref=Data(numpy.array([[[5.2576784330296311, 5.212705644723707], [5.2504322211627388, 4.5090075081620471]], [[4.1155853549672061, 5.0075231423119817], [5.0496784696098871, 3.1400456206904903]], [[5.2216956660972746, 1.8210457157023874], [5.0888851315296018, 4.7654048945882801]], [[3.6796048228214242, 5.2875318075733615], [5.2279764321968374, 3.5756287593263258]], [[3.4141929052963755, 4.5181659425846679], [4.9125375214849907, 3.7639967265035321]], [[5.1753479006258116, 5.1527872028336335], [5.2300126684264212, 1.9260894616398991]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[3.9236661269309159, 5.2035964629627127], [4.1550209149744246, 4.2731335198543867]], [[5.1663669487865587, 3.7069584430952047], [5.0785794154217756, 5.202231127665808]], [[3.3378837578237039, 5.2961964832588198], [3.3438668793761139, 4.9409818305305739]], [[5.0991906511154443, 4.8215450339501285], [2.8512667866370323, 3.4162799784592983]], [[4.8161338295407301, 4.0751284773769649], [4.694011395692308, 4.3907310833319526]], [[5.2366496860798568, 5.11598668493777], [5.1633792680707424, 4.3025615032480333]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_acosh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[46.496494307641363, 74.917094330056727, 39.893774938569727, 23.744943878587605], [1.9737426076200388, 56.13429325455833, 31.478338229941585, 76.686853948479268], [43.543067819658987, 81.289887895435285, 32.113423511300105, 5.213549323262523]], [[26.577313488763004, 82.755886663842674, 6.4828955638004224, 81.780421145322038], [84.79256558820957, 69.233222959376874, 73.836164807553629, 87.692408248293873], [37.136000517418708, 90.288377224446137, 62.614392713419683, 88.339987656018039]]], [[[61.202863958945962, 31.566286842895735, 7.1708278242804298, 98.950695215124099], [87.222678883207024, 86.95839324301987, 17.656917302211554, 54.991339984079993], [92.159416624775972, 31.425747720223157, 47.207404840689208, 79.815101091507159]], [[13.75432234393317, 36.005105956151937, 80.930354510392675, 17.903169928485063], [37.209969721856766, 68.392829385096988, 68.225744945843331, 25.131306602144075], [57.726340455843392, 45.183440336464102, 96.487976002311996, 74.482543907471182]]], [[[97.032639801911586, 59.169720141290711, 65.544382023430359, 27.350556781956005], [85.48226011720655, 8.7268878117714603, 49.450968175354753, 75.078362059466997], [47.954002472987767, 16.036826907987312, 99.975563170888265, 78.829796914932373]], [[39.21420494818117, 42.262998162260104, 73.751675519611155, 51.828252577302301], [60.148666432515796, 37.443825584849876, 97.665835616597235, 78.975812123743339], [6.9121385596705096, 34.189572613115473, 27.703168010672275, 50.045255814521546]]]]),self.functionspace)
@@ -939,9 +939,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=acosh(arg)
       ref=Data(numpy.array([[[[4.5324084412759778, 5.0094847279060319, 4.3792103554802608, 3.8600731017873722], [1.3016637290797095, 4.7208147464351278, 4.1421944195445226, 5.0328349651237305], [4.4667658109698571, 5.0911309744336259, 4.1621787939300265, 2.3350809370517589]], [[3.9728510376447228, 5.109005824071593, 2.5563122244559442, 5.0971476629476182], [5.1333202761679582, 4.9305758676636238, 4.9949499704360436, 5.1669499996633848], [4.3075527147709547, 5.196125251025741, 4.8300785753238706, 5.1743080104110604]]], [[[4.8072744174301363, 4.1449858695233406, 2.658270592315148, 5.2877433445020525], [5.1615786939465957, 5.1585438835194486, 3.5634719544667166, 4.7002402176468125], [5.2166376113963704, 4.1405214877183933, 4.5475857430671622, 5.0728206578448036]], [[3.3131761972681315, 4.2766150387385435, 5.0866979727721846, 3.5773440805534538], [4.3095433003567933, 4.9183617154061148, 4.9159154531733078, 3.916865458190002], [4.7487857259228701, 4.50375535715325, 5.2625387259978202, 5.0036669013457349]]], [[[5.2681680417753087, 4.7734856928164495, 4.8758164840313665, 4.0015496982806926], [5.1414218364571465, 2.8562570863627581, 4.5940265687942565, 5.01163522143636], [4.5632807172725283, 3.4670614367497063, 5.29804795523276, 5.0603980061109874]], [[4.3620236184007943, 4.4369191414800992, 4.9938049295476628, 4.6409895153027874], [4.7898973432892191, 4.3158106467268684, 5.2746727815426553, 5.0622487258630153], [2.6211521330965311, 4.2248539437647477, 4.014368049013294, 4.6059750587364245]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[5.0297437651741488, 3.9002658632157274, 5.0624123337133149, 4.8324838701438377], [4.8078732275406084, 4.9417185850198733, 5.0536631335958884, 4.2463497717069103], [4.3044928897720416, 4.756627671189591, 3.9992423655604172, 4.6915856649381364]], [[3.4063203831311251, 4.1087650332057839, 5.1907313988379462, 5.0497236078916279], [4.325722057994339, 4.8652346239002213, 5.0915754213748823, 1.3165555330279051], [4.3471986353008933, 4.1635865170827602, 4.9605954282607705, 2.3461398613499078]]], [[[4.7946818261908994, 4.5867070641055383, 5.0521744319245858, 4.8026044713453375], [4.4530284006885319, 4.1419811640723054, 4.3008130131764508, 4.3821430718817362], [2.9502001551652342, 4.184661309810318, 5.0134683412122536, 4.9140003614485606]], [[5.1059666365457144, 4.7467653633473841, 5.2540177010556652, 5.0500332892131663], [4.3893080251791545, 3.3959998775424971, 4.1448262804214515, 4.0407905386517378], [3.8842957690757829, 4.8164891884239784, 4.6143642220081729, 4.3890909997782792]]], [[[3.3225293134567675, 2.5918958799586354, 5.276663767488472, 5.0110271683900773], [3.0926948705710546, 5.0375928992743964, 5.2722281468793524, 4.1896106435456426], [1.1625825203718756, 4.6260194561242551, 4.0760340229896617, 5.2399700114788725]], [[1.9511766454658923, 4.3958084665836674, 4.910373700880009, 5.2331149143207876], [3.9218376124513488, 4.7275064044247292, 1.9484357218467823, 4.8362494165490313], [4.4483356113795223, 5.0846305854377469, 5.0029677813756557, 4.1445704990230352]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_taggedData_rank0(self):
       arg=Data(-0.320619038958,self.functionspace)
@@ -949,9 +949,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atanh(arg)
       ref=Data(-0.332336921208,self.functionspace)
       ref.setTaggedValue(1,1.32948203584)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_taggedData_rank1(self):
       arg=Data(numpy.array([-0.49724785679895611, 0.76485832136382981]),self.functionspace)
@@ -959,9 +959,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atanh(arg)
       ref=Data(numpy.array([-0.5456433240595332, 1.0078187373348622]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.90134518516976136, 2.6022266354573262]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.41875373709407426, -0.031282543674564844, -0.37120980277072957, -0.33787277754808165, 0.9056835178923357], [0.10920509246927712, -0.9517935928864919, -0.38928920166887748, 0.51987390317679982, -0.38673372014824514], [0.84666821394639546, 0.70139465198953088, 0.65524269199234908, -0.76892126906681368, 0.53641715611532659], [0.8319590120911895, 0.54197223487670665, 0.96505599773867456, 0.18013767879594189, -0.23629819004673036]]),self.functionspace)
@@ -969,9 +969,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atanh(arg)
       ref=Data(numpy.array([[-0.44617979391481238, -0.031292754010403323, -0.38982552275887766, -0.35168921785961199, 1.5029700335665168], [0.10964234311011919, -1.8505060400721478, -0.41096200383131098, 0.57616694042294059, -0.40795359483226379], [1.2442671095703073, 0.8700403910046729, 0.78443110215353462, -1.017683354133686, 0.59911167917750008], [1.1944666231886989, 0.60694387161398944, 2.0147645883194851, 0.18212498120425324, -0.24084972556636608]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.37934733814448002, -0.80082666251032752, -0.19048764725210868, -0.1628950195664004, 0.8339763214069672], [1.7778647815902611, -0.34776162471495142, -0.024593874154403211, -1.2932409850373054, 0.99392357017656985], [-0.17356179326165472, -0.66787580856210826, 0.32146948112818524, 1.2697561085057214, -0.98176231871677033], [0.021576040897969627, -0.21188262231678223, -0.38209346340171296, 0.077107850497316832, 0.53946179405081751]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_taggedData_rank3(self):
       arg=Data(numpy.array([[[0.10445331614917319, 0.2730814888903883], [-0.60232593544217883, 0.96715501656915182]], [[-0.17016809723013615, -0.089807528529218916], [0.23654377024927897, 0.83272135685004955]], [[0.016551420278897, -0.38236850351537788], [-2.0657074242591555e-05, -0.40819212706994223]], [[-0.3729914622085253, 0.62722527860088206], [0.82747007179222232, 0.25145176276119274]], [[-0.73980019966402311, 0.96693217416513644], [0.90586640577652378, 0.21899534641151908]], [[0.19566248084568705, 0.47149584732702499], [-0.48621869468657664, -0.79464808240093432]]]),self.functionspace)
@@ -979,9 +979,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atanh(arg)
       ref=Data(numpy.array([[[0.10483570163371808, 0.2801906138917637], [-0.69678941288133878, 2.0462723010157]], [[-0.1718397684110442, -0.090050148021531648], [0.24110984512183212, 1.1969481388179688]], [[0.01655293194521994, -0.40283080913531905], [-2.0657074245538708e-05, -0.43343996902678245]], [[-0.39189351498418051, 0.73682864354852906], [1.1800585483131474, 0.25696195979910064]], [[-0.95003787955311769, 2.0428347777140869], [1.5039885009533656, 0.22260060180307562]], [[0.19821835350061251, 0.51199204142601529], [-0.5310963428117158, -1.0839195243854924]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.12754129113092447, 1.3082186161867242], [0.628287702104393, -0.46479335197476535]], [[-0.064012689955305346, 1.5946297532263998], [0.61978799882113045, 0.42234670222024745]], [[0.67036433965710951, -0.51951462581386376], [-0.58528868912562182, -0.054054297989210139]], [[-0.20549411284441793, 1.4630953537864373], [0.45037168207904948, -0.64701904247591646]], [[-0.16400091263674657, -0.49119244692959763], [-1.1427547236990911, -0.35986168723884399]], [[-0.13727527703665104, -0.020988672265444559], [1.4233196317293295, -0.69919242983311702]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_atanh_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-0.47883527804935155, 0.31661906413420882, -0.5872020411014347, 0.43673454125507827], [0.88136900358406756, 0.94422263261031114, 0.2891277683997282, 0.33076405922761665], [-0.21998818991754054, 0.18048183712899557, -0.25041587475362848, -0.25214869329219225]], [[-0.84430089168638789, 0.76091050674122229, -0.020508996055177531, 0.29404167593808239], [0.68934167553083725, -0.95776231509069376, -0.88145154914219881, 0.77744088285490931], [0.78737460506857015, -0.4719906631589994, -0.76786773432549871, 0.56997395187593303]]], [[[-0.78365368219581333, 0.94733757009719777, 0.34808028723294027, -0.036308308933188926], [0.44280850580686337, -0.46404387448339723, -0.14428462443261891, 0.46397654196715088], [-0.72398981623771386, -0.71386141901887123, 0.11403708557516423, -0.53026185484339128]], [[0.68236920590850803, -0.24036690933114169, 0.24096702828664163, 0.98040177083805702], [0.094472694677199653, 0.6400010790928965, -0.047874513368018401, 0.52630540675289095], [-0.22171125448934548, 0.70527518354726904, -0.47501571993423464, -0.72243237090033174]]], [[[0.0082387877639482632, 0.68679756821273141, -0.25873096009920205, 0.20529892260052329], [-0.19243878258846681, 0.05455697263932402, 0.16135364518328221, -0.24061386219544423], [-0.34484162854240008, -0.67668499260554094, 0.40134472749143524, 0.50389744806479242]], [[0.20426635215593136, 0.3870127342101326, -0.75330067354803076, 0.71517180319260576], [-0.59636722535596642, 0.16902679259625208, 0.60854487911843269, 0.6080127077236932], [0.21358767561056036, 0.43831246429727311, 0.87978778079261621, 0.86710279990576811]]]]),self.functionspace)
@@ -989,9 +989,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=atanh(arg)
       ref=Data(numpy.array([[[[-0.52147196294207276, 0.32788498573535435, -0.67338487643976419, 0.46818855662601327], [1.3818685896095428, 1.7756246583188797, 0.29761420443632619, 0.34368593107252376], [-0.22364369829230918, 0.1824807046839074, -0.25585646084994412, -0.25770606941434526]], [[-1.2359651061495662, 0.99837417850627852, -0.020511872271671897, 0.30298473846351426], [0.84670025891519385, -1.9181222970821421, -1.3822385567527231, 1.0388685705919063], [1.0644856064871606, -0.51262849467258542, -1.0151110548081639, 0.64748426157864258]]], [[[-1.0547693615321863, 1.8051580368562086, 0.36325771777197419, -0.036324276565210908], [0.47571893391859066, -0.50245268032031365, -0.1452985614521865, 0.50236687302329996], [-0.91597939071280587, -0.89501400057946223, 0.11453530898741597, -0.59050937260928005]], [[0.83353431857678084, -0.24516348409085417, 0.24580049937095722, 2.3078079021972875], [0.094755268528087466, 0.75817557241805289, -0.047911139382633972, 0.58502126565893153], [-0.22545511450504421, 0.87771983963299549, -0.51652780344410243, -0.91271406398924038]]], [[[0.0082389741813193099, 0.84186867590027514, -0.26474784084557118, 0.20825842151635696], [-0.19486851141497685, 0.054611198454615352, 0.16277621481062421, -0.24542559638535763], [-0.35957727095671943, -0.82297340064389157, 0.42525082339072229, 0.55451632638526749]], [[0.20718065376792391, 0.40828171962949339, -0.98054254816788611, 0.89769117554517319], [-0.68749017583866245, 0.17066466375457767, 0.70660718620863483, 0.70576246545920529], [0.21692751606572119, 0.47014004829152839, 1.3748277463307201, 1.3212836529188918]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.61859534593457599, -0.68832037278553204, -0.81395391660559058, 0.70474268120208172], [1.1538640889775169, -0.61840829443535583, -0.86038718410040294, -0.16208513353159817], [0.24342074184310508, -0.47980146702787174, 0.67896053116777877, 0.45820470516013301]], [[1.1085001296138581, 0.012109809371730973, -0.68895835800676963, 1.7169945930949277], [0.35721394930077227, -0.9108595789817534, -1.1547820644444977, 1.104358453933548], [0.035649969677798599, -2.1501439822914454, 0.8157318952041559, -0.35939365030578813]]], [[[-0.10518459752972166, -0.76537157126945188, -1.2843470399300845, 0.62431925114105657], [0.24779464619772806, -0.81705954941654779, -0.55552944455890785, -0.38516072985708483], [0.056033968346053203, 0.51666909868942745, -0.091063618089528731, -1.7979008842415258]], [[0.29338366539773703, -0.30596920988869425, -0.57572206515026991, 0.52974437563961629], [-1.3180736740413761, 0.66105802771914668, 0.45258279622299263, -1.6126480031695198], [-0.71818130025412152, -0.15425163308315157, 0.18354057447044783, -1.2546860803299611]]], [[[0.76199086156420348, 0.16939783695662922, -0.33328497538680557, -0.28716450911655816], [0.44282777426673942, 0.41120063253722738, -0.47376302178526142, 0.69317536098519239], [0.40246314878330663, -0.61561614700266343, 0.0088433589085275318, 1.4037709403877687]], [[0.064389969528247493, 0.2999928969476674, -0.18169857147454585, -0.53946737159589209], [1.0289119803083038, -0.032508872740294195, -0.67230428425667288, 0.24464627841275868], [-0.34570605594566106, 1.0318354841886035, -0.76498190274334987, -0.10145885170923308]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_taggedData_rank0(self):
       arg=Data(-0.749952155816,self.functionspace)
@@ -999,9 +999,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=exp(arg)
       ref=Data(0.472389153274,self.functionspace)
       ref.setTaggedValue(1,6.51660242443)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_taggedData_rank1(self):
       arg=Data(numpy.array([3.7583213879690298, -4.0248042968760078]),self.functionspace)
@@ -1009,9 +1009,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=exp(arg)
       ref=Data(numpy.array([42.876392709074644, 0.017866920423330365]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.017727967895924832, 8.050249001830192]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_taggedData_rank2(self):
       arg=Data(numpy.array([[3.766157828602319, -4.5823946696429996, 0.66617764913528088, 3.1886036213038711, 3.2584512608104532], [-2.7859216252555252, -1.4135218651939963, 1.3112977143029916, 4.7018302511834644, 1.7097977950670256], [1.4508523744480133, 0.55253078019373714, -2.6877047949953683, -2.6846750320431956, 0.10904970548395898], [-1.8038527766057699, 0.13601142120047616, -3.0528315745434984, -2.9504614920251693, 4.9405838296608291]]),self.functionspace)
@@ -1019,9 +1019,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=exp(arg)
       ref=Data(numpy.array([[43.213710976177346, 0.010230368587152355, 1.9467817978129194, 24.254535269112523, 26.009224428474024], [0.061672224151586852, 0.24328495576601736, 3.7109863889101957, 110.14858765860721, 5.5278436073622528], [4.2667498341569088, 1.737645055572572, 0.068036918977638014, 0.068243367300953484, 1.1152177814033668], [0.16466325379708055, 1.1456949787321744, 0.047225013744888564, 0.052315557164201748, 139.85187540287308]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[2.1718302653500525, 0.021164198413568151, 0.40033070302660334, 0.010092587743486195, 0.039992286551843337], [4.2733447640782849, 36.10092405638504, 0.90928813530390384, 0.32606004802823046, 0.96473196396405092], [3.6604864293964274, 0.45321744024910665, 130.81382367479199, 11.867398903728049, 4.4524084401639898], [8.3806954834885605, 10.287468365848504, 130.91914916968017, 21.972191907545891, 0.027991415696668204]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_taggedData_rank3(self):
       arg=Data(numpy.array([[[-3.6030801562417594, -4.5294423627776723], [-1.557160197615659, -0.64085226193734268]], [[3.1534384970888407, -1.4188623741518338], [-0.32228628176517304, 0.50951392267301809]], [[-1.3476041299826225, -3.32599590280795], [2.0029626527776827, 0.17501479898352912]], [[0.027034969552835797, 3.5645457550243353], [4.1592609451144007, -2.4301462095345872]], [[-1.4609157602736733, -2.6511851511926929], [2.600171679270459, -0.70192657249718238]], [[-1.7778158632064134, -2.1404423164026731], [3.9519788369582631, -4.5989900094571379]]]),self.functionspace)
@@ -1029,9 +1029,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=exp(arg)
       ref=Data(numpy.array([[[0.027239690595102155, 0.010786689455490304], [0.21073366423825682, 0.5268432242253307]], [[23.416443683529156, 0.24198915348209477], [0.72449075214705883, 1.6644819313514767]], [[0.25986211125282049, 0.035936711454248524], [7.4109797665781239, 1.1912638459759448]], [[1.0274037299843257, 35.32340428052094], [64.024187721822358, 0.088023961699000022]], [[0.232023699324167, 0.070567530289168845], [13.466049678150117, 0.49562951719433684]], [[0.16900687858407906, 0.11760281386238031], [52.038240209413715, 0.010061993132243331]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.86995407691125259, 0.39679663502748053], [1.000012828623035, 0.0078521313242256845]], [[0.012179107337097306, 0.31250040622116754], [0.10059426364925389, 1.0670783847158629]], [[18.482457486951546, 2.3988647881215508], [16.387530820420302, 5.6691886766023503]], [[0.235367631750873, 0.076457852989352454], [0.0168399386970619, 25.59111383914971]], [[0.012572487351205171, 3.4098233771610715], [0.0078326002724350228, 0.012056022541700125]], [[0.90431139638593339, 6.4952023243694939], [0.038573549534221326, 0.13220525908750566]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-2.5238222687744738, -4.7456197569138041, 2.4673965431652034, -1.244247551702399], [3.9651636170231548, 4.0776910888432969, 0.33317305369197836, 3.6969964378853799], [3.9522407667631043, -1.0872449164824829, 1.6801184274785852, -2.8666709250314359]], [[4.2594562258901689, -4.889578615758472, -3.1308615369041681, 2.1392519037970645], [0.17641976501634815, -1.5746448211534414, -0.84524587352898095, 2.9243780446190479], [1.2842983675630162, 2.7926593166299227, -0.070666242007418667, -1.4855591873635543]]], [[[1.5763070240757084, -4.7399252089965671, -4.4330538755629174, 3.681196791537392], [-2.8156600221094874, -1.2778689800443024, 1.4019765504207253, 0.73514942949937634], [-1.1656020759259276, -3.7433522348482926, 1.4569591575424701, -0.53394250890947514]], [[2.3786113981284966, -0.87615865560504158, -0.41129136755905193, -4.7966371337088347], [-1.5388053274330717, 4.1842415750395165, -0.82823766333376536, 2.0074764920300883], [3.5655062419593779, -1.0807913303813055, 0.14992361631707851, 1.5118919445282142]]], [[[-3.3648564449762963, -3.078810214450729, 2.1446259920400266, 3.0442472934728944], [2.4303560614080606, 4.5022657497612339, -3.6084630275613758, -3.8599028815954508], [0.39985165592526428, -1.0962344443252938, -4.0342766535351613, 3.1574594571937133]], [[2.9382085600344032, -2.1075141636809769, -4.4790587859448125, 3.8831338833937394], [-0.88934483455337077, 3.2530676768122309, 1.1912487104888179, 1.5913330617778207], [2.5683829199460373, -4.8954076890133447, 4.5839373708486839, 3.8595928573139471]]]]),self.functionspace)
@@ -1039,9 +1039,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=exp(arg)
       ref=Data(numpy.array([[[[0.080152655505830658, 0.0086896748505372011, 11.791707653037269, 0.28815765031031876], [52.728896028898035, 59.009065747752359, 1.3953887547525055, 40.326000631888107], [52.051872360771483, 0.33714407542267766, 5.3661914380144706, 0.056887996095747358]], [[70.771489285571263, 0.0075245925517613936, 0.043680148977066881, 8.4930816096222337], [1.1929387075019384, 0.2070810904436986, 0.4294517544102977, 18.622639996115122], [3.6121326784506551, 16.324373808965724, 0.93177282686446505, 0.22637571883571311]]], [[[4.8370596417137266, 0.0087392997820314143, 0.011878159805614893, 39.693870945779999], [0.059865193346532772, 0.27863043525547398, 4.0632232005962257, 2.0857936483198323], [0.31173491743100945, 0.023674607118095742, 4.2928856716344859, 0.58628895778987566]], [[10.789909567861674, 0.41637929986988848, 0.66279378685620638, 0.0082574691747315451], [0.21463736969557601, 65.643696214852767, 0.43681842951266009, 7.4445073500822074], [35.357348247592512, 0.3393268996880992, 1.1617455009391346, 4.5353032245954843]]], [[[0.034566978025192006, 0.04601397085108954, 8.5388470432411587, 20.994222765561766], [11.362927259672304, 90.221318825839518, 0.027093456777850244, 0.021070045712901889], [1.4916034107005398, 0.33412689121892897, 0.017698477615323543, 23.510789823294036]], [[18.881990043978675, 0.12153971907203348, 0.011344085344041271, 48.576208955970465], [0.41092488836655877, 25.869577820936623, 3.2911883839679281, 4.910290287640346], [13.044713030863051, 0.007480858738198164, 97.899101410590205, 47.446030131719859]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[71.152924262038169, 17.054828714195565, 0.035267600753315483, 0.087036919996353851], [0.01741843342050033, 63.174086562400987, 0.073217989457584703, 67.480119432792065], [5.2049208605842301, 0.062178784059445436, 0.018942143909195415, 1.0468216837923499]], [[1.7988959516791232, 0.063259709283642204, 99.836029425246196, 0.019206846291659703], [0.0098501183071684206, 0.4234434761873957, 75.543434536535472, 1.3948645404410878], [0.039126253875001821, 0.022229796402444147, 1.4790167715431195, 0.028252305852203917]]], [[[129.11799417067959, 0.0069475421600283986, 0.37171467754869364, 0.16856723245965202], [3.697302509270763, 23.633661588632254, 0.12197244052600395, 0.087905816293231603], [106.49642376925129, 0.0084039631233603397, 102.51399329228067, 0.15165744973159559]], [[0.14080414118396287, 0.10701609612551928, 1.520612249558166, 0.15514981373760095], [0.48104368685579674, 18.71078262832426, 0.14341378217821199, 0.68327973756414706], [0.0085009481008868799, 0.12941463377750104, 0.60672008264714627, 0.30283205790085627]]], [[[0.037034547042194353, 0.048550622067129998, 0.036090599494215864, 0.024110892408788401], [9.5577774186815603, 130.22399145161907, 16.711450221512699, 1.6079909926256291], [0.0077543773461377754, 0.025827390686055354, 0.33535337208917088, 2.417492579588719]], [[18.270372074237216, 0.65975405441116064, 0.017182025280169905, 0.016085850753487244], [8.9203862336155364, 3.0344334641142736, 0.6149246637123601, 24.815586931080908], [121.30583999301004, 0.55137250918361824, 104.08714646666205, 9.9270925408500208]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_taggedData_rank0(self):
       arg=Data(66.1187077838,self.functionspace)
@@ -1049,9 +1049,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sqrt(arg)
       ref=Data(8.1313410815,self.functionspace)
       ref.setTaggedValue(1,8.90821416736)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_taggedData_rank1(self):
       arg=Data(numpy.array([26.950944903716938, 22.036031901881039]),self.functionspace)
@@ -1059,9 +1059,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sqrt(arg)
       ref=Data(numpy.array([5.191429947877265, 4.6942552020401527]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([8.9251991906392583, 9.9344550686213839]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_taggedData_rank2(self):
       arg=Data(numpy.array([[83.203409742087729, 20.459876166893444, 41.094599447534264, 43.257432617853716, 84.805361343651796], [80.986686844056138, 49.344401691041469, 57.262902954007956, 32.781817377127261, 20.98870933921323], [41.864732471259813, 72.898239703170674, 97.169858294017487, 72.127581542658106, 69.84393540957619], [7.2057070639609844, 12.014479889224537, 12.730936911149628, 79.860562402939749, 72.136801812195543]]),self.functionspace)
@@ -1069,9 +1069,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sqrt(arg)
       ref=Data(numpy.array([[9.1215903077307594, 4.5232594626987126, 6.4105069571395257, 6.5770382861781878, 9.2089826443343785], [8.9992603498318751, 7.0245570458955964, 7.5672255783746767, 5.7255407934209375, 4.5813436172386401], [6.470296165652683, 8.5380465976223547, 9.8574772783921496, 8.4927958613555585, 8.3572684179447165], [2.6843448109289136, 3.4661909770271655, 3.568043849387172, 8.9364737118697857, 8.4933386728774423]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[9.0394354178483383, 9.3321256740892835, 8.2255214438823696, 7.9311282576884761, 6.0475216095749182], [7.3764202072295131, 8.969702075324653, 3.1317723204966605, 7.3579996021325327, 6.0117441564606446], [5.7305578991602468, 8.3299801532664528, 7.9877318947723888, 7.1893607044031747, 7.3713985214039166], [9.0627400309584552, 7.6101749953998734, 2.5010071629595938, 7.0937652261648063, 7.0776221571393352]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_taggedData_rank3(self):
       arg=Data(numpy.array([[[24.58711525153694, 26.513450628905794], [25.894046225897309, 76.099882908832683]], [[96.86666740650108, 98.675082396336464], [53.846636874764542, 14.27238078898271]], [[97.63850940329813, 90.151928905789063], [71.648695201571115, 74.209156956430576]], [[14.632460270663838, 46.13289266526926], [49.330643833957971, 72.03527701414572]], [[47.999222087494871, 33.838367468886382], [75.127786968398865, 4.3599320763477758]], [[46.943202068363867, 80.275429008214473], [82.397086218544985, 62.859283550169593]]]),self.functionspace)
@@ -1079,9 +1079,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sqrt(arg)
       ref=Data(numpy.array([[[4.9585396289166574, 5.1491213453273552], [5.0886192848254339, 8.7235246837979812]], [[9.8420865372389947, 9.9335332282293418], [7.338026769831556, 3.7778804625057569]], [[9.8812200361745877, 9.494836960463779], [8.4645552276283897, 8.614473690042276]], [[3.8252398971389803, 6.7921198947949426], [7.0235777089712599, 8.487359837673063]], [[6.9281470890487649, 5.8170755082675676], [8.667628681963647, 2.0880450369538908]], [[6.8515109332441311, 8.9596556300013273], [9.0772840772196268, 7.9283846747095712]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[5.3787206594559764, 5.7782846168021615], [4.1085284380881912, 8.2485435537202729]], [[7.3856857128127791, 9.0045170392629359], [1.2896491570067581, 8.7030880482987474]], [[5.3276717838628729, 6.1073549525547168], [2.1247464792776016, 8.2568925162875733]], [[6.4525353613489962, 8.0244036617995995], [5.5670469396778453, 4.4100058993857711]], [[1.7988129980363381, 3.2868371299325174], [9.9719312590072402, 8.4143674642287287]], [[6.2135716774267218, 6.1935345376456779], [9.4837377612425193, 6.8621500370143069]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sqrt_taggedData_rank4(self):
       arg=Data(numpy.array([[[[42.370128850225534, 64.183097608646705, 84.366078659801104, 16.515641051464272], [73.785291697946164, 87.312657572269515, 69.428277252879781, 92.656721478953287], [69.698296458864249, 23.393048019403704, 88.109689395116419, 42.032468891247021]], [[2.6375163201099578, 59.041525354643206, 20.356627995608768, 11.897333150828965], [37.925080098983869, 59.075116440382075, 56.144969467546872, 64.519772619227496], [20.071418547844651, 38.634724148514344, 80.718254953798279, 50.41857305264454]]], [[[59.576738600481768, 23.930830924167143, 18.360753569890573, 20.231150076534181], [98.25922486474947, 68.178149570093638, 13.776804530518866, 51.945871290407467], [35.14832429151236, 67.415812532502684, 12.757339586205628, 44.063833075360989]], [[6.7443440383699587, 84.841224148387312, 29.790278716866581, 78.659203162433926], [62.669492083963888, 49.131163942783786, 57.031266775264292, 23.536235325724508], [66.812957309291249, 93.23023188694566, 72.378130120625073, 76.741950163200173]]], [[[54.340441189118657, 38.923007006981855, 8.4805132822780038, 81.769308743472948], [10.431711506617603, 89.283700349417444, 11.054894136992893, 69.501130141011274], [59.878072146242665, 16.353174235971739, 33.911661927785339, 43.933788186658099]], [[95.155663331834987, 40.374769085669357, 76.504062733443291, 24.269622789956216], [19.066641354097424, 16.216531435944937, 2.9090938643160769, 36.193423650217412], [85.035802964632353, 33.758549347144886, 22.607096658902456, 59.29059546236266]]]]),self.functionspace)
@@ -1089,9 +1089,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sqrt(arg)
       ref=Data(numpy.array([[[[6.5092341216325549, 8.011435427477819, 9.1851009063483406, 4.063944026615558], [8.5898365349956549, 9.3441242271423981, 8.3323632453752143, 9.6258361444060174], [8.3485505603586212, 4.8366360230436714, 9.3866761633240774, 6.4832452437993595]], [[1.624043201429678, 7.6838483427670026, 4.5118319999318199, 3.4492510999967756], [6.1583341983838347, 7.6860338563125046, 7.4929946928812692, 8.0324200972824809], [4.4801136757725972, 6.2156837233336084, 8.9843338625519849, 7.1006037104350881]]], [[[7.7185969321167285, 4.8919148525058302, 4.284944990299242, 4.4979050764254884], [9.9125791227485021, 8.25700608998768, 3.7117118059621581, 7.2073484229921521], [5.9286022207188402, 8.2107132779377139, 3.5717418140461423, 6.638059435961762]], [[2.5969874929175072, 9.2109296028352805, 5.4580471523124992, 8.8690023769550272], [7.9164065133091723, 7.009362591761378, 7.5519048441611272, 4.8514158063110306], [8.1739193358688862, 9.6555803495670656, 8.5075337272693243, 8.7602482934674963]]], [[[7.3715969225886635, 6.2388305800832464, 2.912132085307602, 9.0426383729237418], [3.2298160174563511, 9.4490052571377827, 3.3248900939719634, 8.3367337813445417], [7.7380922808042722, 4.0439058144288849, 5.8233720409901117, 6.6282567984846592]], [[9.7547764367941809, 6.3541143431377876, 8.7466600901969027, 4.9264208904595446], [4.3665365398788802, 4.026975469995433, 1.7056065971718322, 6.0160970446143409], [9.2214859412478827, 5.8102107833662009, 4.754692067726622, 7.7000386662901024]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[6.7424918063476582, 6.944977607093497, 4.5359559593590237, 8.777364261446964], [5.4229514452607832, 9.4680621032523824, 6.1340837886634452, 7.3936121650922395], [7.4350422168033052, 3.1427699683087109, 9.2028597139171548, 8.6353798424041628]], [[9.2994953658561634, 6.280661204228573, 5.8235034541330579, 9.5427725382765729], [9.0837248097596905, 8.8900540517447766, 4.6049062474968459, 7.9654209929822395], [8.4126031672757176, 9.2292930167593461, 1.5157926552172269, 7.3552899394130602]]], [[[6.7022888258856579, 8.9202625105658591, 8.368755525594695, 9.4540374362184689], [6.0752622854517488, 3.3199658229683626, 8.4038793425417033, 5.1419557853234732], [9.7278106030162803, 4.7173779216283078, 8.5545711179160246, 7.9181683159627552]], [[5.0802602727304693, 7.9947468131221262, 2.7964033570758149, 9.3124503981195641], [8.6628142799598766, 9.17764261310578, 4.6799122565946663, 2.6143721423217827], [6.1050077372054989, 8.0363817556907513, 5.2226114976657589, 7.0707836766334538]]], [[[0.41544517262331926, 3.0417838661686312, 4.6899142560906375, 5.8850936785885537], [6.0468535498579934, 6.0386153781657725, 4.8444465691597554, 7.9818305788617696], [8.79202643303862, 5.9272095301555394, 7.2420377925646839, 7.6937314373687578]], [[5.3077322510580336, 2.6304738335200644, 5.7897397295482866, 5.6979626431802401], [8.9878726397302025, 7.7670367311437394, 7.8080233996252861, 1.5652272663328437], [9.5683017318709176, 4.5303352793858123, 5.2744068137881328, 7.2879268503864907]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_taggedData_rank0(self):
       arg=Data(36.4809356241,self.functionspace)
@@ -1099,9 +1099,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log(arg)
       ref=Data(3.59678981247,self.functionspace)
       ref.setTaggedValue(1,4.38240434862)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_taggedData_rank1(self):
       arg=Data(numpy.array([46.59425457123556, 68.172569815688405]),self.functionspace)
@@ -1109,9 +1109,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log(arg)
       ref=Data(numpy.array([3.8414772410677034, 4.2220422818284451]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([4.1809351156780332, 4.455105154698046]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_taggedData_rank2(self):
       arg=Data(numpy.array([[39.075877450675698, 97.653545876008806, 47.988417825860637, 53.932052577242985, 60.380431949040442], [93.350133391903867, 38.347348519622287, 60.437021565597611, 2.0425923742169343, 77.266159584750397], [47.678248212978616, 91.262336639629311, 11.671719403634887, 49.71988614105117, 77.648453231227109], [49.229327831457574, 82.102378053363054, 49.729354379527422, 35.684271737364277, 43.531040542575127]]),self.functionspace)
@@ -1119,9 +1119,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log(arg)
       ref=Data(numpy.array([[3.6655053316069397, 4.5814259687577241, 3.8709596864969273, 3.9877249686516278, 4.1006650780961058], [4.5363572989305121, 3.6466853864301547, 4.101601856997652, 0.71421977278415627, 4.3472560794647173], [3.8644752815825361, 4.5137381793751707, 2.4571687708042789, 3.9064049766368951, 4.352191629643908], [3.8964895400400414, 4.4079669813660951, 3.9065953901273409, 3.5747100241263499, 3.7734742593119375]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[3.9783248457056453, 2.6340900540986794, 0.29421738590469837, 4.2418509170789935, 2.4173867571169083], [0.64890707271250014, 3.6043234105668351, 3.9583915364819653, 4.1222799058825039, 2.5362825152421582], [3.8137961385956465, 4.5122482162114013, 1.8917084994605029, 4.4258551400119392, 4.3602199030764179], [3.8393350160546169, 4.5186625728689567, 3.4376909872768944, 4.4181904628289717, 4.5899914684230305]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_taggedData_rank3(self):
       arg=Data(numpy.array([[[21.699512716247472, 1.5282092621897898], [70.128490130107167, 99.241953232244768]], [[78.501878729278019, 4.9314024598766171], [28.820316178767477, 1.3050055568589718]], [[77.79872786306737, 49.006304087499473], [6.0837158518704957, 61.062626053957885]], [[54.00367327313819, 52.290800103947532], [28.218888543563132, 55.69049695930471]], [[70.540276579110611, 10.438534795340397], [41.668397105605507, 16.209971253412206]], [[47.267330103680038, 54.403296082231499], [38.961522648812213, 76.555371480099396]]]),self.functionspace)
@@ -1129,9 +1129,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log(arg)
       ref=Data(numpy.array([[[3.0772898048218194, 0.42409663306219014], [4.2503291327306743, 4.5975608405348396]], [[4.3631225573590209, 1.5956234222193697], [3.3610805613220047, 0.26620729889507122]], [[4.354125079676205, 3.8919489446822295], [1.8056156691430751, 4.1118999941440908]], [[3.9890520678274091, 3.9568204493632884], [3.3399915602331363, 4.0198095212339595]], [[4.2561838456835561, 2.345504227331265], [3.7297429783063549, 2.7856265623599672]], [[3.8558193613754197, 3.996424741773315], [3.6625745603723487, 4.3380142892056002]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[3.9500602604347153, 4.4299323089778522], [0.48051821732876043, 1.9321211484850926]], [[4.4790442418335141, 4.5890755029594903], [4.1190480425977469, 4.4799132923888827]], [[4.5795173233770798, 4.245379089300493], [3.3856172464655256, 4.039572959864234]], [[4.1144378242858997, 1.5943284287400294], [1.7995994786846001, 2.5599818253532565]], [[4.1294871764666654, 4.0158719196846624], [4.3980499470284302, 4.1548442498897815]], [[1.4099015559293309, 3.423006434483387], [2.8677627325270256, 2.2310069750585604]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_log_taggedData_rank4(self):
       arg=Data(numpy.array([[[[31.101305125560753, 98.170407256844626, 89.495246884407379, 99.98908850739052], [2.4049273930600767, 36.880499975611961, 16.353617842398464, 58.781248047924151], [72.016717419675047, 88.390811768491815, 58.246083798359486, 66.583340970007129]], [[20.465803140117011, 24.0036287870054, 88.198587567358629, 48.083853917268023], [32.183002238023384, 52.361813109969468, 91.165656746391832, 24.096203766223894], [34.219537794626028, 27.966364691635807, 48.391457442108091, 21.127135955159684]]], [[[92.173901880553899, 84.090306966759115, 68.663513749469857, 28.930103696589871], [76.193472611006214, 23.122185422458525, 52.911657222861116, 25.431379093778077], [48.1123157662987, 63.084679424916168, 88.227262797374976, 25.223940757757774]], [[77.883594744394102, 4.766542541594764, 67.914391833582812, 44.354444036844214], [43.449846921835778, 24.389274109879604, 52.005422364971146, 90.067558807201308], [16.219814551493748, 93.953208312531657, 89.304393662856739, 57.450106876298889]]], [[[83.17121819234076, 3.0876023794315675, 13.178062484577275, 32.720549483090331], [28.923086723062763, 48.413131454470019, 19.329222518853427, 49.531895870836308], [61.750663719317927, 25.293283597003178, 14.112470421243229, 93.044089674063756]], [[64.150504828677711, 10.388481675167892, 60.095156109859765, 94.542246846329334], [14.28716150453554, 22.491472839959545, 37.072742949787475, 56.544755150434312], [47.953455399965009, 6.8295119322974971, 81.092486719769227, 88.957569057433133]]]]),self.functionspace)
@@ -1139,9 +1139,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=log(arg)
       ref=Data(numpy.array([[[[3.4372497837567777, 4.58670481818156, 4.4941855164337712, 4.6050610651085302], [0.87751971310618737, 3.6076829554189502, 2.7944491476300444, 4.073822893292145], [4.2768982784493446, 4.4817680249710827, 4.0646768592562585, 4.1984544106717419]], [[3.0187553537439253, 3.1782050183770179, 4.4795909489089949, 3.8729464433637721], [3.4714384323655101, 3.9581775682108784, 4.5126782553964633, 3.1820543080153221], [3.5327967614945712, 3.3310025270698476, 3.8793232990147835, 3.0505582784353522]]], [[[4.5236770306297025, 4.4318913042931216, 4.2292179627974305, 3.3648827033780897], [4.3332757977505798, 3.1407925645297952, 3.9686236779689277, 3.2359838089418784], [3.8735381893751741, 4.1444779417295763, 4.4799160172616155, 3.227793573594179]], [[4.3552153369168716, 1.5616212080338248, 4.2182479684170557, 3.7922129074975159], [3.771607328617411, 3.1941434499923838, 3.9513479893944825, 4.5005600421442526], [2.7862336152984626, 4.5427968744252256, 4.4920506878239275, 4.0509168646289595]]], [[[4.4209013527895706, 1.1273948607343995, 2.5785535140631213, 3.4880033050865178], [3.3646401247575981, 3.8797710879671699, 2.9616180709345326, 3.9026168230902107], [4.1231047239413003, 3.2305388900157679, 2.6470588335475065, 4.5330734633284591]], [[4.1612319605346206, 2.340697661147535, 4.0959292411193209, 4.5490467911745931], [2.6593613371192286, 3.1131362524867643, 3.6128820082150246, 4.0350324511420927], [3.8702308612975078, 1.9212532116292804, 4.3955903146568103, 4.4881595038860205]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[1.2135662679688048, 3.4483543987203631, 3.2547116574713217, 4.5833220382836135], [4.1208138235747116, 3.1532463650693905, 4.3493131021467581, 3.9048236685092923], [0.46736120845767137, 4.5511252914352394, 3.2786785483054603, 2.6840478329453119]], [[4.5474713785601448, 3.8047304866159513, 3.8789744047643144, 3.2163493120536915], [3.3008501290901413, 1.9626001341145185, 4.4132478857761619, 3.3087054425008704], [4.4371591092581104, 4.2523659947961194, 4.5163224967417603, 4.5853269953568034]]], [[[3.1506100048986219, 4.2927191990513212, 3.0352266273078725, 4.2571675262643494], [4.3390789691634684, 4.6005199517870539, 3.5850266909019495, 4.2259261870761291], [4.578775492239302, 4.4214916133587838, 4.4333916887485154, 3.7159316856924915]], [[1.9998857977389439, -1.3318256766604444, 4.062181847015947, 2.445753626199946], [4.4211792423976677, 4.1834084427007436, 2.9012855690133099, 3.3808119248720274], [3.9840305382637378, 4.0523886805608198, 4.1853760062592782, 2.1280014592936731]]], [[[3.1033637123365332, 3.303442823170931, 4.5487642534165529, 1.6871037383963188], [4.2367065700465449, 4.4391388232611524, 4.3714146503200348, 4.5507606279710613], [2.4039215319374505, 2.0396391042727164, 4.2467732053644385, 3.7417214046724601]], [[4.2358440608581605, 4.5811927783170869, 4.5832551507041686, 4.1022443215077606], [3.779004341129665, 3.278011352367117, 4.2152553461462992, 4.4300087610783878], [4.2837356128125892, 2.3565238103888038, 3.8083696185225007, 4.4703954572028213]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_taggedData_rank0(self):
       arg=Data(-27.6238811345,self.functionspace)
@@ -1149,9 +1149,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sign(arg)
       ref=Data(-1.0,self.functionspace)
       ref.setTaggedValue(1,-1.0)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_taggedData_rank1(self):
       arg=Data(numpy.array([65.988765188781628, 43.633425826032123]),self.functionspace)
@@ -1159,9 +1159,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sign(arg)
       ref=Data(numpy.array([1.0, 1.0]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-1.0, 1.0]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_taggedData_rank2(self):
       arg=Data(numpy.array([[-78.167710802301741, -55.033204362154265, 37.991255141785302, 50.222020893267029, 95.714640431707807], [-81.178579764161256, 21.860275678254681, 91.336894263942668, 37.932598260023099, -87.965842239718057], [63.15669717506313, 80.395599270502714, 58.958976516236106, -19.250836112072108, -48.102635913480874], [-98.409552362349558, 29.763756955023496, -70.007046431425664, 16.56379790064571, -41.607232959589481]]),self.functionspace)
@@ -1169,9 +1169,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sign(arg)
       ref=Data(numpy.array([[-1.0, -1.0, 1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, 1.0, -1.0], [1.0, 1.0, 1.0, -1.0, -1.0], [-1.0, 1.0, -1.0, 1.0, -1.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.0, -1.0, 1.0, -1.0, -1.0], [-1.0, -1.0, -1.0, -1.0, -1.0], [1.0, -1.0, -1.0, 1.0, 1.0], [1.0, 1.0, 1.0, -1.0, -1.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_taggedData_rank3(self):
       arg=Data(numpy.array([[[40.659064171526694, -30.296135196623325], [65.135534658139875, -3.189213180563371]], [[-16.553351525146027, -61.720967726757102], [76.972713494862035, 99.275215333914559]], [[47.475762989245681, -97.393738249661268], [29.171397306032645, -63.642498879346746]], [[-65.809714821242551, 25.104527515218038], [-25.908107285024215, -16.761112108721733]], [[-91.771675890562236, -30.217560827961364], [57.01823721886862, 13.089158046532233]], [[-9.2038411577464814, -51.536713875708799], [24.738016649301201, -43.097223742291945]]]),self.functionspace)
@@ -1179,9 +1179,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sign(arg)
       ref=Data(numpy.array([[[1.0, -1.0], [1.0, -1.0]], [[-1.0, -1.0], [1.0, 1.0]], [[1.0, -1.0], [1.0, -1.0]], [[-1.0, 1.0], [-1.0, -1.0]], [[-1.0, -1.0], [1.0, 1.0]], [[-1.0, -1.0], [1.0, -1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[1.0, 1.0], [-1.0, -1.0]], [[-1.0, 1.0], [-1.0, -1.0]], [[-1.0, -1.0], [1.0, 1.0]], [[-1.0, -1.0], [1.0, 1.0]], [[-1.0, -1.0], [-1.0, -1.0]], [[1.0, 1.0], [-1.0, 1.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_taggedData_rank4(self):
       arg=Data(numpy.array([[[[48.404617181522724, 27.642908048648465, -32.063735049783858, -25.287287320564673], [35.529509315351362, 20.52958828294021, 50.132503108908566, 21.961444483043181], [-30.536862467175467, -73.366944239336476, -1.9104283260391099, -40.116305423450392]], [[-3.2592728125080583, -66.978916413183839, 51.039430417752982, 34.318446063538232], [-10.778480760564307, 34.381886410487425, -96.662586157020499, 23.49291212424454], [33.936269866253809, 6.0438240456580417, 53.991390973572862, 34.843592016698238]]], [[[-52.275180577618798, 15.674362624980304, 46.042809742277655, 38.412209266363305], [66.461375379834692, 45.821627659544617, 58.528372762759147, -77.609658246727861], [-91.311967332091655, 62.061963370741864, -42.381631148565965, -19.376230129856737]], [[-82.817924353598301, -94.396836339797801, -80.332788125711602, -53.122903800926544], [58.309151553617909, -63.690512047675661, 12.750432515234706, 88.616992933489428], [-76.463210395801909, -88.55862414809792, -53.122216991054394, 94.306145635218115]]], [[[31.191484321029691, 33.483202066627882, -68.553556516172563, -30.761725450809905], [39.954033622863392, 31.391308803793095, 7.0924416508365056, 82.108147705338354], [28.677362945828122, 76.875499532889648, -98.899773427430574, 63.640543048776806]], [[48.003219667446018, 32.816178561644875, -47.97394425834738, 64.03620964542236], [22.449712578557794, 72.880134481879196, -66.599797223033192, -95.855372244240456], [-5.2195963768147777, 53.688991692833952, -4.6935389526849463, -20.020330663766899]]]]),self.functionspace)
@@ -1189,9 +1189,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=sign(arg)
       ref=Data(numpy.array([[[[1.0, 1.0, -1.0, -1.0], [1.0, 1.0, 1.0, 1.0], [-1.0, -1.0, -1.0, -1.0]], [[-1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, -1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]], [[[-1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, -1.0], [-1.0, 1.0, -1.0, -1.0]], [[-1.0, -1.0, -1.0, -1.0], [1.0, -1.0, 1.0, 1.0], [-1.0, -1.0, -1.0, 1.0]]], [[[1.0, 1.0, -1.0, -1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, -1.0, 1.0]], [[1.0, 1.0, -1.0, 1.0], [1.0, 1.0, -1.0, -1.0], [-1.0, 1.0, -1.0, -1.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-1.0, -1.0, -1.0, -1.0], [-1.0, -1.0, 1.0, 1.0], [-1.0, -1.0, 1.0, 1.0]], [[1.0, 1.0, -1.0, -1.0], [1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, -1.0]]], [[[1.0, -1.0, -1.0, 1.0], [-1.0, 1.0, 1.0, 1.0], [1.0, -1.0, -1.0, -1.0]], [[-1.0, -1.0, -1.0, 1.0], [1.0, 1.0, -1.0, 1.0], [-1.0, 1.0, -1.0, -1.0]]], [[[1.0, 1.0, -1.0, 1.0], [1.0, 1.0, 1.0, -1.0], [-1.0, 1.0, 1.0, -1.0]], [[1.0, 1.0, -1.0, -1.0], [1.0, -1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_abs_taggedData_rank0(self):
       arg=Data(-14.3673757927,self.functionspace)
@@ -1199,9 +1199,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=abs(arg)
       ref=Data(14.3673757927,self.functionspace)
       ref.setTaggedValue(1,91.0616949648)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_abs_taggedData_rank1(self):
       arg=Data(numpy.array([-81.821732775420642, -68.22226512766818]),self.functionspace)
@@ -1209,9 +1209,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=abs(arg)
       ref=Data(numpy.array([81.821732775420642, 68.22226512766818]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([21.333617426834195, 10.209481057564346]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_abs_taggedData_rank2(self):
       arg=Data(numpy.array([[-35.703961827623615, 94.271132011685381, -77.391701661321079, -48.396751261576078, -89.628632351273765], [49.30062196572834, -45.716685546575796, -91.97360399287524, -46.086717554689407, 94.50160817876062], [23.260490557882292, -46.121623208221905, 64.433592032582311, 18.144341652350775, -44.21085548471779], [-61.083601852216219, 85.575046878129143, 52.75009956117529, 97.008285145570085, 56.751065315172809]]),self.functionspace)
@@ -1219,9 +1219,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=abs(arg)
       ref=Data(numpy.array([[35.703961827623615, 94.271132011685381, 77.391701661321079, 48.396751261576078, 89.628632351273765], [49.30062196572834, 45.716685546575796, 91.97360399287524, 46.086717554689407, 94.50160817876062], [23.260490557882292, 46.121623208221905, 64.433592032582311, 18.144341652350775, 44.21085548471779], [61.083601852216219, 85.575046878129143, 52.75009956117529, 97.008285145570085, 56.751065315172809]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[51.972473313741155, 55.497035445328713, 62.267323877673789, 18.670956133573171, 13.711215778429931], [48.087336536814519, 76.786375607585896, 37.410127192208563, 87.684260266087875, 26.905076717599144], [16.189496788130981, 87.750429072332139, 36.767204229576599, 71.524650024934132, 81.291275301664541], [7.3770859265969762, 24.93630589052367, 61.708601944027265, 89.294133020898926, 2.7788897536858315]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_abs_taggedData_rank3(self):
       arg=Data(numpy.array([[[-73.879162728531952, 53.891922757125315], [-30.709972491596574, -49.27453562582631]], [[99.200427899109769, -0.10455889631015225], [24.929977391825204, -25.196431617614095]], [[99.69470286180362, 49.629118870818502], [-18.286571682827372, -99.882333404908422]], [[94.596602624460871, -48.944752738316531], [-86.357256849018469, 94.554119229106021]], [[37.481086962966259, 84.979891468391372], [64.015940250013614, -48.600306234165757]], [[-1.3540803820464049, 43.87503589064076], [24.242456069744136, 86.552268702416399]]]),self.functionspace)
@@ -1229,9 +1229,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=abs(arg)
       ref=Data(numpy.array([[[73.879162728531952, 53.891922757125315], [30.709972491596574, 49.27453562582631]], [[99.200427899109769, 0.10455889631015225], [24.929977391825204, 25.196431617614095]], [[99.69470286180362, 49.629118870818502], [18.286571682827372, 99.882333404908422]], [[94.596602624460871, 48.944752738316531], [86.357256849018469, 94.554119229106021]], [[37.481086962966259, 84.979891468391372], [64.015940250013614, 48.600306234165757]], [[1.3540803820464049, 43.87503589064076], [24.242456069744136, 86.552268702416399]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[37.413937980923265, 0.28411691206147793], [33.044360612769196, 66.03355173059704]], [[37.536911848971073, 0.023208526118992268], [26.527789666862972, 33.2402194708271]], [[55.327425103705878, 84.395066891225468], [45.013227563401301, 95.875031468356525]], [[64.760193848108571, 73.302359966808424], [54.095816937340203, 37.527678340113113]], [[76.71381733348575, 39.352383403035063], [80.080299993848996, 0.010359221408108965]], [[96.050890564474372, 42.823985894886071], [3.4476034725966258, 36.523928707662435]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_abs_taggedData_rank4(self):
       arg=Data(numpy.array([[[[19.834948759065469, -88.423654358742937, -3.7896795469446403, 90.413210798680979], [-25.385662633962866, 52.183056091414045, -99.49780362285307, -31.235081588621895], [-99.70036777743492, 29.485863942948555, 38.1126429021798, 42.984689715140888]], [[27.006030037219915, -32.962297315637798, 73.148237069388955, 14.390644834253024], [10.073562289878168, 1.0118517682240196, 68.902436033381321, -49.896632248801367], [75.141298395785128, 83.15384865784992, 62.286701933145707, -70.233955546976915]]], [[[28.90835831201062, -93.402007113192667, 60.022984931751211, 42.105451316412314], [-5.8776161547639418, -30.767571979578307, 22.107942044796999, 88.562401747987877], [-11.20004264511995, -76.166717134240727, 90.327718641335366, -63.619067436488663]], [[61.760636603356744, 63.532544897685085, 12.695030988835626, -72.470637851208224], [35.616750250889851, -47.984761590856408, 46.377995043509088, 70.069148102663178], [71.939740735848517, 60.377059082125186, 53.39384866277004, 4.4345554627479515]]], [[[40.870145540859255, 96.113732253205882, -19.523812196208908, -94.457638344656488], [-39.941605835336325, 29.189824293279798, 27.298137473725333, 95.978114614227195], [-98.911416748736187, 81.302220082165206, -70.484408590592508, 82.172581716251415]], [[-24.045113821484222, 58.192111786183631, 39.743958607008949, 6.9836272098514627], [12.807988012918514, -49.209827092167366, -77.845334523657925, -85.486568474094412], [4.895784651511434, 58.888254548139173, 22.796583205570116, 67.681339974157936]]]]),self.functionspace)
@@ -1239,9 +1239,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=abs(arg)
       ref=Data(numpy.array([[[[19.834948759065469, 88.423654358742937, 3.7896795469446403, 90.413210798680979], [25.385662633962866, 52.183056091414045, 99.49780362285307, 31.235081588621895], [99.70036777743492, 29.485863942948555, 38.1126429021798, 42.984689715140888]], [[27.006030037219915, 32.962297315637798, 73.148237069388955, 14.390644834253024], [10.073562289878168, 1.0118517682240196, 68.902436033381321, 49.896632248801367], [75.141298395785128, 83.15384865784992, 62.286701933145707, 70.233955546976915]]], [[[28.90835831201062, 93.402007113192667, 60.022984931751211, 42.105451316412314], [5.8776161547639418, 30.767571979578307, 22.107942044796999, 88.562401747987877], [11.20004264511995, 76.166717134240727, 90.327718641335366, 63.619067436488663]], [[61.760636603356744, 63.532544897685085, 12.695030988835626, 72.470637851208224], [35.616750250889851, 47.984761590856408, 46.377995043509088, 70.069148102663178], [71.939740735848517, 60.377059082125186, 53.39384866277004, 4.4345554627479515]]], [[[40.870145540859255, 96.113732253205882, 19.523812196208908, 94.457638344656488], [39.941605835336325, 29.189824293279798, 27.298137473725333, 95.978114614227195], [98.911416748736187, 81.302220082165206, 70.484408590592508, 82.172581716251415]], [[24.045113821484222, 58.192111786183631, 39.743958607008949, 6.9836272098514627], [12.807988012918514, 49.209827092167366, 77.845334523657925, 85.486568474094412], [4.895784651511434, 58.888254548139173, 22.796583205570116, 67.681339974157936]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[21.339241360814867, 53.771385770613193, 93.689799860345531, 59.85130407171102], [91.676322024879113, 86.725986612907889, 6.8756644612703468, 2.4970468120601055], [86.426318617205339, 30.622935649678567, 38.69730973485099, 52.92337459984978]], [[8.8277708157388872, 80.007316235717923, 40.336819994603054, 24.353422327790653], [13.747314026960296, 16.958567973724541, 57.50595682676709, 56.25177925251905], [31.207714298736988, 22.275561102343119, 16.313479988183616, 76.010284971162221]]], [[[26.998597697380859, 15.622385252752323, 52.52173936476985, 82.819884716042083], [78.907717062539973, 79.272005467613681, 83.47340370656633, 73.867592414028053], [28.703033182348804, 20.988872679092665, 37.290447061925107, 8.1014432535999816]], [[45.048580940662731, 19.491468419339085, 64.568062512177647, 11.178618880088734], [34.691570775011911, 69.589063689142193, 61.364777508593363, 77.280249139969868], [1.1830828331200678, 91.262256646734187, 5.021627081867905, 93.388437572311091]]], [[[21.298620038202813, 13.98893927515401, 49.182789882221499, 57.595487238415643], [79.702455143171449, 70.925982455775426, 81.897869050808879, 60.930959954287275], [57.754562218588148, 29.858113075280372, 14.897533692783952, 6.0864257187503057]], [[3.5671759547432771, 84.139996576651015, 39.806429474961305, 9.3646747259164727], [45.475947995072914, 10.14946725212269, 3.9530147571287699, 23.62077091218417], [34.033830893546195, 8.3157508831654496, 64.196930272577688, 73.499380413212378]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_taggedData_rank0(self):
       arg=Data(0.0304173948959,self.functionspace)
@@ -1249,9 +1249,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=length(arg)
       ref=Data(0.0304173948959,self.functionspace)
       ref.setTaggedValue(1,0.218413236568)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_taggedData_rank1(self):
       arg=Data(numpy.array([0.39703364688152853, -0.33246454817593807]),self.functionspace)
@@ -1259,9 +1259,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=length(arg)
       ref=Data(0.517849777976,self.functionspace)
       ref.setTaggedValue(1,0.73345204868)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_taggedData_rank2(self):
       arg=Data(numpy.array([[0.6907462872229877, -0.90522553862549726, 0.087785407451554276, 0.30466419540456768, 0.79322552033540972], [0.88191058742529571, 0.99529532885936489, 0.41490962783197238, -0.0016893790093754912, -0.95814885065677502], [-0.060249764286741447, 0.63991926602596116, -0.086836131633126534, 0.18124915949321885, 0.68271069967418541], [0.64740861624348423, -0.57455334179273243, -0.5571704702710476, 0.2573850096331336, -0.34168400956685985]]),self.functionspace)
@@ -1269,9 +1269,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=length(arg)
       ref=Data(2.6546513714,self.functionspace)
       ref.setTaggedValue(1,2.19865063671)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_taggedData_rank3(self):
       arg=Data(numpy.array([[[-0.90704201804086337, 0.6329509253938721], [0.21915003710942882, -0.77286765743151387]], [[-0.49454988231884833, -0.52787084998857448], [-0.50038642296401559, 0.25066877240869223]], [[-0.11435301241890539, -0.43863272457515157], [-0.21789841788237019, 0.67485153176592272]], [[-0.55566679864765667, -0.57930055750016884], [0.86011645143557036, -0.7526814967676656]], [[0.51094878077660111, 0.77929881123688749], [-0.42495639450230005, -0.07585333420623952]], [[-0.89054330821722716, -0.35325589691741888], [-0.3768246899267691, -0.41975230182765833]]]),self.functionspace)
@@ -1279,9 +1279,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=length(arg)
       ref=Data(2.76676324475,self.functionspace)
       ref.setTaggedValue(1,3.02637754858)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_length_taggedData_rank4(self):
       arg=Data(numpy.array([[[[0.031685672552886901, -0.9267701908635706, -0.056148458903377607, -0.84202454095770185], [-0.3616646666858836, -0.29520741814627049, 0.024595806152944988, -0.71158936975814591], [0.12440081378701895, 0.72960501658634347, -0.87170545922253151, 0.10882643738812559]], [[0.88800242901141169, 0.48693301422640589, -0.13887736360495673, -0.743971681222801], [-0.74717247198853753, 0.35260473534815429, 0.43837149883392601, -0.55027619071689737], [0.66850441314063103, 0.7728717623705943, 0.21470523696142552, -0.71541050236116877]]], [[[-0.48211303782598347, 0.3644457740018654, 0.68984391713960602, 0.74515540572117134], [0.53899835618675929, -0.70996632321229947, -0.51515930082178918, -0.36888505048093223], [0.78774470226335747, -0.39544353241612185, 0.32281697817612787, -0.16311128990188162]], [[-0.51374217556516255, -0.45792789001444856, 0.47007708506811818, -0.43333371235667362], [-0.02632140668309213, 0.93007210792179462, 0.59736202366291802, 0.22152676969085516], [0.39775547303207204, 0.53313877938239496, 0.77934427730455358, -0.21566366366398793]]], [[[0.91343257162829294, -0.77320607588319645, -0.85087366672245945, -0.8231988743945351], [0.2844336912954244, -0.91728899258227847, -0.46154275241222287, -0.93255280333208801], [-0.53369991345904522, 0.12949000049493731, 0.53421477536661266, -0.63975708880504234]], [[0.058270730436794649, 0.0515918698875375, -0.24523619977036026, 0.29671975332241707], [-0.95019879958514597, -0.94737283445325193, -0.41748226318386861, -0.048340741857560765], [0.59312485406738369, -0.30988717510892605, 0.090027828305644153, -0.51722372921834436]]]]),self.functionspace)
@@ -1289,9 +1289,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=length(arg)
       ref=Data(4.84097039803,self.functionspace)
       ref.setTaggedValue(1,4.824055271)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_taggedData_rank0(self):
       arg=Data(-0.219558082185,self.functionspace)
@@ -1299,9 +1299,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=maxval(arg)
       ref=Data(-0.219558082185,self.functionspace)
       ref.setTaggedValue(1,0.373894454941)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_taggedData_rank1(self):
       arg=Data(numpy.array([0.64744990357184862, -0.52792070755787024]),self.functionspace)
@@ -1309,9 +1309,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=maxval(arg)
       ref=Data(0.647449903572,self.functionspace)
       ref.setTaggedValue(1,0.838627219325)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.27229065227200344, 0.82294949506313886, -0.17177977432508462, -0.010882074546768816, 0.21768109521645918], [-0.29157181238782481, -0.25380425885757485, 0.027706303762511597, -0.94845012536927964, 0.87176092732644639], [-0.51643332578214518, 0.71998926614777581, 0.40354991809580687, 0.70904315000536799, 0.54655648312080007], [0.32165817766188853, -0.20424131255028888, 0.42895961651274672, -0.99791274480618064, -0.85669519376242986]]),self.functionspace)
@@ -1319,9 +1319,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=maxval(arg)
       ref=Data(0.871760927326,self.functionspace)
       ref.setTaggedValue(1,0.972623141288)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_taggedData_rank3(self):
       arg=Data(numpy.array([[[0.61474553298852697, 0.55779486217197505], [-0.31091458562805419, 0.016419889635135521]], [[0.21004151551334682, 0.027687106765762914], [0.6637113716450791, -0.95040841718825075]], [[-0.9300566761481408, -0.68906964030797435], [-0.97014359375905679, -0.74418973910997255]], [[0.97835172429442774, -0.46756642182408092], [-0.42578086461554476, 0.52069167480569556]], [[-0.38782064307268715, 0.49053364163876134], [0.068892813320603263, -0.053107367737293076]], [[-0.48133213301475331, 0.25593099013174481], [0.44390577068431614, -0.97257874780052989]]]),self.functionspace)
@@ -1329,9 +1329,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=maxval(arg)
       ref=Data(0.978351724294,self.functionspace)
       ref.setTaggedValue(1,0.992987962841)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_maxval_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-0.38913213142622194, -0.54148345216537774, 0.41714738540363649, 0.71966537757449256], [-0.88902480268446227, -0.3777307304947799, -0.13183640051157219, 0.81415347389128234], [-0.74384993993115311, -0.89127969698262977, -0.55809388984463593, 0.83808549468591687]], [[-0.0072160550394104739, -0.32635219120000691, 0.62522095163012725, -0.84470730211227218], [-0.76620143726977852, -0.49704334323428423, 0.65091921570676603, 0.37557075348586233], [-0.88570985653924961, -0.14885693428091606, -0.1460372910003831, 0.46444747179886625]]], [[[0.30454098886894498, 0.6867161497858465, 0.72424680264691355, 0.5095615427094411], [0.072474613257559994, 0.43806936539601549, -0.59905605757280056, -0.45990321243729815], [-0.72712992491035378, -0.55689232155025548, 0.36037470124764459, -0.57195607819276018]], [[0.0051060589653528776, -0.47599982553998998, -0.39156196066990367, -0.71880248868370389], [0.41451955450758748, 0.0028147774045290674, -0.6972003711983854, 0.78507608882318736], [0.25418862509575768, 0.2284337652701498, 0.61856440627353049, 0.98714160660309891]]], [[[-0.47720293386376555, -0.65125648891362786, -0.30435692372835654, 0.31977497838442503], [0.72827978446594854, -0.63983256938337552, 0.78982468457827881, 0.22954824117307959], [0.32315333011323544, 0.53527371494472065, -0.4131594330366064, 0.99215992692482535]], [[-0.74789735956161274, -0.62925352602039042, 0.71361119864052269, -0.98014330258009075], [-0.89800389430130223, -0.37060754911664562, 0.3856639538855593, 0.034422663486305183], [-0.34490780926818876, 0.47458909120499637, 0.94818559671902958, 0.1617906804998257]]]]),self.functionspace)
@@ -1339,9 +1339,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=maxval(arg)
       ref=Data(0.992159926925,self.functionspace)
       ref.setTaggedValue(1,0.999331534245)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_taggedData_rank0(self):
       arg=Data(0.00722788253378,self.functionspace)
@@ -1349,9 +1349,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=minval(arg)
       ref=Data(0.00722788253378,self.functionspace)
       ref.setTaggedValue(1,0.691024712935)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_taggedData_rank1(self):
       arg=Data(numpy.array([-0.47859075115756422, -0.15003593348682531]),self.functionspace)
@@ -1359,9 +1359,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=minval(arg)
       ref=Data(-0.478590751158,self.functionspace)
       ref.setTaggedValue(1,-0.745793059943)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_taggedData_rank2(self):
       arg=Data(numpy.array([[-0.36168873882657993, -0.67372921463813573, 0.95569685886688305, 0.15779096197431586, -0.24898227425545327], [-0.27356968554638628, 0.084426955507445944, -0.87908626632112941, -0.46051995344239027, -0.42541441304041916], [-0.14074836177854189, 0.75123070420356286, 0.86230982812739998, -0.54837108857321315, -0.77749802778211086], [-0.022482114313683077, 0.54155540121340873, -0.96328224231771142, 0.14101127782001344, 0.44096380596153772]]),self.functionspace)
@@ -1369,9 +1369,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=minval(arg)
       ref=Data(-0.963282242318,self.functionspace)
       ref.setTaggedValue(1,-0.980329974747)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_taggedData_rank3(self):
       arg=Data(numpy.array([[[-0.8465826019970264, 0.89694911727829285], [0.87594383540616905, 0.94342173268714724]], [[0.9706521300307176, -0.53661304945739108], [0.81066921409276915, -0.52315847873793642]], [[0.72760204320037447, 0.65094570568679222], [-0.77119150241041834, 0.4512829012153714]], [[0.49454458456031469, 0.58663758011234646], [-0.77569241585888848, -0.27133491940751875]], [[0.29690990109617243, 0.50502608076647637], [-0.7582923726315618, 0.0096946343625710085]], [[-0.4250267226063793, -0.6090497397361152], [0.098508158636596344, -0.56684989375571737]]]),self.functionspace)
@@ -1379,9 +1379,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=minval(arg)
       ref=Data(-0.846582601997,self.functionspace)
       ref.setTaggedValue(1,-0.95904548813)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minval_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-0.34624369284201362, 0.73107822148429458, -0.36551693557416232, -0.020215028669572366], [0.1351050067633206, 0.23249118524493095, -0.76011821576308392, 0.45071155860356837], [0.18426006390789262, -0.77886194275054765, -0.17063189696766501, 0.45075347499478347]], [[0.23551925256442985, -0.53414385378966478, -0.47679787077175595, -0.9726535726299459], [-0.91914615413530365, -0.17765391232754735, 0.45082787140479064, -0.968362694999094], [0.69666777807602775, 0.2130684865225696, 0.64760593585671877, 0.64903684670519413]]], [[[0.18180576019742634, 0.62890796445359309, -0.13877607363038269, -0.10822311814395635], [0.28895838281375896, -0.36598515521702191, 0.30413929033460807, -0.81140381230705128], [-0.76365479315177298, 0.71136700952304466, -0.95596671935962552, 0.52118084564552913]], [[-0.43905020629611879, 0.57723600864036473, -0.22582169869491397, -0.43742926957893391], [-0.46764952226860124, -0.066494182243584721, 0.92972113541559098, 0.044829809294563816], [-0.49878556156045928, -0.96153559198737559, -0.99767482086608483, 0.74525441641626755]]], [[[-0.59605054963850534, 0.56186148085748022, 0.77287286011247414, 0.035023085983731717], [-0.97342431925030803, 0.17825829308663432, -0.37794591543941247, 0.089384029569202106], [-0.75706695903965793, -0.31057995469060207, -0.57391135215614786, -0.56504897076385308]], [[0.42656492210469588, 0.92732907019274857, 0.71470561916432929, 0.96500484536009212], [0.18751272694170362, -0.95123662745307258, -0.8190703610202914, -0.66133004541039009], [-0.043758306539602554, 0.45325798844504162, -0.26304376860247247, 0.15468324307157122]]]]),self.functionspace)
@@ -1389,9 +1389,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=minval(arg)
       ref=Data(-0.997674820866,self.functionspace)
       ref.setTaggedValue(1,-0.971190410568)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_taggedData_rank0(self):
       arg=Data(-0.586456381539,self.functionspace)
@@ -1399,9 +1399,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=clip(arg,-0.3,0.5)
       ref=Data(-0.3,self.functionspace)
       ref.setTaggedValue(1,0.209563153277)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_taggedData_rank1(self):
       arg=Data(numpy.array([-0.55774515991639473, -0.091560877171301236]),self.functionspace)
@@ -1409,9 +1409,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=clip(arg,-0.3,0.5)
       ref=Data(numpy.array([-0.29999999999999999, -0.091560877171301236]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.5, 0.29687459606292088]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_taggedData_rank2(self):
       arg=Data(numpy.array([[0.92078283012674222, 0.082966604818023537, -0.44955157461118889, 0.20379872665296062, -0.027334825618857694], [0.2545815386580188, 0.63863229466603832, -0.2636242975469909, 0.31732729387167513, -0.33927475782076022], [-0.86480384733397719, 0.63899360745381273, -0.14244318620875474, -0.28418136656865478, 0.52805530986754579], [-0.72182500154188611, -0.5520656722291335, -0.53596757119473004, -0.3496219738666011, 0.026421982468125993]]),self.functionspace)
@@ -1419,9 +1419,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=clip(arg,-0.3,0.5)
       ref=Data(numpy.array([[0.5, 0.082966604818023537, -0.29999999999999999, 0.20379872665296062, -0.027334825618857694], [0.2545815386580188, 0.5, -0.2636242975469909, 0.31732729387167513, -0.29999999999999999], [-0.29999999999999999, 0.5, -0.14244318620875474, -0.28418136656865478, 0.5], [-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, -0.29999999999999999, 0.026421982468125993]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-0.29999999999999999, 0.5, 0.5, -0.29999999999999999, -0.27184762551498576], [-0.29999999999999999, 0.13957485854328522, 0.044242311261486256, -0.29999999999999999, 0.14077523635761846], [0.5, -0.29999999999999999, 0.34287512312623369, -0.17545687063500126, 0.4117608764449725], [-0.29999999999999999, 0.07746827744971152, 0.5, 0.5, -0.29999999999999999]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_taggedData_rank3(self):
       arg=Data(numpy.array([[[-0.93595611718046134, 0.15030385020288572], [-0.075765264835379709, 0.11334342086568139]], [[-0.85963167087054893, 0.31195616074306898], [-0.90301388731995025, -0.43484977485230036]], [[-0.35904775125395316, -0.26262746461074271], [-0.40250105120701685, -0.89652871806573153]], [[0.43650836668275272, -0.3757431381089118], [-0.30636747598259539, -0.84093431369407745]], [[0.47390187035348164, -0.10390754716923678], [0.51126763372526352, 0.15832367335744291]], [[0.67025430776305206, 0.82371861770706922], [0.96960307597921713, 0.090296012972978623]]]),self.functionspace)
@@ -1429,9 +1429,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=clip(arg,-0.3,0.5)
       ref=Data(numpy.array([[[-0.29999999999999999, 0.15030385020288572], [-0.075765264835379709, 0.11334342086568139]], [[-0.29999999999999999, 0.31195616074306898], [-0.29999999999999999, -0.29999999999999999]], [[-0.29999999999999999, -0.26262746461074271], [-0.29999999999999999, -0.29999999999999999]], [[0.43650836668275272, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999]], [[0.47390187035348164, -0.10390754716923678], [0.5, 0.15832367335744291]], [[0.5, 0.5], [0.5, 0.090296012972978623]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.29999999999999999, 0.5], [-0.29999999999999999, 0.5]], [[-0.14585330598553226, 0.5], [-0.29999999999999999, -0.22634999681297296]], [[0.5, -0.29999999999999999], [-0.084877856284922171, -0.29999999999999999]], [[0.019282801790388548, 0.078272411760595517], [-0.29999999999999999, 0.11824563331903692]], [[0.05228289224929239, -0.29999999999999999], [-0.29999999999999999, -0.011427130000266184]], [[0.37440287860429255, -0.22324475885669171], [0.44468789932497854, 0.5]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_clip_taggedData_rank4(self):
       arg=Data(numpy.array([[[[-0.97160016541599048, -0.43464196910924269, -0.23690005500198974, -0.54505821229189078], [0.75723735103604484, 0.47728350383465212, -0.18251619176764877, 0.99025221671542263], [-0.33126525295723441, -0.55097518327671136, 0.46386393103124957, -0.5028567057894]], [[-0.96428397806042776, -0.32723838098616564, -0.51713937973626223, 0.085602827397356585], [0.39080321493740078, -0.85653662913195427, 0.16921767079099848, 0.39501968814837984], [-0.094819423058470464, 0.32719847739349617, 0.62624242042874534, 0.034850296976497885]]], [[[-0.37578612340398809, -0.95145289363650298, -0.85275150976030334, 0.89051350131703133], [-0.10582668740299472, -0.13140703934766851, 0.58226666842363484, -0.85098889641917208], [-0.73422134882814771, -0.74056143316833989, -0.85585388778247506, 0.37383179934715027]], [[-0.60621611229601191, 0.83398721692112243, 0.79208200862070988, -0.76887710240427642], [-0.88684756867392589, -0.73572431861923282, -0.85514288036024833, -0.90625444381469755], [-0.63116702698441807, -0.62921521603185582, -0.027679572698908084, -0.49500631740870782]]], [[[-0.15914337383288424, 0.095371185176566842, 0.37912475459494721, 0.4024421559252549], [0.17156871625876557, -0.16181202305035125, -0.54126597465794779, 0.83987886819444846], [0.069057416726155507, -0.49106958817623569, 0.93467757049987465, 0.28287952469825028]], [[0.68942704651852793, 0.81096750450878519, 0.37481094259877334, 0.1471418138825642], [0.20070329637746753, -0.78818450250007777, -0.152719755269904, 0.92798318613388875], [0.83301083132574871, 0.20846747979704916, -0.32414811917626918, 0.82969746085395513]]]]),self.functionspace)
@@ -1439,9 +1439,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=clip(arg,-0.3,0.5)
       ref=Data(numpy.array([[[[-0.29999999999999999, -0.29999999999999999, -0.23690005500198974, -0.29999999999999999], [0.5, 0.47728350383465212, -0.18251619176764877, 0.5], [-0.29999999999999999, -0.29999999999999999, 0.46386393103124957, -0.29999999999999999]], [[-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, 0.085602827397356585], [0.39080321493740078, -0.29999999999999999, 0.16921767079099848, 0.39501968814837984], [-0.094819423058470464, 0.32719847739349617, 0.5, 0.034850296976497885]]], [[[-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, 0.5], [-0.10582668740299472, -0.13140703934766851, 0.5, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, 0.37383179934715027]], [[-0.29999999999999999, 0.5, 0.5, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999, -0.027679572698908084, -0.29999999999999999]]], [[[-0.15914337383288424, 0.095371185176566842, 0.37912475459494721, 0.4024421559252549], [0.17156871625876557, -0.16181202305035125, -0.29999999999999999, 0.5], [0.069057416726155507, -0.29999999999999999, 0.5, 0.28287952469825028]], [[0.5, 0.5, 0.37481094259877334, 0.1471418138825642], [0.20070329637746753, -0.29999999999999999, -0.152719755269904, 0.5], [0.5, 0.20846747979704916, -0.29999999999999999, 0.5]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.29999999999999999, 0.5, -0.29999999999999999, 0.5], [-0.29999999999999999, -0.095672296296486437, 0.5, 0.019998954995007034], [0.051167693979698559, 0.28975749676662454, -0.29999999999999999, 0.050635603877595692]], [[-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, -0.29999999999999999], [0.38715429363993836, 0.5, -0.29999999999999999, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999, 0.044380484975500512, -0.03600367808098448]]], [[[-0.29999999999999999, 0.5, 0.5, -0.29999999999999999], [0.0043609042230479123, 0.5, -0.29999999999999999, -0.051928216578162489], [0.49324932691969869, -0.29999999999999999, -0.29999999999999999, -0.29999999999999999]], [[-0.29999999999999999, -0.29999999999999999, 0.28725377558437426, -0.29999999999999999], [-0.29999999999999999, 0.23641388111792661, -0.29999999999999999, 0.5], [-0.045959609245912469, 0.08851424399081087, 0.10939786381011385, -0.29999999999999999]]], [[[-0.0193463842052497, 0.5, -0.29999999999999999, -0.29999999999999999], [-0.29999999999999999, 0.5, -0.16265277717097537, -0.29999999999999999], [-0.29999999999999999, -0.29999999999999999, -0.29999999999999999, 0.5]], [[0.19189387156386983, -0.10747463664656132, 0.18670232305419088, 0.4988825432691899], [-0.29999999999999999, 0.5, 0.5, -0.21795844922005014], [-0.29999999999999999, -0.29999999999999999, -0.24641710816927898, -0.29999999999999999]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank2_offset0(self):
       arg=Data(numpy.array([[-0.056722291636611466, -0.58718629093905927, 0.5130520912721297, 0.66092297449797521], [-0.063919150248518131, -0.39058783497457283, 0.4661647306320098, 0.67021135619437922], [-0.8330832444261691, -0.85322824239920525, 0.20482436629833045, -0.96129533456242999], [-0.69346857149921193, 0.45558369040100977, 0.84938565880042294, 0.43398982881393078]]),self.functionspace)
@@ -1449,9 +1449,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,0)
       ref=Data(0.19150406850107693,self.functionspace)
       ref.setTaggedValue(1,-0.6209696632922721)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank3_offset0(self):
       arg=Data(numpy.array([[[0.27621931670337752, 0.79097590056883305], [0.25951150897721909, 0.31817228937435349], [-0.30264453843236794, 0.50150595739076276], [-0.98358197877106046, -0.79007659361841576], [0.083365996568159462, 0.20330829941698836], [-0.19557587546996058, -0.98573294081094631]], [[-0.79867287463079251, -0.79833593063209984], [-0.50599476325253301, 0.28464853963701153], [0.26247038837571446, -0.74722310930311919], [-0.30522375733916096, -0.22922132310741117], [0.76621304427278858, -0.93443415586735745], [-0.055794160098196155, -0.56342540287272369]], [[-0.76566607687640786, 0.73746119374128516], [-0.34094386574227986, 0.13237808550409502], [0.55551190660484662, 0.099929562752655299], [0.62416721084404547, -0.74680079679520173], [-0.32298137868118437, -0.92140648111250556], [-0.46933363170955111, -0.6173242105648995]], [[-0.78927536706600288, -0.17827448265929013], [0.29041067654470787, 0.0090187849852394475], [0.38470494443244418, -0.4697278621834069], [0.97131863616471859, -0.229464269100631], [0.27251067788871963, -0.1673771147344536], [-0.6104133183668432, -0.12904004274191427]], [[-0.001577990717716915, -0.98040279977901434], [-0.7740282327068011, -0.86160004795905754], [-0.99294888809825377, 0.13804396580730138], [-0.42198087116935734, -0.66074706364513558], [-0.13571659404271919, -0.40146697280195087], [0.7288641948187673, 0.63657731594340872]], [[0.80404064506986539, 0.75601472144811699], [0.150056166800417, 0.22187959041457184], [0.10012067300234517, 0.7651851752515153], [0.8406334361842227, 0.37796088650765558], [-0.92804955176844484, -0.74147540231797371], [0.82011305402821022, 0.15532709244856013]]]),self.functionspace)
@@ -1459,9 +1459,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,0)
       ref=Data(numpy.array([1.9814515562059007, 0.69994985350447814]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([1.8856712575444079, -0.61641387527886082]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank3_offset1(self):
       arg=Data(numpy.array([[[0.18108653460154356, 0.89592989152069769], [0.39406006245310943, 0.36308832003165215]], [[0.080199626318692596, 0.08698141710531293], [-0.3802472233632439, -0.44580146494500328]], [[-0.37185454390545525, -0.64624032154496258], [-0.82542887049556013, 0.49792673962118883]], [[0.0061652005510264285, -0.29039438965093134], [-0.13325260707029396, 0.60381721769509866]], [[-0.2641881854161634, -0.1041123088263789], [-0.32813370622184435, -0.45119880870645801]], [[-0.19872503698560839, -0.79949975899995285], [0.37373978335533398, -0.74402368667542862]]]),self.functionspace)
@@ -1469,9 +1469,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,1)
       ref=Data(numpy.array([0.5441748546331957, -0.36560183862631068, 0.12607219571573358, 0.60998241824612509, -0.71538699412262141, -0.94274872366103701]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([0.30167064930640963, -0.23951801538953288, 0.92154485885179982, 1.6541820354978662, -1.5878082985584632, 0.081025866104540656]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank4_offset0(self):
       arg=Data(numpy.array([[[[-0.45962016926742089, 0.02865417528062264, -0.29756263033779917, -0.64078111586047348], [0.92164046954155987, -0.54003599165059346, -0.87875895286816386, -0.3473389494925978], [-0.16291776046801099, 0.3472887520663801, 0.71935937177222153, -0.85307965190501811]], [[0.61119743618802036, 0.3502655762828446, 0.94852304489440153, -0.14189427417899325], [0.54958981135014406, -0.55503130982859883, 0.34955467736809176, -0.38497957362679047], [-0.74731172737983176, -0.47753952462364269, -0.4648049237210552, -0.70213150390386359]], [[0.52644165479644611, -0.24525608263185306, 0.62476935396121691, 0.51308479655531358], [0.42821817624865099, 0.80878105218648533, 0.37614678448471972, 0.74153228074219246], [-0.97366155081882622, -0.64213371666188435, 0.39176893655801481, 0.38394330573311874]]], [[[0.94993289577142948, -0.4473345864598901, -0.72529706466837962, -0.38227114886080593], [0.98620938838075523, -0.79085026677573689, 0.11079037569398587, 0.79410827583319343], [-0.8710215341123464, 0.98928570276569316, 0.052036661356236413, -0.56869951694252019]], [[0.16791216694921607, -0.34002163051015888, 0.55394790674046313, -0.95844254164756126], [-0.68136194488326041, -0.70654623063293909, 0.60406700230877153, 0.18419598881245269], [0.59470271617573411, 0.48548947450898305, -0.62593526940970579, 0.13784228435476797]], [[-0.051894336949978692, -0.30141195030075862, -0.54243831204364912, -0.3164835827279473], [0.46113898893543026, -0.22328338897537137, -0.6262187521411291, -0.19838295564438924], [-0.63045214825138696, 0.42991135589819929, 0.94642647328742724, -0.46927884880828441]]], [[[0.43305217297293153, 0.2536927678947547, 0.10630172818818751, 0.64912963749688624], [-0.50640500723555193, -0.52039373680496936, 0.1096650192795996, 0.61739092724335665], [0.49146409570063665, -0.6172394263210772, -0.89858617462268153, 0.078998202459677591]], [[0.31989693518174467, 0.53428120315129246, -0.86380321869857379, -0.99456503074107205], [-0.18966772064485382, 0.76550347311246214, 0.30692097150168318, 0.39425500510922684], [-0.60097695899076076, -0.22485950542948485, -0.90370187909218513, 0.0069427133057222701]], [[-0.15704314633162131, 0.89746601086632749, 0.28888078395150973, -0.34187992624489594], [-0.32033494156307274, 0.025128653723394123, -0.47866647717699262, 0.35294153182773935], [-0.98451182873333698, 0.25346634893978104, -0.0048477378610420896, 0.57224910189677436]]]]),self.functionspace)
@@ -1479,9 +1479,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,0)
       ref=Data(numpy.array([[-0.44875114864982613, 0.58609855563679125, 0.54526606035417369, -1.9411035837529307], [-0.080056416904773275, -1.2214535685601384, -0.75335842773638495, 0.18979857114759424], [-0.55272687302561385, 1.0862445755151442, 0.088576364501473659, -0.14298826565347578]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.2527338155140888, 1.082744213475002, -0.60653411742905305, -1.8058460333767197], [1.0837237231899044, 1.7336853663717269, -0.35430819023233173, 1.2013557561203416], [-0.97384577040272391, 0.36454759986660101, -0.69222353430140471, -1.0020494426552846]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank4_offset1(self):
       arg=Data(numpy.array([[[[-0.55798919316930928, -0.12634181074327833, -0.40664724647866635, 0.36708777522359504], [0.92304655197309193, -0.56406149781700354, -0.75041568029159933, -0.095537386510300415]], [[-0.3636354593950577, -0.40380370690849166, 0.49253431857420327, 0.10902624704289288], [-0.19597941217654924, -0.95163806574005538, 0.60454417490459766, 0.69513132231601227]]], [[[-0.20308414220377036, -0.53195408451393367, -0.33288857029946994, 0.44484182547390527], [-0.12726872938253497, -0.43447934510411157, -0.39760625791440996, -0.30936298377662186]], [[0.28774381158004014, 0.61012947608207702, -0.46712034177702555, 0.91092147487322106], [-0.52390628765269009, 0.92927410510820163, -0.95012155523316077, -0.7222711322568518]]], [[[-0.24187336960914019, -0.59309059125950681, 0.53524786224937859, 0.50676945999040157], [-0.57463672422686285, 0.36012557101692289, -0.078463188038392806, 0.27486082740181295]], [[0.31528739403243211, -0.6370158849670815, -0.030539643795422844, -0.97217928007222509], [-0.47368356817793988, 0.032379440525969638, 0.34563915318137517, 0.19814305077222172]]]]),self.functionspace)
@@ -1489,9 +1489,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,1)
       ref=Data(numpy.array([[-0.75396860534585852, -1.0779798764833337, 0.19789692842593132, 1.0622190975396073], [-0.72699042985646045, 0.39732002059426796, -1.2830101255326307, -0.27742930678294653], [-0.71555693778708007, -0.56071115073353717, 0.88088701543075376, 0.70491251076262329]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.7177605526327953, -0.21168160422748628, 0.93984179007258861, 0.67895782575286945], [1.7783507054331547, -0.51934664235542738, -0.17103733799943677, 0.91196366316716437], [-0.4865984786319888, -1.4611440938360878, 0.47677116968976008, -0.001620198396101058]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_trace_taggedData_rank4_offset2(self):
       arg=Data(numpy.array([[[[0.50772321962003253, 0.81091093905750844, 0.94907993942795321], [0.73379368710043202, 0.1970196579321819, -0.8707801741741179], [-0.98974029208093661, 0.91681549483815017, 0.16956715133806566]], [[-0.090494805445503701, -0.3653868306105883, -0.87491027134814137], [-0.60474449778279293, 0.67282700235052628, 0.27290190361213451], [-0.03248595072972571, 0.27611081782564129, 0.75418917955906206]]], [[[0.18190784316027542, 0.33954122026553279, 0.13024592156588244], [-0.79420056673733463, 0.12148228545768824, -0.85470994652055587], [0.4829422648842423, -0.57023081427027478, 0.41433754047871041]], [[-0.58422268302045, -0.48231988981968299, -0.15004624357161589], [-0.49652481012180316, -0.21011488677963097, 0.20476295735139871], [0.17434244586251535, 0.69659164351993152, 0.8316119029490372]]], [[[0.602226352906577, 0.21989094319305869, 0.82993438476018522], [-0.093921878199302311, 0.22262225202444008, 0.50725270224144503], [-0.023680938989186773, 0.25862610493500493, -0.52230124443454318]], [[0.098543228060376409, 0.9775002686847889, -0.47745678787660806], [-0.88792221187768017, 0.35446812257977789, 0.87923110313445352], [-0.87302618083614503, 0.76889289104143943, -0.095107428145788653]]]]),self.functionspace)
@@ -1499,33 +1499,33 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=trace(arg,2)
       ref=Data(numpy.array([[0.87431002889028009, 1.3365213764640846], [0.71772766909667407, 0.037274333148956229], [0.3025473604964739, 0.35790392249436564]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[1.6398786600549082, 1.9214224170566887], [0.13541780201261422, -0.0014436732767841853], [-0.75126579140887451, 1.6825227388136226]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim1(self):
       arg=Data(numpy.array([[2.9250662348343939]]),self.functionspace)
       arg.setTaggedValue(1,numpy.array([[3.9569115924392309]]))
       res=inverse(arg)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(1, 1),"wrong shape of result.")
-      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(1, 1),"wrong shape of result.")
+      self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(1))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim2(self):
       arg=Data(numpy.array([[2.1762682607002422, -0.78050782824831111], [-0.83510184055361858, 2.604492189120557]]),self.functionspace)
       arg.setTaggedValue(1,numpy.array([[3.6893612252828687, 0.18096456487937673], [0.89569960507470925, 3.3056638034950092]]))
       res=inverse(arg)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(2))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim3(self):
       arg=Data(numpy.array([[1.0566731035132446, -0.23529223422203982, -0.73657527200271922], [-0.90461086237095145, 2.3942152365412581, -0.0078023115760492701], [-0.32951652966235834, 0.5634604257647613, 1.716379935670141]]),self.functionspace)
       arg.setTaggedValue(1,numpy.array([[2.047257820397296, -0.099359655049029438, 0.2857664656803518], [0.87552190129350227, 3.9293973128822133, 0.1331903761748936], [-0.63398198479164769, -0.49699750938550524, 2.0757292701325061]]))
       res=inverse(arg)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
-      self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(3))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_dim4(self):
       haveLapack=(getEscriptParamInt('LAPACK_SUPPORT')>0)
@@ -1534,12 +1534,12 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       try:
 	res=inverse(arg)
       except RuntimeError:
-	self.failUnless(not haveLapack,'matrix>3x3 should have inverted')	#We expect no lapack versions to throw
+	self.assertTrue(not haveLapack,'matrix>3x3 should have inverted')	#We expect no lapack versions to throw
       else:
-	self.failUnless(haveLapack,'matrix <=3x3 should have thrown')	#We should have thrown here if we don't have lapack
-        self.failUnless(isinstance(res,Data),"wrong type of result.")
-        self.failUnlessEqual(res.getShape(),(4, 4),"wrong shape of result.")
-        self.failUnless(Lsup(matrix_mult(res,arg)-kronecker(4))<=self.RES_TOL,"wrong result")
+	self.assertTrue(haveLapack,'matrix <=3x3 should have thrown')	#We should have thrown here if we don't have lapack
+        self.assertTrue(isinstance(res,Data),"wrong type of result.")
+        self.assertEqual(res.getShape(),(4, 4),"wrong shape of result.")
+        self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(4))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_taggedData_singularDefaultTag(self):
 	#In this test the other tag is definitely invertible the error is in the default tag
@@ -1621,9 +1621,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,0)
       ref=Data(0.00245568699765,self.functionspace)
       ref.setTaggedValue(1,0.962512736617)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank1_offset0(self):
       arg=Data(numpy.array([-0.87758195100245429, -0.95788037127525083, -0.024038687137474479]),self.functionspace)
@@ -1631,9 +1631,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,0)
       ref=Data(numpy.array([-0.87758195100245429, -0.95788037127525083, -0.024038687137474479]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.78441288952160404, 0.45851237807201439, 0.39271640430391974]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank1_offset1(self):
       arg=Data(numpy.array([0.73939623397127963, -0.2901711535835565, 0.63071822660466492]),self.functionspace)
@@ -1641,9 +1641,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,1)
       ref=Data(numpy.array([0.73939623397127963, -0.2901711535835565, 0.63071822660466492]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.7534223120479544, 0.94374047089151136, -0.90626579949244124]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank2_offset0(self):
       arg=Data(numpy.array([[0.70915610046599609, 0.043818073067544816, 0.74645618218174037, 0.62553214306715654, -0.11956300507817685], [-0.50062323179383994, 0.52299230955585774, 0.7142389787381016, 0.25677472851364724, 0.92079877696533008], [0.31008743924906246, 0.47726950332211615, -0.85939158371426205, -0.88392632785062486, 0.72101415960259896], [0.32800126345184677, 0.4509499590511461, 0.23949591894812983, 0.39405505944469121, 0.34926631942547481]]),self.functionspace)
@@ -1651,9 +1651,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,0)
       ref=Data(numpy.array([[0.70915610046599609, 0.043818073067544816, 0.74645618218174037, 0.62553214306715654, -0.11956300507817685], [-0.50062323179383994, 0.52299230955585774, 0.7142389787381016, 0.25677472851364724, 0.92079877696533008], [0.31008743924906246, 0.47726950332211615, -0.85939158371426205, -0.88392632785062486, 0.72101415960259896], [0.32800126345184677, 0.4509499590511461, 0.23949591894812983, 0.39405505944469121, 0.34926631942547481]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-0.44366593371475127, -0.067589366587520683, 0.020502575806330192, -0.16330702945536912, 0.9374254393163397], [-0.63988681195560693, -0.35795669025855981, -0.1290339882203877, -0.37450847109242602, -0.12872898889849527], [-0.79104289067735811, 0.64692009724393396, 0.67769213667122452, 0.53361516526763886, -0.45274178325858982], [-0.51206140966780844, -0.54499033468876146, -0.83771401393503098, 0.38259122836552772, -0.5364522636660829]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank2_offset1(self):
       arg=Data(numpy.array([[-0.46830113109276916, 0.74128794045461999, 0.33285428673822692, -0.1444916409930288, -0.30300280085147979], [0.39289073163425714, 0.61302899906894481, -0.47533241822737238, 0.044516903477815672, 0.86467385181555056], [-0.18730740823889458, -0.88927473357523001, 0.18893489479808512, -0.075354852812760775, -0.33760747317832962], [-0.84319625410513832, 0.23777111488637481, 0.84432582876204498, -0.6196361628572773, -0.41773907171881053]]),self.functionspace)
@@ -1661,9 +1661,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,1)
       ref=Data(numpy.array([[-0.46830113109276916, 0.39289073163425714, -0.18730740823889458, -0.84319625410513832], [0.74128794045461999, 0.61302899906894481, -0.88927473357523001, 0.23777111488637481], [0.33285428673822692, -0.47533241822737238, 0.18893489479808512, 0.84432582876204498], [-0.1444916409930288, 0.044516903477815672, -0.075354852812760775, -0.6196361628572773], [-0.30300280085147979, 0.86467385181555056, -0.33760747317832962, -0.41773907171881053]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.13273707566402293, 0.45635571138500608, -0.26857845195104102, 0.061110820746190786], [-0.2863921187239622, -0.19547021292521016, -0.51818450872103639, -0.46795109038331351], [0.57298828638933963, 0.53140617579889105, -0.15334950623005428, -0.41556280785700794], [-0.42990828455474528, -0.54256946591153898, 0.33378473873759895, 0.13045724537885905], [0.90152672750166141, 0.35431012906603931, 0.30042323293203799, -0.54960086188564183]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(5, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(5, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank2_offset2(self):
       arg=Data(numpy.array([[-0.82240139433020243, -0.95786409988752097, 0.61408041791851109, 0.31562654676313717, 0.75615481530692175], [0.35221871732385979, -0.65220212852640258, -0.50732427046756245, 0.36961517515769793, 0.87770605802467072], [0.91546316386521998, -0.17352806778459984, 0.0028640348608768296, 0.80380753111963088, 0.84687418870632847], [0.87454903965632691, -0.85247090388120039, -0.96710843187079165, -0.65164137261910282, -0.633009521583765]]),self.functionspace)
@@ -1671,9 +1671,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,2)
       ref=Data(numpy.array([[-0.82240139433020243, -0.95786409988752097, 0.61408041791851109, 0.31562654676313717, 0.75615481530692175], [0.35221871732385979, -0.65220212852640258, -0.50732427046756245, 0.36961517515769793, 0.87770605802467072], [0.91546316386521998, -0.17352806778459984, 0.0028640348608768296, 0.80380753111963088, 0.84687418870632847], [0.87454903965632691, -0.85247090388120039, -0.96710843187079165, -0.65164137261910282, -0.633009521583765]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-0.084027811322535673, 0.36316097327855834, 0.76276282502956372, 0.825946226062648, 0.57980486410085952], [-0.73779586982099499, 0.37254441436551367, 0.99795370620464574, 0.56905875549575846, 0.60508644368687392], [0.64896635371895339, 0.87044045233501643, 0.87825962555539472, 0.49125589571124517, 0.73521629566881597], [-0.11021763134355433, -0.75915969386068149, -0.81314829289717072, 0.22800937731296655, 0.64674076289842564]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank3_offset0(self):
       arg=Data(numpy.array([[[-0.47965404874130169, 0.82476560063874316], [-0.29508213416398998, -0.81393703720452937]], [[-0.39452570551744826, 0.2710813598813071], [0.70191301420221497, 0.92131697529999679]], [[0.91092486057477284, -0.17742675176658906], [0.93743803341741172, -0.24810658731032409]], [[0.8292404484536704, -0.67966081758338071], [0.1097041521502371, -0.50250503549174441]], [[-0.95382582593020238, -0.15954466864076822], [-0.82226475873157745, 0.032324703810909572]], [[-0.80576486966156158, -0.70193160021310597], [0.24194008612087514, -0.45186291580263571]]]),self.functionspace)
@@ -1681,9 +1681,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,0)
       ref=Data(numpy.array([[[-0.47965404874130169, 0.82476560063874316], [-0.29508213416398998, -0.81393703720452937]], [[-0.39452570551744826, 0.2710813598813071], [0.70191301420221497, 0.92131697529999679]], [[0.91092486057477284, -0.17742675176658906], [0.93743803341741172, -0.24810658731032409]], [[0.8292404484536704, -0.67966081758338071], [0.1097041521502371, -0.50250503549174441]], [[-0.95382582593020238, -0.15954466864076822], [-0.82226475873157745, 0.032324703810909572]], [[-0.80576486966156158, -0.70193160021310597], [0.24194008612087514, -0.45186291580263571]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.95232031657104654, -0.51171389143739954], [0.5021173784011006, -0.13346048906733543]], [[-0.34000803534780566, 0.27531991852016002], [0.40500892817765788, -0.86936047318254461]], [[0.31637715793619337, -0.44836632199340198], [-0.18777872723614197, -0.53942822518925126]], [[0.44283821537880441, -0.49096132745134247], [0.61879880479923943, -0.98913356226678784]], [[-0.65325712666802938, 0.23825410802658231], [0.023290776898226895, -0.72183082104110285]], [[0.94622363774828044, -0.67849303457969845], [-0.11481306112448086, 0.36914068273649492]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank3_offset1(self):
       arg=Data(numpy.array([[[0.81053286814697678, 0.050191176759508238], [0.42342445008027152, 0.8922440392055786]], [[-0.72331693394362895, 0.27069578317300502], [-0.45140780490291643, -0.67001507946193128]], [[0.18728261143033365, 0.42505803814105914], [-0.65870737965001647, 0.88986754283565572]], [[0.9052128319800945, 0.71380866302456791], [-0.62578348903525249, 0.57438376912125078]], [[-0.70322298189245513, 0.5783032228742897], [0.98991210384307404, 0.68455971318831255]], [[-0.23035102351615544, 0.61590799799635754], [0.56157523223742367, 0.51936097775959378]]]),self.functionspace)
@@ -1691,9 +1691,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,1)
       ref=Data(numpy.array([[[0.81053286814697678, -0.72331693394362895, 0.18728261143033365, 0.9052128319800945, -0.70322298189245513, -0.23035102351615544], [0.050191176759508238, 0.27069578317300502, 0.42505803814105914, 0.71380866302456791, 0.5783032228742897, 0.61590799799635754]], [[0.42342445008027152, -0.45140780490291643, -0.65870737965001647, -0.62578348903525249, 0.98991210384307404, 0.56157523223742367], [0.8922440392055786, -0.67001507946193128, 0.88986754283565572, 0.57438376912125078, 0.68455971318831255, 0.51936097775959378]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.0072995967195328415, 0.5654382468199548, -0.49032667902784888, 0.71902088339284154, -0.36017629611125468, 0.049349882305021131], [-0.73856064839597413, -0.44496369949396564, 0.26471150640245344, 0.2652153812916358, -0.91101111771464138, -0.63009550024762251]], [[-0.98357397180574213, -0.13156033989456284, -0.83322961811366336, 0.68404854552436145, -0.056699622597530253, -0.25318734852225422], [-0.32300059049394991, -0.31613628634398361, 0.6506398139790226, -0.36259160033289217, 0.8304491656603219, -0.24566036979352535]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 2, 6),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2, 6),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank3_offset2(self):
       arg=Data(numpy.array([[[0.071980471419191394, -0.2247984465124786], [0.70285196077473455, 0.60212528599441262]], [[-0.15948746676349179, 0.86582881633576148], [-0.0042126106502915484, 0.97527165425181783]], [[-0.36318893716723566, 0.58102882834553227], [-0.91295983992273388, -0.43035213057683053]], [[-0.65959473388630352, -0.3348451128896015], [0.10603141160659191, -0.5891771679934068]], [[-0.053125659752484289, 0.65666335498005002], [0.159608828733937, -0.35246905797728778]], [[-0.52591315810399686, -0.60179097453397157], [0.75953135902640012, -0.56546768249860802]]]),self.functionspace)
@@ -1701,9 +1701,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,2)
       ref=Data(numpy.array([[[0.071980471419191394, 0.70285196077473455], [-0.15948746676349179, -0.0042126106502915484], [-0.36318893716723566, -0.91295983992273388], [-0.65959473388630352, 0.10603141160659191], [-0.053125659752484289, 0.159608828733937], [-0.52591315810399686, 0.75953135902640012]], [[-0.2247984465124786, 0.60212528599441262], [0.86582881633576148, 0.97527165425181783], [0.58102882834553227, -0.43035213057683053], [-0.3348451128896015, -0.5891771679934068], [0.65666335498005002, -0.35246905797728778], [-0.60179097453397157, -0.56546768249860802]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.78742827671337334, 0.062723806755969225], [0.44645526923804812, -0.011463141046005543], [0.38253300563029202, 0.77437083991735012], [0.6642469924656198, 0.15239615935810624], [0.63068800469946029, -0.31309043488219679], [-0.80539569347758766, -0.4842951165762488]], [[-0.5908111791548194, 0.40701197477660345], [-0.95231455634087414, -0.092111902628053688], [-0.54588147161824052, 0.13281940503889933], [0.94467286731281219, -0.66595174711721361], [0.14927244425193487, 0.70570015744004899], [-0.61058678284165846, -0.4808012098357406]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 6, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 6, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank3_offset3(self):
       arg=Data(numpy.array([[[0.36379173135017173, -0.87835744636415991], [-0.16357744767281646, 0.75389969112384492]], [[-0.31029105911877997, 0.47789223338058595], [0.26647501093422088, -0.63610463787584814]], [[0.16124757232825493, 0.56487671351927959], [-0.90628166527665321, 0.28171855697125259]], [[0.36735938684277203, -0.21455006677371879], [0.72495888110218565, -0.23391493309257871]], [[0.055102471480766413, -0.4334831605896281], [-0.64444553189670728, -0.16352412040926279]], [[-0.39002564026590081, -0.90492379162244041], [-0.47951836634091549, 0.62205806165340993]]]),self.functionspace)
@@ -1711,9 +1711,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,3)
       ref=Data(numpy.array([[[0.36379173135017173, -0.87835744636415991], [-0.16357744767281646, 0.75389969112384492]], [[-0.31029105911877997, 0.47789223338058595], [0.26647501093422088, -0.63610463787584814]], [[0.16124757232825493, 0.56487671351927959], [-0.90628166527665321, 0.28171855697125259]], [[0.36735938684277203, -0.21455006677371879], [0.72495888110218565, -0.23391493309257871]], [[0.055102471480766413, -0.4334831605896281], [-0.64444553189670728, -0.16352412040926279]], [[-0.39002564026590081, -0.90492379162244041], [-0.47951836634091549, 0.62205806165340993]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[-0.0053753693908147326, 0.45988330601714922], [0.90177126228712412, 0.70333229850104573]], [[-0.54587016104270858, -0.15478549428886024], [0.46038764626650019, 0.2613958193885233]], [[-0.87820312698350156, 0.69979177639456225], [-0.32195153646902619, -0.68579391347357377]], [[0.95350320262703114, 0.029112213996608682], [-0.89469188023314961, 0.46195341009978819]], [[-0.61911945279335012, 0.2333995656607073], [0.66580866269700789, -0.84951808382855343]], [[0.60759615563485903, 0.3752600315746033], [0.92082378968430101, -0.46482596801071563]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank4_offset0(self):
       arg=Data(numpy.array([[[[-0.066213835855639669, 0.29841553845687274, -0.16902289382090996, -0.075921189118681287], [-0.97827979006275156, 0.61391668407537314, -0.87268519578958759, 0.8791187242704499], [-0.95000218353089805, 0.66607817390917701, 0.065593449268812831, -0.25228614471403676]], [[0.10795154242676341, -0.21130515270463235, -0.86146510306021273, 0.80683480189625145], [-0.1508100468879312, -0.13988876977255771, -0.35920652457315549, -0.89782640958091164], [0.86164286360239895, -0.49078217304435556, 0.22181028544575332, 0.4467451953936703]]], [[[-0.65512980682884092, 0.64749503489786009, -0.4374051698263306, 0.74914501221532559], [0.41346548918604009, 0.45921345197680563, 0.91487198288959437, 0.025763758687823213], [0.81890254270128948, -0.46948008256591378, 0.040118843783117031, -0.81452493774882884]], [[0.36394911322590273, -0.53668320845100181, 0.066543468903012659, 0.31810105265098865], [0.81474465043548316, -0.69466567492526288, -0.59446787744052165, 0.61936412263225926], [-0.14688223058919392, 0.8461640067975098, 0.1993657048182409, -0.23151493903225973]]], [[[0.31073907082107, -0.81398757347466844, 0.5611533909190678, -0.55850930097590523], [0.054537230481781274, 0.63229750473085922, 0.087401829377588669, 0.5439226621604869], [0.81295744598767583, -0.70942223033941199, 0.69387553544619585, -0.28630849607704101]], [[-0.80852962820433527, 0.77372821651084256, 0.32165245811635579, -0.57297411898527417], [-0.81162784807188992, 0.95807056808486557, -0.76413232793557517, 0.21536566377881194], [0.21796657286961985, -0.12048470246566056, -0.18867098296080287, 0.012122683613027263]]]]),self.functionspace)
@@ -1721,9 +1721,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,0)
       ref=Data(numpy.array([[[[-0.066213835855639669, 0.29841553845687274, -0.16902289382090996, -0.075921189118681287], [-0.97827979006275156, 0.61391668407537314, -0.87268519578958759, 0.8791187242704499], [-0.95000218353089805, 0.66607817390917701, 0.065593449268812831, -0.25228614471403676]], [[0.10795154242676341, -0.21130515270463235, -0.86146510306021273, 0.80683480189625145], [-0.1508100468879312, -0.13988876977255771, -0.35920652457315549, -0.89782640958091164], [0.86164286360239895, -0.49078217304435556, 0.22181028544575332, 0.4467451953936703]]], [[[-0.65512980682884092, 0.64749503489786009, -0.4374051698263306, 0.74914501221532559], [0.41346548918604009, 0.45921345197680563, 0.91487198288959437, 0.025763758687823213], [0.81890254270128948, -0.46948008256591378, 0.040118843783117031, -0.81452493774882884]], [[0.36394911322590273, -0.53668320845100181, 0.066543468903012659, 0.31810105265098865], [0.81474465043548316, -0.69466567492526288, -0.59446787744052165, 0.61936412263225926], [-0.14688223058919392, 0.8461640067975098, 0.1993657048182409, -0.23151493903225973]]], [[[0.31073907082107, -0.81398757347466844, 0.5611533909190678, -0.55850930097590523], [0.054537230481781274, 0.63229750473085922, 0.087401829377588669, 0.5439226621604869], [0.81295744598767583, -0.70942223033941199, 0.69387553544619585, -0.28630849607704101]], [[-0.80852962820433527, 0.77372821651084256, 0.32165245811635579, -0.57297411898527417], [-0.81162784807188992, 0.95807056808486557, -0.76413232793557517, 0.21536566377881194], [0.21796657286961985, -0.12048470246566056, -0.18867098296080287, 0.012122683613027263]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.12478235846511443, -0.23502354792078362, -0.93397804132870776, -0.031100914638728216], [0.79367218920384008, 0.88436997817419249, 0.37879610078280601, -0.36622663948089151], [-0.43371789711061393, 0.52509306507010156, 0.56502273243195966, 0.19318878623675473]], [[0.3716014371332228, -0.65610035446812498, 0.28314182870109428, 0.8876915303848254], [-0.71386010046965565, 0.2929533875337933, -0.58944278050326027, -0.48359593506249432], [-0.94527952356792611, 0.62906848531226878, -0.62021840237696813, -0.082236398033888047]]], [[[-0.38354605619336191, -0.3576238375311287, -0.57354262081251028, 0.35231033398526357], [-0.13738959218834812, -0.84117118730215856, 0.13613978281640171, 0.01528952676619233], [-0.98769588307869571, 0.8178005656723828, 0.84887180836789566, 0.48793301235411235]], [[0.63110686463455656, 0.16069292020707437, -0.28131006402756764, 0.68420535044501474], [0.89249823707296505, -0.55007351245138003, 0.39716145715604978, -0.71710895307139944], [-0.6237462395182829, -0.31058786983659159, -0.32071822689683982, 0.77063207204985651]]], [[[-0.63005193637456225, -0.17195943783565015, 0.92392704274637616, 0.55378021817046963], [-0.59348513048033769, 0.59869352314442748, 0.25044807429473659, 0.86174289107182478], [0.34163664812612793, 0.25102340703822357, -0.52568574952292435, 0.75324930805700152]], [[0.81319108984002719, 0.071199739745021917, -0.25442848311299349, -0.72629097877664317], [-0.52724150718081697, -0.38705265653226495, -0.32225015238745169, -0.70342476565192213], [0.23709198628486172, -0.3755960225689905, -0.81047080672668259, 0.30606251468774404]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank4_offset1(self):
       arg=Data(numpy.array([[[[-0.67344037422696923, 0.18224348080436248, -0.99389141739488518, -0.83387799396061313], [-0.65649617842846175, -0.054540835434679691, 0.04711766345003876, -0.97475983164503055], [-0.095873874549351257, -0.39117841568868439, 0.18230399121602137, 0.20298722408390057]], [[0.96210306987110839, 0.44592831692833634, 0.080230921516656784, 0.92184388665129835], [-0.047192520840041219, -0.24870454550355503, -0.91306081558739005, -0.9094015911611395], [0.48196540137975541, -0.42509714806555965, 0.34448484600041973, -0.1461454651979619]]], [[[-0.050663916239619855, 0.94055399806222417, 0.40506194398115669, 0.41229711229319399], [-0.63990233828344834, 0.74839685116769483, -0.80661000302118224, -0.78677967431668905], [-0.40051255025970978, -0.58630640749670326, -0.1981831060318433, 0.11590832719828925]], [[0.1203664961391071, -0.0059304347663953205, -0.73217383813755332, 0.63100367257822509], [0.93537572319117812, -0.78152099272506903, -0.65328214438986976, -0.34825752000047783], [-0.47471849867808569, -0.80559440166954888, -0.45056513246832086, 0.67317204842887501]]], [[[-0.59519232113693432, 0.79823979912440435, 0.99856543785549934, -0.86281383562776304], [-0.034890258453340595, -0.42775168494808069, -0.10028498582661705, 0.31628104147256475], [0.22749696533158481, -0.2146918108247875, -0.51221231822304891, 0.75773171154924812]], [[0.72184529111282214, -0.64490490963671454, 0.95481889208887338, -0.054747819245590357], [-0.71012661632545848, -0.95694368451032052, -0.1888267481548902, 0.8261271903752383], [0.50616063810575973, -0.023010141007835827, 0.14732950902706965, 0.33795816308683979]]]]),self.functionspace)
@@ -1731,9 +1731,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,1)
       ref=Data(numpy.array([[[[-0.67344037422696923, -0.050663916239619855, -0.59519232113693432], [0.18224348080436248, 0.94055399806222417, 0.79823979912440435], [-0.99389141739488518, 0.40506194398115669, 0.99856543785549934], [-0.83387799396061313, 0.41229711229319399, -0.86281383562776304]], [[-0.65649617842846175, -0.63990233828344834, -0.034890258453340595], [-0.054540835434679691, 0.74839685116769483, -0.42775168494808069], [0.04711766345003876, -0.80661000302118224, -0.10028498582661705], [-0.97475983164503055, -0.78677967431668905, 0.31628104147256475]], [[-0.095873874549351257, -0.40051255025970978, 0.22749696533158481], [-0.39117841568868439, -0.58630640749670326, -0.2146918108247875], [0.18230399121602137, -0.1981831060318433, -0.51221231822304891], [0.20298722408390057, 0.11590832719828925, 0.75773171154924812]]], [[[0.96210306987110839, 0.1203664961391071, 0.72184529111282214], [0.44592831692833634, -0.0059304347663953205, -0.64490490963671454], [0.080230921516656784, -0.73217383813755332, 0.95481889208887338], [0.92184388665129835, 0.63100367257822509, -0.054747819245590357]], [[-0.047192520840041219, 0.93537572319117812, -0.71012661632545848], [-0.24870454550355503, -0.78152099272506903, -0.95694368451032052], [-0.91306081558739005, -0.65328214438986976, -0.1888267481548902], [-0.9094015911611395, -0.34825752000047783, 0.8261271903752383]], [[0.48196540137975541, -0.47471849867808569, 0.50616063810575973], [-0.42509714806555965, -0.80559440166954888, -0.023010141007835827], [0.34448484600041973, -0.45056513246832086, 0.14732950902706965], [-0.1461454651979619, 0.67317204842887501, 0.33795816308683979]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.75149044773857865, 0.70316372474777555, -0.16702945669406355], [0.35443409583303653, 0.88647603046601375, -0.040548169689767155], [-0.71341498686119875, 0.33564722618849108, 0.54698639855560227], [-0.59163737866125943, -0.63141505796309061, -0.62922528074269546]], [[-0.4249945605352643, 0.25726802491287692, -0.87679735642497869], [-0.25971428078552705, -0.58138854418958874, 0.58046417075004619], [-0.26705486422056746, -0.079923857735635817, -0.5864122037266819], [-0.99104576645219367, -0.29887732332821804, -0.81157045552283003]], [[-0.68589537479898821, 0.89277298564150143, 0.56314437440535792], [-0.82212608133655074, 0.22488119405794293, -0.55660678977097278], [0.67506822670204802, 0.61590963890249584, -0.42042096127275896], [-0.40040872735310695, -0.5126405944203547, -0.36240964551056298]]], [[[0.44132659608457936, 0.47670028033270762, 0.62030860514521469], [0.4935503743643348, -0.97091855451015463, 0.15317212371138833], [0.65177404867193678, 0.76979977853149251, 0.25227503099457049], [0.4706260209936135, 0.91920534052844682, 0.06918480209623934]], [[0.68166836648630658, -0.5957260341673436, 0.2887476834208289], [-0.17736058534918642, 0.10085750714006769, 0.95946213915765255], [0.91661717420758149, 0.17575825248773369, 0.41019183878956378], [0.11249920364074062, 0.7906069707701453, 0.043473024980329456]], [[0.2978444887620566, -0.0134583056613784, -0.093269751522815136], [0.2615462160011619, -0.93370912364311609, -0.60140289564421612], [0.19793022534159865, -0.99653619110996661, -0.17736891155882906], [0.21269092837831072, -0.51562461803792958, -0.63781709374496565]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 3, 4, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 3, 4, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank4_offset2(self):
       arg=Data(numpy.array([[[[-0.91650913229581743, -0.58729954761866598, 0.54100624389532403, 0.63969518130102543], [-0.18897006887842416, 0.91757319999246678, 0.14019104877829558, 0.91418871459379081], [0.29649823849212953, -0.41367491626902253, -0.45433072523643547, -0.91332514236757145]], [[-0.34549051141820142, 0.074502980191387014, -0.73264516866517426, -0.68581151160670051], [-0.6218632013716594, -0.90813764509763262, -0.97698000457662992, -0.42208164388052638], [0.50176347519998021, -0.52985145605782646, 0.80906656150863943, 0.66060193093169794]]], [[[-0.39138517117258775, 0.41887190457796675, -0.74819036690048324, -0.26744098619244827], [0.72026290947688287, -0.77558392185230418, -0.23270347061827712, -0.066636965237370838], [0.91015424519361354, 0.74208453451124945, -0.71874858986330725, -0.029910096890902071]], [[-0.88170449352279889, 0.84790265373069507, -0.85779296761749757, 0.30997576358970091], [-0.78416821993365593, -0.65873307826078498, 0.05284785450624252, 0.95521281527103463], [0.82376719946655408, -0.27417557837698636, 0.58330211909056806, 0.18452380995472395]]], [[[0.037453388546981881, -0.28164535589881678, 0.63031648512983351, 0.86443061103354712], [0.39405528691503955, 0.23767513534417417, -0.33732997933601139, 0.30400860899992432], [0.25023289623395528, 0.47689793846198647, -0.60390189120036597, -0.45027542941762344]], [[-0.60618459619613341, -0.31953725314352122, -0.78201948295443957, 0.66799897496942262], [0.06394378422788205, -0.74914896970775158, -0.11507456770982816, 0.99496117265849282], [-0.43710535233052394, 0.41443874069832476, -0.33649400711475019, -0.42611235903846634]]]]),self.functionspace)
@@ -1741,9 +1741,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,2)
       ref=Data(numpy.array([[[[-0.91650913229581743, -0.34549051141820142], [-0.39138517117258775, -0.88170449352279889], [0.037453388546981881, -0.60618459619613341]], [[-0.58729954761866598, 0.074502980191387014], [0.41887190457796675, 0.84790265373069507], [-0.28164535589881678, -0.31953725314352122]], [[0.54100624389532403, -0.73264516866517426], [-0.74819036690048324, -0.85779296761749757], [0.63031648512983351, -0.78201948295443957]], [[0.63969518130102543, -0.68581151160670051], [-0.26744098619244827, 0.30997576358970091], [0.86443061103354712, 0.66799897496942262]]], [[[-0.18897006887842416, -0.6218632013716594], [0.72026290947688287, -0.78416821993365593], [0.39405528691503955, 0.06394378422788205]], [[0.91757319999246678, -0.90813764509763262], [-0.77558392185230418, -0.65873307826078498], [0.23767513534417417, -0.74914896970775158]], [[0.14019104877829558, -0.97698000457662992], [-0.23270347061827712, 0.05284785450624252], [-0.33732997933601139, -0.11507456770982816]], [[0.91418871459379081, -0.42208164388052638], [-0.066636965237370838, 0.95521281527103463], [0.30400860899992432, 0.99496117265849282]]], [[[0.29649823849212953, 0.50176347519998021], [0.91015424519361354, 0.82376719946655408], [0.25023289623395528, -0.43710535233052394]], [[-0.41367491626902253, -0.52985145605782646], [0.74208453451124945, -0.27417557837698636], [0.47689793846198647, 0.41443874069832476]], [[-0.45433072523643547, 0.80906656150863943], [-0.71874858986330725, 0.58330211909056806], [-0.60390189120036597, -0.33649400711475019]], [[-0.91332514236757145, 0.66060193093169794], [-0.029910096890902071, 0.18452380995472395], [-0.45027542941762344, -0.42611235903846634]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.4352396687206852, 0.71790975565175574], [-0.026335563976856324, 0.73215297571506333], [0.43847477543909408, 0.52390987553753021]], [[0.69971738524886229, 0.31442722316701333], [-0.3050179189173694, -0.82110989565229864], [0.89538070538642667, -0.79232575226907809]], [[0.12820519360965066, 0.17133151583039008], [0.034786927267309364, 0.61149974382034], [-0.30233858278548209, -0.15095804152332137]], [[0.85368106798373478, 0.073502826654757936], [-0.80517253266306654, -0.39618324499316659], [0.34064095798429972, 0.70007880227753483]]], [[[0.070429086144990993, -0.84914670000122405], [0.53751365530760808, -0.47360321438976105], [-0.065442292198451435, -0.81287589416276251]], [[0.20856447904774567, 0.44748205147620901], [0.23762583104200252, -0.94819175396076094], [-0.51019910866215024, -0.49495835482354122]], [[0.27537630019819237, 0.31043054343605769], [-0.43892419142534678, 0.70197559420805633], [-0.95818371885969, -0.72093774482005557]], [[0.75632498522306602, -0.15742659342518373], [-0.32714628277483726, -0.44324025020052993], [-0.44380533793397059, 0.49205650489551256]]], [[[0.56500122850628354, 0.86221036431877773], [-0.55217449087178383, -0.8996390666809333], [0.64861560494257464, 0.89768903742668971]], [[0.75590265015672053, 0.33430110262334489], [-0.32223101592083148, 0.72854621435050992], [0.23533348971688617, -0.26816557059751611]], [[-0.1161155711224795, 0.061460790213694549], [0.75895642071407199, -0.050415318743384008], [0.8226070796722551, -0.14226738736930322]], [[0.936460735669564, 0.88329713851895275], [-0.64670752330991776, -0.52116339611273954], [0.94265537264169708, 0.76825847592572138]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 4, 3, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 4, 3, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank4_offset3(self):
       arg=Data(numpy.array([[[[0.46779977762790437, 0.093518814946385476, 0.26385856580744815, 0.2604801780434074], [-0.6491200324762405, -0.20509854038191544, -0.24426074157647437, 0.44369744714798443], [-0.72832970925094398, -0.19992310580069916, 0.29304994686755537, -0.8560617172796674]], [[-0.87218318743426737, -0.96157972047186746, 0.19366884559207809, 0.86495607067380997], [0.46175480547513081, -0.43385687525297545, -0.53845348307578367, 0.71772981469066832], [-0.13155150763436452, 0.65633458584748405, -0.88392671137352519, -0.55121314896718854]]], [[[0.16048269352422473, 0.65167242384868107, -0.81874404622342967, -0.33880011973581081], [-0.82381126533871685, -0.4685045913598489, 0.65988860571851693, 0.046128587330151349], [0.02395401260034391, 0.86724680660126463, 0.95036738601274506, -0.12817863202906143]], [[-0.72589441274232658, 0.99217380594698712, 0.44152513176189845, 0.10666371836283495], [0.48848607735288807, -0.39576604834940876, 0.85958342412186761, 0.16866558109681606], [-0.12262580218350605, -0.1384080904755387, 0.95592207168735444, -0.43207476370897413]]], [[[-0.5504365167961085, 0.22003016502959349, 0.85675361887935231, -0.70172248954296856], [-0.91734090296421278, -0.61643187894020102, -0.63186313656321702, 0.42264314435215034], [0.9951716164622868, -0.67192068735701449, 0.45284867127911932, -0.52030864886746864]], [[-0.54368476728803627, -0.66863678245948899, -0.42490052226599673, -0.5550233927827537], [0.58729766881136669, 0.67513527066511969, -0.73319943725411019, -0.45416771189023875], [0.042545923751732273, -0.61545278016838645, 0.0029261928569452866, 0.69281133638493131]]]]),self.functionspace)
@@ -1751,9 +1751,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,3)
       ref=Data(numpy.array([[[[0.46779977762790437, -0.6491200324762405, -0.72832970925094398], [-0.87218318743426737, 0.46175480547513081, -0.13155150763436452]], [[0.16048269352422473, -0.82381126533871685, 0.02395401260034391], [-0.72589441274232658, 0.48848607735288807, -0.12262580218350605]], [[-0.5504365167961085, -0.91734090296421278, 0.9951716164622868], [-0.54368476728803627, 0.58729766881136669, 0.042545923751732273]]], [[[0.093518814946385476, -0.20509854038191544, -0.19992310580069916], [-0.96157972047186746, -0.43385687525297545, 0.65633458584748405]], [[0.65167242384868107, -0.4685045913598489, 0.86724680660126463], [0.99217380594698712, -0.39576604834940876, -0.1384080904755387]], [[0.22003016502959349, -0.61643187894020102, -0.67192068735701449], [-0.66863678245948899, 0.67513527066511969, -0.61545278016838645]]], [[[0.26385856580744815, -0.24426074157647437, 0.29304994686755537], [0.19366884559207809, -0.53845348307578367, -0.88392671137352519]], [[-0.81874404622342967, 0.65988860571851693, 0.95036738601274506], [0.44152513176189845, 0.85958342412186761, 0.95592207168735444]], [[0.85675361887935231, -0.63186313656321702, 0.45284867127911932], [-0.42490052226599673, -0.73319943725411019, 0.0029261928569452866]]], [[[0.2604801780434074, 0.44369744714798443, -0.8560617172796674], [0.86495607067380997, 0.71772981469066832, -0.55121314896718854]], [[-0.33880011973581081, 0.046128587330151349, -0.12817863202906143], [0.10666371836283495, 0.16866558109681606, -0.43207476370897413]], [[-0.70172248954296856, 0.42264314435215034, -0.52030864886746864], [-0.5550233927827537, -0.45416771189023875, 0.69281133638493131]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.73790897889353402, 0.40981257331711052, 0.65591674771411679], [0.33671050200997921, 0.16490878407953136, 0.61102486944072698]], [[0.15547124984145388, -0.046243605558112133, 0.94241041843200213], [0.55420386856998038, -0.44223412824547048, -0.0075792688113558437]], [[-0.58855550111764843, 0.79058574197690357, 0.17132825413997255], [0.55252739035955734, -0.87156594367525453, -0.94131159099359674]]], [[[0.35812560500758628, -0.33815730318925596, -0.14997839722878603], [-0.97202656008512478, -0.67524863289413517, -0.50742209093618862]], [[-0.35482060314225849, -0.75516637112198759, 0.12994100470438252], [-0.97003903495401644, 0.03013419011529983, 0.40213578219891954]], [[-0.2919524122070698, 0.33312005433989333, 0.27966341134180661], [0.28642522196540998, -0.26157383035184423, -0.7491153117636451]]], [[[-0.5700967625904656, 0.75549945910789273, -0.50024863640332962], [-0.67519081803124115, -0.22767621088839363, -0.15312316936225234]], [[-0.54414105057206297, 0.6242578362657345, 0.15155825194642558], [0.74008009088846505, 0.77212833648726709, 0.96370555097954425]], [[-0.12220541326351486, 0.41321056836220982, 0.11431059650377162], [0.10504771933107038, -0.61412828404065323, 0.51354682902413873]]], [[[0.69637723431368026, 0.65727933499766888, -0.45060281876364883], [0.25412287603488704, 0.50179720800099115, 0.71266816875510308]], [[0.73775048248000252, -0.012528618222586996, 0.79896363238968093], [0.68766108056689124, -0.52935975103599575, -0.2484978079339073]], [[0.36574698295191488, -0.50975347487856371, -0.72338306151292242], [-0.86268315801628614, 0.043008426116986076, 0.52536988332533774]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 3, 2, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 3, 2, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_taggedData_rank4_offset4(self):
       arg=Data(numpy.array([[[[-0.5629774335717217, 0.37289704610148733, -0.79454320414171375, -0.34180734715306493], [0.72913058075356685, 0.022374058788025009, -0.47497435095851337, 0.91786099638941132], [0.084676284763443688, 0.92032882822083972, -0.95232713744724928, 0.93556278993263042]], [[-0.89312439958472734, -0.4267675959952919, 0.40532529426442543, -0.87944686391721083], [-0.12198678462603696, -0.10538196821841139, -0.24656505926283701, 0.078118527972178553], [-0.69013127378106764, -0.29315625061460548, 0.61639572750427285, -0.96287054432600994]]], [[[0.8042974287359097, -0.38560281885315728, -0.61064637208469641, 0.38919455623834964], [0.17426253051276563, -0.76959392881695332, 0.94934922249302134, -0.69985631394633097], [-0.32274961682738867, 0.040974929564923768, 0.11162800240629722, 0.72904110798442989]], [[0.21859495861585954, 0.24931339416356968, -0.2179401859374428, 0.5621527739020018], [0.9915343294122414, -0.22108330180334357, 0.48986241138559161, -0.093696827843043451], [0.71510895431655697, -0.53904026490558676, -0.057072073516412747, 0.9234688562622666]]], [[[-0.39416147514951727, 0.691224747815955, 0.89595596620054274, -0.22529985985372392], [0.42100987291630787, 0.19098423959133703, 0.50672847215782024, -0.048013628778252437], [-0.022387886206133079, -0.63854353337962144, -0.25368261438951634, 0.75215852809283512]], [[0.65044236579106518, -0.56374323208172572, 0.58903075873549415, 0.10430727672190665], [0.22012952614616066, 0.30658675801433666, 0.9331079054369007, 0.97765401492736248], [0.4803972278238795, 0.62880464922082857, -0.71927862200401815, 0.49067003104619111]]]]),self.functionspace)
@@ -1761,9 +1761,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=transpose(arg,4)
       ref=Data(numpy.array([[[[-0.5629774335717217, 0.37289704610148733, -0.79454320414171375, -0.34180734715306493], [0.72913058075356685, 0.022374058788025009, -0.47497435095851337, 0.91786099638941132], [0.084676284763443688, 0.92032882822083972, -0.95232713744724928, 0.93556278993263042]], [[-0.89312439958472734, -0.4267675959952919, 0.40532529426442543, -0.87944686391721083], [-0.12198678462603696, -0.10538196821841139, -0.24656505926283701, 0.078118527972178553], [-0.69013127378106764, -0.29315625061460548, 0.61639572750427285, -0.96287054432600994]]], [[[0.8042974287359097, -0.38560281885315728, -0.61064637208469641, 0.38919455623834964], [0.17426253051276563, -0.76959392881695332, 0.94934922249302134, -0.69985631394633097], [-0.32274961682738867, 0.040974929564923768, 0.11162800240629722, 0.72904110798442989]], [[0.21859495861585954, 0.24931339416356968, -0.2179401859374428, 0.5621527739020018], [0.9915343294122414, -0.22108330180334357, 0.48986241138559161, -0.093696827843043451], [0.71510895431655697, -0.53904026490558676, -0.057072073516412747, 0.9234688562622666]]], [[[-0.39416147514951727, 0.691224747815955, 0.89595596620054274, -0.22529985985372392], [0.42100987291630787, 0.19098423959133703, 0.50672847215782024, -0.048013628778252437], [-0.022387886206133079, -0.63854353337962144, -0.25368261438951634, 0.75215852809283512]], [[0.65044236579106518, -0.56374323208172572, 0.58903075873549415, 0.10430727672190665], [0.22012952614616066, 0.30658675801433666, 0.9331079054369007, 0.97765401492736248], [0.4803972278238795, 0.62880464922082857, -0.71927862200401815, 0.49067003104619111]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.039074466790566253, -0.38253110751277308, -0.023659656109448646, 0.88674374602124795], [-0.8530108709584423, -0.94784093509748879, -0.51478453053324258, 0.4405063540256382], [-0.012439906663567868, 0.44833165182736723, 0.21006614953145153, 0.87093740516770346]], [[0.43774752196794986, -0.68998132591161077, 0.30770385872089956, 0.99968644163450904], [-0.62386292661659204, 0.51894866254551353, 0.81282925517508309, -0.8195122165291564], [-0.71619697300173613, -0.88810293901570292, 0.50734122948780702, 0.97649248851543136]]], [[[0.091432938817787246, -0.52720239228775667, -0.50676236687255716, -0.67986373823170321], [-0.80383345805365147, -0.017034165365795939, -0.84147680389297541, -0.12204025189144674], [-0.86652910735833966, -0.58172392670523965, -0.90242425161982176, 0.74287848488060848]], [[0.034681848871322751, -0.1543711770342826, -0.64733533182691527, -0.72917432237823077], [0.27906766945495654, -0.59766602736997387, 0.94224548783166218, 0.61558301038310703], [0.54320066342242912, -0.52545435614765101, 0.76189128242263604, 0.32067666631662495]]], [[[0.15481999896514997, -0.41372517738312786, 0.46383212107705174, -0.096325341498305406], [0.19566032428750346, 0.42230274614879271, 0.56018397714977075, 0.11522982720232355], [-0.42357766254492102, 0.18178853605156009, 0.082891624108751394, 0.75419985383252053]], [[-0.73014109338726296, -0.21848768556805864, -0.062155188286463936, 0.42376547599392111], [-0.10528194371082078, -0.24908924402116384, -0.14602712097902937, -0.11078238666648765], [0.46841923931948992, 0.49746717813042163, -0.58652128520131286, 0.77594994623589431]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_taggedData_dim1(self):
@@ -1772,9 +1772,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues(arg)
       ref=Data(numpy.array([0.33279823386330953]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.061115457896394387]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(1,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(1,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_taggedData_dim2(self):
       arg=Data(numpy.array([[0.37760109486480786, -0.51481765042925676], [-0.51481765042925676, 0.21659975727086356]]),self.functionspace)
@@ -1782,9 +1782,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues(arg)
       ref=Data(numpy.array([-0.22397305327098097, 0.81817390540665236]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-0.33867351557615905, 0.28373692575127757]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_taggedData_dim3(self):
       arg=Data(numpy.array([[-0.028453927582187344, -0.18993093160318897, -0.029996204504947221], [-0.18993093160318897, 0.29025386050771895, 0.280540188445356], [-0.029996204504947221, 0.280540188445356, 0.032061143754492427]]),self.functionspace)
@@ -1792,9 +1792,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues(arg)
       ref=Data(numpy.array([-0.19664234688324986, -0.036237618759115353, 0.5267410423223895]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([-1.1727418425501348, -0.49026809359761531, 1.1082731991181265]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_symmetric_taggedData_rank2(self):
       arg=Data(numpy.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]),self.functionspace)
@@ -1802,9 +1802,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=symmetric(arg)
       ref=Data(numpy.array([[0.0, 2.0, 4.0], [2.0, 4.0, 6.0], [4.0, 6.0, 8.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[-0.0, -2.0, -4.0], [-2.0, -4.0, -6.0], [-4.0, -6.0, -8.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_symmetric_taggedData_rank4(self):
       arg=Data(numpy.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]]),self.functionspace)
@@ -1812,9 +1812,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=symmetric(arg)
       ref=Data(numpy.array([[[[0.0, 3.5, 7.0], [10.5, 14.0, 17.5]], [[3.5, 7.0, 10.5], [14.0, 17.5, 21.0]], [[7.0, 10.5, 14.0], [17.5, 21.0, 24.5]]], [[[10.5, 14.0, 17.5], [21.0, 24.5, 28.0]], [[14.0, 17.5, 21.0], [24.5, 28.0, 31.5]], [[17.5, 21.0, 24.5], [28.0, 31.5, 35.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-0.0, -3.5, -7.0], [-10.5, -14.0, -17.5]], [[-3.5, -7.0, -10.5], [-14.0, -17.5, -21.0]], [[-7.0, -10.5, -14.0], [-17.5, -21.0, -24.5]]], [[[-10.5, -14.0, -17.5], [-21.0, -24.5, -28.0]], [[-14.0, -17.5, -21.0], [-24.5, -28.0, -31.5]], [[-17.5, -21.0, -24.5], [-28.0, -31.5, -35.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_nonsymmetric_taggedData_rank2(self):
       arg=Data(numpy.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]),self.functionspace)
@@ -1822,9 +1822,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=nonsymmetric(arg)
       ref=Data(numpy.array([[0.0, -1.0, -2.0], [1.0, 0.0, -1.0], [2.0, 1.0, 0.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, 1.0, 2.0], [-1.0, 0.0, 1.0], [-2.0, -1.0, 0.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_nonsymmetric_taggedData_rank4(self):
       arg=Data(numpy.array([[[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], [[6.0, 7.0, 8.0], [9.0, 10.0, 11.0]], [[12.0, 13.0, 14.0], [15.0, 16.0, 17.0]]], [[[18.0, 19.0, 20.0], [21.0, 22.0, 23.0]], [[24.0, 25.0, 26.0], [27.0, 28.0, 29.0]], [[30.0, 31.0, 32.0], [33.0, 34.0, 35.0]]]]),self.functionspace)
@@ -1832,9 +1832,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=nonsymmetric(arg)
       ref=Data(numpy.array([[[[0.0, -2.5, -5.0], [-7.5, -10.0, -12.5]], [[2.5, 0.0, -2.5], [-5.0, -7.5, -10.0]], [[5.0, 2.5, 0.0], [-2.5, -5.0, -7.5]]], [[[7.5, 5.0, 2.5], [0.0, -2.5, -5.0]], [[10.0, 7.5, 5.0], [2.5, 0.0, -2.5]], [[12.5, 10.0, 7.5], [5.0, 2.5, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[0.0, 2.5, 5.0], [7.5, 10.0, 12.5]], [[-2.5, 0.0, 2.5], [5.0, 7.5, 10.0]], [[-5.0, -2.5, 0.0], [2.5, 5.0, 7.5]]], [[[-7.5, -5.0, -2.5], [0.0, 2.5, 5.0]], [[-10.0, -7.5, -5.0], [-2.5, 0.0, 2.5]], [[-12.5, -10.0, -7.5], [-5.0, -2.5, 0.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 3, 2, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case0(self):
       arg=Data(numpy.array([[0.0, 0.0], [0.0, 0.0]]),self.functionspace)
@@ -1842,14 +1842,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.0, 0.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([-1.0, -1.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case5(self):
       arg=Data(numpy.array([[-0.99999999999999967, -6.4606252205695602e-16], [-6.4606252205695602e-16, -0.99999999999999967]]),self.functionspace)
@@ -1857,14 +1857,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([-1.0, -1.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([0.0, 0.0001]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case7(self):
       arg=Data(numpy.array([[0.0001, 0.0], [0.0, 0.0]]),self.functionspace)
@@ -1872,14 +1872,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.0, 0.0001]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([0.0, 0.0001]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case9(self):
       arg=Data(numpy.array([[1.0, 0.0], [0.0, 2.0]]),self.functionspace)
@@ -1887,14 +1887,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case11(self):
       arg=Data(numpy.array([[1.0605983718317855, 0.23859213977648688], [0.23859213977648688, 1.9394016281682138]]),self.functionspace)
@@ -1902,14 +1902,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 1000000.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim2_case13(self):
       arg=Data(numpy.array([[1000000.0, 0.0], [0.0, 1.0]]),self.functionspace)
@@ -1917,14 +1917,14 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 1000000.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 1000000.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(2,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(2, 2),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(2))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case0(self):
       arg=Data(numpy.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),self.functionspace)
@@ -1932,15 +1932,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.0, 0.0, 0.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([10.0, 10.0, 10.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case10(self):
       arg=Data(numpy.array([[0.9, 0.0, 0.0], [0.0, 0.9, 0.0], [0.0, 0.0, 1.0]]),self.functionspace)
@@ -1948,15 +1948,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.9, 0.9, 1.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([0.9, 0.9, 1.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case12(self):
       arg=Data(numpy.array([[0.92694799760252555, 0.0, 0.044368966468320177], [0.0, 0.9, 0.0], [0.044368966468320184, 0.0, 0.97305200239747425]]),self.functionspace)
@@ -1964,15 +1964,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.9, 0.9, 1.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([0.9, 0.9, 1.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case14(self):
       arg=Data(numpy.array([[0.92379770619813639, 0.041031106298491521, -0.011396846732439278], [0.041031106298491535, 0.97074428392640366, -0.019650012730342326], [-0.011396846732439236, -0.019650012730342337, 0.90545800987545966]]),self.functionspace)
@@ -1980,15 +1980,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.9, 0.9, 1.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 1.1, 1.1]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case17(self):
       arg=Data(numpy.array([[1.0269479976025255, 0.0, 0.044368966468320309], [0.0, 1.1, 0.0], [0.044368966468320295, 0.0, 1.0730520023974743]]),self.functionspace)
@@ -1996,15 +1996,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 1.1, 1.1]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 1.1, 1.1]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case19(self):
       arg=Data(numpy.array([[1.035487967756175, 0.026317079185831614, -0.039960133424212368], [0.026317079185831618, 1.0892641940924184, 0.016301362071911414], [-0.039960133424212355, 0.016301362071911431, 1.0752478381514063]]),self.functionspace)
@@ -2012,15 +2012,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 1.1, 1.1]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0, 3.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case21(self):
       arg=Data(numpy.array([[1.0, 0.0, 0.0], [0.0, 2.7060899725040968, -0.45555123008643206], [0.0, -0.45555123008643228, 2.2939100274959037]]),self.functionspace)
@@ -2028,15 +2028,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0, 3.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0, 3.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case23(self):
       arg=Data(numpy.array([[3.0, 0.0, 0.0], [0.0, 1.153410887977139, -0.36038311201720391], [0.0, -0.36038311201720391, 1.8465891120228608]]),self.functionspace)
@@ -2044,15 +2044,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0, 3.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0, 3.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case25(self):
       arg=Data(numpy.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 30000.0]]),self.functionspace)
@@ -2060,15 +2060,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0, 30000.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0, 30000.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case27(self):
       arg=Data(numpy.array([[8085.1298007817086, 0.0, 13310.246250831115], [0.0, 2.0, 0.0], [13310.246250831115, 0.0, 21915.870199218316]]),self.functionspace)
@@ -2076,15 +2076,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0, 30000.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0, 2.0, 30000.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim3_case29(self):
       arg=Data(numpy.array([[7140.1907849945546, 12308.774438213351, -3419.2256841313947], [12308.774438213351, 21223.762934183575, -5894.4478052274408], [-3419.2256841313947, -5894.4478052274408, 1639.0462808218595]]),self.functionspace)
@@ -2092,15 +2092,15 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([1.0, 2.0, 30000.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([0.0, 0.0, 0.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(3,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(3, 3),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,1])-res[0][1]*res[1][:,1])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 1")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,2])-res[0][2]*res[1][:,2])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 2")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(3))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_eigenvalues_and_eigenvectors_taggedData_dim1_case0(self):
       arg=Data(numpy.array([[0.0]]),self.functionspace)
@@ -2108,13 +2108,13 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=eigenvalues_and_eigenvectors(arg)
       ref_ev=Data(numpy.array([0.0]),self.functionspace)
       ref_ev.setTaggedValue(1,numpy.array([1.0]))
-      self.failUnless(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
-      self.failUnlessEqual(res[0].getShape(),(1,),"wrong shape of result for eigenvalues.")
-      self.failUnless(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
-      self.failUnlessEqual(res[1].getShape(),(1, 1),"wrong shape of result for eigenvectors.")
-      self.failUnless(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
-      self.failUnless(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
-      self.failUnless(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(1))<=self.RES_TOL,"eigenvectors are not orthonormal")
+      self.assertTrue(isinstance(res[0],Data),"wrong type of result for eigenvalues.")
+      self.assertEqual(res[0].getShape(),(1,),"wrong shape of result for eigenvalues.")
+      self.assertTrue(isinstance(res[1],Data),"wrong type of result for eigenvectors.")
+      self.assertEqual(res[1].getShape(),(1, 1),"wrong shape of result for eigenvectors.")
+      self.assertTrue(Lsup(res[0]-ref_ev)<=self.RES_TOL*Lsup(ref_ev),"wrong eigenvalues")
+      self.assertTrue(Lsup(matrix_mult(arg,res[1][:,0])-res[0][0]*res[1][:,0])<=self.RES_TOL*Lsup(res[0]),"wrong eigenvector 0")
+      self.assertTrue(Lsup(matrix_mult(transpose(res[1]),res[1])-kronecker(1))<=self.RES_TOL,"eigenvectors are not orthonormal")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank2_axes_01(self):
       arg=Data(numpy.array([[-1.0, 0.0, -2.0, 0.0, 0.0], [4.0, 3.0, 0.0, 6.0, -4.0], [-1.0, 5.0, -2.0, 6.0, -6.0], [7.0, 7.0, 3.0, -2.0, -3.0]]),self.functionspace)
@@ -2122,9 +2122,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=1)
       ref=Data(numpy.array([[-1.0, 4.0, -1.0, 7.0], [0.0, 3.0, 5.0, 7.0], [-2.0, 0.0, -2.0, 3.0], [0.0, 6.0, 6.0, -2.0], [0.0, -4.0, -6.0, -3.0]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[0.0, -7.0, -3.0, -1.0], [4.0, -6.0, 3.0, 3.0], [0.0, -1.0, 6.0, 0.0], [-6.0, 0.0, 3.0, 0.0], [-6.0, 5.0, 2.0, 5.0]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(5, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(5, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank3_axes_01(self):
       arg=Data(numpy.array([[[-6.0, -4.0], [4.0, 0.0]], [[6.0, 5.0], [-2.0, 1.0]], [[-4.0, -3.0], [7.0, -2.0]], [[-2.0, 0.0], [3.0, 4.0]], [[5.0, -6.0], [1.0, 7.0]], [[4.0, 4.0], [-2.0, -1.0]]]),self.functionspace)
@@ -2132,9 +2132,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=1)
       ref=Data(numpy.array([[[-6.0, -4.0], [6.0, 5.0], [-4.0, -3.0], [-2.0, 0.0], [5.0, -6.0], [4.0, 4.0]], [[4.0, 0.0], [-2.0, 1.0], [7.0, -2.0], [3.0, 4.0], [1.0, 7.0], [-2.0, -1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[6.0, 1.0], [4.0, 1.0], [-3.0, 7.0], [0.0, 0.0], [-1.0, 3.0], [-1.0, -7.0]], [[-2.0, 6.0], [5.0, 5.0], [6.0, 5.0], [6.0, 5.0], [5.0, 2.0], [2.0, -3.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 6, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 6, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank3_axes_02(self):
       arg=Data(numpy.array([[[-7.0, 7.0], [-5.0, -7.0]], [[1.0, 1.0], [-3.0, 0.0]], [[2.0, 4.0], [0.0, -2.0]], [[0.0, -6.0], [-6.0, 1.0]], [[4.0, 3.0], [0.0, 2.0]], [[-5.0, -4.0], [-2.0, -1.0]]]),self.functionspace)
@@ -2142,9 +2142,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=2)
       ref=Data(numpy.array([[[-7.0, 1.0, 2.0, 0.0, 4.0, -5.0], [-5.0, -3.0, 0.0, -6.0, 0.0, -2.0]], [[7.0, 1.0, 4.0, -6.0, 3.0, -4.0], [-7.0, 0.0, -2.0, 1.0, 2.0, -1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[0.0, 4.0, 2.0, 4.0, 7.0, -1.0], [-3.0, -5.0, -7.0, 6.0, -4.0, 4.0]], [[4.0, -1.0, 0.0, -6.0, -5.0, 6.0], [0.0, 2.0, -7.0, -1.0, 4.0, 1.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 2, 6),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 2, 6),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank3_axes_12(self):
       arg=Data(numpy.array([[[3.0, 0.0], [0.0, -1.0]], [[2.0, -3.0], [6.0, -7.0]], [[-3.0, 6.0], [0.0, -6.0]], [[-6.0, 2.0], [5.0, 0.0]], [[-7.0, 0.0], [-4.0, -4.0]], [[2.0, 5.0], [-1.0, -1.0]]]),self.functionspace)
@@ -2152,9 +2152,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=1,axis1=2)
       ref=Data(numpy.array([[[3.0, 0.0], [0.0, -1.0]], [[2.0, 6.0], [-3.0, -7.0]], [[-3.0, 0.0], [6.0, -6.0]], [[-6.0, 5.0], [2.0, 0.0]], [[-7.0, -4.0], [0.0, -4.0]], [[2.0, -1.0], [5.0, -1.0]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[6.0, 7.0], [-2.0, -3.0]], [[2.0, -5.0], [-6.0, 4.0]], [[2.0, -1.0], [-6.0, 4.0]], [[1.0, -7.0], [5.0, 0.0]], [[-3.0, 3.0], [7.0, 7.0]], [[-7.0, -7.0], [0.0, -3.0]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_01(self):
       arg=Data(numpy.array([[[[-5.0, -6.0, 0.0, 0.0], [0.0, 4.0, 2.0, 0.0], [-2.0, -7.0, 6.0, 5.0]], [[-4.0, 2.0, 7.0, -4.0], [6.0, 3.0, 0.0, -1.0], [6.0, 3.0, 5.0, -5.0]]], [[[0.0, -2.0, -5.0, 2.0], [-3.0, 7.0, -7.0, 3.0], [3.0, 1.0, 6.0, -4.0]], [[5.0, -4.0, -1.0, -7.0], [0.0, -3.0, 7.0, -6.0], [1.0, -4.0, 1.0, 7.0]]], [[[-2.0, 6.0, -5.0, -2.0], [-4.0, 7.0, 2.0, 6.0], [7.0, -1.0, 3.0, -4.0]], [[7.0, 5.0, -5.0, -7.0], [4.0, 1.0, 3.0, -3.0], [-1.0, 0.0, -6.0, 0.0]]]]),self.functionspace)
@@ -2162,9 +2162,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=1)
       ref=Data(numpy.array([[[[-5.0, -6.0, 0.0, 0.0], [0.0, 4.0, 2.0, 0.0], [-2.0, -7.0, 6.0, 5.0]], [[0.0, -2.0, -5.0, 2.0], [-3.0, 7.0, -7.0, 3.0], [3.0, 1.0, 6.0, -4.0]], [[-2.0, 6.0, -5.0, -2.0], [-4.0, 7.0, 2.0, 6.0], [7.0, -1.0, 3.0, -4.0]]], [[[-4.0, 2.0, 7.0, -4.0], [6.0, 3.0, 0.0, -1.0], [6.0, 3.0, 5.0, -5.0]], [[5.0, -4.0, -1.0, -7.0], [0.0, -3.0, 7.0, -6.0], [1.0, -4.0, 1.0, 7.0]], [[7.0, 5.0, -5.0, -7.0], [4.0, 1.0, 3.0, -3.0], [-1.0, 0.0, -6.0, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-4.0, 2.0, -2.0, -7.0], [-2.0, -4.0, 7.0, 7.0], [7.0, -2.0, -1.0, 3.0]], [[-2.0, -2.0, -4.0, 1.0], [4.0, 2.0, 7.0, -6.0], [-1.0, 0.0, 0.0, -4.0]], [[1.0, 0.0, 6.0, -6.0], [1.0, 1.0, 2.0, 5.0], [4.0, 0.0, 6.0, -3.0]]], [[[4.0, 0.0, 6.0, 2.0], [-5.0, 6.0, 4.0, 0.0], [-1.0, 6.0, -5.0, 0.0]], [[-2.0, 7.0, 0.0, -5.0], [1.0, -2.0, 6.0, 1.0], [-7.0, 2.0, 6.0, 2.0]], [[-1.0, -6.0, -3.0, 0.0], [-3.0, 6.0, 0.0, 7.0], [5.0, 0.0, -7.0, -4.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2, 3, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2, 3, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_02(self):
       arg=Data(numpy.array([[[[-2.0, 2.0, -5.0, 2.0], [-7.0, -6.0, 5.0, 0.0], [3.0, 4.0, -3.0, 7.0]], [[-7.0, 6.0, 2.0, 0.0], [0.0, 3.0, -6.0, 1.0], [1.0, -4.0, -1.0, 2.0]]], [[[7.0, 0.0, 6.0, 5.0], [7.0, 5.0, 7.0, -3.0], [0.0, 6.0, 1.0, -2.0]], [[2.0, -4.0, 0.0, -4.0], [-7.0, -2.0, -5.0, -6.0], [-6.0, -4.0, -7.0, -2.0]]], [[[-3.0, -3.0, 0.0, -2.0], [-4.0, 1.0, -4.0, 3.0], [-2.0, 6.0, 6.0, 4.0]], [[2.0, -4.0, 0.0, 5.0], [-6.0, 1.0, 7.0, 2.0], [-6.0, 6.0, -2.0, -6.0]]]]),self.functionspace)
@@ -2172,9 +2172,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=2)
       ref=Data(numpy.array([[[[-2.0, 2.0, -5.0, 2.0], [7.0, 0.0, 6.0, 5.0], [-3.0, -3.0, 0.0, -2.0]], [[-7.0, 6.0, 2.0, 0.0], [2.0, -4.0, 0.0, -4.0], [2.0, -4.0, 0.0, 5.0]]], [[[-7.0, -6.0, 5.0, 0.0], [7.0, 5.0, 7.0, -3.0], [-4.0, 1.0, -4.0, 3.0]], [[0.0, 3.0, -6.0, 1.0], [-7.0, -2.0, -5.0, -6.0], [-6.0, 1.0, 7.0, 2.0]]], [[[3.0, 4.0, -3.0, 7.0], [0.0, 6.0, 1.0, -2.0], [-2.0, 6.0, 6.0, 4.0]], [[1.0, -4.0, -1.0, 2.0], [-6.0, -4.0, -7.0, -2.0], [-6.0, 6.0, -2.0, -6.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-2.0, -3.0, 2.0, -4.0], [-6.0, -1.0, -7.0, 5.0], [7.0, 6.0, 7.0, 2.0]], [[1.0, -1.0, -3.0, 3.0], [1.0, 7.0, 5.0, -2.0], [7.0, 2.0, 2.0, 2.0]]], [[[6.0, 4.0, 0.0, -1.0], [2.0, 2.0, -5.0, -6.0], [-4.0, -4.0, -4.0, -6.0]], [[3.0, -4.0, 5.0, 4.0], [6.0, -5.0, 2.0, -3.0], [-1.0, 2.0, -2.0, 5.0]]], [[[-2.0, 7.0, 0.0, -2.0], [6.0, 6.0, -4.0, -4.0], [-4.0, 1.0, -4.0, 0.0]], [[-5.0, -6.0, -7.0, 4.0], [6.0, 0.0, -6.0, 3.0], [6.0, -5.0, 7.0, -5.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 3, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_03(self):
       arg=Data(numpy.array([[[[-1.0, -1.0, 1.0, -2.0], [6.0, 7.0, 1.0, 5.0], [3.0, -2.0, 1.0, 6.0]], [[4.0, 1.0, -2.0, -7.0], [-3.0, -6.0, 6.0, -4.0], [0.0, 0.0, 2.0, 5.0]]], [[[-2.0, 0.0, 2.0, 1.0], [1.0, -7.0, -2.0, -1.0], [0.0, 6.0, 3.0, 2.0]], [[-5.0, 6.0, -4.0, -4.0], [7.0, 2.0, 0.0, -3.0], [0.0, 7.0, 0.0, 0.0]]], [[[-6.0, -2.0, 1.0, -1.0], [3.0, 0.0, -2.0, 2.0], [-3.0, 1.0, -6.0, -1.0]], [[-6.0, 1.0, 3.0, -7.0], [-6.0, -3.0, 5.0, 1.0], [-6.0, 1.0, 0.0, -6.0]]]]),self.functionspace)
@@ -2182,9 +2182,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=0,axis1=3)
       ref=Data(numpy.array([[[[-1.0, -2.0, -6.0], [6.0, 1.0, 3.0], [3.0, 0.0, -3.0]], [[4.0, -5.0, -6.0], [-3.0, 7.0, -6.0], [0.0, 0.0, -6.0]]], [[[-1.0, 0.0, -2.0], [7.0, -7.0, 0.0], [-2.0, 6.0, 1.0]], [[1.0, 6.0, 1.0], [-6.0, 2.0, -3.0], [0.0, 7.0, 1.0]]], [[[1.0, 2.0, 1.0], [1.0, -2.0, -2.0], [1.0, 3.0, -6.0]], [[-2.0, -4.0, 3.0], [6.0, 0.0, 5.0], [2.0, 0.0, 0.0]]], [[[-2.0, 1.0, -1.0], [5.0, -1.0, 2.0], [6.0, 2.0, -1.0]], [[-7.0, -4.0, -7.0], [-4.0, -3.0, 1.0], [5.0, 0.0, -6.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[-1.0, -5.0, -5.0], [7.0, -4.0, -7.0], [-5.0, 4.0, 0.0]], [[-6.0, -5.0, 3.0], [-1.0, 5.0, 4.0], [4.0, -3.0, 7.0]]], [[[2.0, -4.0, -1.0], [-2.0, -1.0, -6.0], [7.0, 7.0, 0.0]], [[-3.0, -2.0, 6.0], [-1.0, 1.0, 0.0], [-2.0, -6.0, 4.0]]], [[[3.0, -2.0, 7.0], [-7.0, 4.0, -2.0], [-4.0, 1.0, 2.0]], [[-4.0, 1.0, 6.0], [6.0, -4.0, 7.0], [1.0, 4.0, 0.0]]], [[[-1.0, -5.0, 0.0], [-3.0, 4.0, 5.0], [-6.0, 2.0, 0.0]], [[-3.0, -3.0, -4.0], [3.0, 0.0, -1.0], [-5.0, -5.0, 6.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 2, 3, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 2, 3, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_12(self):
       arg=Data(numpy.array([[[[7.0, 7.0, 0.0, 5.0], [4.0, 0.0, 1.0, -1.0], [-1.0, 7.0, 3.0, 2.0]], [[-7.0, 7.0, 4.0, -5.0], [-6.0, -1.0, 6.0, 2.0], [-2.0, -1.0, 0.0, 2.0]]], [[[0.0, 2.0, 2.0, -7.0], [4.0, 0.0, 0.0, 6.0], [3.0, -5.0, -4.0, 1.0]], [[6.0, -4.0, 1.0, 4.0], [0.0, -5.0, 3.0, 6.0], [-1.0, -7.0, 7.0, 3.0]]], [[[0.0, 2.0, -2.0, -5.0], [2.0, -4.0, 5.0, -4.0], [1.0, -2.0, -2.0, -5.0]], [[5.0, -7.0, 6.0, -3.0], [1.0, 3.0, 2.0, -3.0], [7.0, 0.0, 0.0, -2.0]]]]),self.functionspace)
@@ -2192,9 +2192,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=1,axis1=2)
       ref=Data(numpy.array([[[[7.0, 7.0, 0.0, 5.0], [-7.0, 7.0, 4.0, -5.0]], [[4.0, 0.0, 1.0, -1.0], [-6.0, -1.0, 6.0, 2.0]], [[-1.0, 7.0, 3.0, 2.0], [-2.0, -1.0, 0.0, 2.0]]], [[[0.0, 2.0, 2.0, -7.0], [6.0, -4.0, 1.0, 4.0]], [[4.0, 0.0, 0.0, 6.0], [0.0, -5.0, 3.0, 6.0]], [[3.0, -5.0, -4.0, 1.0], [-1.0, -7.0, 7.0, 3.0]]], [[[0.0, 2.0, -2.0, -5.0], [5.0, -7.0, 6.0, -3.0]], [[2.0, -4.0, 5.0, -4.0], [1.0, 3.0, 2.0, -3.0]], [[1.0, -2.0, -2.0, -5.0], [7.0, 0.0, 0.0, -2.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[2.0, -2.0, -3.0, -6.0], [6.0, -2.0, 7.0, -2.0]], [[2.0, -7.0, -5.0, -7.0], [0.0, 6.0, 7.0, -3.0]], [[1.0, 7.0, -5.0, -4.0], [7.0, 1.0, -7.0, -3.0]]], [[[3.0, 6.0, 6.0, -2.0], [5.0, 1.0, -7.0, 0.0]], [[-1.0, 2.0, -6.0, 0.0], [4.0, 2.0, 7.0, 0.0]], [[-1.0, 0.0, 3.0, -5.0], [-7.0, 7.0, -2.0, 7.0]]], [[[-6.0, 6.0, 4.0, -1.0], [6.0, 6.0, 2.0, 0.0]], [[6.0, 3.0, -1.0, 3.0], [1.0, 1.0, -4.0, -3.0]], [[5.0, 0.0, 4.0, 0.0], [0.0, 0.0, -5.0, 1.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 3, 2, 4),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 3, 2, 4),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_13(self):
       arg=Data(numpy.array([[[[-1.0, -6.0, -3.0, 0.0], [-2.0, 5.0, 7.0, 0.0], [2.0, -5.0, 7.0, 1.0]], [[0.0, 2.0, 1.0, -3.0], [-7.0, 7.0, 0.0, 4.0], [-6.0, 7.0, -2.0, -5.0]]], [[[3.0, 2.0, -7.0, 7.0], [3.0, -7.0, 0.0, -5.0], [4.0, 3.0, -4.0, 4.0]], [[5.0, 2.0, -6.0, 1.0], [-2.0, -2.0, 6.0, -6.0], [-1.0, -2.0, 2.0, 1.0]]], [[[-6.0, -5.0, 5.0, 6.0], [5.0, 4.0, -5.0, -3.0], [-3.0, 7.0, 7.0, -7.0]], [[1.0, 7.0, 7.0, -7.0], [6.0, 5.0, 0.0, -1.0], [0.0, 7.0, -1.0, 5.0]]]]),self.functionspace)
@@ -2202,9 +2202,9 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=1,axis1=3)
       ref=Data(numpy.array([[[[-1.0, 0.0], [-2.0, -7.0], [2.0, -6.0]], [[-6.0, 2.0], [5.0, 7.0], [-5.0, 7.0]], [[-3.0, 1.0], [7.0, 0.0], [7.0, -2.0]], [[0.0, -3.0], [0.0, 4.0], [1.0, -5.0]]], [[[3.0, 5.0], [3.0, -2.0], [4.0, -1.0]], [[2.0, 2.0], [-7.0, -2.0], [3.0, -2.0]], [[-7.0, -6.0], [0.0, 6.0], [-4.0, 2.0]], [[7.0, 1.0], [-5.0, -6.0], [4.0, 1.0]]], [[[-6.0, 1.0], [5.0, 6.0], [-3.0, 0.0]], [[-5.0, 7.0], [4.0, 5.0], [7.0, 7.0]], [[5.0, 7.0], [-5.0, 0.0], [7.0, -1.0]], [[6.0, -7.0], [-3.0, -1.0], [-7.0, 5.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[6.0, 4.0], [4.0, 3.0], [4.0, -5.0]], [[1.0, 7.0], [-1.0, 0.0], [3.0, -3.0]], [[1.0, 5.0], [-1.0, -1.0], [-3.0, -7.0]], [[5.0, 2.0], [-2.0, 1.0], [6.0, -6.0]]], [[[-6.0, -1.0], [6.0, -7.0], [1.0, -5.0]], [[-2.0, 1.0], [-1.0, 5.0], [-1.0, 3.0]], [[-4.0, 1.0], [-3.0, 3.0], [1.0, -6.0]], [[7.0, -4.0], [-6.0, 0.0], [-1.0, 7.0]]], [[[-6.0, 0.0], [-5.0, -4.0], [-2.0, -3.0]], [[-7.0, -1.0], [0.0, 7.0], [5.0, -3.0]], [[-5.0, 5.0], [0.0, 0.0], [-5.0, -1.0]], [[-7.0, -7.0], [-6.0, -4.0], [3.0, 1.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 4, 3, 2),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 4, 3, 2),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_swapaxes_taggedData_rank4_axes_23(self):
       arg=Data(numpy.array([[[[1.0, -4.0, -6.0, -1.0], [3.0, 0.0, 6.0, -2.0], [-2.0, 5.0, -2.0, 5.0]], [[0.0, -2.0, 2.0, -6.0], [-1.0, -5.0, 3.0, -7.0], [-5.0, -6.0, 0.0, 0.0]]], [[[2.0, -2.0, -5.0, -2.0], [5.0, -2.0, 2.0, 1.0], [6.0, -4.0, 0.0, -4.0]], [[-1.0, 0.0, 4.0, 0.0], [-7.0, -4.0, 6.0, -3.0], [-7.0, 7.0, -6.0, -5.0]]], [[[-4.0, -1.0, -6.0, 7.0], [1.0, -6.0, 5.0, 0.0], [-2.0, -6.0, 1.0, 4.0]], [[0.0, 7.0, 0.0, -2.0], [6.0, -7.0, 7.0, 7.0], [-7.0, 2.0, -5.0, 0.0]]]]),self.functionspace)
@@ -2212,6 +2212,6 @@ class Test_util_unary_with_tagged_data(Test_util_base):
       res=swap_axes(arg,axis0=2,axis1=3)
       ref=Data(numpy.array([[[[1.0, 3.0, -2.0], [-4.0, 0.0, 5.0], [-6.0, 6.0, -2.0], [-1.0, -2.0, 5.0]], [[0.0, -1.0, -5.0], [-2.0, -5.0, -6.0], [2.0, 3.0, 0.0], [-6.0, -7.0, 0.0]]], [[[2.0, 5.0, 6.0], [-2.0, -2.0, -4.0], [-5.0, 2.0, 0.0], [-2.0, 1.0, -4.0]], [[-1.0, -7.0, -7.0], [0.0, -4.0, 7.0], [4.0, 6.0, -6.0], [0.0, -3.0, -5.0]]], [[[-4.0, 1.0, -2.0], [-1.0, -6.0, -6.0], [-6.0, 5.0, 1.0], [7.0, 0.0, 4.0]], [[0.0, 6.0, -7.0], [7.0, -7.0, 2.0], [0.0, 7.0, -5.0], [-2.0, 7.0, 0.0]]]]),self.functionspace)
       ref.setTaggedValue(1,numpy.array([[[[5.0, -6.0, 4.0], [4.0, -3.0, -2.0], [2.0, -3.0, 7.0], [2.0, -4.0, 1.0]], [[-4.0, 3.0, -5.0], [4.0, 6.0, -4.0], [1.0, -5.0, -3.0], [7.0, 2.0, 0.0]]], [[[-1.0, -3.0, -5.0], [2.0, 0.0, -4.0], [-1.0, 5.0, 4.0], [-6.0, 2.0, -1.0]], [[7.0, 4.0, -7.0], [5.0, 2.0, -6.0], [-2.0, -3.0, 7.0], [5.0, 2.0, -1.0]]], [[[-6.0, -6.0, 4.0], [-1.0, 0.0, 7.0], [7.0, -3.0, 3.0], [5.0, 0.0, 2.0]], [[-5.0, -7.0, 5.0], [-2.0, 1.0, -6.0], [0.0, 0.0, 5.0], [1.0, 0.0, -7.0]]]]))
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(3, 2, 4, 3),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(3, 2, 4, 3),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")

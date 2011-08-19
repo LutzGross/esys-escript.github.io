@@ -55,12 +55,12 @@ class Test_Generators(unittest.TestCase):
 #         dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
       dom_string=open(dom_file).read().splitlines() 
       ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
-      self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
+      self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
 	 line=dom_string[l].strip()
 	 if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-         self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
+         self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_hex_2D_order1(self):
       file="hex_2D_order1.msh"
@@ -180,12 +180,12 @@ class Test_GMSHReader(unittest.TestCase):
    def compare(self, test_file, reference_file):
       dom_string=open(test_file).read().splitlines()
       ref_string=open(reference_file).read().splitlines()
-      self.failUnlessEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
+      self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
 	 line=dom_string[l].strip()
 	 if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-         self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
+         self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):
          file="tri3_gmsh.msh"
@@ -244,13 +244,13 @@ class Test_Reader(unittest.TestCase):
        dom.write(test)
        dom2 = ReadMesh(test,3,optimize=False)
        t=getTagNames(dom)
-       self.failUnless(len(t)==6)
-       self.failUnless("A" in t)
-       self.failUnless("B" in t)
-       self.failUnless(dom2.getTag("A") == 1)
-       self.failUnless(dom2.getTag("B") == 2)
-       self.failUnless(dom2.isValidTagName("A"))
-       self.failUnless(dom2.isValidTagName("B"))
+       self.assertTrue(len(t)==6)
+       self.assertTrue("A" in t)
+       self.assertTrue("B" in t)
+       self.assertTrue(dom2.getTag("A") == 1)
+       self.assertTrue(dom2.getTag("B") == 2)
+       self.assertTrue(dom2.isValidTagName("A"))
+       self.assertTrue(dom2.isValidTagName("B"))
 
 class Test_Integration(unittest.TestCase):
    TOL=EPSILON*500.
@@ -262,7 +262,7 @@ class Test_Integration(unittest.TestCase):
              res=integrate(x[0]**i*x[1]**j)
              ref=1./((i+1)*(j+1))
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
+             self.assertTrue(error<=self.TOL,"integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
 
              res=integrate(x_bound[0]**i*x_bound[1]**j)
              ref=0
@@ -275,7 +275,7 @@ class Test_Integration(unittest.TestCase):
              else:
                 ref += 1./(i+1)
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"surface integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
+             self.assertTrue(error<=self.TOL,"surface integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
             
    def __test_2DT(self,dom,order,raise_tol=1.):
        x=Function(dom).getX()
@@ -287,7 +287,7 @@ class Test_Integration(unittest.TestCase):
              ref=1./((i+1)*(j+1))
              error=abs(res-ref)/abs(ref)
              # print order,error
-             self.failUnless(error<=self.TOL*raise_tol,"integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
+             self.assertTrue(error<=self.TOL*raise_tol,"integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
 
              res=integrate(x_bound[0]**i*x_bound[1]**j)
              ref=0
@@ -300,7 +300,7 @@ class Test_Integration(unittest.TestCase):
              else:
                 ref += 1./(i+1)
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL*raise_tol,"surface integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
+             self.assertTrue(error<=self.TOL*raise_tol,"surface integration for order (%s,%s) failed. True value = %s, calculated = %s"%(i,j,ref,res))
 
 
    def __test_3DQ(self,dom,order):
@@ -312,7 +312,7 @@ class Test_Integration(unittest.TestCase):
              res=integrate(x[0]**i*x[1]**j*x[2]**k)
              ref=1./((i+1)*(j+1)*(k+1))
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
+             self.assertTrue(error<=self.TOL,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
 
              res=integrate(x_bound[0]**i*x_bound[1]**j*x_bound[2]**k)
              ref=0
@@ -329,7 +329,7 @@ class Test_Integration(unittest.TestCase):
              else:
                 ref += 1./((i+1)*(j+1))
              error=abs(res-ref)/abs(ref)
-             self.failUnless(error<=self.TOL,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
+             self.assertTrue(error<=self.TOL,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res, error))
 
    def __test_3DT(self,dom,order,raise_tol=1.):
        x=Function(dom).getX()
@@ -341,7 +341,7 @@ class Test_Integration(unittest.TestCase):
                 res=integrate(x[0]**i*x[1]**j*x[2]**k)
                 ref=1./((i+1)*(j+1)*(k+1))
                 error=abs(res-ref)/abs(ref)
-                self.failUnless(error<=self.TOL*raise_tol,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
+                self.assertTrue(error<=self.TOL*raise_tol,"integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
 
                 res=integrate(x_bound[0]**i*x_bound[1]**j*x_bound[2]**k)
                 ref=0
@@ -358,7 +358,7 @@ class Test_Integration(unittest.TestCase):
                 else:
                    ref += 1./((i+1)*(j+1))
                 error=abs(res-ref)/abs(ref)
-                self.failUnless(error<=self.TOL*raise_tol,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
+                self.assertTrue(error<=self.TOL*raise_tol,"surface integration for order (%s,%s,%s) failed. True value = %s, calculated = %s (error=%e)"%(i,j,k,ref,res,error))
 
    #===================================================================================================
    def test_hex2D_order1_integorder1(self):

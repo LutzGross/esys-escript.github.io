@@ -71,9 +71,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.0250471058578)*x_ref[1]**(o-1)+(0.242724421847)
         ref[2]=o*(-0.863568419189)*x_ref[2]**(o-1)+(-0.797427046061)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ContinuousFunction_rank1(self):
       """
@@ -107,9 +107,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.589833259992)*x_ref[1]**(o-1)+(0.252602994164)
         ref[1,2]=o*(0.271544628727)*x_ref[2]**(o-1)+(0.401222388174)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ContinuousFunction_rank2(self):
       """
@@ -269,9 +269,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.162461126288)*x_ref[1]**(o-1)+(-0.123570278155)
         ref[3,4,2]=o*(0.598012400912)*x_ref[2]**(o-1)+(0.769951340801)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ContinuousFunction_rank3(self):
       """
@@ -459,9 +459,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.624025385599)*x_ref[1]**(o-1)+(0.338601201629)
         ref[5,1,1,2]=o*(0.0900364406242)*x_ref[2]**(o-1)+(0.193533337073)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_Solution_rank0(self):
       """
@@ -488,9 +488,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.455478130443)*x_ref[1]**(o-1)+(-0.917504050554)
         ref[2]=o*(-0.642882027126)*x_ref[2]**(o-1)+(-0.0751962677977)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_Solution_rank1(self):
       """
@@ -524,9 +524,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.477099840976)*x_ref[1]**(o-1)+(-0.695340106154)
         ref[1,2]=o*(-0.371044873416)*x_ref[2]**(o-1)+(-0.442877128189)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_Solution_rank2(self):
       """
@@ -686,9 +686,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(0.455533774723)*x_ref[1]**(o-1)+(0.32100819695)
         ref[3,4,2]=o*(-0.332730198093)*x_ref[2]**(o-1)+(-0.692589097458)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_Solution_rank3(self):
       """
@@ -876,9 +876,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(-0.314402790698)*x_ref[1]**(o-1)+(0.991870648498)
         ref[5,1,1,2]=o*(0.949603731589)*x_ref[2]**(o-1)+(-0.302054056398)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedSolution_rank0(self):
       """
@@ -905,9 +905,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(0.929248719763)
         ref[2]=(0.269868131113)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedSolution_rank1(self):
       """
@@ -941,9 +941,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.995466442084)
         ref[1,2]=(-1.09468062911)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedSolution_rank2(self):
       """
@@ -1103,9 +1103,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-0.881909104701)
         ref[3,4,2]=(-1.0425499934)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedSolution_rank3(self):
       """
@@ -1293,9 +1293,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.28685220691)
         ref[5,1,1,2]=(0.335774697674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -1322,9 +1322,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(0.929248719763)
         ref[2]=(0.269868131113)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -1358,9 +1358,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.995466442084)
         ref[1,2]=(-1.09468062911)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -1520,9 +1520,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-0.881909104701)
         ref[3,4,2]=(-1.0425499934)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -1710,9 +1710,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.28685220691)
         ref[5,1,1,2]=(0.335774697674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -1741,9 +1741,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(0.665647219119)*x_ref[2]**(o-1)+(-0.320674717559)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -1779,9 +1779,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.630398590893)*x_ref[2]**(o-1)+(-0.675207219617)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -1943,9 +1943,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.170683503576)*x_ref[2]**(o-1)+(0.936525425446)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -2135,9 +2135,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(-0.236439076616)*x_ref[2]**(o-1)+(-0.827173574464)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_Solution_rank0(self):
       """
@@ -2166,9 +2166,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.643998032917)*x_ref[2]**(o-1)+(-0.17168440847)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_Solution_rank1(self):
       """
@@ -2204,9 +2204,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.044964568194)*x_ref[2]**(o-1)+(0.474397408351)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_Solution_rank2(self):
       """
@@ -2368,9 +2368,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.576582365303)*x_ref[2]**(o-1)+(0.733406974144)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_Solution_rank3(self):
       """
@@ -2560,9 +2560,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.249411990506)*x_ref[2]**(o-1)+(0.569232273165)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -2591,9 +2591,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.434888190035)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -2629,9 +2629,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(0.317785468787)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -2793,9 +2793,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.66721280275)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -2985,9 +2985,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.388851362667)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -3016,9 +3016,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.434888190035)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -3054,9 +3054,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(0.317785468787)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -3218,9 +3218,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.66721280275)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -3410,9 +3410,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.388851362667)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ContinuousFunction_rank0(self):
       """
@@ -3439,9 +3439,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.0250471058578)*x_ref[1]**(o-1)+(0.242724421847)
         ref[2]=o*(-0.863568419189)*x_ref[2]**(o-1)+(-0.797427046061)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ContinuousFunction_rank1(self):
       """
@@ -3475,9 +3475,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.589833259992)*x_ref[1]**(o-1)+(0.252602994164)
         ref[1,2]=o*(0.271544628727)*x_ref[2]**(o-1)+(0.401222388174)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ContinuousFunction_rank2(self):
       """
@@ -3637,9 +3637,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.162461126288)*x_ref[1]**(o-1)+(-0.123570278155)
         ref[3,4,2]=o*(0.598012400912)*x_ref[2]**(o-1)+(0.769951340801)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ContinuousFunction_rank3(self):
       """
@@ -3827,9 +3827,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.624025385599)*x_ref[1]**(o-1)+(0.338601201629)
         ref[5,1,1,2]=o*(0.0900364406242)*x_ref[2]**(o-1)+(0.193533337073)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_Solution_rank0(self):
       """
@@ -3856,9 +3856,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.455478130443)*x_ref[1]**(o-1)+(-0.917504050554)
         ref[2]=o*(-0.642882027126)*x_ref[2]**(o-1)+(-0.0751962677977)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_Solution_rank1(self):
       """
@@ -3892,9 +3892,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.477099840976)*x_ref[1]**(o-1)+(-0.695340106154)
         ref[1,2]=o*(-0.371044873416)*x_ref[2]**(o-1)+(-0.442877128189)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_Solution_rank2(self):
       """
@@ -4054,9 +4054,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(0.455533774723)*x_ref[1]**(o-1)+(0.32100819695)
         ref[3,4,2]=o*(-0.332730198093)*x_ref[2]**(o-1)+(-0.692589097458)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_Solution_rank3(self):
       """
@@ -4244,9 +4244,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(-0.314402790698)*x_ref[1]**(o-1)+(0.991870648498)
         ref[5,1,1,2]=o*(0.949603731589)*x_ref[2]**(o-1)+(-0.302054056398)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedSolution_rank0(self):
       """
@@ -4273,9 +4273,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(0.929248719763)
         ref[2]=(0.269868131113)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedSolution_rank1(self):
       """
@@ -4309,9 +4309,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.995466442084)
         ref[1,2]=(-1.09468062911)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedSolution_rank2(self):
       """
@@ -4471,9 +4471,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-0.881909104701)
         ref[3,4,2]=(-1.0425499934)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedSolution_rank3(self):
       """
@@ -4661,9 +4661,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.28685220691)
         ref[5,1,1,2]=(0.335774697674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -4690,9 +4690,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(0.929248719763)
         ref[2]=(0.269868131113)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -4726,9 +4726,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.995466442084)
         ref[1,2]=(-1.09468062911)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -4888,9 +4888,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-0.881909104701)
         ref[3,4,2]=(-1.0425499934)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -5078,9 +5078,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.28685220691)
         ref[5,1,1,2]=(0.335774697674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -5109,9 +5109,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(0.665647219119)*x_ref[2]**(o-1)+(-0.320674717559)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -5147,9 +5147,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.630398590893)*x_ref[2]**(o-1)+(-0.675207219617)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -5311,9 +5311,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.170683503576)*x_ref[2]**(o-1)+(0.936525425446)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -5503,9 +5503,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(-0.236439076616)*x_ref[2]**(o-1)+(-0.827173574464)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_Solution_rank0(self):
       """
@@ -5534,9 +5534,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.643998032917)*x_ref[2]**(o-1)+(-0.17168440847)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_Solution_rank1(self):
       """
@@ -5572,9 +5572,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.044964568194)*x_ref[2]**(o-1)+(0.474397408351)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_Solution_rank2(self):
       """
@@ -5736,9 +5736,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.576582365303)*x_ref[2]**(o-1)+(0.733406974144)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_Solution_rank3(self):
       """
@@ -5928,9 +5928,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.249411990506)*x_ref[2]**(o-1)+(0.569232273165)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -5959,9 +5959,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.434888190035)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -5997,9 +5997,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(0.317785468787)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -6161,9 +6161,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.66721280275)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -6353,9 +6353,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.388851362667)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -6384,9 +6384,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.434888190035)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -6422,9 +6422,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(0.317785468787)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -6586,9 +6586,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.66721280275)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnBoundary_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -6778,9 +6778,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.388851362667)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ContinuousFunction_rank0(self):
       """
@@ -6807,9 +6807,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.366862476014)*x_ref[1]**(o-1)+(0.718311286349)
         ref[2]=o*(-0.593137377946)*x_ref[2]**(o-1)+(-0.98259729892)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ContinuousFunction_rank1(self):
       """
@@ -6843,9 +6843,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.455449579349)*x_ref[1]**(o-1)+(-0.791088816655)
         ref[1,2]=o*(0.850362671968)*x_ref[2]**(o-1)+(-0.180726138889)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ContinuousFunction_rank2(self):
       """
@@ -7005,9 +7005,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.671463334034)*x_ref[1]**(o-1)+(-0.139992464354)
         ref[3,4,2]=o*(0.286757519111)*x_ref[2]**(o-1)+(0.512453551537)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ContinuousFunction_rank3(self):
       """
@@ -7195,9 +7195,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.86626977715)*x_ref[1]**(o-1)+(-0.675612908116)
         ref[5,1,1,2]=o*(0.506821683353)*x_ref[2]**(o-1)+(0.386559021354)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_Solution_rank0(self):
       """
@@ -7224,9 +7224,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(-0.051539264252)*x_ref[1]**(o-1)+(-0.886370693155)
         ref[2]=o*(-0.954475798211)*x_ref[2]**(o-1)+(0.238073928589)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_Solution_rank1(self):
       """
@@ -7260,9 +7260,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(0.163524617753)*x_ref[1]**(o-1)+(-0.19251370258)
         ref[1,2]=o*(0.889557068195)*x_ref[2]**(o-1)+(0.573248942406)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_Solution_rank2(self):
       """
@@ -7422,9 +7422,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.487001539705)*x_ref[1]**(o-1)+(0.898881577697)
         ref[3,4,2]=o*(0.56557767007)*x_ref[2]**(o-1)+(0.181594113977)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_Solution_rank3(self):
       """
@@ -7612,9 +7612,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.599142154957)*x_ref[1]**(o-1)+(0.374585801545)
         ref[5,1,1,2]=o*(-0.444968156109)*x_ref[2]**(o-1)+(-0.932860816729)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedSolution_rank0(self):
       """
@@ -7641,9 +7641,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(-1.91408943437)
         ref[2]=(0.233861671105)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedSolution_rank1(self):
       """
@@ -7677,9 +7677,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(0.882253548646)
         ref[1,2]=(1.35773570995)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedSolution_rank2(self):
       """
@@ -7839,9 +7839,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(0.322487716786)
         ref[3,4,2]=(1.05602783674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedSolution_rank3(self):
       """
@@ -8029,9 +8029,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.320218561544)
         ref[5,1,1,2]=(-0.827795466031)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -8058,9 +8058,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(-1.91408943437)
         ref[2]=(0.233861671105)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -8094,9 +8094,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(0.882253548646)
         ref[1,2]=(1.35773570995)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -8256,9 +8256,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(0.322487716786)
         ref[3,4,2]=(1.05602783674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -8446,9 +8446,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.320218561544)
         ref[5,1,1,2]=(-0.827795466031)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -8477,9 +8477,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.423796298696)*x_ref[2]**(o-1)+(0.917578429027)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -8515,9 +8515,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.180277208362)*x_ref[2]**(o-1)+(0.276165244173)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -8679,9 +8679,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(-0.0416344321982)*x_ref[2]**(o-1)+(-0.933814919317)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -8871,9 +8871,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.632907414827)*x_ref[2]**(o-1)+(-0.10388782338)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_Solution_rank0(self):
       """
@@ -8902,9 +8902,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.266863972981)*x_ref[2]**(o-1)+(0.59405466698)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_Solution_rank1(self):
       """
@@ -8940,9 +8940,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.8369124866)*x_ref[2]**(o-1)+(-0.979759147043)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_Solution_rank2(self):
       """
@@ -9104,9 +9104,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(-0.761902914251)*x_ref[2]**(o-1)+(0.489922931455)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_Solution_rank3(self):
       """
@@ -9296,9 +9296,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.252162852495)*x_ref[2]**(o-1)+(-0.395771235106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -9327,9 +9327,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.314198264294)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -9365,9 +9365,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.139193691146)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -9529,9 +9529,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.530005798807)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -9721,9 +9721,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.419695143786)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -9752,9 +9752,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.314198264294)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -9790,9 +9790,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.139193691146)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -9954,9 +9954,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.530005798807)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -10146,9 +10146,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.419695143786)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ContinuousFunction_rank0(self):
       """
@@ -10175,9 +10175,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.366862476014)*x_ref[1]**(o-1)+(0.718311286349)
         ref[2]=o*(-0.593137377946)*x_ref[2]**(o-1)+(-0.98259729892)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ContinuousFunction_rank1(self):
       """
@@ -10211,9 +10211,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.455449579349)*x_ref[1]**(o-1)+(-0.791088816655)
         ref[1,2]=o*(0.850362671968)*x_ref[2]**(o-1)+(-0.180726138889)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ContinuousFunction_rank2(self):
       """
@@ -10373,9 +10373,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.671463334034)*x_ref[1]**(o-1)+(-0.139992464354)
         ref[3,4,2]=o*(0.286757519111)*x_ref[2]**(o-1)+(0.512453551537)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ContinuousFunction_rank3(self):
       """
@@ -10563,9 +10563,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.86626977715)*x_ref[1]**(o-1)+(-0.675612908116)
         ref[5,1,1,2]=o*(0.506821683353)*x_ref[2]**(o-1)+(0.386559021354)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_Solution_rank0(self):
       """
@@ -10592,9 +10592,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(-0.051539264252)*x_ref[1]**(o-1)+(-0.886370693155)
         ref[2]=o*(-0.954475798211)*x_ref[2]**(o-1)+(0.238073928589)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_Solution_rank1(self):
       """
@@ -10628,9 +10628,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(0.163524617753)*x_ref[1]**(o-1)+(-0.19251370258)
         ref[1,2]=o*(0.889557068195)*x_ref[2]**(o-1)+(0.573248942406)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_Solution_rank2(self):
       """
@@ -10790,9 +10790,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.487001539705)*x_ref[1]**(o-1)+(0.898881577697)
         ref[3,4,2]=o*(0.56557767007)*x_ref[2]**(o-1)+(0.181594113977)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_Solution_rank3(self):
       """
@@ -10980,9 +10980,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.599142154957)*x_ref[1]**(o-1)+(0.374585801545)
         ref[5,1,1,2]=o*(-0.444968156109)*x_ref[2]**(o-1)+(-0.932860816729)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedSolution_rank0(self):
       """
@@ -11009,9 +11009,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(-1.91408943437)
         ref[2]=(0.233861671105)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedSolution_rank1(self):
       """
@@ -11045,9 +11045,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(0.882253548646)
         ref[1,2]=(1.35773570995)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedSolution_rank2(self):
       """
@@ -11207,9 +11207,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(0.322487716786)
         ref[3,4,2]=(1.05602783674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedSolution_rank3(self):
       """
@@ -11397,9 +11397,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.320218561544)
         ref[5,1,1,2]=(-0.827795466031)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -11426,9 +11426,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(-1.91408943437)
         ref[2]=(0.233861671105)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -11462,9 +11462,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(0.882253548646)
         ref[1,2]=(1.35773570995)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -11624,9 +11624,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(0.322487716786)
         ref[3,4,2]=(1.05602783674)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -11814,9 +11814,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.320218561544)
         ref[5,1,1,2]=(-0.827795466031)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -11845,9 +11845,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.423796298696)*x_ref[2]**(o-1)+(0.917578429027)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -11883,9 +11883,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.180277208362)*x_ref[2]**(o-1)+(0.276165244173)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -12047,9 +12047,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(-0.0416344321982)*x_ref[2]**(o-1)+(-0.933814919317)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -12239,9 +12239,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.632907414827)*x_ref[2]**(o-1)+(-0.10388782338)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_Solution_rank0(self):
       """
@@ -12270,9 +12270,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.266863972981)*x_ref[2]**(o-1)+(0.59405466698)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_Solution_rank1(self):
       """
@@ -12308,9 +12308,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(0.8369124866)*x_ref[2]**(o-1)+(-0.979759147043)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_Solution_rank2(self):
       """
@@ -12472,9 +12472,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(-0.761902914251)*x_ref[2]**(o-1)+(0.489922931455)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_Solution_rank3(self):
       """
@@ -12664,9 +12664,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.252162852495)*x_ref[2]**(o-1)+(-0.395771235106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -12695,9 +12695,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.314198264294)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -12733,9 +12733,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.139193691146)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -12897,9 +12897,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.530005798807)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -13089,9 +13089,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.419695143786)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -13120,9 +13120,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(-0.314198264294)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -13158,9 +13158,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.139193691146)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -13322,9 +13322,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(-0.530005798807)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactZero_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -13514,9 +13514,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.419695143786)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ContinuousFunction_rank0(self):
       """
@@ -13543,9 +13543,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.0164102679759)*x_ref[1]**(o-1)+(0.20749162111)
         ref[2]=o*(0.588703418401)*x_ref[2]**(o-1)+(0.841289333498)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ContinuousFunction_rank1(self):
       """
@@ -13579,9 +13579,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.86639696362)*x_ref[1]**(o-1)+(0.914277406921)
         ref[1,2]=o*(0.627502485514)*x_ref[2]**(o-1)+(-0.855013681276)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ContinuousFunction_rank2(self):
       """
@@ -13741,9 +13741,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.856948411336)*x_ref[1]**(o-1)+(0.0348927535379)
         ref[3,4,2]=o*(0.17649505057)*x_ref[2]**(o-1)+(-0.778920185271)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ContinuousFunction_rank3(self):
       """
@@ -13931,9 +13931,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.310640405448)*x_ref[1]**(o-1)+(-0.295841203899)
         ref[5,1,1,2]=o*(-0.778064951853)*x_ref[2]**(o-1)+(-0.847637829972)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_Solution_rank0(self):
       """
@@ -13960,9 +13960,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.15028897973)*x_ref[1]**(o-1)+(-0.594920423887)
         ref[2]=o*(0.517629763426)*x_ref[2]**(o-1)+(0.403396285863)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_Solution_rank1(self):
       """
@@ -13996,9 +13996,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.0678314090236)*x_ref[1]**(o-1)+(-0.592189717525)
         ref[1,2]=o*(0.289759368386)*x_ref[2]**(o-1)+(-0.612628874512)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_Solution_rank2(self):
       """
@@ -14158,9 +14158,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(0.540737656651)*x_ref[1]**(o-1)+(0.832327802479)
         ref[3,4,2]=o*(-0.822641904799)*x_ref[2]**(o-1)+(-0.599972412377)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_Solution_rank3(self):
       """
@@ -14348,9 +14348,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(-0.0128153418859)*x_ref[1]**(o-1)+(-0.199507147279)
         ref[5,1,1,2]=o*(-0.637546467191)*x_ref[2]**(o-1)+(0.65056997574)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedSolution_rank0(self):
       """
@@ -14377,9 +14377,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(1.19790363484)
         ref[2]=(0.555862453192)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedSolution_rank1(self):
       """
@@ -14413,9 +14413,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.0619831001578)
         ref[1,2]=(-1.46460054046)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedSolution_rank2(self):
       """
@@ -14575,9 +14575,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-1.24321114539)
         ref[3,4,2]=(0.408464222517)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedSolution_rank3(self):
       """
@@ -14765,9 +14765,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.690728767024)
         ref[5,1,1,2]=(-0.675947375912)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -14794,9 +14794,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(1.19790363484)
         ref[2]=(0.555862453192)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -14830,9 +14830,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.0619831001578)
         ref[1,2]=(-1.46460054046)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -14992,9 +14992,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-1.24321114539)
         ref[3,4,2]=(0.408464222517)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -15182,9 +15182,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.690728767024)
         ref[5,1,1,2]=(-0.675947375912)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -15213,9 +15213,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.462618121798)*x_ref[2]**(o-1)+(-0.424504978394)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -15251,9 +15251,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.535521100811)*x_ref[2]**(o-1)+(0.0628178579102)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -15415,9 +15415,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.0825369961302)*x_ref[2]**(o-1)+(-0.652573275397)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -15607,9 +15607,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(-0.104796276752)*x_ref[2]**(o-1)+(0.109481954783)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_Solution_rank0(self):
       """
@@ -15638,9 +15638,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.0432478189165)*x_ref[2]**(o-1)+(0.725545839252)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_Solution_rank1(self):
       """
@@ -15676,9 +15676,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.644067730056)*x_ref[2]**(o-1)+(-0.56385913942)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_Solution_rank2(self):
       """
@@ -15840,9 +15840,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.402679892192)*x_ref[2]**(o-1)+(0.0690728029503)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_Solution_rank3(self):
       """
@@ -16032,9 +16032,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.622672840108)*x_ref[2]**(o-1)+(-0.579757019852)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -16063,9 +16063,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(1.36141912157)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -16101,9 +16101,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.0581477423106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -16265,9 +16265,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(0.00644144564451)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -16457,9 +16457,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.563792436747)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -16488,9 +16488,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(1.36141912157)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -16526,9 +16526,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.0581477423106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -16690,9 +16690,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(0.00644144564451)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -16882,9 +16882,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.563792436747)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ContinuousFunction_rank0(self):
       """
@@ -16911,9 +16911,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.0164102679759)*x_ref[1]**(o-1)+(0.20749162111)
         ref[2]=o*(0.588703418401)*x_ref[2]**(o-1)+(0.841289333498)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ContinuousFunction_rank1(self):
       """
@@ -16947,9 +16947,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.86639696362)*x_ref[1]**(o-1)+(0.914277406921)
         ref[1,2]=o*(0.627502485514)*x_ref[2]**(o-1)+(-0.855013681276)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ContinuousFunction_rank2(self):
       """
@@ -17109,9 +17109,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(-0.856948411336)*x_ref[1]**(o-1)+(0.0348927535379)
         ref[3,4,2]=o*(0.17649505057)*x_ref[2]**(o-1)+(-0.778920185271)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ContinuousFunction_rank3(self):
       """
@@ -17299,9 +17299,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(0.310640405448)*x_ref[1]**(o-1)+(-0.295841203899)
         ref[5,1,1,2]=o*(-0.778064951853)*x_ref[2]**(o-1)+(-0.847637829972)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_Solution_rank0(self):
       """
@@ -17328,9 +17328,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=o*(0.15028897973)*x_ref[1]**(o-1)+(-0.594920423887)
         ref[2]=o*(0.517629763426)*x_ref[2]**(o-1)+(0.403396285863)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_Solution_rank1(self):
       """
@@ -17364,9 +17364,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=o*(-0.0678314090236)*x_ref[1]**(o-1)+(-0.592189717525)
         ref[1,2]=o*(0.289759368386)*x_ref[2]**(o-1)+(-0.612628874512)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_Solution_rank2(self):
       """
@@ -17526,9 +17526,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=o*(0.540737656651)*x_ref[1]**(o-1)+(0.832327802479)
         ref[3,4,2]=o*(-0.822641904799)*x_ref[2]**(o-1)+(-0.599972412377)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_Solution_rank3(self):
       """
@@ -17716,9 +17716,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=o*(-0.0128153418859)*x_ref[1]**(o-1)+(-0.199507147279)
         ref[5,1,1,2]=o*(-0.637546467191)*x_ref[2]**(o-1)+(0.65056997574)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedSolution_rank0(self):
       """
@@ -17745,9 +17745,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(1.19790363484)
         ref[2]=(0.555862453192)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedSolution_rank1(self):
       """
@@ -17781,9 +17781,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.0619831001578)
         ref[1,2]=(-1.46460054046)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedSolution_rank2(self):
       """
@@ -17943,9 +17943,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-1.24321114539)
         ref[3,4,2]=(0.408464222517)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedSolution_rank3(self):
       """
@@ -18133,9 +18133,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.690728767024)
         ref[5,1,1,2]=(-0.675947375912)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedContinuousFunction_rank0(self):
       """
@@ -18162,9 +18162,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1]=(1.19790363484)
         ref[2]=(0.555862453192)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedContinuousFunction_rank1(self):
       """
@@ -18198,9 +18198,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,1]=(-0.0619831001578)
         ref[1,2]=(-1.46460054046)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedContinuousFunction_rank2(self):
       """
@@ -18360,9 +18360,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,1]=(-1.24321114539)
         ref[3,4,2]=(0.408464222517)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromData_ReducedContinuousFunction_rank3(self):
       """
@@ -18550,9 +18550,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,1]=(-0.690728767024)
         ref[5,1,1,2]=(-0.675947375912)
       res=grad(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ContinuousFunction_rank0(self):
       """
@@ -18581,9 +18581,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.462618121798)*x_ref[2]**(o-1)+(-0.424504978394)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ContinuousFunction_rank1(self):
       """
@@ -18619,9 +18619,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.535521100811)*x_ref[2]**(o-1)+(0.0628178579102)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ContinuousFunction_rank2(self):
       """
@@ -18783,9 +18783,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.0825369961302)*x_ref[2]**(o-1)+(-0.652573275397)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ContinuousFunction_rank3(self):
       """
@@ -18975,9 +18975,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(-0.104796276752)*x_ref[2]**(o-1)+(0.109481954783)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_Solution_rank0(self):
       """
@@ -19006,9 +19006,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=o*(-0.0432478189165)*x_ref[2]**(o-1)+(0.725545839252)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_Solution_rank1(self):
       """
@@ -19044,9 +19044,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=o*(-0.644067730056)*x_ref[2]**(o-1)+(-0.56385913942)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_Solution_rank2(self):
       """
@@ -19208,9 +19208,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=o*(0.402679892192)*x_ref[2]**(o-1)+(0.0690728029503)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_Solution_rank3(self):
       """
@@ -19400,9 +19400,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=o*(0.622672840108)*x_ref[2]**(o-1)+(-0.579757019852)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedSolution_rank0(self):
       """
@@ -19431,9 +19431,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(1.36141912157)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedSolution_rank1(self):
       """
@@ -19469,9 +19469,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.0581477423106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedSolution_rank2(self):
       """
@@ -19633,9 +19633,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(0.00644144564451)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedSolution_rank3(self):
       """
@@ -19825,9 +19825,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.563792436747)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank0(self):
       """
@@ -19856,9 +19856,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[2]=(1.36141912157)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),()+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),()+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank1(self):
       """
@@ -19894,9 +19894,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[1,2]=(-0.0581477423106)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(2,)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank2(self):
       """
@@ -20058,9 +20058,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[3,4,2]=(0.00644144564451)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(4, 5)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_grad_onReducedFunctionOnContactOne_fromSymbol_ReducedContinuousFunction_rank3(self):
       """
@@ -20250,9 +20250,9 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref[5,1,1,2]=(-0.563792436747)
       res=grad(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(6, 2, 2)+(dim,),"wrong shape of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromData_ContinuousFunction(self):
       """
@@ -20278,10 +20278,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.974797445328)*x[0]**o+(0.00365347225195)*x[0]+(-0.285413216102)*x[1]**o+(-0.253930177142)*x[1]+(0.306713249275)*x[2]**o+(-0.651133960743)*x[2]
         ref=o*(-0.00405079499937)*x_ref[0]**(o-1)+o*(0.887813387362)*x_ref[1]**(o-1)+o*(0.306713249275)*x_ref[2]**(o-1)+(-1.86953852444)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromData_Solution(self):
       """
@@ -20307,10 +20307,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.429697616397)*x[0]**o+(-0.8280062193)*x[0]+(0.549112225165)*x[1]**o+(0.73490904828)*x[1]+(0.543450722632)*x[2]**o+(-0.910092410543)*x[2]
         ref=o*(-0.934829971573)*x_ref[0]**(o-1)+o*(-0.594993636371)*x_ref[1]**(o-1)+o*(0.543450722632)*x_ref[2]**(o-1)+(-0.433270437087)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromData_ReducedSolution(self):
       """
@@ -20336,10 +20336,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.215477376297)*x[0]+(0.437173510517)*x[1]+(1.00334359062)*x[2]
         ref=(0.128172409746)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromData_ReducedContinuousFunction(self):
       """
@@ -20365,10 +20365,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.215477376297)*x[0]+(0.437173510517)*x[1]+(1.00334359062)*x[2]
         ref=(0.128172409746)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromSymbol_ContinuousFunction(self):
       """
@@ -20396,10 +20396,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(-0.822374031685)*x_ref[0]**(o-1)+o*(-0.516195739148)*x_ref[1]**(o-1)+o*(0.775999930783)*x_ref[2]**(o-1)+(-0.323965645638)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromSymbol_Solution(self):
       """
@@ -20427,10 +20427,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.270325198436)*x_ref[0]**(o-1)+o*(-0.0817482722299)*x_ref[1]**(o-1)+o*(0.35239086527)*x_ref[2]**(o-1)+(-1.75646690915)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromSymbol_ReducedSolution(self):
       """
@@ -20458,10 +20458,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-0.588720373901)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnBoundary_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -20489,10 +20489,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-0.588720373901)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromData_ContinuousFunction(self):
       """
@@ -20518,10 +20518,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.974797445328)*x[0]**o+(0.00365347225195)*x[0]+(-0.285413216102)*x[1]**o+(-0.253930177142)*x[1]+(0.306713249275)*x[2]**o+(-0.651133960743)*x[2]
         ref=o*(-0.00405079499937)*x_ref[0]**(o-1)+o*(0.887813387362)*x_ref[1]**(o-1)+o*(0.306713249275)*x_ref[2]**(o-1)+(-1.86953852444)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromData_Solution(self):
       """
@@ -20547,10 +20547,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.429697616397)*x[0]**o+(-0.8280062193)*x[0]+(0.549112225165)*x[1]**o+(0.73490904828)*x[1]+(0.543450722632)*x[2]**o+(-0.910092410543)*x[2]
         ref=o*(-0.934829971573)*x_ref[0]**(o-1)+o*(-0.594993636371)*x_ref[1]**(o-1)+o*(0.543450722632)*x_ref[2]**(o-1)+(-0.433270437087)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromData_ReducedSolution(self):
       """
@@ -20576,10 +20576,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.215477376297)*x[0]+(0.437173510517)*x[1]+(1.00334359062)*x[2]
         ref=(0.128172409746)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromData_ReducedContinuousFunction(self):
       """
@@ -20605,10 +20605,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.215477376297)*x[0]+(0.437173510517)*x[1]+(1.00334359062)*x[2]
         ref=(0.128172409746)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromSymbol_ContinuousFunction(self):
       """
@@ -20636,10 +20636,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(-0.822374031685)*x_ref[0]**(o-1)+o*(-0.516195739148)*x_ref[1]**(o-1)+o*(0.775999930783)*x_ref[2]**(o-1)+(-0.323965645638)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromSymbol_Solution(self):
       """
@@ -20667,10 +20667,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.270325198436)*x_ref[0]**(o-1)+o*(-0.0817482722299)*x_ref[1]**(o-1)+o*(0.35239086527)*x_ref[2]**(o-1)+(-1.75646690915)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromSymbol_ReducedSolution(self):
       """
@@ -20698,10 +20698,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-0.588720373901)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnBoundary_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -20729,10 +20729,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-0.588720373901)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromData_ContinuousFunction(self):
       """
@@ -20758,10 +20758,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.51215310895)*x[0]**o+(-0.484568237326)*x[0]+(0.324174170946)*x[1]**o+(0.00636990564332)*x[1]+(0.640205070676)*x[2]**o+(0.642111592847)*x[2]
         ref=o*(-0.171176882625)*x_ref[0]**(o-1)+o*(-0.9204250284)*x_ref[1]**(o-1)+o*(0.640205070676)*x_ref[2]**(o-1)+(-0.217616260198)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromData_Solution(self):
       """
@@ -20787,10 +20787,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.624273042239)*x[0]**o+(0.11218158851)*x[0]+(0.300065081794)*x[1]**o+(-0.823140829548)*x[1]+(-0.537442909756)*x[2]**o+(-0.537901446348)*x[2]
         ref=o*(-0.853829042745)*x_ref[0]**(o-1)+o*(-0.459898919811)*x_ref[1]**(o-1)+o*(-0.537442909756)*x_ref[2]**(o-1)+(0.191013901452)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromData_ReducedSolution(self):
       """
@@ -20816,10 +20816,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-1.10271841197)*x[0]+(1.48792855886)*x[1]+(-0.560275626738)*x[2]
         ref=(0.450527855784)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromData_ReducedContinuousFunction(self):
       """
@@ -20845,10 +20845,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-1.10271841197)*x[0]+(1.48792855886)*x[1]+(-0.560275626738)*x[2]
         ref=(0.450527855784)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromSymbol_ContinuousFunction(self):
       """
@@ -20876,10 +20876,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.663467704633)*x_ref[0]**(o-1)+o*(0.623191833228)*x_ref[1]**(o-1)+o*(-0.160162179877)*x_ref[2]**(o-1)+(1.44129919049)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromSymbol_Solution(self):
       """
@@ -20907,10 +20907,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.668585271141)*x_ref[0]**(o-1)+o*(0.957107141065)*x_ref[1]**(o-1)+o*(0.987607632645)*x_ref[2]**(o-1)+(1.98330080871)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromSymbol_ReducedSolution(self):
       """
@@ -20938,10 +20938,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(1.01929620084)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactZero_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -20969,10 +20969,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(1.01929620084)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromData_ContinuousFunction(self):
       """
@@ -20998,10 +20998,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.51215310895)*x[0]**o+(-0.484568237326)*x[0]+(0.324174170946)*x[1]**o+(0.00636990564332)*x[1]+(0.640205070676)*x[2]**o+(0.642111592847)*x[2]
         ref=o*(-0.171176882625)*x_ref[0]**(o-1)+o*(-0.9204250284)*x_ref[1]**(o-1)+o*(0.640205070676)*x_ref[2]**(o-1)+(-0.217616260198)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromData_Solution(self):
       """
@@ -21027,10 +21027,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.624273042239)*x[0]**o+(0.11218158851)*x[0]+(0.300065081794)*x[1]**o+(-0.823140829548)*x[1]+(-0.537442909756)*x[2]**o+(-0.537901446348)*x[2]
         ref=o*(-0.853829042745)*x_ref[0]**(o-1)+o*(-0.459898919811)*x_ref[1]**(o-1)+o*(-0.537442909756)*x_ref[2]**(o-1)+(0.191013901452)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromData_ReducedSolution(self):
       """
@@ -21056,10 +21056,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-1.10271841197)*x[0]+(1.48792855886)*x[1]+(-0.560275626738)*x[2]
         ref=(0.450527855784)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromData_ReducedContinuousFunction(self):
       """
@@ -21085,10 +21085,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-1.10271841197)*x[0]+(1.48792855886)*x[1]+(-0.560275626738)*x[2]
         ref=(0.450527855784)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromSymbol_ContinuousFunction(self):
       """
@@ -21116,10 +21116,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.663467704633)*x_ref[0]**(o-1)+o*(0.623191833228)*x_ref[1]**(o-1)+o*(-0.160162179877)*x_ref[2]**(o-1)+(1.44129919049)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromSymbol_Solution(self):
       """
@@ -21147,10 +21147,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.668585271141)*x_ref[0]**(o-1)+o*(0.957107141065)*x_ref[1]**(o-1)+o*(0.987607632645)*x_ref[2]**(o-1)+(1.98330080871)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromSymbol_ReducedSolution(self):
       """
@@ -21178,10 +21178,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(1.01929620084)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactZero_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -21209,10 +21209,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(1.01929620084)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromData_ContinuousFunction(self):
       """
@@ -21238,10 +21238,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.0795681320657)*x[0]**o+(-0.165210743397)*x[0]+(0.866175461075)*x[1]**o+(0.10183311172)*x[1]+(-0.642389179022)*x[2]**o+(-0.917391184653)*x[2]
         ref=o*(-0.437811901761)*x_ref[0]**(o-1)+o*(-0.746372201791)*x_ref[1]**(o-1)+o*(-0.642389179022)*x_ref[2]**(o-1)+(-1.4234662158)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromData_Solution(self):
       """
@@ -21267,10 +21267,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.070144257808)*x[0]**o+(0.823052625211)*x[0]+(-0.426522615959)*x[1]**o+(-0.294700653199)*x[1]+(0.209922433427)*x[2]**o+(-0.532056800218)*x[2]
         ref=o*(0.740236725813)*x_ref[0]**(o-1)+o*(-0.57186325537)*x_ref[1]**(o-1)+o*(0.209922433427)*x_ref[2]**(o-1)+(0.175264764106)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromData_ReducedSolution(self):
       """
@@ -21296,10 +21296,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.438232052406)*x[0]+(-0.35977163998)*x[1]+(-1.01489636413)*x[2]
         ref=(-0.249107506635)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromData_ReducedContinuousFunction(self):
       """
@@ -21325,10 +21325,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.438232052406)*x[0]+(-0.35977163998)*x[1]+(-1.01489636413)*x[2]
         ref=(-0.249107506635)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromSymbol_ContinuousFunction(self):
       """
@@ -21356,10 +21356,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(-0.163987987624)*x_ref[0]**(o-1)+o*(-0.904766629428)*x_ref[1]**(o-1)+o*(-0.38659264723)*x_ref[2]**(o-1)+(0.351555425021)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromSymbol_Solution(self):
       """
@@ -21387,10 +21387,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.0505125806914)*x_ref[0]**(o-1)+o*(-0.940255747769)*x_ref[1]**(o-1)+o*(0.299407109746)*x_ref[2]**(o-1)+(0.222416129783)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromSymbol_ReducedSolution(self):
       """
@@ -21418,10 +21418,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-1.9046367143)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onFunctionOnContactOne_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -21449,10 +21449,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-1.9046367143)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromData_ContinuousFunction(self):
       """
@@ -21478,10 +21478,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.0795681320657)*x[0]**o+(-0.165210743397)*x[0]+(0.866175461075)*x[1]**o+(0.10183311172)*x[1]+(-0.642389179022)*x[2]**o+(-0.917391184653)*x[2]
         ref=o*(-0.437811901761)*x_ref[0]**(o-1)+o*(-0.746372201791)*x_ref[1]**(o-1)+o*(-0.642389179022)*x_ref[2]**(o-1)+(-1.4234662158)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromData_Solution(self):
       """
@@ -21507,10 +21507,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(0.070144257808)*x[0]**o+(0.823052625211)*x[0]+(-0.426522615959)*x[1]**o+(-0.294700653199)*x[1]+(0.209922433427)*x[2]**o+(-0.532056800218)*x[2]
         ref=o*(0.740236725813)*x_ref[0]**(o-1)+o*(-0.57186325537)*x_ref[1]**(o-1)+o*(0.209922433427)*x_ref[2]**(o-1)+(0.175264764106)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromData_ReducedSolution(self):
       """
@@ -21536,10 +21536,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.438232052406)*x[0]+(-0.35977163998)*x[1]+(-1.01489636413)*x[2]
         ref=(-0.249107506635)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromData_ReducedContinuousFunction(self):
       """
@@ -21565,10 +21565,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         arg[2]=(-0.438232052406)*x[0]+(-0.35977163998)*x[1]+(-1.01489636413)*x[2]
         ref=(-0.249107506635)
       res=div(arg,where=w_ref)
-      self.failUnless(isinstance(res,Data),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromSymbol_ContinuousFunction(self):
       """
@@ -21596,10 +21596,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(-0.163987987624)*x_ref[0]**(o-1)+o*(-0.904766629428)*x_ref[1]**(o-1)+o*(-0.38659264723)*x_ref[2]**(o-1)+(0.351555425021)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromSymbol_Solution(self):
       """
@@ -21627,10 +21627,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=o*(0.0505125806914)*x_ref[0]**(o-1)+o*(-0.940255747769)*x_ref[1]**(o-1)+o*(0.299407109746)*x_ref[2]**(o-1)+(0.222416129783)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromSymbol_ReducedSolution(self):
       """
@@ -21658,10 +21658,10 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-1.9046367143)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_div_onReducedFunctionOnContactOne_fromSymbol_ReducedContinuousFunction(self):
       """
@@ -21689,7 +21689,7 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
         ref=(-1.9046367143)
       res=div(arg,where=w_ref)
       sub=res.substitute({arg:s})
-      self.failUnless(isinstance(res,Symbol),"wrong type of result.")
-      self.failUnlessEqual(res.getShape(),(),"wrong shape of result.")
-      self.failUnlessEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
-      self.failUnless(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+      self.assertTrue(isinstance(res,Symbol),"wrong type of result.")
+      self.assertEqual(res.getShape(),(),"wrong shape of result.")
+      self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
+      self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
