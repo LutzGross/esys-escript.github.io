@@ -31,41 +31,41 @@ class Test_Shared(unittest.TestCase):
 	d=Data(42)
 	e=d.delay()
 	d.setToZero()
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	
   def test_copyConstr(self):
 	d=Data(42)
 	e=Data(d)
 	d+=17
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	
   # This should not fail (even in the old code) but it doesn't hurt to check
   def test_Copy(self):
   	d=Data(42)
 	e=d.copy()
 	d+=17
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	
   def  test_eqops(self):
 	d=Data(42)
 	e=d.delay()
 	d+=17
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	d=Data(42)
 	e=d.delay()
 	d-=1
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	d*=3
 	d=Data(42)
 	e=d.delay()	
 	d/=2
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 	
   def test_setItem(self):
 	d=Data(42)
 	e=d.delay()
 	d[tuple()]=17
-	self.failUnless(Lsup(e-42)<=self.tol)
+	self.assertTrue(Lsup(e-42)<=self.tol)
 
 
   def test_setTaggedValue(self):
@@ -75,11 +75,11 @@ class Test_Shared(unittest.TestCase):
 	e=d.delay()
 	d.setTaggedValue("TestTag",17)
 	e.resolve()
-	self.failUnless(str(e)!=str(d))	
+	self.assertTrue(str(e)!=str(d))	
 	e=d.delay()
 	d.setTaggedValue(1,12)
 	e.resolve()
-	self.failUnless(str(e)!=str(d))
+	self.assertTrue(str(e)!=str(d))
 
 
 	

@@ -57,31 +57,31 @@ class Test_DomainOnDudley(Test_Domain):
    def test_tagsContinuousFunction(self):
        ref_tags=[0]
        tags=ContinuousFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
 
    def test_tagsFunction(self):
        ref_tags=[0]
        tags=Function(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunction(self):
        ref_tags=[0]
        tags=ReducedFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=FunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
 class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):

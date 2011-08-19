@@ -57,51 +57,51 @@ class Test_DomainOnFinley(Test_Domain):
    def test_tagsContinuousFunction(self):
        ref_tags=[0]
        tags=ContinuousFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
 
    def test_tagsFunction(self):
        ref_tags=[0]
        tags=Function(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunction(self):
        ref_tags=[0]
        tags=ReducedFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=FunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
    def test_tagsFunctionOnContactOne(self):
        ref_tags=[]
        tags=FunctionOnContactOne(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsFunctionOnContactZero(self):
        ref_tags=[]
        tags=FunctionOnContactZero(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnContactOne(self):
        ref_tags=[]
        tags=ReducedFunctionOnContactOne(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnContactZero(self):
        ref_tags=[]
        tags=ReducedFunctionOnContactZero(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
 
 class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
@@ -185,8 +185,8 @@ class Test_CSVOnFinley(Test_saveCSV):
 	rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
 	saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
 	#check for cross line exceptions
-	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
-	self.failUnlessRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
+	self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
+	self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
 
 	
 if __name__ == '__main__':

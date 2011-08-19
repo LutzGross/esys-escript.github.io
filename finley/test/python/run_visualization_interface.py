@@ -49,7 +49,7 @@ class Test_VisualizationInterface(unittest.TestCase):
 	   if os.name == "nt":
 	       line=line.replace("e+00","e+0").replace("e-00","e-0")
 	   line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
-           self.failUnlessEqual(line,ref_string[l].strip(),"line %d (%s) in dx file does not match reference (%s)"%(c,line,ref_string[l].strip()))
+           self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in dx file does not match reference (%s)"%(c,line,ref_string[l].strip()))
            c+=1
 
 class Test_DXFiles(Test_VisualizationInterface):

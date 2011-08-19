@@ -75,15 +75,15 @@ class Test_TableInterpolation(unittest.TestCase):
 	d175=Data(1.75)
 	d225=Data(2.25)
 	for arr in ars:
-	    self.failUnless(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
-	    self.failUnless(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
-	    self.failUnless(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
-	    self.failUnless(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
+	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
+	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
+	    self.assertTrue(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
+	    self.assertTrue(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
 	       # Point out of bounds
-	    self.failUnlessRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
-	    self.failUnlessRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
-	    self.failUnlessRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
-	    self.failUnlessRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
+	    self.assertRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
+	    self.assertRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
+	    self.assertRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
+	    self.assertRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
 	       #Test to ensure not check_boundaries does not throw in the above cases
 	    d1.interpolateTable(arL,0, 1, d4, 0, 0.5, 100, check_boundaries=False)
 	    d4.interpolateTable( arL,0, 0.5, d1, 0, 1, 100, check_boundaries=False  )
@@ -91,7 +91,7 @@ class Test_TableInterpolation(unittest.TestCase):
 	    d1.interpolateTable( arL,0,1, dm05 , 0,1, 100,check_boundaries=False  )
 	       
 	       # interpolated value too large
-	    self.failUnlessRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
+	    self.assertRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 
 
     def test_FunctionSpace3D(self):
@@ -125,13 +125,13 @@ class Test_TableInterpolation(unittest.TestCase):
 		lsupref=Lsup(ref)
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
 		    res=interpolateTable(table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth),900)
-	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+	    	    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
 		    # Test undef
-		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth), -1)
+		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth), -1)
 		    # Test bounds checking
-		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, zwidth), 900,True)
-		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, zwidth), 900, True)
-		    self.failUnlessRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth/3), 900, True)
+		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, zwidth), 900,True)
+		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, zwidth), 900, True)
+		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth/3), 900, True)
 
     def test_FunctionSpace2D(self):
 	vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
@@ -157,10 +157,10 @@ class Test_TableInterpolation(unittest.TestCase):
 		lsupref=Lsup(ref)
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
 	    	    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
-	    	    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+	    	    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
 		    #Now we try for the new interface
 		    res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
-		    self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+		    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
 		    
 	    
 
@@ -181,12 +181,12 @@ class Test_TableInterpolation(unittest.TestCase):
 		lsupref=Lsup(ref)
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
 		   res=x.interpolateTable(table, xmin, xwidth,500)
-		   self.failUnless(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
+		   self.assertTrue(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
 		   #Now we try for the new interface
 		   res=interpolateTable(table,points[0:1], (xmin,), (xwidth, ),500)
-		   self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+		   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
 		   res=interpolateTable(table,points[0:1], xmin, xwidth,500)
-		   self.failUnless(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
+		   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
 
 class Test_saveCSV(unittest.TestCase):
 
@@ -196,16 +196,16 @@ class Test_saveCSV(unittest.TestCase):
 	fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
 	saveDataCSV(fname,C=X, D=X0)
 	saveDataCSV(fname,append=True, J=X0, H=X)
-	self.failUnless(os.path.exists(fname), "test file not created")
+	self.assertTrue(os.path.exists(fname), "test file not created")
 	f=open(fname,'r')
 	line=f.readline()
-	self.failUnless(line=="C_0, C_1, D\n")    #This tests both separator strings
+	self.assertTrue(line=="C_0, C_1, D\n")    #This tests both separator strings
 	#Now we find out how many rows it has
 	linecount=0
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount==self.linecount1*2)
+	self.assertTrue(linecount==self.linecount1*2)
 	f.close()
 	#Now to other output
 	T2=Tensor(7,X.getFunctionSpace())
@@ -214,44 +214,44 @@ class Test_saveCSV(unittest.TestCase):
 	saveDataCSV(fname,A=T2,B=T3,C=T4)
 	f=open(fname,'r')
 	line=f.readline()
-	self.failUnless(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
+	self.assertTrue(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
 	line=f.readline()
 	line_expected=[7.]*4+[8.]*8+[9.]*16
 	line_got=[float(elt) for elt in line.split(',')]
-	self.failUnless(line_got==line_expected)
+	self.assertTrue(line_got==line_expected)
 	linecount=1
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount==self.linecount1)
+	self.assertTrue(linecount==self.linecount1)
 	f.close()	
 	#Now to test separators and mask
 	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
 	f=open(fname,'r')
 	line=f.readline()
-	self.failUnless(line=='U/0|U/1|V\n')
+	self.assertTrue(line=='U/0|U/1|V\n')
 	line=f.readline()
 	line_got=[float(elt) for elt in line.split('|')]
-	self.failUnless(self.line_expected==line_got)
+	self.assertTrue(self.line_expected==line_got)
 	linecount=1
 	while line!='':
 		linecount+=1
 		line=f.readline()
-	self.failUnless(linecount==self.linecount2)
+	self.assertTrue(linecount==self.linecount2)
 	
 	
 class Test_Domain(unittest.TestCase):
 
    def test_getListOfTags(self): # requires self.boundary_tag_list
        tags=FunctionOnBoundary(self.domain).getListOfTags()
-       self.failUnless(len(self.boundary_tag_list) == len(tags), "tag list length does not match")
+       self.assertTrue(len(self.boundary_tag_list) == len(tags), "tag list length does not match")
        for i in self.boundary_tag_list:
-           self.failUnless(i in tags, "tag %s is missing."%i)
+           self.assertTrue(i in tags, "tag %s is missing."%i)
 
    def test_RandomData(self):
         fs=Function(self.domain)	# The choice of functionspace is arbitrary
 	dat=RandomData((2,2,2,2),fs,8)	# Choice of seed is arbitrary
-	self.failUnless(Lsup(dat-1)<1.0001)
+	self.assertTrue(Lsup(dat-1)<1.0001)
 
    def test_Factories(self):
 	fs=Function(self.domain)	# The choice of functionspace is arbitrary
@@ -264,8 +264,8 @@ class Test_Domain(unittest.TestCase):
 		bad+=[i]
 	   bad+=[i]
 	   d=Vector(z,fs)
-	   self.failUnless(d.getShape()==(dime,))
-	   self.failUnlessRaises(RuntimeError, Vector, bad,fs)	#test wrong shape
+	   self.assertTrue(d.getShape()==(dime,))
+	   self.assertRaises(RuntimeError, Vector, bad,fs)	#test wrong shape
 	   y=[]
 	   bad=[]
 	   for i in range(dime):
@@ -274,7 +274,7 @@ class Test_Domain(unittest.TestCase):
 	   bad+=[z]
 	   z=y
 	   d=Tensor(z,fs)
-	   self.failUnless(d.getShape()==(dime,dime))
+	   self.assertTrue(d.getShape()==(dime,dime))
 	   try:
 		Tensor(bad,fs)
 	   except RuntimeError:
@@ -289,7 +289,7 @@ class Test_Domain(unittest.TestCase):
 	   bad+=[z]
 	   z=y
 	   d=Tensor3(z,fs)
-	   self.failUnless(d.getShape()==(dime,dime,dime))
+	   self.assertTrue(d.getShape()==(dime,dime,dime))
 	   try:
 		Tensor3(bad,fs)
 	   except RuntimeError:
@@ -304,7 +304,7 @@ class Test_Domain(unittest.TestCase):
 	   bad+=[z]
 	   z=y
 	   d=Tensor4(z,fs)
-	   self.failUnless(d.getShape()==(dime,dime,dime,dime))
+	   self.assertTrue(d.getShape()==(dime,dime,dime,dime))
 	   try:
 		Tensor4(bad,fs)
 	   except RuntimeError:
@@ -318,15 +318,15 @@ class Test_Domain(unittest.TestCase):
         tag2="B"
         tag3="C"
         self.domain.setTagMap(tag1,1)
-        self.failUnless(self.domain.isValidTagName(tag1))
-        self.failUnless(not self.domain.isValidTagName(tag2))
+        self.assertTrue(self.domain.isValidTagName(tag1))
+        self.assertTrue(not self.domain.isValidTagName(tag2))
         self.domain.setTagMap(tag2,2)
-        self.failUnless(self.domain.isValidTagName(tag1))
-        self.failUnless(self.domain.isValidTagName(tag2))
-        self.failUnless(not self.domain.isValidTagName(tag3))
-        self.failUnless(self.domain.getTag(tag1)==1)
-        self.failUnless(self.domain.getTag(tag2)==2)
-        self.failUnlessRaises(RuntimeError,self.domain.getTag,tag3)
+        self.assertTrue(self.domain.isValidTagName(tag1))
+        self.assertTrue(self.domain.isValidTagName(tag2))
+        self.assertTrue(not self.domain.isValidTagName(tag3))
+        self.assertTrue(self.domain.getTag(tag1)==1)
+        self.assertTrue(self.domain.getTag(tag2)==2)
+        self.assertRaises(RuntimeError,self.domain.getTag,tag3)
 
         # set tag:
         s=Scalar(0,Function(self.domain))
@@ -335,114 +335,114 @@ class Test_Domain(unittest.TestCase):
         r.setTaggedValue(1,1.)
         s.setTaggedValue(tag2,2.)
         r.setTaggedValue(2,2.)
-        self.failUnlessRaises(RuntimeError,s.setTaggedValue,tag3,3.)	#tag3 does not exist
-        self.failUnless(Lsup(s-r)<=0.)
+        self.assertRaises(RuntimeError,s.setTaggedValue,tag3,3.)	#tag3 does not exist
+        self.assertTrue(Lsup(s-r)<=0.)
         # get tag:
         names=getTagNames(self.domain)
-        self.failUnless(len(names) == 6)
-        self.failUnless( tag1 in names )
-        self.failUnless( tag2 in names )
-        self.failUnless(self.domain.isValidTagName(tag1))
-        self.failUnless(self.domain.isValidTagName(tag2))
+        self.assertTrue(len(names) == 6)
+        self.assertTrue( tag1 in names )
+        self.assertTrue( tag2 in names )
+        self.assertTrue(self.domain.isValidTagName(tag1))
+        self.assertTrue(self.domain.isValidTagName(tag2))
         # insert tag shortcut:
         s2=insertTaggedValues(Scalar(0,Function(self.domain)),**{ tag1 : 1., tag2 : 2.})
-        self.failUnless(Lsup(s2-r)<=0.)
+        self.assertTrue(Lsup(s2-r)<=0.)
    def test_functionspace_ContinuousFunction(self):
         fs=ContinuousFunction(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    def test_functionspace_Solution(self):
         fs=Solution(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    def test_functionspace_ReducedSolution(self):
         fs=ReducedSolution(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    def test_functionspace_Function(self):
         fs=Function(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    def test_functionspace_ReducedFunction(self):
         fs=ReducedFunction(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
    def test_functionspace_FunctionOnBoundary(self):
         fs=FunctionOnBoundary(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
    def test_functionspace_ReducedFunctionOnBoundary(self):
         fs=ReducedFunctionOnBoundary(self.domain)
-        self.failUnless(fs.getDomain()==self.domain)
-        self.failUnless(self.domain.getDim() == fs.getDim())
+        self.assertTrue(fs.getDomain()==self.domain)
+        self.assertTrue(self.domain.getDim() == fs.getDim())
         x=fs.getX()
-        self.failUnless(x.getFunctionSpace() == fs)
-        self.failUnless(x.getShape() == (fs.getDim(),))
-        self.failUnless(inf(x[0])>=0.)
-        if self.domain.getDim()>1: self.failUnless(inf(x[1])>=0.)
-        if self.domain.getDim()>2: self.failUnless(inf(x[2])>=0.)
-        self.failUnless(sup(x[0])<=1.)
-        if self.domain.getDim()>1: self.failUnless(sup(x[1])<=1.)
-        if self.domain.getDim()>2: self.failUnless(sup(x[2])<=1.)
+        self.assertTrue(x.getFunctionSpace() == fs)
+        self.assertTrue(x.getShape() == (fs.getDim(),))
+        self.assertTrue(inf(x[0])>=0.)
+        if self.domain.getDim()>1: self.assertTrue(inf(x[1])>=0.)
+        if self.domain.getDim()>2: self.assertTrue(inf(x[2])>=0.)
+        self.assertTrue(sup(x[0])<=1.)
+        if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
+        if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
    #===========================================================================
 
 class Test_GlobalMinMax(unittest.TestCase):
@@ -454,13 +454,13 @@ class Test_GlobalMinMax(unittest.TestCase):
 	if d.getNumberOfDataPoints()>0:
 		d.setValueOfDataPoint(0,myrank-0.001);
 	p,n=d.minGlobalDataPoint()
-	self.failUnless(p==minproc,"Incorrect process indentified as holding min")
-	self.failUnless(n==0,"Incorrect position for min")
+	self.assertTrue(p==minproc,"Incorrect process indentified as holding min")
+	self.assertTrue(n==0,"Incorrect position for min")
 	if d.getNumberOfDataPoints()>0:
 		d.setValueOfDataPoint(0,myrank+0.001)
 	p,n=d.maxGlobalDataPoint()	
-	self.failUnless(p==maxproc,"Incorrect process indentified as holding min")
-	self.failUnless(n==0,"Incorrect position for min")
+	self.assertTrue(p==maxproc,"Incorrect process indentified as holding min")
+	self.assertTrue(n==0,"Incorrect position for min")
 
 	
 
@@ -473,166 +473,166 @@ class Test_SetDataPointValue(unittest.TestCase):
    def test_SetDataPointValue_Function_Rank0(self):
           d=Data(self.arg0,Function(self.domain))
           d.setValueOfDataPoint(0,self.arg0*2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
    def test_SetDataPointValue_Function_Rank1(self):
           d=Data(self.arg1,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
           d.setValueOfDataPoint(0,self.arg1*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
    def test_SetDataPointValue_Function_Rank1_list(self):
           d=Data(self.arg1,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
           d.setValueOfDataPoint(0,(self.arg1*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
    def test_SetDataPointValue_Function_Rank2(self):
           d=Data(self.arg2,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
           d.setValueOfDataPoint(0,self.arg2*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
    def test_SetDataPointValue_Function_Rank2_list(self):
           d=Data(self.arg2,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
           d.setValueOfDataPoint(0,(self.arg2*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
    def test_SetDataPointValue_Function_Rank3(self):
           d=Data(self.arg3,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
           d.setValueOfDataPoint(0,self.arg3*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
    def test_SetDataPointValue_Function_Rank3_list(self):
           d=Data(self.arg3,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
           d.setValueOfDataPoint(0,(self.arg3*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
    def test_SetDataPointValue_Function_Rank4(self):
           d=Data(self.arg4,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
           d.setValueOfDataPoint(0,self.arg4*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
    def test_SetDataPointValue_Function_Rank4_list(self):
           d=Data(self.arg4,Function(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
           d.setValueOfDataPoint(0,(self.arg4*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
    #===========================================================================
    def test_SetDataPointValue_ReducedFunction_Rank0(self):
           d=Data(self.arg0,ReducedFunction(self.domain))
           d.setValueOfDataPoint(0,self.arg0*2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank1(self):
           d=Data(self.arg1,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
           d.setValueOfDataPoint(0,self.arg1*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank1_list(self):
           d=Data(self.arg1,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
           d.setValueOfDataPoint(0,(self.arg1*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank2(self):
           d=Data(self.arg2,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
           d.setValueOfDataPoint(0,self.arg2*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank2_list(self):
           d=Data(self.arg2,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
           d.setValueOfDataPoint(0,(self.arg2*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank3(self):
           d=Data(self.arg3,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
           d.setValueOfDataPoint(0,self.arg3*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank3_list(self):
           d=Data(self.arg3,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
           d.setValueOfDataPoint(0,(self.arg3*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank4(self):
           d=Data(self.arg4,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
           d.setValueOfDataPoint(0,self.arg4*2)
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
    def test_SetDataPointValue_ReducedFunction_Rank4_list(self):
           d=Data(self.arg4,ReducedFunction(self.domain))
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.failUnlessRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
+          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
           d.setValueOfDataPoint(0,(self.arg4*2).tolist())
           d_0=numpy.array(d.getTupleForDataPoint(0))
           d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.failUnless(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.failUnless(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
+          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
 
 class Test_Dump(unittest.TestCase):
    arg0=9.81
@@ -644,11 +644,11 @@ class Test_Dump(unittest.TestCase):
    def _diffDataObjects(self,d_ref,filemame, use_old_file=False):
        if not use_old_file: d_ref.dump(filemame)
        d=load(filemame, d_ref.getDomain())
-       self.failUnless(not d.isEmpty(),"data in %s are empty."%filemame)
-       self.failUnless(d_ref.getRank() == d.getRank(), "different rank in %s. "%filemame)
-       self.failUnless(d_ref.getShape() == d.getShape(), "different shape %s. "%filemame)
-       self.failUnless(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
-       self.failUnless(Lsup(d_ref-d)<=0., "different entries %s."%filemame)
+       self.assertTrue(not d.isEmpty(),"data in %s are empty."%filemame)
+       self.assertTrue(d_ref.getRank() == d.getRank(), "different rank in %s. "%filemame)
+       self.assertTrue(d_ref.getShape() == d.getShape(), "different shape %s. "%filemame)
+       self.assertTrue(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
+       self.assertTrue(Lsup(d_ref-d)<=0., "different entries %s."%filemame)
 
    #===========================================================================
    def test_DumpAndLoad_Constant_Solution_Rank0(self):
@@ -864,8 +864,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_solution_rank0.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg0,Solution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Solution(self.domain_with_different_sample_ordering).getX())*self.arg0,Solution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -875,8 +875,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_solution_rank1.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg1,Solution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Solution(self.domain_with_different_sample_ordering).getX())*self.arg1,Solution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -886,8 +886,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_solution_rank2.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg2,Solution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Solution(self.domain_with_different_sample_ordering).getX())*self.arg2,Solution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -897,8 +897,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_solution_rank3.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg3,Solution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Solution(self.domain_with_different_sample_ordering).getX())*self.arg3,Solution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -908,8 +908,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_solution_rank4.nc")
           d=Data(length(Solution(self.domain).getX())*self.arg4,Solution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Solution(self.domain_with_different_sample_ordering).getX())*self.arg4,Solution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -919,8 +919,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank0.nc")
           d=Data(length(ReducedSolution(self.domain).getX())*self.arg0,ReducedSolution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX())*self.arg0,ReducedSolution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -930,8 +930,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank1.nc")
           d=Data(length(ReducedSolution(self.domain).getX())*self.arg1,ReducedSolution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX())*self.arg1,ReducedSolution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -941,8 +941,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank2.nc")
           d=Data(length(ReducedSolution(self.domain).getX())*self.arg2,ReducedSolution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX())*self.arg2,ReducedSolution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -952,8 +952,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank3.nc")
           d=Data(length(ReducedSolution(self.domain).getX())*self.arg3,ReducedSolution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX())*self.arg3,ReducedSolution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -963,8 +963,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank4.nc")
           d=Data(length(ReducedSolution(self.domain).getX())*self.arg4,ReducedSolution(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX())*self.arg4,ReducedSolution(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -974,8 +974,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank0.nc")
           d=Data(length(ContinuousFunction(self.domain).getX())*self.arg0,ContinuousFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX())*self.arg0,ContinuousFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -983,10 +983,10 @@ class Test_Dump(unittest.TestCase):
    def test_DumpAndLoad_Expanded_ContinuousFunction_Rank1(self):
        if loadIsConfigured():
           filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank1.nc")
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
           d=Data(length(ContinuousFunction(self.domain).getX())*self.arg1,ContinuousFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX())*self.arg1,ContinuousFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -996,8 +996,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank2.nc")
           d=Data(length(ContinuousFunction(self.domain).getX())*self.arg2,ContinuousFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX())*self.arg2,ContinuousFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1007,8 +1007,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank3.nc")
           d=Data(length(ContinuousFunction(self.domain).getX())*self.arg3,ContinuousFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX())*self.arg3,ContinuousFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1018,8 +1018,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank4.nc")
           d=Data(length(ContinuousFunction(self.domain).getX())*self.arg4,ContinuousFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX())*self.arg4,ContinuousFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1030,8 +1030,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_rank0.nc")
           d=Data(length(Function(self.domain).getX())*self.arg0,Function(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Function(self.domain_with_different_sample_ordering).getX())*self.arg0,Function(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1041,8 +1041,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_rank1.nc")
           d=Data(length(Function(self.domain).getX())*self.arg1,Function(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Function(self.domain_with_different_sample_ordering).getX())*self.arg1,Function(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1052,8 +1052,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_rank2.nc")
           d=Data(length(Function(self.domain).getX())*self.arg2,Function(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Function(self.domain_with_different_sample_ordering).getX())*self.arg2,Function(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1063,8 +1063,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_rank3.nc")
           d=Data(length(Function(self.domain).getX())*self.arg3,Function(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Function(self.domain_with_different_sample_ordering).getX())*self.arg3,Function(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1074,8 +1074,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_rank4.nc")
           d=Data(length(Function(self.domain).getX())*self.arg4,Function(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(Function(self.domain_with_different_sample_ordering).getX())*self.arg4,Function(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1086,8 +1086,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank0.nc")
           d=Data(length(ReducedFunction(self.domain).getX())*self.arg0,ReducedFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX())*self.arg0,ReducedFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1097,8 +1097,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank1.nc")
           d=Data(length(ReducedFunction(self.domain).getX())*self.arg1,ReducedFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX())*self.arg1,ReducedFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1108,8 +1108,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank2.nc")
           d=Data(length(ReducedFunction(self.domain).getX())*self.arg2,ReducedFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX())*self.arg2,ReducedFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1119,8 +1119,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank3.nc")
           d=Data(length(ReducedFunction(self.domain).getX())*self.arg3,ReducedFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX())*self.arg3,ReducedFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1130,8 +1130,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank4.nc")
           d=Data(length(ReducedFunction(self.domain).getX())*self.arg4,ReducedFunction(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX())*self.arg4,ReducedFunction(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1142,8 +1142,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank0.nc")
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg0,FunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg0,FunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1153,8 +1153,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank1.nc")
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg1,FunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg1,FunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1164,8 +1164,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank2.nc")
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg2,FunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg2,FunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1175,8 +1175,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank3.nc")
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg3,FunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg3,FunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1186,8 +1186,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank4.nc")
           d=Data(length(FunctionOnBoundary(self.domain).getX())*self.arg4,FunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg4,FunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1198,8 +1198,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank0.nc")
           d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg0,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg0,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1209,8 +1209,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank1.nc")
           d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg1,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg1,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1220,8 +1220,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank2.nc")
           d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg2,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg2,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1231,8 +1231,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank3.nc")
           d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg3,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg3,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1242,8 +1242,8 @@ class Test_Dump(unittest.TestCase):
           filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank4.nc")
           d=Data(length(ReducedFunctionOnBoundary(self.domain).getX())*self.arg4,ReducedFunctionOnBoundary(self.domain))
           self._diffDataObjects(d,filemame)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.failUnlessRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
+          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
           if getMPISizeWorld() ==1:
              d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX())*self.arg4,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
              self._diffDataObjects(d,filemame, use_old_file=True)
@@ -1575,9 +1575,9 @@ class Test_Dump(unittest.TestCase):
 
    def test_canTag_Failures(self):
 	d=Data(self.arg0,Solution(self.domain))
-	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
 	d=Data(self.arg0,ReducedSolution(self.domain))
-	self.failUnlessRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
 	
 class Test_Lazy(unittest.TestCase):
   def makeLazyObj(self):
@@ -1605,13 +1605,13 @@ class Test_Lazy(unittest.TestCase):
 	r1,r2,r3,f,t=self.makeLazyObj()
 	resolveGroup((r1,r2,r3))
 	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)
-	self.failUnless(err<0.001, "Same functionspace group resolve")
+	self.assertTrue(err<0.001, "Same functionspace group resolve")
 	r1,r2,r3,f,t=self.makeLazyObj()
 	resolveGroup((r1,r2,r3,rt))
 	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)
-	self.failUnless(err<0.001, "Same functionspace group resolve with early collapse")
+	self.assertTrue(err<0.001, "Same functionspace group resolve with early collapse")
 	r1,r2,r3,f,t=self.makeLazyObj()
 	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
-	self.failUnless(err<0.001, "Same functionspace group resolve with mixed functionspaces")
+	self.assertTrue(err<0.001, "Same functionspace group resolve with mixed functionspaces")
 	
 	
