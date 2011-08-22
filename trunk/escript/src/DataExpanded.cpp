@@ -867,10 +867,11 @@ void seedGens(long seed)
     }  					// I don't think it is worth a more complicated solution at this point
     if (seed!=0)
     {
-       base.seed(seed);			
+       base.seed((uint32_t)seed);	// without this cast, icc gets confused		
        for (int i=0;i<numthreads;++i)
        {
-            gens[i].seed(base());	// initialise each generator with successive random values      
+	    uint32_t b=base();
+            gens[i].seed(b);	// initialise each generator with successive random values      
        }       
     }
 }
