@@ -1,0 +1,29 @@
+
+########################################################
+#
+# Copyright (c) 2003-2010 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = env.Clone()
+
+# get the source file names
+sources = Glob('*.py')
+
+# compile
+pyc = local_env.PyCompile(sources)
+
+# install
+py_inst = local_env.Install(local_env['pyinstall']+'/dudley', pyc)
+env.Alias('install_dudley_py', py_inst)
+
