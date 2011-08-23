@@ -2487,6 +2487,7 @@ void MeshAdapter:: addDiracPoints(const boost::python::list& points, const boost
       TMPMEMFREE(tags_ptr);
 }
 
+/*
 void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int tag) const
 {   
     boost::python::list points =  boost::python::list();
@@ -2495,6 +2496,7 @@ void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int ta
     tags.append(tag);
     addDiracPoints(points, tags);
 }
+*/
 void MeshAdapter:: addDiracPointWithTagName( const boost::python::list& point, const std::string& tag) const
 {
         boost::python::list points =   boost::python::list();

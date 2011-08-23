@@ -112,7 +112,18 @@ namespace finley {
 		    int reducedIntegrationOrder=-1,
 		    int useElementsOnFace=0,
                     int useFullElementOrder=0,
-                    int optimize=0);
+                     int optimize=0, 
+		    const boost::python::list& points=finley::EmptyPythonList,
+		    const boost::python::list& tags=finley::EmptyPythonList
+		    );
+		    
+   /**
+   \brief Python driver for brick()
+   \param args see brick() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr brick_driver(const boost::python::list& args);
+   
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -141,7 +152,9 @@ namespace finley {
      	                              int reducedIntegrationOrder=-1, 
 				      int useElementsOnFace=0,
                                       int useFullElementOrder=0,
-                                      int optimize=0);
+                                      int optimize=0,
+				      const boost::python::list& points=finley::EmptyPythonList,
+				      const boost::python::list& tags=finley::EmptyPythonList);
   /**
      \brief
      Merges a list of meshes into one list.

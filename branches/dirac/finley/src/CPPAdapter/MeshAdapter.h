@@ -673,13 +673,16 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   bool supportsContactElements() const;
   
+  
+  private:
+  
   /**
    \brief  adds points to support more Dirac delta function.
    */
   FINLEY_DLL_API
   void addDiracPoints( const boost::python::list& points, const boost::python::list& tags=EmptyPythonList) const;
-  FINLEY_DLL_API
-  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
+//  FINLEY_DLL_API
+//  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
   FINLEY_DLL_API
   void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
 
@@ -696,6 +699,30 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
+  friend escript::Domain_ptr finley::brick(int n0,int n1,int n2,int order,
+		    double l0,double l1,double l2,
+		    int periodic0,int periodic1,
+		    int periodic2,
+		    int integrationOrder,
+		    int reducedIntegrationOrder,
+		    int useElementsOnFace,
+                    int useFullElementOrder,
+                     int optimize, 
+		    const boost::python::list& points,
+		    const boost::python::list& tags
+		    );
+		    
+		    
+friend   escript::Domain_ptr  finley::rectangle(int n0,int n1,int order,
+			double l0, double l1,
+			int periodic0,int periodic1,
+			int integrationOrder,
+                        int reducedIntegrationOrder,
+			int useElementsOnFace,
+		        int useFullElementOrder,
+                        int optimize,
+			const boost::python::list& points,
+			const boost::python::list& tags);		    
 };
 
 // Do not use this class. It is a convenience wrapper for the dataexporter.
