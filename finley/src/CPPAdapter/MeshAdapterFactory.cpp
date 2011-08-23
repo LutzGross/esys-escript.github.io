@@ -602,7 +602,10 @@ namespace finley {
                     int reducedIntegrationOrder,
 		    int useElementsOnFace,
 		    int useFullElementOrder,
-                    int optimize)
+                     int optimize,
+		    const boost::python::list& points,
+		    const boost::python::list& tags
+		    )
   {
     int numElements[]={n0,n1,n2};
     double length[]={l0,l1,l2};
@@ -629,10 +632,28 @@ namespace finley {
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    MeshAdapter* temp=new MeshAdapter(fMesh);
+     temp->addDiracPoints(points, tags);
     return temp->getPtr();
   }
 
+
+
+  Domain_ptr brick_driver(const boost::python::list& args)
+  {
+      return brick(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]), boost::python::extract<int>(args[2]), 
+		   boost::python::extract<int>(args[3]), boost::python::extract<double>(args[4]),
+		   boost::python::extract<double>(args[5]),
+		   boost::python::extract<double>(args[6]), boost::python::extract<int>(args[7]),
+		   boost::python::extract<int>(args[8]),
+		   boost::python::extract<int>(args[9]),
+		   boost::python::extract<int>(args[10]), boost::python::extract<int>(args[11]),
+		   boost::python::extract<int>(args[12]), 
+		   boost::python::extract<int>(args[13]), boost::python::extract<int>(args[14]),
+		   boost::python::extract<boost::python::list>(args[15]),
+		   boost::python::extract<boost::python::list>(args[16]));
+  }  
+    
 /*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
   Domain_ptr  rectangle(int n0,int n1,int order,
 			double l0, double l1,
@@ -641,7 +662,9 @@ namespace finley {
                         int reducedIntegrationOrder,
 			int useElementsOnFace,
 		        int useFullElementOrder,
-                        int optimize)
+                        int optimize,
+			const boost::python::list& points,
+			const boost::python::list& tags)
   {
     int numElements[]={n0,n1};
     double length[]={l0,l1};
@@ -665,7 +688,8 @@ namespace finley {
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
+    MeshAdapter* temp=new MeshAdapter(fMesh);
+    temp->addDiracPoints(points, tags);
     return temp->getPtr();
   }
 
