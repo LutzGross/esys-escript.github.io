@@ -603,8 +603,8 @@ namespace finley {
 		    int useElementsOnFace,
 		    int useFullElementOrder,
                      int optimize,
-		    const boost::python::list& points,
-		    const boost::python::list& tags
+		    const std::vector<double>& points,
+		    const std::vector<int>& tags
 		    )
   {
     int numElements[]={n0,n1,n2};
@@ -633,7 +633,7 @@ namespace finley {
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     MeshAdapter* temp=new MeshAdapter(fMesh);
-     temp->addDiracPoints(points, tags);
+    temp->addDiracPoints(points, tags);
     return temp->getPtr();
   }
 
@@ -641,6 +641,63 @@ namespace finley {
 
   Domain_ptr brick_driver(const boost::python::list& args)
   {
+      using boost::python::extract;
+
+      // we need to convert lists to stl vectors
+      boost::python::list pypoints=boost::python::extract<boost::python::list>(args[15]);
+      boost::python::list pytags=boost::python::extract<boost::python::list>(args[16]);
+      int numpts=boost::python::extract<int>(pypoints.attr("__len__")());
+      int numtags=boost::python::extract<int>(pytags.attr("__len__")());
+      vector<double> points;
+      vector<int> tags;
+      tags.resize(numtags, -1);
+      for (int i=0;i<numpts;++i)
+      {
+	  boost::python::object temp=pypoints[i];
+	  int l=boost::python::extract<int>(temp.attr("__len__")());
+	  for (int k=0;k<l;++k)
+	  {
+	      points.push_back(extract<double>(temp[k]));	    
+	  }
+      }
+      map<string, int> tagstonames;
+      int curmax=-1;
+      // but which order to assign tags to names?????
+      for (int i=0;i<numtags;++i)
+      {
+	  extract<int> ex_int(pytags[i]);
+	  extract<string> ex_str(pytags[i]);
+	  if (ex_int.check())
+	  {
+	      tags[i]=ex_int();
+	      if (tags[i]> curmax)
+	      {
+		  curmax=tags[i];
+	      }
+	  } 
+	  else if (ex_str.check())
+	  {
+	      string s=ex_str();
+	      map<string, int>::iterator it=tagstonames.find(s);
+	      if (it!=tagstonames.end())
+	      {
+		  // we have the tag already so look it up
+		  tags[i]=it->second;
+	      }
+	      else
+	      {
+		  tagstonames[s]=curmax;
+		  tags[i]=curmax;
+		  curmax++;
+	      }
+	  }
+	  else
+	  {
+	      throw FinleyAdapterException("Error - Unable to extract tag value.");
+	  }
+	
+      }
+      
       return brick(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]), boost::python::extract<int>(args[2]), 
 		   boost::python::extract<int>(args[3]), boost::python::extract<double>(args[4]),
 		   boost::python::extract<double>(args[5]),
@@ -650,8 +707,8 @@ namespace finley {
 		   boost::python::extract<int>(args[10]), boost::python::extract<int>(args[11]),
 		   boost::python::extract<int>(args[12]), 
 		   boost::python::extract<int>(args[13]), boost::python::extract<int>(args[14]),
-		   boost::python::extract<boost::python::list>(args[15]),
-		   boost::python::extract<boost::python::list>(args[16]));
+		   points,
+		   tags);
   }  
     
 /*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
@@ -663,8 +720,8 @@ namespace finley {
 			int useElementsOnFace,
 		        int useFullElementOrder,
                         int optimize,
-			const boost::python::list& points,
-			const boost::python::list& tags)
+			const vector<double>& points,
+			const vector<int>& tags)
   {
     int numElements[]={n0,n1};
     double length[]={l0,l1};
@@ -716,6 +773,78 @@ namespace finley {
 
     return temp->getPtr();
   }
+
+  Domain_ptr rectangle_driver(const boost::python::list& args)
+  {
+      using boost::python::extract;
+
+      // we need to convert lists to stl vectors
+      boost::python::list pypoints=boost::python::extract<boost::python::list>(args[12]);
+      boost::python::list pytags=boost::python::extract<boost::python::list>(args[13]);
+      int numpts=boost::python::extract<int>(pypoints.attr("__len__")());
+      int numtags=boost::python::extract<int>(pytags.attr("__len__")());
+      vector<double> points;
+      vector<int> tags;
+      tags.resize(numtags, -1);
+      for (int i=0;i<numpts;++i)
+      {
+	  boost::python::object temp=pypoints[i];
+	  int l=boost::python::extract<int>(temp.attr("__len__")());
+	  for (int k=0;k<l;++k)
+	  {
+	      points.push_back(extract<double>(temp[k]));	    
+	  }
+      }
+      map<string, int> tagstonames;
+      int curmax=-1;
+      // but which order to assign tags to names?????
+      for (int i=0;i<numtags;++i)
+      {
+	  extract<int> ex_int(pytags[i]);
+	  extract<string> ex_str(pytags[i]);
+	  if (ex_int.check())
+	  {
+	      tags[i]=ex_int();
+	      if (tags[i]> curmax)
+	      {
+		  curmax=tags[i];
+	      }
+	  } 
+	  else if (ex_str.check())
+	  {
+	      string s=ex_str();
+	      map<string, int>::iterator it=tagstonames.find(s);
+	      if (it!=tagstonames.end())
+	      {
+		  // we have the tag already so look it up
+		  tags[i]=it->second;
+	      }
+	      else
+	      {
+		  tagstonames[s]=curmax;
+		  tags[i]=curmax;
+		  curmax++;
+	      }
+	  }
+	  else
+	  {
+	      throw FinleyAdapterException("Error - Unable to extract tag value.");
+	  }
+	
+      }
+      
+      return rectangle(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]), boost::python::extract<int>(args[2]), 
+		   boost::python::extract<double>(args[3]),
+		   boost::python::extract<double>(args[4]),
+		   boost::python::extract<int>(args[5]), boost::python::extract<int>(args[6]),
+		   boost::python::extract<int>(args[7]),
+		   boost::python::extract<int>(args[8]),
+		   boost::python::extract<int>(args[9]), boost::python::extract<int>(args[10]),
+		   boost::python::extract<int>(args[11]), 
+		   points,
+		   tags);
+  }  
+
 
   Domain_ptr  glueFaces(const boost::python::list& meshList,
                  	               double safety_factor, 

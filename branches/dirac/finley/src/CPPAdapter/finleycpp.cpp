@@ -138,16 +138,8 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def ("__Rectangle_driver",finley::rectangle,
-      (arg("n0")=1,arg("n1")=1,arg("order")=1,
-      arg("l0")=1.0,arg("l1")=1.0,
-      arg("periodic0")=false,arg("periodic1")=false,
-      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false,
-      arg("useFullElementOrder")=false,
-      arg("optimize")=false,
-      arg("points")=finley::EmptyPythonList, 
-      arg("tags")=finley::EmptyPythonList) 
+  def ("__Rectangle_driver",finley::rectangle_driver,
+      (arg("args")) 
 //       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"

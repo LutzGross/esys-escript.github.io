@@ -84,7 +84,7 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-#openmp = True
+openmp = False
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
