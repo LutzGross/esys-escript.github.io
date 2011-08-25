@@ -123,6 +123,14 @@ namespace finley {
    */
    FINLEY_DLL_API
    escript::Domain_ptr brick_driver(const boost::python::list& args);
+
+   /**
+   \brief Python driver for rectangle()
+   \param args see rectangle() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr rectangle_driver(const boost::python::list& args);   
+   
    
   /**
      \brief
