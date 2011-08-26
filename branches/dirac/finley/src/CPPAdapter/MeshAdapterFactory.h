@@ -112,9 +112,10 @@ namespace finley {
 		    int reducedIntegrationOrder=-1,
 		    int useElementsOnFace=0,
                     int useFullElementOrder=0,
-                     int optimize=0, 
-		    const boost::python::list& points=finley::EmptyPythonList,
-		    const boost::python::list& tags=finley::EmptyPythonList
+                    int optimize=0, 
+		    const std::vector<double>& points=std::vector<double>(),
+		    const std::vector<int>& tags=std::vector<int>(),
+		    const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
 		    );
 		    
    /**
@@ -161,8 +162,10 @@ namespace finley {
 				      int useElementsOnFace=0,
                                       int useFullElementOrder=0,
                                       int optimize=0,
-				      const boost::python::list& points=finley::EmptyPythonList,
-				      const boost::python::list& tags=finley::EmptyPythonList);
+				      const std::vector<double>& points=std::vector<double>(),
+				      const std::vector<int>& tags=std::vector<int>(),
+				      const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
+				      );
   /**
      \brief
      Merges a list of meshes into one list.
