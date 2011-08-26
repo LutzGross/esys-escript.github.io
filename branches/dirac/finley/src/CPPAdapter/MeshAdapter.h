@@ -699,6 +699,13 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   //
   // pointer to the externally created finley mesh
   boost::shared_ptr<Finley_Mesh> m_finleyMesh;
+  
+  // This is only provided so that the friends below can add tags during construction
+  // do not use for any other purpose
+  boost::shared_ptr<Finley_Mesh> getMesh()
+  {
+      return m_finleyMesh;
+  }
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
@@ -712,7 +719,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                     int useFullElementOrder,
                      int optimize, 
 		    const std::vector<double>& points,
-		    const std::vector<int>& tags
+		    const std::vector<int>& tags,
+		    const std::map<std::string, int>& tagnamestonums			   
 		    );
 		    
 		    
@@ -725,7 +733,8 @@ friend   escript::Domain_ptr  finley::rectangle(int n0,int n1,int order,
 		        int useFullElementOrder,
                         int optimize,
 			const std::vector<double>& points,
-			const std::vector<int>& tags);						
+			const std::vector<int>& tags,
+			const std::map<std::string, int>& tagnamestonums);						
 };
 
 // Do not use this class. It is a convenience wrapper for the dataexporter.

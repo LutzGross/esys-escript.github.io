@@ -604,7 +604,7 @@ namespace finley {
 		    int useFullElementOrder,
                      int optimize,
 		    const std::vector<double>& points,
-		    const std::vector<int>& tags
+		    const std::vector<int>& tags, const std::map<std::string, int>& tagnamestonums
 		    )
   {
     int numElements[]={n0,n1,n2};
@@ -634,6 +634,11 @@ namespace finley {
     checkFinleyError();
     MeshAdapter* temp=new MeshAdapter(fMesh);
     temp->addDiracPoints(points, tags);
+    Finley_Mesh* out=temp->getMesh().get();	
+    for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
+    {
+	  Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
+    }        
     return temp->getPtr();
   }
 
@@ -660,9 +665,8 @@ namespace finley {
 	      points.push_back(extract<double>(temp[k]));	    
 	  }
       }
-      map<string, int> tagstonames;
-      int curmax=-1;
-      // but which order to assign tags to names?????
+      map<string, int> namestonums;
+      int curmax=40;				// bricks use up to 30
       for (int i=0;i<numtags;++i)
       {
 	  extract<int> ex_int(pytags[i]);
@@ -670,23 +674,23 @@ namespace finley {
 	  if (ex_int.check())
 	  {
 	      tags[i]=ex_int();
-	      if (tags[i]> curmax)
+	      if (tags[i]>= curmax)
 	      {
-		  curmax=tags[i];
+		  curmax=tags[i]+1;
 	      }
 	  } 
 	  else if (ex_str.check())
 	  {
 	      string s=ex_str();
-	      map<string, int>::iterator it=tagstonames.find(s);
-	      if (it!=tagstonames.end())
+	      map<string, int>::iterator it=namestonums.find(s);
+	      if (it!=namestonums.end())
 	      {
 		  // we have the tag already so look it up
 		  tags[i]=it->second;
 	      }
 	      else
 	      {
-		  tagstonames[s]=curmax;
+		  namestonums[s]=curmax;
 		  tags[i]=curmax;
 		  curmax++;
 	      }
@@ -698,7 +702,8 @@ namespace finley {
 	
       }
       
-      return brick(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]), boost::python::extract<int>(args[2]), 
+      Domain_ptr res=brick(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]),
+			   boost::python::extract<int>(args[2]), 
 		   boost::python::extract<int>(args[3]), boost::python::extract<double>(args[4]),
 		   boost::python::extract<double>(args[5]),
 		   boost::python::extract<double>(args[6]), boost::python::extract<int>(args[7]),
@@ -708,7 +713,9 @@ namespace finley {
 		   boost::python::extract<int>(args[12]), 
 		   boost::python::extract<int>(args[13]), boost::python::extract<int>(args[14]),
 		   points,
-		   tags);
+		   tags, namestonums);
+
+      return res;
   }  
     
 /*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
@@ -721,7 +728,8 @@ namespace finley {
 		        int useFullElementOrder,
                         int optimize,
 			const vector<double>& points,
-			const vector<int>& tags)
+			const vector<int>& tags,
+			const std::map<std::string, int>& tagnamestonums)
   {
     int numElements[]={n0,n1};
     double length[]={l0,l1};
@@ -747,6 +755,11 @@ namespace finley {
     checkFinleyError();
     MeshAdapter* temp=new MeshAdapter(fMesh);
     temp->addDiracPoints(points, tags);
+    Finley_Mesh* out=temp->getMesh().get();	
+    for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
+    {
+	  Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
+    }    
     return temp->getPtr();
   }
 
@@ -796,7 +809,7 @@ namespace finley {
 	  }
       }
       map<string, int> tagstonames;
-      int curmax=-1;
+      int curmax=40;
       // but which order to assign tags to names?????
       for (int i=0;i<numtags;++i)
       {
@@ -805,9 +818,9 @@ namespace finley {
 	  if (ex_int.check())
 	  {
 	      tags[i]=ex_int();
-	      if (tags[i]> curmax)
+	      if (tags[i]>= curmax)
 	      {
-		  curmax=tags[i];
+		  curmax=tags[i]+1;
 	      }
 	  } 
 	  else if (ex_str.check())
@@ -830,7 +843,6 @@ namespace finley {
 	  {
 	      throw FinleyAdapterException("Error - Unable to extract tag value.");
 	  }
-	
       }
       
       return rectangle(boost::python::extract<int>(args[0]), boost::python::extract<int>(args[1]), boost::python::extract<int>(args[2]), 
@@ -842,7 +854,7 @@ namespace finley {
 		   boost::python::extract<int>(args[9]), boost::python::extract<int>(args[10]),
 		   boost::python::extract<int>(args[11]), 
 		   points,
-		   tags);
+		   tags, tagstonames);
   }  
 
 
