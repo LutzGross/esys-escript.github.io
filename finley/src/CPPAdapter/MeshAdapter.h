@@ -673,15 +673,21 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   bool supportsContactElements() const;
   
+  
+  private:
+  
   /**
    \brief  adds points to support more Dirac delta function.
+   
+   Do NOT call these at any time other than construction!
+   Using them later creates consistancy problems
    */
   FINLEY_DLL_API
-  void addDiracPoints( const boost::python::list& points, const boost::python::list& tags=EmptyPythonList) const;
-  FINLEY_DLL_API
-  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
-  FINLEY_DLL_API
-  void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
+  void addDiracPoints( const std::vector<double>& points, const std::vector<int>& tags) const;
+//  FINLEY_DLL_API
+//  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
+//   FINLEY_DLL_API
+//   void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
 
  protected:
 
@@ -693,9 +699,42 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   //
   // pointer to the externally created finley mesh
   boost::shared_ptr<Finley_Mesh> m_finleyMesh;
+  
+  // This is only provided so that the friends below can add tags during construction
+  // do not use for any other purpose
+  boost::shared_ptr<Finley_Mesh> getMesh()
+  {
+      return m_finleyMesh;
+  }
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
+  friend escript::Domain_ptr finley::brick(int n0,int n1,int n2,int order,
+		    double l0,double l1,double l2,
+		    int periodic0,int periodic1,
+		    int periodic2,
+		    int integrationOrder,
+		    int reducedIntegrationOrder,
+		    int useElementsOnFace,
+                    int useFullElementOrder,
+                     int optimize, 
+		    const std::vector<double>& points,
+		    const std::vector<int>& tags,
+		    const std::map<std::string, int>& tagnamestonums			   
+		    );
+		    
+		    
+friend   escript::Domain_ptr  finley::rectangle(int n0,int n1,int order,
+			double l0, double l1,
+			int periodic0,int periodic1,
+			int integrationOrder,
+                        int reducedIntegrationOrder,
+			int useElementsOnFace,
+		        int useFullElementOrder,
+                        int optimize,
+			const std::vector<double>& points,
+			const std::vector<int>& tags,
+			const std::map<std::string, int>& tagnamestonums);						
 };
 
 // Do not use this class. It is a convenience wrapper for the dataexporter.

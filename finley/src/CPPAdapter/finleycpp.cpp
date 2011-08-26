@@ -122,17 +122,8 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
 );
 
-  def ("Brick",finley::brick,
-      (arg("n0")=1,arg("n1")=1,arg("n2")=1,
-      arg("order")=1,
-      arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
-      arg("periodic0")=false,arg("periodic1")=false,arg("periodic2")=false,
-      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false,
-      arg("useFullElementOrder")=false,
-      arg("optimize")=false)
-      
-//       ,return_value_policy<manage_new_object>());
+  def ("__Brick_driver",finley::brick_driver,
+      (arg("params"))
 ,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
@@ -147,14 +138,8 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def ("Rectangle",finley::rectangle,
-      (arg("n0")=1,arg("n1")=1,arg("order")=1,
-      arg("l0")=1.0,arg("l1")=1.0,
-      arg("periodic0")=false,arg("periodic1")=false,
-      arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,
-      arg("useElementsOnFace")=false,
-      arg("useFullElementOrder")=false,
-      arg("optimize")=false)
+  def ("__Rectangle_driver",finley::rectangle_driver,
+      (arg("args")) 
 //       ,return_value_policy<manage_new_object>());
 ,"Creates a rectangular mesh with n0 x n1 elements over the brick [0,l0] x [0,l1]."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
@@ -324,24 +309,24 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
       .def("getMPIRank",&finley::MeshAdapter::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
       .def("MPIBarrier",&finley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
       .def("onMasterProcessor",&finley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
-      .def("addDiracPoints", &finley::MeshAdapter::addDiracPoints,(arg("points"), arg("tags")=finley::EmptyPythonList),
-      "adds points to support more Dirac delta function.\n\n"
-       	":param points: list of points where Dirac delta function are to be defined. The location will be adjusted to\n"
-	"               to match the nearest node of the finite element mesh.\n:type points: ``list`` of ``list``s of ``floats``\n"
-	":param tags: list of tags to be assigned to the points.\n:type tags: ``list`` of ``int``s or ``strings``\n"     
-      )
-      .def("addDiracPoint", &finley::MeshAdapter::addDiracPoint,(arg("point"), arg("tag")=-1),
-        "adds a point to support more Dirac delta function.\n\n"
-       	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
-	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
-	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
-      ) 
-      .def("addDiracPoint", &finley::MeshAdapter::addDiracPointWithTagName,(arg("point"), arg("tag")),
-        "adds a point to support more Dirac delta function.\n\n"
-       	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
-	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
-	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
-      ) 
+//       .def("addDiracPoints", &finley::MeshAdapter::addDiracPoints,(arg("points"), arg("tags")=finley::EmptyPythonList),
+//       "adds points to support more Dirac delta function.\n\n"
+//        	":param points: list of points where Dirac delta function are to be defined. The location will be adjusted to\n"
+// 	"               to match the nearest node of the finite element mesh.\n:type points: ``list`` of ``list``s of ``floats``\n"
+// 	":param tags: list of tags to be assigned to the points.\n:type tags: ``list`` of ``int``s or ``strings``\n"     
+//       )
+//       .def("addDiracPoint", &finley::MeshAdapter::addDiracPoint,(arg("point"), arg("tag")=-1),
+//         "adds a point to support more Dirac delta function.\n\n"
+//        	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
+// 	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
+// 	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
+//       ) 
+//       .def("addDiracPoint", &finley::MeshAdapter::addDiracPointWithTagName,(arg("point"), arg("tag")),
+//         "adds a point to support more Dirac delta function.\n\n"
+//        	":param point: point where Dirac delta function are to be defined. The location will be adjusted to\n"
+// 	"               to match the nearest node of the finite element mesh.\n:type point: ``list`` of ``floats``\n"
+// 	":param tags: tag to be assigned to the point.\n:type tag: ``int``s or ``strings``\n"     
+//       ) 
 ;
 
   class_<finley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
