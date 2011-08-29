@@ -102,7 +102,6 @@ namespace finley {
      \param useFullElementOrder
      \param optimize
   */
-  FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
   escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
@@ -152,7 +151,6 @@ namespace finley {
      \param useFullElementOrder
      \param optimize
   */
-  FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
   escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
