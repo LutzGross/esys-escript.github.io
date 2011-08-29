@@ -44,6 +44,41 @@ extern "C" {
 #include <sstream>
 
 namespace finley {
+  
+// These are friends implemented in MeshAdapterFactory.cpp  
+// They are only fwd declared here so that vis.studio will accept the freind decls  
+escript::Domain_ptr brick(int n0,int n1,int n2,int order,
+		    double l0,double l1,double l2,
+		    int periodic0,int periodic1,
+		    int periodic2,
+		    int integrationOrder,
+		    int reducedIntegrationOrder,
+		    int useElementsOnFace,
+                    int useFullElementOrder,
+                     int optimize, 
+		    const std::vector<double>& points,
+		    const std::vector<int>& tags,
+		    const std::map<std::string, int>& tagnamestonums			   
+		    );
+		    
+		    
+escript::Domain_ptr  rectangle(int n0,int n1,int order,
+			double l0, double l1,
+			int periodic0,int periodic1,
+			int integrationOrder,
+                        int reducedIntegrationOrder,
+			int useElementsOnFace,
+		        int useFullElementOrder,
+                        int optimize,
+			const std::vector<double>& points,
+			const std::vector<int>& tags,
+			const std::map<std::string, int>& tagnamestonums);	  
+  
+}
+
+
+
+namespace finley {
 
   const boost::python::list EmptyPythonList = boost::python::list();
 struct null_deleter
