@@ -103,6 +103,7 @@ namespace finley {
      \param optimize
   */
 //   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
+FINLEY_DLL_API
   escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
 		    int periodic0=0,int periodic1=0,
@@ -152,6 +153,7 @@ namespace finley {
      \param optimize
   */
 //   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+FINLEY_DLL_API
   escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,

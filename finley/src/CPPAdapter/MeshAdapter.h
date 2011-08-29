@@ -46,7 +46,8 @@ extern "C" {
 namespace finley {
   
 // These are friends implemented in MeshAdapterFactory.cpp  
-// They are only fwd declared here so that vis.studio will accept the freind decls  
+// They are only fwd declared here so that vis.studio will accept the freind decls
+FINLEY_DLL_API
 escript::Domain_ptr brick(int n0,int n1,int n2,int order,
 		    double l0,double l1,double l2,
 		    int periodic0,int periodic1,
@@ -61,7 +62,7 @@ escript::Domain_ptr brick(int n0,int n1,int n2,int order,
 		    const std::map<std::string, int>& tagnamestonums			   
 		    );
 		    
-		    
+FINLEY_DLL_API		    
 escript::Domain_ptr  rectangle(int n0,int n1,int order,
 			double l0, double l1,
 			int periodic0,int periodic1,
