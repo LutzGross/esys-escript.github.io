@@ -734,7 +734,7 @@ buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
 buildvars.write("pyvisi=%d\n"%env['pyvisi'])
-buildvars.write("vsl_random=%d"%int(env['vsl_random']))
+buildvars.write("vsl_random=%d\n"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
     if env[i]:
