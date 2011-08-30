@@ -631,8 +631,9 @@ returns the number of iterations steps after which \GMRES performs a restart.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setTruncation}{\optional{truncation=20}}
-sets the number of residuals in \GMRES to be stored for orthogonalization.
-%FIXME: The more residuals are stored the faster \GMRES converges but
+sets the number of residuals in \GMRES to be stored for orthogonalization. 
+The more residuals are stored the faster \GMRES converges but the higher the storage needs are and the more expensive
+a single iteration step becomes.
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{getTruncation}{}
