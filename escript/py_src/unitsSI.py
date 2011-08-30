@@ -298,7 +298,9 @@ cm=Centi*m
 mm=Milli*m
 liter=(Deci*m)**3
 ft=Unit("ft", "feet", 0., 0.3048)
-
+Barrel=Unit("bbl","barrel", 0.,0.1589872891252)
+Mscf=Unit("MSCF", "thousand standard cubic feet", 0., 28.31685)
+Mcf=1000. * ft**3
 #
 #  time
 #
@@ -318,9 +320,6 @@ kg=Unit("kg","kg",0.,1.)
 gram=Milli*kg
 lb=Unit("lb","pound",0.,0.45359237)
 ton=Kilo*kg
-Barrel=Unit("bbl","barrel", 0.,0.1589872891252)
-Mscf=Unit("MSCF", "thousand standard cubic feet", 0., 28.174006042197338)
-Mcf=1000. * ft**3
 #
 #   electric current
 #
