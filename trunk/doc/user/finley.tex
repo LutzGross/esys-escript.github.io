@@ -524,19 +524,19 @@ computation and also ParMETIS will be used to improve the mesh partition if
 running on multiple CPUs with \MPI.
 \end{funcdesc}
 
-\begin{funcdesc}{GlueFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
+\begin{funcdesc}{GlueFaces}{meshList, tolerance=1.e-13}
 generates a new \Domain object from the list \var{meshList} of \finley meshes.
 Nodes in face elements whose difference of coordinates is less than
 \var{tolerance} times the diameter of the domain are merged.
 The corresponding face elements are removed from the mesh.
-%TODO: explain \var{safetyFactor} and show an example.
+\function{GlueFaces} is not supported under \MPI with more than one rank.
 \end{funcdesc}
 
-\begin{funcdesc}{JoinFaces}{meshList,safetyFactor=0.2,tolerance=1.e-13}
+\begin{funcdesc}{JoinFaces}{meshList, tolerance=1.e-13}
 generates a new \Domain object from the list \var{meshList} of \finley meshes.
 Face elements whose node coordinates differ by less than \var{tolerance} times
 the diameter of the domain are combined to form a contact element\index{element!contact}.
 The corresponding face elements are removed from the mesh.
-%TODO: explain \var{safetyFactor} and show an example.
+\function{JoinFaces} is not supported under \MPI with more than one rank.
 \end{funcdesc}
 
