@@ -759,7 +759,8 @@ namespace finley {
     for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
     {
 	  Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
-    }    
+    }
+    Finley_ElementFile_setTagsInUse(out->Points);
     return temp->getPtr();
   }
 
