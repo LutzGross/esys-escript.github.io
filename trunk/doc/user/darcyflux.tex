@@ -90,7 +90,7 @@ u_{k,k} = f & \mbox{ on } & \Gamma_{D} \\
 Notice that the second condition is a natural boundary condition.
 Global post-processing is more expense than direct pressure evaluation
 however the flux is more accurate and asymptotic incompressibility
-for mesh size towards zero can be shown (if $\omega>0$).
+for mesh size towards zero can be shown, if $\omega>0$.
 
 
 \subsection{Functions}
@@ -105,6 +105,10 @@ If \var{verbose} is set some information are printed.
 
 \begin{memberdesc}[DarcyFlow]{EVAL}
 flux is calculated directly from pressure evaluation, see section~\ref{SEC DARCY SIMPLE}.
+\end{memberdesc}
+
+\begin{memberdesc}[DarcyFlow]{SMOOTH}
+solver using global post-processing of flux with weighting factor $\omega=0$, see section~\ref{SEC DARCY POST}. 
 \end{memberdesc}
 
 \begin{memberdesc}[DarcyFlow]{POST}
