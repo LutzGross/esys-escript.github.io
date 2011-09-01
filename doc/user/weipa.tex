@@ -26,9 +26,12 @@ the simulation is still running without the need to save any files.
     holds an {\it escript} dataset including a domain and data variables
     for a single time step and offers methods to export the data in various
     formats.
-    It is not recommended to create a dataset object directly in \PYTHON using
-    the constructor (it is not actually exposed) but use the
-    \var{createDataset} function from \weipa instead, see \Sec{sec:weipafuncs}.
+    It is preferable to create a dataset object using the \var{createDataset}
+    function from \weipa (see \Sec{sec:weipafuncs}) rather than using the (non-exposed)
+    \PYTHON constructor for the class.
+%     It is not recommended to create a dataset object directly in \PYTHON using
+%     the constructor (it is not actually exposed) but use the
+%     \var{createDataset} function from \weipa instead, see \Sec{sec:weipafuncs}.
 \end{classdesc}
 
 \noindent The following methods are available:
@@ -225,7 +228,7 @@ the save options to your needs in the 'Set Save options' dialog which is
 accessible from the 'File' menu. Then select 'Save Window' and you should find
 an image file with the name and location as entered in the options dialog.
 
-\subsection{Using the \VisIt CLI}
+\subsection{Using the \VisIt CLI (command line interface)}
 We will now perform exactly the same steps as in the last section but using the
 \PYTHON interface of \VisIt instead of the GUI. Start up the CLI by issuing
 \begin{verbatim}
@@ -237,15 +240,15 @@ instead.
 Enter the following commands, one by one, noticing the changes in the
 visualization window after every block of commands:
 \begin{python}
-  OpenDatabase('deform.vtu')
-  AddPlot('Pseudocolor','stress')
+  OpenDatabase("deform.vtu")
+  AddPlot("Pseudocolor","stress")
   DrawPlots()
 
   p=PseudocolorAttributes()
   p.centering=p.Nodal
   SetPlotOptions(p)
 
-  AddOperator('ThreeSlice')
+  AddOperator("ThreeSlice")
   DrawPlots()
 
   t=ThreeSliceAttributes()
@@ -253,7 +256,7 @@ visualization window after every block of commands:
   t.y=0.3
   SetOperatorOptions(t)
 
-  AddPlot('Vector', 'disp')
+  AddPlot("Vector", "disp")
   DrawPlots()
 
   v=VectorAttributes()
