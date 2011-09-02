@@ -1228,6 +1228,25 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
     setValueOfDataPointToArray(dataPointNo,py_object);
 }
 
+
+void
+Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
+{
+    if( get_MPIRank()==proc )
+    {
+        boost::python::extract<double> dex(v);
+        if (dex.check())
+        {
+	  setValueOfDataPoint(id, dex());
+        }
+        else
+	{
+	  setValueOfDataPointToArray(id, v);	  
+	}
+    }  
+}
+
+
 void
 Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& obj)
 {

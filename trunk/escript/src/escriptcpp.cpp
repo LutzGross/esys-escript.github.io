@@ -329,6 +329,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("delay",&escript::Data::delay,"Convert this object into lazy representation")
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject,args("dataPointNo","value"))
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
+    .def("_setTupleForGlobalDataPoint", &escript::Data::setTupleForGlobalDataPoint)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint,"\nModify the value of a single datapoint.\n\n:param dataPointNo:\n"
 ":type dataPointNo: int\n:param value: \n:type value: ``float`` or an object which acts like an array, ``tuple`` or ``list``\n:warning: Use of this operation is discouraged. It prevents some optimisations from operating.")
     .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple,args("dataPointNo"),
