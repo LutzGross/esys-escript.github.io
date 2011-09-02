@@ -3669,9 +3669,14 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin, double Aste
     }
     if (!error)
     {
-	int twx=ts[0]-1;	// table width x
+// 	int twx=ts[0]-1;	// table width x
+// 	int twy=ts[1]-1;	// table width y
+// 	int twz=ts[2]-1;	// table width z
+
+	int twx=ts[2]-1;	// table width x
 	int twy=ts[1]-1;	// table width y
-	int twz=ts[2]-1;	// table width z
+	int twz=ts[0]-1;	// table width z
+
 	bool haserror=false;
 	int l=0;
 	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat) schedule(static) 
