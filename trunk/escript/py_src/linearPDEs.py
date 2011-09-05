@@ -3107,13 +3107,41 @@ class LinearPDE(LinearProblem):
      :rtype: `Data`
      """
      if u==None: u=self.getSolution()
-     return util.tensormult(self.getCoefficient("A"),util.grad(u,Funtion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficient("B"),u) \
-           -util.self.getCoefficient("X") \
-           +util.tensormult(self.getCoefficient("A_reduced"),util.grad(u,ReducedFuntion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficient("B_reduced"),u) \
-           -util.self.getCoefficient("X_reduced")
+     if self.getNumEquations()>1:
+       out = escript.Data(0.,(self.getNumEquations(),self.getDim()),self.getFunctionSpaceForCoefficient("X"))
+     else:
+       out = escript.Data(0.,(self.getDim(), ),self.getFunctionSpaceForCoefficient("X"))
 
+     A=self.getCoefficient("A")
+     if not A.isEmpty():
+           out+=util.tensormult(A,util.grad(u,self.getFunctionSpaceForCoefficient("A")))
+      
+     B=self.getCoefficient("B")
+     if not B.isEmpty():
+           if B.getRank() == 1:
+               out+=B * u
+           else:
+               out+=util.generalTensorProduct(B,u,axis_offset=1)
+
+     X=self.getCoefficient("X") 
+     if not X.isEmpty():
+           out-=X
+
+     A_reduced=self.getCoefficient("A_reduced")
+     if not A_reduced.isEmpty():
+           out+=util.tensormult(A_reduced, util.grad(u,self.getFunctionSpaceForCoefficient("A_reduced"))) \
+
+     B_reduced=self.getCoefficient("B_reduced")
+     if not B_reduced.isEmpty():
+           if B_reduced.getRank() == 1:
+                out+=B_reduced*u
+           else:
+                out+=util.generalTensorProduct(B_reduced,u,axis_offset=1)
+
+     X_reduced=self.getCoefficient("X_reduced")
+     if not X_reduced.isEmpty():
+           out-=X_reduced
+     return out
 
 class Poisson(LinearPDE):
    """
