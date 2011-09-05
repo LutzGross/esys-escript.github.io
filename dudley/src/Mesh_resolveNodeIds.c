@@ -63,6 +63,10 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 #endif
 #ifdef Dudley_TRACE
     printf("Node id range used by elements is %d:%d\n", global_min_id, global_max_id);
+#else
+    /* avoid unused var warning if Dudley_TRACE is not defined */
+    (void)global_min_id;
+    (void)global_max_id;
 #endif
     if (min_id > max_id)
     {
