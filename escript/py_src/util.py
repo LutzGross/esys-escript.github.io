@@ -5021,7 +5021,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``
-        - r runs through ``arg0.Shape[:axis_offset]``
+        - r runs through ``arg1.Shape[:axis_offset]``
         - t runs through ``arg1.Shape[axis_offset:]``
 
     :param arg0: first argument
