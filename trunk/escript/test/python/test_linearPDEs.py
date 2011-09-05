@@ -2443,7 +2443,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
 
-   def test_FluxScalar0(self):
+    def test_FluxScalar0(self):
         pde= LinearPDE(self.domain, numEquations=1, numSolutions=1)
         u=self.domain.getX()[0]
         f = pde.getFlux(u)
@@ -2451,7 +2451,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertEqual(f.getFunctionSpace(),Function(self.domain),"wrong function space")
         self.assertEqual(Lsup(f),0.,"wrong result")
 
-   def test_FluxScalar(self):
+    def test_FluxScalar(self):
         pde= LinearPDE(self.domain, numEquations=1, numSolutions=1)
         pde.setValue(X=kronecker(self.domain)[0]*1., B=kronecker(self.domain)[1]*2, A=5*kronecker(self.domain))
         x=self.domain.getX()[0]
@@ -2461,7 +2461,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         f_ref=x*kronecker(self.domain)[1]*2+(5-1)*kronecker(self.domain)[0]
         self.assertTrue(self.check(f, f_ref),"wrong result")
 
-   def test_FluxScalarReduced(self):
+    def test_FluxScalarReduced(self):
         pde= LinearPDE(self.domain, numEquations=1, numSolutions=1)
         pde.setValue(X_reduced=kronecker(self.domain)[0]*1., B_reduced=kronecker(self.domain)[1]*2, A_reduced=5*kronecker(self.domain))
         x=self.domain.getX()[0]
@@ -2471,7 +2471,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         f_ref=x*kronecker(self.domain)[1]*2+(5-1)*kronecker(self.domain)[0]
         self.assertTrue(self.check(f, f_ref),"wrong result")
 
-   def test_FluxSystem0(self):
+    def test_FluxSystem0(self):
         pde= LinearPDE(self.domain, numEquations=2, numSolutions=2)
         u=self.domain.getX()
         f = pde.getFlux(u)
@@ -2479,7 +2479,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertEqual(f.getFunctionSpace(),Function(self.domain),"wrong function space")
         self.assertEqual(Lsup(f),0.,"wrong result")
 
-   def test_FluxSystem(self):
+    def test_FluxSystem(self):
         pde= LinearPDE(self.domain, numEquations=2, numSolutions=2)
         X=Data(0., (2, self.domain.getDim()), Function(self.domain))
         X[0,0]=1
@@ -2494,7 +2494,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertEqual(f.getFunctionSpace(),Function(self.domain),"wrong function space")
         f_ref=X*(5*x[0]-1+10)
         self.assertTrue(self.check(f, f_ref),"wrong result")
-   def test_FluxSystemReduced(self):
+    def test_FluxSystemReduced(self):
         pde= LinearPDE(self.domain, numEquations=2, numSolutions=2)
         X=Data(0., (2, self.domain.getDim()), ReducedFunction(self.domain))
         X[0,0]=1
