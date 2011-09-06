@@ -75,7 +75,7 @@ def build_py(target, source, env):
     try:
        py_compile.compile(str(source[0]), str(target[0]), doraise=True)
        return 0
-    except py_compile.PyCompileError as e:
+    except py_compile.PyCompileError, e:
        print e
        return 1
        
