@@ -284,6 +284,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
             sp.setTolerance()
             sp.initialize(...)
             v,p=sp.solve(v0,p0)
+            sp.setStokesEquation(...) # new values for some parameters
+            v1,p1=sp.solve(v,p)
      """
      def __init__(self,domain,**kwargs):
          """
@@ -360,7 +362,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      def updateStokesEquation(self, v, p):
          """
          updates the Stokes equation to consider dependencies from ``v`` and ``p``
-         :note: This method can be overwritten by a subclass. Use `setStokesEquation` to set new values.
+         :note: This method can be overwritten by a subclass. Use `setStokesEquation` to set new values to model parameters.
          """
          pass
      def setStokesEquation(self, f=None,fixed_u_mask=None,eta=None,surface_stress=None,stress=None, restoration_factor=None):
@@ -461,7 +463,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def getDV(self, p, v, tol):
          """
-         return the value for v for a given p (overwrite)
+         return the value for v for a given p 
 
          :param p: a pressure
          :param v: a initial guess for the value v to return.

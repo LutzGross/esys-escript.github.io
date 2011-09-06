@@ -405,6 +405,29 @@ sets the solver options for solving the equation to project the divergence of
 the velocity onto the function space of pressure.
 \end{methoddesc}
 
+\begin{methoddesc}[StokesProblemCartesian]{setStokesEquation}{\optional{f=None,
+    \optional{fixed_u_mask=None, \optional{eta=None,%
+    \optional{surface_stress=None, \optional{stress=None},%
+    \optional{restoration_factor=None}}}}}}
+assigns new values to the model parameters, see method \function{initialize} for description of the 
+parameter list. In contrast to \function{initialize} only values given in the argument list are set. 
+Typically this method is called to update parameters such as viscosity $\eta$ within a time integration scheme
+after the problem has been set up by an initial call of method \function{initialize}.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{updateStokesEquation}{v, p}
+this method is called by the solver to allow for updating the model parameter during the iteration process for 
+incompressibility. In order to implement a non-linear dependence of model parameters such as viscosity $\eta$
+from the current velocity \var{v} or pressure field \var{p} this function can be overwritten in the following way:
+\begin{python}
+    class MyStokesProblem(StokesProblemCartesian):
+       def updateStokesEquation(self, v, p):
+           my_eta=<eta derived from v and p>
+           self.setStokesEquation(eta=my_eta)
+\end{python}
+Note that \function{setStokesEquation} to update the model. \warning{It is not guaranteed that the iteration converges if model parameters are altered.}
+\end{methoddesc}
+
 \subsection{Example: Lid-driven Cavity}
 The following script \file{lid_driven_cavity.py}\index{scripts!\file{lid_driven_cavity.py}}
 which is available in the \ExampleDirectory illustrates the usage of the
