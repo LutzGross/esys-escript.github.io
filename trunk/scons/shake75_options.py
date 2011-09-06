@@ -26,11 +26,11 @@ escript_opts_version = 200
 
 # C compiler command name or full path.
 # DEFAULT: auto-detected
-cc = 'gcc-4.6'
+#cc = 'gcc-4.6'
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
-cxx = 'g++-4.6'
+#cxx = 'g++-4.6'
 
 # Flags to use with both C and C++ compilers. Do not set unless you know
 # what you are doing - use cc_extra to specify additional flags!
@@ -168,17 +168,17 @@ lapack_libs = ['lapack_atlas']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/usr/local'
+#silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-silo_libs = ['siloh5', 'hdf5']
+#silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.2.0/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit/2.4.0/linux-intel/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
