@@ -73,10 +73,14 @@ namespace escript {
   ESCRIPT_DLL_API int getMPIWorldSum(const int val);
 
   /**
-    \brief performs a barrier synchronization across all processors.
+     \brief performs a barrier synchronization across all processors.
   */
-
   ESCRIPT_DLL_API void MPIBarrierWorld();
+
+  /**
+     \brief uses MPI_Comm_spawn to run an external MPI program safely.
+  */
+  ESCRIPT_DLL_API int runMPIProgram(const boost::python::list args);
 
  /**
     \brief 

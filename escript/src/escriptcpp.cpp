@@ -104,6 +104,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 " value for arg1. The maximum value is computed and returned.\n\n:rtype: int");
   def("getMPIWorldSum",escript::getMPIWorldSum,"\nEach MPI process calls this function with a"
 " value for arg1. The values are added up and the total value is returned.\n\n:rtype: int");
+  def("runMPIProgram",escript::runMPIProgram,"Spawns an external MPI program using a separate communicator.");
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
   def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("append")=false),

@@ -14,6 +14,11 @@
 Import('*')
 local_env = env.Clone()
 
+if local_env['gmsh']=='m':
+    Execute(Copy('gmshrunner.py', File('#/pycad/py_src/gmshrunner_mpi.py_')))
+else:
+    Execute(Copy('gmshrunner.py', File('#/pycad/py_src/gmshrunner_ser.py_')))
+
 # get the test source file names
 sources = Glob('*.py')
 

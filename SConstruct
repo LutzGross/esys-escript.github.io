@@ -598,9 +598,12 @@ if env['parmetis']:
 
 try:
     import subprocess
-    p=subprocess.Popen(['gmsh', '-version'], stderr=subprocess.PIPE)
-    p.poll()
-    env['gmsh']=True
+    p=subprocess.Popen(['gmsh', '-info'], stderr=subprocess.PIPE)
+    _,e=p.communicate()
+    if e.split().count("MPI"):
+        env['gmsh']='m'
+    else:
+        env['gmsh']='s'
 except OSError:
     env['gmsh']=False
 
@@ -649,7 +652,9 @@ for i in e_list:
     print("%16s:  YES"%i)
 for i in d_list:
     print("%16s:  DISABLED"%i)
-if env['gmsh']:
+if env['gmsh']=='m':
+    print("            gmsh:  FOUND, MPI-ENABLED")
+elif env['gmsh']=='s':
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")

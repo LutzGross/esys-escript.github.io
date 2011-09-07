@@ -160,6 +160,38 @@ ESCRIPT_DLL_API int getMPIWorldSum(const int val) {
   return out;
 }
 
+ESCRIPT_DLL_API int runMPIProgram(boost::python::list args) {
+#ifdef ESYS_MPI
+    MPI_Comm intercomm;
+    MPI_Info info;
+    int errors;
+    int nargs = boost::python::extract<int>(args.attr("__len__")());
+    std::string cmd = boost::python::extract<std::string>(args[0]);
+    std::vector<std::string> cpp_args(nargs);
+    char** c_args = new char*[nargs];
+    char* c_cmd = const_cast<char*>(cmd.c_str());
+    // skip command name in argument list
+    for (int i=1; i<nargs; i++) {
+	    cpp_args[i-1]=boost::python::extract<std::string>(args[i]);
+        c_args[i-1]=const_cast<char*>(cpp_args[i-1].c_str());
+    }
+    c_args[nargs-1]=NULL;
+    MPI_Info_create(&info);
+    MPI_Comm_spawn(c_cmd, c_args, 1, info, 0, MPI_COMM_WORLD, &intercomm, &errors);
+    MPI_Info_free(&info);
+    delete[] c_args;
+    return errors;
+#else
+    std::string cmd;
+    int nargs = boost::python::extract<int>(args.attr("__len__")());
+    for (int i=0; i<nargs; i++) {
+	    cmd+=boost::python::extract<std::string>(args[i]);
+        cmd+=" ";
+    }
+    return system(cmd.c_str());
+#endif
+}
+
 ESCRIPT_DLL_API double getMachinePrecision() {
    return DBL_EPSILON;
 }
