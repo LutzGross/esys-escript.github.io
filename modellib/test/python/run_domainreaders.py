@@ -44,7 +44,7 @@ except KeyError:
 
 
 def Test_domain(dommodule, f):
-    dom=RectangularDomain(dommodule)
+    dom=RectangularDomain(dommodule, parameters=["fish","dummy"], debug=True)
     # need to write to both .fly and .gmsh
     dom.domain().write(f+"dr.fly")
     r1=DomainReader(dommodule)
@@ -73,7 +73,7 @@ else:
    
    #Now we need to test using the FinleyReader
    
-   rf=FinleyReader()
+   rf=FinleyReader(parameters=["fish","dummy"], debug=True)
    rf.source=DataSource(uri=os.path.join(MODELLIB_WORKDIR,"TESTfindr.fly"), fileformat="fly")
    rf.domain()
    
