@@ -124,8 +124,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      }
      if (Esys_noError()) {
         out->block_size=out->row_block_size*out->col_block_size;
-        out->col_coupler=Paso_Coupler_alloc(pattern->col_connector,out->col_block_size);
-        out->row_coupler=Paso_Coupler_alloc(pattern->row_connector,out->row_block_size);
+        out->col_coupler=Paso_Coupler_alloc(out->pattern->col_connector,out->col_block_size);
+        out->row_coupler=Paso_Coupler_alloc(out->pattern->row_connector,out->row_block_size);
         /* this should be bypassed if trilinos is used */
         if (type & MATRIX_FORMAT_TRILINOS_CRS) {
            #ifdef TRILINOS
