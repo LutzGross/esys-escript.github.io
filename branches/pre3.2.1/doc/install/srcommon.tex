@@ -20,8 +20,12 @@ Section~\ref{sec:deps} describes the dependencies, while Section~\ref{sec:compil
 If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:allsrc}.
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
- \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
-\item \linux using icc on SGI ICE 8200. (At this stage, we do not recommend building with intel-11)\footnote{There is a bug in icpc-11 related to exception handling and openmp. This results in binaries which crash.}
+ \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2.
+Also do not manually link the gomp library with gcc 4.3.3 --- it causes problems.
+the -fopenmp switch will take care of that.}
+\item \linux using icc on SGI ICE 8200. (At this stage, we do not recommend building with intel-11)\footnote{There
+ is a bug in icpc-11 related to exception handling and openmp. This results in binaries which crash.
+Apparently this problem is fixed in icpc-12.}
 \item \macosx using gcc
 \item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
@@ -51,6 +55,7 @@ You must take greater care if downloading sources separately.
 The version numbers given here are not strict requirements, more recent (and in some cases older) versions are very likely to work.
 The following packages should be sufficient (but not necessarily minimal) for Debian 5.0 (``Lenny''):
 python-dev, libboost-python1.35-dev, scons, python-numpy, g++.
+For later Debian versions there will be a more recent boost-python library.
 
 These packages may be required for some of the optional capabilities of the system:
 
@@ -263,6 +268,6 @@ faults.
 
 \subsubsection{\openmp builds segfault running examples}
 One known cause for this is linking the \file{gomp} library with escript built using gcc 4.3.3.
-While you need the \texttt{-fopenmp} switch you should not need to link \file{gomp}.
+While you need the \texttt{-fopenmp} switch you should not need to (explicitly) link \file{gomp}.
 
 

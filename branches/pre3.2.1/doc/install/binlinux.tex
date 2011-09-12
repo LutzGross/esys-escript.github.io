@@ -30,7 +30,7 @@ For example, \file{escript-3.0-1-lenny_amd64.deb} would be the file for lenny fo
 To install \esfinley download the appropriate \file{.deb} file and execute the following commands as root (you need to be in the directory containing the file):
 
 \begin{verse}
-\textbf{(For users of Ubuntu~10.10 \textit{``Maverick Meercat''} only)}\\
+\textbf{(For users of Ubuntu~10.10 \textit{``Maverick Meercat''} and later)}\\
 You will need to either install \texttt{aptitude}\footnote{Unless you are short on disk space \texttt{aptitude} is recommended} or replace use \texttt{apt-get} where this guide uses \texttt{aptitude}.
 \begin{shellCode}
 sudo apt-get install aptitude
@@ -59,11 +59,11 @@ Please notify the development team if something goes wrong.
 \subsection{Stand-alone bundle}\label{sec:standalonelinux}
 
 If there is no package available for your distribution, you may be able to use one of our stand alone bundles.
-These come in two parts: escript itself (\file{escript_3.2_i386.tar.bz2}) and a group of required programs (\file{escript-support_3.0_i386.tar.bz2}) (Note that the support bundle is version~3.0 not 3.2) . For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.
+These come in two parts: escript itself (\file{escript_3.2.1_i386.tar.bz2}) and a group of required programs (\file{escript-support_3.0_i386.tar.bz2}) (Note that the support bundle is version~3.0 not 3.2) . For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.
 This point release uses the same support bundle as previous releases so if you already have it you don't need a new version.
 \begin{shellCode}
 tar -xjf escript-support_3.0_i386.tar.bz2
-tar -xjf escript_3.2_i386.tar.bz2
+tar -xjf escript_3.2.1_i386.tar.bz2
 \end{shellCode}
 This will produce a directory called \file{stand} which contains a stand-alone version of \esfinley and its dependencies.
 You can rename or move it as is convenient to you, no installation is required.
