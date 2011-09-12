@@ -231,7 +231,9 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
         }
      } else {
         #pragma omp parallel for private(i)
-        for (i=0; i < coupler->connector->send->numSharedComponents;++i) coupler->send_buffer[i]=in[coupler->connector->send->shared[i]];
+        for (i=0; i < coupler->connector->send->numSharedComponents;++i) {
+	   coupler->send_buffer[i]=in[coupler->connector->send->shared[i]];
+	}
      }
      /* send buffer out */
      {
