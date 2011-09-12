@@ -14,6 +14,27 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{3.2 to 3.2.1}
+\begin{itemize}
+ \item Improved documentation.
+ \item domain_readers now work as does getFlux.
+ \item More support for Dirac delta functions.
+ \item Improvements to Darcy flow solvers (+coupled solvers not supported).
+ \item Random data now drawn from boost::random on all platforms.
+Random data from intel's VSL is an option if building from source but the required sequence of MKL link instructions
+is left as an exercise for the reader.
+ \item improved pythonicity:
+\begin{itemize}
+ \item __truediv__ and __rtruediv__ on esys.escript.Data 
+ \item arithmetic operations on Data now return NotImplemented when they do not know what to do with their arguments.
+ \item unit tests do not call deprecated versions of assert??? methods.
+\end{itemize}
+
+ \item Various bug fixes.
+ \item Code cleanup and warning removal.
+\end{itemize}
+
+
 \subsection*{3.1 to 3.2}
 \begin{itemize}
 \item The deprecated name for the launcher has been removed. To run scripts use

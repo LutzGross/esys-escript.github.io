@@ -17,7 +17,7 @@ If you are going to distribute the package and you are not building from exactly
 then you should increase this number (Y).
 If X increases, then Y should go back to 1
 
-Update trunk/doc/manpages/finleypython.1  (or whatever it is called now) to record any changes.
+Update trunk/doc/manpages/run-escript.1  (or whatever it is called now) to record any changes.
 
 Commit any changes you have made.
 
