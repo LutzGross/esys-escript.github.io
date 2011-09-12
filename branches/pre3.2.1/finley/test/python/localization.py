@@ -1,6 +1,6 @@
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2011 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -15,7 +15,7 @@ with a plastic layer above a viscous layer of thickness H_VISC.
 The yield condition is perturbed along a line at the boundary between
 viscous and plastic layer to trigger localization.
 """
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2011 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
