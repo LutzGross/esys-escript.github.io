@@ -55,7 +55,7 @@ void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double*
 	      for (icb=0;icb< A->col_block_size;icb++) 
                  fac=MAX(fac,ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]));
           }
-          array[irow]+=fac;
+          array[irow]=MAX(array[irow], fac);
         }
    }
 }

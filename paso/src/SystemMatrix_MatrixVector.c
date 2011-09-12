@@ -99,5 +99,4 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
       }
   }
-  
 }

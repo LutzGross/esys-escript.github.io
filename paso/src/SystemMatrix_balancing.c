@@ -33,8 +33,8 @@
 
 void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool_t RHS)
 {
-   const dim_t nrow=A->mainBlock->numRows*A->row_block_size;
-   const dim_t ncol=A->mainBlock->numCols*A->col_block_size;
+   const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
+   const dim_t ncol=Paso_SystemMatrix_getTotalNumCols(A);
    index_t i;
    
    if (A->is_balanced) {
@@ -55,8 +55,8 @@ void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x
 
 void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool_t RHS)
 {
-   const dim_t nrow=A->mainBlock->numRows*A->row_block_size;
-   const dim_t ncol=A->mainBlock->numCols*A->col_block_size;
+   const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
+   const dim_t ncol=Paso_SystemMatrix_getTotalNumCols(A);
    index_t i;
    
    if (A->is_balanced) {
@@ -77,8 +77,9 @@ void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, c
 
 void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
    dim_t irow;
-   const dim_t nrow=A->mainBlock->numRows*A->row_block_size;
+   const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
    register double fac;
+
    if (!A->is_balanced) {
       if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
@@ -113,7 +114,7 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
 		       A->balance_vector[irow]=1.;
                     }
                 }
-             }
+	    }
             {
 		  /* rescale matrix: */
 		  double *remote_values=NULL;
