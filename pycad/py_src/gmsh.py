@@ -179,7 +179,7 @@ class Design(design.Design):
         args[-1]=args[-1]%self.getScriptHandler()
         ret=runGmsh(args)
         if ret > 0:
-            raise RuntimeError, "Could not build mesh: %s"%" ".join(args)
+            raise RuntimeError("Could not build mesh using: %s"%" ".join(args))
         return self.getMeshFileName()
 
         
