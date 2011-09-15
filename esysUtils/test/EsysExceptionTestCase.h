@@ -12,37 +12,21 @@
 *******************************************************/
 
 
-#if !defined  HANDLETESTCASE_H
-#define HANDLETESTCASE_H
+#if !defined ESYSEXCEPTIONTESTCASE_H
+#define ESYSEXCEPTIONTESTCASE_H
 
-#include <string>
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
-
-class EsysExceptionTestCase : public CppUnitTest::TestCase
+class EsysExceptionTestCase : public CppUnit::TestFixture
 {
- private:
-  //
- protected:
-   //
-   // The following methods are for tests
-   //
-   // test methods
-   //
+public:
    void testCase0();
    void testCase1();
    void testCase2();
 
- public:
-  EsysExceptionTestCase (std::string name) : CppUnitTest::TestCase (name) {}
-  ~EsysExceptionTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+   static CppUnit::TestSuite* suite();
 };
 
 #endif
+

@@ -14,7 +14,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -99,6 +99,12 @@ boost_prefix = ['/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/inclu
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-gcc41-mt']
 
+# Prefix or paths to CppUnit headers and libraries. See note above.
+cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
+
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
 netcdf = True
@@ -153,11 +159,11 @@ umfpack_prefix = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2'
 # UMFPACK library/libraries to link against
 umfpack_libs = ['umfpack', 'amd', 'blas']
 
-# Whether to use BoomerAMG
+# Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
 #boomeramg = True
 
-# Prefix or paths to BoomerAMG headers and libraries. 
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
 boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
 
 # BoomerAMG library/libraries to link against
@@ -201,12 +207,12 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/l
 # DEFAULT: False
 #pyvisi = True
 
-# Use intel's VSL library for random data
-#vsl_random = True
-vsl_random = False
-
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 #sys_libs = []

@@ -12,27 +12,18 @@
 *******************************************************/
 
 
-#include "boost/multi_array.hpp"
 #include "multi_arrayTestCase.h"
 
+#include <boost/multi_array.hpp>
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace std;
 
-void multi_arrayTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
 
-void multi_arrayTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
-
-void multi_arrayTestCase::testAll() {
+void multi_arrayTestCase::testAll()
+{
   //
   // Test boost multi_array
   typedef boost::multi_array<double, 3> ArrayType;
@@ -60,11 +51,10 @@ void multi_arrayTestCase::testAll() {
 
 TestSuite* multi_arrayTestCase::suite ()
 {
-  //
-  // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("multi_arrayTestCase");
+  TestSuite *testSuite = new TestSuite("multi_arrayTestCase");
 
-  testSuite->addTest (new TestCaller< multi_arrayTestCase>("testAll",&multi_arrayTestCase::testAll));
+  testSuite->addTest(new TestCaller<multi_arrayTestCase>(
+              "testAll",&multi_arrayTestCase::testAll));
   return testSuite;
 }
 

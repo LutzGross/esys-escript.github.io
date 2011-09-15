@@ -119,6 +119,12 @@ boost_prefix = [os.path.join(system_builddeps, 'boost_1_41_0'), os.path.join(sys
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-vc71-mt-1_41']
 
+# Prefix or paths to CppUnit headers and libraries. See note above.
+#cppunit_prefix = 'C:/CppUnit'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
+
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
 netcdf = True
@@ -173,6 +179,16 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 # UMFPACK library/libraries to link against
 #umfpack_libs = ['umfpack']
 
+# Whether to use BoomerAMG (requires MPI)
+# DEFAULT: False
+#boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
+#boomeramg_prefix = 'C:/boomeramg'
+
+# BoomerAMG library/libraries to link against
+#boomeramg_libs = ['HYPRE']
+
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
@@ -212,6 +228,10 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 sys_libs = ['C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32']

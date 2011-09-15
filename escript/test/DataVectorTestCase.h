@@ -15,33 +15,16 @@
 #if !defined  DataVectorTestCase_20050324_H
 #define  DataVectorTestCase_20050324_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataVectorTestCase : public CppUnitTest::TestCase
+class DataVectorTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataVector class
+public:
   void testAll();
 
-  DataVectorTestCase (std::string name) : TestCase (name) {}
-  ~DataVectorTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

@@ -12,36 +12,19 @@
 *******************************************************/
 
 
-#if !defined  FunctionSpaceTestCase_20040903_H
-#define  FunctionSpaceTestCase_20040903_H
+#if !defined FunctionSpaceTestCase_20040903_H
+#define FunctionSpaceTestCase_20040903_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class FunctionSpaceTestCase : public CppUnitTest::TestCase
+class FunctionSpaceTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // FunctionSpace class
+public:
   void testAll();
 
-  FunctionSpaceTestCase (std::string name) : TestCase (name) {}
-  ~FunctionSpaceTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

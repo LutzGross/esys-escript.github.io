@@ -15,33 +15,16 @@
 #if !defined  DataBlocks2DTestCase_20040405_H
 #define  DataBlocks2DTestCase_20040405_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataBlocks2DTestCase : public CppUnitTest::TestCase
+class DataBlocks2DTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataBlocks2D class
+public:
   void testAll();
 
-  DataBlocks2DTestCase (std::string name) : TestCase (name) {}
-  ~DataBlocks2DTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+
