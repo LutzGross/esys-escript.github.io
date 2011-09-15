@@ -38,11 +38,16 @@ else:
 example_files_allow_mpi = []
 example_files_no_mpi = []
 example_deps = []
+skipped_tests = []
 
 def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
     if needsMagicMPL: needsMPL=True
     if needsGD: needsMPL=True
     if needsGMSH: allowsMPI=False
+
+    if needsGMSH and not env['gmsh']:
+        skipped_tests.append(name)
+        return
 
     if (not needsGMSH or env['gmsh']) and (not needsMPL or haveMPL) and (not needsMagicMPL or mplversion>=mplmagicversion) and (not needsGD or haveGD):
         if allowsMPI:
@@ -109,6 +114,8 @@ sortOutExample('cookbook/example10m.py', needsMagicMPL=True, needsGMSH=True, all
 sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
 
+if len(skipped_tests)>0:
+    print("gmsh not available. Skipping tests %s."%' '.join(skipped_tests))
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 
