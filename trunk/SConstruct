@@ -19,7 +19,7 @@ from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
-REQUIRED_OPTS_VERSION=200
+REQUIRED_OPTS_VERSION=201
 
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
@@ -73,6 +73,9 @@ vars.AddVariables(
 # Mandatory libraries
   ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
   ('boost_libs', 'Boost libraries to link with', ['boost_python-mt']),
+# Mandatory for tests
+  ('cppunit_prefix', 'Prefix/Paths of CppUnit installation', default_prefix),
+  ('cppunit_libs', 'CppUnit libraries to link with', ['cppunit']),
 # Optional libraries and options
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
@@ -440,6 +443,17 @@ except ImportError:
     print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
     Exit(1)
 
+######## CppUnit (required for tests)
+
+try:
+    cppunit_inc_path,cppunit_lib_path=findLibWithHeader(env, env['cppunit_libs'], 'cppunit/TestFixture.h', env['cppunit_prefix'], lang='c++')
+    env.AppendUnique(CPPPATH = [cppunit_inc_path])
+    env.AppendUnique(LIBPATH = [cppunit_lib_path])
+    env.PrependENVPath(LD_LIBRARY_PATH_KEY, cppunit_lib_path)
+    env['cppunit']=True
+except:
+    env['cppunit']=False
+
 ######## VTK (optional)
 
 if env['pyvisi']:
@@ -563,9 +577,6 @@ if env['usempi']:
 
 ######## BOOMERAMG (optional)
 
-#if env['boomeramg'] and env['mpi'] == 'none':
-#    print("boomeramg requires mpi!")
-#    Exit(1)
 if env['mpi'] == 'none': env['boomeramg'] = False
 
 boomeramg_inc_path=''
@@ -574,8 +585,6 @@ if env['boomeramg']:
     boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c')
     env.AppendUnique(CPPPATH = [boomeramg_inc_path])
     env.AppendUnique(LIBPATH = [boomeramg_lib_path])
-    # Note that we do not add the libs since they are only needed for the
-    # weipa library and tools.
     env.AppendUnique(LIBS = env['boomeramg_libs'])
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, boomeramg_lib_path)
     env.Append(CPPDEFINES = ['BOOMERAMG'])
@@ -652,6 +661,10 @@ for i in e_list:
     print("%16s:  YES"%i)
 for i in d_list:
     print("%16s:  DISABLED"%i)
+if env['cppunit']:
+    print("         CppUnit:  FOUND")
+else:
+    print("         CppUnit:  NOT FOUND")
 if env['gmsh']=='m':
     print("            gmsh:  FOUND, MPI-ENABLED")
 elif env['gmsh']=='s':
@@ -688,7 +701,6 @@ Export(
   ]
 )
 
-env.SConscript(dirs = ['tools/CppUnitTest/src'], variant_dir='$BUILD_DIR/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
@@ -809,10 +821,11 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-env.Alias('build_cppunittest', ['install_cppunittest_headers', 'build_cppunittest_lib'])
-env.Alias('install_cppunittest', ['build_cppunittest', 'install_cppunittest_lib'])
-env.Alias('run_tests', ['install_all', 'install_cppunittest_lib'])
-env.Alias('all_tests', ['install_all', 'install_cppunittest_lib', 'run_tests', 'py_tests'])
+test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
+if not env['cppunit']:
+    env.Alias('run_tests', test_msg)
+env.Alias('run_tests', ['install_all'])
+env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
 

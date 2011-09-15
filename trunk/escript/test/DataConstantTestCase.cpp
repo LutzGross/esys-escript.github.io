@@ -12,30 +12,20 @@
 *******************************************************/
 
 
+#include "DataConstantTestCase.h"
+
 #include "escript/DataConstant.h"
 #include "escript/FunctionSpace.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataConstantTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace std;
 using namespace esysUtils;
 using namespace escript::DataTypes;
-
-void DataConstantTestCase::setUp() {
-  //
-  // This is called before each test is run
-}
-
-void DataConstantTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-}
-
 
 namespace
 {
@@ -61,8 +51,8 @@ resolveAndDelete(DataAbstract* p)
 }
 
 
-void DataConstantTestCase::testAll() {
-
+void DataConstantTestCase::testAll()
+{
   cout << endl;
 
   //
@@ -81,7 +71,7 @@ void DataConstantTestCase::testAll() {
   DataConstant testData(FunctionSpace(),shape,data);
 
   cout << "\tTest getLength." << endl;
-  assert(testData.getLength()==1);
+  CPPUNIT_ASSERT(testData.getLength()==1);
 
   shape.push_back(2);
   shape.push_back(3);
@@ -98,13 +88,13 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRefRO(testData1,i,j,k)==1.0);
+        CPPUNIT_ASSERT(getRefRO(testData1,i,j,k)==1.0);
       }
     }
   }
 
   cout << "\tTest getLength." << endl;
-  assert(testData1.getLength()==126);
+  CPPUNIT_ASSERT(testData1.getLength()==126);
 
   cout << "\tTesting copy constructor." << endl;
   DataConstant testData2(testData1);
@@ -112,20 +102,20 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRefRO(testData2,i,j,k)==data[0]);
+        CPPUNIT_ASSERT(getRefRO(testData2,i,j,k)==data[0]);
       }
     }
   }
 
   cout << "\tTest getLength." << endl;
-  assert(testData2.getLength()==126);
+  CPPUNIT_ASSERT(testData2.getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-  assert(testData2.getRank()==3);
-  assert(testData2.getNoValues()==126);
-  assert(testData2.getShape()[0]==2);
-  assert(testData2.getShape()[1]==3);
-  assert(testData2.getShape()[2]==21);
+  CPPUNIT_ASSERT(testData2.getRank()==3);
+  CPPUNIT_ASSERT(testData2.getNoValues()==126);
+  CPPUNIT_ASSERT(testData2.getShape()[0]==2);
+  CPPUNIT_ASSERT(testData2.getShape()[1]==3);
+  CPPUNIT_ASSERT(testData2.getShape()[2]==21);
 
   cout << "\tTest slicing (whole object)." << endl;
 
@@ -139,19 +129,19 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<shape[2];k++) {
     for (int j=0;j<shape[1];j++) {
       for (int i=0;i<shape[0];i++) {
-	assert(getRefRO(*testData3,i,j,k)==data[0]);
+        CPPUNIT_ASSERT(getRefRO(*testData3,i,j,k)==data[0]);
       }
     }
   }
 
-  assert(testData3->getLength()==126);
+  CPPUNIT_ASSERT(testData3->getLength()==126);
 
   cout << "\tVerify data point attributes." << endl;
-  assert(testData3->getRank()==3);
-  assert(testData3->getNoValues()==126);
-  assert(testData3->getShape()[0]==2);
-  assert(testData3->getShape()[1]==3);
-  assert(testData3->getShape()[2]==21);
+  CPPUNIT_ASSERT(testData3->getRank()==3);
+  CPPUNIT_ASSERT(testData3->getNoValues()==126);
+  CPPUNIT_ASSERT(testData3->getShape()[0]==2);
+  CPPUNIT_ASSERT(testData3->getShape()[1]==3);
+  CPPUNIT_ASSERT(testData3->getShape()[2]==21);
 
   cout << "\tTest slicing (part object)." << endl;
 
@@ -165,19 +155,19 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<2;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<2;i++) {
-	assert(getRefRO(*testData4,i,j,k)==data[0]);
+        CPPUNIT_ASSERT(getRefRO(*testData4,i,j,k)==data[0]);
       }
     }
   }
 
-  assert(testData4->getLength()==8);
+  CPPUNIT_ASSERT(testData4->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
-  assert(testData4->getRank()==3);
-  assert(testData4->getNoValues()==8);
-  assert(testData4->getShape()[0]==2);
-  assert(testData4->getShape()[1]==2);
-  assert(testData4->getShape()[2]==2);
+  CPPUNIT_ASSERT(testData4->getRank()==3);
+  CPPUNIT_ASSERT(testData4->getNoValues()==8);
+  CPPUNIT_ASSERT(testData4->getShape()[0]==2);
+  CPPUNIT_ASSERT(testData4->getShape()[1]==2);
+  CPPUNIT_ASSERT(testData4->getShape()[2]==2);
 
   cout << "\tTest slicing (part object)." << endl;
 
@@ -191,20 +181,20 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(getRefRO(*testData5,i,j,k)==data[0]);
+        CPPUNIT_ASSERT(getRefRO(*testData5,i,j,k)==data[0]);
       }
     }
   }
 
-  assert(testData5->getLength()==8);
+  CPPUNIT_ASSERT(testData5->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
 //   dataView=testData5->getPointDataView();
-  assert(testData5->getRank()==3);
-  assert(testData5->getNoValues()==8);
-  assert(testData5->getShape()[0]==1);
-  assert(testData5->getShape()[1]==2);
-  assert(testData5->getShape()[2]==4);
+  CPPUNIT_ASSERT(testData5->getRank()==3);
+  CPPUNIT_ASSERT(testData5->getNoValues()==8);
+  CPPUNIT_ASSERT(testData5->getShape()[0]==1);
+  CPPUNIT_ASSERT(testData5->getShape()[1]==2);
+  CPPUNIT_ASSERT(testData5->getShape()[2]==4);
 
   cout << "\tTest slice setting (1)." << endl;
 
@@ -220,20 +210,20 @@ void DataConstantTestCase::testAll() {
   for (int k=0;k<4;k++) {
     for (int j=0;j<2;j++) {
       for (int i=0;i<1;i++) {
-	assert(getRefRO(*testData5,i,j,k)==data[0]);
+        CPPUNIT_ASSERT(getRefRO(*testData5,i,j,k)==data[0]);
       }
     }
   }
 
-  assert(testData5->getLength()==8);
+  CPPUNIT_ASSERT(testData5->getLength()==8);
 
   cout << "\tVerify data point attributes." << endl;
 //   dataView=testData5->getPointDataView();
-  assert(testData5->getRank()==3);
-  assert(testData5->getNoValues()==8);
-  assert(testData5->getShape()[0]==1);
-  assert(testData5->getShape()[1]==2);
-  assert(testData5->getShape()[2]==4);
+  CPPUNIT_ASSERT(testData5->getRank()==3);
+  CPPUNIT_ASSERT(testData5->getNoValues()==8);
+  CPPUNIT_ASSERT(testData5->getShape()[0]==1);
+  CPPUNIT_ASSERT(testData5->getShape()[1]==2);
+  CPPUNIT_ASSERT(testData5->getShape()[2]==4);
 
 //   delete testData3;
 //   delete testData4;
@@ -241,12 +231,12 @@ void DataConstantTestCase::testAll() {
   delete testData6;
 }
 
-TestSuite* DataConstantTestCase::suite ()
+TestSuite* DataConstantTestCase::suite()
 {
-  //
-  // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataConstantTestCase");
+  TestSuite *testSuite = new TestSuite("DataConstantTestCase");
 
-  testSuite->addTest (new TestCaller< DataConstantTestCase>("testAll",&DataConstantTestCase::testAll));
+  testSuite->addTest(new TestCaller<DataConstantTestCase>(
+              "testAll",&DataConstantTestCase::testAll));
   return testSuite;
 }
+

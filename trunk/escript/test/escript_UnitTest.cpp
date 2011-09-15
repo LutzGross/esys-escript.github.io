@@ -31,9 +31,12 @@
 #include "DataLazyTestCase.h"
 #include "SharedDataTestCase.h"
 
-#include "tools/CppUnitTest/TestRunner.h"
+#include <cppunit/CompilerOutputter.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 
 extern "C"{
 #include "esysUtils/Esys_MPI.h"
@@ -42,42 +45,39 @@ extern "C"{
 int main(int argc, char* argv[])
 {
 #ifdef ESYS_MPI
-        int status = MPI_Init(&argc, &argv);
-        if (status != MPI_SUCCESS) {
-          std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
-          return status;
-        }
+    int status = MPI_Init(&argc, &argv);
+    if (status != MPI_SUCCESS) {
+        std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
+        return status;
+    }
 #endif
-	//
-	// object which runs all of the tests
+    TestResult controller;
+    TestResultCollector result;
+    controller.addListener(&result);
 	TestRunner runner;
-	//
-	// add the RangeTestCase suite of tests to the runner
-	runner.addTest ("SharedData", SharedDataTestCase::suite());
-	runner.addTest ("DataTypes", DataTypesTestCase::suite());
-	runner.addTest ("DataMaths", DataMathsTestCase::suite());
-	runner.addTest ("DataEmpty", DataEmptyTestCase::suite());
-	runner.addTest ("DataConstant", DataConstantTestCase::suite());
- 	runner.addTest ("DataTagged", DataTaggedTestCase::suite());
-	runner.addTest ("DataExpanded", DataExpandedTestCase::suite());
-	runner.addTest ("DataFactory", DataFactoryTestCase::suite());
-	runner.addTest ("DataBlocks2D", DataBlocks2DTestCase::suite());
-	runner.addTest ("DataVector", DataVectorTestCase::suite());
-	runner.addTest ("Taipan", TaipanTestCase::suite());
-	runner.addTest ("DataC", DataCTestCase::suite());
- 	runner.addTest ("DataAlgorithmAdapter", DataAlgorithmAdapterTestCase::suite());
-	runner.addTest ("FunctionSpace", FunctionSpaceTestCase::suite());
-	runner.addTest ("Data", DataTestCase::suite());
-	runner.addTest ("DataLazy",DataLazyTestCase::suite());
+	runner.addTest(SharedDataTestCase::suite());
+	runner.addTest(DataTypesTestCase::suite());
+	runner.addTest(DataMathsTestCase::suite());
+	runner.addTest(DataEmptyTestCase::suite());
+	runner.addTest(DataConstantTestCase::suite());
+ 	runner.addTest(DataTaggedTestCase::suite());
+	runner.addTest(DataExpandedTestCase::suite());
+	runner.addTest(DataFactoryTestCase::suite());
+	runner.addTest(DataBlocks2DTestCase::suite());
+	runner.addTest(DataVectorTestCase::suite());
+	runner.addTest(TaipanTestCase::suite());
+	runner.addTest(DataCTestCase::suite());
+ 	runner.addTest(DataAlgorithmAdapterTestCase::suite());
+	runner.addTest(FunctionSpaceTestCase::suite());
+	runner.addTest(DataTestCase::suite());
+	runner.addTest(DataLazyTestCase::suite());
 
-	// actually run the unit tests.
-	runner.run (argc, argv);
-
+	runner.run(controller);
+    CompilerOutputter outputter( &result, std::cerr );
+    outputter.write();
 #ifdef ESYS_MPI
         MPI_Finalize();
 #endif
-
-	return 0;
+    return result.wasSuccessful() ? 0 : 1;
 }
-
 

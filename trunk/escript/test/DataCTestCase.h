@@ -12,36 +12,20 @@
 *******************************************************/
 
 
-#if !defined  DataCTestCase_20040611_H
-#define  DataCTestCase_20040611_H
+#if !defined DataCTestCase_20040611_H
+#define DataCTestCase_20040611_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataCTestCase : public CppUnitTest::TestCase
+class DataCTestCase : public CppUnit::TestFixture
 {
- public:
+public:
 
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataC class
   void testAll();
 
-  DataCTestCase (std::string name) : TestCase (name) {}
-  ~DataCTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

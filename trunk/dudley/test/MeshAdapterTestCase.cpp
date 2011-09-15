@@ -12,45 +12,33 @@
 *******************************************************/
 
 
+#include "MeshAdapterTestCase.h"
+
 #include "dudley/CppAdapter/MeshAdapter.h"
 #include "dudley/CppAdapter/MeshAdapterFactory.h"
 
 #include "escript/AbstractContinuousDomain.h"
 
-#include "MeshAdapterTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <boost/scoped_ptr.hpp>
 
 using namespace escript;
 using namespace dudley;
-using namespace CppUnitTest;
+using namespace CppUnit;
 
-void MeshAdapterTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
-
-void MeshAdapterTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
-
-void MeshAdapterTestCase::testAll() {
-  //
-  // test construction of a mesh using the brick factory method
-//   boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
-	brick();		// brick now returns a Domain_ptr which will auto delete
-}
-
-TestSuite* MeshAdapterTestCase::suite ()
+void MeshAdapterTestCase::testAll()
 {
-  //
-  // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("MeshAdapterTestCase");
+    // test construction of a mesh using the brick factory method
+    //   boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
+	brick(); // brick now returns a Domain_ptr which will auto delete
+}
 
-  testSuite->addTest (new TestCaller< MeshAdapterTestCase>("testAll",&MeshAdapterTestCase::testAll));
-  return testSuite;
+TestSuite* MeshAdapterTestCase::suite()
+{
+    TestSuite *testSuite = new TestSuite("MeshAdapterTestCase");
+
+    testSuite->addTest(new TestCaller<MeshAdapterTestCase>(
+                "testAll",&MeshAdapterTestCase::testAll));
+    return testSuite;
 }
 

@@ -12,73 +12,62 @@
 *******************************************************/
 
 
+#include "DataTypesTestCase.h"
 #include "escript/DataAlgorithm.h"
+#include "escript/DataTypes.h"
 #include "escript/DataVector.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataTypesTestCase.h"
-#include "escript/DataTypes.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace esysUtils;
 using namespace escript;
 using namespace escript::DataTypes;
 using namespace std;
 
-void DataTypesTestCase::setUp() {
-  //
-  // This is called before each test is run
 
-}
-
-void DataTypesTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-
-}
-
-
-void DataTypesTestCase::testShapeFns() {
+void DataTypesTestCase::testShapeFns()
+{
   cout << "\n\tTest Shape functions." << endl;
   ShapeType shape;
   shape.push_back(2);
   ShapeType s1=shape;
-  assert(checkShape(s1,shape));
+  CPPUNIT_ASSERT(checkShape(s1,shape));
   shape.push_back(3);
   ShapeType s2=shape;
-  assert(checkShape(s2,shape));
+  CPPUNIT_ASSERT(checkShape(s2,shape));
   shape.push_back(4);
   ShapeType s3=shape;
-  assert(checkShape(s3,shape));
+  CPPUNIT_ASSERT(checkShape(s3,shape));
   ShapeType s4=shape;
   s4.push_back(5);
 
   cout << "\t\tNumber of Values." << endl;
-  assert(noValues(shape)==24);
-  assert(noValues(scalarShape)==1);
+  CPPUNIT_ASSERT(noValues(shape)==24);
+  CPPUNIT_ASSERT(noValues(scalarShape)==1);
   cout << "\t\tGet Rank." << endl;
-  assert(getRank(scalarShape)==0);
-  assert(getRank(shape)==3);
+  CPPUNIT_ASSERT(getRank(scalarShape)==0);
+  CPPUNIT_ASSERT(getRank(shape)==3);
 
 
   cout << "\t\tNumber of Values for RegionLoopRangeType." << endl;
   RegionLoopRangeType rlr;
-  assert(noValues(rlr)==1);
+  CPPUNIT_ASSERT(noValues(rlr)==1);
   rlr.push_back(std::pair<int,int>(0,2));
-  assert(noValues(rlr)==2);
+  CPPUNIT_ASSERT(noValues(rlr)==2);
   rlr.push_back(std::pair<int,int>(1,4));
-  assert(noValues(rlr)==6);
+  CPPUNIT_ASSERT(noValues(rlr)==6);
   rlr.push_back(std::pair<int,int>(2,7));
-  assert(noValues(rlr)==30);
+  CPPUNIT_ASSERT(noValues(rlr)==30);
   cout << "\t\tRelative index methods.\n";
-  assert(getRelIndex(s1,1)==1);
-  assert(getRelIndex(s2,1,2)==5);
-  assert(getRelIndex(shape,1,1,1)==9);
-  assert(getRelIndex(s4,2,1,1,1)==34);
+  CPPUNIT_ASSERT(getRelIndex(s1,1)==1);
+  CPPUNIT_ASSERT(getRelIndex(s2,1,2)==5);
+  CPPUNIT_ASSERT(getRelIndex(shape,1,1,1)==9);
+  CPPUNIT_ASSERT(getRelIndex(s4,2,1,1,1)==34);
   cout << "\t\tCreateShapeErrorMessage.\n";
-  assert(createShapeErrorMessage("prefix",s1,s2)==string("prefix This shape: (2,3) Other shape: (2)"));
+  CPPUNIT_ASSERT(createShapeErrorMessage("prefix",s1,s2)==string("prefix This shape: (2,3) Other shape: (2)"));
 
   cout << "\t\tgetSliceRegionLoopRange." << endl;
   RegionType r;
@@ -90,7 +79,7 @@ void DataTypesTestCase::testShapeFns() {
   rl.push_back(std::pair<int,int>(0,3));
   rl.push_back(std::pair<int,int>(0,3));
   RegionLoopRangeType rt=getSliceRegionLoopRange(r);
-  assert(rt==rl);
+  CPPUNIT_ASSERT(rt==rl);
 
 
 #ifdef DOASSERT
@@ -98,46 +87,17 @@ void DataTypesTestCase::testShapeFns() {
 
   cout << "\t\tInvalid index.(too many)" << endl;
   // test too many indices
-  try		
-  {
-     getRelIndex(s1,1,1);
-     assert(false);
-  } catch (EsysException&) {}
-  try		
-  {
-     getRelIndex(s2,1,1,1);
-     assert(false);
-  } catch (EsysException&) {}
-  try		
-  {
-     getRelIndex(s3,1,1,1,1);
-     assert(false);
-  } catch (EsysException&) {}
+  CPPUNIT_ASSERT_THROW(getRelIndex(s1,1,1), EsysException);
+  CPPUNIT_ASSERT_THROW(getRelIndex(s2,1,1,1), EsysException);
+  CPPUNIT_ASSERT_THROW(getRelIndex(s3,1,1,1,1), EsysException);
   // too few inidicies
   cout << "\t\tInvalid index.(too few)" << endl;
-  try		
-  {
-     getRelIndex(s2,1);
-     assert(false);
-  } catch (EsysException&) {}
-  try		
-  {
-     getRelIndex(s3,1,1);
-     assert(false);
-  } catch (EsysException&) {}
-  // inidicies too large
+  CPPUNIT_ASSERT_THROW(getRelIndex(s2,1), EsysException);
+  CPPUNIT_ASSERT_THROW(getRelIndex(s3,1,1), EsysException);
+  // indices too large
   cout << "\t\tInvalid index.(too large for shape)" << endl;
-  try		
-  {
-     getRelIndex(s1,10);
-     assert(false);
-  } catch (EsysException&) {}
-  try		
-  {
-     getRelIndex(s3,2,4,4);
-     assert(false);
-  } catch (EsysException&) {}
-
+  CPPUNIT_ASSERT_THROW(getRelIndex(s1,10), EsysException);
+  CPPUNIT_ASSERT_THROW(getRelIndex(s3,2,4,4), EsysException);
 #endif
 }
 
@@ -151,19 +111,19 @@ void DataTypesTestCase::testResultSliceShape() {
 
   region.push_back(DataTypes::RegionType::value_type(1,5));
   resultShape.push_back(4);
-  assert(DataTypes::getResultSliceShape(region)==resultShape);
+  CPPUNIT_ASSERT(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(2,5));
   resultShape.push_back(3);
-  assert(DataTypes::getResultSliceShape(region)==resultShape);
+  CPPUNIT_ASSERT(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(3,9));
   resultShape.push_back(6);
-  assert(DataTypes::getResultSliceShape(region)==resultShape);
+  CPPUNIT_ASSERT(DataTypes::getResultSliceShape(region)==resultShape);
 
   region.push_back(DataTypes::RegionType::value_type(1,7));
   resultShape.push_back(6);
-  assert(DataTypes::getResultSliceShape(region)==resultShape);
+  CPPUNIT_ASSERT(DataTypes::getResultSliceShape(region)==resultShape);
 
 }
 
@@ -195,8 +155,8 @@ void DataTypesTestCase::testSlicing() {
    DataTypes::copySlice(targetData, DataTypes::scalarShape, 0, sourceData, sourceShape, 0,region); 
 
     // Check results of copy.
-//     assert(sourceView==targetView);
-    assert(targetData==sourceData);
+//     CPPUNIT_ASSERT(sourceView==targetView);
+    CPPUNIT_ASSERT(targetData==sourceData);
   }
 
   {
@@ -220,8 +180,8 @@ void DataTypesTestCase::testSlicing() {
     DataTypes::copySliceFrom(targetData, DataTypes::scalarShape, 0, sourceData, sourceShape, 0,region);
 
     // Check results of copy.
-//     assert(sourceView==targetView);
-    assert(sourceData==targetData);
+//     CPPUNIT_ASSERT(sourceView==targetView);
+    CPPUNIT_ASSERT(sourceData==targetData);
   }
 
   {
@@ -255,9 +215,9 @@ void DataTypesTestCase::testSlicing() {
 
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
-//       assert(sourceView(i)==
+//       CPPUNIT_ASSERT(sourceView(i)==
 //              targetView(i-region[0].first));
-	assert(sourceData[i]==targetData[i-region[0].first]);
+	CPPUNIT_ASSERT(sourceData[i]==targetData[i-region[0].first]);
     }
   }
 
@@ -293,9 +253,9 @@ void DataTypesTestCase::testSlicing() {
 
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
-/*      assert(sourceView(i)==
+/*      CPPUNIT_ASSERT(sourceView(i)==
              targetView());*/
-      assert(sourceData[i]==
+      CPPUNIT_ASSERT(sourceData[i]==
              targetData[0]);
 
     }
@@ -332,9 +292,9 @@ void DataTypesTestCase::testSlicing() {
 
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
-/*      assert(sourceView(i-region[0].first)==
+/*      CPPUNIT_ASSERT(sourceView(i-region[0].first)==
              targetView(i));*/
-      assert(sourceData[i-region[0].first]==
+      CPPUNIT_ASSERT(sourceData[i-region[0].first]==
              targetData[i]);
     }
   }
@@ -368,7 +328,7 @@ void DataTypesTestCase::testSlicing() {
 
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
-      assert(sourceData[0]==
+      CPPUNIT_ASSERT(sourceData[0]==
              targetData[i]);
     }
   }
@@ -409,7 +369,7 @@ void DataTypesTestCase::testSlicing() {
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
-	assert(sourceData[getRelIndex(sourceShape,i,j)]==
+	CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j)]==
                targetData[getRelIndex(targetShape,i-region[0].first,j-region[1].first)]);
       }
     }
@@ -453,7 +413,7 @@ void DataTypesTestCase::testSlicing() {
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
-	assert(sourceData[getRelIndex(sourceShape,i,j)]==
+	CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j)]==
                targetData[getRelIndex(targetShape,i-region[0].first)]);
       }
     }
@@ -497,9 +457,9 @@ void DataTypesTestCase::testSlicing() {
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
-/*	assert(sourceView(i,j)==
+/*	CPPUNIT_ASSERT(sourceView(i,j)==
                targetView());*/
-	assert(sourceData[getRelIndex(sourceShape,i,j)]==
+	CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j)]==
                targetData[0]);
       }
     }
@@ -542,9 +502,9 @@ void DataTypesTestCase::testSlicing() {
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
-// 	assert(sourceView(i-region[0].first,j-region[1].first)==
+// 	CPPUNIT_ASSERT(sourceView(i-region[0].first,j-region[1].first)==
 //                targetView(i,j));
-	assert(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first)]==
+	CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first)]==
                targetData[getRelIndex(targetShape,i,j)]);
       }
     }
@@ -582,7 +542,7 @@ void DataTypesTestCase::testSlicing() {
     // Check results of copy.
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
-	assert(sourceData[0]==
+	CPPUNIT_ASSERT(sourceData[0]==
                targetData[getRelIndex(targetShape,i,j)]);
       }
     }
@@ -630,9 +590,9 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-// 	  assert(sourceView(i,j,k)==
+// 	  CPPUNIT_ASSERT(sourceView(i,j,k)==
 //                  targetView(i-region[0].first,j-region[1].first,k-region[2].first));
-	  assert(sourceData[getRelIndex(sourceShape,i,j,k)]==
+	  CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k)]==
                  targetData[getRelIndex(targetShape,i-region[0].first,j-region[1].first,k-region[2].first)]);
         }
       }
@@ -683,9 +643,9 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-/*	  assert(sourceView(i,j,k)==
+/*	  CPPUNIT_ASSERT(sourceView(i,j,k)==
                  targetView(i-region[0].first,k-region[2].first));*/	 
-          assert(sourceData[getRelIndex(sourceShape,i,j,k)]==
+          CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k)]==
                  targetData[getRelIndex(targetShape,i-region[0].first,k-region[2].first)]);
         }
       }
@@ -735,7 +695,7 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-	  assert(sourceData[getRelIndex(sourceShape,i,j,k)]==
+	  CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k)]==
                  targetData[getRelIndex(targetShape,k-region[2].first)]);
         }
       }
@@ -784,7 +744,7 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-	  assert(sourceData[getRelIndex(sourceShape, i,j,k)]==
+	  CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape, i,j,k)]==
                  targetData[0]);
         }
       }
@@ -833,7 +793,7 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-	  assert(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first,k-region[2].first)]==
+	  CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first,k-region[2].first)]==
                  targetData[getRelIndex(targetShape,i,j,k)]);
         }
       }
@@ -874,7 +834,7 @@ void DataTypesTestCase::testSlicing() {
     for (int i=region[0].first;i<region[0].second;i++) {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
-	  assert(sourceData[0]==
+	  CPPUNIT_ASSERT(sourceData[0]==
                  targetData[getRelIndex(targetShape,i,j,k)]);
         }
       }
@@ -928,9 +888,9 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-// 	    assert(sourceView(i,j,k,l)==
+// 	    CPPUNIT_ASSERT(sourceView(i,j,k,l)==
 //                    targetView(i-region[0].first,j-region[1].first,k-region[2].first,l-region[3].first));
-	    assert(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
                    targetData[getRelIndex(targetShape,i-region[0].first,j-region[1].first,k-region[2].first,l-region[3].first)]);
           }
         }
@@ -988,7 +948,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
                    targetData[getRelIndex(targetShape,i-region[0].first,j-region[1].first,l-region[3].first)]);
           }
         }
@@ -1045,7 +1005,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
                    targetData[getRelIndex(targetShape,i-region[0].first,j-region[1].first)]);
           }
         }
@@ -1101,7 +1061,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
                    targetData[getRelIndex(targetShape,j-region[1].first)]);
           }
         }
@@ -1156,7 +1116,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i,j,k,l)]==
                    targetData[0]);
           }
         }
@@ -1211,7 +1171,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first,k-region[2].first,l-region[3].first)]==
+	    CPPUNIT_ASSERT(sourceData[getRelIndex(sourceShape,i-region[0].first,j-region[1].first,k-region[2].first,l-region[3].first)]==
                    targetData[getRelIndex(targetShape,i,j,k,l)]);
           }
         }
@@ -1257,7 +1217,7 @@ void DataTypesTestCase::testSlicing() {
       for (int j=region[1].first;j<region[1].second;j++) {
         for (int k=region[2].first;k<region[2].second;k++) {
           for (int l=region[3].first;l<region[3].second;l++) {
-	    assert(sourceData[0]==
+	    CPPUNIT_ASSERT(sourceData[0]==
                    targetData[getRelIndex(targetShape,i,j,k,l)]);
           }
         }
@@ -1275,28 +1235,32 @@ void DataTypesTestCase::testShapeToString() {
   cout << "\tTest shapeToString for a variety of shapes." << endl;
 
   DataTypes::ShapeType shape;
-  assert(DataTypes::shapeToString(shape)=="()");
+  CPPUNIT_ASSERT(DataTypes::shapeToString(shape)=="()");
   shape.push_back(5);
-  assert(DataTypes::shapeToString(shape)=="(5)");
+  CPPUNIT_ASSERT(DataTypes::shapeToString(shape)=="(5)");
   shape.push_back(2);
-  assert(DataTypes::shapeToString(shape)=="(5,2)");
+  CPPUNIT_ASSERT(DataTypes::shapeToString(shape)=="(5,2)");
   shape.push_back(9);
-  assert(DataTypes::shapeToString(shape)=="(5,2,9)");
+  CPPUNIT_ASSERT(DataTypes::shapeToString(shape)=="(5,2,9)");
   shape.push_back(4);
-  assert(DataTypes::shapeToString(shape)=="(5,2,9,4)");
+  CPPUNIT_ASSERT(DataTypes::shapeToString(shape)=="(5,2,9,4)");
 
 }
 
 
-
-TestSuite* DataTypesTestCase::suite ()
+TestSuite* DataTypesTestCase::suite()
 {
   //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataTypesTestCase");
-  testSuite->addTest (new TestCaller< DataTypesTestCase>("testShapeToString",&DataTypesTestCase::testShapeToString));
-  testSuite->addTest (new TestCaller< DataTypesTestCase>("testResultSliceShape",&DataTypesTestCase::testResultSliceShape));
-  testSuite->addTest (new TestCaller< DataTypesTestCase>("testSlicing",&DataTypesTestCase::testSlicing));
-  testSuite->addTest (new TestCaller< DataTypesTestCase>("testShapeFunctions",&DataTypesTestCase::testShapeFns));
+  TestSuite *testSuite = new TestSuite("DataTypesTestCase");
+  testSuite->addTest(new TestCaller<DataTypesTestCase>(
+              "testShapeToString",&DataTypesTestCase::testShapeToString));
+  testSuite->addTest(new TestCaller<DataTypesTestCase>(
+              "testResultSliceShape",&DataTypesTestCase::testResultSliceShape));
+  testSuite->addTest(new TestCaller<DataTypesTestCase>(
+              "testSlicing",&DataTypesTestCase::testSlicing));
+  testSuite->addTest(new TestCaller<DataTypesTestCase>(
+              "testShapeFunctions",&DataTypesTestCase::testShapeFns));
   return testSuite;
 }
+

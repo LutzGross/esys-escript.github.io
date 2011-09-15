@@ -14,9 +14,12 @@
 #include <iostream>
 
 #include "EscriptDatasetTestCase.h"
-#include "tools/CppUnitTest/TestRunner.h"
+#include <cppunit/CompilerOutputter.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 
 extern "C"{
 #include "esysUtils/Esys_MPI.h"
@@ -31,17 +34,17 @@ int main(int argc, char* argv[])
         return status;
     }
 #endif
-    // object which runs all of the tests
+    TestResult controller;
+    TestResultCollector result;
+    controller.addListener(&result);
     TestRunner runner;
-    runner.addTest("EscriptDataset", EscriptDatasetTestCase::suite());
-
-    // actually run the unit tests.
-    runner.run(argc, argv);
-
+    runner.addTest(EscriptDatasetTestCase::suite());
+    runner.run(controller);
+    CompilerOutputter outputter( &result, std::cerr );
+    outputter.write();
 #ifdef ESYS_MPI
     MPI_Finalize();
 #endif
-
-    return 0;
+    return result.wasSuccessful() ? 0 : 1;
 }
 

@@ -12,26 +12,16 @@
 *******************************************************/
 
 
-#if !defined  SHAREDDATATESTCASE_H
-#define  SHAREDDATATESTCASE_H
+#if !defined SHAREDDATATESTCASE_H
+#define SHAREDDATATESTCASE_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class SharedDataTestCase : public CppUnitTest::TestCase
+class SharedDataTestCase : public CppUnit::TestFixture
 {
- public:
+public:
 
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
   void testEQ();
   void testCC();
   void testAssign();
@@ -42,14 +32,8 @@ class SharedDataTestCase : public CppUnitTest::TestCase
   void testGetDataPoint();
   void testGetSampleRW();
 
-
-  SharedDataTestCase (std::string name) : TestCase (name) {}
-  ~SharedDataTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

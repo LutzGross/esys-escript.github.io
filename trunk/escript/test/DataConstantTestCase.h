@@ -12,36 +12,20 @@
 *******************************************************/
 
 
-#if !defined  DataConstantTestCase_20040809_H
-#define  DataConstantTestCase_20040809_H
+#if !defined DataConstantTestCase_20040809_H
+#define DataConstantTestCase_20040809_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataConstantTestCase : public CppUnitTest::TestCase
+class DataConstantTestCase : public CppUnit::TestFixture
 {
- public:
+public:
 
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataConstant class
   void testAll();
 
-  DataConstantTestCase (std::string name) : TestCase (name) {}
-  ~DataConstantTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

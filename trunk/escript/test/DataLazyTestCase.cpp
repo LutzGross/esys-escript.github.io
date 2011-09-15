@@ -12,33 +12,23 @@
 *******************************************************/
 
 
+#include "DataLazyTestCase.h"
+
 #include "escript/DataConstant.h"
 #include "escript/DataLazy.h"
 #include "escript/FunctionSpace.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataLazyTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 #include <boost/shared_ptr.hpp>	// for the cast operator
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace std;
 using namespace esysUtils;
 using namespace escript::DataTypes;
 using namespace boost;
-
-void DataLazyTestCase::setUp() {
-  //
-  // This is called before each test is run
-}
-
-void DataLazyTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-}
-
 
 // This test file checks the basic properties of lazy data.
 // It does not check the correctness of particular operations 
@@ -145,7 +135,7 @@ getLazyGTP(DataTypes::ShapeType& shape, ES_optype typ, int ax, int tr)
 
 
 
-#define TESTOP(X,V) { DataAbstract_ptr d1=getLazy(shape); assert(d1->X()==V); assert(d1->isLazy());}
+#define TESTOP(X,V) { DataAbstract_ptr d1=getLazy(shape); CPPUNIT_ASSERT(d1->X()==V); CPPUNIT_ASSERT(d1->isLazy());}
 
 }
 
@@ -157,7 +147,7 @@ void DataLazyTestCase::testLazy1()
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazy(shape);
-  assert(d1->isLazy());
+  CPPUNIT_ASSERT(d1->isLazy());
 
   for (int i=0;i<5;++i)
   {
@@ -170,7 +160,7 @@ void DataLazyTestCase::testLazy1()
   }
 }
 
-#define TESTOPU(X,V,O) { DataAbstract_ptr d1=getLazyU(shape,O); assert(dynamic_pointer_cast<DataLazy>(d1)->X()==V); assert(d1->isLazy());}
+#define TESTOPU(X,V,O) { DataAbstract_ptr d1=getLazyU(shape,O); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->X()==V); CPPUNIT_ASSERT(d1->isLazy());}
 // This method tests the unary op  constructor
 // We aren't checking the correctness of the results here, just that they have the right properties
 void DataLazyTestCase::testLazy2()
@@ -180,7 +170,7 @@ void DataLazyTestCase::testLazy2()
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazyU(shape,LOG);
-  assert(d1->isLazy());
+  CPPUNIT_ASSERT(d1->isLazy());
 
   for (int j=SIN;j<=LEZ;++j)
   {
@@ -200,7 +190,7 @@ void DataLazyTestCase::testLazy2()
   }
 }
 
-#define TESTOPUP(X,V,O) { DataAbstract_ptr d1=getLazyUP(shape,O,0); assert(dynamic_pointer_cast<DataLazy>(d1)->X()==V); assert(d1->isLazy());}
+#define TESTOPUP(X,V,O) { DataAbstract_ptr d1=getLazyUP(shape,O,0); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->X()==V); CPPUNIT_ASSERT(d1->isLazy());}
 // This method tests the unary op  constructor
 // We aren't checking the correctness of the results here, just that they have the right properties
 void DataLazyTestCase::testLazy2p()
@@ -211,7 +201,7 @@ void DataLazyTestCase::testLazy2p()
   DataTypes::ShapeType shape;
   DataTypes::ShapeType traceshape;
   DataAbstract_ptr d1=getLazyUP(shape,TRANS,0);
-  assert(d1->isLazy());
+  CPPUNIT_ASSERT(d1->isLazy());
 
   for (int j=TRANS;j<=TRACE;++j)
   {
@@ -248,7 +238,7 @@ void DataLazyTestCase::testLazy2p()
   }
 }
 
-#define TESTOPB(X,V,O) { DataAbstract_ptr d1=getLazyB(shape,O); assert(dynamic_pointer_cast<DataLazy>(d1)->X()==V); assert(dynamic_pointer_cast<DataLazy>(d1)->isLazy());}
+#define TESTOPB(X,V,O) { DataAbstract_ptr d1=getLazyB(shape,O); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->X()==V); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->isLazy());}
 // This method tests the binary op  constructor
 // We aren't checking the correctness of the results here, just that they have the right properties
 void DataLazyTestCase::testLazy3()
@@ -258,7 +248,7 @@ void DataLazyTestCase::testLazy3()
 
   DataTypes::ShapeType shape;
   DataAbstract_ptr d1=getLazyB(shape,ADD);
-  assert(d1->isLazy());
+  CPPUNIT_ASSERT(d1->isLazy());
 
   for (int j=ADD;j<=POW;++j)
   {
@@ -281,7 +271,7 @@ void DataLazyTestCase::testLazy3()
 
 
 
-#define TESTOPGTP(X,V,O) { DataAbstract_ptr d1=getLazyGTP(shape,O,0,0); assert(dynamic_pointer_cast<DataLazy>(d1)->X()==V); assert(dynamic_pointer_cast<DataLazy>(d1)->isLazy());}
+#define TESTOPGTP(X,V,O) { DataAbstract_ptr d1=getLazyGTP(shape,O,0,0); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->X()==V); CPPUNIT_ASSERT(dynamic_pointer_cast<DataLazy>(d1)->isLazy());}
 
 // This method tests the GeneralTensorproduct  constructor
 // We aren't checking the correctness of the results here, just that they have the right properties
@@ -294,7 +284,7 @@ void DataLazyTestCase::testLazy4()
   DataTypes::ShapeType prodshape;
 
   DataAbstract_ptr d1=getLazyGTP(shape,PROD,0,0);
-  assert(d1->isLazy());
+  CPPUNIT_ASSERT(d1->isLazy());
 
   for (int j=PROD;j<=PROD;++j)
   {
@@ -322,16 +312,21 @@ void DataLazyTestCase::testLazy4()
 
 
 
-TestSuite* DataLazyTestCase::suite ()
+TestSuite* DataLazyTestCase::suite()
 {
-  //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataLazyTestCase");
+  TestSuite *testSuite = new TestSuite("DataLazyTestCase");
 
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("Identity",&DataLazyTestCase::testLazy1));
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("Unary",&DataLazyTestCase::testLazy2));
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("Unary (params)",&DataLazyTestCase::testLazy2p));
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("Binary",&DataLazyTestCase::testLazy3));
-  testSuite->addTest (new TestCaller< DataLazyTestCase>("GTP",&DataLazyTestCase::testLazy4));
+  testSuite->addTest(new TestCaller<DataLazyTestCase>(
+              "Identity",&DataLazyTestCase::testLazy1));
+  testSuite->addTest(new TestCaller<DataLazyTestCase>(
+              "Unary",&DataLazyTestCase::testLazy2));
+  testSuite->addTest(new TestCaller<DataLazyTestCase>(
+              "Unary (params)",&DataLazyTestCase::testLazy2p));
+  testSuite->addTest(new TestCaller<DataLazyTestCase>(
+              "Binary",&DataLazyTestCase::testLazy3));
+  testSuite->addTest(new TestCaller<DataLazyTestCase>(
+              "GTP",&DataLazyTestCase::testLazy4));
   return testSuite;
 }
+

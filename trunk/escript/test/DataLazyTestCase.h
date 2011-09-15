@@ -12,39 +12,23 @@
 *******************************************************/
 
 
-#if !defined  DataLazyTestCase_H
-#define  DataLazyTestCase_H
+#if !defined DataLazyTestCase_H
+#define DataLazyTestCase_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataLazyTestCase : public CppUnitTest::TestCase
+class DataLazyTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
+public:
   void testLazy1();
   void testLazy2();
   void testLazy2p();
   void testLazy3();
   void testLazy4();
 
-  DataLazyTestCase (std::string name) : TestCase (name) {}
-  ~DataLazyTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+
