@@ -207,6 +207,11 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/l
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
+
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 
@@ -219,12 +224,6 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/l
 
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 tools_names = [('intelc',{'topdir':'/sw/sdev/intel/cc/x86_64/10.1.025'})]
 

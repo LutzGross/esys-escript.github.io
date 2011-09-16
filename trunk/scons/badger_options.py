@@ -218,6 +218,10 @@ lapack_libs = ['lapack_atlas']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
@@ -231,12 +235,6 @@ lapack_libs = ['lapack_atlas']
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['default']
 

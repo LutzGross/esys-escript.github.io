@@ -216,6 +216,10 @@ boost_libs = ['boost_python-vc71-mt-1_33']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
@@ -229,12 +233,6 @@ boost_libs = ['boost_python-vc71-mt-1_33']
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['msvc']
 

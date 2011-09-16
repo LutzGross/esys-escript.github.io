@@ -122,8 +122,7 @@ vars.AddVariables(
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   # finer control over library building, intel aggressive global optimisation
   # works with dynamic libraries on windows.
-  ('share_esysutils', 'Build a dynamic esysUtils library', False),
-  ('share_paso', 'Build a dynamic paso library', False),
+  ('build_shared', 'Build dynamic libraries only', False),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
 )
