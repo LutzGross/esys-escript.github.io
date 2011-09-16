@@ -219,6 +219,10 @@ escript_opts_version = 201
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
@@ -232,12 +236,6 @@ escript_opts_version = 201
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['default']
 

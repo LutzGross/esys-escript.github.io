@@ -226,6 +226,10 @@ lapack_libs = ['mkl_lapack95']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
@@ -240,12 +244,6 @@ sys_libs = ['']
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-share_esysutils = True
-
-# Build a shared paso library
-share_paso = True
 
 # overloading - [('intelc',{'topdir':'/sw/sdev/intel/cc/x86_64/10.1.025'})]
 tools_names = [('intelc',{'topdir':'C:/Program Files (x86)/Intel/Composer XE 2011 SP1'})]
