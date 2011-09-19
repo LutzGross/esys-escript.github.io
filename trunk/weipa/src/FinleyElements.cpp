@@ -1080,7 +1080,7 @@ static bool pointInTri(float x, float y,
     float dot12 = v1[0]*v2[0]+v1[1]*v2[1];
     float invDenom = dot00*dot11 - dot01*dot01;
     if (ABS(invDenom) < TOL) invDenom = TOL;
-    invDenom = 1./invDenom;
+    invDenom = 1.f/invDenom;
     float u = (dot11*dot02 - dot01*dot12) * invDenom;
     float v = (dot00*dot12 - dot01*dot02) * invDenom;
     return (u>=0.f) && (v>=0.f) && (u+v<=1.f);
