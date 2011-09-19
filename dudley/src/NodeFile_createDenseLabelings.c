@@ -27,10 +27,11 @@
 dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 {
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
-    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, new_numGlobalDOFs = 0, myNewDOFs;
     bool_t *set_new_DOF = NULL;
 #ifdef ESYS_MPI
+    Esys_MPI_rank dest, source;
     MPI_Status status;
 #endif
 
@@ -59,8 +60,10 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		DOF_buffer[n] = unset_dof;
 
 	    /* fill the buffer by sending portions around in a circle */
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -121,8 +124,10 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		for (n = 0; n < in->numNodes; ++n)
 		    set_new_DOF[n] = TRUE;
 	    }
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -192,9 +197,10 @@ void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Esys_MPI_rank * m
 dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask)
 {
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
-    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, globalNumReducedDOFs = 0, myNewDOFs;
 #ifdef ESYS_MPI
+    Esys_MPI_rank dest, source;
     MPI_Status status;
 #endif
 
@@ -220,8 +226,10 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 		DOF_buffer[n] = unset_dof;
 
 	    /* fill the buffer by sending portions around in a circle */
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -282,8 +290,10 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 #pragma omp parallel for private(n) schedule(static)
 	    for (n = 0; n < in->numNodes; ++n)
 		in->globalReducedDOFIndex[n] = loc_offsets[0] - 1;
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -325,10 +335,11 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     index_t myFirstDOF, myLastDOF, max_id, min_id, loc_max_id, loc_min_id, dof, id, itmp, nodeID_0, nodeID_1, dof_0,
 	dof_1, *Node_buffer = NULL;
     dim_t n, my_buffer_len, buffer_len, globalNumNodes = 0, myNewNumNodes;
-    Esys_MPI_rank p, dest, source, buffer_rank;
+    Esys_MPI_rank p, buffer_rank;
     const index_t unset_nodeID = -1, set_nodeID = 1;
     const dim_t header_len = 2;
 #ifdef ESYS_MPI
+    Esys_MPI_rank dest, source;
     MPI_Status status;
 #endif
     Esys_MPI_rank myRank = in->MPIInfo->rank;
@@ -422,8 +433,10 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 	    Node_buffer[n + header_len] += itmp;
 
 	/* now we send this buffer around to assign global node index: */
+#ifdef ESYS_MPI
 	dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	Node_buffer[0] = min_id;
 	Node_buffer[1] = max_id;
 	buffer_rank = in->MPIInfo->rank;
@@ -463,9 +476,10 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index_t * reducedNodeMask)
 {
     index_t min_node, max_node, unset_node = -1, set_node = 1, node_0, node_1, *Nodes_buffer = NULL, k;
-    Esys_MPI_rank buffer_rank, dest, source, *distribution = NULL;
+    Esys_MPI_rank buffer_rank, *distribution = NULL;
     dim_t p, buffer_len, n, myNodes, *offsets = NULL, *loc_offsets = NULL, globalNumReducedNodes = 0, myNewNodes;
 #ifdef ESYS_MPI
+    Esys_MPI_rank dest, source;
     MPI_Status status;
 #endif
 
@@ -491,8 +505,10 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 		Nodes_buffer[n] = unset_node;
 
 	    /* fill the buffer by sending portions around in a circle */
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {
@@ -553,8 +569,10 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 #pragma omp parallel for private(n) schedule(static)
 	    for (n = 0; n < in->numNodes; ++n)
 		in->globalReducedNodesIndex[n] = loc_offsets[0] - 1;
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
 	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
 	    {

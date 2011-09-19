@@ -61,12 +61,13 @@ void Finley_NodeFile_gather(index_t* index, Finley_NodeFile* in, Finley_NodeFile
 void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_NodeFile* out)
 {
   index_t min_id, max_id, undefined_node;
-  Esys_MPI_rank buffer_rank, dest, source, *distribution=NULL;
+  Esys_MPI_rank buffer_rank, *distribution=NULL;
   index_t  *Id_buffer=NULL, *Tag_buffer=NULL, *globalDegreesOfFreedom_buffer=NULL;
   double* Coordinates_buffer=NULL;
   dim_t p, buffer_len,n;
   char error_msg[100];
   #ifdef ESYS_MPI
+  Esys_MPI_rank dest, source;
   MPI_Status status;
   #endif
 
@@ -91,8 +92,10 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
             for (n=0;n<buffer_len;n++) Id_buffer[n]=undefined_node;
             
             /* fill the buffer by sending portions around in a circle */
+#ifdef ESYS_MPI
             dest=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
             buffer_rank=in->MPIInfo->rank;
             for (p=0; p< in->MPIInfo->size; ++p) {
                  if (p>0) {  /* the initial send can be skipped */
@@ -121,8 +124,10 @@ void Finley_NodeFile_gather_global(index_t* index, Finley_NodeFile* in, Finley_N
                                                 out->numDim, Coordinates_buffer, in->Coordinates);
             }
             /* now entries are collected from the buffer again by sending the entries around in a circle */
+#ifdef ESYS_MPI
             dest=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
             source=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
+#endif
             buffer_rank=in->MPIInfo->rank;
             for (p=0; p< in->MPIInfo->size; ++p) {
                  Finley_NodeFile_gatherEntries(out->numNodes, index, 

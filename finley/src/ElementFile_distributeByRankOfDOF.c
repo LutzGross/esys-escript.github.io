@@ -29,10 +29,11 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
      size_t size_size;
      Esys_MPI_rank myRank, p, *Owner_buffer=NULL, loc_proc_mask_max;
      dim_t e, j, i, size, *send_count=NULL, *recv_count=NULL, *newOwner=NULL, *loc_proc_mask=NULL, *loc_send_count=NULL,
-           newNumElements, numElementsInBuffer, numNodes, numRequests, NN;
+           newNumElements, numElementsInBuffer, numNodes, NN;
      index_t *send_offset=NULL, *recv_offset=NULL, *Id_buffer=NULL, *Tag_buffer=NULL, *Nodes_buffer=NULL, k;
      bool_t *proc_mask=NULL;
      #ifdef ESYS_MPI
+        dim_t numRequests=0;
         MPI_Request* mpi_requests=NULL;
         MPI_Status* mpi_stati=NULL;
      #endif
@@ -143,7 +144,6 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
               Finley_ElementFile_allocTable(self,newNumElements);
 
               /* start to receive new elements */
-              numRequests=0;
               for (p=0;p<size;++p) {
                  if (recv_count[p]>0) {
                     #ifdef ESYS_MPI

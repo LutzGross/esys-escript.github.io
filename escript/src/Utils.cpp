@@ -436,6 +436,7 @@ bool append)
     {
 	error=1;
 #ifndef ESYS_MPI
+    (void) error;
 	throw;
 #endif
     }

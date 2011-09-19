@@ -1699,8 +1699,7 @@ Data::lazyAlgWorker(double init)
    const size_t numsamples=getNumSamples();
    const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
    BinaryOp operation;
-   bool foundnan=false;
-   double localval=0;
+   double localValue=0, globalValue;
    #pragma omp parallel private(i)
    {
 	double localtot=init;
@@ -1718,8 +1717,7 @@ Data::lazyAlgWorker(double init)
 	    {
 		#pragma omp critical
 		{
-			foundnan=true;
-			localval=1.0;
+			localValue=1.0;
 		}
 	    }
 	}
@@ -1727,14 +1725,11 @@ Data::lazyAlgWorker(double init)
 	val=operation(val,localtot);
    }
 #ifdef ESYS_MPI
-   double globalValue;
-   MPI_Allreduce( &localval, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-   if (globalValue!=0)
-   {
-	foundnan=true;
-   }
+   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+#else
+   globalValue=localValue;
 #endif
-   if (foundnan)
+   if (globalValue!=0)
    {
 	return makeNaN();
    }
