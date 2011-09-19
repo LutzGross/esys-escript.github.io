@@ -108,6 +108,8 @@ visitplugin_env['OBJPREFIX']='reader_'
 if env['build_shared']:
     plugin_lib = visitplugin_env.SharedLibrary('escriptreader', plugin_sources)
 else:
+    if IS_WINDOWS:
+        visitplugin_env.Append(CPPDEFINES = ['WEIPA_STATIC_LIB'])
     plugin_lib = visitplugin_env.StaticLibrary('escriptreader', plugin_sources)
 env.Alias('build_escriptreader_lib', plugin_lib)
 

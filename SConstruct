@@ -295,9 +295,8 @@ env['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
 if IS_WINDOWS:
-    if not env['share_esysutils']:
+    if not env['build_shared']:
         env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
-    if not env['share_paso']:
         env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
 ###################### Copy required environment vars ########################
