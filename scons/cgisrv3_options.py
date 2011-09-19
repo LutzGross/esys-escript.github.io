@@ -121,7 +121,7 @@ boost_libs = ['boost_python-vc71-mt-1_41']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 # C:\buildlibs\cppunit-1.12.1\src\cppunit\Release
-cppunit_prefix = os.path.join(system_builddeps, 'cppunit-1.12.1'), os.path.join(system_builddeps, 'src','cppunit','Release')]
+cppunit_prefix = [os.path.join(system_builddeps, 'cppunit-1.12.1'), os.path.join(system_builddeps, 'src','cppunit','Release')]
 
 # CppUnit library/libraries to link against
 cppunit_libs = ['cppunit']
