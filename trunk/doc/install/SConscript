@@ -18,7 +18,7 @@ local_env = env.Clone(tools=['pdflatex'])
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
 #fig_src = Glob('figures/*.png') no figures yet
 
-if 'PDF' in dir(local_env):
+if local_env['pdflatex']:
     if local_env['verbose']:
         interaction='-interaction=nonstopmode'
     else:
@@ -33,6 +33,6 @@ if 'PDF' in dir(local_env):
     pdf_inst=local_env.InstallAs(target=pdf_path, source='install.pdf')
     env.Alias('install_pdf', pdf_inst)
 else:
-    env.Alias('install_pdf', '', 'echo "PDF output not supported!"')
+    env.Alias('install_pdf', '', '@echo "Not building install guide: PDF output not supported!"')
     env.AlwaysBuild('install_pdf')
 
