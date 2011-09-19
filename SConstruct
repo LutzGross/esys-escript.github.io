@@ -614,6 +614,12 @@ try:
 except OSError:
     env['gmsh']=False
 
+######## PDFLaTeX (for documentation)
+if 'PDF' in dir(env) and '.tex' in env.PDF.builder.src_suffixes(env):
+    env['pdflatex']=True
+else:
+    env['pdflatex']=False
+
 ######################## Summarize our environment ###########################
 
 # keep some of our install paths first in the list for the unit tests
@@ -759,8 +765,10 @@ buildvars.close()
 
 ################### Targets to build and install libraries ###################
 
-target_init = env.Command(env['pyinstall']+'/__init__.py', None, Touch('$TARGET'))
+target_init = env.Command(os.path.join(env['pyinstall'],'__init__.py'), None, Touch('$TARGET'))
 env.Alias('target_init', [target_init])
+# delete buildvars upon cleanup
+env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
 
 # The headers have to be installed prior to build in order to satisfy
 # #include <paso/Common.h>
@@ -845,6 +853,9 @@ if not IS_WINDOWS:
     except IOError:
         print("Error attempting to write unittests file.")
         Exit(1)
+
+    # delete utest.sh upon cleanup
+    env.Clean('target_init', 'utest.sh')
 
     # Make sure that the escript wrapper is in place
     if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
