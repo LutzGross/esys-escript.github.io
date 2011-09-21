@@ -92,28 +92,29 @@ env.Alias('install_weipacpp_lib', mod_inst)
 ######################
 ### Plugin library ###
 ######################
-# This is disabled on Windows since Scons complains about compiling the same
-# files in the same build directory twice. The plugin is currently only for
-# Linux anyway. Correct fix is probably a second SConscript file with different
-# build_dir setting.
-if not IS_WINDOWS:
-    visitplugin_env = env.Clone()
-    plugin_sources = """
-        DataVar.cpp
-        EscriptDataset.cpp
-        FinleyDomain.cpp
-        FinleyElements.cpp
-        FinleyNodes.cpp
-    """.split()
+visitplugin_env = env.Clone()
+plugin_sources = """
+    DataVar.cpp
+    EscriptDataset.cpp
+    FinleyDomain.cpp
+    FinleyElements.cpp
+    FinleyNodes.cpp
+""".split()
 
-    visitplugin_env.Append(LIBS = ['esysUtils' ])
-    visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+visitplugin_env.Append(LIBS = ['esysUtils' ])
+visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+visitplugin_env['OBJPREFIX']='reader_'
 
+if env['build_shared']:
+    plugin_lib = visitplugin_env.SharedLibrary('escriptreader', plugin_sources)
+else:
+    if IS_WINDOWS:
+        visitplugin_env.Append(CPPDEFINES = ['WEIPA_STATIC_LIB'])
     plugin_lib = visitplugin_env.StaticLibrary('escriptreader', plugin_sources)
-    env.Alias('build_escriptreader_lib', plugin_lib)
+env.Alias('build_escriptreader_lib', plugin_lib)
 
-    tmp = local_env.Install(local_env['libinstall'], plugin_lib)
-    env.Alias('install_escriptreader_lib', tmp)
+tmp = local_env.Install(local_env['libinstall'], plugin_lib)
+env.Alias('install_escriptreader_lib', tmp)
 
 # configure python module
 local_env.SConscript(dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0, exports=['py_wrapper_lib'])

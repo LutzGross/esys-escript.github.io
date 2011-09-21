@@ -47,78 +47,78 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
       arg=0.479077251703
       ref=0.479077251703
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_array_rank0(self):
       arg=0.352800421569
       ref=0.352800421569
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_array_rank1(self):
       arg=numpy.array([0.58364106865247445, 0.19224319360367659])
       ref=0.583641068652
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_array_rank2(self):
       arg=numpy.array([[0.67017748174064184, 0.27426357568545234, 0.99809374007262508, 0.0068333566694658288, -0.27942939334057559], [-0.41062296082648619, -0.036816602223561423, -0.50580074937952246, 0.93227848108675948, -0.061517050082725788], [0.36561750746233845, 0.41114839130078873, 0.52258027672142848, -0.16534372330544111, 0.20772668552253304], [0.821900382760401, -0.84255628577421948, -0.69396587198625026, -0.57918798921236458, -0.72171447032975466]])
       ref=0.998093740073
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_array_rank3(self):
       arg=numpy.array([[[0.058641541671277109, -0.90451294682583527], [-0.24359709498927606, -0.57748558070477163]], [[0.035804882991596898, 0.62841290637910441], [-0.28533080116748288, -0.97886508166774955]], [[0.31393622401598642, -0.43905852202615403], [-0.86251727012547685, 0.028980168735740941]], [[0.64796855283921229, -0.48583038861071492], [0.18113352051559328, -0.41145930584343637]], [[0.039393878628251944, 0.8768398562091233], [-0.17607723439655953, -0.88597401556177768]], [[-0.015710131346685419, -0.1460065558640582], [0.97739538148461858, -0.96991499683153215]]])
       ref=0.978865081668
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_array_rank4(self):
       arg=numpy.array([[[[-0.78982105495266985, -0.63220666806337955, 0.17512704833203396, 0.87905338838606228], [0.23198845220692799, 0.039972475068823288, 0.012169097173197807, 0.44188750570302382], [0.76550090905039703, 0.31693138180972436, 0.1053031163896907, -0.35110494947362092]], [[0.98438531435704557, 0.64830270240860366, 0.17255823042313656, -0.89376135594562944], [-0.24129437029981871, -0.142955980423916, 0.16557185988864043, 0.97182386578689162], [0.68369373227893937, -0.86170550438838256, 0.30120477894454822, 0.38702330237685523]]], [[[0.77139284396922037, 0.20032741426304668, 0.57845916425558697, -0.29867163908832151], [-0.068269410287581156, 0.5940891737261742, 0.076472990825278808, -0.099092183170674364], [-0.052727700907511776, 0.86303703635283835, -0.87561628108225542, 0.98706354430335175]], [[0.59243014649382819, 0.1550040875984271, -0.2755507051420949, -0.0013143184448647371], [0.49341486033505921, 0.47331310491746503, -0.79931467469262252, -0.90673470029976722], [-0.032268150780954796, 0.296035852616644, 0.51579882806939303, 0.46437108203184607]]], [[[-0.54940019219066349, 0.063961557315018069, 0.58950734587654585, -0.98334853918198539], [-0.3624096661573355, 0.41744569348555416, 0.30209950686844023, 0.51268273249278518], [0.18884359916930848, -0.71707023426140903, -0.30560603652072227, 0.50521867139895282]], [[0.48925658559264695, -0.22791551552340583, -0.0018172920946346593, -0.35038144063572618], [-0.92608233760416425, -0.58447575161042908, 0.6419293813902982, -0.9165521427783867], [0.32116313637555338, 0.64441081354246466, 0.57516697859586241, -0.30456483792192746]]]])
       ref=0.987063544303
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_constData_rank0(self):
       arg=Data(0.196366308048,self.functionspace)
       ref=0.196366308048
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_constData_rank1(self):
       arg=Data(numpy.array([-0.013183241788205846, 0.30081447346639489]),self.functionspace)
       ref=0.300814473466
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_constData_rank2(self):
       arg=Data(numpy.array([[0.5711180583492661, 0.70931947195628298, -0.66895311699347904, 0.96005746113679025, 0.73085528334644767], [-0.63904611175106618, 0.2843691804450883, 0.44023994297671054, 0.74230048057601272, 0.32582591826440876], [0.058605148358656045, 0.17856553839104938, 0.92397360311332144, -0.96449976222010503, -0.2936728605307215], [-0.54599501106213921, 0.76941479487476183, 0.071247548913826231, 0.19101147233175308, -0.1697403800152153]]),self.functionspace)
       ref=0.96449976222
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_constData_rank3(self):
       arg=Data(numpy.array([[[0.72501574945437675, 0.097442689963523454], [0.81136110912526904, 0.30019286779005516]], [[-0.49590270028453376, 0.89873757442194169], [-0.77574675514072333, 0.00090692035026496143]], [[0.30313499990678294, -0.22304437168798286], [0.26434595235717628, 0.56043553186944139]], [[-0.82536121216538372, 0.017266274277504934], [0.15087851023611853, 0.85422443819044291]], [[-0.85528228633213454, 0.21599153787828373], [-0.8320606477196939, 0.8359530516934528]], [[-0.32478507656272382, 0.11549647741760993], [-0.87438785398253049, 0.58454806081387956]]]),self.functionspace)
       ref=0.898737574422
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_constData_rank4(self):
       arg=Data(numpy.array([[[[-0.1675633776917147, 0.33827478137880718, -0.93890402023643449, 0.65020437341791437], [0.29507018847480526, 0.98622587753446878, 0.12652012726316597, -0.31134038684685694], [-0.046095794370747178, 0.52924578464459526, -0.6479404156998898, -0.50108997075395512]], [[-0.89461015899273821, -0.079360196866752331, 0.24950542226018069, 0.6689436082056277], [0.92392213781413735, 0.3873078097702356, 0.19593123983162242, -0.24092882483013001], [-0.64621424798001881, 0.9822743623774457, 0.89791841241748926, 0.61910184653693512]]], [[[-0.93993640130694156, 0.86452728798536005, 0.094496916350070848, 0.59825417382728907], [0.55042390382543216, 0.83625046124041091, -0.59865905280251042, 0.60081510989738351], [0.96300656863917622, 0.45676715577013183, 0.96765574240961594, 0.35217159943804499]], [[-0.44344990079738578, -0.62540931368504271, 0.47046830875624712, 0.56727920796684694], [0.68754074058706793, -0.20419202844112316, -0.0095491803785341389, 0.013299778291189002], [0.17824394120278897, -0.27714200037108694, -0.2616405339148673, -0.32155257707876661]]], [[[0.47113927793594357, -0.99306136743656892, 0.30468996581271934, -0.55558797016447881], [0.83216176170936151, 0.016003159554198287, 0.50607924358488665, -0.44441953149310631], [0.81919419287951278, -0.65849894919643503, 0.91897977494732008, -0.52338741357416407]], [[0.71408966944475138, -0.49347702658095161, 0.35676281330171133, 0.87268025092466872], [0.38401738326898771, -0.66323897612738114, 0.57309433517459518, 0.72101582669934583], [-0.0289954568811297, 0.55204032281174009, 0.51120867863750807, -0.67373936301915327]]]]),self.functionspace)
       ref=0.993061367437
       res=Lsup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_expandedData_rank0(self):
@@ -127,8 +127,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=Lsup(arg)
       ref=0.907507663119
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_expandedData_rank1(self):
 
@@ -137,8 +137,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=Lsup(arg)
       ref=0.795044904815
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_expandedData_rank2(self):
 
@@ -147,8 +147,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=Lsup(arg)
       ref=0.930747072265
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_expandedData_rank3(self):
 
@@ -157,8 +157,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=Lsup(arg)
       ref=0.99924882354
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_Lsup_expandedData_rank4(self):
 
@@ -167,85 +167,85 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=Lsup(arg)
       ref=0.998894848618
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_float_rank0(self):
       arg=0.870743835413
       ref=0.870743835413
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_array_rank0(self):
       arg=0.469212543992
       ref=0.469212543992
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_array_rank1(self):
       arg=numpy.array([0.8163530200305178, 0.7844191729334391])
       ref=0.816353020031
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_array_rank2(self):
       arg=numpy.array([[-0.52338785100595131, 0.72523140545134046, -0.23883623210726745, 0.29329903553233394, 0.77300897701720128], [0.56646202903477705, -0.67833617682539948, 0.71280801753916911, 0.108973189514324, -0.86675353843929437], [0.37080584846118247, 0.61817009100957776, -0.20780655998890807, 0.085315295987765438, -0.73527023026482174], [-0.97586476277122935, 0.14501540684207481, 0.57375473938632338, 0.08516777342367865, -0.22644451314946301]])
       ref=0.773008977017
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_array_rank3(self):
       arg=numpy.array([[[0.16933183602716984, -0.42964457496769226], [-0.63714228263554573, -0.28513481547494179]], [[0.72479530443714335, -0.097501515360919111], [-0.28611653510816737, -0.58370472731498535]], [[-0.18432738416022554, 0.79010596522300558], [-0.65367387441910196, 0.90861652898349976]], [[0.56004415223670123, 0.20178156913861489], [0.90730594499457595, 0.91196305151516754]], [[-0.46179421349599847, -0.54555869532019163], [0.36014998847058499, -0.70585188726413306]], [[0.49988705904335418, -0.52181171665742077], [0.14475259007357621, -0.94336078709637383]]])
       ref=0.911963051515
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_array_rank4(self):
       arg=numpy.array([[[[0.085213773984220698, -0.9837351364458633, -0.23428780807935823, -0.54350985593703971], [-0.021654619752513593, -0.58267295960777465, -0.95135334805945893, -0.82172163939108089], [0.92970460708060565, 0.12721615089598348, 0.36243089042630872, 0.50434042290503855]], [[0.20617957875725845, 0.13657289785878368, 0.7942986246389756, -0.92641374730818571], [0.30431241116181762, -0.13563881945622858, 0.37921852742514695, -0.39275408991812211], [-0.016546769015328033, 0.50932041928102878, -0.27343457607173893, -0.0076289641375255624]]], [[[0.97189015970083137, -0.71286035174080009, 0.10143028964095313, -0.41856292303563181], [-0.97563458262665792, 0.79724078659701769, -0.70932749973904685, 0.018497784992804522], [-0.86374122662275021, 0.047715471334789816, -0.95453593058418518, 0.54562170290354794]], [[0.40249406070198157, -0.54609432046574469, -0.22682900899629166, 0.98394939138178539], [0.11049172557176901, 0.42172241721325388, 0.71050000578192951, 0.35353993854713206], [0.35412886303451896, -0.98169699399727617, 0.04758881049644037, 0.96971205948237493]]], [[[0.44672925866052249, -0.51476498049696828, 0.56442823935318875, -0.39769248164928039], [-0.40340965812893304, -0.87947712857546945, 0.55927022788356706, -0.89941016574892707], [-0.43878304559423431, 0.20915357555548764, -0.76548553334601799, -0.67202522557876954]], [[-0.56749721271516318, -0.10244683680777245, 0.17727779142251943, -0.57219284260940473], [-0.17044718853145446, 0.91117482665936023, -0.30039592703806584, -0.73813808369358713], [0.63771084365736663, -0.61427668096170129, 0.34365587989446378, -0.11877233448104674]]]])
       ref=0.983949391382
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_constData_rank0(self):
       arg=Data(0.165371505685,self.functionspace)
       ref=0.165371505685
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_constData_rank1(self):
       arg=Data(numpy.array([-0.89603386749185288, -0.68712608295212729]),self.functionspace)
       ref=-0.687126082952
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_constData_rank2(self):
       arg=Data(numpy.array([[0.60272743728014655, 0.26067131689446787, -0.48488892003697837, -0.54328378217335027, -0.96627165443113894], [0.38861396631681999, -0.14210447298121753, -0.84480805358330624, -0.25397651427390566, 0.25670041011662192], [-0.062982523786134337, -0.149708363807598, -0.63332360725934489, -0.49175302564011525, -0.97647588301352473], [0.52022334705669038, -0.69717039787412727, -0.28284586409251511, 0.99642563937215467, -0.67058148736338885]]),self.functionspace)
       ref=0.996425639372
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_constData_rank3(self):
       arg=Data(numpy.array([[[-0.98552936119306023, -0.58995212270861552], [0.51743177430155907, 0.68576837981065508]], [[-0.61618414432919089, -0.12325580790677049], [0.32387395300714172, -0.95456083598524333]], [[0.89779642579517049, 0.98676270760314266], [0.71959629907181966, -0.9949078223284622]], [[-0.81547040114414271, 0.10033634427970006], [-0.21591232734408217, -0.68608679705274822]], [[0.30423138886571999, 0.34122142527426802], [-0.4344532377066066, -0.31076903154305779]], [[-0.46111628105416602, -0.18371998359850483], [0.63606993796228117, -0.10703087143670587]]]),self.functionspace)
       ref=0.986762707603
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_constData_rank4(self):
       arg=Data(numpy.array([[[[0.89488524023952776, 0.8669396968091807, -0.45769331537553315, -0.89738195395075349], [0.39077366764066168, -0.71075932241646922, -0.51096889323130612, 0.87130290122807663], [0.17079807940685177, -0.6198922248677714, -0.41261700237404653, -0.30627765803812368]], [[-0.0659839868001868, -0.54367942190111385, 0.79254440140135607, -0.28895269724305006], [0.2554732744127961, -0.0076696085190677277, 0.6846601760873452, 0.38696598742090393], [-0.77125424651939789, 0.63909999575689591, -0.87840142433528379, 0.41711809974302594]]], [[[-0.99322035791310692, 0.27097830567855352, -0.4253855401144222, 0.15768186455727529], [-0.49181115516922302, -0.36126829134959304, 0.52357599944776667, 0.91209852597809005], [0.069076441159411361, -0.18292686281510551, -0.6497679800515983, 0.022610374934600719]], [[0.28755759348156507, -0.08281906224050295, 0.76036900801429907, 0.54802231074240826], [-0.033682724326368874, -0.7414032372095134, -0.86699767465780231, 0.40592904057808044], [0.51593363738292841, -0.72087130860034332, 0.35672334112134374, -0.090721746979026463]]], [[[-0.54866684145444511, -0.96738751715836968, -0.21201752332220436, -0.099425492405464277], [-0.76528700517307313, -0.85955622688708644, -0.10492266626403257, 0.69311319310724762], [-0.33886276086664902, -0.6846128323156393, 0.05873264876508566, 0.88498228323799433]], [[-0.28404277561384639, -0.63570388064518468, -0.67775264818658387, 0.20825454125346576], [-0.84788984114351473, 0.037932422136330635, 0.021981819447397299, -0.2709264612684219], [-0.64072476278735468, 0.46126191894728197, -0.37456096950035489, 0.85599593427453957]]]]),self.functionspace)
       ref=0.912098525978
       res=sup(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_expandedData_rank0(self):
 
@@ -254,8 +254,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=sup(arg)
       ref=0.985691469761
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_expandedData_rank1(self):
 
@@ -264,8 +264,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=sup(arg)
       ref=0.470244300206
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_expandedData_rank2(self):
 
@@ -274,8 +274,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=sup(arg)
       ref=0.989333342819
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_expandedData_rank3(self):
 
@@ -284,8 +284,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=sup(arg)
       ref=0.946515361836
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sup_expandedData_rank4(self):
 
@@ -294,95 +294,95 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=sup(arg)
       ref=0.990730927773
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_float_rank0(self):
       arg=0.857535693433
       ref=0.857535693433
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_array_rank0(self):
       arg=0.170725403135
       ref=0.170725403135
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_array_rank1(self):
       arg=numpy.array([-0.20582799927627726, 0.0065475369467946631])
       ref=-0.205827999276
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_array_rank2(self):
       arg=numpy.array([[-0.00088705991533410966, -0.78884753663192009, 0.51871980588812661, -0.58204851803513313, 0.14241101940826861], [0.79094574969805964, 0.79672216617995617, -0.5690477768894624, 0.51157272654417052, 0.18066938665191556], [0.32364745994353683, 0.4748425103497671, 0.66679519455306924, -0.69644515487912217, -0.37494171775165297], [-0.18679695095262239, -0.78312977298360509, 0.044885312146701661, -0.44016241609550066, -0.49756845096624081]])
       ref=-0.788847536632
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_array_rank3(self):
       arg=numpy.array([[[-0.8081125483464171, -0.39512178653285135], [-0.88509761616456495, 0.27821695074525521]], [[-0.12065704909614361, 0.68332883926843135], [0.3403814721074454, -0.32879966956330042]], [[-0.7045229028656752, -0.1577338131736914], [-0.5966034105188045, 0.73456332700634985]], [[0.87843639147943997, 0.94490362642776882], [-0.45552277927474183, -0.9768135246661469]], [[-0.65451540143458864, -0.2796668209543185], [-0.085396852552783953, 0.83466766003117332]], [[0.43465138886082078, 0.61441480296663342], [0.92555078046558337, -0.24612584648713121]]])
       ref=-0.976813524666
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_array_rank4(self):
       arg=numpy.array([[[[-0.05536021838962446, -0.0098764348632232046, -0.52953548051740618, 0.58523070076080819], [0.10613609818504877, 0.67324697282212087, 0.54615663777618906, -0.67572666188479613], [-0.14390410848091539, 0.54011444546397591, -0.85609073171970373, 0.077099187121419277]], [[-0.20493469025659716, 0.90647730634569368, -0.71749107354722064, -0.12332697315517271], [0.63551267588618598, -0.60802528409862266, 0.052319255834022638, -0.95394697709081688], [-0.88612629669117959, 0.32248454322667519, 0.0072741938614420132, -0.69013368898879235]]], [[[-0.10462047858216028, -0.30097012474135698, -0.050016775782701028, 0.54822125876578376], [0.84395749034726886, -0.53249513893193168, -0.88004100855031275, -0.80779542570577179], [-0.79677629667791683, 0.95096027764472169, 0.63643207567783144, 0.97757008271555401]], [[-0.65415697736192047, -0.97050764835238645, -0.84814693021942777, -0.43855897064286542], [-0.37135308255264543, 0.041120751125186095, 0.036995657114785807, -0.35706630152349828], [-0.0030591331649565401, 0.48192500000712779, 0.18102011879743984, -0.78573775232009435]]], [[[-0.31965876602783605, 0.10351748464331689, 0.067424791069963907, -0.049524027182576535], [-0.5213817364489115, 0.027521683153738818, -0.24734661576641237, 0.24321699964875232], [-0.83947613904690699, 0.77162806253216987, -0.90740945316368071, -0.3420545897410685]], [[0.91845344502663262, -0.70878381509801414, 0.90861837177726379, -0.4013061463136427], [-0.18540388033546473, 0.9254510240675875, 0.30634230347058677, -0.97817133509804033], [-0.43975591131244984, 0.30020642565479139, 0.36841633323637479, 0.3066739733421715]]]])
       ref=-0.978171335098
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_constData_rank0(self):
       arg=Data(0.0114629834279,self.functionspace)
       ref=0.0114629834279
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_constData_rank1(self):
       arg=Data(numpy.array([-0.13734485813185704, -0.54812466656634307]),self.functionspace)
       ref=-0.548124666566
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_constData_rank2(self):
       arg=Data(numpy.array([[-0.89509582806410015, 0.10780316690435621, -0.93073500763754335, -0.38534759506991545, -0.6935160645644014], [-0.056672310128515813, 0.6285075027787359, 0.73632355512072167, -0.60238897825476267, 0.77403597203864094], [-0.5930215600641755, 0.72623233579382429, -0.32117191475695361, -0.081104170523293773, 0.62137628665436373], [0.2669734570396014, -0.65030905665614136, -0.53589374176691495, -0.48334830355881309, -0.89125004784938211]]),self.functionspace)
       ref=-0.930735007638
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_constData_rank3(self):
       arg=Data(numpy.array([[[0.94493948950092999, 0.13737629155757691], [-0.81599535906086107, -0.35832278646984816]], [[-0.53692839435234041, 0.53679590218669571], [0.038856705021854232, -0.18543838436402926]], [[0.19718168292863836, -0.55405958298613656], [0.16477861536800242, 0.17787953041277582]], [[0.51547288009005165, 0.35889372726595203], [-0.033476505587150873, -0.42142418570614026]], [[0.80507204877418204, -0.79581688922832838], [-0.85909254497735588, 0.66095083521227149]], [[0.46206420953978222, 0.53654696439305005], [0.57618105395776831, -0.22241758047110038]]]),self.functionspace)
       ref=-0.859092544977
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
       
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_constData_rank4(self):
       arg=Data(numpy.array([[[[0.50544713768476202, 0.96922321849050874, -0.81524480218696649, -0.36499730379849193], [-0.48131882706974372, 0.026812357207576465, 0.090903267401989618, -0.24742363369877829], [-0.51631372893805438, 0.30410275437953183, -0.75149566289642533, -0.19930300338453599]], [[0.82034878499482788, -0.70904661587698792, -0.27637223434426073, -0.34818734117560401], [0.11686048779802416, -0.76746266142163178, -0.75578186306174833, 0.14509316330390232], [0.1590050723141736, 0.69684384552537937, -0.58747105640080832, -0.28640840371441523]]], [[[0.14956532194045669, 0.081514192262221119, 0.32061383569406399, -0.2444346881437609], [0.79564139071785278, -0.5456680167461434, 0.24722978802719742, 0.28286130725068315], [0.10385207763921711, -0.064749181840278336, 0.21325254547672734, -0.71875644540473838]], [[0.58552496009870802, 0.35472373485671338, -0.18411162994671826, 0.71609038134967773], [-0.20966804574945064, -0.49286619989346314, 0.85116051808632553, -0.94417114370961075], [-0.40434528979823714, 0.62250343758157611, 0.64860074098639742, 0.0043146814280992096]]], [[[-0.14242849200713259, 0.42551908502898095, 0.7691157770973962, -0.37595641162856674], [0.026655444032149589, -0.82186407521644167, 0.40285091480648783, -0.53328831035315982], [-0.12887729257054481, 0.75610663428133451, 0.022049613835531723, 0.59949338706293043]], [[-0.34506254315071772, 0.019719877473602043, 0.10216765908478709, 0.022681548062032153], [0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 0.18829632566943544, 0.12366885442775377, 0.73651436499107814]]]]),self.functionspace)
       ref=-0.94417114371
       res=inf(arg)
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
       
    def test_NaNReduction_constData_rank4(self):
 	arg=Data(numpy.array([[[[0.50544713768476202, 0.96922321849050874, -0.81524480218696649, -0.36499730379849193], [-0.48131882706974372, 0.026812357207576465, 0.090903267401989618, -0.24742363369877829], [-0.51631372893805438, 0.30410275437953183, -0.75149566289642533, -0.19930300338453599]], [[0.82034878499482788, -0.70904661587698792, -0.27637223434426073, -0.34818734117560401], [0.11686048779802416, -0.76746266142163178, -0.75578186306174833, 0.14509316330390232], [0.1590050723141736, 0.69684384552537937, -0.58747105640080832, -0.28640840371441523]]], [[[0.14956532194045669, 0.081514192262221119, 0.32061383569406399, -0.2444346881437609], [0.79564139071785278, -0.5456680167461434, 0.24722978802719742, 0.28286130725068315], [0.10385207763921711, -0.064749181840278336, 0.21325254547672734, -0.71875644540473838]], [[0.58552496009870802, 0.35472373485671338, -0.18411162994671826, 0.71609038134967773], [-0.20966804574945064, -0.49286619989346314, 0.85116051808632553, -0.94417114370961075], [-0.40434528979823714, 0.62250343758157611, 0.64860074098639742, 0.0043146814280992096]]], [[[-0.14242849200713259, 0.42551908502898095, 0.7691157770973962, -0.37595641162856674], [0.026655444032149589, -0.82186407521644167, 0.40285091480648783, -0.53328831035315982], [-0.12887729257054481, 0.75610663428133451, 0.022049613835531723, 0.59949338706293043]], [[-0.34506254315071772, 0.019719877473602043, 0.10216765908478709, 0.022681548062032153], [0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace)
 	if getEscriptParamInt('NAN_CHECK')==1:
 		arg=1/arg	#will get us an inf
 		arg=arg/arg	#will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-		self.failUnless(numpy.isnan(sup(arg)),"wrong result")
-		self.failUnless(numpy.isnan(inf(arg)),"wrong result")
-		self.failUnless(numpy.isnan(Lsup(arg)),"wrong result")		
+		self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+		self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+		self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")		
 		
 
    def test_NaNReduction_expandedData_rank4(self):
@@ -390,9 +390,9 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 	if getEscriptParamInt('NAN_CHECK')==1:
 		arg=1/arg	#will get us an inf
 		arg=arg/arg	#will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-		self.failUnless(numpy.isnan(sup(arg)),"wrong result")
-		self.failUnless(numpy.isnan(inf(arg)),"wrong result")
-		self.failUnless(numpy.isnan(Lsup(arg)),"wrong result")	
+		self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
+		self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
+		self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")	
 	   
 	   
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -403,8 +403,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=inf(arg)
       ref=0.911344578019
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_expandedData_rank1(self):
 
@@ -413,8 +413,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=inf(arg)
       ref=-0.699969449839
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_expandedData_rank2(self):
 
@@ -423,8 +423,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=inf(arg)
       ref=-0.961574871167
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_expandedData_rank3(self):
 
@@ -433,8 +433,8 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=inf(arg)
       ref=-0.866630803474
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inf_expandedData_rank4(self):
 
@@ -443,7 +443,7 @@ class Test_util_reduction_no_tagged_data(Test_util_base):
 
       res=inf(arg)
       ref=-0.995075343007
-      self.failUnless(isinstance(res,float),"wrong type of result.")
-      self.failUnless(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
+      self.assertTrue(isinstance(res,float),"wrong type of result.")
+      self.assertTrue(abs(res-ref)<=self.RES_TOL*abs(ref),"wrong result")
 
 

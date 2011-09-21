@@ -104,6 +104,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 " value for arg1. The maximum value is computed and returned.\n\n:rtype: int");
   def("getMPIWorldSum",escript::getMPIWorldSum,"\nEach MPI process calls this function with a"
 " value for arg1. The values are added up and the total value is returned.\n\n:rtype: int");
+  def("runMPIProgram",escript::runMPIProgram,"Spawns an external MPI program using a separate communicator.");
   def("getMachinePrecision",escript::getMachinePrecision);
   def("getMaxFloat",escript::getMaxFloat);
   def("_saveDataCSV",escript::saveDataCSV, (args("filename","arg","sep","csep"), arg("append")=false),
@@ -173,7 +174,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 args("solver", "preconditioner", "package", "symmetry"))
 
       .def("addPDEToSystem",&escript::AbstractContinuousDomain::addPDEToSystem,
-args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact", "d_dirac", "y_dirac"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
 ":param A:\n:type A: `Data`\n"
@@ -185,18 +186,21 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param d:\n:type d: `Data`\n"
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
+":param d_dirac:\n:type d_dirac: `Data`\n"
+":param y_dirac:\n:type y_dirac: `Data`\n"
 )
       .def("addPDEToRHS",&escript::AbstractContinuousDomain::addPDEToRHS, 
-args("rhs", "X", "Y", "y", "y_contact"),
+args("rhs", "X", "Y", "y", "y_contact", "d_dirac"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
+":param y_dirac:\n:type y_dirac: `Data`"
 )
       .def("addPDEToTransportProblem",&escript::AbstractContinuousDomain::addPDEToTransportProblem,
-args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact", "d_dirac", "y_dirac"),
 ":param tp:\n:type tp: `TransportProblemAdapter`\n"
 ":param source:\n:type source: `Data`\n"
 ":param M:\n:type M: `Data`\n"
@@ -210,6 +214,8 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param y:\n:type y: `Data`\n"
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
+":param d_dirac:\n:type d_dirac: `Data`\n"
+":param y_dirac:\n:type y_dirac: `Data`\n"
 )
       .def("newOperator",&escript::AbstractContinuousDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
@@ -324,6 +330,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("delay",&escript::Data::delay,"Convert this object into lazy representation")
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject,args("dataPointNo","value"))
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
+//    .def("_setTupleForGlobalDataPoint", &escript::Data::setTupleForGlobalDataPoint)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint,"\nModify the value of a single datapoint.\n\n:param dataPointNo:\n"
 ":type dataPointNo: int\n:param value: \n:type value: ``float`` or an object which acts like an array, ``tuple`` or ``list``\n:warning: Use of this operation is discouraged. It prevents some optimisations from operating.")
     .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple,args("dataPointNo"),
@@ -503,7 +510,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":rtype: `FunctionSpace`");
   def("Solution",escript::solution, args("domain"), ":rtype: `FunctionSpace`");
   def("ReducedSolution",escript::reducedSolution, args("domain"), ":rtype: `FunctionSpace`");
-  def("DiracDeltaFunction",escript::diracDeltaFunction, args("domain"), ":rtype: `FunctionSpace`");
+  def("DiracDeltaFunctions",escript::diracDeltaFunctions, args("domain"), ":rtype: `FunctionSpace`");
 
 
 

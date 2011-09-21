@@ -1287,8 +1287,8 @@ with the first and eighth value in the table.
 
 \begin{python}
   numslices=len(sine_table)-1
-  minval=0
-  maxval=1
+  minval=0.
+  maxval=1.
   step=sup(maxval-minval)/numslices
 \end{python}
 %
@@ -1309,31 +1309,81 @@ Any values which interpolate to larger than \var{toobig} will raise an
 exception. You can switch on boundary checking by adding
 \code{check_boundaries=True} to the argument list.
 
-Now consider a 2D example. We will interpolate a surface such that the bottom
-edge is the sine curve described above.
-The amplitude of the curve decreases as we move towards the top edge.
-Our interpolation table will have three rows:
+Now consider a 2D example. We will interpolate from a plane where $\forall x,y\in[0,9]:(x,y)=x+y\cdot10$.
 
 \begin{python}
-  st=numpy.array(sine_table)
-  table=[st, 0.5*st, 0*st]
-\end{python}
-%
-The use of \numpy and multiplication here is just to save typing.
+from esys.escript import whereZero
+table2=[]
+for y in range(0,10):
+      r=[]
+      for x in range(0,10):
+	 r.append(x+y*10)
+      table2.append(r)
+xstep=(maxval-minval)/(10-1)
+ystep=(maxval-minval)/(10-1)
 
-%  result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
+xmin=minval
+ymin=minval
+
+result2=interpolateTable(table2, x2, (xmin, ymin), (xstep, ystep), toobig)
+\end{python}
+
+We can check the values using \function{whereZero}.
+For example, for $x=0$:
 \begin{python}
-  result=interpolateTable(table, x (minval,0), (0.55, step), toobig)
+print result2*whereZero(x[0]) 
 \end{python}
 
-In the 2D case the start and step parameters are tuples $(x,y)$.
-By default, if a point is specified which is outside the boundary, then
-\var{interpolateTable} will operate as if the point was on the boundary.
-Passing \code{check_boundaries=True} will lead to the rejection of any points
-outside the boundaries by \var{interpolateTable}.
+Now a 3D. Note that the parameter tuples should be $(x,y,z)$ but that in the interpolation table, $x$ is the innermost dimension.
+\begin{python}
+b=Brick(n,n,n)
+x3=b.getX()
+toobig=1000000
 
-This method can also be called with three dimensional tables and \Data objects.
-Tuples should be ordered $(x,y,z)$.
+table3=[]
+for z in range(0,10):
+   face=[]
+   for y in range(0,10):
+      r=[]
+      for x in range(0,10):
+	 r.append(x+y*10+z*100)
+      face.append(r)
+   table3.append(face);
+
+zstep=(maxval-minval)/(10-1)
+
+zmin=minval
+
+result3=interpolateTable(table3, x3, (xmin, ymin, zmin), (xstep, ystep, zstep), toobig)
+\end{python}
+
+% 
+% 
+% We will interpolate a surface such that the bottom
+% edge is the sine curve described above.
+% The amplitude of the curve decreases as we move towards the top edge.
+% Our interpolation table will have three rows:
+% 
+% \begin{python}
+%   st=numpy.array(sine_table)
+%   table=[st, 0.5*st, 0*st]
+% \end{python}
+% %
+% The use of \numpy and multiplication here is just to save typing.
+% 
+% %  result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
+% \begin{python}
+%   result=interpolateTable(table, x (minval,0), (0.55, step), toobig)
+% \end{python}
+% 
+% In the 2D case the start and step parameters are tuples $(x,y)$.
+% By default, if a point is specified which is outside the boundary, then
+% \var{interpolateTable} will operate as if the point was on the boundary.
+% Passing \code{check_boundaries=True} will lead to the rejection of any points
+% outside the boundaries by \var{interpolateTable}.
+% 
+% This method can also be called with three dimensional tables and \Data objects.
+% Tuples should be ordered $(x,y,z)$.
 
 \subsection{The \var{DataManager} Class}
 \label{sec:datamanager}

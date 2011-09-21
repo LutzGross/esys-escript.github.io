@@ -15,37 +15,20 @@
 #if !defined DataAlgorithmAdapterTestCase_20040715_H
 #define DataAlgorithmAdapterTestCase_20040715_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
 #define REL_TOL ((double)1.e-10)
 
-class DataAlgorithmAdapterTestCase : public CppUnitTest::TestCase
+class DataAlgorithmAdapterTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataAlgorithmAdapter class
+public:
   void testAll();
   void testAlgorithm();
   void testDpAlgorithm();
 
-  DataAlgorithmAdapterTestCase (std::string name) : TestCase (name) {}
-  ~DataAlgorithmAdapterTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

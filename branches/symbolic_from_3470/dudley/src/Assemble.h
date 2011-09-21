@@ -77,6 +77,7 @@ void Dudley_Assemble_PDE_Single2_2D(Dudley_Assemble_Parameters, Dudley_ElementFi
 void Dudley_Assemble_PDE_Single2_1D(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *,
 				    escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *, escriptDataC *,
 				    escriptDataC *);
+void Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters, Dudley_ElementFile *, Paso_SystemMatrix *, escriptDataC *, escriptDataC *, escriptDataC *);
 
 void Dudley_Assemble_NodeCoordinates(Dudley_NodeFile *, escriptDataC *);
 void Dudley_Assemble_setNormal(Dudley_NodeFile *, Dudley_ElementFile *, escriptDataC *);
@@ -87,7 +88,8 @@ void Dudley_Assemble_getSize(Dudley_NodeFile *, Dudley_ElementFile *, escriptDat
 void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, escriptDataC * in);
 void Dudley_Assemble_CopyElementData(Dudley_ElementFile * elements, escriptDataC * out, escriptDataC * in);
 void Dudley_Assemble_AverageElementData(Dudley_ElementFile * elements, escriptDataC * out, escriptDataC * in);
-void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix *, dim_t, index_t *, dim_t, dim_t, index_t *, dim_t, double *);
+void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix * in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
+				       const dim_t NN_Sol, const index_t * Nodes_Sol, const dim_t num_Sol, const double *array);
 
 void Dudley_Assemble_jacobeans_2D(double *, dim_t, dim_t, dim_t, index_t *, double *, double *abs_D, double *quadweight,
 			   index_t *);

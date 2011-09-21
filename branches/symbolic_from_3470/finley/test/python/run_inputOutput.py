@@ -60,13 +60,13 @@ class InputOutput(unittest.TestCase):
      # Check that two domains are equal using Fourier integrals
      # We cannot compare the X coordinates since they are on different domains
      def domainsEqual(self, m1, m2, nft=100):
-        self.failUnless(m1.getDim() == m2.getDim(), "Dimensions differ")
-        self.failUnless(m1.getNumDataPointsGlobal() == m2.getNumDataPointsGlobal(), "Num data points differ")
+        self.assertTrue(m1.getDim() == m2.getDim(), "Dimensions differ")
+        self.assertTrue(m1.getNumDataPointsGlobal() == m2.getNumDataPointsGlobal(), "Num data points differ")
         for tagName in m1.showTagNames().split(", "):
-          self.failUnless(m2.isValidTagName(tagName), "m1 has a tag '%s' not present in m2" % tagName)
+          self.assertTrue(m2.isValidTagName(tagName), "m1 has a tag '%s' not present in m2" % tagName)
         for tagName in m2.showTagNames().split(", "):
-          self.failUnless(m1.isValidTagName(tagName), "m2 has a tag '%s' not present in m1" % tagName)
-          self.failUnless(m1.getTag(tagName) == m2.getTag(tagName), "values of tag '%s' differ" % tagName)
+          self.assertTrue(m1.isValidTagName(tagName), "m2 has a tag '%s' not present in m1" % tagName)
+          self.assertTrue(m1.getTag(tagName) == m2.getTag(tagName), "values of tag '%s' differ" % tagName)
         for fs in ["Solution", "ReducedSolution", "Function", "ReducedFunction", "ContinuousFunction", "ReducedContinuousFunction"]:
           fs1 = eval("%s(m1)" % fs)
           fs2 = eval("%s(m2)" % fs)
@@ -75,7 +75,7 @@ class InputOutput(unittest.TestCase):
           for n in range(1, nft+1):
             integ1 = integrate(sin(n*x1))
             integ2 = integrate(sin(n*x2))
-            self.failUnless(Lsup(abs(integ1-integ2)) <= REL_TOL, "integrals for n=%d differ" % n)
+            self.assertTrue(Lsup(abs(integ1-integ2)) <= REL_TOL, "integrals for n=%d differ" % n)
         return True
 
      # Does optimize=True change Rectangle for order=1?
@@ -121,7 +121,7 @@ class InputOutput(unittest.TestCase):
 	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
 	  d1.dump(dumpfile)
 	  d2=load(dumpfile, mydomain1)
-          self.failUnless(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_data_dump_to_NetCDF_brick(self):
 	if loadIsConfigured():
@@ -131,7 +131,7 @@ class InputOutput(unittest.TestCase):
 	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
 	  d1.dump(dumpfile)
 	  d2=load(dumpfile, mydomain1)
-          self.failUnless(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_mesh_dump_to_NetCDF_rectangle(self):
 	if loadIsConfigured():

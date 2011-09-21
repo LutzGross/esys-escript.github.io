@@ -15,26 +15,13 @@
 #if !defined  DataExpandedTestCase_20040413_H
 #define  DataExpandedTestCase_20040413_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class DataExpandedTestCase : public CppUnitTest::TestCase
+class DataExpandedTestCase : public CppUnit::TestFixture
 {
- public:
+public:
 
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataExpanded class
-
-  //
   // General test case
   void testAll();
 
@@ -45,12 +32,8 @@ class DataExpandedTestCase : public CppUnitTest::TestCase
   void testSliceSetting();
   void testSliceSetting2();
 
-  DataExpandedTestCase (std::string name) : TestCase (name) {}
-  ~DataExpandedTestCase() {}
-
-  //
-  // return the suite of tests to perform
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

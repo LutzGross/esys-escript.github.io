@@ -125,241 +125,264 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
     {
 	requireWrite(lumpedMat);
 	lumpedMat_p = getSampleDataRW(lumpedMat, 0);
-	len_EM_lumpedMat = p.numShapes * p.numEqu;
+	
+	if (funcspace==DUDLEY_POINTS) {
+              #pragma omp parallel private(color, D_p)
+	      {
+		    for (color=elements->minColor;color<=elements->maxColor;color++) {
+		      /*  open loop over all elements: */
+		      #pragma omp for private(e) schedule(static)
+		      for(e=0;e<elements->numElements;e++){
+			  if (elements->Color[e]==color) {
+			    D_p=getSampleDataRO(D, e);
+			    if (NULL!=D_p)  Dudley_Util_AddScatter(1,
+                                                        &(p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]]),
+                                                        p.numEqu,
+                                                        D_p,
+                                                        lumpedMat_p, 
+                                                        p.row_DOF_UpperBound);
+			  } /* end color check */
+		      } /* end element loop */
+		  } /* end color loop */
+	    } /* end parallel region */
+        } else {  
+	      
+	      len_EM_lumpedMat = p.numShapes * p.numEqu;
 
-	expandedD = isExpanded(D);
-	if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
-	{
-	    Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: Unable to locate shape function.");
-	}
-	#pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp, diagS, m_t)
-	{
-	    EM_lumpedMat = THREAD_MEMALLOC(len_EM_lumpedMat, double);
-	    row_index = THREAD_MEMALLOC(p.numShapes, index_t);
-	    if (!Dudley_checkPtr(EM_lumpedMat) && !Dudley_checkPtr(row_index))
-	    {
-		if (p.numEqu == 1)
-		{		/* single equation */
-		    if (expandedD)
-		    {		/* with expanded D */
-			for (color = elements->minColor; color <= elements->maxColor; color++)
-			{
-			    /*  open loop over all elements: */
-#pragma omp for private(e) schedule(static)
-			    for (e = 0; e < elements->numElements; e++)
-			    {
-				if (elements->Color[e] == color)
-				{
-				    double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-				    D_p = getSampleDataRO(D, e);
-				    if (useHRZ)	{
-				       m_t = 0;	/* mass of the element: m_t */
-				       for (q = 0; q < p.numQuad; q++)
-					  m_t += vol * D_p[INDEX2(q, 0, p.numQuad)];
-				       diagS = 0;	/* diagonal sum: S */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  rtmp = 0;
-					  for (q = 0; q < p.numQuad; q++)
-					     rtmp +=
-						   vol * D_p[INDEX2(q, 0, p.numQuad)] * S[INDEX2(s, q, p.numShapes)] *
-						   S[INDEX2(s, q, p.numShapes)];
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
-					  diagS += rtmp;
-				       }
-				       /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-				       rtmp = m_t / diagS;
-				       for (s = 0; s < p.numShapes; s++)
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] *= rtmp;
-
-				    } else {/* row-sum lumping */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  rtmp = 0;
-					  for (q = 0; q < p.numQuad; q++)
-					     rtmp += vol * S[INDEX2(s, q, p.numShapes)] * D_p[INDEX2(q, 0, p.numQuad)];
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
-				       }
-				    }
-				    for (q = 0; q < p.numShapes; q++)
-				    {
-					row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-				    }
-				    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
-							   p.row_DOF_UpperBound);
-				}	/* end color check */
-			    }	/* end element loop */
-			}	/* end color loop */
-		    }
-		    else
-		    {		/* with constant D */
-
-			for (color = elements->minColor; color <= elements->maxColor; color++)
-			{
-			    /*  open loop over all elements: */
-#pragma omp for private(e) schedule(static)
-			    for (e = 0; e < elements->numElements; e++)
-			    {
-				if (elements->Color[e] == color)
-				{
-				    double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-				    D_p = getSampleDataRO(D, e);
-				    if (useHRZ)	{	/* HRZ lumping */
-				       m_t = 0;	/* mass of the element: m_t */
-				       for (q = 0; q < p.numQuad; q++)
-					  m_t += vol;
-				       diagS = 0;	/* diagonal sum: S */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  rtmp = 0;
-					  for (q = 0; q < p.numQuad; q++)
-					  {
-					     rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
-					  }
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
-					  diagS += rtmp;
-				       }
-				       /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-				       rtmp = m_t / diagS * D_p[0];
-				       for (s = 0; s < p.numShapes; s++)
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] *= rtmp;
-				    } else {			/* row-sum lumping */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  rtmp = 0;
-					  for (q = 0; q < p.numQuad; q++)
-					     rtmp += vol * S[INDEX2(s, q, p.numShapes)];
-					  EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp * D_p[0];
-				       }
-				    }
-				    for (q = 0; q < p.numShapes; q++)
-					row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-				    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
-							   p.row_DOF_UpperBound);
-				}	/* end color check */
-			    }	/* end element loop */
-			}	/* end color loop */
-
-		    }
-		}
-		else
-		{		/* system of  equation */
-		    if (expandedD)
-		    {		/* with expanded D */
-			for (color = elements->minColor; color <= elements->maxColor; color++)
-			{
-			    /*  open loop over all elements: */
-#pragma omp for private(e) schedule(static)
-			    for (e = 0; e < elements->numElements; e++)
-			    {
-				if (elements->Color[e] == color)
-				{
-				    double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-				    D_p = getSampleDataRO(D, e);
-
-				    if (useHRZ)	{	/* HRZ lumping */
-				       for (k = 0; k < p.numEqu; k++)
-				       {
-					  m_t = 0;	/* mass of the element: m_t */
-					  for (q = 0; q < p.numQuad; q++)
-					     m_t += vol * D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)];
-
-					  diagS = 0;	/* diagonal sum: S */
-					  for (s = 0; s < p.numShapes; s++)
-					  {
-					     rtmp = 0;
-					     for (q = 0; q < p.numQuad; q++)
-						   rtmp +=
-						      vol * D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)] *
-						      S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
-					     EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
-					     diagS += rtmp;
-					  }
-					  /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-					  rtmp = m_t / diagS;
-					  for (s = 0; s < p.numShapes; s++)
-					     EM_lumpedMat[INDEX2(k, s, p.numEqu)] *= rtmp;
-				       }
-				    } else {				/* row-sum lumping */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  for (k = 0; k < p.numEqu; k++)
-					  {
-					     rtmp = 0.;
-					     for (q = 0; q < p.numQuad; q++)
-						   rtmp +=
-						      vol * S[INDEX2(s, q, p.numShapes)] *
-						      D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)];
-					     EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
-					  }
-				       }
-				    }
-				    for (q = 0; q < p.numShapes; q++)
-					row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-				    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
-							   p.row_DOF_UpperBound);
-				}	/* end color check */
-			    }	/* end element loop */
-			}	/* end color loop */
-		    }
-		    else
-		    {		/* with constant D */
-			for (color = elements->minColor; color <= elements->maxColor; color++)
-			{
-			    /*  open loop over all elements: */
-#pragma omp for private(e) schedule(static)
-			    for (e = 0; e < elements->numElements; e++)
-			    {
-				if (elements->Color[e] == color)
-				{
-				    double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
-				    D_p = getSampleDataRO(D, e);
-
-				    if (useHRZ)		{ /* HRZ lumping */
-				       m_t = 0;	/* mass of the element: m_t */
-				       for (q = 0; q < p.numQuad; q++)
-					  m_t += vol;
-				       diagS = 0;	/* diagonal sum: S */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  rtmp = 0;
-					  for (q = 0; q < p.numQuad; q++)
-					     rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
-					  for (k = 0; k < p.numEqu; k++)
-					     EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
-					  diagS += rtmp;
-				       }
-				       /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
-				       rtmp = m_t / diagS;
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  for (k = 0; k < p.numEqu; k++)
-					     EM_lumpedMat[INDEX2(k, s, p.numEqu)] *= rtmp * D_p[k];
-				       }
-				    } else {				/* row-sum lumping */
-				       for (s = 0; s < p.numShapes; s++)
-				       {
-					  for (k = 0; k < p.numEqu; k++)
-					  {
-					    rtmp = 0.;
+	      expandedD = isExpanded(D);
+	      if (!getQuadShape(elements->numDim, reducedIntegrationOrder, &S))
+	      {
+		  Dudley_setError(TYPE_ERROR, "Dudley_Assemble_LumpedSystem: Unable to locate shape function.");
+	      }
+	      #pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp, diagS, m_t)
+	      {
+		  EM_lumpedMat = THREAD_MEMALLOC(len_EM_lumpedMat, double);
+		  row_index = THREAD_MEMALLOC(p.numShapes, index_t);
+		  if (!Dudley_checkPtr(EM_lumpedMat) && !Dudley_checkPtr(row_index))
+		  {
+		      if (p.numEqu == 1)
+		      {		/* single equation */
+			  if (expandedD)
+			  {		/* with expanded D */
+			      for (color = elements->minColor; color <= elements->maxColor; color++)
+			      {
+				  /*  open loop over all elements: */
+      #pragma omp for private(e) schedule(static)
+				  for (e = 0; e < elements->numElements; e++)
+				  {
+				      if (elements->Color[e] == color)
+				      {
+					  double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+					  D_p = getSampleDataRO(D, e);
+					  if (useHRZ)	{
+					    m_t = 0;	/* mass of the element: m_t */
 					    for (q = 0; q < p.numQuad; q++)
-						rtmp += vol * S[INDEX2(s, q, p.numShapes)];
-					    EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp * D_p[k];
+						m_t += vol * D_p[INDEX2(q, 0, p.numQuad)];
+					    diagS = 0;	/* diagonal sum: S */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						rtmp = 0;
+						for (q = 0; q < p.numQuad; q++)
+						  rtmp +=
+							vol * D_p[INDEX2(q, 0, p.numQuad)] * S[INDEX2(s, q, p.numShapes)] *
+							S[INDEX2(s, q, p.numShapes)];
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
+						diagS += rtmp;
+					    }
+					    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+					    rtmp = m_t / diagS;
+					    for (s = 0; s < p.numShapes; s++)
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] *= rtmp;
+
+					  } else {/* row-sum lumping */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						rtmp = 0;
+						for (q = 0; q < p.numQuad; q++)
+						  rtmp += vol * S[INDEX2(s, q, p.numShapes)] * D_p[INDEX2(q, 0, p.numQuad)];
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
+					    }
 					  }
-				       }
-				    }
-				    for (q = 0; q < p.numShapes; q++)
-					row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
-				    Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
-							   p.row_DOF_UpperBound);
-				}	/* end color check */
-			    }	/* end element loop */
-			}	/* end color loop */
-		    }
-		}
-	    }			/* end of pointer check */
-	    THREAD_MEMFREE(EM_lumpedMat);
-	    THREAD_MEMFREE(row_index);
-	}			/* end parallel region */
+					  for (q = 0; q < p.numShapes; q++)
+					  {
+					      row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+					  }
+					  Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
+								p.row_DOF_UpperBound);
+				      }	/* end color check */
+				  }	/* end element loop */
+			      }	/* end color loop */
+			  }
+			  else
+			  {		/* with constant D */
+
+			      for (color = elements->minColor; color <= elements->maxColor; color++)
+			      {
+				  /*  open loop over all elements: */
+      #pragma omp for private(e) schedule(static)
+				  for (e = 0; e < elements->numElements; e++)
+				  {
+				      if (elements->Color[e] == color)
+				      {
+					  double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+					  D_p = getSampleDataRO(D, e);
+					  if (useHRZ)	{	/* HRZ lumping */
+					    m_t = 0;	/* mass of the element: m_t */
+					    for (q = 0; q < p.numQuad; q++)
+						m_t += vol;
+					    diagS = 0;	/* diagonal sum: S */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						rtmp = 0;
+						for (q = 0; q < p.numQuad; q++)
+						{
+						  rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
+						}
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp;
+						diagS += rtmp;
+					    }
+					    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+					    rtmp = m_t / diagS * D_p[0];
+					    for (s = 0; s < p.numShapes; s++)
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] *= rtmp;
+					  } else {			/* row-sum lumping */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						rtmp = 0;
+						for (q = 0; q < p.numQuad; q++)
+						  rtmp += vol * S[INDEX2(s, q, p.numShapes)];
+						EM_lumpedMat[INDEX2(0, s, p.numEqu)] = rtmp * D_p[0];
+					    }
+					  }
+					  for (q = 0; q < p.numShapes; q++)
+					      row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+					  Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
+								p.row_DOF_UpperBound);
+				      }	/* end color check */
+				  }	/* end element loop */
+			      }	/* end color loop */
+
+			  }
+		      }
+		      else
+		      {		/* system of  equation */
+			  if (expandedD)
+			  {		/* with expanded D */
+			      for (color = elements->minColor; color <= elements->maxColor; color++)
+			      {
+				  /*  open loop over all elements: */
+      #pragma omp for private(e) schedule(static)
+				  for (e = 0; e < elements->numElements; e++)
+				  {
+				      if (elements->Color[e] == color)
+				      {
+					  double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+					  D_p = getSampleDataRO(D, e);
+
+					  if (useHRZ)	{	/* HRZ lumping */
+					    for (k = 0; k < p.numEqu; k++)
+					    {
+						m_t = 0;	/* mass of the element: m_t */
+						for (q = 0; q < p.numQuad; q++)
+						  m_t += vol * D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)];
+
+						diagS = 0;	/* diagonal sum: S */
+						for (s = 0; s < p.numShapes; s++)
+						{
+						  rtmp = 0;
+						  for (q = 0; q < p.numQuad; q++)
+							rtmp +=
+							    vol * D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)] *
+							    S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
+						  diagS += rtmp;
+						}
+						/* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+						rtmp = m_t / diagS;
+						for (s = 0; s < p.numShapes; s++)
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] *= rtmp;
+					    }
+					  } else {				/* row-sum lumping */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						for (k = 0; k < p.numEqu; k++)
+						{
+						  rtmp = 0.;
+						  for (q = 0; q < p.numQuad; q++)
+							rtmp +=
+							    vol * S[INDEX2(s, q, p.numShapes)] *
+							    D_p[INDEX3(k, q, 0, p.numEqu, p.numQuad)];
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
+						}
+					    }
+					  }
+					  for (q = 0; q < p.numShapes; q++)
+					      row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+					  Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
+								p.row_DOF_UpperBound);
+				      }	/* end color check */
+				  }	/* end element loop */
+			      }	/* end color loop */
+			  }
+			  else
+			  {		/* with constant D */
+			      for (color = elements->minColor; color <= elements->maxColor; color++)
+			      {
+				  /*  open loop over all elements: */
+      #pragma omp for private(e) schedule(static)
+				  for (e = 0; e < elements->numElements; e++)
+				  {
+				      if (elements->Color[e] == color)
+				      {
+					  double vol = p.row_jac->absD[e] * p.row_jac->quadweight;
+					  D_p = getSampleDataRO(D, e);
+
+					  if (useHRZ)		{ /* HRZ lumping */
+					    m_t = 0;	/* mass of the element: m_t */
+					    for (q = 0; q < p.numQuad; q++)
+						m_t += vol;
+					    diagS = 0;	/* diagonal sum: S */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						rtmp = 0;
+						for (q = 0; q < p.numQuad; q++)
+						  rtmp += vol * S[INDEX2(s, q, p.numShapes)] * S[INDEX2(s, q, p.numShapes)];
+						for (k = 0; k < p.numEqu; k++)
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp;
+						diagS += rtmp;
+					    }
+					    /* rescale diagonals by m_t/diagS to ensure consistent mass over element */
+					    rtmp = m_t / diagS;
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						for (k = 0; k < p.numEqu; k++)
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] *= rtmp * D_p[k];
+					    }
+					  } else {				/* row-sum lumping */
+					    for (s = 0; s < p.numShapes; s++)
+					    {
+						for (k = 0; k < p.numEqu; k++)
+						{
+						  rtmp = 0.;
+						  for (q = 0; q < p.numQuad; q++)
+						      rtmp += vol * S[INDEX2(s, q, p.numShapes)];
+						  EM_lumpedMat[INDEX2(k, s, p.numEqu)] = rtmp * D_p[k];
+						}
+					    }
+					  }
+					  for (q = 0; q < p.numShapes; q++)
+					      row_index[q] = p.row_DOF[elements->Nodes[INDEX2(q, e, p.NN)]];
+					  Dudley_Util_AddScatter(p.numShapes, row_index, p.numEqu, EM_lumpedMat, lumpedMat_p,
+								p.row_DOF_UpperBound);
+				      }	/* end color check */
+				  }	/* end element loop */
+			      }	/* end color loop */
+			  }
+		      }
+		  }			/* end of pointer check */
+		  THREAD_MEMFREE(EM_lumpedMat);
+		  THREAD_MEMFREE(row_index);
+	      }			/* end parallel region */
+	}
     }
 }

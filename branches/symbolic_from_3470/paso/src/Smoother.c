@@ -183,8 +183,9 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    double *diag = smoother->diag;
-   index_t* pivot = smoother->pivot;
-   const dim_t block_len=A_p->block_size;
+   index_t* pivot = smoother->pivot; 
+   const dim_t block_len=A_p->block_size; 
+
    
    register dim_t i,k;
    register index_t iptr_ik, mm;
@@ -192,6 +193,9 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    int failed = 0;
    
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   
+   (void)pivot;			/* silence warning from var being unused by macros */
+   (void)block_len;    
    /* forward substitution */
    
    if (n_block==1) {
@@ -301,8 +305,8 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    double *diag = smoother->diag;
-   index_t* pivot = smoother->pivot; 
-   const dim_t block_len=A_p->block_size;
+   index_t* pivot = smoother->pivot;   
+   const dim_t block_len=A_p->block_size;   
    double *y;
    
    register dim_t i,k;
@@ -313,6 +317,9 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    const index_t* coloring = Paso_Pattern_borrowColoringPointer(A_p->pattern);
    const dim_t num_colors = Paso_Pattern_getNumColors(A_p->pattern);
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   
+   (void)pivot;			/* These vars are dropped by some macros*/
+   (void)block_len;
 
    #pragma omp parallel  private(mm, i,iptr_ik,k,rtmp, color, y)
    {

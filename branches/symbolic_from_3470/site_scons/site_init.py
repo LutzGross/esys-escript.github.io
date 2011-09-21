@@ -69,10 +69,16 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
     conf.Finish()
     return inc_path, lib_path
 
+
 # Code to build .pyc from .py
 def build_py(target, source, env):
-    py_compile.compile(str(source[0]), str(target[0]))
-    return 0
+    try:
+       py_compile.compile(str(source[0]), str(target[0]), doraise=True)
+       return 0
+    except py_compile.PyCompileError, e:
+       print e
+       return 1
+       
 
 # Code to run unit_test executables
 def runUnitTest(target, source, env):

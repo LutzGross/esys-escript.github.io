@@ -1243,6 +1243,7 @@ class PDECoef(object):
                     the PDE
     :cvar REDUCED: indicator that coefficient is defined through a reduced
                    solution of the PDE
+    :cvar DIRACDELTA: indicator that coefficient is defined as Dirac delta functions
     :cvar BY_EQUATION: indicator that the dimension of the coefficient shape is
                        defined by the number of PDE equations
     :cvar BY_SOLUTION: indicator that the dimension of the coefficient shape is
@@ -1271,6 +1272,7 @@ class PDECoef(object):
     INTERIOR_REDUCED=13
     BOUNDARY_REDUCED=14
     CONTACT_REDUCED=15
+    DIRACDELTA=16
 
     def __init__(self, where, pattern, altering):
        """
@@ -1279,7 +1281,7 @@ class PDECoef(object):
        :param where: describes where the coefficient lives
        :type where: one of `INTERIOR`, `BOUNDARY`, `CONTACT`, `SOLUTION`,
                     `REDUCED`, `INTERIOR_REDUCED`, `BOUNDARY_REDUCED`,
-                    `CONTACT_REDUCED`
+                    `CONTACT_REDUCED`, 'DIRACDELTA'
        :param pattern: describes the shape of the coefficient and how the shape
                        is built for a given spatial dimension and numbers of
                        equations and solutions in then PDE. For instance,
@@ -1334,6 +1336,8 @@ class PDECoef(object):
             return escript.FunctionOnContactZero(domain)
        elif self.what==self.CONTACT_REDUCED:
             return escript.ReducedFunctionOnContactZero(domain)
+       elif self.what==self.DIRACDELTA:
+            return escript.DiracDeltaFunctions(domain)
        elif self.what==self.SOLUTION:
             if reducedEquationOrder and reducedSolutionOrder:
                 return escript.ReducedSolution(domain)
@@ -2661,6 +2665,8 @@ class LinearPDE(LinearProblem):
        y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
        y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
 
@@ -2706,6 +2712,7 @@ class LinearPDE(LinearProblem):
       out=out and self.checkSymmetricTensor("d_reduced", verbose)
       out=out and self.checkSymmetricTensor("d_contact", verbose)
       out=out and self.checkSymmetricTensor("d_contact_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d_dirac", verbose)
       return out
 
    def createOperator(self):
@@ -2774,6 +2781,8 @@ class LinearPDE(LinearProblem):
                  d=self.getCoefficient("d")
                  D_reduced=self.getCoefficient("D_reduced")
                  d_reduced=self.getCoefficient("d_reduced")
+                 d_dirac=self.getCoefficient("d_dirac")
+                 
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
                         D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
@@ -2796,6 +2805,7 @@ class LinearPDE(LinearProblem):
                         D_reduced_times_e=D_reduced
                  else:
                     D_reduced_times_e=escript.Data()
+                    
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
                         d_reduced_times_e=util.matrix_mult(d_reduced,numpy.ones((self.getNumSolutions(),)))
@@ -2803,23 +2813,33 @@ class LinearPDE(LinearProblem):
                         d_reduced_times_e=d_reduced
                  else:
                     d_reduced_times_e=escript.Data()
+                    
+                 if not d_dirac.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        d_reduced_dirac_e=d_dirac
+                 else:
+                    d_dirac_times_e=escript.Data()
 
                  self.resetOperator()
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
 		    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
-		    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e,  hrz_lumping )
-		    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, hrz_lumping)
+		    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+		    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escript.Data(), hrz_lumping)
                  else:
                     self.getDomain().addPDEToRHS(operator, \
                                                  escript.Data(), \
                                                  D_times_e, \
                                                  d_times_e,\
-                                                 escript.Data())
+                                                 escript.Data(),\
+                                                 d_dirac_times_e)
                     self.getDomain().addPDEToRHS(operator, \
                                                  escript.Data(), \
                                                  D_reduced_times_e, \
                                                  d_reduced_times_e,\
+                                                 escript.Data(), \
                                                  escript.Data())
                  self.trace("New lumped operator has been built.")
               if not self.isRightHandSideValid():
@@ -2829,12 +2849,14 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
                                self.getCoefficient("y"),\
-                               self.getCoefficient("y_contact"))
+                               self.getCoefficient("y_contact"), \
+                               self.getCoefficient("y_dirac"))
                  self.getDomain().addPDEToRHS(righthandside, \
                                self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
-                               self.getCoefficient("y_contact_reduced"))
+                               self.getCoefficient("y_contact_reduced"), \
+                               escript.Data())
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
               self.insertConstraint(rhs_only=False)
@@ -2855,7 +2877,9 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("d"), \
                                self.getCoefficient("y"), \
                                self.getCoefficient("d_contact"), \
-                               self.getCoefficient("y_contact"))
+                               self.getCoefficient("y_contact"), \
+                               self.getCoefficient("d_dirac"), \
+                               self.getCoefficient("y_dirac"))
                  self.getDomain().addPDEToSystem(operator,righthandside, \
                                self.getCoefficient("A_reduced"), \
                                self.getCoefficient("B_reduced"), \
@@ -2866,7 +2890,9 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("d_reduced"), \
                                self.getCoefficient("y_reduced"), \
                                self.getCoefficient("d_contact_reduced"), \
-                               self.getCoefficient("y_contact_reduced"))
+                               self.getCoefficient("y_contact_reduced"), \
+                               escript.Data(), \
+                               escript.Data())
                  self.insertConstraint(rhs_only=False)
                  self.trace("New system has been built.")
                  self.validOperator()
@@ -2878,12 +2904,14 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
                                self.getCoefficient("y"),\
-                               self.getCoefficient("y_contact"))
+                               self.getCoefficient("y_contact"), \
+                               self.getCoefficient("y_dirac") )
                  self.getDomain().addPDEToRHS(righthandside,
                                self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
-                               self.getCoefficient("y_contact_reduced"))
+                               self.getCoefficient("y_contact_reduced"), \
+                               escript.Data())
                  self.insertConstraint(rhs_only=True)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
@@ -2900,6 +2928,8 @@ class LinearPDE(LinearProblem):
                             self.getCoefficient("d"), \
                             escript.Data(),\
                             self.getCoefficient("d_contact"), \
+                            escript.Data(),                   \
+                            self.getCoefficient("d_dirac"),   \
                             escript.Data())
                  self.getDomain().addPDEToSystem(operator,escript.Data(), \
                             self.getCoefficient("A_reduced"), \
@@ -2911,6 +2941,8 @@ class LinearPDE(LinearProblem):
                             self.getCoefficient("d_reduced"), \
                             escript.Data(),\
                             self.getCoefficient("d_contact_reduced"), \
+                            escript.Data(),  \
+                            escript.Data(),  \
                             escript.Data())
                  self.insertConstraint(rhs_only=False)
                  self.trace("New operator has been built.")
@@ -3015,6 +3047,10 @@ class LinearPDE(LinearProblem):
       :type y_contact_reduced: any type that can be cast to a `Data`
                                object on `ReducedFunctionOnContactOne`
                                or `ReducedFunctionOnContactZero`
+      :keyword d_dirac: value for coefficient ``d_dirac``
+      :type d_dirac: any type that can be cast to a `Data` object on `DiracDeltaFunctions`
+      :keyword y_dirac: value for coefficient ``y_dirac``
+      :type y_dirac: any type that can be cast to a `Data` object on `DiracDeltaFunctions`
       :keyword r: values prescribed to the solution at the locations of
                   constraints
       :type r: any type that can be cast to a `Data` object on
@@ -3071,13 +3107,41 @@ class LinearPDE(LinearProblem):
      :rtype: `Data`
      """
      if u==None: u=self.getSolution()
-     return util.tensormult(self.getCoefficient("A"),util.grad(u,Funtion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficient("B"),u) \
-           -util.self.getCoefficient("X") \
-           +util.tensormult(self.getCoefficient("A_reduced"),util.grad(u,ReducedFuntion(self.getDomain))) \
-           +util.matrixmult(self.getCoefficient("B_reduced"),u) \
-           -util.self.getCoefficient("X_reduced")
+     if self.getNumEquations()>1:
+       out = escript.Data(0.,(self.getNumEquations(),self.getDim()),self.getFunctionSpaceForCoefficient("X"))
+     else:
+       out = escript.Data(0.,(self.getDim(), ),self.getFunctionSpaceForCoefficient("X"))
 
+     A=self.getCoefficient("A")
+     if not A.isEmpty():
+           out+=util.tensormult(A,util.grad(u,self.getFunctionSpaceForCoefficient("A")))
+      
+     B=self.getCoefficient("B")
+     if not B.isEmpty():
+           if B.getRank() == 1:
+               out+=B * u
+           else:
+               out+=util.generalTensorProduct(B,u,axis_offset=1)
+
+     X=self.getCoefficient("X") 
+     if not X.isEmpty():
+           out-=X
+
+     A_reduced=self.getCoefficient("A_reduced")
+     if not A_reduced.isEmpty():
+           out+=util.tensormult(A_reduced, util.grad(u,self.getFunctionSpaceForCoefficient("A_reduced"))) \
+
+     B_reduced=self.getCoefficient("B_reduced")
+     if not B_reduced.isEmpty():
+           if B_reduced.getRank() == 1:
+                out+=B_reduced*u
+           else:
+                out+=util.generalTensorProduct(B_reduced,u,axis_offset=1)
+
+     X_reduced=self.getCoefficient("X_reduced")
+     if not X_reduced.isEmpty():
+           out-=X_reduced
+     return out
 
 class Poisson(LinearPDE):
    """
@@ -3473,6 +3537,7 @@ class TransportPDE(LinearProblem):
       - *m_reduced[i,k]=m_reduced[k,i]*
       - *d[i,k]=d[k,i]*
       - *d_reduced[i,k]=d_reduced[k,i]*
+      - *d_dirac[i,k]=d_dirac[k,i]*
 
    `TransportPDE` also supports solution discontinuities over a contact region
    in the domain. To specify the conditions across the discontinuity we are
@@ -3573,6 +3638,8 @@ class TransportPDE(LinearProblem):
        y_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        d_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
        y_contact_reduced=PDECoef(PDECoef.CONTACT_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+       d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+       y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
 
@@ -3620,6 +3687,7 @@ class TransportPDE(LinearProblem):
       out=out and self.checkSymmetricTensor("d_reduced", verbose)
       out=out and self.checkSymmetricTensor("d_contact", verbose)
       out=out and self.checkSymmetricTensor("d_contact_reduced", verbose)
+      out=out and self.checkSymmetricTensor("d_dirac", verbose)
       return out
 
    def setValue(self,**coefficients):
@@ -3694,6 +3762,12 @@ class TransportPDE(LinearProblem):
                        object on `FunctionOnContactOne` or `FunctionOnContactZero`
       :keyword y_contact_reduced: value for coefficient ``y_contact_reduced``
       :type y_contact_reduced: any type that can be cast to a `Data` object on `ReducedFunctionOnContactOne` or `ReducedFunctionOnContactZero`
+      
+      :keyword d_dirac: value for coefficient ``d_dirac``
+      :type d_dirac: any type that can be cast to a `Data` object on `DiracDeltaFunctions`
+      :keyword y_dirac: value for coefficient ``y_dirac``
+      :type y_dirac: any type that can be cast to a `Data` object on `DiracDeltaFunctions`
+
       :keyword r: values prescribed to the solution at the locations of constraints
       :type r: any type that can be cast to a `Data` object on
                `Solution` or `ReducedSolution`
@@ -3849,7 +3923,9 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("d"),
                             self.getCoefficient("y"),
                             self.getCoefficient("d_contact"),
-                            self.getCoefficient("y_contact"))
+                            self.getCoefficient("y_contact"),
+                            self.getCoefficient("d_dirac"),
+                            self.getCoefficient("y_dirac") )
           self.getDomain().addPDEToTransportProblem(
                             operator,
                             righthandside,
@@ -3863,7 +3939,9 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("d_reduced"),
                             self.getCoefficient("y_reduced"),
                             self.getCoefficient("d_contact_reduced"),
-                            self.getCoefficient("y_contact_reduced"))
+                            self.getCoefficient("y_contact_reduced"),
+                            escript.Data(),
+                            escript.Data() )
           operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"),self.getConstraintWeightingFactor())
           self.trace("New system has been built.")
           self.validOperator()

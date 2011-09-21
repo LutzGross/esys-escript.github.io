@@ -12,25 +12,17 @@
 *******************************************************/
 
 
+#include "EscriptDatasetTestCase.h"
 #include "escript/DataFactory.h"
 #include "finley/CppAdapter/MeshAdapterFactory.h"
 #include "weipa/EscriptDataset.h"
-#include "EscriptDatasetTestCase.h"
 
-using namespace CppUnitTest;
+#include <cppunit/TestCaller.h>
+
+using namespace CppUnit;
 using namespace escript;
 using namespace weipa;
 using namespace std;
-
-void EscriptDatasetTestCase::setUp()
-{
-    // This is called before each test is run
-}
-
-void EscriptDatasetTestCase::tearDown()
-{
-    // This is called after each test has been run
-}
 
 void EscriptDatasetTestCase::testAll()
 {
@@ -39,55 +31,55 @@ void EscriptDatasetTestCase::testAll()
     EscriptDataset_ptr dataset(new EscriptDataset());
 
     cout << "\tTest saveSilo without data." << endl;
-    assert(dataset->saveSilo("dummy") == false);
+    CPPUNIT_ASSERT(dataset->saveSilo("dummy") == false);
 
     cout << "\tTest saveVTK without data." << endl;
-    assert(dataset->saveVTK("dummy") == false);
+    CPPUNIT_ASSERT(dataset->saveVTK("dummy") == false);
 
     cout << "\tTest getConvertedDomain without data." << endl;
-    assert(dataset->getConvertedDomain().size() == 0);
+    CPPUNIT_ASSERT(dataset->getConvertedDomain().size() == 0);
 
     cout << "\tTest getVariables without data." << endl;
-    assert(dataset->getVariables().size() == 0);
+    CPPUNIT_ASSERT(dataset->getVariables().size() == 0);
 
     cout << "\tTest getMeshVariables without data." << endl;
-    assert(dataset->getMeshVariables().size() == 0);
+    CPPUNIT_ASSERT(dataset->getMeshVariables().size() == 0);
 
     // instantiate a domain and data
     Domain_ptr dom(finley::brick());
     escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;
-    assert(dataset->addData(data, "foo", "bar") == false);
+    CPPUNIT_ASSERT(dataset->addData(data, "foo", "bar") == false);
 
     cout << "\tTest setDomain." << endl;
-    assert(dataset->setDomain(dom.get()) == true);
-    assert(dataset->getMeshVariables().size() > 0);
+    CPPUNIT_ASSERT(dataset->setDomain(dom.get()) == true);
+    CPPUNIT_ASSERT(dataset->getMeshVariables().size() > 0);
 
     cout << "\tTest bogus setDomain call." << endl;
-    assert(dataset->setDomain(dom.get()) == false);
+    CPPUNIT_ASSERT(dataset->setDomain(dom.get()) == false);
 
     cout << "\tTest getConvertedDomain." << endl;
     DomainChunks chunks = dataset->getConvertedDomain();
-    assert(chunks.size() > 0);
+    CPPUNIT_ASSERT(chunks.size() > 0);
 
     StringVec varfiles, varnames;
     varfiles.push_back("testvar%04d.nc");
     varnames.push_back("testvar");
     cout << "\tTest bogus loadNetCDF call 1." << endl;
-    assert(dataset->loadNetCDF("mesh%04d.nc", varfiles, varnames, 1) == false);
+    CPPUNIT_ASSERT(dataset->loadNetCDF("mesh%04d.nc", varfiles, varnames, 1) == false);
 
     cout << "\tTest bogus loadNetCDF call 2." << endl;
-    assert(dataset->loadNetCDF(chunks, varfiles, varnames) == false);
+    CPPUNIT_ASSERT(dataset->loadNetCDF(chunks, varfiles, varnames) == false);
 
     cout << "\tTest addData with valid data." << endl;
-    assert(dataset->addData(data, "testvar", "cm") == true);
-    assert(dataset->getVariables().size() == 1);
+    CPPUNIT_ASSERT(dataset->addData(data, "testvar", "cm") == true);
+    CPPUNIT_ASSERT(dataset->getVariables().size() == 1);
 
     cout << "\tTest set/getCycleAndTime." << endl;
     dataset->setCycleAndTime(42, 3.1415);
-    assert(dataset->getCycle() == 42);
-    assert(dataset->getTime()-3.1415 < 0.001);
+    CPPUNIT_ASSERT(dataset->getCycle() == 42);
+    CPPUNIT_ASSERT(dataset->getTime()-3.1415 < 0.001);
 
     dataset->setMetadataSchemaString("xmlns:test=\"http://myschema.com/test\"",
             "<MyValue>4711</MyValue>");
@@ -96,27 +88,24 @@ void EscriptDatasetTestCase::testAll()
 
 #if USE_SILO
     cout << "\tTest saveSilo." << endl;
-    assert(dataset->saveSilo("weipatest.silo") == true);
+    CPPUNIT_ASSERT(dataset->saveSilo("weipatest.silo") == true);
     ifstream f("weipatest.silo");
-    assert(f.is_open());
+    CPPUNIT_ASSERT(f.is_open());
     f.close();
 #endif
 
     cout << "\tTest saveVTK." << endl;
-    assert(dataset->saveVTK("weipatest.vtu") == true);
+    CPPUNIT_ASSERT(dataset->saveVTK("weipatest.vtu") == true);
     checkVTKfile("weipatest.vtu");
 
     //varnames.push_back("dummy");
     //cout << "\tTest loadNetCDF with invalid params." << endl;
-    //assert(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
+    //CPPUNIT_ASSERT(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
 }
 
 TestSuite* EscriptDatasetTestCase::suite()
 {
-    //
-    // create the suite of tests to perform.
     TestSuite *testSuite = new TestSuite("EscriptDatasetTestCase");
-
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testAll",&EscriptDatasetTestCase::testAll));
     return testSuite;
@@ -140,7 +129,7 @@ int EscriptDatasetTestCase::getDataArrayLength(std::istream& is)
 void EscriptDatasetTestCase::checkVTKfile(std::string filename)
 {
     ifstream f(filename.c_str());
-    assert(f.is_open());
+    CPPUNIT_ASSERT(f.is_open());
 
     char line[256];
     int numPoints=0, numCells=0;
@@ -160,8 +149,8 @@ void EscriptDatasetTestCase::checkVTKfile(std::string filename)
             break;
         }
     }
-    assert(numPoints>0);
-    assert(numCells>0);
+    CPPUNIT_ASSERT(numPoints>0);
+    CPPUNIT_ASSERT(numCells>0);
 
     bool pointsFound=false, cellsFound=false;
     int numPointData=0, numCellData=0;
@@ -176,7 +165,7 @@ void EscriptDatasetTestCase::checkVTKfile(std::string filename)
                 f.getline(line, 256);
                 s = line;
                 if (s.find("<DataArray") == 0) {
-                    assertLongsEqual(numPoints, getDataArrayLength(f));
+                    CPPUNIT_ASSERT_EQUAL(numPoints, getDataArrayLength(f));
                 }
             }
         } else if (s.find("<Cells>") == 0) {
@@ -186,7 +175,7 @@ void EscriptDatasetTestCase::checkVTKfile(std::string filename)
                 f.getline(line, 256);
                 s = line;
                 if (s.find("<DataArray") == 0) {
-                    assertLongsEqual(numCells, getDataArrayLength(f));
+                    CPPUNIT_ASSERT_EQUAL(numCells, getDataArrayLength(f));
                 }
             }
         } else if (s.compare("<PointData>") == 0) {
@@ -196,7 +185,7 @@ void EscriptDatasetTestCase::checkVTKfile(std::string filename)
                 s = line;
                 if (s.find("<DataArray") == 0) {
                     numPointData++;
-                    assertLongsEqual(numPoints, getDataArrayLength(f));
+                    CPPUNIT_ASSERT_EQUAL(numPoints, getDataArrayLength(f));
                 }
             }
         } else if (s.find("<CellData>") == 0) {
@@ -206,15 +195,15 @@ void EscriptDatasetTestCase::checkVTKfile(std::string filename)
                 s = line;
                 if (s.find("<DataArray") == 0) {
                     numCellData++;
-                    assertLongsEqual(numCells, getDataArrayLength(f));
+                    CPPUNIT_ASSERT_EQUAL(numCells, getDataArrayLength(f));
                 }
             }
         }
     }
 
-    assert(pointsFound);
-    assert(cellsFound);
-    assert(numPointData>0);
-    assert(numCellData>0);
+    CPPUNIT_ASSERT(pointsFound);
+    CPPUNIT_ASSERT(cellsFound);
+    CPPUNIT_ASSERT(numPointData>0);
+    CPPUNIT_ASSERT(numCellData>0);
 }
 

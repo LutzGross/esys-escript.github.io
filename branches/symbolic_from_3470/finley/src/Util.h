@@ -28,7 +28,7 @@
 
 void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in,double * out);
 void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData,index_t* in,index_t * out);
-void Finley_Util_AddScatter(dim_t len,index_t* index,dim_t numData,double* in,double * out, index_t bound);
+void Finley_Util_AddScatter(const dim_t len, const index_t* index, const dim_t numData, const double* in,double * out, const index_t upperBound);
 void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
 void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);
 void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C);

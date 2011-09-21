@@ -134,6 +134,10 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
     {
 	reducedIntegrationOrder = TRUE;
     }
+    else if (funcspace == DUDLEY_POINTS)
+    {
+	reducedIntegrationOrder = TRUE;
+    }
     else
     {
 	Dudley_setError(TYPE_ERROR, "Dudley_Assemble_PDE: assemblage failed because of illegal function space.");
@@ -319,46 +323,56 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 	}
     }
     if (Dudley_noError())
-    {
-	if (p.numEqu == p.numComp)
-	{
-	    if (p.numEqu > 1)
-	    {
-		/* system of PDESs */
-		if (p.numDim == 3)
-		{
-		    Dudley_Assemble_PDE_System2_3D(p, elements, S, F, A, B, C, D, X, Y);
-		}
-		else if (p.numDim == 2)
-		{
-		    Dudley_Assemble_PDE_System2_2D(p, elements, S, F, A, B, C, D, X, Y);
-		}
-		else
-		{
-		    Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
-		}
+    {      
+            if (funcspace==DUDLEY_POINTS) {
+	         if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Dudley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Dudley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+           }
+           else
+	   {
+	      if (p.numEqu == p.numComp)
+	      {
+		  if (p.numEqu > 1)
+		  {
+		      /* system of PDESs */
+		      if (p.numDim == 3)
+		      {
+			  Dudley_Assemble_PDE_System2_3D(p, elements, S, F, A, B, C, D, X, Y);
+		      }
+		      else if (p.numDim == 2)
+		      {
+			  Dudley_Assemble_PDE_System2_2D(p, elements, S, F, A, B, C, D, X, Y);
+		      }
+		      else
+		      {
+			  Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
+		      }
+		  }
+		  else
+		  {
+		      /* single PDES */
+		      if (p.numDim == 3)
+		      {
+			  Dudley_Assemble_PDE_Single2_3D(p, elements, S, F, A, B, C, D, X, Y);
+		      }
+		      else if (p.numDim == 2)
+		      {
+			  Dudley_Assemble_PDE_Single2_2D(p, elements, S, F, A, B, C, D, X, Y);
+		      }
+		      else
+		      {
+			  Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
+		      }
+		  }
 	    }
 	    else
 	    {
-		/* single PDES */
-		if (p.numDim == 3)
-		{
-		    Dudley_Assemble_PDE_Single2_3D(p, elements, S, F, A, B, C, D, X, Y);
-		}
-		else if (p.numDim == 2)
-		{
-		    Dudley_Assemble_PDE_Single2_2D(p, elements, S, F, A, B, C, D, X, Y);
-		}
-		else
-		{
-		    Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE supports spatial dimensions 2 and 3 only.");
-		}
+		Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE requires number of equations == number of solutions  .");
 	    }
-	}
-	else
-	{
-	    Dudley_setError(VALUE_ERROR, "Dudley_Assemble_PDE requires number of equations == number of solutions  .");
-	}
+	  }
     }
     blocktimer_increment("Dudley_Assemble_PDE()", blocktimer_start);
 }

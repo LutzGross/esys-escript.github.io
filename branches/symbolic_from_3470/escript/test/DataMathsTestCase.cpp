@@ -12,39 +12,25 @@
 *******************************************************/
 
 
+#include "DataMathsTestCase.h"
 #include "escript/DataAlgorithm.h"
+#include "escript/DataTypes.h"
 #include "escript/DataVector.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataMathsTestCase.h"
-#include "escript/DataTypes.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace esysUtils;
 using namespace escript;
 using namespace std;
 using namespace escript::DataTypes;
 using namespace escript::DataMaths;
 
-void DataMathsTestCase::setUp() {
-  //
-  // This is called before each test is run
-
-}
-
-void DataMathsTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-
-}
-
 
 void DataMathsTestCase::testMatMult()
 {
-
-  {
     cout << endl;
     cout << "\tTest result shape." << endl;
 
@@ -62,9 +48,9 @@ void DataMathsTestCase::testMatMult()
 
     DataTypes::ShapeType resultShape=DataMaths::determineResultShape(leftShape,rightShape);
 
-    assert(resultShape.size()==2);
-    assert(resultShape[0]==1);
-    assert(resultShape[1]==2);
+    CPPUNIT_ASSERT(resultShape.size()==2);
+    CPPUNIT_ASSERT(resultShape[0]==1);
+    CPPUNIT_ASSERT(resultShape[1]==2);
 
     DataTypes::ValueType resultData(DataTypes::noValues(resultShape),0);
 
@@ -83,11 +69,9 @@ void DataMathsTestCase::testMatMult()
     }
 
     DataMaths::matMult(leftData,leftShape,0,rightData,rightShape,0,resultData, resultShape);
-    assert((resultData[0]==22) && (resultData[1]==28));
-  }
+    CPPUNIT_ASSERT((resultData[0]==22) && (resultData[1]==28));
 
-  cout << endl;
-
+    cout << endl;
 }
 
 void DataMathsTestCase::testUnaryOp()
@@ -121,7 +105,7 @@ void DataMathsTestCase::testUnaryOp()
 
       // check the results
       tmp = std::sin((double)p);
-      assert(std::abs(data[offset]-tmp)<=REL_TOL*std::abs(tmp));
+      CPPUNIT_ASSERT(std::abs(data[offset]-tmp)<=REL_TOL*std::abs(tmp));
 
       if (p<npoints-1) {
         offset++;
@@ -163,8 +147,8 @@ void DataMathsTestCase::testUnaryOp()
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
-//           assert(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<=REL_TOL*std::sqrt((double)dataView.index(i,j)));
-          assert(std::abs(data[offset+getRelIndex(shape,i,j)]-std::sqrt((double)offset+getRelIndex(shape,i,j)))<=REL_TOL*std::sqrt((double)offset+getRelIndex(shape,i,j)));
+//           CPPUNIT_ASSERT(std::abs(dataView(i,j)-std::sqrt((double)dataView.index(i,j)))<=REL_TOL*std::sqrt((double)dataView.index(i,j)));
+          CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j)]-std::sqrt((double)offset+getRelIndex(shape,i,j)))<=REL_TOL*std::sqrt((double)offset+getRelIndex(shape,i,j)));
         }
       }
 
@@ -215,7 +199,7 @@ void DataMathsTestCase::testUnaryOp()
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              assert(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)]))<=REL_TOL*std::abs(std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)])));
+              CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)]))<=REL_TOL*std::abs(std::log(1+(double)data[offset+getRelIndex(shape,i,j,k,l)])));
             }
           }
         }
@@ -264,7 +248,7 @@ void DataMathsTestCase::testBinaryOp()
       binaryOp(data1,scalarShape,offset,data2,scalarShape,offset, plus<double>());
 
       // check the results
-      assert(data1[offset]==p+p);
+      CPPUNIT_ASSERT(data1[offset]==p+p);
 
       if (p<npoints-1) {
 	++offset;
@@ -307,7 +291,7 @@ void DataMathsTestCase::testBinaryOp()
       // check the results
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
-          assert(data1[offset+getRelIndex(shape,i,j)]==(offset+getRelIndex(shape,i,j))*(offset+getRelIndex(shape,i,j)));
+          CPPUNIT_ASSERT(data1[offset+getRelIndex(shape,i,j)]==(offset+getRelIndex(shape,i,j))*(offset+getRelIndex(shape,i,j)));
         }
       }
 
@@ -360,7 +344,7 @@ void DataMathsTestCase::testBinaryOp()
         for (int j=0;j<shape[1];j++) {
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
-              assert(data1[offset+getRelIndex(shape,i,j,k,l)]==(offset+getRelIndex(shape,i,j,k,l))*(offset+getRelIndex(shape,i,j,k,l)));
+              CPPUNIT_ASSERT(data1[offset+getRelIndex(shape,i,j,k,l)]==(offset+getRelIndex(shape,i,j,k,l))*(offset+getRelIndex(shape,i,j,k,l)));
             }
           }
         }
@@ -397,7 +381,7 @@ void DataMathsTestCase::testBinaryOp()
       binaryOp(data,shape,offset,4.9,plus<double>());
 
       // check the results
-      assert(data[offset]==4.9+p);
+      CPPUNIT_ASSERT(data[offset]==4.9+p);
 
       if (p<npoints-1) {
         ++offset;
@@ -440,7 +424,7 @@ void DataMathsTestCase::testBinaryOp()
       for (int i=0;i<shape[0];i++) {
         for (int j=0;j<shape[1];j++) {
           tmp=5.8*(offset+getRelIndex(shape,i,j));
-          assert(std::abs(data[offset+getRelIndex(shape,i,j)]-tmp)<=REL_TOL*std::abs(tmp));
+          CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j)]-tmp)<=REL_TOL*std::abs(tmp));
         }
       }
 
@@ -493,7 +477,7 @@ void DataMathsTestCase::testBinaryOp()
           for (int k=0;k<shape[2];k++) {
             for (int l=0;l<shape[3];l++) {
               tmp=5.4*(offset+getRelIndex(shape,i,j,k,l));
-              assert(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-tmp)<=REL_TOL*std::abs(tmp));
+              CPPUNIT_ASSERT(std::abs(data[offset+getRelIndex(shape,i,j,k,l)]-tmp)<=REL_TOL*std::abs(tmp));
             }
           }
         }
@@ -534,8 +518,8 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMax fmax_func;
-//       assert(std::abs(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
-      assert(std::abs(reductionOp(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+//       CPPUNIT_ASSERT(std::abs(dataView.reductionOp(fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
+      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmax_func,numeric_limits<double>::max()*-1)-p)<=REL_TOL*p);
 
 
 
@@ -573,7 +557,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       FMin fmin_func;
-      assert(std::abs(reductionOp(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
+      CPPUNIT_ASSERT(std::abs(reductionOp(data,shape,offset,fmin_func,numeric_limits<double>::max())-offset)<=REL_TOL*std::abs(offset));
 
       if (p<npoints-1) {
         offset+=noValues(shape);
@@ -615,7 +599,7 @@ void DataMathsTestCase::testReductionOp()
 
       // apply a reduction operation to this data point and check the results
       AbsMax absmax_func;
-      assert(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
+      CPPUNIT_ASSERT(reductionOp(data,shape,offset,absmax_func,0)==offset+getRelIndex(shape,8,7,4,10));
 
       if (p<npoints-1) {
         offset+=noValues(shape);
@@ -629,15 +613,19 @@ void DataMathsTestCase::testReductionOp()
 
 }
 
-TestSuite* DataMathsTestCase::suite ()
+TestSuite* DataMathsTestCase::suite()
 {
-  //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataMathsTestCase");
+  TestSuite *testSuite = new TestSuite("DataMathsTestCase");
 
-  testSuite->addTest (new TestCaller< DataMathsTestCase>("testUnaryOp",&DataMathsTestCase::testUnaryOp));
-  testSuite->addTest (new TestCaller< DataMathsTestCase>("testBinaryOp",&DataMathsTestCase::testBinaryOp));
-  testSuite->addTest (new TestCaller< DataMathsTestCase>("testReductionOp",&DataMathsTestCase::testReductionOp));
-  testSuite->addTest (new TestCaller< DataMathsTestCase>("testMatMult",&DataMathsTestCase::testMatMult));
+  testSuite->addTest(new TestCaller<DataMathsTestCase>(
+              "testUnaryOp",&DataMathsTestCase::testUnaryOp));
+  testSuite->addTest(new TestCaller<DataMathsTestCase>(
+              "testBinaryOp",&DataMathsTestCase::testBinaryOp));
+  testSuite->addTest(new TestCaller<DataMathsTestCase>(
+              "testReductionOp",&DataMathsTestCase::testReductionOp));
+  testSuite->addTest(new TestCaller<DataMathsTestCase>(
+              "testMatMult",&DataMathsTestCase::testMatMult));
   return testSuite;
 }
+

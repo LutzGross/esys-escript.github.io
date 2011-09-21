@@ -12,6 +12,8 @@
 *******************************************************/
 
 
+#include "DataTestCase.h"
+
 #include <iostream>
 #if defined (_WIN32) && defined (__INTEL_COMPILER)
 #include <mathimf.h>
@@ -19,14 +21,13 @@
 #include <math.h>
 #endif
 
-#include "DataTestCase.h"
-
-#include "escript/FunctionSpace.h"
 #include "esysUtils/EsysException.h"
-
 #include "escript/Data.h"
 #include "escript/DataLazy.h"
 #include "escript/EscriptParams.h"
+#include "escript/FunctionSpace.h"
+
+#include <cppunit/TestCaller.h>
 
 #define AUTOLAZYON setEscriptParamInt("AUTOLAZY",1);
 #define AUTOLAZYOFF setEscriptParamInt("AUTOLAZY",0);
@@ -35,23 +36,11 @@
 #define RESTORELAZYSTATE setEscriptParamInt("AUTOLAZY",LAZYSTATE);
 
 
-
 using namespace std;
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace esysUtils;
 using namespace escript::DataTypes;
-
-void DataTestCase::setUp() {
-  //
-  // This is called before each test is run
-}
-
-void DataTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-}
-
 
 
 namespace
@@ -104,13 +93,12 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	Data deep=d->copySelf();	// test self copy
 	if (delayed)
 	{
-	  assert(deep.isLazy());
+	  CPPUNIT_ASSERT(deep.isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i))
-		assert(false);
-	}
+	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
+    }
 	if (delayed)
 	{
 	   d->delaySelf();
@@ -118,14 +106,13 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	d->setToZero();
 	if (delayed)
 	{
-	  assert(d->isLazy());
+	  CPPUNIT_ASSERT(d->isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i))
-		assert(false);
+	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
 	}
-        if (delayed)
+    if (delayed)
 	{
 	   d->delaySelf();
 	   deep.delaySelf();
@@ -133,27 +120,19 @@ void DataTestCase::testCopyingWorker(bool delayed)
 	d->copy(deep);			// test copy from object
 	if (delayed)
 	{
-	  assert(d->isLazy());
+	  CPPUNIT_ASSERT(d->isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i))
-		assert(false);
+	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i));
 	}
 	d->setToZero();
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	if (d->getDataAtOffsetRO(i)==deep.getDataAtOffsetRO(i))
-		assert(false);
+	  CPPUNIT_ASSERT(d->getDataAtOffsetRO(i)!=deep.getDataAtOffsetRO(i));
 	}
 	delete dats[k];
   }
-
-
-
-
-
-
 }
 
 
@@ -196,9 +175,9 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
     	Data slice1(dats[k]->getSlice(region));
 
-    	if (tags[k]) {assert(slice1.isTagged());}
-    	assert(slice1.getDataPointRank()==0);
-    	assert(slice1.getDataPointRO(0,0)==1.0);
+    	if (tags[k]) { CPPUNIT_ASSERT(slice1.isTagged()); }
+    	CPPUNIT_ASSERT(slice1.getDataPointRank()==0);
+    	CPPUNIT_ASSERT(slice1.getDataPointRO(0,0)==1.0);
 
 	//
 	// create a rank 2 slice with one value
@@ -211,10 +190,10 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	
 	//cout << slice2.toString() << endl;
 	
-	if (tags[k]) {assert(slice2.isTagged());}
-	assert(slice2.getDataPointRank()==2);
+	if (tags[k]) {CPPUNIT_ASSERT(slice2.isTagged());}
+	CPPUNIT_ASSERT(slice2.getDataPointRank()==2);
 	
-	assert(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
+	CPPUNIT_ASSERT(slice2.getDataAtOffsetRO(slice2.getDataOffset(0,0)+getRelIndex(slice2.getDataPointShape(),0,0))==1.0);
 
 	//
 	// create a rank 2 slice with four values
@@ -227,12 +206,12 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	
 	//cout << slice3.toString() << endl;
 	
-	if (tags[k]) {assert(slice3.isTagged());}
-	assert(slice3.getDataPointRank()==2);
-	assert(getRef(slice3,0,0,0,0)==1.0);
-	assert(getRef(slice3,0,0,0,1)==1.3);
-	assert(getRef(slice3,0,0,1,0)==1.3);
-	assert(getRef(slice3,0,0,1,1)==2.0);
+	if (tags[k]) {CPPUNIT_ASSERT(slice3.isTagged());}
+	CPPUNIT_ASSERT(slice3.getDataPointRank()==2);
+	CPPUNIT_ASSERT(getRef(slice3,0,0,0,0)==1.0);
+	CPPUNIT_ASSERT(getRef(slice3,0,0,0,1)==1.3);
+	CPPUNIT_ASSERT(getRef(slice3,0,0,1,0)==1.3);
+	CPPUNIT_ASSERT(getRef(slice3,0,0,1,1)==2.0);
    }
 
    // now some extra tests for tagged data (dats[1])
@@ -255,14 +234,14 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
    Data slice4(dats[1]->getSlice(region));
 
-   assert(slice4.isTagged());
-   assert(slice4.getDataPointRank()==2);
-   assert(getRef(slice4,0,0,0,0)==0);
-   assert(getRef(slice4,0,0,0,1)==2);
-   assert(getRef(slice4,0,0,0,2)==4);
-   assert(getRef(slice4,0,0,1,0)==1);
-   assert(getRef(slice4,0,0,1,1)==3);
-   assert(getRef(slice4,0,0,1,2)==5);
+   CPPUNIT_ASSERT(slice4.isTagged());
+   CPPUNIT_ASSERT(slice4.getDataPointRank()==2);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,0,0)==0);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,0,1)==2);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,0,2)==4);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,1,0)==1);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,1,1)==3);
+   CPPUNIT_ASSERT(getRef(slice4,0,0,1,2)==5);
 
    for (int k=0;k<NUMDATS;++k)
    {
@@ -312,7 +291,7 @@ void DataTestCase::testSlicingWorker(bool delayed)
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	region.push_back(DataTypes::RegionType::value_type(1,1));
 	target.setSlice(*(src[k]),region);
-	assert(getRef(target,0,0,1,1)==src[k]->getDataPointRO(0,0));
+	CPPUNIT_ASSERT(getRef(target,0,0,1,1)==src[k]->getDataPointRO(0,0));
   }
   
   // some extra tests on tagged data
@@ -340,14 +319,14 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
   target.setSlice(*src[1],region);
 
-  assert(target.isTagged());
-  assert(target.getDataPointRank()==2);
-  assert(getRef(target,0,0,0,0)==0);
-  assert(getRef(target,0,0,0,1)==src[1]->getDataPointRO(0,0));
-  assert(getRef(target,0,0,0,2)==4);
-  assert(getRef(target,0,0,1,0)==1);
-  assert(getRef(target,0,0,1,1)==3);
-  assert(getRef(target,0,0,1,2)==5);
+  CPPUNIT_ASSERT(target.isTagged());
+  CPPUNIT_ASSERT(target.getDataPointRank()==2);
+  CPPUNIT_ASSERT(getRef(target,0,0,0,0)==0);
+  CPPUNIT_ASSERT(getRef(target,0,0,0,1)==src[1]->getDataPointRO(0,0));
+  CPPUNIT_ASSERT(getRef(target,0,0,0,2)==4);
+  CPPUNIT_ASSERT(getRef(target,0,0,1,0)==1);
+  CPPUNIT_ASSERT(getRef(target,0,0,1,1)==3);
+  CPPUNIT_ASSERT(getRef(target,0,0,1,2)==5);
 
   //
   // add a value for tag "2" to source
@@ -363,33 +342,33 @@ void DataTestCase::testSlicingWorker(bool delayed)
 
   target.setSlice(*src[1],region);
 
-  assert(target.isTagged());
-  assert(target.getDataPointRank()==2);
+  CPPUNIT_ASSERT(target.isTagged());
+  CPPUNIT_ASSERT(target.getDataPointRank()==2);
 
     // use a non-existant tag so we get a pointer to the default value
     // ie: the first element in the data array
   DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
   for (int i=0; i<target.getLength(); i++) {
-      assert(targetData[i]>=0);
+      CPPUNIT_ASSERT(targetData[i]>=0);
   }
-  assert(targetData[0]==1.3);
-  assert(targetData[1]==1.3);
-  assert(targetData[2]==10);
-  assert(targetData[3]==1.3);
-  assert(targetData[4]==1.3);
-  assert(targetData[5]==1.3);
-  assert(targetData[6]==0);
-  assert(targetData[7]==1);
-  assert(targetData[8]==10);
-  assert(targetData[9]==3);
-  assert(targetData[10]==4);
-  assert(targetData[11]==5);
-  assert(targetData[12]==1.3);
-  assert(targetData[13]==1.3);
-  assert(targetData[14]==6);
-  assert(targetData[15]==1.3);
-  assert(targetData[16]==1.3);
-  assert(targetData[17]==1.3);
+  CPPUNIT_ASSERT(targetData[0]==1.3);
+  CPPUNIT_ASSERT(targetData[1]==1.3);
+  CPPUNIT_ASSERT(targetData[2]==10);
+  CPPUNIT_ASSERT(targetData[3]==1.3);
+  CPPUNIT_ASSERT(targetData[4]==1.3);
+  CPPUNIT_ASSERT(targetData[5]==1.3);
+  CPPUNIT_ASSERT(targetData[6]==0);
+  CPPUNIT_ASSERT(targetData[7]==1);
+  CPPUNIT_ASSERT(targetData[8]==10);
+  CPPUNIT_ASSERT(targetData[9]==3);
+  CPPUNIT_ASSERT(targetData[10]==4);
+  CPPUNIT_ASSERT(targetData[11]==5);
+  CPPUNIT_ASSERT(targetData[12]==1.3);
+  CPPUNIT_ASSERT(targetData[13]==1.3);
+  CPPUNIT_ASSERT(targetData[14]==6);
+  CPPUNIT_ASSERT(targetData[15]==1.3);
+  CPPUNIT_ASSERT(targetData[16]==1.3);
+  CPPUNIT_ASSERT(targetData[17]==1.3);
 
 
   for (int k=0;k<NUMDATS;++k)
@@ -411,7 +390,8 @@ void DataTestCase::testCopying()
   testCopyingWorker(true);
 }
 
-void DataTestCase::testSlicing() {
+void DataTestCase::testSlicing()
+{
   cout << "\n\tReadyData." << endl;
   testSlicingWorker(false);
   cout << "\n\tLazyData." << endl;
@@ -442,34 +422,35 @@ void DataTestCase::testSomeDriver(bool autolazy)
   Data cData(viewData,viewShape);
   Data result;
 
-  assert(exData.isExpanded());
-  assert(cData.isConstant());
-  assert(result.isEmpty());
+  CPPUNIT_ASSERT(exData.isExpanded());
+  CPPUNIT_ASSERT(cData.isConstant());
+  CPPUNIT_ASSERT(result.isEmpty());
 
   cout << "\tTest some basic operations" << endl;
   result=exData*cData;
   cout << CHECKAUTOLAZY << " " << result.isLazy() << " " << result.isExpanded()<< endl;
-  assert(CHECKAUTOLAZY?result.isLazy():result.isExpanded());
+  CPPUNIT_ASSERT(CHECKAUTOLAZY?result.isLazy():result.isExpanded());
 
-  assert(result.Lsup()==4);
-  assert(result.sup()==4);
-  assert(result.inf()==0);
+  CPPUNIT_ASSERT(result.Lsup()==4);
+  CPPUNIT_ASSERT(result.sup()==4);
+  CPPUNIT_ASSERT(result.inf()==0);
 
   result=exData+cData;
   result=exData-cData;
   result=exData/cData;
 
   cout << "\tExercise wherePositive method" << endl;
-  assert(!exData.wherePositive().isEmpty());
+  CPPUNIT_ASSERT(!exData.wherePositive().isEmpty());
 
   cout << "\tExercise copyWithMask method" << endl;
   exData.copyWithMask(result, exData.wherePositive());
-  assert(!exData.wherePositive().isEmpty());
+  CPPUNIT_ASSERT(!exData.wherePositive().isEmpty());
   RESTORELAZYSTATE
 
 }
 
-void DataTestCase::testSome() {
+void DataTestCase::testSome()
+{
   testSomeDriver(false);
   testSomeDriver(true);
 }
@@ -498,42 +479,38 @@ void DataTestCase::testResolveType()
   t1.delaySelf();
   e1.delaySelf();
   Data d1=c1+c1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isConstant()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isConstant()));
   d1=c1+t1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isTagged()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isTagged()));
   d1=t1+c1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isTagged()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isTagged()));
   d1=t1+t1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isTagged()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isTagged()));
   d1=c1+e1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isExpanded()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isExpanded()));
   d1=e1+c1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isExpanded()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isExpanded()));
   d1=e1+t1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isExpanded()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isExpanded()));
   d1=t1+e1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isExpanded()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isExpanded()));
   d1=e1+e1;
-  assert(d1.isLazy());
-  assert((d1.resolve(),d1.isExpanded()));
+  CPPUNIT_ASSERT(d1.isLazy());
+  CPPUNIT_ASSERT((d1.resolve(),d1.isExpanded()));
   cout << "\tTesting tag()\n";
   c1.tag();
-  assert(c1.isTagged());
+  CPPUNIT_ASSERT(c1.isTagged());
   t1.tag();
-  assert(t1.isTagged());
-  try
-  {
-	e1.tag();
-	assert(false);		// this should have thrown
-  } catch(...) {}
+  CPPUNIT_ASSERT(t1.isTagged());
+  CPPUNIT_ASSERT_THROW(e1.tag(), DataException);
   cout << "\tTesting expand()\n";
   Data c2(viewData,viewShape);
   Data t2(viewData,viewShape);
@@ -544,17 +521,16 @@ void DataTestCase::testResolveType()
   t2.delaySelf();
   e2.delaySelf();
   c2.expand();
-  assert(c2.isExpanded());
+  CPPUNIT_ASSERT(c2.isExpanded());
   t2.expand();
-  assert(t2.isExpanded());
+  CPPUNIT_ASSERT(t2.isExpanded());
   e2.expand();
-  assert(e2.isExpanded());
+  CPPUNIT_ASSERT(e2.isExpanded());
 }
 
-void DataTestCase::testDataConstant() {
-
+void DataTestCase::testDataConstant()
+{
   cout << endl;
-
   cout << "\tCreate a DataConstant object." << endl;
 
   DataTypes::ShapeType viewShape;
@@ -574,23 +550,23 @@ void DataTestCase::testDataConstant() {
 
   result=left-right;
 
-  assert(left.isConstant());
-  assert(right.isConstant());
-  assert(result.isConstant());
+  CPPUNIT_ASSERT(left.isConstant());
+  CPPUNIT_ASSERT(right.isConstant());
+  CPPUNIT_ASSERT(result.isConstant());
 
   result=left+right;
 
-  assert(left.isConstant());
-  assert(right.isConstant());
-  assert(result.isConstant());
+  CPPUNIT_ASSERT(left.isConstant());
+  CPPUNIT_ASSERT(right.isConstant());
+  CPPUNIT_ASSERT(result.isConstant());
 
-  assert(!result.isExpanded());
-  assert(!result.isTagged());
+  CPPUNIT_ASSERT(!result.isExpanded());
+  CPPUNIT_ASSERT(!result.isTagged());
 
 }
 
-void DataTestCase::testDataTagged() {
-
+void DataTestCase::testDataTagged()
+{
   cout << endl;
 
   {
@@ -608,26 +584,26 @@ void DataTestCase::testDataTagged() {
     DataTagged* dt=new DataTagged(FunctionSpace(),viewShape,arr,viewData); 
     Data myData(dt);
 
-    assert(!myData.isEmpty());
-    assert(myData.isTagged());
-    assert(myData.getTagNumber(0)==1);
-    assert(myData.getDataPointRank()==1);
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(!myData.isEmpty());
+    CPPUNIT_ASSERT(myData.isTagged());
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getDataPointRank()==1);
+    CPPUNIT_ASSERT(myData.getLength()==3);
     
-    assert(myData.getNoValues()==3);
-    assert(myData.getDataAtOffsetRO(0)==0.0);
-    assert(myData.getDataAtOffsetRO(1)==1.0);
-    assert(myData.getDataAtOffsetRO(2)==2.0);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(0)==0.0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(1)==1.0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(2)==2.0);
 
     double* sampleData=myData.getSampleDataRW(0);
     for (int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
     cout << "\tTest setting of a tag and associated value." << endl;
@@ -641,20 +617,20 @@ void DataTestCase::testDataTagged() {
 
     myData.setTaggedValueFromCPP(1,viewShape, eTwoData);
 
-    assert(myData.getLength()==6);
+    CPPUNIT_ASSERT(myData.getLength()==6);
 
     int offset=myData.getDataOffset(0,0);
-    assert(offset==3);
-    assert(myData.getDataPointRank()==1);
-    assert(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData.getDataPointRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
 
-    assert(myData.getDataAtOffsetRO(offset+0)==2);
-    assert(myData.getDataAtOffsetRO(offset+1)==3);
-    assert(myData.getDataAtOffsetRO(offset+2)==4);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+0)==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+1)==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset+2)==4);
 
     sampleData=myData.getSampleDataByTag(1);
     for (int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i+2);
+      CPPUNIT_ASSERT(sampleData[i]==i+2);
     }
 
   }
@@ -669,72 +645,55 @@ void DataTestCase::testDataTagged() {
     Data myData(1.3,viewShape,FunctionSpace(),false);
     myData.tag();
 
-    assert(!myData.isEmpty());
-    assert(myData.isTagged());
-    assert(myData.getTagNumber(0)==1);
-    assert(myData.getDataPointRank()==2);
-    assert(myData.getLength()==6);
+    CPPUNIT_ASSERT(!myData.isEmpty());
+    CPPUNIT_ASSERT(myData.isTagged());
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getDataPointRank()==2);
+    CPPUNIT_ASSERT(myData.getLength()==6);
 
     // check default value
-    assert(!myData.isEmpty());
-    assert(myData.getDataPointRank()==2);
-    assert(myData.getNoValues()==6);
-    assert(myData.getDataPointShape().size()==2);
-    assert(getRef(myData,0,0)==1.3);
-    assert(getRef(myData,0,1)==1.3);
-    assert(getRef(myData,0,2)==1.3);
-    assert(getRef(myData,1,0)==1.3);
-    assert(getRef(myData,1,1)==1.3);
-    assert(getRef(myData,1,2)==1.3);
+    CPPUNIT_ASSERT(!myData.isEmpty());
+    CPPUNIT_ASSERT(myData.getDataPointRank()==2);
+    CPPUNIT_ASSERT(myData.getNoValues()==6);
+    CPPUNIT_ASSERT(myData.getDataPointShape().size()==2);
+    CPPUNIT_ASSERT(getRef(myData,0,0)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,0,1)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,0,2)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,0)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,1)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,2)==1.3);
 
     // check value for data-point (0,0).
 //     myDataView = myData.getDataPoint(0,0);
-    assert(!myData.isEmpty());
-//     assert(myDataView.getOffset()==0);
-    assert(myData.getDataPointRank()==2);
-    assert(myData.getNoValues()==6);
-    assert(myData.getDataPointShape().size()==2);
-    assert(getRef(myData,0,0)==1.3);
-    assert(getRef(myData,0,1)==1.3);
-    assert(getRef(myData,0,2)==1.3);
-    assert(getRef(myData,1,0)==1.3);
-    assert(getRef(myData,1,1)==1.3);
-    assert(getRef(myData,1,2)==1.3);
+    CPPUNIT_ASSERT(!myData.isEmpty());
+//     CPPUNIT_ASSERT(myDataView.getOffset()==0);
+    CPPUNIT_ASSERT(myData.getDataPointRank()==2);
+    CPPUNIT_ASSERT(myData.getNoValues()==6);
+    CPPUNIT_ASSERT(myData.getDataPointShape().size()==2);
+    CPPUNIT_ASSERT(getRef(myData,0,0)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,0,1)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,0,2)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,0)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,1)==1.3);
+    CPPUNIT_ASSERT(getRef(myData,1,2)==1.3);
 
   }
 
 }
 
-void DataTestCase::testDataTaggedExceptions() {
-
+void DataTestCase::testDataTaggedExceptions()
+{
   cout << endl;
-
   cout << "\tTest DataTagged exceptions." << endl;
 
   Data myData;
 
-  try {
-      myData.getSampleDataByTag(0);;
-      assert(false);
-  }
-  catch (EsysException&) {
-      //cout << e.what() << endl;
-      assert(true);
-  }
-
-  try {
-      myData.setTaggedValueFromCPP(0,DataTypes::ShapeType(), DataTypes::ValueType());;
-      assert(false);
-  }
-  catch (EsysException&) {
-      //cout << e.what() << endl;
-      assert(true);
-  }
-
+  CPPUNIT_ASSERT_THROW(myData.getSampleDataByTag(0), EsysException);
+  CPPUNIT_ASSERT_THROW(myData.setTaggedValueFromCPP(0,DataTypes::ShapeType(), DataTypes::ValueType()), EsysException);
 }
 
-void DataTestCase::testConstructors() {
-
+void DataTestCase::testConstructors()
+{
   cout << endl;
 
   DataTypes::ShapeType viewShape;
@@ -790,9 +749,9 @@ void DataTestCase::testMoreOperations()
   dats[4].delaySelf();
   dats[5].delaySelf();
 
-  assert(baseEx.isExpanded());
-  assert(baseCon.isConstant());
-  assert(baseTag.isTagged());
+  CPPUNIT_ASSERT(baseEx.isExpanded());
+  CPPUNIT_ASSERT(baseCon.isConstant());
+  CPPUNIT_ASSERT(baseTag.isTagged());
 
   Data results[NUMDATS];
   double tmp;
@@ -808,7 +767,7 @@ void DataTestCase::testMoreOperations()
 	{
 	   tmp+=getRef(dats[z],i,i);
 	}
-	assert(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - tmp) <= REL_TOL*std::abs(tmp));
   }
 
 
@@ -857,9 +816,9 @@ void DataTestCase::testOperations()
   dats[4].delaySelf();
   dats[5].delaySelf();
 
-  assert(baseEx.isExpanded());
-  assert(baseCon.isConstant());
-  assert(baseTag.isTagged());
+  CPPUNIT_ASSERT(baseEx.isExpanded());
+  CPPUNIT_ASSERT(baseCon.isConstant());
+  CPPUNIT_ASSERT(baseTag.isTagged());
 
   Data results[NUMDATS];
 //   Data& resultEx=results[0];
@@ -900,7 +859,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].powD(power));
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -908,7 +867,7 @@ void DataTestCase::testOperations()
       tmp=pow((double)data[getRelIndex(shape,i,j)],(double)3.0);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -919,7 +878,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].sin());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -927,7 +886,7 @@ void DataTestCase::testOperations()
       tmp=sin((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -938,7 +897,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].cos());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -946,7 +905,7 @@ void DataTestCase::testOperations()
       tmp=cos((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -957,7 +916,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].tan());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -965,7 +924,7 @@ void DataTestCase::testOperations()
       tmp=tan((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -976,7 +935,7 @@ void DataTestCase::testOperations()
     results[z].copy(sdats[z].asin());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -984,7 +943,7 @@ void DataTestCase::testOperations()
       tmp=asin((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -995,7 +954,7 @@ void DataTestCase::testOperations()
     results[z].copy(sdats[z].acos());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1003,7 +962,7 @@ void DataTestCase::testOperations()
       tmp=acos((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1014,7 +973,7 @@ void DataTestCase::testOperations()
     results[z].copy(sdats[z].atan());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1022,7 +981,7 @@ void DataTestCase::testOperations()
       tmp=atan((double)smalldata[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1033,7 +992,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].sinh());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1041,7 +1000,7 @@ void DataTestCase::testOperations()
       tmp=sinh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1052,7 +1011,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].cosh());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1060,7 +1019,7 @@ void DataTestCase::testOperations()
       tmp=cosh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1071,7 +1030,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].tanh());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1079,7 +1038,7 @@ void DataTestCase::testOperations()
       tmp=tanh((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1091,7 +1050,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].asinh().sinh());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1099,7 +1058,7 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1110,7 +1069,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].acosh().cosh());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1119,7 +1078,7 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1130,7 +1089,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].tanh().atanh());		// if these are the other way around the results are
     if (z>=LAZY)					// undefined
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1138,7 +1097,7 @@ void DataTestCase::testOperations()
       tmp=data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1149,7 +1108,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].log());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1158,7 +1117,7 @@ void DataTestCase::testOperations()
       tmp=log((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1169,7 +1128,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].log10());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1178,7 +1137,7 @@ void DataTestCase::testOperations()
       tmp=log10((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1191,7 +1150,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].erf());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1200,7 +1159,7 @@ void DataTestCase::testOperations()
       tmp=erf((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1213,7 +1172,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].abs());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1221,7 +1180,7 @@ void DataTestCase::testOperations()
       tmp=abs((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1232,7 +1191,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].sign());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1240,7 +1199,7 @@ void DataTestCase::testOperations()
       tmp=(i==0 && j==0)?0:1;
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   } 
@@ -1251,7 +1210,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].neg().sign());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1259,7 +1218,7 @@ void DataTestCase::testOperations()
       tmp=(i==0 && j==0)?0:-1;
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   } 
@@ -1271,7 +1230,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].exp());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1279,7 +1238,7 @@ void DataTestCase::testOperations()
       tmp=exp((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1290,7 +1249,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].sqrt());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1298,7 +1257,7 @@ void DataTestCase::testOperations()
       tmp=sqrt((double)data[getRelIndex(shape,i,j)]);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1309,7 +1268,7 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].neg());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
@@ -1317,7 +1276,7 @@ void DataTestCase::testOperations()
       tmp=-data[getRelIndex(shape,i,j)];
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   }
@@ -1328,14 +1287,14 @@ void DataTestCase::testOperations()
     results[z].copy(dats[z].pos());
     if (z>=LAZY)
     {
-	assert(results[z].isLazy());
+	CPPUNIT_ASSERT(results[z].isLazy());
     }
   }
   for (int i=0;i<shape[0];i++) {
     for (int j=0;j<shape[1];j++) {
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - getRelIndex(shape,i,j)) <= REL_TOL*std::abs(data[getRelIndex(shape,i,j)]));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - getRelIndex(shape,i,j)) <= REL_TOL*std::abs(data[getRelIndex(shape,i,j)]));
       }
     }
   }
@@ -1345,19 +1304,19 @@ void DataTestCase::testOperations()
   cout << "\tTest Data::Lsup." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(dats[z].Lsup() - 5) <= REL_TOL*5);
+    CPPUNIT_ASSERT(std::abs(dats[z].Lsup() - 5) <= REL_TOL*5);
   }
 
   cout << "\tTest Data::sup." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(dats[z].sup() - 5) <= REL_TOL*5);
+    CPPUNIT_ASSERT(std::abs(dats[z].sup() - 5) <= REL_TOL*5);
   }
 
   cout << "\tTest Data::inf." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(dats[z].inf() - 0) <= REL_TOL*0);
+    CPPUNIT_ASSERT(std::abs(dats[z].inf() - 0) <= REL_TOL*0);
   }
 
   // test data-point reduction operations
@@ -1369,7 +1328,7 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
+    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 0) <= REL_TOL*0); 
   }
   
 
@@ -1380,7 +1339,7 @@ void DataTestCase::testOperations()
   }
   for (int z=0;z<NUMDATS;++z)
   {
-    assert(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
+    CPPUNIT_ASSERT(std::abs(results[z].getDataAtOffsetRO(0) - 5) <= REL_TOL*5);
   }
 
   cout << "\tTest Data::whereZero." << endl;
@@ -1393,7 +1352,7 @@ void DataTestCase::testOperations()
       tmp=(getRelIndex(shape,i,j)<=2);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   } 
@@ -1408,7 +1367,7 @@ void DataTestCase::testOperations()
       tmp=!(getRelIndex(shape,i,j)<=2);
       for (int z=0;z<NUMDATS;++z)
       {
-	assert(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],i,j) - tmp) <= REL_TOL*std::abs(tmp));
       }
     }
   } 
@@ -1423,7 +1382,7 @@ void DataTestCase::testOperations()
      for (int z=0;z<NUMDATS;++z)
      {
         tmp=getRef(dats[z],i,j);
-	assert(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
      }
     }
   } 
@@ -1438,7 +1397,7 @@ void DataTestCase::testOperations()
      for (int z=0;z<NUMDATS;++z)
      {
         tmp=getRef(dats[z],i,j);
-	assert(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
+	CPPUNIT_ASSERT(std::abs(getRef(results[z],j,i) - tmp) <= REL_TOL*std::abs(tmp));
      }
     }
   } 
@@ -1491,25 +1450,23 @@ void DataTestCase::testBinary()
 	Data r4=a.powD(a);		// matrix power
 	if (z>LAZY)
 	{
-	  assert(r1.isLazy() && r2.isLazy() && r3.isLazy() && r4.isLazy());
+	  CPPUNIT_ASSERT(r1.isLazy() && r2.isLazy() && r3.isLazy() && r4.isLazy());
 	}
 	for (int i=0;i<DataTypes::noValues(shape);++i)
 	{
-	  assert(std::abs(r1.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r2.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r3.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
-	  assert(std::abs(r4.getDataAtOffsetRO(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
+	  CPPUNIT_ASSERT(std::abs(r1.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r2.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r3.getDataAtOffsetRO(i)-data[i]) <= REL_TOL*data[i]);
+	  CPPUNIT_ASSERT(std::abs(r4.getDataAtOffsetRO(i)-pow(data[i],i)) <=REL_TOL*pow(data[i],i));
 	}
   }
 }
 
 
-void DataTestCase::testMemAlloc() {
-
+void DataTestCase::testMemAlloc()
+{
   //
   // Simple little sanity check for the memory allocator
-
-  cout << endl;
 
   Data *testData;
   for (int i=0; i<1000; i++) {
@@ -1532,22 +1489,33 @@ void DataTestCase::testMemAlloc() {
 
 }
 
-TestSuite* DataTestCase::suite ()
+TestSuite* DataTestCase::suite()
 {
-  //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataTestCase");
-  testSuite->addTest (new TestCaller< DataTestCase>("testCopying",&DataTestCase::testCopying));
-  testSuite->addTest (new TestCaller< DataTestCase>("testSome",&DataTestCase::testSome));
-  testSuite->addTest (new TestCaller< DataTestCase>("testDataConstant",&DataTestCase::testDataConstant));
-  testSuite->addTest (new TestCaller< DataTestCase>("testDataTagged",&DataTestCase::testDataTagged));
-  testSuite->addTest (new TestCaller< DataTestCase>("testDataTaggedExceptions",&DataTestCase::testDataTaggedExceptions));
-  testSuite->addTest (new TestCaller< DataTestCase>("testConstructors",&DataTestCase::testConstructors));
-  testSuite->addTest (new TestCaller< DataTestCase>("testSlicing",&DataTestCase::testSlicing));
-  testSuite->addTest (new TestCaller< DataTestCase>("testOperations",&DataTestCase::testOperations));
-  testSuite->addTest (new TestCaller< DataTestCase>("testMoreOperations",&DataTestCase::testMoreOperations));
-  testSuite->addTest (new TestCaller< DataTestCase>("testMemAlloc",&DataTestCase::testMemAlloc));
-  testSuite->addTest (new TestCaller< DataTestCase>("Resolving",&DataTestCase::testResolveType));
+  TestSuite *testSuite = new TestSuite("DataTestCase");
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testCopying",&DataTestCase::testCopying));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testSome",&DataTestCase::testSome));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testDataConstant",&DataTestCase::testDataConstant));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testDataTagged",&DataTestCase::testDataTagged));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testDataTaggedExceptions",&DataTestCase::testDataTaggedExceptions));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testConstructors",&DataTestCase::testConstructors));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testSlicing",&DataTestCase::testSlicing));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testOperations",&DataTestCase::testOperations));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testMoreOperations",&DataTestCase::testMoreOperations));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "testMemAlloc",&DataTestCase::testMemAlloc));
+  testSuite->addTest(new TestCaller<DataTestCase>(
+              "Resolving",&DataTestCase::testResolveType));
   
   return testSuite;
 }
+

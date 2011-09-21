@@ -57,31 +57,31 @@ class Test_DomainOnDudley(Test_Domain):
    def test_tagsContinuousFunction(self):
        ref_tags=[0]
        tags=ContinuousFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
 
    def test_tagsFunction(self):
        ref_tags=[0]
        tags=Function(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunction(self):
        ref_tags=[0]
        tags=ReducedFunction(self.domain).getListOfTags()
-       self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in ref_tags: self.failUnless(i in tags,"tag %s is missing."%i)
+       self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=FunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
    def test_tagsReducedFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
-       if getMPISizeWorld() == 1: self.failUnless(len(tags)==len(ref_tags), "tags list has wrong length.")
-       for i in tags: self.failUnless(i in ref_tags,"tag %s is missing."%i)
+       if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
+       for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
 class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
@@ -108,7 +108,7 @@ class Test_TableInterpolationOnDudley(Test_TableInterpolation):
 	self.domain=Brick(4,4,4)
 	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
-	    #We aren't testing DiracDeltaFunction
+	    #We aren't testing DiracDeltaFunctions
 	self.xn=5	# number of grids on x axis
 	self.yn=5	# number of grids on y axis
 	self.zn=5
@@ -135,7 +135,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 	fname=os.path.join(DUDLEY_WORKDIR, "test_singlefs.csv")
 	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
 	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-	DiracDeltaFunction(self.domain)]
+	DiracDeltaFunctions(self.domain)]
 	for f in fss:
 		d=Data(7,f)
 		print "Testing "+str(f)+"\n"
@@ -146,7 +146,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 	sol=Data(8,Solution(self.domain))
 	ctsfn=Data(9,ContinuousFunction(self.domain))
 	#test line 0
-	dirac=Data(-1,DiracDeltaFunction(self.domain))
+	dirac=Data(-1,DiracDeltaFunctions(self.domain))
 	saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
 	#test line 1
 	fun=Data(5,Function(self.domain))

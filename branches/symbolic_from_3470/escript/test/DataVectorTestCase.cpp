@@ -12,68 +12,58 @@
 *******************************************************/
 
 
+#include "DataVectorTestCase.h"
+
 #include "escript/DataVector.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataVectorTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
 using namespace std;
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace esysUtils;
 
-void DataVectorTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
 
-void DataVectorTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
-
-void DataVectorTestCase::testAll() {
-
+void DataVectorTestCase::testAll()
+{
   cout << endl;
 
   {
     cout << "\tCreate and check an empty DataVector object." << endl;
 
     DataVector vec;
-    assert(vec.size() == 0);
+    CPPUNIT_ASSERT(vec.size() == 0);
   }
  
   {
     cout << "\tCheck DataVector resize operation." << endl;
 
     DataVector vec;
-    assert(vec.size() == 0);
+    CPPUNIT_ASSERT(vec.size() == 0);
 
     vec.resize(1,0,1);
-    assert(vec.size() == 1);
+    CPPUNIT_ASSERT(vec.size() == 1);
 
     vec.resize(1000,0,1);
-    assert(vec.size() == 1000);
+    CPPUNIT_ASSERT(vec.size() == 1000);
 
     vec.resize(0,0,1);
-    assert(vec.size() == 0);
+    CPPUNIT_ASSERT(vec.size() == 0);
   }
 
   {
     cout << "\tCreate and check DataVector objects of various sizes." << endl;
 
     DataVector vec1(0,0,1);
-    assert(vec1.size() == 0);
+    CPPUNIT_ASSERT(vec1.size() == 0);
 
     DataVector vec2(1,0,1);
-    assert(vec2.size() == 1);
+    CPPUNIT_ASSERT(vec2.size() == 1);
 
     DataVector vec3(1000,0,1);
-    assert(vec3.size() == 1000);
+    CPPUNIT_ASSERT(vec3.size() == 1000);
   }
 
   {
@@ -86,7 +76,7 @@ void DataVectorTestCase::testAll() {
     }
 
     for (int i=0; i < 1000; i++) {
-      assert(vec[i] == i);
+      CPPUNIT_ASSERT(vec[i] == i);
     }
 
     for (int i=0; i < 1000; i++) {
@@ -94,7 +84,7 @@ void DataVectorTestCase::testAll() {
     }
 
     for (int i=0; i < 1000; i++) {
-      assert(vec[i] == i/1000);
+      CPPUNIT_ASSERT(vec[i] == i/1000);
     }
   }
 
@@ -109,10 +99,10 @@ void DataVectorTestCase::testAll() {
 
     DataVector vec2(vec1);
 
-    assert(vec1.size() == vec2.size());
+    CPPUNIT_ASSERT(vec1.size() == vec2.size());
 
     for (int i=0; i < 1000; i++) {
-      assert(vec2[i] == i);
+      CPPUNIT_ASSERT(vec2[i] == i);
     }
   }
  
@@ -129,10 +119,10 @@ void DataVectorTestCase::testAll() {
 
     vec2 = vec1;
 
-    assert(vec1.size() == vec2.size());
+    CPPUNIT_ASSERT(vec1.size() == vec2.size());
 
     for (int i=0; i < 1000; i++) {
-      assert(vec2[i] == i);
+      CPPUNIT_ASSERT(vec2[i] == i);
     }
   }
  
@@ -149,7 +139,7 @@ void DataVectorTestCase::testAll() {
 
     vec2 = vec1;
 
-    assert(vec1 == vec2);
+    CPPUNIT_ASSERT(vec1 == vec2);
   }
  
   {
@@ -163,7 +153,7 @@ void DataVectorTestCase::testAll() {
 
     DataVector vec2;
 
-    assert(vec1 != vec2);
+    CPPUNIT_ASSERT(vec1 != vec2);
   }
   #if defined DOASSERT
   {
@@ -171,29 +161,19 @@ void DataVectorTestCase::testAll() {
 
     DataVector vec(1000,0,1);
 
-    try {
-      (void) vec[1001];
-
-      assert(false);
-    }
-
-    catch (EsysException& e) {
-      //cout << e.toString() << endl;
-      assert(true);
-    }
-
+    CPPUNIT_ASSERT_THROW( (void) vec[1001],  EsysException);
   }
   #endif
 
 }
 
-TestSuite* DataVectorTestCase::suite ()
+TestSuite* DataVectorTestCase::suite()
 {
-  //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataVectorTestCase");
+  TestSuite *testSuite = new TestSuite("DataVectorTestCase");
 
-  testSuite->addTest (new TestCaller< DataVectorTestCase>("testAll",&DataVectorTestCase::testAll));
+  testSuite->addTest(new TestCaller<DataVectorTestCase>(
+              "testAll",&DataVectorTestCase::testAll));
   return testSuite;
 }
 

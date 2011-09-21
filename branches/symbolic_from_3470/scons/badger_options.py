@@ -25,7 +25,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -109,7 +109,13 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-#boost_libs = ['boost_python']
+boost_libs = ['libboost_python-mt-py26']
+
+# Prefix or paths to CppUnit headers and libraries. See note above.
+#cppunit_prefix = '/usr/local'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
@@ -165,13 +171,24 @@ parmetis = True
 # UMFPACK library/libraries to link against
 #umfpack_libs = ['umfpack']
 
+# Whether to use BoomerAMG (requires MPI)
+# DEFAULT: False
+#boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
+#boomeramg_prefix = '/usr/local'
+
+# BoomerAMG library/libraries to link against
+#boomeramg_libs = ['HYPRE']
+
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
 lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-lapack_prefix = ['/usr/include','/usr/lib/atlas']
+#lapack_prefix = ['/usr/include','/usr/lib/atlas']
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 
 # LAPACK library/libraries to link against
 lapack_libs = ['lapack_atlas']
@@ -201,21 +218,23 @@ lapack_libs = ['lapack_atlas']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 #sys_libs = []
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['default']
 

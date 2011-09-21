@@ -15,26 +15,15 @@
 #if !defined  DataMathsTestCase_20080828_H
 #define  DataMathsTestCase_20080828_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
 #define REL_TOL ((double)1.e-10)
 
-class DataMathsTestCase : public CppUnitTest::TestCase
+class DataMathsTestCase : public CppUnit::TestFixture
 {
- public:
+public:
 
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataArrayView class
   void testAll();
   void testShapeToString();
   void testScalarView();
@@ -45,13 +34,8 @@ class DataMathsTestCase : public CppUnitTest::TestCase
   void testBinaryOp();
   void testReductionOp();
 
-  DataMathsTestCase (std::string name) : TestCase (name) {}
-  ~DataMathsTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

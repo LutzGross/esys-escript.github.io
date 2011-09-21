@@ -12,29 +12,27 @@
 *******************************************************/
 
 
-#include "esysUtils/EsysException.h"
-
-#include "escript/DataVector.h"
-#include "escript/DataTagged.h"
-#include "escript/DataConstant.h"
-
 #include "DataTaggedTestCase.h"
 
+#include "esysUtils/EsysException.h"
+
 #include "escript/BinaryOp.h"
-#include "escript/UnaryOp.h"
-#include "escript/FunctionSpaceFactory.h"
+#include "escript/DataConstant.h"
 #include "escript/DataFactory.h"
-
-#include "escript/FunctionSpace.h"
+#include "escript/DataTagged.h"
 #include "escript/DataTypes.h"
+#include "escript/DataVector.h"
+#include "escript/FunctionSpace.h"
+#include "escript/FunctionSpaceFactory.h"
+#include "escript/UnaryOp.h"
 
+#include <cppunit/TestCaller.h>
 #include <iostream>
 #include <functional>
 #include <algorithm>
 
 
-
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace esysUtils;
 using namespace std;
@@ -73,19 +71,6 @@ using namespace escript::DataTypes;
 // }
 // 
 // }
-
-void DataTaggedTestCase::setUp() {
-  //
-  // This is called before each test is run
-
-}
-
-void DataTaggedTestCase::tearDown() {
-  //
-  // This is called after each test has been run
-
-}
-
 
 namespace {
 
@@ -129,55 +114,55 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==1);
+    CPPUNIT_ASSERT(myData.getLength()==1);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
-//     assert(!myDataView.isEmpty());
-    assert(myData.getPointOffset(0,0)==0);
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
-    assert(myData.getDataAtOffsetRW(0)==0.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRW(0)==0.0);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
-//     assert(!myDataView.isEmpty());
-    assert(myData.getOffsetForTag(1)==0);
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
-    assert(myData.getDataAtOffsetRW(0)==0.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData.getOffsetForTag(1)==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRW(0)==0.0);
 
 //     myDataView = myData.getDefaultValue();
-//     assert(!myDataView.isEmpty());
-    assert(myData.getDefaultOffset()==0);
-//     assert(myDataView.getRank()==0);		// there is no point in testing this again
-//     assert(myDataView.noValues()==1);	// since we are not building DataArrayViews
-//     assert(myDataView.getShape().size()==0);
-//     assert(myDataView()==0.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData.getDefaultOffset()==0);
+//     CPPUNIT_ASSERT(myDataView.getRank()==0);		// there is no point in testing this again
+//     CPPUNIT_ASSERT(myDataView.noValues()==1);	// since we are not building DataArrayViews
+//     CPPUNIT_ASSERT(myDataView.getShape().size()==0);
+//     CPPUNIT_ASSERT(myDataView()==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -207,42 +192,42 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
     int offset=myData.getDefaultOffset();
 //     DataArrayView myDataView = myData.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==4);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i*2);
+      CPPUNIT_ASSERT(sampleData[i]==i*2);
     }
 
   }
@@ -262,49 +247,49 @@ void DataTaggedTestCase::testOperations() {
 
     binaryOp(myData,right,plus<double>());
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==2);
+    CPPUNIT_ASSERT(myData.getLength()==2);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getVectorRO()[offset]==2.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getVectorRO()[offset]==2.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getVectorRO()[offset]==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getVectorRO()[offset]==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i*2);
+      CPPUNIT_ASSERT(sampleData[i]==i*2);
     }
 
   }
@@ -342,55 +327,55 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
 
-    assert(myData.getTagLookup().size()==2);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==2);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==5.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==5.0);
 
     // check result value for tag "2"
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==5.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==5.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==3.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
-    assert(sampleData[0]==3);
-    assert(sampleData[1]==5);
-    assert(sampleData[2]==5);
+    CPPUNIT_ASSERT(sampleData[0]==3);
+    CPPUNIT_ASSERT(sampleData[1]==5);
+    CPPUNIT_ASSERT(sampleData[2]==5);
 
   }
 
@@ -426,63 +411,63 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==4);
+    CPPUNIT_ASSERT(myData.getLength()==4);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==4.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==4.0);
 
     // check result value for tag "2"
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==2.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==2.0);
 
     // check result value for tag "3"
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==3);
-    assert(myData.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==3.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==5.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==5.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
-    assert(sampleData[0]==5);
-    assert(sampleData[1]==4);
-    assert(sampleData[2]==2);
-    assert(sampleData[3]==3);
+    CPPUNIT_ASSERT(sampleData[0]==5);
+    CPPUNIT_ASSERT(sampleData[1]==4);
+    CPPUNIT_ASSERT(sampleData[2]==2);
+    CPPUNIT_ASSERT(sampleData[3]==3);
 
   }
 
@@ -509,42 +494,42 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
 //     DataArrayView myDataView = myData.getDefaultValue();
     int offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==4);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==4);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i*i);
+      CPPUNIT_ASSERT(sampleData[i]==i*i);
     }
 
   }
@@ -579,54 +564,54 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
 
-    assert(myData.getTagLookup().size()==2);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==2);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==3.0);
 
     // check result value for tag "2"
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==6.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==6.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
-    assert(sampleData[0]==0);
-    assert(sampleData[1]==3);
-    assert(sampleData[2]==6);
+    CPPUNIT_ASSERT(sampleData[0]==0);
+    CPPUNIT_ASSERT(sampleData[1]==3);
+    CPPUNIT_ASSERT(sampleData[2]==6);
 
   }
 
@@ -665,63 +650,63 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==4);
+    CPPUNIT_ASSERT(myData.getLength()==4);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==3.0);
 
     // check result value for tag "2"
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==2.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==2.0);
 
     // check result value for tag "3"
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==3);
-    assert(myData.getDataAtOffsetRO(offset)==4.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==4.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==6.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==6.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
-    assert(sampleData[0]==6);
-    assert(sampleData[1]==3);
-    assert(sampleData[2]==2);
-    assert(sampleData[3]==4);
+    CPPUNIT_ASSERT(sampleData[0]==6);
+    CPPUNIT_ASSERT(sampleData[1]==3);
+    CPPUNIT_ASSERT(sampleData[2]==2);
+    CPPUNIT_ASSERT(sampleData[3]==4);
 
   }
 
@@ -734,51 +719,51 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==1);
+    CPPUNIT_ASSERT(myData.getLength()==1);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -805,42 +790,42 @@ void DataTaggedTestCase::testOperations() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
     int offset=myData.getDefaultOffset();
 //     DataArrayView myDataView = myData.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==-1);
-    assert(getRefRO(myData,offset,2)==-2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==-1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==-2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==0-i);
+      CPPUNIT_ASSERT(sampleData[i]==0-i);
     }
 
   }
@@ -863,54 +848,54 @@ void DataTaggedTestCase::testOperations() {
 
     unaryOp(myData,negate<double>());
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
 
-    assert(myData.getTagLookup().size()==2);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==2);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
     // check result value for tag "1"
 //     DataArrayView myDataView = myData.getDataPointByTag(1);
     int offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==-1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==-1.0);
 
     // check result value for tag "2"
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==-2.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==-2.0);
 
     // check result for default value
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==0-i);
+      CPPUNIT_ASSERT(sampleData[i]==0-i);
     }
 
   }
@@ -933,42 +918,42 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,DataTypes::scalarShape);
 
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==2);
+    CPPUNIT_ASSERT(myData.getLength()==2);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==0);
+      CPPUNIT_ASSERT(sampleData[i]==0);
     }
 
   }
@@ -991,42 +976,42 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==2);
+    CPPUNIT_ASSERT(myData.getLength()==2);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -1051,57 +1036,57 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==4);
+    CPPUNIT_ASSERT(myData.getLength()==4);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==3);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i==0) {
-        assert(sampleData[i]==0);
+        CPPUNIT_ASSERT(sampleData[i]==0);
       } else {
-        assert(sampleData[i]==1);
+        CPPUNIT_ASSERT(sampleData[i]==1);
       }
     }
 
@@ -1135,54 +1120,54 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==4);
+    CPPUNIT_ASSERT(myData.getLength()==4);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==1);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==1);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==2);
-    assert(myData.getDataAtOffsetRO(offset)==2.0);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==2.0);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==3);
-    assert(myData.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==3.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -1210,48 +1195,48 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==6);
+    CPPUNIT_ASSERT(myData.getLength()==6);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i%3);
+      CPPUNIT_ASSERT(sampleData[i]==i%3);
     }
 
   }
@@ -1287,48 +1272,48 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==6);
+    CPPUNIT_ASSERT(myData.getLength()==6);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==4);
-    assert(getRefRO(myData,offset,2)==5);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==4);
-    assert(getRefRO(myData,offset,2)==5);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -1366,66 +1351,66 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==12);
+    CPPUNIT_ASSERT(myData.getLength()==12);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else {
-        assert(sampleData[i]==3);
+        CPPUNIT_ASSERT(sampleData[i]==3);
       }
     }
 
@@ -1480,71 +1465,71 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==12);
+    CPPUNIT_ASSERT(myData.getLength()==12);
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData,offset,0)==2);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==4);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==4);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==4);
-    assert(getRefRO(myData,offset,2)==5);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==5);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else  {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       }
     }
 
@@ -1606,37 +1591,37 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(4));
+    CPPUNIT_ASSERT(myData.isCurrentTag(4));
 
-    assert(myData.getTagLookup().size()==4);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==4);
 
-    assert(myData.getLength()==15);
+    CPPUNIT_ASSERT(myData.getLength()==15);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
-    assert(offset==12);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==12);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else if ((i>=9) && (i<12)) {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       } else {
-        assert(sampleData[i]==i-12);
+        CPPUNIT_ASSERT(sampleData[i]==i-12);
       }
     }
 
@@ -1706,38 +1691,38 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(4));
+    CPPUNIT_ASSERT(myData.isCurrentTag(4));
 
-    assert(myData.getTagLookup().size()==4);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==4);
 
-    assert(myData.getLength()==15);
+    CPPUNIT_ASSERT(myData.getLength()==15);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
-    assert(offset==12);
-    assert(getRefRO(myData,offset,0)==4);
-    assert(getRefRO(myData,offset,1)==5);
-    assert(getRefRO(myData,offset,2)==6);
+    CPPUNIT_ASSERT(offset==12);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else if ((i>=9) && (i<12)) {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       } else {
-        assert(sampleData[i]==i-8);
+        CPPUNIT_ASSERT(sampleData[i]==i-8);
       }
     }
 
@@ -1809,57 +1794,57 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(4));
-    assert(myData.isCurrentTag(5));
-    assert(myData.isCurrentTag(6));
+    CPPUNIT_ASSERT(myData.isCurrentTag(4));
+    CPPUNIT_ASSERT(myData.isCurrentTag(5));
+    CPPUNIT_ASSERT(myData.isCurrentTag(6));
 
-    assert(myData.getTagLookup().size()==6);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==6);
 
-    assert(myData.getLength()==21);
+    CPPUNIT_ASSERT(myData.getLength()==21);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
-    assert(offset==12);
-    assert(getRefRO(myData,offset,0)==4);
-    assert(getRefRO(myData,offset,1)==5);
-    assert(getRefRO(myData,offset,2)==6);
+    CPPUNIT_ASSERT(offset==12);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(5);
     offset=myData.getOffsetForTag(5);
-    assert(offset==15);
-    assert(getRefRO(myData,offset,0)==4);
-    assert(getRefRO(myData,offset,1)==5);
-    assert(getRefRO(myData,offset,2)==6);
+    CPPUNIT_ASSERT(offset==15);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(6);
     offset=myData.getOffsetForTag(6);
-    assert(offset==18);
-    assert(getRefRO(myData,offset,0)==4);
-    assert(getRefRO(myData,offset,1)==5);
-    assert(getRefRO(myData,offset,2)==6);
+    CPPUNIT_ASSERT(offset==18);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==6);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else if ((i>=9) && (i<12)) {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       } else if ((i>=12) && (i<15)) {
-        assert(sampleData[i]==i-8);
+        CPPUNIT_ASSERT(sampleData[i]==i-8);
       } else if ((i>=15) && (i<18)) {
-        assert(sampleData[i]==i-11);
+        CPPUNIT_ASSERT(sampleData[i]==i-11);
       } else {
-        assert(sampleData[i]==i-14);
+        CPPUNIT_ASSERT(sampleData[i]==i-14);
       }
     }
 
@@ -1947,57 +1932,57 @@ void DataTaggedTestCase::testAddTaggedValues() {
 
     myData.addTaggedValues(keys,values,viewShape);
 
-    assert(myData.isCurrentTag(4));
-    assert(myData.isCurrentTag(5));
-    assert(myData.isCurrentTag(6));
+    CPPUNIT_ASSERT(myData.isCurrentTag(4));
+    CPPUNIT_ASSERT(myData.isCurrentTag(5));
+    CPPUNIT_ASSERT(myData.isCurrentTag(6));
 
-    assert(myData.getTagLookup().size()==6);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==6);
 
-    assert(myData.getLength()==21);
+    CPPUNIT_ASSERT(myData.getLength()==21);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 //     DataArrayView myDataView = myData.getDataPointByTag(4);
     int offset=myData.getOffsetForTag(4);
-    assert(offset==12);
-    assert(getRefRO(myData,offset,0)==4);
-    assert(getRefRO(myData,offset,1)==5);
-    assert(getRefRO(myData,offset,2)==6);
+    CPPUNIT_ASSERT(offset==12);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==6);
 
 //     myDataView = myData.getDataPointByTag(5);
     offset=myData.getOffsetForTag(5);
-    assert(offset==15);
-    assert(getRefRO(myData,offset,0)==5);
-    assert(getRefRO(myData,offset,1)==6);
-    assert(getRefRO(myData,offset,2)==7);
+    CPPUNIT_ASSERT(offset==15);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==7);
 
 //     myDataView = myData.getDataPointByTag(6);
     offset=myData.getOffsetForTag(6);
-    assert(offset==18);
-    assert(getRefRO(myData,offset,0)==6);
-    assert(getRefRO(myData,offset,1)==7);
-    assert(getRefRO(myData,offset,2)==8);
+    CPPUNIT_ASSERT(offset==18);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==7);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==8);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else if ((i>=9) && (i<12)) {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       } else if ((i>=12) && (i<15)) {
-        assert(sampleData[i]==i-8);
+        CPPUNIT_ASSERT(sampleData[i]==i-8);
       } else if ((i>=15) && (i<18)) {
-        assert(sampleData[i]==i-10);
+        CPPUNIT_ASSERT(sampleData[i]==i-10);
       } else {
-        assert(sampleData[i]==i-12);
+        CPPUNIT_ASSERT(sampleData[i]==i-12);
       }
     }
 
@@ -2066,34 +2051,34 @@ void DataTaggedTestCase::testSetTaggedValue() {
 
     myData.setTaggedValue(2,viewShape,tmp);
 
-    assert(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==12);
+    CPPUNIT_ASSERT(myData.getLength()==12);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 //     DataArrayView myDataView = myData.getDataPointByTag(2);
     int offset=myData.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData,offset,0)==5);
-    assert(getRefRO(myData,offset,1)==6);
-    assert(getRefRO(myData,offset,2)==7);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==5);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==7);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-1);
+        CPPUNIT_ASSERT(sampleData[i]==i-1);
       } else {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       }
     }
 
@@ -2112,55 +2097,55 @@ void DataTaggedTestCase::testAll() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==1);
+    CPPUNIT_ASSERT(myData.getLength()==1);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==0.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
     sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -2184,60 +2169,60 @@ void DataTaggedTestCase::testAll() {
     DataTagged myData(FunctionSpace(),viewShape, viewData);
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==3);
+    CPPUNIT_ASSERT(myData.getLength()==3);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 //    DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
     sampleData=myData.getSampleDataByTag(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i);
+      CPPUNIT_ASSERT(sampleData[i]==i);
     }
 
   }
@@ -2275,73 +2260,73 @@ void DataTaggedTestCase::testAll() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(0));
-    assert(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(0));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==1);
 
-    assert(myData.getLength()==6);
+    CPPUNIT_ASSERT(myData.getLength()==6);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(9);
     offset=myData.getOffsetForTag(9);
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       }
     }
     sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i+1);
+      CPPUNIT_ASSERT(sampleData[i]==i+1);
     }
 
   }
@@ -2399,94 +2384,94 @@ void DataTaggedTestCase::testAll() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(0));
-    assert(myData.isCurrentTag(1));
-    assert(myData.isCurrentTag(2));
-    assert(myData.isCurrentTag(3));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(0));
+    CPPUNIT_ASSERT(myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(myData.isCurrentTag(2));
+    CPPUNIT_ASSERT(myData.isCurrentTag(3));
 
-    assert(myData.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==3);
 
-    assert(myData.getLength()==12);
+    CPPUNIT_ASSERT(myData.getLength()==12);
 
-    assert(myData.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==3);
 
-    assert(myData.getRank()==1);
-    assert(myData.getNoValues()==3);
-    assert(myData.getShape().size()==1);
+    CPPUNIT_ASSERT(myData.getRank()==1);
+    CPPUNIT_ASSERT(myData.getNoValues()==3);
+    CPPUNIT_ASSERT(myData.getShape().size()==1);
 
 
     int offset=myData.getPointOffset(0,0);
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData,offset,0)==1);
-    assert(getRefRO(myData,offset,1)==2);
-    assert(getRefRO(myData,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(0);
     offset=myData.getOffsetForTag(0);
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData,offset,0)==0);
-    assert(getRefRO(myData,offset,1)==1);
-    assert(getRefRO(myData,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==2);
 
     // Test data-points held for remaining tags
 //     myDataView = myData.getDataPointByTag(2);
     offset=myData.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData,offset,0)==2);
-    assert(getRefRO(myData,offset,1)==3);
-    assert(getRefRO(myData,offset,2)==4);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==2);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==4);
 
 //     myDataView = myData.getDataPointByTag(3);
     offset=myData.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData,offset,0)==3);
-    assert(getRefRO(myData,offset,1)==4);
-    assert(getRefRO(myData,offset,2)==5);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(myData,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     const double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       }
     }
     sampleData=myData.getSampleDataRO(0);
     for (unsigned int i=0; i<myData.getNoValues(); i++) {
-      assert(sampleData[i]==i+1);
+      CPPUNIT_ASSERT(sampleData[i]==i+1);
     }
 
   }
@@ -2552,88 +2537,88 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     //cout << myDataCopy.toString() << endl;
 
-    assert(myDataCopy.getNumSamples()==1);
-    assert(myDataCopy.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myDataCopy.getNumSamples()==1);
+    CPPUNIT_ASSERT(myDataCopy.getNumDPPSample()==1);
 
-    assert(myDataCopy.validSamplePointNo(0));
-    assert(myDataCopy.validSampleNo(0));
-    assert(!myDataCopy.validSamplePointNo(1));
-    assert(!myDataCopy.validSampleNo(1));
+    CPPUNIT_ASSERT(myDataCopy.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myDataCopy.validSampleNo(0));
+    CPPUNIT_ASSERT(!myDataCopy.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myDataCopy.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myDataCopy.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myDataCopy.getTagNumber(0)==1);
 
-    assert(!myDataCopy.isCurrentTag(0));
-    assert(myDataCopy.isCurrentTag(1));
-    assert(myDataCopy.isCurrentTag(2));
-    assert(myDataCopy.isCurrentTag(3));
+    CPPUNIT_ASSERT(!myDataCopy.isCurrentTag(0));
+    CPPUNIT_ASSERT(myDataCopy.isCurrentTag(1));
+    CPPUNIT_ASSERT(myDataCopy.isCurrentTag(2));
+    CPPUNIT_ASSERT(myDataCopy.isCurrentTag(3));
 
-    assert(myDataCopy.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataCopy.getTagLookup().size()==3);
 
-    assert(myDataCopy.getLength()==12);
+    CPPUNIT_ASSERT(myDataCopy.getLength()==12);
 
-    assert(myDataCopy.getPointOffset(0,0)==3);
+    CPPUNIT_ASSERT(myDataCopy.getPointOffset(0,0)==3);
 
-    assert(myDataCopy.getRank()==1);
-    assert(myDataCopy.getNoValues()==3);
-    assert(myDataCopy.getShape().size()==1);
+    CPPUNIT_ASSERT(myDataCopy.getRank()==1);
+    CPPUNIT_ASSERT(myDataCopy.getNoValues()==3);
+    CPPUNIT_ASSERT(myDataCopy.getShape().size()==1);
 
     int offset=myDataCopy.getPointOffset(0,0);
 //     DataArrayView myDataView = myDataCopy.getDataPoint(0,0);
-    assert(offset==3);
-    assert(getRefRO(myDataCopy,offset,0)==1);
-    assert(getRefRO(myDataCopy,offset,1)==2);
-    assert(getRefRO(myDataCopy,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==3);
 
 //     myDataView = myDataCopy.getDataPointByTag(1);
     offset=myDataCopy.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myDataCopy,offset,0)==1);
-    assert(getRefRO(myDataCopy,offset,1)==2);
-    assert(getRefRO(myDataCopy,offset,2)==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==1);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==2);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==3);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myDataCopy.getDataPointByTag(0);
     offset=myDataCopy.getOffsetForTag(0);
-    assert(offset==0);
-    assert(getRefRO(myDataCopy,offset,0)==0);
-    assert(getRefRO(myDataCopy,offset,1)==1);
-    assert(getRefRO(myDataCopy,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==2);
 
     //myDataView = myDataCopy.getDefaultValue();
     offset=myDataCopy.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myDataCopy,offset,0)==0);
-    assert(getRefRO(myDataCopy,offset,1)==1);
-    assert(getRefRO(myDataCopy,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==2);
 
     // Test data-points held for remaining tags
 //     myDataView = myDataCopy.getDataPointByTag(2);
     offset=myDataCopy.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myDataCopy,offset,0)==2);
-    assert(getRefRO(myDataCopy,offset,1)==3);
-    assert(getRefRO(myDataCopy,offset,2)==4);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==2);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==3);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==4);
 
 //     myDataView = myDataCopy.getDataPointByTag(3);
     offset=myDataCopy.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myDataCopy,offset,0)==3);
-    assert(getRefRO(myDataCopy,offset,1)==4);
-    assert(getRefRO(myDataCopy,offset,2)==5);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(myDataCopy,offset,2)==5);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myDataCopy.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
       if (i<3) {
-        assert(sampleData[i]==i);
+        CPPUNIT_ASSERT(sampleData[i]==i);
       } else if ((i>=3) && (i<6)) {
-        assert(sampleData[i]==i-2);
+        CPPUNIT_ASSERT(sampleData[i]==i-2);
       } else if ((i>=6) && (i<9)) {
-        assert(sampleData[i]==i-4);
+        CPPUNIT_ASSERT(sampleData[i]==i-4);
       } else {
-        assert(sampleData[i]==i-6);
+        CPPUNIT_ASSERT(sampleData[i]==i-6);
       }
     }
 
@@ -2655,51 +2640,51 @@ void DataTaggedTestCase::testCopyConstructors() {
 
     //cout << myData.toString() << endl;
 
-    assert(myData.getNumSamples()==1);
-    assert(myData.getNumDPPSample()==1);
+    CPPUNIT_ASSERT(myData.getNumSamples()==1);
+    CPPUNIT_ASSERT(myData.getNumDPPSample()==1);
 
-    assert(myData.validSamplePointNo(0));
-    assert(myData.validSampleNo(0));
-    assert(!myData.validSamplePointNo(1));
-    assert(!myData.validSampleNo(1));
+    CPPUNIT_ASSERT(myData.validSamplePointNo(0));
+    CPPUNIT_ASSERT(myData.validSampleNo(0));
+    CPPUNIT_ASSERT(!myData.validSamplePointNo(1));
+    CPPUNIT_ASSERT(!myData.validSampleNo(1));
 
     // data-point 0 has tag number 1 by default
-    assert(myData.getTagNumber(0)==1);
+    CPPUNIT_ASSERT(myData.getTagNumber(0)==1);
 
-    assert(!myData.isCurrentTag(1));
+    CPPUNIT_ASSERT(!myData.isCurrentTag(1));
 
-    assert(myData.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData.getTagLookup().size()==0);
 
-    assert(myData.getLength()==1);
+    CPPUNIT_ASSERT(myData.getLength()==1);
 
-    assert(myData.getPointOffset(0,0)==0);
+    CPPUNIT_ASSERT(myData.getPointOffset(0,0)==0);
 
-    assert(myData.getRank()==0);
-    assert(myData.getNoValues()==1);
-    assert(myData.getShape().size()==0);
+    CPPUNIT_ASSERT(myData.getRank()==0);
+    CPPUNIT_ASSERT(myData.getNoValues()==1);
+    CPPUNIT_ASSERT(myData.getShape().size()==0);
 
 
 //     DataArrayView myDataView = myData.getDataPoint(0,0);
     int offset=myData.getPointOffset(0,0);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
     // Test non-existent tag returns the default value.
 //     myDataView = myData.getDataPointByTag(1);
     offset=myData.getOffsetForTag(1);
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
 //     myDataView = myData.getDefaultValue();
     offset=myData.getDefaultOffset();
-    assert(offset==0);
-    assert(myData.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData.getDataAtOffsetRO(offset)==1.0);
 
     // use a non-existent tag so we get a pointer to
     // the first element of the data array
     double* sampleData=myData.getSampleDataByTag(9);
     for (int i=0; i<myData.getLength(); i++) {
-      assert(sampleData[i]==i+1);
+      CPPUNIT_ASSERT(sampleData[i]==i+1);
     }
 
   }
@@ -2724,17 +2709,17 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==1);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==1);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVectorRO()[0]==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[0]==0.0);
 
     delete slicedDefault;
   }
@@ -2772,21 +2757,21 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==3);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==3);
 
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
+    CPPUNIT_ASSERT(offset==0);
 
-    assert(getRefRO(*myDataSliced,offset,0)==0.0);
-    assert(getRefRO(*myDataSliced,offset,1)==1.0);
-    assert(getRefRO(*myDataSliced,offset,2)==2.0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0.0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1.0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2803,17 +2788,17 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==1);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==1);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVectorRO()[0]==0.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[0]==0.0);
 
     delete slicedDefault;
   }
@@ -2857,16 +2842,16 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==27);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==27);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getRank()==3);
-    assert(myDataSliced->getNoValues()==27);
-    assert(myDataSliced->getShape().size()==3);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==3);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==27);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==3);
 
     // rank 1 slice
 
@@ -2884,20 +2869,20 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==3);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==3);
 
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(*myDataSliced,offset,0)==0.0);
-    assert(getRefRO(*myDataSliced,offset,1)==1.0);
-    assert(getRefRO(*myDataSliced,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0.0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1.0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2.0);
 
     // scalar slice
 
@@ -2916,19 +2901,19 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==0);
 
-    assert(myDataSliced->getLength()==1);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==1);
 
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[0]==26);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[0]==26);
     delete slicedDefault;
   }
 
@@ -2968,22 +2953,22 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==2);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==2);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
-    assert(myDataSliced->getVectorRO()[offset]==0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==1);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==1);
 
     delete slicedDefault;
 
@@ -3035,25 +3020,25 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==6);
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==6);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(*myDataSliced,offset,0)==0);
-    assert(getRefRO(*myDataSliced,offset,1)==1);
-    assert(getRefRO(*myDataSliced,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(*myDataSliced,offset,0)==3);
-    assert(getRefRO(*myDataSliced,offset,1)==4);
-    assert(getRefRO(*myDataSliced,offset,2)==5);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==5);
 
     // scalar slice
 
@@ -3070,24 +3055,24 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==2);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==2);
 
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[offset]==1);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==4);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==4);
     delete slicedDefault;
 
   }
@@ -3140,21 +3125,21 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==54);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==54);
 
-    assert(myDataSliced->getRank()==3);
-    assert(myDataSliced->getNoValues()==27);
-    assert(myDataSliced->getShape().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==3);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==27);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==3);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
+    CPPUNIT_ASSERT(offset==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==27);
+    CPPUNIT_ASSERT(offset==27);
 
     // rank 1 slice
 
@@ -3171,27 +3156,27 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==6);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==6);
 
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(*myDataSliced,offset,0)==0);
-    assert(getRefRO(*myDataSliced,offset,1)==1);
-    assert(getRefRO(*myDataSliced,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(*myDataSliced,offset,0)==27);
-    assert(getRefRO(*myDataSliced,offset,1)==28);
-    assert(getRefRO(*myDataSliced,offset,2)==29);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==27);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==28);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==29);
     // scalar slice
 
     region_element.first=1;
@@ -3209,23 +3194,23 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==1);
 
-    assert(myDataSliced->getLength()==2);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==2);
 
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[offset]==13);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==13);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==40);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==40);
 
     delete slicedDefault;
   }
@@ -3283,33 +3268,33 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==4);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==4);
 
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[offset]==0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==1);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==2);
-    assert(myDataSliced->getVectorRO()[offset]==2);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==3);
-    assert(myDataSliced->getVectorRO()[offset]==3);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==3);
 
     delete slicedDefault;
   }
@@ -3380,42 +3365,42 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==12);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==12);
 
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(*myDataSliced,offset,0)==0);
-    assert(getRefRO(*myDataSliced,offset,1)==1);
-    assert(getRefRO(*myDataSliced,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(*myDataSliced,offset,0)==3);
-    assert(getRefRO(*myDataSliced,offset,1)==4);
-    assert(getRefRO(*myDataSliced,offset,2)==5);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==4);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==5);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(*myDataSliced,offset,0)==6);
-    assert(getRefRO(*myDataSliced,offset,1)==7);
-    assert(getRefRO(*myDataSliced,offset,2)==8);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==6);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==7);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==8);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(*myDataSliced,offset,0)==9);
-    assert(getRefRO(*myDataSliced,offset,1)==10);
-    assert(getRefRO(*myDataSliced,offset,2)==11);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==9);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==10);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==11);
 
     // scalar slice
 
@@ -3432,33 +3417,33 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==4);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==4);
 
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[offset]==1);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==1);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==4);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==4);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==2);
-    assert(myDataSliced->getVectorRO()[offset]==7);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==7);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==3);
-    assert(myDataSliced->getVectorRO()[offset]==10);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==10);
     
     delete slicedDefault;
   }
@@ -3531,29 +3516,29 @@ void DataTaggedTestCase::testGetSlice() {
 
     const DataTagged* myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==108);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==108);
 
-    assert(myDataSliced->getRank()==3);
-    assert(myDataSliced->getNoValues()==27);
-    assert(myDataSliced->getShape().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==3);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==27);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==3);
 
 //     DataArrayView myDataView = myDataSliced->getDefaultValue();
     int offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
+    CPPUNIT_ASSERT(offset==0);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==27);
+    CPPUNIT_ASSERT(offset==27);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==54);
+    CPPUNIT_ASSERT(offset==54);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==81);
+    CPPUNIT_ASSERT(offset==81);
 
     // rank 1 slice
 
@@ -3571,41 +3556,41 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==12);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==12);
 
-    assert(myDataSliced->getRank()==1);
-    assert(myDataSliced->getNoValues()==3);
-    assert(myDataSliced->getShape().size()==1);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==1);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==3);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==1);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(*myDataSliced,offset,0)==0);
-    assert(getRefRO(*myDataSliced,offset,1)==1);
-    assert(getRefRO(*myDataSliced,offset,2)==2);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==0);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==1);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==2);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(*myDataSliced,offset,0)==27);
-    assert(getRefRO(*myDataSliced,offset,1)==28);
-    assert(getRefRO(*myDataSliced,offset,2)==29);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==27);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==28);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==29);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(*myDataSliced,offset,0)==54);
-    assert(getRefRO(*myDataSliced,offset,1)==55);
-    assert(getRefRO(*myDataSliced,offset,2)==56);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==54);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==55);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==56);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(*myDataSliced,offset,0)==81);
-    assert(getRefRO(*myDataSliced,offset,1)==82);
-    assert(getRefRO(*myDataSliced,offset,2)==83);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,0)==81);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,1)==82);
+    CPPUNIT_ASSERT(getRefRO(*myDataSliced,offset,2)==83);
 
     // scalar slice
 
@@ -3624,32 +3609,32 @@ void DataTaggedTestCase::testGetSlice() {
 
     myDataSliced=dynamic_cast<const DataTagged*>(slicedDefault);
 
-    assert(myDataSliced->getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myDataSliced->getTagLookup().size()==3);
 
-    assert(myDataSliced->getLength()==4);
-    assert(myDataSliced->getRank()==0);
-    assert(myDataSliced->getNoValues()==1);
-    assert(myDataSliced->getShape().size()==0);
+    CPPUNIT_ASSERT(myDataSliced->getLength()==4);
+    CPPUNIT_ASSERT(myDataSliced->getRank()==0);
+    CPPUNIT_ASSERT(myDataSliced->getNoValues()==1);
+    CPPUNIT_ASSERT(myDataSliced->getShape().size()==0);
 
 //     myDataView = myDataSliced->getDefaultValue();
     offset=myDataSliced->getDefaultOffset();
-    assert(offset==0);
-    assert(myDataSliced->getVectorRO()[offset]==13);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==13);
 
 //     myDataView = myDataSliced->getDataPointByTag(1);
     offset=myDataSliced->getOffsetForTag(1);
-    assert(offset==1);
-    assert(myDataSliced->getVectorRO()[offset]==40);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==40);
 
 //     myDataView = myDataSliced->getDataPointByTag(2);
     offset=myDataSliced->getOffsetForTag(2);
-    assert(offset==2);
-    assert(myDataSliced->getVectorRO()[offset]==67);
+    CPPUNIT_ASSERT(offset==2);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==67);
 
 //     myDataView = myDataSliced->getDataPointByTag(3);
     offset=myDataSliced->getOffsetForTag(3);
-    assert(offset==3);
-    assert(myDataSliced->getVectorRO()[offset]==94);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myDataSliced->getVectorRO()[offset]==94);
 
     delete slicedDefault;
   }
@@ -3673,17 +3658,17 @@ void DataTaggedTestCase::testSetSlice() {
     myData1.setSlice(&myData2, region);
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==1);
-    assert(myData1.getRank()==0);
-    assert(myData1.getNoValues()==1);
-    assert(myData1.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getLength()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==0);
+    CPPUNIT_ASSERT(myData1.getNoValues()==1);
+    CPPUNIT_ASSERT(myData1.getShape().size()==0);
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(myData1.getDataAtOffsetRW(offset)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRW(offset)==1.0);
 
   }
 
@@ -3723,20 +3708,20 @@ void DataTaggedTestCase::testSetSlice() {
     myData1.setSlice(&myData2, region);
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==3);
+    CPPUNIT_ASSERT(myData1.getLength()==3);
 
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==3.0);
-    assert(getRefRO(myData1,offset,1)==4.0);
-    assert(getRefRO(myData1,offset,2)==5.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==5.0);
 
     // rank 1 slice
 
@@ -3756,18 +3741,18 @@ void DataTaggedTestCase::testSetSlice() {
     myData1.setSlice(&myData3, region);
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==3);
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getLength()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==3.0);
-    assert(getRefRO(myData1,offset,1)==6.0);
-    assert(getRefRO(myData1,offset,2)==5.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==5.0);
 
     // scalar slice
 
@@ -3784,19 +3769,19 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData3.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==3);
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getLength()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==7.0);
-    assert(getRefRO(myData1,offset,1)==6.0);
-    assert(getRefRO(myData1,offset,2)==5.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==7.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==5.0);
 
   }
 
@@ -3841,16 +3826,16 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==27);
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getLength()==27);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
+    CPPUNIT_ASSERT(offset==0);
 
 
     // rank 1 slice
@@ -3876,18 +3861,18 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==27);
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getLength()==27);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==60.0);
-    assert(getRefRO(myData1,offset,1,0,0)==61.0);
-    assert(getRefRO(myData1,offset,2,0,0)==62.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==60.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==61.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==62.0);
 
     // scalar slice
 
@@ -3905,18 +3890,18 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==0);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==0);
 
-    assert(myData1.getLength()==27);
+    CPPUNIT_ASSERT(myData1.getLength()==27);
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==70.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==70.0);
 
   }
 
@@ -3967,21 +3952,21 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==1);
 
-    assert(myData1.getLength()==2);
-    assert(myData1.getRank()==0);
-    assert(myData1.getNoValues()==1);
-    assert(myData1.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getLength()==2);
+    CPPUNIT_ASSERT(myData1.getRank()==0);
+    CPPUNIT_ASSERT(myData1.getNoValues()==1);
+    CPPUNIT_ASSERT(myData1.getShape().size()==0);
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(myData1.getVectorRO()[offset]==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData1.getVectorRO()[offset]==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==1);
-    assert(myData1.getVectorRO()[offset]==2.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData1.getVectorRO()[offset]==2.0);
   }
 
   {
@@ -4043,26 +4028,26 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==1);
 
-    assert(myData1.getLength()==6);
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getLength()==6);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==1.0);
-    assert(getRefRO(myData1,offset,1)==1.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==2.0);
-    assert(getRefRO(myData1,offset,1)==2.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
     // rank 1 slice
 
@@ -4091,25 +4076,25 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==1);
 
-    assert(myData1.getLength()==6);
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getLength()==6);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==1.0);
-    assert(getRefRO(myData1,offset,1)==3.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==2.0);
-    assert(getRefRO(myData1,offset,1)==4.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
     // scalar slice
 
@@ -4136,23 +4121,23 @@ void DataTaggedTestCase::testSetSlice() {
     myData1.setSlice(&myData4, region);
 
     //cout << myData1.toString() << endl;
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==5.0);
-    assert(getRefRO(myData1,offset,1)==3.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==5.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==6.0);
-    assert(getRefRO(myData1,offset,1)==4.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
   }
 
@@ -4220,28 +4205,28 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==1);
 
-    assert(myData1.getLength()==54);
+    CPPUNIT_ASSERT(myData1.getLength()==54);
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==1.0);
-    assert(getRefRO(myData1,offset,1,1,1)==1.0);
-    assert(getRefRO(myData1,offset,2,2,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,1,1)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,2,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==2.0);
-    assert(getRefRO(myData1,offset,1,1,1)==2.0);
-    assert(getRefRO(myData1,offset,2,2,2)==2.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,1,1)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,2,2)==2.0);
 
     // rank 1 slice
 
@@ -4278,28 +4263,28 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==1);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==1);
 
-    assert(myData1.getLength()==54);
+    CPPUNIT_ASSERT(myData1.getLength()==54);
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefslicing DataTagged with rank 3 values and one tagaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==3.0);
-    assert(getRefRO(myData1,offset,1,0,0)==3.0);
-    assert(getRefRO(myData1,offset,2,0,0)==3.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==4.0);
-    assert(getRefRO(myData1,offset,1,0,0)==4.0);
-    assert(getRefRO(myData1,offset,2,0,0)==4.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==4.0);
 
     // scalar slice
 
@@ -4329,20 +4314,20 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==5.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==5.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==6.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==6.0);
 
   }
 
@@ -4418,34 +4403,34 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==3);
 
-    assert(myData1.getLength()==4);
+    CPPUNIT_ASSERT(myData1.getLength()==4);
 
-    assert(myData1.getRank()==0);
-    assert(myData1.getNoValues()==1);
-    assert(myData1.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getRank()==0);
+    CPPUNIT_ASSERT(myData1.getNoValues()==1);
+    CPPUNIT_ASSERT(myData1.getShape().size()==0);
 
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(offset==0);
-    assert(myData1.getDataAtOffsetRO(offset)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(offset)==1.0);
 
     offset=myData1.getOffsetForTag(1);
 //     myDataView = myData1.getDataPointByTag(1);
-    assert(offset==1);
-    assert(myData1.getDataAtOffsetRO(offset)==2.0);
+    CPPUNIT_ASSERT(offset==1);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(offset)==2.0);
 
     offset=myData1.getOffsetForTag(2);
 //     myDataView = myData1.getDataPointByTag(2);
-    assert(offset==2);
+    CPPUNIT_ASSERT(offset==2);
 
-    assert(myData1.getDataAtOffsetRO(offset)==3.0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(offset)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==3);
-    assert(myData1.getDataAtOffsetRO(offset)==4.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(offset)==4.0);
 
   }
 
@@ -4546,42 +4531,42 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==3);
 
-    assert(myData1.getLength()==12);
+    CPPUNIT_ASSERT(myData1.getLength()==12);
 
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
     int offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==1.0);
-    assert(getRefRO(myData1,offset,1)==1.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==2.0);
-    assert(getRefRO(myData1,offset,1)==2.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData1,offset,0)==3.0);
-    assert(getRefRO(myData1,offset,1)==3.0);
-    assert(getRefRO(myData1,offset,2)==3.0);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData1,offset,0)==4.0);
-    assert(getRefRO(myData1,offset,1)==4.0);
-    assert(getRefRO(myData1,offset,2)==4.0);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==4.0);
 
     // rank 1 slice
 
@@ -4620,42 +4605,42 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==3);
 
-    assert(myData1.getLength()==12);
+    CPPUNIT_ASSERT(myData1.getLength()==12);
 
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 
     offset=myData1.getDefaultOffset();
 //     myDataView = myData1.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==1.0);
-    assert(getRefRO(myData1,offset,1)==6.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==2.0);
-    assert(getRefRO(myData1,offset,1)==7.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==7.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData1,offset,0)==3.0);
-    assert(getRefRO(myData1,offset,1)==8.0);
-    assert(getRefRO(myData1,offset,2)==3.0);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==8.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData1,offset,0)==4.0);
-    assert(getRefRO(myData1,offset,1)==9.0);
-    assert(getRefRO(myData1,offset,2)==4.0);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==9.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==4.0);
 
     // scalar slice
 
@@ -4693,38 +4678,38 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getRank()==1);
-    assert(myData1.getNoValues()==3);
-    assert(myData1.getShape().size()==1);
+    CPPUNIT_ASSERT(myData1.getRank()==1);
+    CPPUNIT_ASSERT(myData1.getNoValues()==3);
+    CPPUNIT_ASSERT(myData1.getShape().size()==1);
 
 
     offset=myData1.getDefaultOffset();
 /*    myDataView = myData1.getDefaultValue();*/
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0)==10.0);
-    assert(getRefRO(myData1,offset,1)==6.0);
-    assert(getRefRO(myData1,offset,2)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==10.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==3);
-    assert(getRefRO(myData1,offset,0)==11.0);
-    assert(getRefRO(myData1,offset,1)==7.0);
-    assert(getRefRO(myData1,offset,2)==2.0);
+    CPPUNIT_ASSERT(offset==3);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==11.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==7.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
-    assert(offset==6);
-    assert(getRefRO(myData1,offset,0)==12.0);
-    assert(getRefRO(myData1,offset,1)==8.0);
-    assert(getRefRO(myData1,offset,2)==3.0);
+    CPPUNIT_ASSERT(offset==6);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==12.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==8.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==9);
-    assert(getRefRO(myData1,offset,0)==13.0);
-    assert(getRefRO(myData1,offset,1)==9.0);
-    assert(getRefRO(myData1,offset,2)==4.0);
+    CPPUNIT_ASSERT(offset==9);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0)==13.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1)==9.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2)==4.0);
 
   }
 
@@ -4827,41 +4812,41 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==3);
 
-    assert(myData1.getLength()==108);
+    CPPUNIT_ASSERT(myData1.getLength()==108);
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
     int offset=myData1.getDefaultOffset();
 //     DataArrayView myDataView = myData1.getDefaultValue();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==1.0);
-    assert(getRefRO(myData1,offset,1,0,0)==1.0);
-    assert(getRefRO(myData1,offset,2,0,0)==1.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==1.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==2.0);
-    assert(getRefRO(myData1,offset,1,0,0)==2.0);
-    assert(getRefRO(myData1,offset,2,0,0)==2.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==2.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
-    assert(offset==54);
-    assert(getRefRO(myData1,offset,0,0,0)==3.0);
-    assert(getRefRO(myData1,offset,1,0,0)==3.0);
-    assert(getRefRO(myData1,offset,2,0,0)==3.0);
+    CPPUNIT_ASSERT(offset==54);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==3.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==81);
-    assert(getRefRO(myData1,offset,0,0,0)==4.0);
-    assert(getRefRO(myData1,offset,1,0,0)==4.0);
-    assert(getRefRO(myData1,offset,2,0,0)==4.0);
+    CPPUNIT_ASSERT(offset==81);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==4.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==4.0);
 
     // rank 1 slice
 
@@ -4913,43 +4898,43 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==3);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==3);
 
-    assert(myData1.getLength()==108);
+    CPPUNIT_ASSERT(myData1.getLength()==108);
 
-    assert(myData1.getRank()==3);
-    assert(myData1.getNoValues()==27);
-    assert(myData1.getShape().size()==3);
+    CPPUNIT_ASSERT(myData1.getRank()==3);
+    CPPUNIT_ASSERT(myData1.getNoValues()==27);
+    CPPUNIT_ASSERT(myData1.getShape().size()==3);
 
 //    myDataView = myData1.getDefaultValue();
-//     assert(!myDataView.isEmpty());
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==6.0);
-    assert(getRefRO(myData1,offset,1,0,0)==6.0);
-    assert(getRefRO(myData1,offset,2,0,0)==6.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==6.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==6.0);
 
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==7.0);
-    assert(getRefRO(myData1,offset,1,0,0)==7.0);
-    assert(getRefRO(myData1,offset,2,0,0)==7.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==7.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==7.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==7.0);
 
     offset=myData1.getOffsetForTag(2);
 //     myDataView = myData1.getDataPointByTag(2);
-//     assert(!myDataView.isEmpty());
-    assert(offset==54);
-    assert(getRefRO(myData1,offset,0,0,0)==8.0);
-    assert(getRefRO(myData1,offset,1,0,0)==8.0);
-    assert(getRefRO(myData1,offset,2,0,0)==8.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(offset==54);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==8.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==8.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==8.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==81);
-    assert(getRefRO(myData1,offset,0,0,0)==9.0);
-    assert(getRefRO(myData1,offset,1,0,0)==9.0);
-    assert(getRefRO(myData1,offset,2,0,0)==9.0);
+    CPPUNIT_ASSERT(offset==81);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==9.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==9.0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,2,0,0)==9.0);
 
     // scalar slice
 
@@ -4991,22 +4976,22 @@ void DataTaggedTestCase::testSetSlice() {
 
 //     myDataView = myData1.getDefaultValue();
     offset=myData1.getDefaultOffset();
-    assert(offset==0);
-    assert(getRefRO(myData1,offset,0,0,0)==10.0);
+    CPPUNIT_ASSERT(offset==0);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==10.0);
 //     myDataView = myData1.getDataPointByTag(1);
     offset=myData1.getOffsetForTag(1);
-    assert(offset==27);
-    assert(getRefRO(myData1,offset,0,0,0)==11.0);
+    CPPUNIT_ASSERT(offset==27);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==11.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
     offset=myData1.getOffsetForTag(2);
-    assert(offset==54);
-    assert(getRefRO(myData1,offset,0,0,0)==12.0);
+    CPPUNIT_ASSERT(offset==54);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==12.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
     offset=myData1.getOffsetForTag(3);
-    assert(offset==81);
-    assert(getRefRO(myData1,offset,0,0,0)==13.0);
+    CPPUNIT_ASSERT(offset==81);
+    CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==13.0);
 
   }
 
@@ -5091,61 +5076,61 @@ void DataTaggedTestCase::testSetSlice() {
 
     //cout << myData1.toString() << endl;
 
-    assert(myData1.getTagLookup().size()==5);
+    CPPUNIT_ASSERT(myData1.getTagLookup().size()==5);
 
-    assert(myData1.getLength()==6);
+    CPPUNIT_ASSERT(myData1.getLength()==6);
 
-    assert(myData1.getRank()==0);
-    assert(myData1.getNoValues()==1);
-    assert(myData1.getShape().size()==0);
-    assert(myData1.getDataAtOffsetRO(0)==1.0);
+    CPPUNIT_ASSERT(myData1.getRank()==0);
+    CPPUNIT_ASSERT(myData1.getNoValues()==1);
+    CPPUNIT_ASSERT(myData1.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(0)==1.0);
 
 
 //     DataArrayView myDataView = myData1.getDefaultValue();
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getDefaultOffset()==0);
-//     assert(myDataView.getOffset()==0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getDefaultOffset()==0);
+//     CPPUNIT_ASSERT(myDataView.getOffset()==0);
 
 
 //     myDataView = myData1.getDataPointByTag(1);
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getOffsetForTag(1)==1);
-//     assert(myDataView.getRank()==0);
-//     assert(myDataView.noValues()==1);
-//     assert(myDataView.getShape().size()==0);
-    assert(myData1.getDataAtOffsetRO(1)==1.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getOffsetForTag(1)==1);
+//     CPPUNIT_ASSERT(myDataView.getRank()==0);
+//     CPPUNIT_ASSERT(myDataView.noValues()==1);
+//     CPPUNIT_ASSERT(myDataView.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(1)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(2);
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getOffsetForTag(2)==2);
-//     assert(myDataView.getRank()==0);
-//     assert(myDataView.noValues()==1);
-//     assert(myDataView.getShape().size()==0);
-    assert(myData1.getDataAtOffsetRO(2)==1.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getOffsetForTag(2)==2);
+//     CPPUNIT_ASSERT(myDataView.getRank()==0);
+//     CPPUNIT_ASSERT(myDataView.noValues()==1);
+//     CPPUNIT_ASSERT(myDataView.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(2)==1.0);
 
 //     myDataView = myData1.getDataPointByTag(3);
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getOffsetForTag(3)==3);
-/*    assert(myDataView.getRank()==0);
-    assert(myDataView.noValues()==1);
-    assert(myDataView.getShape().size()==0);*/
-    assert(myData1.getDataAtOffsetRO(3)==2.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getOffsetForTag(3)==3);
+/*    CPPUNIT_ASSERT(myDataView.getRank()==0);
+    CPPUNIT_ASSERT(myDataView.noValues()==1);
+    CPPUNIT_ASSERT(myDataView.getShape().size()==0);*/
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(3)==2.0);
 
 //     myDataView = myData1.getDataPointByTag(4);
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getOffsetForTag(4)==4);
-//     assert(myDataView.getRank()==0);
-//     assert(myDataView.noValues()==1);
-//     assert(myDataView.getShape().size()==0);
-    assert(myData1.getDataAtOffsetRO(4)==3.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getOffsetForTag(4)==4);
+//     CPPUNIT_ASSERT(myDataView.getRank()==0);
+//     CPPUNIT_ASSERT(myDataView.noValues()==1);
+//     CPPUNIT_ASSERT(myDataView.getShape().size()==0);
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(4)==3.0);
 
 //     myDataView = myData1.getDataPointByTag(5);
-//     assert(!myDataView.isEmpty());
-    assert(myData1.getOffsetForTag(5)==5);
-/*    assert(myData1.getRank()==0);
-    assert(myData1.noValues()==1);
-    assert(myData1.getShape().size()==0);*/
-    assert(myData1.getDataAtOffsetRO(5)==4.0);
+//     CPPUNIT_ASSERT(!myDataView.isEmpty());
+    CPPUNIT_ASSERT(myData1.getOffsetForTag(5)==5);
+/*    CPPUNIT_ASSERT(myData1.getRank()==0);
+    CPPUNIT_ASSERT(myData1.noValues()==1);
+    CPPUNIT_ASSERT(myData1.getShape().size()==0);*/
+    CPPUNIT_ASSERT(myData1.getDataAtOffsetRO(5)==4.0);
 
   }
 
@@ -5163,7 +5148,7 @@ void DataTaggedTestCase::testFunctionSpaces()
 	if (!res.empty())
 	{
 		cout << "\t\t" << res << endl;
-		assert(false);
+		CPPUNIT_ASSERT(false);
 	}
    }
    {
@@ -5174,7 +5159,7 @@ void DataTaggedTestCase::testFunctionSpaces()
 	if (!res.empty())
 	{
 		cout << "\t\t" << res << endl;
-		assert(false);
+		CPPUNIT_ASSERT(false);
 	}
    }
    {
@@ -5185,23 +5170,31 @@ void DataTaggedTestCase::testFunctionSpaces()
 	if (!res.empty())
 	{
 		cout << "\t\t" << res << endl;
-		assert(false);
+		CPPUNIT_ASSERT(false);
 	}
    }
 }*/
 
-TestSuite* DataTaggedTestCase::suite ()
+TestSuite* DataTaggedTestCase::suite()
 {
-  //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataTaggedTestCase");
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAll",&DataTaggedTestCase::testAll));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testOperations",&DataTaggedTestCase::testOperations));
-//   testSuite->addTest (new TestCaller< DataTaggedTestCase>("testFunctionSpaces",&DataTaggedTestCase::testFunctionSpaces));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testGetSlice",&DataTaggedTestCase::testGetSlice));
-  testSuite->addTest (new TestCaller< DataTaggedTestCase>("testSetSlice",&DataTaggedTestCase::testSetSlice));
+  TestSuite *testSuite = new TestSuite("DataTaggedTestCase");
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testAll",&DataTaggedTestCase::testAll));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testAddTaggedValues",&DataTaggedTestCase::testAddTaggedValues));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testSetTaggedValue",&DataTaggedTestCase::testSetTaggedValue));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testCopyConstructors",&DataTaggedTestCase::testCopyConstructors));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testOperations",&DataTaggedTestCase::testOperations));
+//   testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+//              "testFunctionSpaces",&DataTaggedTestCase::testFunctionSpaces));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testGetSlice",&DataTaggedTestCase::testGetSlice));
+  testSuite->addTest(new TestCaller<DataTaggedTestCase>(
+              "testSetSlice",&DataTaggedTestCase::testSetSlice));
   return testSuite;
 }
+

@@ -22,4 +22,6 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escript
 #from esys.escript import *
 from finleycpp import *
+from factorywrappers import *
 from readers import *
+

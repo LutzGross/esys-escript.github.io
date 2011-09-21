@@ -45,11 +45,12 @@ for all $x_{i}$.
 \subsection{Solution Method \label{DARCY SOLVE}}
 Unfortunate equation~\ref{DARCY PROBLEM} can not solved directly in an easy way and requires mixed FEM.  
 We consider a few options to solve equation~\ref{DARCY PROBLEM}
-\subsubsection{Simple Solver}\label{SEC DARCY SIMPLE}
+\subsubsection{Evaluation}\label{SEC DARCY SIMPLE}
 The first equation of equation~\ref{DARCY PROBLEM} is inserted into the second one:
 \begin{equation}\label{DARCY PROBLEM SIMPLE}
 - (\kappa_{ij} p_{,j})_{,i}  =  f  - (g_{i})_{,i}
 \end{equation} 
+
 with boundary conditions
 \begin{equation}\label{DARCY BOUNDARY SIMPLE}
 \begin{array}{rcl}
@@ -57,14 +58,14 @@ with boundary conditions
 p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
 \end{equation} 
-Then the flux field is recovred by solving
+Then the flux field is recovered by directly setting
 \begin{equation}\label{DARCY PROBLEM SIMPLE FLUX}
  u_{j} = g_j -  \kappa_{ij} p_{,j}  
 \end{equation} 
-with boundary conditions
-\begin{equation}\label{DARCY SIMPLE BOUNDARY FLUX}
-u_{i} = u^{N}_{i}  \mbox{ on }  \Gamma_{N}
-\end{equation} 
+This simple recovery process will not ensure that the (numerically) calculated flux
+meets the boundary conditions for flux or the incompressibility condition. 
+However this is a very fast way of calculating the flux.
+
 
 \subsubsection{Global Postprocessing \label{SEC DARCY POST}}
 An improved flux recovery can be achieved by solving a modified version of equation~\ref{DARCY PROBLEM SIMPLE FLUX}
@@ -86,82 +87,32 @@ u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
 u_{k,k} = f & \mbox{ on } & \Gamma_{D} \\ 
 \end{array}
 \end{equation}   
-Notice that the second condition is a natural boundray condition.
-
-\subsubsection{Stabilization \label{SEC DARCY STAB}}
-Stabilization term can be added to the original problem~\ref{DARCY PROBLEM SIMPLE FLUX}, see~\cite{MasudHughes2002a}.
-Firstly we subtract half of the first equation from the first eqaution
-\begin{equation}\label{DARCY STAB PROBLEM A}
-\kappa^{-1}_{ij} u_{j} + (p)_{,i} - \frac{1}{2} \left(  \kappa^{-1}_{ij} u_{j} + p_{,i} \right) = \kappa^{-1}_{ij} g_j -\frac{1}{2} \kappa^{-1}_{ij} g_j 
-\end{equation} 
-and then subtract half of the dievregence of the first equation from the second equation:
-\begin{equation}\label{DARCY STAB PROBLEM}
-\begin{array}{rcl}
-\frac{1}{2} \kappa^{-1}_{ij} u_{j} + (p)_{,i} -  \frac{1}{2}  p_{,i}  & = &  \frac{1}{2} \kappa^{-1}_{ij} g_j \\
-u_{i,i} - \frac{1}{2}  \left(u_{i} +   \kappa_{ij} p_{,j} \right)_{,i} & = & f - \frac{1}{2} \left(g_{i} \right)_{,i}   
-\end{array}
-\end{equation} 
-We apply the boundary conditions:
-\begin{equation}\label{DARCY SYM STAB PROBLEM BOUNDARY}
-\begin{array}{rcl}
-u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
-p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
-\frac{1}{2} \left( u_{i} +   \kappa^{-1}_{ij} p_{,j} - g_{i} \right ) \; n_{i} = 0 &  \mbox{ on } & \Gamma_{N} \\
-\end{array}
-\end{equation} 
-Notice that due to the term $(p)_{,i}$ boundary condition $p = p^{D}$ acts as a natural boundary condition for the
-first equation of~\ref{DARCY STAB PROBLEM} (in the form $p  \;  n_i = p^{D}  \;  n_i$ while the last two boundary conditions act as constraint and natural boundary conditions for the second equation.
-
-\subsubsection{Symmetric Stabilization \label{SEC DARCY SYM STAB}}
-Symmetric stabilization term can be added to the original problem~\ref{DARCY PROBLEM SIMPLE FLUX}, see~\cite{LoulaCorrea2006a}. In this approach divergence of the first equation
-is subtracted from $2 \times$ the second equation  
-\begin{equation}\label{DARCY SYM STAB PROBLEM A}
-- (u_{i})_{,i} + \frac{1}{2} \left( u_{i} + \kappa_{ij} p_{,j} \right)_{,i} = -  f + \frac{1}{2} \left( g_{i}\right)_{,i} 
-\end{equation} 
-The first equation is rescaled by the factor $\frac{1}{2}$ to maintain symmetry. This leads to
-\begin{equation}\label{DARCY SYM STAB PROBLEM}
-\begin{array}{rcl}
-\frac{1}{2}   \kappa^{-1}_{ij} u_{j} + \frac{1}{2}  p_{,i}& = &  \frac{1}{2}  \kappa^{-1}_{ij} g_{j} \\
-\frac{1}{2}  \left(  \kappa_{ij} p_{,j} - u_{i} \right)_{,i} & = & -  f + \frac{1}{2}  \left(g_{i}\right)_{,i} 
-\end{array}
-\end{equation} 
-We add the boundary conditions 
-\begin{equation}\label{DARCY SYM STAB PROBLEM BOUNDARY}
-\begin{array}{rcl}
-u_{i} \; n_{i}  = u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
-p = p^{D} &  \mbox{ on } & \Gamma_{D} \\ 
-\frac{1}{2} \left( \kappa_{ij} p_{,j} - g_{i} - u_{i} \right ) \; n_{i}
-=  - u^{N}_{i}  \; n_{i} & \mbox{ on } & \Gamma_{N} \\
-\end{array}
-\end{equation} 
-Notice that the last contion provides natural boundary conditons for the last eqaution of~\ref{DARCY SYM STAB PROBLEM}.
-
+Notice that the second condition is a natural boundary condition.
+Global post-processing is more expense than direct pressure evaluation
+however the flux is more accurate and asymptotic incompressibility
+for mesh size towards zero can be shown, if $\omega>0$.
 
 
 \subsection{Functions}
-\begin{classdesc}{DarcyFlow}{domain, \optional{w=1., \optional{solver=\member{DarcyFlow.SYMSTAB},  \optional{
+\begin{classdesc}{DarcyFlow}{domain, \optional{w=1., \optional{solver=\member{DarcyFlow.EVAL},  \optional{
 useReduced=\True, \optional{ verbose=\True} } }}}
 opens the Darcy flux problem\index{Darcy flux} on the \Domain domain. 
 Reduced approximations for pressure and flux are used if \var{useReduced} is set.
 Argument \var{solver} defines the solver method. 
 If \var{verbose} is set some information are printed.
-\var{w} defines the weighting factor $\omega$ for global postprocessing pf the flux (see equation~\ref{DARCY PROBLEM POST FLUX A}.)
+\var{w} defines the weighting factor $\omega$ for global post-processing of the flux (see equation~\ref{DARCY PROBLEM POST FLUX A}.)
 \end{classdesc}
 
-\begin{memberdesc}[DarcyFlow]{SIMPLE}
-simple solver, see section~\ref{SEC DARCY SIMPLE}.
+\begin{memberdesc}[DarcyFlow]{EVAL}
+flux is calculated directly from pressure evaluation, see section~\ref{SEC DARCY SIMPLE}.
+\end{memberdesc}
+
+\begin{memberdesc}[DarcyFlow]{SMOOTH}
+solver using global post-processing of flux with weighting factor $\omega=0$, see section~\ref{SEC DARCY POST}. 
 \end{memberdesc}
 
 \begin{memberdesc}[DarcyFlow]{POST}
-solver using global postprocessing of flux, see section~\ref{SEC DARCY POST}. 
-\end{memberdesc}
-
-\begin{memberdesc}[DarcyFlow]{STAB}
- solver uses (non-symmetric) stabilization, see section~\ref{SEC DARCY STAB}. 
-\end{memberdesc}
-
-\begin{memberdesc}[DarcyFlow]{SYMSTAB}
- solver uses symmetric stabilization, see section~\ref{SEC DARCY SYM STAB}.   
+solver using global post-processing of flux, see section~\ref{SEC DARCY POST}. 
 \end{memberdesc}
 
 \begin{methoddesc}[DarcyFlow]{setValue}{\optional{f=None, \optional{g=None, \optional{location_of_fixed_pressure=None, \optional{location_of_fixed_flux=None, 
@@ -169,7 +120,7 @@ solver using global postprocessing of flux, see section~\ref{SEC DARCY POST}.
 assigns values to the model parameters. Values can be assigned using various
 calls -- in particular in a time dependent problem only values that change
 over time need to be reset. The permeability can be defined as a scalar
-(isotropic), or a symmetrix matrix (anisotropic).
+(isotropic), or a symmetric matrix (anisotropic).
 \var{f} and \var{g} are the corresponding parameters in~\ref{DARCY PROBLEM}.
 The locations and components where the flux is prescribed are set by positive
 values in \var{location_of_fixed_flux}.
@@ -182,14 +133,10 @@ where the pressure is prescribed.
 The method will try to cast the given values to appropriate \Data class objects.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{setTolerance}{\optional{rtol=1e-4}}
-sets the relative tolerance \var{rtol} for the pressure in the stabilized solvers.
-\end{methoddesc}
-
-
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsFlux}{}
 returns the solver options used to solve the flux problems.
 Use this \SolverOptions object to control the solution algorithms.
+This option is only relevant if global postprocesing is used.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getSolverOptionsPressure}{}
@@ -198,15 +145,11 @@ problems.
 Use this object to control the solution algorithms.
 \end{methoddesc}
 
-\begin{methoddesc}[DarcyFlow]{solve}{u0,p0, \optional{ iter_restart=20, \optional{max_iter=100}}}
+\begin{methoddesc}[DarcyFlow]{solve}{u0,p0}
 solves the problem and returns approximations for the flux $v$ and the pressure $p$.
 \var{u0} and \var{p0} define initial guesses for flux and pressure.
 Values marked by positive values \var{location_of_fixed_flux} and
 \var{location_of_fixed_pressure}, respectively, are kept unchanged.
-\var{max_iter} sets the maximum number of outer iteration steps allowed for solving the stabilzed 
-problems. \var{iter_restart} sets the number of iteration after which the 
-iteration is restarted\footnote{the larger \var{iter_restart} the more memory is required. The smaller
-\var{iter_restart} the more iteration steps are required.}.
 \end{methoddesc}
 
 \begin{methoddesc}[DarcyFlow]{getFlux}{p, \optional{ u0 = None}}

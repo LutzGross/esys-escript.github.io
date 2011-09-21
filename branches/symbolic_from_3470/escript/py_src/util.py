@@ -1822,6 +1822,31 @@ def eigenvalues_and_eigenvectors(arg):
     else:
       raise TypeError,"eigenvalues: Unknown argument type."
 
+def mult(arg0,arg1):
+       """
+       Product of ``arg0`` and ``arg1``.
+
+       :param arg0: first term
+       :type arg0: `Symbol`, ``float``, ``int``, `escript.Data` or
+                   ``numpy.ndarray``
+       :param arg1: second term
+       :type arg1: `Symbol`, ``float``, ``int``, `escript.Data` or
+                   ``numpy.ndarray``
+       :return: the product of ``arg0`` and ``arg1``
+       :rtype: `Symbol`, ``float``, ``int``, `escript.Data` or
+               ``numpy.ndarray``
+       :note: The shape of both arguments is matched according to the rules
+              used in `matchShape`.
+       """
+       args=matchShape(arg0,arg1)
+       if testForZero(args[0]) or testForZero(args[1]):
+          return numpy.zeros(getShape(args[0]),numpy.float64)
+       else:
+          if isinstance(args[0],numpy.ndarray):
+              return args[1]*args[0]
+          else:
+              return args[0]*args[1]
+
 def maximum(*args):
     """
     The maximum over arguments ``args``.
@@ -1853,11 +1878,15 @@ def maximum(*args):
              else:
                 out.copyWithMask(a,wherePositive(a-out))
           else:
-             if isinstance(a,numpy.ndarray):
+             if isinstance(a, numpy.ndarray): 
                 diff=-out+a
              else:
                 diff=a-out
-             out=wherePositive(diff)*diff+out
+             temp=mult(whereNonPositive(diff),out)+mult(wherePositive(diff),a)
+             if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
+                # we need to convert the result to an array 
+                temp=numpy.array(temp)             
+             out=temp
     return out
 
 def minimum(*args):
@@ -1891,11 +1920,16 @@ def minimum(*args):
              else:
                 out.copyWithMask(a,whereNegative(a-out))
           else:
-             if isinstance(a,numpy.ndarray):
+             if isinstance(a, numpy.ndarray): 
                 diff=-out+a
              else:
                 diff=a-out
-             out=whereNegative(diff)*diff+out
+             #out=add(out,mult(whereNegative(diff),diff))
+             temp=mult(whereNonNegative(diff),out)+mult(whereNegative(diff),a)
+             if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
+                # we need to convert the result to an array 
+                temp=numpy.array(temp)
+             out=temp
     return out
 
 def clip(arg,minval=None,maxval=None):
@@ -2069,7 +2103,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``
-        - r runs through ``arg0.Shape[:axis_offset]``
+        - r runs through ``arg1.Shape[:axis_offset]``
         - t runs through ``arg1.Shape[axis_offset:]``
 
     :param arg0: first argument

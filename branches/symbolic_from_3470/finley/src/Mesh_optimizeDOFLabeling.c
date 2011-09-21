@@ -29,9 +29,10 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      register index_t k;
      dim_t mpiSize, myNumVertices,len, p, i;
      Paso_Pattern *pattern=NULL;
-     Esys_MPI_rank myRank,dest,source,current_rank;
+     Esys_MPI_rank myRank,current_rank;
      Finley_IndexList* index_list=NULL;
      #ifdef ESYS_MPI
+     Esys_MPI_rank dest,source;
      MPI_Status status;
      #endif
 
@@ -92,8 +93,10 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
 
 
               /* distribute new labeling to other processors */
+#ifdef ESYS_MPI
               dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
               source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
+#endif
               current_rank=myRank;
               for (p=0; p< mpiSize; ++p) {
                   firstVertex=distribution[current_rank];

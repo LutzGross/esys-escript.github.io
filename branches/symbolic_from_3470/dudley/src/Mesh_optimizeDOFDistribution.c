@@ -72,12 +72,13 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     size_t mpiSize_size;
     index_t *partition = NULL;
     Paso_Pattern *pattern = NULL;
-    Esys_MPI_rank myRank, dest, source, current_rank, rank;
+    Esys_MPI_rank myRank, current_rank, rank;
     Dudley_IndexList *index_list = NULL;
     float *xyz = NULL;
     int c;
 
 #ifdef ESYS_MPI
+    Esys_MPI_rank dest, source;
     MPI_Status status;
 #endif
 
@@ -248,9 +249,10 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    TMPMEMFREE(recvbuf);
 
 	    /* now the overlap needs to be created by sending the partition around */
-
+#ifdef ESYS_MPI
 	    dest = Esys_MPIInfo_mod(mpiSize, myRank + 1);
 	    source = Esys_MPIInfo_mod(mpiSize, myRank - 1);
+#endif
 	    current_rank = myRank;
 #pragma omp parallel for private(i)
 	    for (i = 0; i < in->Nodes->numNodes; ++i)

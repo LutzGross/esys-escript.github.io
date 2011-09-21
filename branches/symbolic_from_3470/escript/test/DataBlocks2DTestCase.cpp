@@ -12,34 +12,21 @@
 *******************************************************/
 
 
+#include "DataBlocks2DTestCase.h"
 #include "escript/DataBlocks2D.h"
 #include "esysUtils/EsysException.h"
 
-#include "DataBlocks2DTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
 using namespace std;
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace esysUtils;
 
-void DataBlocks2DTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
-
-void DataBlocks2DTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
-
-void DataBlocks2DTestCase::testAll() {
-
+void DataBlocks2DTestCase::testAll()
+{
   cout << endl;
-
   cout << "\tTest DataBlocks2D constructor for various dimension values:" << endl;
 
   {
@@ -50,8 +37,8 @@ void DataBlocks2DTestCase::testAll() {
     DataBlocks2D myData(numRows,numCols,blockSize);
     int i = numRows-1;
     int j = numCols-1;
-    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
-    assert(myData.size() == numRows*numCols*blockSize);
+    CPPUNIT_ASSERT(myData.index(i,j) == (i*numCols+j)*blockSize);
+    CPPUNIT_ASSERT(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -62,8 +49,8 @@ void DataBlocks2DTestCase::testAll() {
     DataBlocks2D myData(numRows,numCols,blockSize);
     int i = numRows-1;
     int j = numCols-1;
-    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
-    assert(myData.size() == numRows*numCols*blockSize);
+    CPPUNIT_ASSERT(myData.index(i,j) == (i*numCols+j)*blockSize);
+    CPPUNIT_ASSERT(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -74,8 +61,8 @@ void DataBlocks2DTestCase::testAll() {
     DataBlocks2D myData(numRows,numCols,blockSize);
     int i = numRows-1;
     int j = numCols-1;
-    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
-    assert(myData.size() == numRows*numCols*blockSize);
+    CPPUNIT_ASSERT(myData.index(i,j) == (i*numCols+j)*blockSize);
+    CPPUNIT_ASSERT(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -86,8 +73,8 @@ void DataBlocks2DTestCase::testAll() {
     DataBlocks2D myData(numRows,numCols,blockSize);
     int i = numRows-1;
     int j = numCols-1;
-    assert(myData.index(i,j) == (i*numCols+j)*blockSize);
-    assert(myData.size() == numRows*numCols*blockSize);
+    CPPUNIT_ASSERT(myData.index(i,j) == (i*numCols+j)*blockSize);
+    CPPUNIT_ASSERT(myData.size() == numRows*numCols*blockSize);
   }
 
   {
@@ -109,7 +96,7 @@ void DataBlocks2DTestCase::testAll() {
     for (int i=0; i<numRows; i++) {
       for (int j=0; j<numCols; j++) {
         for (int k=0; k<blockSize; k++) {
-	  assert(myData[myData.index(i,j)+k] == val);
+	  CPPUNIT_ASSERT(myData[myData.index(i,j)+k] == val);
           val++;
         }
       }
@@ -123,10 +110,10 @@ void DataBlocks2DTestCase::testAll() {
     int blockSize=10;
     try {
         DataBlocks2D myData(numRows,numCols,blockSize);
-        assert(false);
+        CPPUNIT_FAIL("Exception not thrown");
     }
     catch(EsysException&) {
-        assert(true);
+        CPPUNIT_ASSERT(true);
     }
   }
 
@@ -137,10 +124,10 @@ void DataBlocks2DTestCase::testAll() {
     int blockSize=10;
     try {
         DataBlocks2D myData(numRows,numCols,blockSize);
-        assert(false);
+        CPPUNIT_FAIL("Exception not thrown");
     }
     catch(EsysException&) {
-        assert(true);
+        CPPUNIT_ASSERT(true);
     }
   }
 
@@ -151,10 +138,10 @@ void DataBlocks2DTestCase::testAll() {
     int blockSize=0;
     try {
         DataBlocks2D myData(numRows,numCols,blockSize);
-        assert(false);
+        CPPUNIT_FAIL("Exception not thrown");
     }
     catch(EsysException&) {
-        assert(true);
+        CPPUNIT_ASSERT(true);
     }
   }
 
@@ -164,9 +151,9 @@ void DataBlocks2DTestCase::testAll() {
     int numCols=1;
     int blockSize=1;
     DataBlocks2D myData(numRows,numCols,blockSize);
-    assert(myData.getNumRows() == numRows);
-    assert(myData.getNumCols() == numCols);
-    assert(myData.getBlockSize() == blockSize);
+    CPPUNIT_ASSERT(myData.getNumRows() == numRows);
+    CPPUNIT_ASSERT(myData.getNumCols() == numCols);
+    CPPUNIT_ASSERT(myData.getBlockSize() == blockSize);
   }
 
   {
@@ -176,9 +163,9 @@ void DataBlocks2DTestCase::testAll() {
     int blockSize=1;
     DataBlocks2D myData;
     myData.resize(numRows,numCols,blockSize);
-    assert(myData.getNumRows() == numRows);
-    assert(myData.getNumCols() == numCols);
-    assert(myData.getBlockSize() == blockSize);
+    CPPUNIT_ASSERT(myData.getNumRows() == numRows);
+    CPPUNIT_ASSERT(myData.getNumCols() == numCols);
+    CPPUNIT_ASSERT(myData.getBlockSize() == blockSize);
   }
 
   {
@@ -197,33 +184,26 @@ void DataBlocks2DTestCase::testAll() {
     myData1 = myData2;
     for (int i=0; i<myData1.getNumRows(); i++) {
       for (int j=0; j<myData1.getNumCols(); j++) {
-	assert(myData1(i,j) == myData2(i,j));
+	CPPUNIT_ASSERT(myData1(i,j) == myData2(i,j));
       }
     }
   }
 
-  #if defined DOASSERT
+#if defined DOASSERT
   {
     cout << "\tTest DOASSERT exception." << endl;
     DataBlocks2D myData;
-    try {
-      myData.index(1,2);
-      assert(false);
-    }
-    catch (EsysException&) {
-      assert(true);
-    }
+    CPPUNIT_ASSERT_THROW(myData.index(1,2), EsysException);
   }
-  #endif
-
+#endif
 }
 
-TestSuite* DataBlocks2DTestCase::suite ()
+TestSuite* DataBlocks2DTestCase::suite()
 {
-  //
-  // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataBlocks2DTestCase");
+  TestSuite *testSuite = new TestSuite("DataBlocks2DTestCase");
 
-  testSuite->addTest (new TestCaller< DataBlocks2DTestCase>("testAll",&DataBlocks2DTestCase::testAll));
+  testSuite->addTest(new TestCaller<DataBlocks2DTestCase>(
+              "testAll",&DataBlocks2DTestCase::testAll));
   return testSuite;
 }
+

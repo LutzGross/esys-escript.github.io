@@ -19,7 +19,7 @@ from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
-REQUIRED_OPTS_VERSION=200
+REQUIRED_OPTS_VERSION=201
 
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
@@ -73,6 +73,9 @@ vars.AddVariables(
 # Mandatory libraries
   ('boost_prefix', 'Prefix/Paths of boost installation', default_prefix),
   ('boost_libs', 'Boost libraries to link with', ['boost_python-mt']),
+# Mandatory for tests
+  ('cppunit_prefix', 'Prefix/Paths of CppUnit installation', default_prefix),
+  ('cppunit_libs', 'CppUnit libraries to link with', ['cppunit']),
 # Optional libraries and options
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
@@ -119,8 +122,7 @@ vars.AddVariables(
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   # finer control over library building, intel aggressive global optimisation
   # works with dynamic libraries on windows.
-  ('share_esysutils', 'Build a dynamic esysUtils library', False),
-  ('share_paso', 'Build a dynamic paso library', False),
+  ('build_shared', 'Build dynamic libraries only', False),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
 )
@@ -293,9 +295,8 @@ env['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
 if IS_WINDOWS:
-    if not env['share_esysutils']:
+    if not env['build_shared']:
         env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
-    if not env['share_paso']:
         env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
 
 ###################### Copy required environment vars ########################
@@ -440,6 +441,17 @@ except ImportError:
     print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
     Exit(1)
 
+######## CppUnit (required for tests)
+
+try:
+    cppunit_inc_path,cppunit_lib_path=findLibWithHeader(env, env['cppunit_libs'], 'cppunit/TestFixture.h', env['cppunit_prefix'], lang='c++')
+    env.AppendUnique(CPPPATH = [cppunit_inc_path])
+    env.AppendUnique(LIBPATH = [cppunit_lib_path])
+    env.PrependENVPath(LD_LIBRARY_PATH_KEY, cppunit_lib_path)
+    env['cppunit']=True
+except:
+    env['cppunit']=False
+
 ######## VTK (optional)
 
 if env['pyvisi']:
@@ -563,9 +575,6 @@ if env['usempi']:
 
 ######## BOOMERAMG (optional)
 
-#if env['boomeramg'] and env['mpi'] == 'none':
-#    print("boomeramg requires mpi!")
-#    Exit(1)
 if env['mpi'] == 'none': env['boomeramg'] = False
 
 boomeramg_inc_path=''
@@ -574,8 +583,6 @@ if env['boomeramg']:
     boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c')
     env.AppendUnique(CPPPATH = [boomeramg_inc_path])
     env.AppendUnique(LIBPATH = [boomeramg_lib_path])
-    # Note that we do not add the libs since they are only needed for the
-    # weipa library and tools.
     env.AppendUnique(LIBS = env['boomeramg_libs'])
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, boomeramg_lib_path)
     env.Append(CPPDEFINES = ['BOOMERAMG'])
@@ -598,11 +605,20 @@ if env['parmetis']:
 
 try:
     import subprocess
-    p=subprocess.Popen(['gmsh', '-version'], stderr=subprocess.PIPE)
-    p.poll()
-    env['gmsh']=True
+    p=subprocess.Popen(['gmsh', '-info'], stderr=subprocess.PIPE)
+    _,e=p.communicate()
+    if e.split().count("MPI"):
+        env['gmsh']='m'
+    else:
+        env['gmsh']='s'
 except OSError:
     env['gmsh']=False
+
+######## PDFLaTeX (for documentation)
+if 'PDF' in dir(env) and '.tex' in env.PDF.builder.src_suffixes(env):
+    env['pdflatex']=True
+else:
+    env['pdflatex']=False
 
 ######################## Summarize our environment ###########################
 
@@ -649,7 +665,13 @@ for i in e_list:
     print("%16s:  YES"%i)
 for i in d_list:
     print("%16s:  DISABLED"%i)
-if env['gmsh']:
+if env['cppunit']:
+    print("         CppUnit:  FOUND")
+else:
+    print("         CppUnit:  NOT FOUND")
+if env['gmsh']=='m':
+    print("            gmsh:  FOUND, MPI-ENABLED")
+elif env['gmsh']=='s':
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")
@@ -683,7 +705,6 @@ Export(
   ]
 )
 
-env.SConscript(dirs = ['tools/CppUnitTest/src'], variant_dir='$BUILD_DIR/$PLATFORM/tools/CppUnitTest', duplicate=0)
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
@@ -734,7 +755,7 @@ buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
 buildvars.write("pyvisi=%d\n"%env['pyvisi'])
-buildvars.write("vsl_random=%d"%int(env['vsl_random']))
+buildvars.write("vsl_random=%d\n"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
     if env[i]:
@@ -744,8 +765,10 @@ buildvars.close()
 
 ################### Targets to build and install libraries ###################
 
-target_init = env.Command(env['pyinstall']+'/__init__.py', None, Touch('$TARGET'))
+target_init = env.Command(os.path.join(env['pyinstall'],'__init__.py'), None, Touch('$TARGET'))
 env.Alias('target_init', [target_init])
+# delete buildvars upon cleanup
+env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
 
 # The headers have to be installed prior to build in order to satisfy
 # #include <paso/Common.h>
@@ -804,10 +827,11 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-env.Alias('build_cppunittest', ['install_cppunittest_headers', 'build_cppunittest_lib'])
-env.Alias('install_cppunittest', ['build_cppunittest', 'install_cppunittest_lib'])
-env.Alias('run_tests', ['install_all', 'install_cppunittest_lib'])
-env.Alias('all_tests', ['install_all', 'install_cppunittest_lib', 'run_tests', 'py_tests'])
+test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
+if not env['cppunit']:
+    env.Alias('run_tests', test_msg)
+env.Alias('run_tests', ['install_all'])
+env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
 env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
 
@@ -829,6 +853,9 @@ if not IS_WINDOWS:
     except IOError:
         print("Error attempting to write unittests file.")
         Exit(1)
+
+    # delete utest.sh upon cleanup
+    env.Clean('target_init', 'utest.sh')
 
     # Make sure that the escript wrapper is in place
     if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
