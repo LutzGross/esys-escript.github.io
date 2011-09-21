@@ -17,7 +17,6 @@
 
 The following instructions assume you are running the \file{bash} shell.
 Comments are indicated with \# characters.
-
 Make sure you have the following installed:
 \begin{itemize}
  \item \file{g++} and associated tools.
@@ -27,14 +26,21 @@ Make sure you have the following installed:
 %  \item \file{libxt.so}\footnote{In Debian this is in the libxt-dev package.}
 \end{itemize}
 
-To compile matplotlib you will also need the following\footnote{For Debian and Ubuntu users, installing \file{libfreetype6-dev} and \file{libpng-dev} will be sufficient.} (if your distribution separates development files,
-make sure to get the development packages):
+\noindent To compile matplotlib you will also need the following\footnote{For
+Debian and Ubuntu users, installing \file{libfreetype6-dev} and
+\file{libpng-dev} will be sufficient.} (if your distribution separates
+development files, make sure to get the development packages):
 \begin{itemize}
  \item \file{freetype2}
-\item \file{zlib}
-\item \file{libpng}
+ \item \file{zlib}
+ \item \file{libpng}
 \end{itemize}
 
+\noindent In order to test the installation using the unit tests you also
+need\footnote{On Debian and Ubuntu this is packaged as \file{libcppunit-dev}}:
+\begin{itemize}
+ \item \file{cppunit}
+\end{itemize}
 
 \subsection{Preliminaries}
 \label{sec:prelim}

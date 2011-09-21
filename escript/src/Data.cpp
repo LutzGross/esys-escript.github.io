@@ -1228,6 +1228,25 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
     setValueOfDataPointToArray(dataPointNo,py_object);
 }
 
+
+void
+Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
+{
+    if( get_MPIRank()==proc )
+    {
+        boost::python::extract<double> dex(v);
+        if (dex.check())
+        {
+	  setValueOfDataPoint(id, dex());
+        }
+        else
+	{
+	  setValueOfDataPointToArray(id, v);	  
+	}
+    }  
+}
+
+
 void
 Data::setValueOfDataPointToArray(int dataPointNo, const boost::python::object& obj)
 {
@@ -1680,8 +1699,7 @@ Data::lazyAlgWorker(double init)
    const size_t numsamples=getNumSamples();
    const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
    BinaryOp operation;
-   bool foundnan=false;
-   double localval=0;
+   double localValue=0, globalValue;
    #pragma omp parallel private(i)
    {
 	double localtot=init;
@@ -1699,8 +1717,7 @@ Data::lazyAlgWorker(double init)
 	    {
 		#pragma omp critical
 		{
-			foundnan=true;
-			localval=1.0;
+			localValue=1.0;
 		}
 	    }
 	}
@@ -1708,14 +1725,11 @@ Data::lazyAlgWorker(double init)
 	val=operation(val,localtot);
    }
 #ifdef ESYS_MPI
-   double globalValue;
-   MPI_Allreduce( &localval, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
-   if (globalValue!=0)
-   {
-	foundnan=true;
-   }
+   MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+#else
+   globalValue=localValue;
 #endif
-   if (foundnan)
+   if (globalValue!=0)
    {
 	return makeNaN();
    }
@@ -3669,9 +3683,14 @@ Data::interpolateFromTable3D(const WrappedArray& table, double Amin, double Aste
     }
     if (!error)
     {
-	int twx=ts[0]-1;	// table width x
+// 	int twx=ts[0]-1;	// table width x
+// 	int twy=ts[1]-1;	// table width y
+// 	int twz=ts[2]-1;	// table width z
+
+	int twx=ts[2]-1;	// table width x
 	int twy=ts[1]-1;	// table width y
-	int twz=ts[2]-1;	// table width z
+	int twz=ts[0]-1;	// table width z
+
 	bool haserror=false;
 	int l=0;
 	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat) schedule(static) 

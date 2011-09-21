@@ -12,31 +12,20 @@
 *******************************************************/
 
 
+#include "DataExpandedTestCase.h"
 #include "escript/FunctionSpace.h"
 #include "escript/DataExpanded.h"
 #include "esysUtils/EsysException.h"
-#include "DataExpandedTestCase.h"
 #include "escript/DataReady.h"
 
+#include <cppunit/TestCaller.h>
 #include <iostream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace std;
 using namespace esysUtils;
 using namespace escript::DataTypes;
-
-void DataExpandedTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
-
-void DataExpandedTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
 
 namespace
 {
@@ -79,8 +68,8 @@ resolveAndDelete(DataAbstract* p)
 }
 
 
-void DataExpandedTestCase::testAll() {
-
+void DataExpandedTestCase::testAll()
+{
   cout << endl;
 
   //
@@ -102,22 +91,22 @@ void DataExpandedTestCase::testAll() {
   DataExpanded testData(FunctionSpace(), shape, data);
 
 //   cout << "\tTest getLength." << endl;
-//   assert(testData.getLength()==pointData.getNoValues());
+//   CPPUNIT_ASSERT(testData.getLength()==pointData.getNoValues());
 
   cout << "\tTest getDataAtOffset." << endl;
   for (int i=0;i<testData.getShape()[0];i++) {
-      assert(testData.getDataAtOffsetRO(i)==data[i]);
+      CPPUNIT_ASSERT(testData.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
 //  DataArrayView dataView=testData.getPointDataView();
-  assert(testData.getRank()==shape.size());
-  assert(testData.getNoValues()==shape[0]*1);
-  assert(testData.getShape()[0]==shape[0]);
-  assert(testData.getNumDPPSample()==1);
-  assert(testData.getNumSamples()==1);
-  assert(testData.validSamplePointNo(testData.getNumDPPSample()-1));
-  assert(testData.validSampleNo(testData.getNumSamples()-1));
+  CPPUNIT_ASSERT(testData.getRank()==shape.size());
+  CPPUNIT_ASSERT(testData.getNoValues()==shape[0]*1);
+  CPPUNIT_ASSERT(testData.getShape()[0]==shape[0]);
+  CPPUNIT_ASSERT(testData.getNumDPPSample()==1);
+  CPPUNIT_ASSERT(testData.getNumSamples()==1);
+  CPPUNIT_ASSERT(testData.validSamplePointNo(testData.getNumDPPSample()-1));
+  CPPUNIT_ASSERT(testData.validSampleNo(testData.getNumSamples()-1));
 
   //
   // Test alternative constructor
@@ -129,22 +118,22 @@ void DataExpandedTestCase::testAll() {
   DataExpanded testData1(tmp_fns,shape,data);
 
 //   cout << "\tTest getLength." << endl;
-//   assert(testData1.getLength()==pointData.noValues());
+//   CPPUNIT_ASSERT(testData1.getLength()==pointData.noValues());
 
 //   cout << "\tTest getPointDataView." << endl;
 //   for (int i=0;i<testData1.getPointDataView().getShape()[0];i++) {
-//       assert(testData1.getPointDataView()(i)==pointData(i));
+//       CPPUNIT_ASSERT(testData1.getPointDataView()(i)==pointData(i));
 //   }
 
   cout << "\tVerify data point attributes." << endl;
 //  dataView=testData1.getPointDataView();
-  assert(testData1.getRank()==shape.size());
-  assert(testData1.getNoValues()==shape[0]*1);
-  assert(testData1.getShape()[0]==shape[0]);
-  assert(testData1.getNumDPPSample()==1);
-  assert(testData1.getNumSamples()==1);
-  assert(testData1.validSamplePointNo(testData1.getNumDPPSample()-1));
-  assert(testData1.validSampleNo(testData1.getNumSamples()-1));
+  CPPUNIT_ASSERT(testData1.getRank()==shape.size());
+  CPPUNIT_ASSERT(testData1.getNoValues()==shape[0]*1);
+  CPPUNIT_ASSERT(testData1.getShape()[0]==shape[0]);
+  CPPUNIT_ASSERT(testData1.getNumDPPSample()==1);
+  CPPUNIT_ASSERT(testData1.getNumSamples()==1);
+  CPPUNIT_ASSERT(testData1.validSamplePointNo(testData1.getNumDPPSample()-1));
+  CPPUNIT_ASSERT(testData1.validSampleNo(testData1.getNumSamples()-1));
 
   //
   // Test copy constructor
@@ -152,22 +141,22 @@ void DataExpandedTestCase::testAll() {
   DataExpanded testData2(testData);
 
   cout << "\tTest getLength." << endl;
-  assert(testData2.getLength()==data.size());
+  CPPUNIT_ASSERT(testData2.getLength()==data.size());
 
   cout << "\tTest getPointDataView." << endl;
   for (int i=0;i<testData2.getShape()[0];i++) {
-    assert(testData2.getDataAtOffsetRO(i)==data[i]);
+    CPPUNIT_ASSERT(testData2.getDataAtOffsetRO(i)==data[i]);
   }
 
   cout << "\tVerify data point attributes." << endl;
 //   dataView=testData2.getPointDataView();
-  assert(testData2.getRank()==shape.size());
-  assert(testData2.getNoValues()==shape[0]*1);
-  assert(testData2.getShape()[0]==shape[0]);
-  assert(testData2.getNumDPPSample()==1);
-  assert(testData2.getNumSamples()==1);
-  assert(testData2.validSamplePointNo(testData2.getNumDPPSample()-1));
-  assert(testData2.validSampleNo(testData2.getNumSamples()-1));
+  CPPUNIT_ASSERT(testData2.getRank()==shape.size());
+  CPPUNIT_ASSERT(testData2.getNoValues()==shape[0]*1);
+  CPPUNIT_ASSERT(testData2.getShape()[0]==shape[0]);
+  CPPUNIT_ASSERT(testData2.getNumDPPSample()==1);
+  CPPUNIT_ASSERT(testData2.getNumSamples()==1);
+  CPPUNIT_ASSERT(testData2.validSamplePointNo(testData2.getNumDPPSample()-1));
+  CPPUNIT_ASSERT(testData2.validSampleNo(testData2.getNumSamples()-1));
 
 }
 
@@ -204,7 +193,7 @@ void DataExpandedTestCase::testSlicing() {
   // Verify data values
   cout << "\tVerify data point values." << endl;
   for (int i=0;i<testData2->getShape()[0];i++) {
-    assert(testData2->getDataAtOffsetRO(i)==data[region[0].first+i]);
+    CPPUNIT_ASSERT(testData2->getDataAtOffsetRO(i)==data[region[0].first+i]);
   }
 }
 
@@ -249,16 +238,16 @@ void DataExpandedTestCase::testSlicing2() {
   cout << "\tVerify data point values." << endl;
   for (int j=0;j<testData2->getShape()[1];j++) {
     for (int i=0;i<testData2->getShape()[0];i++) {
-      assert(getRefRO(*testData2,i,j)==data[getRelIndex(shape,region[0].first+i,region[1].first+j)]);
+      CPPUNIT_ASSERT(getRefRO(*testData2,i,j)==data[getRelIndex(shape,region[0].first+i,region[1].first+j)]);
     }
   }
 
   cout << "\tVerify data point attributes." << endl;
 //   DataArrayView dataView=testData2->getPointDataView();
-  assert(testData2->getRank()==region.size());
-  assert(testData2->getNoValues()==(region[0].second-region[0].first)*(region[1].second-region[1].first));
-  assert(testData2->getShape()[0]==(region[0].second-region[0].first));
-  assert(testData2->getShape()[1]==(region[1].second-region[1].first));
+  CPPUNIT_ASSERT(testData2->getRank()==region.size());
+  CPPUNIT_ASSERT(testData2->getNoValues()==(region[0].second-region[0].first)*(region[1].second-region[1].first));
+  CPPUNIT_ASSERT(testData2->getShape()[0]==(region[0].second-region[0].first));
+  CPPUNIT_ASSERT(testData2->getShape()[1]==(region[1].second-region[1].first));
 
   cout << "\tTest slicing (part object)." << endl;
   DataTypes::RegionType region2;
@@ -270,16 +259,16 @@ void DataExpandedTestCase::testSlicing2() {
   cout << "\tVerify data point values." << endl;
   for (int j=0;j<testData3->getShape()[1];j++) {
     for (int i=0;i<testData3->getShape()[0];i++) {
-      assert(getRefRO(*testData3,i,j)==getDRef(data,shape,region2[0].first+i,region2[1].first+j));
+      CPPUNIT_ASSERT(getRefRO(*testData3,i,j)==getDRef(data,shape,region2[0].first+i,region2[1].first+j));
     }
   }
 
   cout << "\tVerify data point attributes." << endl;
 //   dataView=testData3->getPointDataView();
-  assert(testData3->getRank()==region2.size());
-  assert(testData3->getNoValues()==(region2[0].second-region2[0].first)*(region2[1].second-region2[1].first));
-  assert(testData3->getShape()[0]==(region2[0].second-region2[0].first));
-  assert(testData3->getShape()[1]==(region2[1].second-region2[1].first));
+  CPPUNIT_ASSERT(testData3->getRank()==region2.size());
+  CPPUNIT_ASSERT(testData3->getNoValues()==(region2[0].second-region2[0].first)*(region2[1].second-region2[1].first));
+  CPPUNIT_ASSERT(testData3->getShape()[0]==(region2[0].second-region2[0].first));
+  CPPUNIT_ASSERT(testData3->getShape()[1]==(region2[1].second-region2[1].first));
 
 //   delete testData2;
 //   delete testData3;
@@ -349,7 +338,7 @@ void DataExpandedTestCase::testSlicing3() {
   for (int k=0;k<testData2->getShape()[2];k++) {
     for (int j=0;j<testData2->getShape()[1];j++) {
       for (int i=0;i<testData2->getShape()[0];i++) {
-        assert(getRefRO(*testData2,i,j,k)==getDRef(data,shape,region[0].first+i,
+        CPPUNIT_ASSERT(getRefRO(*testData2,i,j,k)==getDRef(data,shape,region[0].first+i,
                                                                region[1].first+j,
                                                                region[2].first+k));
       }
@@ -358,13 +347,13 @@ void DataExpandedTestCase::testSlicing3() {
 
   cout << "\tVerify data point attributes." << endl;
 //   DataArrayView dataView=testData2->getPointDataView();
-  assert(testData2->getRank()==region.size());
-  assert(testData2->getNoValues()==(region[0].second-region[0].first)
+  CPPUNIT_ASSERT(testData2->getRank()==region.size());
+  CPPUNIT_ASSERT(testData2->getNoValues()==(region[0].second-region[0].first)
                                *(region[1].second-region[1].first)
                                *(region[2].second-region[2].first));
-  assert(testData2->getShape()[0]==(region[0].second-region[0].first));
-  assert(testData2->getShape()[1]==(region[1].second-region[1].first));
-  assert(testData2->getShape()[2]==(region[2].second-region[2].first));
+  CPPUNIT_ASSERT(testData2->getShape()[0]==(region[0].second-region[0].first));
+  CPPUNIT_ASSERT(testData2->getShape()[1]==(region[1].second-region[1].first));
+  CPPUNIT_ASSERT(testData2->getShape()[2]==(region[2].second-region[2].first));
 
   cout << "\tTest slicing (part object)." << endl;
   DataTypes::RegionType region2;
@@ -379,7 +368,7 @@ void DataExpandedTestCase::testSlicing3() {
   for (int k=0;k<testData3->getShape()[2];k++) {
     for (int j=0;j<testData3->getShape()[1];j++) {
       for (int i=0;i<testData3->getShape()[0];i++) {
-        assert(getRefRO(*testData3,i,j,k)==getDRef(data,shape,region2[0].first+i,
+        CPPUNIT_ASSERT(getRefRO(*testData3,i,j,k)==getDRef(data,shape,region2[0].first+i,
                                                                region2[1].first+j,
                                                                region2[2].first+k));
       }
@@ -388,13 +377,13 @@ void DataExpandedTestCase::testSlicing3() {
 
   cout << "\tVerify data point attributes." << endl;
 //   dataView=testData2->getPointDataView();
-  assert(testData2->getRank()==region.size());
-  assert(testData2->getNoValues()==(region[0].second-region[0].first)
+  CPPUNIT_ASSERT(testData2->getRank()==region.size());
+  CPPUNIT_ASSERT(testData2->getNoValues()==(region[0].second-region[0].first)
                                *(region[1].second-region[1].first)
                                *(region[2].second-region[2].first));
-  assert(testData2->getShape()[0]==(region[0].second-region[0].first));
-  assert(testData2->getShape()[1]==(region[1].second-region[1].first));
-  assert(testData2->getShape()[2]==(region[2].second-region[2].first));
+  CPPUNIT_ASSERT(testData2->getShape()[0]==(region[0].second-region[0].first));
+  CPPUNIT_ASSERT(testData2->getShape()[1]==(region[1].second-region[1].first));
+  CPPUNIT_ASSERT(testData2->getShape()[2]==(region[2].second-region[2].first));
 
 //   delete testData2;
 //  delete testData3;
@@ -469,7 +458,7 @@ void DataExpandedTestCase::testSliceSetting() {
   cout << "\tVerify data point values." << endl;
   for (int j=region2[1].first;j<region2[1].second;j++) {
     for (int i=region2[0].first;i<region2[0].second;i++) {
-      assert(getRefRO(testData2,i,j)==data[getRelIndex(shape,i-(region[0].second-1),j-(region[1].second-1))]);
+      CPPUNIT_ASSERT(getRefRO(testData2,i,j)==data[getRelIndex(shape,i-(region[0].second-1),j-(region[1].second-1))]);
     }
    }
 
@@ -538,7 +527,7 @@ void DataExpandedTestCase::testSliceSetting2() {
   cout << "\tVerify data point values." << endl;
   for (int j=region2[1].first;j<region2[1].second;j++) {
     for (int i=region2[0].first;i<region2[0].second;i++) {
-      assert(getRefRO(testData2,i,j)==data[0]);
+      CPPUNIT_ASSERT(getRefRO(testData2,i,j)==data[0]);
     }
    }
 
@@ -547,19 +536,22 @@ void DataExpandedTestCase::testSliceSetting2() {
 }
 
 
-
-
-
-TestSuite* DataExpandedTestCase::suite ()
+TestSuite* DataExpandedTestCase::suite()
 {
-  //
   // Create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("DataExpandedTestCase");
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testAll",&DataExpandedTestCase::testAll));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing",&DataExpandedTestCase::testSlicing));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing2",&DataExpandedTestCase::testSlicing2));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSlicing3",&DataExpandedTestCase::testSlicing3));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSliceSetting",&DataExpandedTestCase::testSliceSetting));
-  testSuite->addTest (new TestCaller< DataExpandedTestCase>("testSliceSetting2",&DataExpandedTestCase::testSliceSetting2));
+  TestSuite *testSuite = new TestSuite("DataExpandedTestCase");
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testAll",&DataExpandedTestCase::testAll));
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testSlicing",&DataExpandedTestCase::testSlicing));
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testSlicing2",&DataExpandedTestCase::testSlicing2));
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testSlicing3",&DataExpandedTestCase::testSlicing3));
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testSliceSetting",&DataExpandedTestCase::testSliceSetting));
+  testSuite->addTest(new TestCaller<DataExpandedTestCase>(
+              "testSliceSetting2",&DataExpandedTestCase::testSliceSetting2));
   return testSuite;
 }
+

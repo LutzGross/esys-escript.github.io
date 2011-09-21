@@ -12,13 +12,14 @@
 *******************************************************/
 
 
-#include <iostream>
-
 #include "EsysExceptionTestCase.h"
 #include "esysUtils/EsysException.h"
 
+#include <cppunit/TestCaller.h>
+#include <iostream>
+
 using namespace std;
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace esysUtils;
 
 class DerivedEx : public EsysException {
@@ -58,10 +59,9 @@ public:
 
 const string DerivedEx::rhubarb("DerivedException");
 
-void EsysExceptionTestCase::testCase0() {
-
-	assert(true);
-
+void EsysExceptionTestCase::testCase0()
+{
+	CPPUNIT_ASSERT(true);
 }
 
 void EsysExceptionTestCase::testCase1() {
@@ -72,14 +72,14 @@ void EsysExceptionTestCase::testCase1() {
 	// default exception text should have contents of exceptionName near start
 	//
 	string defString = defEx.toString();
-	assert(defString.find(defEx.exceptionName()) != string::npos);
-	assert(defString.find(defEx.exceptionName()) < 4);
+	CPPUNIT_ASSERT(defString.find(defEx.exceptionName()) != string::npos);
+	CPPUNIT_ASSERT(defString.find(defEx.exceptionName()) < 4);
 
 	//
 	// default exception text shouldn't be much longer than contents of exception name
 	//
-	assert(defString.size() > defEx.exceptionName().size());
-	assert((defString.size() - defEx.exceptionName().size()) < 10);
+	CPPUNIT_ASSERT(defString.size() > defEx.exceptionName().size());
+	CPPUNIT_ASSERT((defString.size() - defEx.exceptionName().size()) < 10);
 
 	string ex1Text("My first funny exception message.");
 	EsysException ex1(ex1Text);
@@ -88,20 +88,20 @@ void EsysExceptionTestCase::testCase1() {
 	// exception text should have contents of exceptionName near start
 	//
 	string ex1String = ex1.toString();
-	assert(ex1String.find(ex1.exceptionName()) != string::npos);
-	assert(defString.find(ex1.exceptionName()) < 4);
+	CPPUNIT_ASSERT(ex1String.find(ex1.exceptionName()) != string::npos);
+	CPPUNIT_ASSERT(defString.find(ex1.exceptionName()) < 4);
 
 	//
 	// exception text should contain entered exception message
 	//
-	assert(ex1String.find(ex1Text) != string::npos);
+	CPPUNIT_ASSERT(ex1String.find(ex1Text) != string::npos);
 
 	//
 	// copy constructed exception should match original
 	//
 	EsysException copyEx(ex1);
 	string copyString = copyEx.toString();
-	assert(ex1String == copyString);
+	CPPUNIT_ASSERT(ex1String == copyString);
 
 	//
 	// copy assigned exception should match original
@@ -109,7 +109,7 @@ void EsysExceptionTestCase::testCase1() {
 	EsysException assEx;
 	assEx = ex1;
 	string assString = assEx.toString();
-	assert(ex1String == assString);
+	CPPUNIT_ASSERT(ex1String == assString);
 
 	//
 	// check throw/catch mechanism
@@ -128,13 +128,13 @@ void EsysExceptionTestCase::testCase1() {
 		// exception text should have contents of exceptionName near start
 		//
 		string eString = e.toString();
-		assert(eString.find(e.exceptionName()) != string::npos);
-		assert(defString.find(e.exceptionName()) < 4);
+		CPPUNIT_ASSERT(eString.find(e.exceptionName()) != string::npos);
+		CPPUNIT_ASSERT(defString.find(e.exceptionName()) < 4);
 
 		//
 		// exception text should contain entered exception message
 		//
-		assert(eString.find(ex2Text) != string::npos);
+		CPPUNIT_ASSERT(eString.find(ex2Text) != string::npos);
 
 	}
 
@@ -150,14 +150,14 @@ void EsysExceptionTestCase::testCase2() {
 	// default exception text should have contents of exceptionName near start
 	//
 	string defString = defEx.toString();
-	assert(defString.find(defEx.exceptionName()) != string::npos);
-	assert(defString.find(defEx.exceptionName()) < 4);
+	CPPUNIT_ASSERT(defString.find(defEx.exceptionName()) != string::npos);
+	CPPUNIT_ASSERT(defString.find(defEx.exceptionName()) < 4);
 
 	//
 	// default exception text shouldn't be much longer than contents of exception name
 	//
-	assert(defString.size() > defEx.exceptionName().size());
-	assert((defString.size() - defEx.exceptionName().size()) < 10);
+	CPPUNIT_ASSERT(defString.size() > defEx.exceptionName().size());
+	CPPUNIT_ASSERT((defString.size() - defEx.exceptionName().size()) < 10);
 
 	string ex1Text("asdjhieurncidhfjsnfkjefkjndfjkhsdrdfjksdhfweh");
 	DerivedEx ex1(ex1Text);
@@ -165,20 +165,20 @@ void EsysExceptionTestCase::testCase2() {
 	// exception text should have contents of exceptionName near start
 	//
 	string ex1String = ex1.toString();
-	assert(ex1String.find(ex1.exceptionName()) != string::npos);
-	assert(defString.find(ex1.exceptionName()) < 4);
+	CPPUNIT_ASSERT(ex1String.find(ex1.exceptionName()) != string::npos);
+	CPPUNIT_ASSERT(defString.find(ex1.exceptionName()) < 4);
 
 	//
 	// exception text should contain entered exception message
 	//
-	assert(ex1String.find(ex1Text) != string::npos);
+	CPPUNIT_ASSERT(ex1String.find(ex1Text) != string::npos);
 
 	//
 	// copy constructed exception should match original
 	//
 	DerivedEx copyEx(ex1);
 	string copyString = copyEx.toString();
-	assert(ex1String == copyString);
+	CPPUNIT_ASSERT(ex1String == copyString);
 
 	//
 	// copy assigned exception should match original
@@ -186,7 +186,7 @@ void EsysExceptionTestCase::testCase2() {
 	DerivedEx assEx;
 	assEx = ex1;
 	string assString = assEx.toString();
-	assert(ex1String == assString);
+	CPPUNIT_ASSERT(ex1String == assString);
 
 	//
 	// check throw/catch mechanism
@@ -205,13 +205,13 @@ void EsysExceptionTestCase::testCase2() {
 		// exception text should have contents of exceptionName near start
 		//
 		string eString = e.toString();
-		assert(eString.find(e.exceptionName()) != string::npos);
-		assert(defString.find(e.exceptionName()) < 4);
+		CPPUNIT_ASSERT(eString.find(e.exceptionName()) != string::npos);
+		CPPUNIT_ASSERT(defString.find(e.exceptionName()) < 4);
 
 		//
 		// exception text should contain entered exception message
 		//
-		assert(eString.find(ex2Text) != string::npos);
+		CPPUNIT_ASSERT(eString.find(ex2Text) != string::npos);
 	}
 
 	//
@@ -231,13 +231,13 @@ void EsysExceptionTestCase::testCase2() {
 		//
 		DerivedEx ex4;
 		std::string eString = e.toString();
-		assert(eString.find(ex4.exceptionName()) != string::npos);
-		assert(defString.find(ex4.exceptionName()) < 4);
+		CPPUNIT_ASSERT(eString.find(ex4.exceptionName()) != string::npos);
+		CPPUNIT_ASSERT(defString.find(ex4.exceptionName()) < 4);
 
 		//
 		// exception text should contain entered exception message
 		//
-		assert(eString.find(ex3Text) != string::npos);
+		CPPUNIT_ASSERT(eString.find(ex3Text) != string::npos);
 
 	}
 
@@ -265,25 +265,29 @@ void EsysExceptionTestCase::testCase2() {
        	}
  	catch (exception& e) {
           // cout << e.what() << endl;
-          assert(e.what() == string("DerivedException: Exception caught"
+          CPPUNIT_ASSERT(e.what() == string("DerivedException: Exception caught"
                                     " as std::exception")
                  );
   	}
 	catch (...) {
            //
            // if the exception is caught here there is a problem
-	   assert(false);
+	   CPPUNIT_ASSERT(false);
 	}
 }
 
-TestSuite* EsysExceptionTestCase::suite ()
+TestSuite* EsysExceptionTestCase::suite()
 {
   //
   // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("EsysExceptionTestCase");
+  TestSuite *testSuite = new TestSuite("EsysExceptionTestCase");
 
-  testSuite->addTest (new TestCaller<EsysExceptionTestCase>("testCase0",&EsysExceptionTestCase::testCase0));
-  testSuite->addTest (new TestCaller<EsysExceptionTestCase>("testCase1",&EsysExceptionTestCase::testCase1));
-  testSuite->addTest (new TestCaller<EsysExceptionTestCase>("testCase2",&EsysExceptionTestCase::testCase2));
+  testSuite->addTest(new TestCaller<EsysExceptionTestCase>(
+              "testCase0",&EsysExceptionTestCase::testCase0));
+  testSuite->addTest(new TestCaller<EsysExceptionTestCase>(
+              "testCase1",&EsysExceptionTestCase::testCase1));
+  testSuite->addTest(new TestCaller<EsysExceptionTestCase>(
+              "testCase2",&EsysExceptionTestCase::testCase2));
   return testSuite;
 }
+

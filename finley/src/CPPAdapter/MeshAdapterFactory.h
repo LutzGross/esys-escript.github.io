@@ -102,8 +102,8 @@ namespace finley {
      \param useFullElementOrder
      \param optimize
   */
-  FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* brick(int n0=1,int n1=1,int n2=1,int order=1,
+FINLEY_DLL_API
   escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
 		    double l0=1.0,double l1=1.0,double l2=1.0,
 		    int periodic0=0,int periodic1=0,
@@ -112,7 +112,27 @@ namespace finley {
 		    int reducedIntegrationOrder=-1,
 		    int useElementsOnFace=0,
                     int useFullElementOrder=0,
-                    int optimize=0);
+                    int optimize=0, 
+		    const std::vector<double>& points=std::vector<double>(),
+		    const std::vector<int>& tags=std::vector<int>(),
+		    const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
+		    );
+		    
+   /**
+   \brief Python driver for brick()
+   \param args see brick() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr brick_driver(const boost::python::list& args);
+
+   /**
+   \brief Python driver for rectangle()
+   \param args see rectangle() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr rectangle_driver(const boost::python::list& args);   
+   
+   
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 elements over the brick 
@@ -132,8 +152,8 @@ namespace finley {
      \param useFullElementOrder
      \param optimize
   */
-  FINLEY_DLL_API
 //   escript::AbstractContinuousDomain* rectangle(int n0=1,int n1=1,int order=1,
+FINLEY_DLL_API
   escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
 				      double l0=1.0, double l1=1.0,
 				      int periodic0=false,int periodic1=false,
@@ -141,7 +161,11 @@ namespace finley {
      	                              int reducedIntegrationOrder=-1, 
 				      int useElementsOnFace=0,
                                       int useFullElementOrder=0,
-                                      int optimize=0);
+                                      int optimize=0,
+				      const std::vector<double>& points=std::vector<double>(),
+				      const std::vector<int>& tags=std::vector<int>(),
+				      const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
+				      );
   /**
      \brief
      Merges a list of meshes into one list.

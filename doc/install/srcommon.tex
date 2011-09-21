@@ -97,6 +97,12 @@ Packages for visualization:
         A featureful visualization system with movie-making capabilities.
 \end{itemize}
 
+The source code comes with an extensive set of unit tests. If you would like to
+build those to verify your installation you need:
+\begin{itemize}
+ \item cppunit-1.12.1 (\url{http://cppunit.sourceforge.net})
+\end{itemize}
+
 \section{Compilation}\label{sec:compilesrc}
 Throughout this section we will assume that the source code is uncompressed in a directory called \file{escript.d}.
 You can call the directory anything you like, provided that you make the change before you compile.
@@ -107,7 +113,7 @@ Please note that if your hostname has non-alphanumeric characters in it (eg - ) 
 For example the options file for \texttt{bob-desktop} would be named \file{bob_desktop_options.py}.
 
 From now on all paths will be relative to the top level of the source.
-As a starting point copy the contents one of the following files into your options file:
+As a starting point copy the contents of one of the following files into your options file:
 \begin{itemize}
 \item \file{scons/TEMPLATE_linux.py} (\linux and \macosx desktop)
 \item \file{scons/TEMPLATE_windows.py} (\winxp)
@@ -115,8 +121,8 @@ As a starting point copy the contents one of the following files into your optio
 
 This options file controls which features and libraries your build of escript will attempt to use.
 For example to use OpenMP or MPI you will need to enable it here.
-
-If you want to try escript out without customising your build, then change directories to \file{escript.d} and
+If you want to try escript out without customising your build, then change
+directories to \file{escript.d} and enter
 \begin{shellCode}
 scons 
 \end{shellCode}
@@ -151,7 +157,6 @@ must be specified.
 
 If a line in the options file is commented out and you do not require the
 feature, then it can be ignored.
- 
 To actually compile (if you have $n$ processors, then you can use \texttt{scons -j$n$} instead):
 
 \begin{shellCode}

@@ -21,7 +21,7 @@ fig_src = Glob('figures/*.eps')
 # Target that converts eps figures to pdf and adds png files
 figures=local_env.EpsToPDF(source=fig_src) + Glob('figures/*.png')
 
-if 'PDF' in dir(local_env):
+if local_env['pdflatex']:
     if local_env['verbose']:
         interaction='-interaction=nonstopmode'
     else:
@@ -43,7 +43,7 @@ if 'PDF' in dir(local_env):
         pdf_inst=local_env.InstallAs(target=pdf_path, source='user.pdf')
     env.Alias('user_pdf', pdf_inst)
 else:
-    env.Alias('user_pdf', '', 'echo "PDF output not supported!"')
+    env.Alias('user_pdf', '', '@echo "Not building user\'s guide: PDF output not supported!"')
     env.AlwaysBuild('user_pdf')
 
 # html version

@@ -311,6 +311,14 @@ class Data {
   const boost::python::object
   getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
 
+  
+  /**
+     \brief Set the value of a global data point
+  */
+  ESCRIPT_DLL_API
+  void
+  setTupleForGlobalDataPoint(int id, int proc, boost::python::object);
+  
   /**
      \brief
      Return the tag number associated with the given data-point.

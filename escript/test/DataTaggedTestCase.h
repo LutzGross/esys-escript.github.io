@@ -15,25 +15,13 @@
 #if !defined  DataTaggedTestCase_20040616_H
 #define  DataTaggedTestCase_20040616_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
 
-class DataTaggedTestCase : public CppUnitTest::TestCase
+class DataTaggedTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // DataTagged class
+public:
   void testAll();
   void testAddTaggedValues();
   void testSetTaggedValue();
@@ -43,14 +31,8 @@ class DataTaggedTestCase : public CppUnitTest::TestCase
   void testSetSlice();
 //   void testFunctionSpaces();
 
-
-  DataTaggedTestCase (std::string name) : TestCase (name) {}
-  ~DataTaggedTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

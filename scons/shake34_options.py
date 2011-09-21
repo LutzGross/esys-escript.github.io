@@ -28,7 +28,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -85,7 +85,7 @@ escript_opts_version = 200
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-#openmp = True 
+openmp = True 
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -111,6 +111,12 @@ boost_prefix = '/usr'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
+
+# Prefix or paths to CppUnit headers and libraries. See note above.
+#cppunit_prefix = '/usr/local'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
@@ -166,6 +172,16 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 # UMFPACK library/libraries to link against
 umfpack_libs = ['umfpack']
 
+# Whether to use BoomerAMG (requires MPI)
+# DEFAULT: False
+#boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
+#boomeramg_prefix = '/usr/local'
+
+# BoomerAMG library/libraries to link against
+#boomeramg_libs = ['HYPRE']
+
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
@@ -202,21 +218,23 @@ lapack_libs = ['lapack_atlas']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
+
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 #sys_libs = []
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['default']
 
@@ -225,3 +243,4 @@ lapack_libs = ['lapack_atlas']
 #forcelazy = 'leave_alone'
 
 #forcecollres = 'leave_alone'
+

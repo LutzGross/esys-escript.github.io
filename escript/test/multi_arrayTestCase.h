@@ -12,36 +12,19 @@
 *******************************************************/
 
 
-#if !defined  multi_arrayTestCase_20040319_H
-#define  multi_arrayTestCase_20040319_H
+#if !defined multi_arrayTestCase_20040319_H
+#define multi_arrayTestCase_20040319_H
 
-#include "tools/CppUnitTest/TestCase.h"
-#include "tools/CppUnitTest/TestSuite.h"
-#include "tools/CppUnitTest/TestCaller.h"
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-class multi_arrayTestCase : public CppUnitTest::TestCase
+class multi_arrayTestCase : public CppUnit::TestFixture
 {
- public:
-
-  //
-  // setUp is called before each test method to set up test state
-  void setUp();
-  //
-  // tearDown is called after each test method is called.
-  void tearDown(); 
-
-  //
-  // A test method must return void and have no arguments
-  // multi_array class
+public:
   void testAll();
 
-  multi_arrayTestCase (std::string name) : TestCase (name) {}
-  ~multi_arrayTestCase() {}
-  //
-  //
-  // return the suite of tests to perform
-  //
-  static CppUnitTest::TestSuite* suite ();
+  static CppUnit::TestSuite* suite();
 };
 
 #endif
+

@@ -46,16 +46,16 @@ class DarcyFlow(object):
    
    where *p* represents the pressure and *u* the Darcy flux. *k* represents the permeability,
    
-   :cvar SIMPLE: simple solver
-   :cvar POST: solver using global postprocessing of flux
-   :cvar STAB: solver uses (non-symmetric) stabilization
-   :cvar SYMSTAB: solver uses symmetric stabilization
+   :cvar EVAL: direct pressure gradient evaluation for flux 
+   :cvar POST: global postprocessing of flux by solving the PDE *K_{ij} u_j + (w * K * l u_{k,k})_{,i}= - p_{,j} + K_{ij} g_j*
+               where *l* is the length scale, *K* is the inverse of the permeability tensor, and *w* is a positive weighting factor.
+   :cvar SMOOTH: global smoothing by solving the PDE *K_{ij} u_j= - p_{,j} + K_{ij} g_j*
    """
-   SIMPLE="SIMPLE"
+   EVAL="EVAL"
+   SIMPLE="EVAL"
    POST="POST"
-   STAB="STAB"
-   SYMSTAB="SYMSTAB"
-   def __init__(self, domain, useReduced=False, solver="SYMSTAB", verbose=False, w=1.):
+   SMOOTH="SMOOTH"
+   def __init__(self, domain, useReduced=False, solver="EVAL", verbose=False, w=1.):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -63,46 +63,52 @@ class DarcyFlow(object):
       :param useReduced: uses reduced oreder on flux and pressure
       :type useReduced: ``bool``
       :param solver: solver method 
-      :type solver: in [`DarcyFlow.SIMPLE`, `DarcyFlow.POST', `DarcyFlow.STAB`, `DarcyFlow.SYMSTAB` ] 
+      :type solver: in [`DarcyFlow.EVAL`, `DarcyFlow.POST',  `DarcyFlow.SMOOTH' ] 
       :param verbose: if ``True`` some information on the iteration progress are printed.
       :type verbose: ``bool``
       :param w: weighting factor for `DarcyFlow.POST` solver
       :type w: ``float``
       
       """
+      if not solver in [DarcyFlow.EVAL, DarcyFlow.POST,  DarcyFlow.SMOOTH ] :
+          raise ValueError,"unknown solver %d."%solver
+
       self.domain=domain
       self.solver=solver
       self.useReduced=useReduced
       self.verbose=verbose
-      self.scale=1.
-      
-      
-      self.__pde_v=LinearPDESystem(domain)
-      self.__pde_v.setSymmetryOn()
-      if self.useReduced: self.__pde_v.setReducedOrderOn()
+      self.l=None
+      self.w=None
+     
       self.__pde_p=LinearSinglePDE(domain)
       self.__pde_p.setSymmetryOn()
       if self.useReduced: self.__pde_p.setReducedOrderOn()
-      
-      if self.solver  == self.SIMPLE:
+
+      if self.solver  == self.EVAL:
+         self.__pde_v=None
 	 if self.verbose: print "DarcyFlow: simple solver is used."
-         self.__pde_v.setValue(D=util.kronecker(self.domain.getDim()))
+
       elif self.solver  == self.POST:
-	 self.w=w
 	 if util.inf(w)<0.:
 	    raise ValueError,"Weighting factor must be non-negative." 
 	 if self.verbose: print "DarcyFlow: global postprocessing of flux is used."
-      elif self.solver  == self.STAB:
-	  if self.verbose: print "DarcyFlow: (non-symmetric) stabilization is used."
-      elif  self.solver  == self.SYMSTAB:
-	  if self.verbose: print "DarcyFlow: symmetric stabilization is used."
-      else:
-	raise ValueError,"unknown solver %s"%self.solver
+         self.__pde_v=LinearPDESystem(domain)
+         self.__pde_v.setSymmetryOn()
+         if self.useReduced: self.__pde_v.setReducedOrderOn()
+	 self.w=w
+         self.l=util.vol(self.domain)**(1./self.domain.getDim()) # length scale
+
+      elif self.solver  == self.SMOOTH:
+         self.__pde_v=LinearPDESystem(domain)
+         self.__pde_v.setSymmetryOn()
+         if self.useReduced: self.__pde_v.setReducedOrderOn()
+	 if self.verbose: print "DarcyFlow: flux smoothing is used."
+	 self.w=0
+
       self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
-      self.__g=escript.Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
+      self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
       self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-      self.location_of_fixed_flux = escript.Vector(0, self.__pde_v.getFunctionSpaceForCoefficient("q"))
-      self.setTolerance()
+      self.location_of_fixed_flux = escript.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
      
         
    def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
@@ -132,53 +138,42 @@ class DarcyFlow(object):
            self.__pde_p.setValue(q=self.location_of_fixed_pressure)
       if location_of_fixed_flux!=None: 
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
-          self.__pde_v.setValue(q=self.location_of_fixed_flux)
-      
+          if not self.__pde_v == None: self.__pde_v.setValue(q=self.location_of_fixed_flux)
 			
-      # pressure  is rescaled by the factor 1/self.scale
       if permeability!=None:
 	
-	 perm=util.interpolate(permeability,self.__pde_v.getFunctionSpaceForCoefficient("A"))
-         V=util.vol(self.domain)
-         l=V**(1./self.domain.getDim())
+	 perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
          
 	 if perm.getRank()==0:
+
 	    perm_inv=(1./perm)
-            self.scale=util.integrate(perm_inv)/V*l
-	    perm_inv=perm_inv*((1./self.scale)*util.kronecker(self.domain.getDim()))
-	    perm=perm*(self.scale*util.kronecker(self.domain.getDim()))
+	    perm_inv=perm_inv*util.kronecker(self.domain.getDim())
+	    perm=perm*util.kronecker(self.domain.getDim())
 	    
 	    
 	 elif perm.getRank()==2:
 	    perm_inv=util.inverse(perm)
-            self.scale=util.sqrt(util.integrate(util.length(perm_inv)**2)/V)*l
-	    perm_inv*=(1./self.scale)
-	    perm=perm*self.scale
 	 else:
 	    raise ValueError,"illegal rank of permeability."
          
 	 self.__permeability=perm
 	 self.__permeability_inv=perm_inv
-	 if self.verbose: print "DarcyFlow: scaling factor for pressure is %e."%self.scale
 	 
-	 if self.solver  == self.SIMPLE:
-	    self.__pde_p.setValue(A=self.__permeability)
-	 elif self.solver  == self.POST:
-	    self.__pde_p.setValue(A=self.__permeability)
+         #====================
+	 self.__pde_p.setValue(A=self.__permeability)
+         if self.solver  == self.EVAL:
+              pass # no extra work required
+         elif self.solver  == self.POST:
 	    k=util.kronecker(self.domain.getDim())
-	    self.lamb = self.w*util.length(perm_inv)*l 
-	    self.__pde_v.setValue(D=self.__permeability_inv, A=self.lamb*self.domain.getSize()*util.outer(k,k))
-	 elif self.solver  == self.STAB:
-	    self.__pde_p.setValue(A=0.5*self.__permeability)
-	    self.__pde_v.setValue(D=0.5*self.__permeability_inv)
-	 elif  self.solver  == self.SYMSTAB:
-	    self.__pde_p.setValue(A=0.5*self.__permeability)
-	    self.__pde_v.setValue(D=0.5*self.__permeability_inv)
+	    self.omega = self.w*util.length(perm_inv)*self.l*self.domain.getSize()
+	    self.__pde_v.setValue(D=self.__permeability_inv, A=self.omega*util.outer(k,k))
+         elif self.solver  == self.SMOOTH:
+	    self.__pde_v.setValue(D=self.__permeability_inv)
 
       if g != None:
-	g=util.interpolate(g, self.__pde_v.getFunctionSpaceForCoefficient("Y"))
+	g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	if g.isEmpty():
-	      g=Vector(0,self.__pde_v.getFunctionSpaceForCoefficient("Y"))
+	      g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	else:
 	    if not g.getShape()==(self.domain.getDim(),): raise ValueError,"illegal shape of g"
 	self.__g=g
@@ -189,12 +184,16 @@ class DarcyFlow(object):
 	 else:
 	     if f.getRank()>0: raise ValueError,"illegal rank of f."
 	 self.__f=f
+
    def getSolverOptionsFlux(self):
       """
       Returns the solver options used to solve the flux problems
       :return: `SolverOptions`
       """
-      return self.__pde_v.getSolverOptions()
+      if self.__pde_v == None:
+          return None
+      else:
+          return self.__pde_v.getSolverOptions()
       
    def setSolverOptionsFlux(self, options=None):
       """
@@ -202,7 +201,8 @@ class DarcyFlow(object):
       If ``options`` is not present, the options are reset to default
       :param options: `SolverOptions`
       """
-      return self.__pde_v.setSolverOptions(options)
+      if not self.__pde_v == None:
+          self.__pde_v.setSolverOptions(options)
 	 
    def getSolverOptionsPressure(self):
       """
@@ -221,74 +221,31 @@ class DarcyFlow(object):
       """
       return self.__pde_p.setSolverOptions(options)
       
-   def setTolerance(self,rtol=1e-4):
-      """
-      sets the relative tolerance ``rtol`` for the pressure for the stabelized solvers.
-      
-      :param rtol: relative tolerance for the pressure
-      :type rtol: non-negative ``float``
-      """
-      if rtol<0:
-	 raise ValueError,"Relative tolerance needs to be non-negative."
-      self.__rtol=rtol
-      
-   def getTolerance(self):
-      """
-      returns the relative tolerance
-      :return: current relative tolerance
-      :rtype: ``float``
-      """
-      return self.__rtol
-      
-   def solve(self,u0,p0, max_iter=100, iter_restart=20):
+   def solve(self, u0, p0):
       """
       solves the problem.
       
-      The iteration is terminated if the residual norm is less then self.getTolerance().
-
       :param u0: initial guess for the flux. At locations in the domain marked by ``location_of_fixed_flux`` the value of ``u0`` is kept unchanged.
       :type u0: vector value on the domain (e.g. `escript.Data`).
       :param p0: initial guess for the pressure. At locations in the domain marked by ``location_of_fixed_pressure`` the value of ``p0`` is kept unchanged.
       :type p0: scalar value on the domain (e.g. `escript.Data`).
-      :param max_iter: maximum number of (outer) iteration steps for the stabilization solvers,
-      :type max_iter: ``int``
-      :param iter_restart: number of steps after which the iteration is restarted. The larger ``iter_restart`` the larger the required memory. 
-                           A small value for ``iter_restart`` may require a large number of iteration steps or may even lead to a failure
-                           of the iteration. ``iter_restart`` is relevant for the stabilization solvers only.
-      :type iter_restart: ``int``
       :return: flux and pressure
       :rtype: ``tuple`` of `escript.Data`.
 
       """
-      # rescale initial guess:
-      p0=p0/self.scale
-      if self.solver  == self.SIMPLE or self.solver  == self.POST :
-	    self.__pde_p.setValue(X=self.__g , 
-	                          Y=self.__f, 
-	                          y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
-	                          r=p0)
-	    p=self.__pde_p.getSolution()
-	    u = self.getFlux(p, u0)
-      elif  self.solver  == self.STAB:
-	u,p = self.__solve_STAB(u0,p0, max_iter, iter_restart)
-      elif  self.solver  == self.SYMSTAB:
-	u,p = self.__solve_SYMSTAB(u0,p0, max_iter, iter_restart)
-	
-      if self.verbose:
-	    KGp=util.tensor_mult(self.__permeability,util.grad(p))
-	    def_p=self.__g-(u+KGp)
-	    def_v=self.__f-util.div(u, self.__pde_v.getFunctionSpaceForCoefficient("X"))
-	    print "DarcyFlux: |g-u-K*grad(p)|_2 = %e (|u|_2 = %e)."%(self.__L2(def_p),self.__L2(u))
-	    print "DarcyFlux: |f-div(u)|_2 = %e (|grad(u)|_2 = %e)."%(self.__L2(def_v),self.__L2(util.grad(u)))
-      #rescale result
-      p=p*self.scale
+      self.__pde_p.setValue(X=self.__g , 
+                            Y=self.__f, 
+                            y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
+                            r=p0)
+      p=self.__pde_p.getSolution()
+      u = self.getFlux(p, u0)
       return u,p
       
    def getFlux(self,p, u0=None):
         """
         returns the flux for a given pressure ``p`` where the flux is equal to ``u0``
         on locations where ``location_of_fixed_flux`` is positive (see `setValue`).
-        Notice that ``g`` and ``f`` are used, see `setValue`.
+        Notice that ``g`` is used, see `setValue`.
 
         :param p: pressure.
         :type p: scalar value on the domain (e.g. `escript.Data`).
@@ -297,130 +254,18 @@ class DarcyFlow(object):
         :return: flux
         :rtype: `escript.Data`
         """
-        if self.solver  == self.SIMPLE or self.solver  == self.POST  :
-            KGp=util.tensor_mult(self.__permeability,util.grad(p))
-            self.__pde_v.setValue(Y=self.__g-KGp, X=escript.Data())
+        u_eval=self.__g-util.tensor_mult(self.__permeability,util.grad(p))
+        if self.solver  == self.EVAL:
+           u = self.__g-util.tensor_mult(self.__permeability,util.grad(p))
+        elif self.solver  == self.POST or self.solver  == self.SMOOTH:
+            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g)-util.grad(p))
             if u0 == None:
 	       self.__pde_v.setValue(r=escript.Data())
 	    else:
 	       self.__pde_v.setValue(r=u0)
             u= self.__pde_v.getSolution()
-	elif self.solver  == self.POST:
-            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g)-util.grad(p),
-                                  X=self.lamb * self.__f * util.kronecker(self.domain.getDim()))
-            if u0 == None:
-	       self.__pde_v.setValue(r=escript.Data())
-	    else:
-	       self.__pde_v.setValue(r=u0)
-            u= self.__pde_v.getSolution()
-	elif self.solver  == self.STAB:
-	     gp=util.grad(p)
-	     self.__pde_v.setValue(Y=0.5*(util.tensor_mult(self.__permeability_inv,self.__g)+gp),
-	                           X= p * util.kronecker(self.domain.getDim()),
-	                           y= - p * self.domain.getNormal())                           
-	     if u0 == None:
-	       self.__pde_v.setValue(r=escript.Data())
-	     else:
-	       self.__pde_v.setValue(r=u0)
-	     u= self.__pde_v.getSolution()
-	elif  self.solver  == self.SYMSTAB:
-	     gp=util.grad(p)
-	     self.__pde_v.setValue(Y=0.5*(util.tensor_mult(self.__permeability_inv,self.__g)-gp),
-	                           X= escript.Data() ,
-	                           y= escript.Data() )                           
-	     if u0 == None:
-	       self.__pde_v.setValue(r=escript.Data())
-	     else:
-	       self.__pde_v.setValue(r=u0)
-	     u= self.__pde_v.getSolution()
 	return u
 	  
-     
-   def __solve_STAB(self, u0, p0, max_iter, iter_restart):
-          # p0 is used as an initial guess
-	  u=self.getFlux(p0, u0)  
-          self.__pde_p.setValue( Y=self.__f-util.div(u), 
-                                 X=0.5*(self.__g - u - util.tensor_mult(self.__permeability,util.grad(p0)) ), 
-                                 y= escript.Data(), 
-                                 r=escript.Data())
-
-	  dp=self.__pde_p.getSolution()
-	  p=GMRES(dp, 
-	          self.__STAB_Aprod, 
-		  p0, 
-		  self.__inner, 
-		  atol=self.__norm(p0+dp)*self.getTolerance() ,
-		  rtol=0.,
-		  iter_max=max_iter,
-		  iter_restart=iter_restart, 
-		  verbose=self.verbose,P_R=None)
-            
-          u=self.getFlux(p, u0)
-          return u,p
-
-   def __solve_SYMSTAB(self, u0, p0, max_iter, iter_restart):
-          # p0 is used as an initial guess
-	  u=self.getFlux(p0, u0)  
-          self.__pde_p.setValue( Y= self.__f, 
-                                 X=  0.5*(self.__g + u - util.tensor_mult(self.__permeability,util.grad(p0)) ), 
-                                 y=  -  util.inner(self.domain.getNormal(), u), 
-                                 r=escript.Data())
-	  dp=self.__pde_p.getSolution()
-	  
-	  print dp
-          print p0+dp
-          
-	  p=GMRES(dp, 
-	          self.__SYMSTAB_Aprod, 
-		  p0, 
-		  self.__inner, 
-		  atol=self.__norm(p0+dp)*self.getTolerance() ,
-		  rtol=0.,
-		  iter_max=max_iter,
-		  iter_restart=iter_restart, 
-		  verbose=self.verbose,P_R=None)
-            
-          u=self.getFlux(p, u0)
-          return u,p
-
-   def __L2(self,v):
-         return util.sqrt(util.integrate(util.length(util.interpolate(v,escript.Function(self.domain)))**2))      
-   
-   def __norm(self,r):
-         return util.sqrt(self.__inner(r,r))
-         
-   def __inner(self,r,s):
-         return util.integrate(util.inner(r,s), escript.Function(self.domain))
-         
-   def __STAB_Aprod(self,p):
-      gp=util.grad(p)
-      self.__pde_v.setValue(Y=-0.5*gp,
-                            X=-p*util.kronecker(self.__pde_v.getDomain()), 
-                            y= p * self.domain.getNormal(),  
-                            r=escript.Data())
-      u = -self.__pde_v.getSolution()
-      self.__pde_p.setValue(Y=util.div(u), 
-                            X=0.5*(u+util.tensor_mult(self.__permeability,gp)),
-                            y=escript.Data(), 
-                            r=escript.Data())
-     
-      return  self.__pde_p.getSolution()
-   
-   def __SYMSTAB_Aprod(self,p):
-      gp=util.grad(p)
-      self.__pde_v.setValue(Y=0.5*gp ,
-                            X=escript.Data(), 
-                            y=escript.Data(),  
-                            r=escript.Data())
-      u = -self.__pde_v.getSolution()
-      self.__pde_p.setValue(Y=escript.Data(), 
-                            X=0.5*(-u+util.tensor_mult(self.__permeability,gp)),
-                            y=escript.Data(), 
-                            r=escript.Data())
-     
-      return  self.__pde_p.getSolution()
-      
-
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      """
      solves
@@ -439,6 +284,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
             sp.setTolerance()
             sp.initialize(...)
             v,p=sp.solve(v0,p0)
+            sp.setStokesEquation(...) # new values for some parameters
+            v1,p1=sp.solve(v,p)
      """
      def __init__(self,domain,**kwargs):
          """
@@ -515,7 +362,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      def updateStokesEquation(self, v, p):
          """
          updates the Stokes equation to consider dependencies from ``v`` and ``p``
-         :note: This method can be overwritten by a subclass. Use `setStokesEquation` to set new values.
+         :note: This method can be overwritten by a subclass. Use `setStokesEquation` to set new values to model parameters.
          """
          pass
      def setStokesEquation(self, f=None,fixed_u_mask=None,eta=None,surface_stress=None,stress=None, restoration_factor=None):
@@ -616,7 +463,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
 
      def getDV(self, p, v, tol):
          """
-         return the value for v for a given p (overwrite)
+         return the value for v for a given p 
 
          :param p: a pressure
          :param v: a initial guess for the value v to return.

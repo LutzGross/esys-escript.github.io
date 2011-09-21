@@ -28,6 +28,7 @@ sources = """
     Assemble_LumpedSystem.c
     Assemble_NodeCoordinates.c
     Assemble_PDE.c
+    Assemble_PDE_Points.c
     Assemble_PDE_Single2_1D.c
     Assemble_PDE_Single2_2D.c
     Assemble_PDE_Single2_3D.c
@@ -84,6 +85,7 @@ sources = """
     Mesh_saveDX.c
     Mesh_setCoordinates.c
     Mesh_tagmaps.c
+    Mesh_addPoints.c
     Mesh_write.c
     NodeFile.c
     NodeFile_allocTable.c

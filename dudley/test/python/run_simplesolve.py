@@ -80,7 +80,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         g_ex[1]=3.
         # -------- test gradient --------------------------------
         g=grad(u_ex)
-        self.failUnless(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -95,7 +95,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
@@ -109,7 +109,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1]=3.
         # -------- test gradient --------------------------------
         g=grad(u_ex)
-        self.failUnless(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -124,7 +124,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
@@ -140,7 +140,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1,0]=3.
         g_ex[1,1]=2.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -164,7 +164,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
@@ -176,7 +176,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[0]=2.+8.*x[0]+5.*x[1]
         g_ex[1]=3.+5.*x[0]+12.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -191,7 +191,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
@@ -207,7 +207,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1,0]=4.+2.*x[0]+6.*x[1]
         g_ex[1,1]=2.+6.*x[0]+8.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -231,7 +231,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
@@ -243,7 +243,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1]=3.
         g_ex[2]=4.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -258,7 +258,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
@@ -280,7 +280,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[2,1]=4.
         g_ex[2,2]=5.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -306,7 +306,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -319,7 +319,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[1]=3.+6.*x[0]+7.*x[2]+20.*x[1]
         g_ex[2]=4.+7.*x[1]+8.*x[0]+22.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -334,7 +334,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -356,7 +356,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         g_ex[2,1]=9.-6.*x[0]+8.*x[2]+16.*x[1]
         g_ex[2,2]=2+8.*x[1]+2.*x[0]+2.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -382,7 +382,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -397,7 +397,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         g_ex[1]=3.
         # -------- test gradient --------------------------------
         g=grad(u_ex)
-        self.failUnless(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -412,7 +412,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -425,7 +425,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         g_ex[0]=2.+8.*x[0]+5.*x[1]
         g_ex[1]=3.+5.*x[0]+12.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -440,7 +440,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -457,7 +457,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         g_ex[1,0]=3.
         g_ex[1,1]=2.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -481,7 +481,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -498,7 +498,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         g_ex[1,0]=4.+2.*x[0]+6.*x[1]
         g_ex[1,1]=2.+6.*x[0]+8.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -522,7 +522,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -535,7 +535,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         g_ex[1]=3.
         g_ex[2]=4.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -550,7 +550,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -573,7 +573,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         g_ex[2,1]=4.
         g_ex[2,2]=5.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -599,7 +599,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -613,7 +613,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         g_ex[1]=3.+6.*x[0]+7.*x[2]+20.*x[1]
         g_ex[2]=4.+7.*x[1]+8.*x[0]+22.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -628,7 +628,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -651,7 +651,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         g_ex[2,1]=9.-6.*x[0]+8.*x[2]+16.*x[1]
         g_ex[2,2]=2+8.*x[1]+2.*x[0]+2.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -677,7 +677,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
@@ -693,7 +693,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         g_ex[1]=3.
         # -------- test gradient --------------------------------
         g=grad(u_ex)
-        self.failUnless(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-g)<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -709,7 +709,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -722,7 +722,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         g_ex[0]=2.+8.*x[0]+5.*x[1]
         g_ex[1]=3.+5.*x[0]+12.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -737,7 +737,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -754,7 +754,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         g_ex[1,0]=3.
         g_ex[1,1]=2.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -778,7 +778,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -795,7 +795,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         g_ex[1,0]=4.+2.*x[0]+6.*x[1]
         g_ex[1,1]=2.+6.*x[0]+8.*x[1]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=2)
         mask=whereZero(x[0])
@@ -819,7 +819,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -832,7 +832,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         g_ex[1]=3.
         g_ex[2]=4.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -847,7 +847,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -870,7 +870,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         g_ex[2,1]=4.
         g_ex[2,2]=5.
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -896,7 +896,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -910,7 +910,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         g_ex[1]=3.+6.*x[0]+7.*x[2]+20.*x[1]
         g_ex[2]=4.+7.*x[1]+8.*x[0]+22.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=1)
         mask=whereZero(x[0])
@@ -925,7 +925,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
@@ -948,7 +948,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         g_ex[2,1]=9.-6.*x[0]+8.*x[2]+16.*x[1]
         g_ex[2,2]=2+8.*x[1]+2.*x[0]+2.*x[2]
         # -------- test gradient --------------------------------
-        self.failUnless(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
+        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
         # -------- set-up PDE ----------------------------------- 
         pde=LinearPDE(domain,numEquations=3)
         mask=whereZero(x[0])
@@ -974,7 +974,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         u=pde.getSolution()
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
-        self.failUnless(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

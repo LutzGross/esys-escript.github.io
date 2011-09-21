@@ -14,7 +14,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -99,6 +99,12 @@ boost_prefix = ['/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/inclu
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-gcc41-mt']
 
+# Prefix or paths to CppUnit headers and libraries. See note above.
+cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
+
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
 netcdf = True
@@ -153,11 +159,11 @@ umfpack_prefix = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2'
 # UMFPACK library/libraries to link against
 umfpack_libs = ['umfpack', 'amd', 'blas']
 
-# Whether to use BoomerAMG
+# Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
-boomeramg = True
+#boomeramg = True
 
-# Prefix or paths to BoomerAMG headers and libraries. 
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
 boomeramg_prefix = '/sw/libs/hypre/x86_64/gcc-4.3.2/hypre-2.0.0'
 
 # BoomerAMG library/libraries to link against
@@ -168,6 +174,7 @@ boomeramg_libs = ['HYPRE']
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
 lapack = 'mkl'
+#lapack = 'none'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 lapack_prefix = mkl_prefix
@@ -187,10 +194,10 @@ silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-#visit = True
+visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/libsim/V2'
+visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -200,24 +207,23 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.0.2/2.0.2/linux-x86_64/l
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
 
-#Use intel's VSL library for random data
-vsl_random = True
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 #sys_libs = []
 
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 tools_names = [('intelc',{'topdir':'/sw/sdev/intel/cc/x86_64/10.1.025'})]
 

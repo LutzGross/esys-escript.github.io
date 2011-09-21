@@ -149,7 +149,7 @@ int TestDomain::getReducedSolutionCode() const
   return TestDomainFS;
 }
 
-int TestDomain::getDiracDeltaFunctionCode() const
+int TestDomain::getDiracDeltaFunctionsCode() const
 {
   return TestDomainFS;
 }

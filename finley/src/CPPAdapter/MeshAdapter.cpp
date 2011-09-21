@@ -647,7 +647,7 @@ int MeshAdapter::getReducedSolutionCode() const
    return ReducedDegreesOfFreedom;
 }
 
-int MeshAdapter::getDiracDeltaFunctionCode() const
+int MeshAdapter::getDiracDeltaFunctionsCode() const
 {
    return Points;
 }
@@ -771,7 +771,8 @@ void MeshAdapter::addPDEToSystem(
                                  AbstractSystemMatrix& mat, escript::Data& rhs,
                                  const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                  const escript::Data& d, const escript::Data& y, 
-                                 const escript::Data& d_contact,const escript::Data& y_contact) const
+                                 const escript::Data& d_contact,const escript::Data& y_contact, 
+                                 const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
    SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
    if (smat==0)
@@ -789,6 +790,8 @@ void MeshAdapter::addPDEToSystem(
    escriptDataC _y=y.getDataC();
    escriptDataC _d_contact=d_contact.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -800,17 +803,22 @@ void MeshAdapter::addPDEToSystem(
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, smat->getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
+
+    Finley_Assemble_PDE(mesh->Nodes,mesh->Points, smat->getPaso_SystemMatrix(), &_rhs , 0, 0, 0, &_d_dirac, 0, &_y_dirac );
+   checkFinleyError();
 }
 
 void  MeshAdapter::addPDEToLumpedSystem(
                                         escript::Data& mat,
                                         const escript::Data& D,
                                         const escript::Data& d,
+                                        const escript::Data& d_dirac,
                                         const bool useHRZ) const
 {
    escriptDataC _mat=mat.getDataC();
    escriptDataC _D=D.getDataC();
    escriptDataC _d=d.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
 
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -820,13 +828,16 @@ void  MeshAdapter::addPDEToLumpedSystem(
    Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->FaceElements,&_mat, &_d, useHRZ);
    checkFinleyError();
 
+   Finley_Assemble_LumpedSystem(mesh->Nodes,mesh->Points,&_mat, &_d_dirac, useHRZ);
+   checkFinleyError();
+
 }
 
 
 //
 // adds linear PDE of second order into the right hand side only
 //
-void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact) const
+void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const  escript::Data& Y, const escript::Data& y, const escript::Data& y_contact,  const escript::Data& y_dirac) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
 
@@ -835,6 +846,7 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _Y=Y.getDataC();
    escriptDataC _y=y.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
    checkFinleyError();
@@ -844,6 +856,10 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs , 0, 0, 0, 0, 0, &_y_contact );
    checkFinleyError();
+
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs , 0, 0, 0, 0, 0, &_y_dirac );
+   checkFinleyError();
+
 }
 //
 // adds PDE of second order into a transport problem
@@ -853,7 +869,8 @@ void MeshAdapter::addPDEToTransportProblem(
                                            const escript::Data& A, const escript::Data& B, const escript::Data& C,
                                            const  escript::Data& D,const  escript::Data& X,const  escript::Data& Y,
                                            const escript::Data& d, const escript::Data& y, 
-                                           const escript::Data& d_contact,const escript::Data& y_contact) const
+                                           const escript::Data& d_contact,const escript::Data& y_contact,
+                                           const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
    if (tpa==0)
@@ -876,6 +893,9 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y=y.getDataC();
    escriptDataC _d_contact=d_contact.getDataC();
    escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();
+
 
    Finley_Mesh* mesh=m_finleyMesh.get();
    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
@@ -891,6 +911,10 @@ void MeshAdapter::addPDEToTransportProblem(
 
    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, _tp->transport_matrix, &_source , 0, 0, 0, &_d_contact, 0, &_y_contact );
    checkFinleyError();
+ 
+   Finley_Assemble_PDE(mesh->Nodes,mesh->Points, _tp->transport_matrix, &_source , 0, 0, 0, &_d_dirac, 0, &_y_dirac );
+   checkFinleyError();
+
 }
 
 //
@@ -2413,4 +2437,109 @@ ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
   Finley_ReferenceElementSet_dealloc(m_refSet);
 }
 
+// points will be flattened
+void MeshAdapter:: addDiracPoints(const std::vector<double>& points, const std::vector<int>& tags) const
+{
+      const int dim = getDim();
+      int numPoints=points.size()/dim;
+      int numTags=tags.size();
+      Finley_Mesh* mesh=m_finleyMesh.get();
+      
+      if ( points.size() % dim != 0 )
+      {
+	throw FinleyAdapterException("Error - number of coords does not appear to be a multiple of dimension.");
+      }
+      
+      if  ( (numTags > 0) && ( numPoints !=  numTags ) )
+	 throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
+      
+      double* points_ptr=TMPMEMALLOC(numPoints * dim, double);
+      int*    tags_ptr= TMPMEMALLOC(numPoints, int);
+      
+      for (int i=0;i<numPoints;++i) {
+	   points_ptr[ i * dim     ] = points[i * dim ];
+	   if ( dim > 1 ) points_ptr[ i * dim + 1 ] = points[i * dim + 1];
+	   if ( dim > 2 ) points_ptr[ i * dim + 2 ] = points[i * dim + 2];	  
+           tags_ptr[i]=tags[i];
+      }
+      
+      Finley_Mesh_addPoints(mesh, numPoints, points_ptr, tags_ptr);
+      checkPasoError();
+      
+      TMPMEMFREE(points_ptr);
+      TMPMEMFREE(tags_ptr);
+}
+
+
+// void MeshAdapter:: addDiracPoints(const boost::python::list& points, const boost::python::list& tags) const
+// {
+//       const int dim = getDim();
+//       int numPoints=boost::python::extract<int>(points.attr("__len__")());
+//       int numTags=boost::python::extract<int>(tags.attr("__len__")());
+//       Finley_Mesh* mesh=m_finleyMesh.get();
+//       
+//       if  ( (numTags > 0) && ( numPoints !=  numTags ) )
+// 	 throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
+//       
+//       double* points_ptr=TMPMEMALLOC(numPoints * dim, double);
+//       int*    tags_ptr= TMPMEMALLOC(numPoints, int);
+//       
+//       for (int i=0;i<numPoints;++i) {
+// 	   int tag_id=-1;
+// 	   int numComps=boost::python::extract<int>(points[i].attr("__len__")());
+// 	   if  ( numComps !=   dim ) {
+//                stringstream temp;	        
+//                temp << "Error - illegal number of components " << numComps << " for point " << i;               
+//                throw FinleyAdapterException(temp.str());
+// 	   }
+// 	   points_ptr[ i * dim     ] = boost::python::extract<double>(points[i][0]);
+// 	   if ( dim > 1 ) points_ptr[ i * dim + 1 ] = boost::python::extract<double>(points[i][1]);
+// 	   if ( dim > 2 ) points_ptr[ i * dim + 2 ] = boost::python::extract<double>(points[i][2]);
+// 	   
+// 	   if ( numTags > 0) {
+// 	          boost::python::extract<string> ex_str(tags[i]);
+// 		  if  ( ex_str.check() ) {
+// 		      tag_id=getTag( ex_str());
+// 		  } else {
+// 		       boost::python::extract<int> ex_int(tags[i]);
+// 		       if ( ex_int.check() ) {
+// 		           tag_id=ex_int();
+// 		       } else { 
+// 			    stringstream temp;	         
+// 		            temp << "Error - unable to extract tag for point " << i; 
+// 			    throw FinleyAdapterException(temp.str());
+// 		      }
+// 		  }
+// 	   }	  
+//            tags_ptr[i]=tag_id;
+//       }
+//       
+//       Finley_Mesh_addPoints(mesh, numPoints, points_ptr, tags_ptr);
+//       checkPasoError();
+//       
+//       TMPMEMFREE(points_ptr);
+//       TMPMEMFREE(tags_ptr);
+// }
+
+/*
+void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int tag) const
+{   
+    boost::python::list points =  boost::python::list();
+    boost::python::list tags =  boost::python::list();
+    points.append(point);
+    tags.append(tag);
+    addDiracPoints(points, tags);
+}
+*/
+
+/*
+void MeshAdapter:: addDiracPointWithTagName( const boost::python::list& point, const std::string& tag) const
+{
+        boost::python::list points =   boost::python::list();
+        boost::python::list tags =   boost::python::list();
+        points.append(point);
+        tags.append(tag);
+        addDiracPoints(points, tags);
+} 
+*/
 }  // end of namespace

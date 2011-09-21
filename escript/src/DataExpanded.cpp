@@ -32,7 +32,8 @@
 
 #ifdef MKLRANDOM
 #include <mkl_vsl.h>
-
+#else
+#include <boost/random/mersenne_twister.hpp>
 #endif
 
 using namespace std;
@@ -846,6 +847,39 @@ DataExpanded::getVectorRO() const
 }
 
 
+#ifndef MKLRANDOM
+namespace {
+    
+boost::mt19937 base;		// used to seed all the other generators  
+vector<boost::mt19937> gens;
+
+
+void seedGens(long seed)
+{
+#ifdef _OPENMP
+    int numthreads=omp_get_max_threads();
+#else
+    int numthreads=1;
+#endif
+    if (gens.size()==0)		// we haven't instantiated the generators yet  
+    {
+        gens.resize(numthreads);	// yes this means all the generators will be owned by one thread in a NUMA sense      
+    }  					// I don't think it is worth a more complicated solution at this point
+    if (seed!=0)
+    {
+       base.seed((uint32_t)seed);	// without this cast, icc gets confused		
+       for (int i=0;i<numthreads;++i)
+       {
+	    uint32_t b=base();
+            gens[i].seed(b);	// initialise each generator with successive random values      
+       }       
+    }
+}
+  
+  
+}
+#endif
+
 // Idea here is to create an array of seeds by feeding the original seed into the random generator
 // The code at the beginning of the function to compute the seed if one is given is
 // just supposed to introduce some variety (and ensure that multiple ranks don't get the same seed).
@@ -873,13 +907,14 @@ void DataExpanded::randomFill(long seed)
     // now we need to consider MPI since we don't want each rank to start with the same seed
     seed+=getFunctionSpace().getDomain()->getMPIRank()*getFunctionSpace().getDomain()->getMPISize()*3;
     prevseed=seed;
+
+#ifdef MKLRANDOM
+
 #ifdef _OPENMP
     int numthreads=omp_get_max_threads();
 #else
     int numthreads=1;
 #endif
-
-#ifdef MKLRANDOM
     double* seeds=new double[numthreads];
     VSLStreamStatePtr sstream;
 
@@ -906,30 +941,35 @@ void DataExpanded::randomFill(long seed)
     }
     delete[] seeds;
 #else
-    srand(seed);
-    unsigned* seeds=new unsigned[numthreads];
-    for (int i=0;i<numthreads;++i)
-    {
-	seeds[i]=rand();
-    }
+    boost::mt19937::result_type RMAX=base.max();
+    seedGens(seed);
     DataVector&  dv=getVectorRW();
     long i;
     const size_t dvsize=dv.size();
+    
     #pragma omp parallel private(i)
     {
 	int tnum=0;
 	#ifdef _OPENMP
 	tnum=omp_get_thread_num();
 	#endif
-	unsigned info=seeds[tnum];
+	boost::mt19937& generator=gens[tnum];
 	
     	#pragma omp for schedule(static)
     	for (i=0;i<dvsize;++i)
     	{
-	    dv[i]=(double)rand_r(&info)/RAND_MAX;
+	  
+	  
+	 
+	  
+	  
+#ifdef _WIN32
+	    dv[i]=((double)generator())/RMAX;
+#else
+	    dv[i]=((double)generator())/RMAX;
+#endif
     	}
     }
-    delete[] seeds;
 #endif
 }
 

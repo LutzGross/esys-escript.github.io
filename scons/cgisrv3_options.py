@@ -28,7 +28,7 @@ import os
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -107,19 +107,31 @@ mpi_prefix = 'C:/Program Files/MPICH2'
 mpi_libs = ['mpi']
 
 dotdot = os.path.realpath('..')
+system_builddeps = os.path.join('c:',os.sep, 'buildlibs')
+
+# Prefix or paths to python headers and libraries. See note above.
+# By default, this is determined using the running python executable.
+#python_prefix = 'C:/Python26'
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = [os.path.join(dotdot, 'boost_1_41_0'), os.path.join(dotdot, 'boost_1_41_0','windows_binary','lib')]
+boost_prefix = [os.path.join(system_builddeps, 'boost_1_41_0'), os.path.join(system_builddeps, 'boost_1_41_0','windows_binary','lib')]
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-vc71-mt-1_41']
+
+# Prefix or paths to CppUnit headers and libraries. See note above.
+# C:\buildlibs\cppunit-1.12.1\src\cppunit\Release
+cppunit_prefix = os.path.join(system_builddeps, 'cppunit-1.12.1')
+
+# CppUnit library/libraries to link against
+cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = [os.path.join(dotdot, 'netcdf', 'src', 'include'), os.path.join(dotdot, 'netcdf', 'lib')]
+netcdf_prefix = [os.path.join(system_builddeps, 'netcdf', 'src', 'include'), os.path.join(system_builddeps, 'netcdf', 'lib')]
 
 # netCDF library/libraries to link against
 netcdf_libs = ['netcdf_cpp', 'netcdf']
@@ -168,6 +180,16 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 # UMFPACK library/libraries to link against
 #umfpack_libs = ['umfpack']
 
+# Whether to use BoomerAMG (requires MPI)
+# DEFAULT: False
+#boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
+#boomeramg_prefix = 'C:/boomeramg'
+
+# BoomerAMG library/libraries to link against
+#boomeramg_libs = ['HYPRE']
+
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
@@ -204,21 +226,22 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 # DEFAULT: False
 #pyvisi = True
 
+# Build dynamic libraries only
+#DEFAULT: False
+#build_shared = True
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# Use intel's VSL library for random data
+# DEFAULT: False
+#vsl_random = True
 
 # Extra libraries to link with
 sys_libs = ['C:/Program Files/Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib/Ws2_32']
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
-# Build a shared esysUtils library
-#share_esysutils = True
-
-# Build a shared paso library
-#share_paso = True
 
 #tools_names = ['msvc']
 

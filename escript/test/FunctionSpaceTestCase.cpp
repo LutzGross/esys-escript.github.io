@@ -12,46 +12,30 @@
 *******************************************************/
 
 
+#include "FunctionSpaceTestCase.h"
+
 #include "escript/FunctionSpace.h"
 #include "escript/NullDomain.h"
 
-#include "FunctionSpaceTestCase.h"
-
+#include <cppunit/TestCaller.h>
 #include <iostream>
 #include <sstream>
 
-using namespace CppUnitTest;
+using namespace CppUnit;
 using namespace escript;
 using namespace std;
 
-void FunctionSpaceTestCase::setUp() {
-  //
-  // This is called before each test is run
- 
-}
 
-void FunctionSpaceTestCase::tearDown() {
-  //
-  // This is called after each test has been run
- 
-}
-
-void FunctionSpaceTestCase::testAll() {
-  //
-  // The test code may be entered here
-  // There is nothing special about the function name, it may be renamed to
-  // something more suitable. 
-  // As many test methods as desired may be added.
-
+void FunctionSpaceTestCase::testAll()
+{
   cout << endl;
-
   cout << "\tTest default FunctionSpace constructor." << endl;
 
   // Test Default constructor
   FunctionSpace testFunctionSpace0;
   FunctionSpace testFunctionSpace1;
 
-  assert(testFunctionSpace0==testFunctionSpace1);
+  CPPUNIT_ASSERT(testFunctionSpace0==testFunctionSpace1);
 
   cout << "\tTest FunctionSpace constructor." << endl;
 
@@ -62,24 +46,23 @@ void FunctionSpaceTestCase::testAll() {
 
   FunctionSpace testFunctionSpace2(nulldom, testfunctionSpaceType);
   
-  assert(testFunctionSpace1.getTypeCode()==testfunctionSpaceType);
-  assert(*(testFunctionSpace2.getDomain())==*nullDomain);
-  assert(testFunctionSpace1.getDim()==1);
-  assert(testFunctionSpace1==testFunctionSpace1);
-  assert(!(testFunctionSpace1!=testFunctionSpace1));
+  CPPUNIT_ASSERT(testFunctionSpace1.getTypeCode()==testfunctionSpaceType);
+  CPPUNIT_ASSERT(*(testFunctionSpace2.getDomain())==*nullDomain);
+  CPPUNIT_ASSERT(testFunctionSpace1.getDim()==1);
+  CPPUNIT_ASSERT(testFunctionSpace1==testFunctionSpace1);
+  CPPUNIT_ASSERT(!(testFunctionSpace1!=testFunctionSpace1));
 
   FunctionSpace testFunctionSpace3=testFunctionSpace2;	// test copy constructor
 cout << "Testing equality\n";
-  assert(testFunctionSpace3==testFunctionSpace2);
-
+  CPPUNIT_ASSERT(testFunctionSpace3==testFunctionSpace2);
 }
 
-TestSuite* FunctionSpaceTestCase::suite ()
+TestSuite* FunctionSpaceTestCase::suite()
 {
-  //
-  // create the suite of tests to perform.
-  TestSuite *testSuite = new TestSuite ("FunctionSpaceTestCase");
+  TestSuite *testSuite = new TestSuite("FunctionSpaceTestCase");
 
-  testSuite->addTest (new TestCaller< FunctionSpaceTestCase>("testAll",&FunctionSpaceTestCase::testAll));
+  testSuite->addTest(new TestCaller<FunctionSpaceTestCase>(
+              "testAll",&FunctionSpaceTestCase::testAll));
   return testSuite;
 }
+
