@@ -5,7 +5,7 @@ Description: Escript/Finley finite elements python system.
 Maintainer: Escript team <esys@esscc.uq.edu.au>
 Priority: extra
 Section: main
-Depends: PYPKG, BOOSTPKG, python-numpy, libnetcdf4, doc-base(>=0.8.4)
+Depends: PYPKG, BOOSTPKG, python-numpy, NETCDFPKG, doc-base(>=0.8.4)
 Conflicts: escript-noalias
 Replaces: escript-noalias
 Recommends: python-matplotlib
