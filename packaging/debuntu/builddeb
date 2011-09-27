@@ -102,7 +102,7 @@ echo "Reading package version from  $PKGFILES/escript/DEBIAN/control"
 #Now get the package version
 VERSION=`grep "Version:" $PKGFILES/escript/DEBIAN/control | cut -f2 -d\ `
 
-read -p "Build package with version $VERSION?(Y/N)" DOBUILD
+#read -p "Build package with version $VERSION?(Y/N)" DOBUILD
 
 if [ "$DOBUILD" != 'Y' ]
 then
