@@ -104,11 +104,11 @@ VERSION=`grep "Version:" $PKGFILES/escript/DEBIAN/control | cut -f2 -d\ `
 
 #read -p "Build package with version $VERSION?(Y/N)" DOBUILD
 
-if [ "$DOBUILD" != 'Y' ]
-then
-   echo "Aborting"
-   exit 7
-fi
+#if [ "$DOBUILD" != 'Y' ]
+#then
+#   echo "Aborting"
+#   exit 7
+#fi
 
 mkdir -p $OUTPUTROOT
 
