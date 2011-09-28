@@ -311,8 +311,39 @@ class Symbol(object):
             coeff_item=lambda item: getattr(item, 'coeff')(y.item(), expand)
             none_to_zero=lambda item: 0 if item is None else item
             result=self.applyfunc(coeff_item)
-            result=result.applyfunc(none_to_zero)._arr
+            result=result.applyfunc(none_to_zero)
         return Symbol(result, dim=self.dim)
+
+    def subs(self, old, new):
+        """
+        Substitutes an expression.
+        """
+        if isinstance(old, Symbol) and old.getRank()>0:
+            old._ensureShapeCompatible(new)
+            if hasattr(new, '__array__'):
+                new=new.__array__()
+            else:
+                new=numpy.array(new)
+
+            result=Symbol(self._arr, dim=self.dim)
+            if new.ndim>0:
+                for idx in numpy.ndindex(self.getShape()):
+                    for symidx in numpy.ndindex(new.shape):
+                        result[idx]=result[idx].subs(old[symidx], new[symidx])
+            else: # substitute scalar for non-scalar
+                for idx in numpy.ndindex(self.getShape()):
+                    for symidx in numpy.ndindex(old.getShape()):
+                        result[idx]=result[idx].subs(old[symidx], new.item())
+        else: # scalar
+            if isinstance(new, Symbol):
+                if new.getRank()>0:
+                    raise TypeError("Cannot substitute, incompatible ranks.")
+                new=new.item()
+            if isinstance(old, Symbol):
+                old=old.item()
+            subs_item=lambda item: getattr(item, 'subs')(old, new)
+            result=self.applyfunc(subs_item)
+        return result
 
     def diff(self, *symbols, **assumptions):
         """
@@ -539,6 +570,11 @@ class Symbol(object):
             out=Symbol(out, dim=self.dim)
         return out
 
+    def expand(self):
+        """
+        """
+        return self.applyfunc(sympy.expand, sympy.Basic)
+
     def simplify(self):
         """
         """
@@ -564,9 +600,9 @@ class Symbol(object):
         elif isinstance(other,int) or isinstance(other,float) or isinstance(other,sympy.Basic):
             sh1=()
         else:
-            raise TypeError("Unsupported argument type '%s' for binary operation"%other.__class__.__name__)
+            raise TypeError("Unsupported argument type '%s' for operation"%other.__class__.__name__)
         if not sh0==sh1 and not sh0==() and not sh1==():
-            raise TypeError("Incompatible shapes for binary operation")
+            raise TypeError("Incompatible shapes for operation")
 
     @staticmethod
     def _symComp(sym):
