@@ -1,6 +1,6 @@
 import numpy
 import sympy
-from sympy.printing.pretty.pretty import PrettyPrinter
+from sympy.printing.pretty.pretty import PrettyPrinter,prettyForm,pretty_symbol
 from symbols import Symbol
 
 class ValueMatrix(object):
@@ -52,6 +52,11 @@ class EscriptPrettyPrinter(PrettyPrinter):
                 arr[idx]=Symbol(e[idx])
             m=ValueMatrix(arr)
             return self._print_Matrix(m)
+
+    def _print_grad_n(self, e):
+        s=prettyForm(*self._print(e.args[0]).parens())
+        i=pretty_symbol(",_"+str(e.args[1]))
+        return prettyForm(*s.right(i))
 
 def pretty(expr, profile=None, **kargs):
     """
