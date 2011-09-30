@@ -129,7 +129,7 @@ netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
-parmetis = True
+#parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
 #parmetis_prefix = '/usr/local'
