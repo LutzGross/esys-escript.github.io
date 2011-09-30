@@ -47,7 +47,7 @@ if not os.path.isfile(options_file):
 ############################### Build options ################################
 
 default_prefix='/usr'
-mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
+mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 lapack_flavours=('none', 'clapack', 'mkl')
 
 vars = Variables(options_file, ARGUMENTS)
@@ -125,6 +125,7 @@ vars.AddVariables(
   ('build_shared', 'Build dynamic libraries only', False),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
+  ('SVN_VERSION', 'Do not use from options file', -2),
 )
 
 ##################### Create environment and help text #######################
@@ -283,13 +284,20 @@ env.Append(CCFLAGS = env['cc_flags'])
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
 
-# Get the global Subversion revision number for the getVersion() method
-try:
+
+global_revision=ARGUMENTS.get('SVN_VERSION', None)
+if global_revision:
+    global_revision = re.sub(':.*', '', global_revision)
+    global_revision = re.sub('[^0-9]', '', global_revision)
+    if global_revision == '': global_revision='-2'
+else:
+  # Get the global Subversion revision number for the getVersion() method
+  try:
     global_revision = os.popen('svnversion -n .').read()
     global_revision = re.sub(':.*', '', global_revision)
     global_revision = re.sub('[^0-9]', '', global_revision)
     if global_revision == '': global_revision='-2'
-except:
+  except:
     global_revision = '-1'
 env['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
@@ -556,6 +564,9 @@ if env['visit']:
     env.AppendUnique(LIBPATH = [visit_lib_path])
 
 ######## MPI (optional)
+
+if env['mpi']=='no':
+    env['mpi']='none'
 
 env['usempi'] = env['mpi']!='none'
 mpi_inc_path=''
