@@ -183,6 +183,9 @@ class grad_n(sympy.Function):
     """
     nargs = (2,3)
 
+    def __str__(self):
+        return "("+str(self.args[0])+"),"+str(self.args[1])
+
     @classmethod
     def eval(cls, *args):
         if args[0].is_zero: return S.Zero

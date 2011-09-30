@@ -122,6 +122,9 @@ class NonlinearPDE(object):
         if self._debug:
             print("%s: %s"%(str(self), text))
 
+    def getSolverOptions(self):
+        return self.lpde.getSolverOptions()
+
     def getSolution(self, **subs):
         """
         Returns the solution of the PDE.
@@ -132,13 +135,14 @@ class NonlinearPDE(object):
         :rtype: `Data`
         """
 
-        if not subs.has_key('u'):
-            raise KeyError("Initial value for 'u' missing.")
+        u_sym=self._u.atoms().pop().name
+        if not subs.has_key(u_sym):
+            raise KeyError("Initial value for '%s' missing."%u_sym)
 
-        ui=subs['u']
+        ui=subs[u_sym]
         if isinstance(ui,float) or isinstance(ui,int):
             ui=Data(ui, self.lpde.getFunctionSpaceForSolution())
-            subs['u']=ui
+            subs[u_sym]=ui
 
         coeffs={}
         # separate symbolic expressions from other coefficients
@@ -161,24 +165,26 @@ class NonlinearPDE(object):
         self.lpde.setValue(**coeffs)
         u_new=self.lpde.getSolution()
         n=0
-        # perform Newton iterations until error small enough or
+        # perform Newton iterations until error is small enough or
         # maximum number of iterations reached
         while util.Lsup(u_new)>self.lpde.getSolverOptions().getTolerance():
             delta_u=u_new
-            ev.subs(u=ui-u_new)
+            ev.subs(**{u_sym:ui-u_new})
             res=ev.evaluate()
             for i in range(len(names)):
                 coeffs[names[i]]=res[i]
+                self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
 
             self.lpde.setValue(**coeffs)
             u_new=self.lpde.getSolution()
-            ui=delta_u
+            ui=ui-delta_u
             n=n+1
+            self.trace("Error after %d iterations: %g"%(n,util.Lsup(u_new)))
             if n>self.lpde.getSolverOptions().getIterMax():
                 break
 
-        self.trace("Error after %d iterations: %g"%(n,util.Lsup(u_new)))
-        return ui
+        self.trace("Final error after %d iterations: %g"%(n,util.Lsup(u_new)))
+        return u_new
 
     def getCoefficient(self, name):
         """
@@ -235,17 +241,18 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             rank=len(shape)
-            if name=="X":
+            if name=="X" or name=="X_reduced":
                 # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
                 #            \   /         \   /
                 #              B             A
-                X=val
+                
                 if rank != u.getRank()+1:
-                    raise IllegalCoefficientValue("X must have rank %d"%u.getRank()+1)
-                if not hasattr(X, 'diff'):
+                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
+                if not hasattr(val, 'diff'):
                     A=numpy.zeros(shape+u.grad().getShape())
                     B=numpy.zeros(shape+u.getShape())
                 elif u.getRank()==0:
+                    X=self._removeFsFromGrad(val)
                     dXdu=X.diff(u)
                     dgdu=u.grad().diff(u)
                     A=numpy.empty(shape+dgdu.getShape(), dtype=object)
@@ -256,6 +263,7 @@ class NonlinearPDE(object):
                     A=Symbol(A).simplify()
                     B=(dXdu-util.matrix_mult(A,dgdu)).simplify()
                 else:  #u.getRank()==1
+                    X=self._removeFsFromGrad(val)
                     dXdu=X.diff(u)
                     dgdu=u.grad().diff(u).transpose(2)
                     I,J=shape
@@ -270,22 +278,28 @@ class NonlinearPDE(object):
                                     else:
                                         tmp=dXdu[i,j,k].coeff(dgdu[k,k,l])
                                         A[i,j,k,l]=0 if tmp is None else tmp
-                    A=Symbol(A).simplify()
-                    B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).simplify()
-                self.coeffs['A']=A
-                self.coeffs['B']=B
-                self.coeffs['X']=X
-            elif name=="Y":
+                    A=Symbol(A).expand() #.simplify()
+                    B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).expand() #.simplify()
+
+                if name=='X_reduced':
+                    self.coeffs['A_reduced']=A
+                    self.coeffs['B_reduced']=B
+                    self.coeffs['X_reduced']=val
+                else:
+                    self.coeffs['A']=A
+                    self.coeffs['B']=B
+                    self.coeffs['X']=val
+            elif name=="Y" or name=="Y_reduced":
                 # DY/Du = del_Y/del_u + del_Y/del_grad(u)*del_grad(u)/del_u
                 #            \   /         \   /
                 #              D             C
-                Y=val
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("Y must have rank %d"%u.getRank())
-                if not hasattr(Y, 'diff'):
+                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                if not hasattr(val, 'diff'):
                     C=numpy.zeros(shape+u.grad().getShape())
                     D=numpy.zeros(shape+u.getShape())
                 elif u.getRank()==0:
+                    Y=self._removeFsFromGrad(val)
                     dYdu=Y.diff(u)
                     dgdu=u.grad().diff(u)
                     C=numpy.empty(dgdu.getShape(), dtype=object)
@@ -295,6 +309,7 @@ class NonlinearPDE(object):
                     C=Symbol(C).simplify()
                     D=(dYdu-util.inner(C,dgdu)).simplify()
                 else:  #u.getRank()==1
+                    Y=self._removeFsFromGrad(val)
                     dYdu=Y.diff(u)
                     dgdu=u.grad().diff(u).transpose(2)
                     I,=shape
@@ -310,29 +325,43 @@ class NonlinearPDE(object):
                                     C[i,j,k]=0 if tmp is None else tmp
                     C=Symbol(C).simplify()
                     D=(dYdu-C.tensorProduct(dgdu.transpose(1),2)).simplify()
-                self.coeffs['C']=C
-                self.coeffs['D']=D
-                self.coeffs['Y']=Y
-            elif name=="y":
+
+                if name=='Y_reduced':
+                    self.coeffs['C_reduced']=C
+                    self.coeffs['D_reduced']=D
+                    self.coeffs['Y_reduced']=val
+                else:
+                    self.coeffs['C']=C
+                    self.coeffs['D']=D
+                    self.coeffs['Y']=val
+            elif name=="y" or name=="y_reduced":
                 y=val
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("y must have rank %d"%u.getRank())
+                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 if not hasattr(y, 'diff'):
                     d=numpy.zeros(u.getShape())
                 else:
                     d=y.diff(u)
-                self.coeffs['d']=d
-                self.coeffs['y']=y
-            elif name=="y_contact":
+                if name=='y_reduced':
+                    self.coeffs['d_reduced']=d
+                    self.coeffs['y_reduced']=y
+                else:
+                    self.coeffs['d']=d
+                    self.coeffs['y']=y
+            elif name=="y_contact" or name=="y_contact_reduced":
                 y_contact=val
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("y_contact must have rank %d"%u.getRank())
+                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 if not hasattr(y_contact, 'diff'):
                     d_contact=numpy.zeros(u.getShape())
                 else:
                     d_contact=y_contact.diff(u)
-                self.coeffs['d_contact']=d_contact
-                self.coeffs['y_contact']=y_contact
+                if name=='y_contact_reduced':
+                    self.coeffs['d_contact_reduced']=d_contact
+                    self.coeffs['y_contact_reduced']=y_contact
+                else:
+                    self.coeffs['d_contact']=d_contact
+                    self.coeffs['y_contact']=y_contact
             elif name=="q":
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("q must have rank %d"%u.getRank())
@@ -342,5 +371,20 @@ class NonlinearPDE(object):
                     raise IllegalCoefficientValue("r must have rank %d"%u.getRank())
                 self.coeffs['r']=val
             else:
-                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%key)
+                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+
+    def _removeFsFromGrad(self, sym):
+        """
+        Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
+        That is, all functionspace parameters are removed.
+        This method is used in setValue() in order to find coefficients of
+        grad(u) with the coeff() function.
+        """
+        from esys.escript import symfn
+        gg=sym.atoms(symfn.grad_n)
+        for g in gg:
+            if len(g.args)==3:
+                r=symfn.grad_n(*g.args[:2])
+                sym=sym.subs(g, r)
+        return sym
 
