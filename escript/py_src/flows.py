@@ -145,6 +145,7 @@ class DarcyFlow(object):
 	
 	 perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
          self.perm_scale=util.Lsup(util.length(perm))
+	 if self.verbose: print "DarcyFlow: permeability scaling factor = %e."%self.perm_scale
          perm=perm*(1./self.perm_scale)
          
 	 if perm.getRank()==0:
@@ -237,8 +238,8 @@ class DarcyFlow(object):
 
       """
       self.__pde_p.setValue(X=self.__g * 1./self.perm_scale, 
-                            Y=self.__f, 
-                            y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
+                            Y=self.__f * 1./self.perm_scale,
+                            y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux * 1./self.perm_scale ), 
                             r=p0)
       p=self.__pde_p.getSolution()
       u = self.getFlux(p, u0)
@@ -264,7 +265,7 @@ class DarcyFlow(object):
             if u0 == None:
 	       self.__pde_v.setValue(r=escript.Data())
 	    else:
-	       self.__pde_v.setValue(r=u0)
+	       self.__pde_v.setValue(r=u0/self.perm_scale)
             u= self.__pde_v.getSolution() * self.perm_scale
 	return u
 	  
