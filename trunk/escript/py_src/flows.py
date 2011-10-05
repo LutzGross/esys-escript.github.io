@@ -109,6 +109,7 @@ class DarcyFlow(object):
       self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
       self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
       self.location_of_fixed_flux = escript.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+      self.perm_scale=1.
      
         
    def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
@@ -143,6 +144,8 @@ class DarcyFlow(object):
       if permeability!=None:
 	
 	 perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
+         self.perm_scale=util.Lsup(util.length(perm))
+         perm=perm*(1./self.perm_scale)
          
 	 if perm.getRank()==0:
 
@@ -176,7 +179,7 @@ class DarcyFlow(object):
 	      g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	else:
 	    if not g.getShape()==(self.domain.getDim(),): raise ValueError,"illegal shape of g"
-	self.__g=g
+	self.__g=g 
       if f !=None:
 	 f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	 if f.isEmpty():	   
@@ -233,7 +236,7 @@ class DarcyFlow(object):
       :rtype: ``tuple`` of `escript.Data`.
 
       """
-      self.__pde_p.setValue(X=self.__g , 
+      self.__pde_p.setValue(X=self.__g * 1./self.perm_scale, 
                             Y=self.__f, 
                             y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
                             r=p0)
@@ -254,16 +257,15 @@ class DarcyFlow(object):
         :return: flux
         :rtype: `escript.Data`
         """
-        u_eval=self.__g-util.tensor_mult(self.__permeability,util.grad(p))
         if self.solver  == self.EVAL:
-           u = self.__g-util.tensor_mult(self.__permeability,util.grad(p))
+           u = self.__g-self.perm_scale * util.tensor_mult(self.__permeability,util.grad(p))
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
-            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g)-util.grad(p))
+            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g * 1./self.perm_scale)-util.grad(p))
             if u0 == None:
 	       self.__pde_v.setValue(r=escript.Data())
 	    else:
 	       self.__pde_v.setValue(r=u0)
-            u= self.__pde_v.getSolution()
+            u= self.__pde_v.getSolution() * self.perm_scale
 	return u
 	  
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
