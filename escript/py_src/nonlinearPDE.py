@@ -164,10 +164,13 @@ class NonlinearPDE(object):
         # solve linear PDE
         self.lpde.setValue(**coeffs)
         u_new=self.lpde.getSolution()
-        n=0
+        self.trace("Initial error: %g"%(util.Lsup(u_new)))
+        self.trace("Initial RHS: %g"%(util.Lsup(self.lpde.getRightHandSide())))
+        n=1
         # perform Newton iterations until error is small enough or
         # maximum number of iterations reached
-        while util.Lsup(u_new)>self.lpde.getSolverOptions().getTolerance():
+        while util.Lsup(u_new)>self.lpde.getSolverOptions().getTolerance() and \
+                n<self.lpde.getSolverOptions().getIterMax():
             delta_u=u_new
             ev.subs(**{u_sym:ui-u_new})
             res=ev.evaluate()
@@ -180,8 +183,7 @@ class NonlinearPDE(object):
             ui=ui-delta_u
             n=n+1
             self.trace("Error after %d iterations: %g"%(n,util.Lsup(u_new)))
-            if n>self.lpde.getSolverOptions().getIterMax():
-                break
+            self.trace("RHS after %d iterations: %g"%(n,util.Lsup(self.lpde.getRightHandSide())))
 
         self.trace("Final error after %d iterations: %g"%(n,util.Lsup(u_new)))
         return u_new
