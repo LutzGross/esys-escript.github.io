@@ -260,7 +260,7 @@ class Test_VTKSaver(unittest.TestCase):
 
     def check_vtk(self, reference, fspaces=[], **data):
         outFileBase="out_"+reference
-        saveVTK(os.path.join(WEIPA_WORKDIR, outFileBase), **data)
+        saveVTK(os.path.join(WEIPA_WORKDIR, outFileBase), write_meshdata=True, **data)
         if len(fspaces)>0:
             for fs in fspaces:
                 ref=os.path.join(WEIPA_TEST_MESHES, reference+"_"+fs+".vtu")

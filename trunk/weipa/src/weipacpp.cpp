@@ -59,8 +59,9 @@ BOOST_PYTHON_MODULE(weipacpp)
         .def("setMeshLabels", &weipa::EscriptDataset::setMeshLabels, (arg("x"),arg("y"),arg("z")=""))
         .def("setMeshUnits", &weipa::EscriptDataset::setMeshUnits, (arg("x"),arg("y"),arg("z")=""))
         .def("setMetadataSchemaString", &weipa::EscriptDataset::setMetadataSchemaString, (arg("schema")="", arg("metadata")=""))
-        .def("saveSilo", &weipa::EscriptDataset::saveSilo, (arg("filename"), arg("useMultimesh")=true))
-        .def("saveVTK", &weipa::EscriptDataset::saveVTK, args("filename"));
+        .def("setSaveMeshData", &weipa::EscriptDataset::setSaveMeshData)
+        .def("saveSilo", &weipa::EscriptDataset::saveSilo, (arg("filename"), arg("useMultimesh")=true), arg("writeMeshdata")=false)
+        .def("saveVTK", &weipa::EscriptDataset::saveVTK, (arg("filename"), arg("writeMeshdata")=false));
 
     // VisIt Control
     def("visitInitialize", weipa::VisItControl::initialize, (arg("simFile"), arg("comment")=""));

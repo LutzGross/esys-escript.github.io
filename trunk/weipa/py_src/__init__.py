@@ -60,7 +60,7 @@ def createDataset(domain=None, **data):
         dataset.addData(d, n, "")
     return dataset
 
-def saveSilo(filename, domain=None, **data):
+def saveSilo(filename, domain=None, write_meshdata=False, **data):
     """
     Writes `Data` objects and their mesh to a file using the SILO file format.
 
@@ -78,6 +78,10 @@ def saveSilo(filename, domain=None, **data):
     :param domain: domain of the `Data` objects. If not specified, the domain
                    of the given `Data` objects is used.
     :type domain: `escript.Domain`
+    :param write_meshdata: whether to save mesh-related data such as element
+                           identifiers, ownership etc. This is mainly useful
+                           for debugging.
+    :type write_meshdata: ``bool``
     :keyword <name>: writes the assigned value to the Silo file using <name> as
                      identifier
     :note: All data objects have to be defined on the same domain but they may
@@ -85,9 +89,10 @@ def saveSilo(filename, domain=None, **data):
     """
 
     dataset = createDataset(domain, **data)
-    dataset.saveSilo(filename)
+    dataset.setSaveMeshData(write_meshdata)
+    return dataset.saveSilo(filename, write_meshdata)
 
-def saveVTK(filename, domain=None, metadata='', metadata_schema=None, **data):
+def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_meshdata=False, **data):
     """
     Writes `Data` objects and their mesh to a file using the VTK XML file
     format.
@@ -127,6 +132,10 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, **data):
     :type metadata_schema: ``dict`` with ``metadata_schema[<namespace>]=<URI>``
                            to assign the scheme ``<URI>`` to the name space
                            ``<namespace>``.
+    :param write_meshdata: whether to save mesh-related data such as element
+                           identifiers, ownership etc. This is mainly useful
+                           for debugging.
+    :type write_meshdata: ``bool``
     :note: All data objects have to be defined on the same domain. They may not
            be in the same `FunctionSpace` but not all combinations of
            `FunctionSpace` s can be written to a single VTK file.
@@ -145,11 +154,12 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, **data):
         else:
             ss=metadata_schema
     dataset.setMetadataSchemaString(ss.strip(), ms.strip())
-    dataset.saveVTK(filename)
+    dataset.setSaveMeshData(write_meshdata)
+    return dataset.saveVTK(filename)
 
 def _saveVTK(filename, domain=None, metadata='', metadata_schema=None, data={}):
     """
     This is only here to support the deprecated domain C++ member saveVTK().
     """
-    saveVTK(filename, domain, metadata, metadata_schema, **data)
+    return saveVTK(filename, domain, metadata, metadata_schema, **data)
 
