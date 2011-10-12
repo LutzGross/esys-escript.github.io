@@ -10,30 +10,21 @@
 # http://www.opensource.org/licenses/osl-3.0.php
 #
 ########################################################
+#
 
-# This is a template configuration file for escript/finley on Linux.
-# Copy this file to <hostname>_options.py, where <hostname> is your machine's
-# short hostname, then customize to your needs.
-
-# PREFIXES:
-# There are two ways to specify where to find dependent headers and libraries
-# (via the <dependency>_prefix):
-# 1) If your installation follows the general scheme where headers are located
-#    in <prefix>/include[32,64], and libraries in <prefix>/lib[32,64] then
-#    it is sufficient to specify this prefix, e.g. boost_prefix='/usr'
-# 2) Otherwise provide a list with two elements, where the first one is the
-#    include path, and the second the library path, e.g.
-#    boost_prefix=['/usr/include/boost1_44', '/usr/lib']
-# All <dependency>_prefix settings default to '/usr'
+#
+#   On epic.ivec.org: link this file to epicuser1_options.py and
+#                     epicuser2_options.py 
+#
 
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 200
+escript_opts_version = 201
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
-prefix = '/opt/escript/3.2.1'
+#prefix = '/opt/escript/3.2.1'
 
 # Top-level directory for intermediate build and test files.
 # DEFAULT: 'build'
@@ -41,11 +32,11 @@ build_dir = 'build'
 
 # C compiler command name or full path.
 # DEFAULT: auto-detected
-cc = 'gcc'
+cc = 'icc'
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
-cxx = 'g++'
+cxx = 'icc'
 
 # Flags to use with both C and C++ compilers. Do not set unless you know
 # what you are doing - use cc_extra to specify additional flags!
@@ -62,15 +53,15 @@ cxx = 'g++'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-#cc_extra = ''
+cc_extra = '-sox'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-#cxx_extra = ''
+cxx_extra = '-sox'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = '-shared-intel'
+ld_extra = '-shared-intel'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -82,19 +73,19 @@ debug = False
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
-#verbose = True
+verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = False
+openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
-#omp_flags = '-fopenmp'
+omp_flags = '-openmp -openmp-report2'
 
 # Additional linker flags for OpenMP builds
 # DEFAULT: compiler-dependent
-#omp_ldflags = '-fopenmp'
+omp_ldflags = '-openmp'
 
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
@@ -174,13 +165,13 @@ mkl_libs = ['mkl_intel_lp64', 'mkl_gnu_thread', 'libmkl_lapack95_lp64', 'mkl_cor
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-#lapack = 'clapack'
+lapack = 'mkl'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = '/usr/local'
+lapack_prefix = mkl_prefix
 
 # LAPACK library/libraries to link against
-#lapack_libs = ['lapack_atlas']
+lapack_libs = ['mkl_rt']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
@@ -194,10 +185,10 @@ mkl_libs = ['mkl_intel_lp64', 'mkl_gnu_thread', 'libmkl_lapack95_lp64', 'mkl_cor
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-#visit = True
+visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-#visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2/'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
