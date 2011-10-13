@@ -431,8 +431,9 @@ By default the labeling of mesh nodes and element distribution is optimized.
 Set \var{optimize=False} to switch off relabeling and redistribution.
 \end{funcdesc}
 
-\begin{funcdesc}{ReadGmsh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
-creates a \Domain object from the FEM mesh defined in file \var{fileName}.
+\begin{funcdesc}{ReadGmsh}{fileName, numDim, \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
+creates a \Domain object from the FEM mesh defined in file \var{fileName} for
+a domain of dimension \var{numDim}.
 The file must be in the \gmshextern file format.
 If \var{integrationOrder} is positive, a numerical integration scheme is chosen
 which is accurate on each element up to a polynomial of degree
