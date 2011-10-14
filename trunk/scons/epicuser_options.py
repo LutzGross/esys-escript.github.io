@@ -61,7 +61,7 @@ cxx_extra = '-sox'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel'
+ld_extra = '-shared-intel -L/opt/hdf5/1.8.6/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -107,6 +107,14 @@ boost_prefix = ['/opt/boost/1.39.0/include/boost-1_39', '/opt/boost/1.39.0/lib']
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-gcc41-mt-1_39']
+
+
+# Prefix or paths to CppUnit headers and libraries. See note above.
+cppunit_prefix = '/opt/cppunit/1.12.1'
+
+# CppUnit library/libraries to link against
+#cppunit_libs = ['cppunit']
+
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
@@ -175,13 +183,14 @@ lapack_libs = ['mkl_rt']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-#silo = True
+silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-#silo_prefix = '/usr/local'
+silo_prefix = [ '/opt/silo/4.7.2/include', '/opt/silo/4.7.2/lib']
+#silo_prefix = [ '/opt/silo/4.7.2/include', '/opt/silo/4.7.2/lib' ,  '/opt/hdf5/1.8.6/lib' ]
 
 # SILO library/libraries to link against
-#silo_libs = ['siloh5', 'hdf5']
+silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
@@ -197,6 +206,19 @@ visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2/'
 # modules)
 # DEFAULT: False
 #pyvisi = True
+# Whether to use BoomerAMG (requires MPI)
+# DEFAULT: False
+#boomeramg = True
+
+# Prefix or paths to BoomerAMG headers and libraries. See note above.
+#boomeramg_prefix = '/opt/hypre/2.0.0/'
+
+# BoomerAMG library/libraries to link against
+#boomeramg_libs = ['HYPRE']
+#boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
+
+
+
 
 
 ### ADVANCED OPTIONS ###
