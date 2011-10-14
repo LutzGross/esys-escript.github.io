@@ -90,7 +90,7 @@ def saveSilo(filename, domain=None, write_meshdata=False, **data):
 
     dataset = createDataset(domain, **data)
     dataset.setSaveMeshData(write_meshdata)
-    return dataset.saveSilo(filename, write_meshdata)
+    return dataset.saveSilo(filename)
 
 def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_meshdata=False, **data):
     """
