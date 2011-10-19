@@ -123,12 +123,8 @@ headers = """
 	performance.h
 """.split()
 
-#if local_env['boomeramg']:
-#    env.Append(CPPDEFINES = ['BOOMERAMG'])
-#    local_env.AppendUnique(LIBS = env['boomeramg_libs'])
-
 # And just for blocktimer cancer.....
-local_env.Append(LIBS = ['esysUtils'])
+local_env.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
