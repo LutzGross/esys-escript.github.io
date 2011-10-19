@@ -94,7 +94,7 @@ for mesh size towards zero can be shown, if $\omega>0$.
 
 
 \subsection{Functions}
-\begin{classdesc}{DarcyFlow}{domain, \optional{w=1., \optional{solver=\member{DarcyFlow.EVAL},  \optional{
+\begin{classdesc}{DarcyFlow}{domain, \optional{w=1., \optional{solver=\member{DarcyFlow.POST},  \optional{
 useReduced=\True, \optional{ verbose=\True} } }}}
 opens the Darcy flux problem\index{Darcy flux} on the \Domain domain. 
 Reduced approximations for pressure and flux are used if \var{useReduced} is set.
@@ -158,8 +158,35 @@ on locations where \var{location_of_fixed_flux} is positive,  see \member{setVal
 Notice that \var{g} and \var{f} are used.
 \end{methoddesc}
 
+\begin{figure}
+\centerline{\includegraphics[width=\figwidth]{darcy_result}}
+\caption{Flux and pressure field of the Dary flow example.}
+\label{DIFFUSION FIG 1}
+\end{figure}
 
+\subsection{Example: Gravity Flow}
+The following script \file{darcy.py}\index{scripts!\file{darcy.py.py}}\index{Darcy flow}
+which is available in the \ExampleDirectory illustrates the usage of the
+\class{DarcyFlow} class:
+\begin{python}
+   from esys.escript import *
+   from esys.escript.models import DarcyFlow
+   from esys.finley import Rectangle
+   from esys.weipa import saveVTK
+   mydomain = Rectangle(l0=2.,l1=1.,n0=40, n1=20)
+   x = mydomain.getX()
+   p_BC=whereZero(x[1]-1.)*wherePositive(x[0]-1.)
+   u_BC=(whereZero(x[0])+whereZero(x[0]-2.)) * [1.,0.] + \
+     (whereZero(x[1]) + whereZero(x[1]-1.)*whereNonPositive(x[0]-1.0)) * [0., 1.]
+   mypde = DarcyFlow(domain=mydomain)
+   mypde.setValue(g=[0., 2],
+                  location_of_fixed_pressure=p_BC,
+                  location_of_fixed_flux=u_BC,
+                  permeability=100.)
 
-%\subsection{Example: Gravity Flow}
-%later
-
+   u,p=mypde.solve(u0=x[1]*[0., -1.], p0=0)
+   saveVTK("u.vtu",flux=u, pressure=p)
+\end{python}
+In the example the pressure is fixed to the initial presure \var{p0} on the right half of the top face.
+The normal flux is set on all other faces. The corresponding values for the flux are set by the initial value
+\var{u0}.   
