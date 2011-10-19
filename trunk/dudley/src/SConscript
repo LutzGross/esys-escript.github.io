@@ -131,7 +131,7 @@ cppadapter_headers = """
 	CPPAdapter/system_dep.h
 """.split()
 
-local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'])
+local_env.Prepend(LIBS = ['escript', 'esysUtils', 'paso'])
 
 if IS_WINDOWS :
   local_env.Append(CPPDEFINES = ['DUDLEY_EXPORTS'])
@@ -154,7 +154,7 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_dudley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['dudley', 'escript', 'esysUtils', 'paso'])
+py_wrapper_local_env.Prepend(LIBS = ['dudley', 'escript', 'esysUtils', 'paso'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'CPPAdapter/dudleycpp.cpp')
 env.Alias('build_dudleycpp_lib', py_wrapper_lib)
