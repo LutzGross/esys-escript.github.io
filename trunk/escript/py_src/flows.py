@@ -55,7 +55,7 @@ class DarcyFlow(object):
    SIMPLE="EVAL"
    POST="POST"
    SMOOTH="SMOOTH"
-   def __init__(self, domain, useReduced=False, solver="EVAL", verbose=False, w=1.):
+   def __init__(self, domain, useReduced=False, solver="POST", verbose=False, w=1.):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -265,7 +265,8 @@ class DarcyFlow(object):
             if u0 == None:
 	       self.__pde_v.setValue(r=escript.Data())
 	    else:
-	       self.__pde_v.setValue(r=u0/self.perm_scale)
+               if not isinstance(u0, escript.Data) : u0 = escript.Vector(u0, escript.Solution(self.domain))
+	       self.__pde_v.setValue(r=1./self.perm_scale * u0)
             u= self.__pde_v.getSolution() * self.perm_scale
 	return u
 	  
