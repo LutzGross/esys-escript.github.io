@@ -122,7 +122,7 @@ class Evaluator:
         ret="\n".join([str(e) for e in self.expressions])+"\n"
         for k in self._subsdict:
             v=self._subsdict[k]
-            if hasattr(v, "getShape"):
+            if v.__class__.__name__=="Data":
                 ret+="%s=<Data object>"%k
             else:
                 ret+="%s=%s"%(k,v)

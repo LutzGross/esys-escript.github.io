@@ -120,7 +120,10 @@ class Symbol(object):
             if len(shape)==0:
                 self._arr=numpy.array(sympy.Symbol(name, **kwargs))
             else:
-                self._arr=sympy.symarray(shape, '['+name+']')
+                try:
+                    self._arr=sympy.symarray(shape, '['+name+']')
+                except TypeError:
+                    self._arr=sympy.symarray('['+name+']', shape)
         else:
             raise TypeError("Unsupported number of arguments")
         if self._arr.ndim==0:

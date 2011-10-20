@@ -30,6 +30,7 @@ __url__="https://launchpad.net/escript-finley"
 """
 
 import numpy
+from time import time
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
 from esys.escript import util, Data, Symbol, Evaluator
 
@@ -156,7 +157,11 @@ class NonlinearPDE(object):
         # evaluate symbolic expressions
         ev=Evaluator(*expressions.values())
         ev.subs(**subs)
+        self.trace("Starting expression evaluation.")
+        ttt0=time()
         res=ev.evaluate()
+        ttt1=time()
+        self.trace("Expressions evaluated. Took %f seconds."%(ttt1-ttt0))
         names=expressions.keys()
         for i in range(len(names)):
             coeffs[names[i]]=res[i]
@@ -260,7 +265,7 @@ class NonlinearPDE(object):
                     A=numpy.empty(shape+dgdu.getShape(), dtype=object)
                     for i in numpy.ndindex(shape):
                         for j in numpy.ndindex(dgdu.getShape()):
-                            tmp=dXdu[i].coeff(dgdu[j])
+                            tmp=dXdu[i].expand().coeff(dgdu[j])
                             A[i,j]=0 if tmp is None else tmp
                     A=Symbol(A).simplify()
                     B=(dXdu-util.matrix_mult(A,dgdu)).simplify()
@@ -278,10 +283,16 @@ class NonlinearPDE(object):
                                     if dgdu[k,k,l]==0:
                                         A[i,j,k,l]=0
                                     else:
-                                        tmp=dXdu[i,j,k].coeff(dgdu[k,k,l])
+                                        tmp=dXdu[i,j,k].expand().coeff(dgdu[k,k,l])
                                         A[i,j,k,l]=0 if tmp is None else tmp
+                                        #tmp=sympy.collect(dXdu[i,j,k].expand(), dgdu[k,k,l], evaluate=False, exact=True)
+                                        #try:
+                                        #    A[i,j,k,l]=tmp[dgdu[k,k,l]]
+                                        #except KeyError:
+                                        #    A[i,j,k,l]=0
+
                     A=Symbol(A).expand() #.simplify()
-                    B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).expand() #.simplify()
+                    B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).expand() #simplify()
 
                 if name=='X_reduced':
                     self.coeffs['A_reduced']=A
@@ -306,7 +317,8 @@ class NonlinearPDE(object):
                     dgdu=u.grad().diff(u)
                     C=numpy.empty(dgdu.getShape(), dtype=object)
                     for j in numpy.ndindex(dgdu.getShape()):
-                        tmp=dYdu.coeff(dgdu[j])
+                        tmp=dYdu.expand().coeff(dgdu[j])
+                        #tmp=dYdu.collect(dgdu[j])
                         C[j]=0 if tmp is None else tmp
                     C=Symbol(C).simplify()
                     D=(dYdu-util.inner(C,dgdu)).simplify()
@@ -323,7 +335,7 @@ class NonlinearPDE(object):
                                 if dgdu[j,j,k]==0:
                                     C[i,j,k]=0
                                 else:
-                                    tmp=dYdu[i,j].coeff(dgdu[j,j,k])
+                                    tmp=dYdu[i,j].expand().coeff(dgdu[j,j,k])
                                     C[i,j,k]=0 if tmp is None else tmp
                     C=Symbol(C).simplify()
                     D=(dYdu-C.tensorProduct(dgdu.transpose(1),2)).simplify()
