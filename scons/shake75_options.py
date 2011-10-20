@@ -96,7 +96,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['libboost_python-mt-py26']
+boost_libs = ['libboost_python-mt-py27']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'

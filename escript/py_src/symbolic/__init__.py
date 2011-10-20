@@ -19,16 +19,23 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from evaluator import *
 from symbols import *
+from evaluator import *
+from pretty import pretty_print, pprint
+import functions as symfn
 
 # prefer escript's implementation of functions such as 'sign' etc.
 from sympy.utilities.lambdify import MODULES
 ESCRIPT_NAMESPACE = {}
+ESCRIPT_DEFAULT = {}
 ESCRIPT_TRANSLATIONS = {
     #"ln":"log",
 }
-MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+
+if len(MODULES['math'])==3:
+    MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+else:
+    MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_DEFAULT, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
 
 #
 # vim: expandtab shiftwidth=4:
