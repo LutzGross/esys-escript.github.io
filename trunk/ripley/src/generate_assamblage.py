@@ -134,7 +134,7 @@ def generate(DIM):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createCode(f_interpolation, x, Q_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
-   CODE+="\n} /* end of out_data_type branching \n"
+   CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Interpolation_%sD.c"%DIM, CODE)
 
 
@@ -153,7 +153,7 @@ def generate(DIM):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createGradientCode(f_interpolation, x, Q_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
-   CODE+="\n} /* end of out_data_type branching \n"
+   CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Gradient_%sD.c"%DIM, CODE)
     
 
