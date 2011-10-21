@@ -154,7 +154,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                D=1./D;
                invA[q]=D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -176,7 +176,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(0,1,q,2,2)]=-A12*D;
                invA[INDEX3(1,1,q,2,2)]= A11*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -208,7 +208,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)*D;
                invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -278,7 +278,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             A21=A[INDEX3(1,0,q,2,dim1)];
             length = sqrt(A11*A11+A21*A21);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -300,7 +300,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             CO_A33=A11*A22-A21*A12;
             length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                return;
             } else {
                invlength=1./length;
