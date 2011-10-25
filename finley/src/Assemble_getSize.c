@@ -17,7 +17,7 @@
 /*    assemblage routines: */
 
 /*    calculates the minimum distance between two vertices of elements and assigns the value to each  */
-/*    quadrature point in element_size                                                                         */
+/*    quadrature point in element_size */
 
 
 /**************************************************************/

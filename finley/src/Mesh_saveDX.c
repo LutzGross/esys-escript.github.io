@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   writes data and mesh in an opendx file                      */
+/*   writes data and mesh to an opendx file                      */
 /*   the input data needs to be cell centered or on reducedNodes */
 
 /**************************************************************/
@@ -29,7 +29,7 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   /* some tables needed for reordering */
   int resort[6][9]={
                     {0,1},   /* line */
-                    {0,1,2},  /* triagle */
+                    {0,1,2},  /* triangle */
                     {0,1,2,3}, /* tetrahedron */
                     {0,3,1,2}, /* quadrilateral */
                     {3,0,7,4,2,1,6,5}, /* hexahedron */
@@ -42,13 +42,13 @@ void Finley_Mesh_saveDX(const char * filename_p, Finley_Mesh *mesh_p, const dim_
   bool_t *isCellCentered=NULL;
   Finley_ElementFile* elements=NULL;
   Finley_ElementTypeId TypeId;
-  /* open the file  and check handel */
 
   /* if there is no mesh we just return */
   if (mesh_p==NULL) return;
   isCellCentered=MEMALLOC(num_data, bool_t);
   if (Finley_checkPtr(isCellCentered)) return;
 
+  /* open the file  and check handle */
   fileHandle_p = fopen(filename_p, "w");
   if (fileHandle_p==NULL) {
     sprintf(error_msg,"File %s could not be opened for writing.",filename_p);

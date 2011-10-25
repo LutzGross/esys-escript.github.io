@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: read mesh */
+/*   Finley: read mesh from gmsh file */
 
 /**************************************************************/
 
@@ -223,7 +223,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       break;
                   default:
                      element_type[e]=Finley_NoRef;
-                     sprintf(error_msg,"Unexected gmsh element type %d in mesh file %s.",gmsh_type,fname);
+                     sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.",gmsh_type,fname);
                      Finley_setError(IO_ERROR,error_msg);
               }
               if (element_dim == numDim) {
@@ -287,7 +287,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
             /* all elements have been read, now we have to identify the elements for finley */
         
             if (Finley_noError()) {
-              /* first we have to identify the elements to define Elementis and FaceElements */
+              /* first we have to identify the elements to define Elements and FaceElements */
               if (final_element_type == Finley_NoRef) {
                  if (numDim==1) {
                     final_element_type=Finley_Line2;
@@ -372,7 +372,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          TMPMEMFREE(element_type);
          TMPMEMFREE(vertices);
       }
-      /* serach for end of data block */
+      /* search for end of data block */
       do {
          if (!fgets(line, sizeof(line), fileHandle_p)) {
             sprintf(error_msg,"Unexected end of file in %s",fname);

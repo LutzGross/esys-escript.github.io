@@ -31,7 +31,7 @@
 /*      X = numEqu x numDim   */
 /*      Y = numEqu */
 
-/*    The coefficients A,B,C,D,X and Y have to be defined on the integartion points or not present (=NULL). */
+/*    The coefficients A,B,C,D,X and Y have to be defined on the integration points or not present (=NULL). */
 
 /*    S and F have to be initialized before the routine is called. S or F can be NULL. In this case the left or */
 /*    the right hand side of the PDE is not processed.  */
@@ -66,7 +66,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (S==NULL && isEmpty(F)) return;
 
   if (isEmpty(F) && !isEmpty(X) && !isEmpty(F)) {
-        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: right hand side coefficients are non-zero bat no right hand side vector given.");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
   }
 
   if (S==NULL && !isEmpty(A) && !isEmpty(B) && !isEmpty(C) && !isEmpty(D)) {
@@ -104,7 +104,6 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   }
   if (! Finley_noError()) return;
 
-  /* check if all function spaces are the same */
   if (funcspace==FINLEY_ELEMENTS) {
        reducedIntegrationOrder=FALSE;
   } else if (funcspace==FINLEY_FACE_ELEMENTS)  {
@@ -132,7 +131,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   Finley_Assemble_getAssembleParameters(nodes,elements,S,F, reducedIntegrationOrder, &p);
   if (! Finley_noError()) return;
 
-  /* check if all function spaces are the same */
+  /* check if sample numbers are the same */
 
   if (! numSamplesEqual(A,p.numQuadTotal,elements->numElements) ) {
         sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuadTotal,elements->numElements);
@@ -262,7 +261,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (Finley_noError()) {
      if (p.numEqu == p. numComp) {
         if (p.numEqu > 1) {
-          /* system of PDESs */
+          /* system of PDEs */
           if (p.numDim==3) {
             if ( p.numSides == 1 ) {
 
@@ -329,7 +328,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
             Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
           }
         } else {
-          /* single PDES */
+          /* single PDE */
           if (p.numDim==3) {
             if ( p.numSides == 1  ) {
 	       if (funcspace==FINLEY_POINTS) {

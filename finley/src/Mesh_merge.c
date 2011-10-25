@@ -16,8 +16,8 @@
 
 /*	 Finley: Mesh */
 
-/*	 takes nodes elements, etc of in2 and copies them into in1 */
-/*	 Ids of in2 are shifted by the maximum Id of in1 */
+/*	 takes nodes, elements, etc. of all in put meshes and copies them into */
+/*	 a new mesh. Ids of output are shifted by the maximum Id of input. */
 
 /**************************************************************/
 
@@ -54,7 +54,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   } else {
 	for	 (i=0;i<numMsh;i++) {
 		 if (msh[i]->MPIInfo->size > 1) {
-			  Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than processor is not supported yet.");
+			  Finley_setError(TYPE_ERROR,"Finley_Mesh_merge: more than 1 processor is not supported yet.");
 			  return NULL;
 		 }
 	}
@@ -64,7 +64,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 	mpi_info=msh[0]->MPIInfo;
 	strcpy(newName,"");
 	for (i=0;i<numMsh;i++) {
-	   /* check if all mesh have the same type and dimensions */
+	   /* check if all meshes have the same type and dimensions */
 	   order=MAX(order,msh[i]->integrationOrder);
 	   reduced_order=MIN(reduced_order,msh[i]->reducedIntegrationOrder);
 	   numNodes+=msh[i]->Nodes->numNodes;

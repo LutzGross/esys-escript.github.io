@@ -184,10 +184,10 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
   for (i=0; i< numPoints; ++i) {
      if (node_id_p[i]>-1) { /* this processor uses a node which is identical to point i */
 
-        if  ( mesh-> Nodes->globalReducedDOFIndex[node_id_p[i]]  >-1) { /* the point also used in the reduced mesh */
+        if  ( mesh-> Nodes->globalReducedDOFIndex[node_id_p[i]]  >-1) { /* the point is also used in the reduced mesh */
 
 	  register const index_t global_id=mesh->Nodes->globalDegreesOfFreedom[node_id_p[i]];
-	  if ( (firstDOF<= global_id) && ( global_id <lastDOF) ) {  /* is this point actally relevant */
+	  if ( (firstDOF<= global_id) && ( global_id <lastDOF) ) {  /* is this point actually relevant */
 
 
 	     /* is this point already in the Point table? */
@@ -219,7 +219,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
 	}
      }
    }
-   /* new we are ready to create the new Point table */
+   /* now we are ready to create the new Point table */
    Finley_ElementFile_allocTable(newPoints,numOldPoints+numNewPoints);
    if (numOldPoints > 0) {
        #pragma omp parallel for private(n) schedule(static)
