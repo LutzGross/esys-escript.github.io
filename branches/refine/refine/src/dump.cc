@@ -88,11 +88,14 @@ int main()
     int c=0;
     cout << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n";
     OctTree ot(1,1,1);
-//    ot.allSplit(1);
-    cerr << "{{{{{{{{{\n";
-//    ot.splitPoint(0.374, 0.375,0.375, 3);
-    ot.splitPoint(0.126, 0.126,0.125/2, 4);
+    ot.allSplit(1);
 
+
+
+    ot.splitPoint(0.512, 0.126,0.99, 10);
+    
+    ot.splitPoint(0.2, 0.8,0.01, 15);
+     
     dumpGrid(ot);
     //dumpCen(ot);
 
