@@ -146,6 +146,28 @@ void OctCell::upSplitPoint(double x, double y, double z, unsigned d)
     } 
 }
 
+// Works up  the tree until it finds 
+void OctCell::upCollPoint(double x, double y, double z, unsigned d)
+{
+    if ((x<centre[0]-sides[0]/2) || (x>centre[0]+sides[0]/2) || (y<centre[1]-sides[1]/2) ||
+        (y>centre[1]+sides[1]/2) || (z<centre[2]-sides[2]/2) || (z>centre[2]+sides[2]/2))
+    {
+        // It is outside this box so go up
+	if (parent!=0)
+	{
+	    parent->upCollPoint(x, y, z, d);
+	}
+        return;
+    }
+    else
+    {
+        cerr << "Up to " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+      
+        // it's in this cell somewhere so start moving down again
+        collapsePoint(x, y, z, d);       
+    } 
+}
+
 
 // return the leaf which contains this point.
 // Assumes that the point lies somewhere in this cell
@@ -159,7 +181,7 @@ OctCell* OctCell::findLeaf(double x, double y, double z)
     int py=(y>centre[1]);
     int px=(x>centre[0]);
     int child=pz+2*py+(px^py);	      
-    return kids[child];
+    return kids[child]->findLeaf(x,y,z);
 }
 
 
@@ -185,6 +207,138 @@ void OctCell::splitPoint(double x, double y, double z, unsigned d)
     } while (start->depth+1 <d);
 }
 
+
+// collapses the children of this node
+void OctCell::collapse()
+{
+    if (!leaf)
+    {
+        // collapse any grandkids
+        for (unsigned i=0;i<8;++i)
+	{
+            kids[i]->collapse();	// so we know we are only dealing with leaves
+	}
+        for (unsigned i=0;i<8;++i)
+	{
+	    delete kids[i];
+	}
+	leaf=true;
+    }  
+}
+
+void OctCell::collapseAll(unsigned int desdepth)
+{
+    if (leaf)
+    {
+        return;  
+    }
+    for (unsigned i=0;i<8;++i)
+    {
+	kids[i]->collapseAll(desdepth);
+    }
+    if (depth>=desdepth)
+    {
+        collapse();
+    }
+}
+
+
+// The leaf which contains (x,y,z) should be at depth at most d
+void OctCell::collapsePoint(double x, double y, double z, unsigned d)
+{
+    // find cell
+    // if it doesn't need refining, then bail
+    // refine neighbours to be at least d-1
+    // refine this cell
+    OctCell* start=this;
+    do
+    {
+	OctCell* l=start->findLeaf(x, y, z);
+	if (l->depth<=d)
+	{
+	    return;  
+	}
+	l=l->parent;
+	l->outwardCollapse(l->depth+1);		// since we have gone up a level
+	l->collapse();
+	start=l;
+    } while (start->depth+1 >d);
+  
+}
+
+
+// This is horribly inefficient!!!
+// After a cell has been, thisdegrem method can be called to ensure that the tree is still "not too unbalanced"
+void OctCell::outwardCollapse(unsigned desireddepth)
+{
+    double minside=(sides[0]>sides[1])?sides[0]:sides[1];
+    minside=(minside>sides[2])?sides[2]:minside;
+    minside/=5;		// this will work provided that all other divisions have been safe 
+    
+    cerr << "Outward collapse: " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+    cerr << "-" << (centre[0]-sides[0]/2-minside) << ' ' <<  centre[1] << ' ' <<  centre[2]<<"\n";
+    upCollPoint(centre[0]-sides[0]/2-minside, centre[1]-minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]-sides[0]/2-minside, centre[1]-minside, centre[2]+minside, desireddepth);
+    
+    upCollPoint(centre[0]-sides[0]/2-minside, centre[1]+minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]-sides[0]/2-minside, centre[1]+minside, centre[2]+minside, desireddepth);
+    
+    
+    cerr << "-\n";
+    upCollPoint(centre[0]+sides[0]/2+minside, centre[1]-minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]+sides[0]/2+minside, centre[1]-minside, centre[2]+minside, desireddepth);
+
+    upCollPoint(centre[0]+sides[0]/2+minside, centre[1]+minside, centre[2]-minside, desireddepth);
+
+    upCollPoint(centre[0]+sides[0]/2+minside, centre[1]+minside, centre[2]+minside, desireddepth);
+    
+    
+    cerr << "-\n";
+    upCollPoint(centre[0]-minside, centre[1]-sides[1]/2-minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]-minside, centre[1]-sides[1]/2-minside, centre[2]+minside, desireddepth);
+    
+    upCollPoint(centre[0]+minside, centre[1]-sides[1]/2-minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]+minside, centre[1]-sides[1]/2-minside, centre[2]+minside, desireddepth);
+    
+    
+    
+    
+    
+    cerr << "-\n";
+    upCollPoint(centre[0]-minside, centre[1]+sides[1]/2+minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]-minside, centre[1]+sides[1]/2+minside, centre[2]+minside, desireddepth);
+
+    upCollPoint(centre[0]+minside, centre[1]+sides[1]/2+minside, centre[2]-minside, desireddepth);
+    
+    upCollPoint(centre[0]+minside, centre[1]+sides[1]/2+minside, centre[2]+minside, desireddepth);
+    
+    
+    cerr << "-\n";
+    upCollPoint(centre[0]-minside, centre[1]-minside, centre[2]-sides[2]/2-minside, desireddepth);
+    
+    upCollPoint(centre[0]-minside, centre[1]+minside, centre[2]-sides[2]/2-minside, desireddepth);
+    
+    upCollPoint(centre[0]+minside, centre[1]-minside, centre[2]-sides[2]/2-minside, desireddepth);
+    
+    upCollPoint(centre[0]+minside, centre[1]+minside, centre[2]-sides[2]/2-minside, desireddepth);    
+    
+    cerr << "-\n";
+    upCollPoint(centre[0]-minside, centre[1]-minside, centre[2]+sides[2]/2+minside, desireddepth);
+
+    upCollPoint(centre[0]-minside, centre[1]+minside, centre[2]+sides[2]/2+minside, desireddepth);
+
+    upCollPoint(centre[0]+minside, centre[1]-minside, centre[2]+sides[2]/2+minside, desireddepth);
+
+    upCollPoint(centre[0]+minside, centre[1]+minside, centre[2]+sides[2]/2+minside, desireddepth);
+    
+    cerr << "----\n";
+}
 
 void OctCell::doLeafWalk(cellfunct c, void* v)
 {

@@ -23,6 +23,18 @@ void OctTree::allSplit(unsigned int d)
     p.allSplit(d);  
 }
 
+void OctTree::allCollapse(unsigned d)
+{
+   p.collapseAll(d);  
+  
+}
+
+void OctTree::collapsePoint(double x, double y, double z, unsigned int d)
+{
+    p.collapsePoint(x,y,z,d);  
+  
+}
+
 void OctTree::splitPoint(double x, double y, double z, unsigned int desdepth)
 {
     if ((x<0) || (y<0) || (z<0) ||
@@ -32,6 +44,7 @@ void OctTree::splitPoint(double x, double y, double z, unsigned int desdepth)
     }
     p.splitPoint(x, y, z, desdepth);
 }
+
 
 
 void OctTree::walkLeaves(cellfunct c, void* v)
