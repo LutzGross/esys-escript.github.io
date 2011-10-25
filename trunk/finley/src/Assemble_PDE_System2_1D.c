@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assembles the system of numEq PDEs into the stiffness matrix S right hand side F  */
+/*    assembles the system of numEq PDEs into the stiffness matrix S and right hand side F  */
 /*    the shape functions for test and solution must be identical */
 
 

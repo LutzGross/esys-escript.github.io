@@ -15,8 +15,8 @@
 /**************************************************************/
 
 /*   Finley: Mesh: optimizes the distribution of DOFs across processors */
-/*   using ParMETIS. On return a new distribution is given and the globalDOF are relabled */
-/*   accordingly but the mesh has not been redesitributed yet                             */
+/*   using ParMETIS. On return a new distribution is given and the globalDOF */
+/*   are relabeled accordingly but the mesh is not redistributed yet. */
 
 /**************************************************************/
 
@@ -31,7 +31,7 @@
 
 /**************************************************************
    Check whether there is any node which has no vertex. In case 
-   such node exists, we don't use parmetis since parmetis requires
+   such a node exists, we don't use parmetis since parmetis requires
    that every node has at least 1 vertex (at line 129 of file
    "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
    any node has no vertex).
@@ -126,7 +126,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                    index_list[i].n=0;
               }
 	      /* ksteube build CSR format */
-              /*  insert contributions from element matrices into colums index index_list: */
+              /*  insert contributions from element matrices into columns index index_list: */
               Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Elements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
@@ -192,14 +192,14 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                  for (i=0;i<myNumVertices;++i) partition[i]=0;		/* CPU 0 owns it */
 	      }
 #else
-              for (i=0;i<myNumVertices;++i) partition[i]=myRank;	/* CPU 0 owns it */
+              for (i=0;i<myNumVertices;++i) partition[i]=myRank;	/* CPU myRank owns it */
 #endif
 
            }
 
            Paso_Pattern_free(pattern);
            
-           /* create a new distributioin and labeling of the DOF */
+           /* create a new distribution and labeling of the DOF */
            memset(new_distribution,0,mpiSize_size);
            #pragma omp parallel private(loc_partition_count)
            {

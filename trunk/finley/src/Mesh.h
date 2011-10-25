@@ -20,37 +20,37 @@
 /* Finley: Mesh */
 
 /* A mesh is built from nodes and elements which are describing the
-   domain, the surface and point sources. (the latter are needed to
+   domain, the surface and point sources (the latter are needed to
    establish links with other codes, in particular to particle
-   codes). The nodes are stored a Finley_NodeFile and elements in a
-   Finley_ElementFile. A Finley_NodeFile and three Finley_ElementFile
-   containing the elements describing the domain, surface and point
-   sources respectively. Notice that the surface elements do not
-   necessaryly cover the entire surface of the domain. */
+   codes). The nodes are stored in a Finley_NodeFile and elements in a
+   Finley_ElementFile. Four Finley_ElementFiles containing the elements
+   describe the domain, surface, contact and point sources, respectively.
+   Notice that the surface elements do not necessarily cover the entire
+   surface of the domain. */
 
 /* The element type is fixed by the reference element, see
    ReferenceElement.h. The numbering of the nodes starts with 0. */
 
-/* Important: it is assumed that every node is appearing in at least
+/* Important: it is assumed that every node appears in at least
    one element or surface element and that any node used in an
    element, surface element or as a point is specified in the
-   Finley_Node, see also Finley_resolveNodeIds. */
+   Finley_NodeFile, see also Finley_resolveNodeIds. */
 
-/* In some cases it is useful to refer to a mesh entirly built from
+/* In some cases it is useful to refer to a mesh entirely built from
    order 1 (=linear) elements. The linear version of the mesh can be
-   accessed by referning to the first few nodes of each element
+   accessed by referring to the first few nodes of each element
    (thanks to the way the nodes are ordered). As the numbering of
-   these nodes is not continuous a relabeling vectors are introduced
+   these nodes is not continuous a relabeling vector is introduced
    in the Finley_NodeFile. This feature is not fully implemented
    yet. */
 
-/* allnodes and elements are tagged. the tag allows to group nodes and
+/* All nodes and elements are tagged. The tag allows to group nodes and
    elements. A typical application is to mark surface elements on a
    certain portion of the domain with the same tag. All these surface
-   elements can then assigned the same value eg. for the pressure. */
+   elements can then be assigned the same value e.g. for the pressure. */
 
-/* Thespacial dimension is determined by the type of elements
-   used. The spacial dimension should be accessed by the function
+/* The spatial dimension is determined by the type of elements
+   used. The spatial dimension should be accessed by the function
    Finley_Mesh_getDim. Notice that the element type also determines
    the type of surface elements to be used. */
 
@@ -74,7 +74,7 @@
 
 struct Finley_Mesh {
   char* Name;                           /* the name of the mesh */
-  dim_t reference_counter;              /* counts the number of references to the mesh; */
+  dim_t reference_counter;              /* counts the number of references to the mesh */
   dim_t approximationOrder;                        
   dim_t reducedApproximationOrder;                
   dim_t integrationOrder;                
@@ -97,7 +97,7 @@ struct Finley_Mesh {
 
 typedef struct Finley_Mesh Finley_Mesh;
 
-/* these structures are used for matching surfaces elements: */
+/* these structures are used for matching surface elements: */
 
 struct Finley_Mesh_findMatchingFaces_center{
    index_t refId;

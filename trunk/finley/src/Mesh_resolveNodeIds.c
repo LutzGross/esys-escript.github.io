@@ -16,8 +16,8 @@
 
 /*   Finley: Mesh */
 
-/*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
-/*   NodeFile. It is also not ensured that all nodes refered by an element is actually available */
+/*   at input the element nodes refer to the numbering defined the global Id assigned to the nodes in the */
+/*   NodeFile. It is also not ensured that all nodes referred by an element are actually available */
 /*   on the process.  At the output, a local node labeling is used and all nodes are available */
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */
@@ -120,7 +120,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
         if (Finley_noError()) {
            Finley_NodeFile_free(in->Nodes);
            in->Nodes=newNodeFile;
-           /*  relable nodes of the elements: */
+           /*  relabel nodes of the elements: */
            Finley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
         }
   }

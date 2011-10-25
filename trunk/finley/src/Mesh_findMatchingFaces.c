@@ -84,7 +84,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
     a1=TMPMEMALLOC(NN,int);
     a2=TMPMEMALLOC(NN,int);
     if (!(Finley_checkPtr(X) || Finley_checkPtr(center) || Finley_checkPtr(a1) || Finley_checkPtr(a2)) ) {
-       /* OMP */
+       /* TODO: OMP */
        for (e=0;e<faces->numElements;e++) {
             /* get the coordinates of the nodes */
             Finley_Util_Gather_double(NN,&(faces->Nodes[INDEX2(0,e,NN)]),numDim,nodes->Coordinates,&(X[INDEX3(0,0,e,numDim,NN)]));
@@ -103,17 +103,16 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                }
             }
        }
-       /* set the */
        Finley_Mesh_lockingGridSize=h*MAX(safety_factor,0);
        #ifdef Finley_TRACE
        printf("locking grid size is %e\n",Finley_Mesh_lockingGridSize);
        printf("absolute tolerance is %e.\n",h * tolerance);
        #endif
-       /* sort the elements by center center coordinates (lexigraphical)*/
+       /* sort the elements by center coordinates (lexicographical)*/
        qsort(center,faces->numElements,sizeof(Finley_Mesh_findMatchingFaces_center),Finley_Mesh_findMatchingFaces_compar);
        /* find elements with matching center */
        *numPairs=0;
-       /* OMP */
+       /* TODO: OMP */
        for (e=0;e<faces->numElements-1 && Finley_noError();e++) {
           dist=0; 
           for (i=0;i<numDim;i++) dist=MAX(dist,ABS(center[e].x[i]-center[e+1].x[i]));
@@ -138,9 +137,9 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                     #pragma ivdep
                     for (i=0;i<NN;i++) perm[i]=perm_tmp[shiftNodes[i]];
                  }
-                 /* if the permutation is back at the identity, ie. perm[0]=0, the faces don't match: */
+                 /* if the permutation is back at the identity, i.e. perm[0]=0, the faces don't match: */
                  if (perm[0]==0) {
-                       sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match first node of element %d to touching element %d",e_0,e_1);
+                       sprintf(error_msg,"Mesh_findMatchingFaces: couldn't match first node of element %d to touching element %d",e_0,e_1);
                        Finley_setError(VALUE_ERROR,error_msg);
                  }
               }
@@ -152,7 +151,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                     if (dist>h*tolerance) {
                           /* rotate the nodes */
                           if (reverseNodes[0]<0) {
-                             sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                             sprintf(error_msg,"Mesh_findMatchingFaces: couldn't match the second node of element %d to touching element %d",e_0,e_1);
                              Finley_setError(VALUE_ERROR,error_msg);
                           } else {
                              itmp_ptr=perm;
@@ -162,7 +161,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                              for (i=0;i<NN;i++) perm[i]=perm_tmp[reverseNodes[i]];
                              getDist(dist,e_0,1,e_1,perm[faceNodes[1]]);
                              if (dist>h*tolerance) {
-                                 sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the second node of element %d to touching element %d",e_0,e_1);
+                                 sprintf(error_msg,"Mesh_findMatchingFaces: couldn't match the second node of element %d to touching element %d",e_0,e_1);
                                  Finley_setError(VALUE_ERROR,error_msg);
                              }
                           }
@@ -175,7 +174,7 @@ void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *f
                     n=faceNodes[i];
                     getDist(dist,e_0,n,e_1,perm[n]);
                     if (dist>h*tolerance) {
-                       sprintf(error_msg,"Mesh_findMatchingFaces:couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
+                       sprintf(error_msg,"Mesh_findMatchingFaces: couldn't match the %d-th node of element %d to touching element %d",i,e_0,e_1);
                        Finley_setError(VALUE_ERROR,error_msg);
                        break;
                     }

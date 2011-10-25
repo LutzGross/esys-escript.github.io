@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assembles a single PDEs into the stiffness matrix S right hand side F  */
+/*    assembles a single PDE into the stiffness matrix S and right hand side F  */
 
 /*      D u_m  and Y */
 
