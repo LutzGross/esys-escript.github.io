@@ -16,11 +16,11 @@ public:
       void split();		// split this cell into 8 children
       void collapse();		// remove all kids and make this a leaf
       void allSplit(unsigned int depth);
-      OctCell* splitPoint(double x, double y, double z, unsigned desdepth);
+      void splitPoint(double x, double y, double z, unsigned desdepth);
       void merge();
       void doLeafWalk(cellfunct c, void* v);  
-      OctCell* safeSplitPoint(double x, double y, double z, unsigned int desireddepth);
       void outwardRefine(unsigned desireddepth);
+      OctCell* findLeaf(double x, double y, double z);
 //private:
       void upSplitPoint(double x, double y, double z, unsigned d);
       bool leaf;

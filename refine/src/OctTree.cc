@@ -30,7 +30,7 @@ void OctTree::splitPoint(double x, double y, double z, unsigned int desdepth)
     {
         return;
     }
-    p.safeSplitPoint(x, y, z, desdepth);
+    p.splitPoint(x, y, z, desdepth);
 }
 
 

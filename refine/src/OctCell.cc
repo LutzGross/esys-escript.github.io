@@ -100,48 +100,6 @@ void OctCell::allSplit(unsigned int depth)
     }
 }
 
-// find the leaf containing the point
-// If the point lies on a boundary, then the code will pick a side
-// This code assumes that the specified point must lie somewhere in this cell
-//
-// This code does not enforce smooth stepping down (ie we could have 1 cell neighbouring >2 cells)
-OctCell* OctCell::splitPoint(double x, double y, double z, unsigned int desireddepth)
-{
-cerr << "SP " << x << " " << y << " " << z << "(" << desireddepth << ") at " << centre[0] << " " << centre[1] << " " << centre[2] << " ("
-      << depth << ") " << endl;
-    if (depth>=desireddepth)
-    {
-       return 0; 
-    }
-    if (leaf)
-    {
-        if (depth+1==desireddepth)	// note that this level is not checked for outward refinement
-	{				// I'm assuming the final caller is doing that
-	    cerr << "USplit at " << centre[0] << " " << centre[1] << " " << centre[2] << endl;
-	    split();
-	    return this;
-	}
-	else
-	{
-	    cerr << "Splitting Point " << centre[0] << " " << centre[1] << " " << centre[2] << endl;
-	    // this situation means someone is trying to refine a cell multiple levels in one call
-	    // not really what we had in mind so ...
-	    split();
-	    cerr << "My depth is " << depth << " and I created a cell with depth " << (depth+1) << endl;
-	    outwardRefine(depth-1);
-	    // now we need to do this again
-	    
-	    return splitPoint(x, y, z, desireddepth);
-	}
-    }
-    else
-    {
-        int pz=(z>centre[2])?4:0;
-        int py=(y>centre[1])?2:0;
-        int px=(x>centre[0]);
-        return kids[pz+py+px]->splitPoint(x, y, z, desireddepth);
-    }
-}
 
 // After a cell has been split, this method can be called to ensure that the tree is still "not too unbalanced"
 void OctCell::outwardRefine(unsigned desireddepth)
@@ -166,24 +124,6 @@ void OctCell::outwardRefine(unsigned desireddepth)
     cerr << "----\n";
 }
 
-
-// Does the same as above but ensures the tree remains "not too unbalanced"
-OctCell* OctCell::safeSplitPoint(double x, double y, double z, unsigned int desireddepth)
-{
-    if (!desireddepth)
-    {
-        return 0;  
-    }
-    OctCell* s=splitPoint(x,y,z, desireddepth);  
-    if (!s)
-    {
-        return 0;  
-    }
-    s->outwardRefine(desireddepth-1);
-    return this;
-}
-
-
 // Works up  the tree until it finds 
 void OctCell::upSplitPoint(double x, double y, double z, unsigned d)
 {
@@ -205,6 +145,46 @@ void OctCell::upSplitPoint(double x, double y, double z, unsigned d)
         splitPoint(x, y, z, d);       
     } 
 }
+
+
+// return the leaf which contains this point.
+// Assumes that the point lies somewhere in this cell
+OctCell* OctCell::findLeaf(double x, double y, double z)
+{
+    if (leaf)
+    {
+        return this;
+    }
+    int pz=(z>centre[2])?4:0;
+    int py=(y>centre[1]);
+    int px=(x>centre[0]);
+    int child=pz+2*py+(px^py);	      
+    return kids[child];
+}
+
+
+// divide the leaf containing the point (if required)
+// This needs to be more efficient but will do for now
+void OctCell::splitPoint(double x, double y, double z, unsigned d)
+{
+    // find cell
+    // if it doesn't need refining, then bail
+    // refine neighbours to be at least d-1
+    // refine this cell
+    OctCell* start=this;
+    do
+    {
+	OctCell* l=start->findLeaf(x, y, z);
+	if (l->depth>=d)
+	{
+	    return;  
+	}
+	l->outwardRefine(l->depth);
+	l->split();
+	start=l;
+    } while (start->depth+1 <d);
+}
+
 
 void OctCell::doLeafWalk(cellfunct c, void* v)
 {
