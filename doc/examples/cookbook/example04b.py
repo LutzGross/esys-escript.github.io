@@ -80,6 +80,7 @@ rec = PlaneSurface(c)
 d=Design(dim=2, element_size=200*m)
 # Add the subdomains and flux boundaries.
 d.addItems(rec, PropertySet("linebottom",l12))
+d.addItems(l01, l23, l30) # just in case we need them
 #############################################MAKE THE DOMAIN
 domain=MakeDomain(d, optimizeLabeling=True)
 print "Domain has been generated ..."
