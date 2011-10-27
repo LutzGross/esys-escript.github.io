@@ -25,7 +25,7 @@ void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,doubl
      dim_t i;
      int failed=0;
      const dim_t block_size=n_block*n_block+17;
-     (void)block_size;		/* silence the warning which happens when because var is sometimes ignored by a macro*/
+     (void)block_size;	/* silence warning from var being unused by macros */
      
      if (n_block==1) {
          #pragma omp parallel for private(i) schedule(static)

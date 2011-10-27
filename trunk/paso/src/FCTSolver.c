@@ -14,9 +14,9 @@
 
 /**************************************************************/
 
-/* Paso: Transport solver with flux corretion (L is row sum zero) 
- *        
- *   - Mv_t=Lv   v(0)=u       
+/* Paso: Transport solver with flux correction (L is row sum zero) 
+ *
+ *   - Mv_t=Lv   v(0)=u
  *
  *  to return v(dt)
  *
@@ -164,6 +164,7 @@ double Paso_FCTSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    }
    return dt_max;
 }
+
 /*
  * evaluates F as 
  * (m_i*omega - l_ij)*(F_j/omega)
@@ -182,7 +183,7 @@ err_t Paso_FCTSolver_Function_call(Paso_Function * F,double* value, const double
 				     	more->uTilde_n_coupler,F->b, 
                                         more->QN_n_coupler,more->QP_n_coupler,more->RN_m,
 					more->RN_m_coupler,more->RP_m,more->RP_m_coupler,pp);
-      /* apply preconditoner do get du = */
+      /* apply preconditioner to get du = */
       /* Paso_Solver(more->transportproblem->iteration_matrix,value,F->tmp,&options,pp); */ 
       
       
@@ -275,7 +276,6 @@ err_t Paso_FCTSolver_solve(Paso_Function* F, double* u, double dt, Paso_Options*
 }
 
 
-
 err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const double dt, const double *u_m, 
 					Paso_Coupler* u_m_coupler,  double * z_m,
 					Paso_SystemMatrix* flux_matrix, Paso_Coupler* uTilde_coupler, const double *b, 
@@ -289,7 +289,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
    Paso_Coupler_startCollect(u_m_coupler,u_m);
    Paso_Coupler_finishCollect(u_m_coupler);
    /*
-    *  set the ant diffusion fluxes:
+    *  set the anti diffusion fluxes:
     *
     */
    Paso_FCTSolver_setAntiDiffusionFlux(dt,fctp,flux_matrix,u_m_coupler);
@@ -309,7 +309,7 @@ err_t Paso_FCTSolver_setUpRightHandSide(Paso_TransportProblem* fctp, const doubl
      * z_m[i]=b[i] - (m_i*u_m[i] - dt*theta*sum_{j<>i} l_{ij} (u_m[j]-u_m[i]) )
      *
      * note that iteration_matrix stores the negative values of the 
-     * low order transport matrix l therefore a=dt*theta is used.
+     * low order transport matrix l. Therefore a=dt*theta is used.
      */
      Paso_FCTSolver_setMuPaLu(z_m, fctp->lumped_mass_matrix, u_m_coupler, omega, fctp->iteration_matrix);
  /*{
@@ -366,7 +366,7 @@ void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const do
     * b^n[i]=m u^n[i] + dt*(1-theta) sum_{j <> i} l_{ij}*(u^n[j]-u^n[i])
     *
     * note that iteration_matrix stores the negative values of the 
-    * low order transport matrix l therefore a=-dt*(1-fctp->theta) is used.
+    * low order transport matrix l. Therefore a=-dt*(1-fctp->theta) is used.
     *
     */
     if (fctp->useBackwardEuler) { 
@@ -397,3 +397,4 @@ void Paso_FCTSolver_setUp(Paso_TransportProblem* fctp, const double dt, const do
      Paso_Coupler_finishCollect(QN_coupler);
      Paso_Coupler_finishCollect(QP_coupler);
 }
+

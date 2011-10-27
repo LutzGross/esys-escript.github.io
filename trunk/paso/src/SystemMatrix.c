@@ -27,11 +27,11 @@
 
 /**************************************************************/
 
-/* allocates a SystemMatrix of type type using the given matrix pattern 
-   Values are initialized by zero. 
-   if patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed that the pattern is allready unrolled to match the requested block size
-   and offsets otherwise unrolling and offset adjustment will be performed. 
-*/
+/* Allocates a SystemMatrix of given type using the given matrix pattern.
+   Values are initialized with zero. 
+   If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
+   that the pattern is already unrolled to match the requested block size
+   and offsets. Otherwise unrolling and offset adjustment will be performed. */
 
 Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size,
   const bool_t patternIsUnrolled) {
@@ -45,11 +45,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
   Esys_resetError();
   if (patternIsUnrolled) {
      if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
-         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset does not match.");
+         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset do not match.");
          return NULL;
      }
   }
-  /* do we need to apply unrolling ? */
+  /* do we need to apply unrolling? */
   unroll  
         /* we don't like non-square blocks */
     =   (row_block_size!=col_block_size)
@@ -190,7 +190,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         #endif
         MEMFREE(in);
         #ifdef Paso_TRACE
-        printf("Paso_SystemMatrix_free: system matrix as been deallocated.\n");
+        printf("Paso_SystemMatrix_free: system matrix has been deallocated.\n");
         #endif
      }
    }
@@ -324,7 +324,7 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
    const index_t* main_ptr=Paso_SystemMatrix_borrowMainDiagonalPointer(A_p);
    
    
-   Paso_SystemMatrix_rowSum(A_p, left_over); /* left_over now hold the row sum */
+   Paso_SystemMatrix_rowSum(A_p, left_over); /* left_over now holds the row sum */
 
    #pragma omp parallel for private(ir,ib, rtmp1, rtmp2) schedule(static)
    for (ir=0;ir< n;ir++) {
@@ -364,9 +364,10 @@ void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* opti
    }
 }
 
-/* applies the preconditioner */
-/* has to be called within a parallel reqion */
-/* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
+/* Applies the preconditioner. */
+/* Has to be called within a parallel region. */
+/* Barrier synchronization is performed before the evaluation to make sure
+   that the input vector is available */
 void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
    Paso_Preconditioner* prec=(Paso_Preconditioner*) A->solver_p;
    Paso_Preconditioner_solve(prec, A,x,b);

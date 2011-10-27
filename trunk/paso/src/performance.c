@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: perfomance monitor interface using papi              */
+/* Paso: performance monitor interface using papi             */
 
 /**************************************************************/
 
@@ -27,7 +27,7 @@
 #include "performance.h"
 
 /*                                                            */
-/*  sets up the the monitoring process                        */
+/*  sets up the monitoring process                            */
 /*                                                            */
 void Performance_open(Paso_Performance* pp,int verbose) {
    #ifdef PAPI
@@ -43,7 +43,7 @@ void Performance_open(Paso_Performance* pp,int verbose) {
            Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI initialization error.");
          } else {
             if (PAPI_create_eventset(&(pp->event_set)) != PAPI_OK) 
-               Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI event set set up failed.");
+               Esys_setError(SYSTEM_ERROR,"Paso_performance: PAPI event set up failed.");
          }
          if (Esys_noError()) {
             /* try to add various monitors */
@@ -74,6 +74,7 @@ void Performance_open(Paso_Performance* pp,int verbose) {
       }
    #endif
 }
+
 /* find the index of an event in the list of monitored events */
 int  Performance_getEventIndex(Paso_Performance* pp, int event_id) {
    #ifdef PAPI
@@ -83,6 +84,7 @@ int  Performance_getEventIndex(Paso_Performance* pp, int event_id) {
    #endif
    return PERFORMANCE_UNMONITORED_EVENT;
 }
+
 /*                                                            */
 /*  shuts down the monitoring process                         */
 /*                                                            */
@@ -149,6 +151,7 @@ void Performance_close(Paso_Performance* pp,int verbose) {
       }
     #endif
 }
+
 /*                                                                     */
 /*    switches on a monitor                                            */
 /*                                                                     */
@@ -187,3 +190,4 @@ void Performance_stopMonitor(Paso_Performance* pp,int monitor) {
        }
     #endif
 }
+

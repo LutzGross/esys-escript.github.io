@@ -15,7 +15,7 @@
 /**************************************************************
 
  Paso: Sparse matrix product (for efficiency, use the transpose
-       of Matrix B when the B^T is available) 
+       of Matrix B when B^T is available) 
 
 **************************************************************
 

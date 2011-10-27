@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Author: l.gross@uq.edu.au                                */
+/* Author: l.gross@uq.edu.au                                  */
 
 /**************************************************************/
 
@@ -29,9 +29,10 @@
 
 /**************************************************************/
 
-/* create the low order transport matrix and stores it negative values 
- * into the iteration_matrix accept the main diagonal which is stored seperately
- * if fc->iteration_matrix==NULL, fc->iteration_matrix is allocated 
+/* Creates the low order transport matrix and stores its negative values 
+ * into the iteration_matrix except for the main diagonal which is stored
+ * separately.
+ * If fc->iteration_matrix==NULL, fc->iteration_matrix is allocated 
  *
  * a=transport_matrix 
  * b= low_order_transport_matrix = - iteration_matrix
@@ -456,3 +457,4 @@ void Paso_FCTSolver_addCorrectedFluxes(double* f,const Paso_SystemMatrix *flux_m
 
   }
 }
+

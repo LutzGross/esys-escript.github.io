@@ -14,11 +14,11 @@
 
 /**************************************************************/
 
-/* Paso: TransportProblem (see Paso_TransportSolver_solve)   */                                      
+/* Paso: TransportProblem (see Paso_TransportSolver_solve)    */                                      
 
 /**************************************************************/
 
-/* Author: l.gross@uq.edu.au                                */
+/* Author: l.gross@uq.edu.au                                  */
 
 /**************************************************************/
 
@@ -29,7 +29,7 @@
 
 /**************************************************************/
 
-/* free all memory used by                                */
+/* free all used memory                                       */
 
 void Paso_TransportProblem_free(Paso_TransportProblem* in) {
      if (in!=NULL) {
@@ -166,11 +166,11 @@ void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const d
    const index_t* main_iptr=Paso_SparseMatrix_borrowMainDiagonalPointer(fctp->mass_matrix->mainBlock);
    
    if ( fctp->valid_matrices ) {
-      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: you must not insert a constraint is a valid system.");
+      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_setUpConstraint: Cannot insert a constraint into a valid system.");
       return;
    }
    if (factor<=0) {
-      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_insertConstraint: constraint_factor needs to be positive.");
+      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_setUpConstraint: constraint_factor needs to be positive.");
       return;
    }
 

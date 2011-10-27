@@ -16,15 +16,15 @@
 
 /* Paso: Pattern: Paso_Pattern_mis 
 
-   searches for a maximal independent set MIS in the matrix pattern 
-   vertices in the maximal independent set are marked in mis_marker
-   nodes to be considered are marked by -1 on the input in mis_marker
+   Searches for a maximal independent set MIS in the matrix pattern.
+   Vertices in the maximal independent set are marked in mis_marker.
+   Nodes to be considered are marked by -1 on the input in mis_marker.
 
 */
 /**********************************************************************/
 
-/* Copyrights by ACcESS Australia 2003,2004,2005              */
-/* Author: Lutz Gross, l.gross@uq.edu.au                                */
+/* Copyrights by ACcESS Australia 2003,2004,2005                      */
+/* Author: Lutz Gross, l.gross@uq.edu.au                              */
 
 /**************************************************************/
 
@@ -65,11 +65,11 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
      /* is there any vertex available ?*/
      while (Paso_Util_isAny(n,mis_marker,IS_AVAILABLE)) {
         /* step 1: assign a random number in [0,1] to each vertex */
-        /* step 2: is the vertex is available, check if its value is the smaller than all values of its naigbours 
-                   if the answer is yes, the vertex is put into the independend set and all 
-                   its naighbours are removed from the graph by setting it mis_marker to FALSE */
+        /* step 2: if the vertex is available, check if its value is the smaller than all values of its neighbours 
+                   if the answer is yes, the vertex is put into the independent set and all 
+                   its neighbours are removed from the graph by setting it mis_marker to FALSE */
       
-        /* step 2: is the vertex is available, check if its value is the smaller than all values of its naigbours */
+        /* step 2: is the vertex is available, check if its value is the smaller than all values of its neighbours */
 
            /* assign random number in [0,1] to each vertex */
            #pragma omp parallel for private(i) schedule(static)
@@ -82,7 +82,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
            }
            /* update the seed */
            /* Paso_Pattern_mis_seed=fmod(sqrt(Paso_Pattern_mis_seed*(n+1)),1.); */
-           /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
+           /* detect independent vertices as those vertices that have a value less than all values of its neighbours */
            #pragma omp parallel for private(naib,i,iptr,flag) schedule(static) 
            for (i=0;i<n;++i) {
               if (mis_marker[i]==IS_AVAILABLE) {
@@ -97,7 +97,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
                  mis_marker[i]=flag;
               }
            }
-           /* detect independent vertices as those vertices that have a value less than all values of its naigbours */
+           /* detect independent vertices as those vertices that have a value less than all values of its neighbours */
            #pragma omp parallel for private(naib,i,iptr) schedule(static)
            for (i=0;i<n;i++) {
               if (mis_marker[i]==IS_IN_MIS_NOW) {
@@ -148,3 +148,4 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
     *num_colors=out;
   }
 }
+

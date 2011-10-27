@@ -16,7 +16,7 @@
 *  Purpose
 *  =======
 *
-*  NewtonGMRES solves the non-linear system F(x)=0 using the
+*  NewtonGMRES solves the nonlinear system F(x)=0 using the
 *  restarted GMRES method.
 *
 *  Convergence test: norm(F(x))< rtol*norm(F(x0))+atol
@@ -24,7 +24,7 @@
 *  x input initial guess
 *    output solution approximation
 *
-*  based on code by C. T. Kelley, July 1, 1994.
+*  Based on code by C. T. Kelley, July 1, 1994.
 *
 */
 
@@ -53,15 +53,17 @@ err_t Paso_Solver_NewtonGMRES(
    const double atol=options->absolute_tolerance;  /* absolute tolerance */
    const double rtol=options->tolerance;           /* relative tolerance */
    const dim_t maxit=options->iter_max;            /* max iteration counter */
-   const dim_t lmaxit=options->inner_iter_max*10;     /* max inner iteration counter */
+   const dim_t lmaxit=options->inner_iter_max*10;  /* max inner iteration counter */
    const bool_t adapt_inner_tolerance=options->adapt_inner_tolerance;
    const double max_inner_tolerance=options->inner_tolerance *1.e-11;  
    double inner_tolerance=max_inner_tolerance;
   /*
    * max_inner_tolerance = Maximum error tolerance for residual in inner
    *              iteration. The inner iteration terminates
-   *              when the relative linear residual is smaller than inner_tolerance*| F(x_c) |. inner_tolerance is determined
-   *              by the modified Eisenstat-Walker formula, if adapt_inner_tolerance is set, otherwise 
+   *              when the relative linear residual is smaller than
+   *              inner_tolerance*| F(x_c) |. Inner_tolerance is determined
+   *              by the modified Eisenstat-Walker formula, if
+   *              adapt_inner_tolerance is set, otherwise
    *              inner_tolerance = max_inner_tolerance iteration.
    */
   
@@ -78,7 +80,7 @@ err_t Paso_Solver_NewtonGMRES(
      norm2_f=Paso_l2(n,f,F->mpi_info);
      normsup_f=Paso_lsup(n,f,F->mpi_info);
      /*
-      * stoping criterium:
+      * stopping criterion:
       */
      stop_tol=atol + rtol*normsup_f;
      if (stop_tol<=0) {
@@ -104,8 +106,8 @@ err_t Paso_Solver_NewtonGMRES(
         */
        while (! (convergeFlag || maxIterFlag || breakFlag)) {
          /* 
-          * keep track of the ratio (reduction_f = norm2_f/norm2_fo) of successive residual norms and 
-          * the iteration counter (iteration_count)
+          * keep track of the ratio (reduction_f = norm2_f/norm2_fo) of
+          * successive residual norms and the iteration counter (iteration_count)
           */
          if (debug) printf("NewtonGMRES: iteration step %d: lsup-norm of F =%e\n",iteration_count,normsup_f);
          /*
@@ -152,8 +154,8 @@ err_t Paso_Solver_NewtonGMRES(
               printf("NewtonGMRES: iteration step %d: lsup-norm of F =%e\n",iteration_count,normsup_f);
 
               if (convergeFlag) printf("NewtonGMRES: convergence reached after %d steps.\n",iteration_count);
-              if (breakFlag)  printf("NewtonGMRES: iteration break down after %d steps.\n",iteration_count);
-              if (maxIterFlag)  printf("NewtonGMRES: maximum number of iteration step %d is reached.\n",maxit);
+              if (breakFlag) printf("NewtonGMRES: iteration break down after %d steps.\n",iteration_count);
+              if (maxIterFlag) printf("NewtonGMRES: maximum number of iteration steps %d reached.\n",maxit);
          }
         if (breakFlag) Status=SOLVER_BREAKDOWN;
         if (maxIterFlag) Status=SOLVER_MAXITER_REACHED;
@@ -161,6 +163,7 @@ err_t Paso_Solver_NewtonGMRES(
   }
   TMPMEMFREE(f);
   TMPMEMFREE(step);
-if (debug) printf("NewtonGMRES: STATUS return = %d\n",Status);
+  if (debug) printf("NewtonGMRES: STATUS return = %d\n",Status);
   return Status;
 }
+

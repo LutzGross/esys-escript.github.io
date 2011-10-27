@@ -63,20 +63,20 @@ typedef struct Paso_SystemMatrix {
 
   /* this comes into play when PASO is used */
   Paso_SparseMatrix* mainBlock;                      /* main block */
-  Paso_SparseMatrix* col_coupleBlock;                    /* coupling to naighbouring processors (row - col) */
-  Paso_SparseMatrix* row_coupleBlock;                /* coupling to naighbouring processors (col - row)  */
-  Paso_SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on naighbouring processors 
+  Paso_SparseMatrix* col_coupleBlock;                    /* coupling to neighbouring processors (row - col) */
+  Paso_SparseMatrix* row_coupleBlock;                /* coupling to neighbouring processors (col - row)  */
+  Paso_SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on neighbouring processors 
                                                            don't assume that this is set */
 
   bool_t is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
-			      if is_balanced is set, the matrix stored is D*A*D where A is the original matrix
+			      if is_balanced is set, the matrix stored is D*A*D where A is the original matrix.
 		              When the system of linear equations is solved we solve D*A*D*y=c.
-		              so to solve A*x=b one needs to set c=D*b and x=D*y. */
+		              So to solve A*x=b one needs to set c=D*b and x=D*y. */
 
   
   
-  index_t solver_package;  /* package controling the solver pointer */
+  index_t solver_package;  /* package controlling the solver pointer */
   void* solver_p;  /* pointer to data needed by a solver */
 
   /* this is only used for a trilinos matrix */

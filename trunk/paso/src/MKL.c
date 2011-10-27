@@ -42,7 +42,7 @@ void Paso_MKL_free(Paso_SparseMatrix* A) {
              _INTEGER_t mtype = MKL_MTYPE_UNSYM;
              _INTEGER_t n = A->numRows;
              _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
-             _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
+             _INTEGER_t mnum =1; /* factorization to be handled in this call */
              _INTEGER_t msglvl=0; /* message level */
              _INTEGER_t nrhs=1; /* number of right hand sides */
              _INTEGER_t idum; /* dummy integer */
@@ -81,7 +81,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
      _INTEGER_t mtype = MKL_MTYPE_UNSYM;
      _INTEGER_t n = A->numRows;
      _INTEGER_t maxfct=1; /* number of factorizations on the same pattern */
-     _INTEGER_t mnum =1; /* factoriztion to be handeled in this call */
+     _INTEGER_t mnum =1; /* factorization to be handled in this call */
      _INTEGER_t msglvl=0; /* message level */
      _INTEGER_t nrhs=1; /* number of right hand sides */
      _INTEGER_t idum; /* dummy integer */
@@ -115,7 +115,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
      #endif
      iparm[5] = 0; /* store solution into output array */
      iparm[7] = numRefinements; /* maximum number of refinements */
-     iparm[9] = 13; /* 10**(-iparm[9]) preturbation of pivot elements */
+     iparm[9] = 13; /* 10**(-iparm[9]) perturbation of pivot elements */
      iparm[10] = 1; /* rescaling the matrix before factorization started */
      iparm[17] =0; /* =-1 report number of non-zeroes */
      iparm[18] =0; /* =-1 report flops */
@@ -134,7 +134,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
                  &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,
                  iparm, &msglvl, in, out, &error);
         if (error != MKL_ERROR_NO) {
-             if (verbose) printf("MKL: symbolic factorization factorization failed.\n");
+             if (verbose) printf("MKL: symbolic factorization failed.\n");
              Esys_setError(VALUE_ERROR,"symbolic factorization in PARDISO library failed.");
              Paso_MKL_free(A);
         } else {
@@ -167,6 +167,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
         }
      }
 #else
-    Esys_setError(SYSTEM_ERROR,"Paso_MKL:MKL is not avialble.");
+    Esys_setError(SYSTEM_ERROR,"Paso_MKL: MKL is not available.");
 #endif
 }
+

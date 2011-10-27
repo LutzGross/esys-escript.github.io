@@ -14,12 +14,12 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix                                           */
+/* Paso: SystemMatrix                                         */
 
-/*  returns a borrowed reference to the matrix normaliztion vector */
+/*  Returns a borrowed reference to the matrix normalization vector. */
 
-/*  if the vector is in valid a new vector is calculate as the inverse */
-/*  of the sum of the absolute value in each row/column                */
+/*  If the vector is in valid a new vector is calculated as the  */
+/*  inverse of the sum of the absolute value in each row/column. */
 
 /**************************************************************/
 
@@ -85,14 +85,14 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
       } 
       if (Esys_checkPtr(A->balance_vector)) {
-	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: no memory alloced for balance vector.");
+	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: no memory allocated for balance vector.");
       } 
       if ( ! ( (Paso_SystemMatrix_getGlobalNumRows(A) == Paso_SystemMatrix_getGlobalNumCols(A)) && (A->row_block_size == A->col_block_size) ) ) {
-	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: matrix needs to ba a square matrix.");
+	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: matrix needs to be a square matrix.");
       }
       if (Esys_noError() ) {
 
-             /* calculat absolute max value over each row */
+             /* calculate absolute max value over each row */
              #pragma omp parallel for private(irow) schedule(static)
              for (irow=0; irow<nrow ; ++irow) {
 		A->balance_vector[irow]=0;

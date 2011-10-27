@@ -14,12 +14,12 @@
 
 /**************************************************************/
 
-/* Paso: GS preconditioner with reordering                 */
+/* Paso: GS preconditioner with reordering                    */
 
 /**************************************************************/
 
 /* Copyrights by ACcESS Australia 2003-2010 */
-/* Author: l.gao@uq.edu.au                                   */
+/* Author: l.gao@uq.edu.au                                    */
 
 /**************************************************************/
 
@@ -45,11 +45,11 @@ void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
      }
 }
 
-=============================================================================================
+==========================================================================
 /**************************************************************/
 
 /*   gs->diag saves the matrix of D{-1}
-     this is different from Paso_Solver_getGS(), in which, gs->diag
+     This is different from Paso_Solver_getGS(), in which, gs->diag
      is the matrix D. 
 */
 Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
@@ -200,10 +200,10 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
 
 /**************************************************************/
 
-/* apply MPI versioned GS                                 
+/* Applies MPI versioned GS
 
-     in fact it solves Ax=b in two steps:
-     step1: among different nodes (MPI ranks), we use block Jacobi
+     In fact it solves Ax=b in two steps:
+     step 1: among different nodes (MPI ranks), we use block Jacobi
 	   x{k} = x{k-1} + D{-1}(b-A*x{k-1})
         => D*x{k} = b - (E+F)x{k-1} 
 	      where matrix D is (let p be the number of nodes): 
@@ -221,14 +221,14 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
 	      and Ai (i \in [1,p]) represents the mainBlock of matrix 
 	      A on node i. Matrix (E+F) is represented as the coupleBlock
               of matrix A on each node (annotated as ACi). 
-           Therefore, step1 can be turned into the following for node i:
+           Therefore, step 1 can be turned into the following for node i:
        => Ai * x{k} = b - ACi * x{k-1} 
            where both x{k} and b are the segment of x and b on node i, 
 	   and x{k-1} is the old segment values of x on all other nodes. 
 
-     step2: inside node i, we use Gauss-Seidel
+     step 2: inside node i, we use Gauss-Seidel
          let b'= b - ACi * x{k-1} we have Ai * x{k} = b' for node i
-         by using symetrix Gauss-Seidel, this can be solved in a forward
+         by using symmetric Gauss-Seidel, this can be solved in a forward
          phase and a backward phase:
 	   forward phase:  x{m} = diag(Ai){-1} (b' - E*x{m} - F*x{m-1})
            backward phase: x{m+1} = diag(Ai){-1} (b' - F*{m+1} - E*x{m})
@@ -256,7 +256,7 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
 
           while (sweeps > 1) {
                /* calculate new_b = b - ACi * x{k-1}, where x{k-1} are remote
-                  value of x, which requires MPI communications */
+                  values of x, which requires MPI communication */
                #pragma omp parallel for private(i) schedule(static)
                for (i=0;i<n*n_block;++i) new_b[i]=b[i];
 
@@ -292,11 +292,11 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
      len=n/nt;
      rest=n-len*nt;
 #endif
-     /* TO BE DONE: add handler to deal with the case "n" is too small
+     /* TO BE DONE: add handler to deal with the case "n is too small"
                     to be worth run in threads. */
 
 #ifdef _OPENMP
-     /* calculate new_b = b - ACi * x{k-1}, where x{k-1} are x value
+     /* calculate new_b = b - ACi * x{k-1}, where x{k-1} are x values
         computed by other threads in previous sweep */
      if (nt > 1) {
      if (n_block == 1){
@@ -371,9 +371,9 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
      }
 #endif
 
-     /* step1: forward iteration
+     /* step 1: forward iteration
                x{k} = D{-1}(b - E*x{k} - F*x{k-1}) */
-     /* One Guass-Seidel itertion
+     /* One Guass-Seidel iteration
         In case of forward iteration x{k} = D{-1}(b - E*x{k} - F*x{k-1})
            => into a loop (without coloring):
             for i in [0,n-1] do     
@@ -491,7 +491,7 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
 #endif 
      }
 
-     /* step2: backward iteration 
+     /* step 2: backward iteration 
                x{k} = D{-1}(b - F*x{k} - E*x{k-1}) */
      if (n_block == 1){
 #ifdef _OPENMP
@@ -600,7 +600,5 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
          }
 #endif
      }
-
-     return;
 }
 

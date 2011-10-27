@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Author: Lutz Gross, l.gross@uq.edu.au                                */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 
@@ -29,7 +29,7 @@
 
 /**************************************************************/
 
-/* free all memory used by RILU                                */
+/* free all memory used by RILU                               */
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
      if (in!=NULL) {
@@ -81,7 +81,6 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0;/*,time2=0;*/
    
 
-  /* identify independend set of rows/columns */
   mis_marker=TMPMEMALLOC(n,index_t);
   counter=TMPMEMALLOC(n,index_t);
   out=MEMALLOC(1,Paso_Solver_RILU);
@@ -100,7 +99,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   out->b_C=NULL;
 
   if ( !(Esys_checkPtr(mis_marker) || Esys_checkPtr(out) || Esys_checkPtr(counter) ) ) {
-     /* identify independend set of rows/columns */
+     /* identify independent set of rows/columns */
      time0=Esys_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
@@ -165,7 +164,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                             out->inv_A_FF[i*4+2]=-A12*D;
                             out->inv_A_FF[i*4+3]= A11*D;
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                     } else if (n_block==3) {
                        A11=A_p->val[iPtr*9  ];
@@ -190,7 +189,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                             out->inv_A_FF[i*9+7]=(A13*A21-A11*A23)*D;
                             out->inv_A_FF[i*9+8]=(A11*A22-A12*A21)*D;
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU:Break-down in RILU decomposition: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getRILU: Break-down in RILU decomposition: non-regular main diagonal block.");
                        }
                    }
                 }
@@ -280,7 +279,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
       if (verbose) {
          printf("RILU: %d unknowns eliminated. %d left.\n",out->n_F,n-out->n_F);
          if (out->n_C>0) {
-            printf("timing: RILU: MIS/reordering/elemination : %e/%e/%e\n",time2,time0,time1);
+            printf("timing: RILU: MIS/reordering/elimination : %e/%e/%e\n",time2,time0,time1);
          } else {
             printf("timing: RILU: MIS: %e\n",time2); 
          }
@@ -312,9 +311,9 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
    x_F=invA_FF*b_F
    x<-[x_F,x_C]
 
- should be called within a parallel region                                              
- barrier synconization should be performed to make sure that the input vector available 
-
+ Should be called within a parallel region.
+ Barrier synchronization should be performed to make sure that the input
+ vector is available.
 */
 
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {

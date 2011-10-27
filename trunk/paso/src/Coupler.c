@@ -28,7 +28,7 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
   Esys_resetError();
   out=MEMALLOC(1,Paso_Connector);
   if ( send->mpi_info != recv->mpi_info ) {
-     Esys_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicator don't match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicators don't match.");
      return NULL;
   }
   if ( send->local_length != recv->local_length ) {
@@ -208,7 +208,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      if (coupler->in_use) {
 	Esys_setError(SYSTEM_ERROR,"Paso_Coupler_startCollect: Coupler in use.");
      }
-     /* start reveiving input */
+     /* start receiving input */
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
             #ifdef ESYS_MPI
@@ -324,3 +324,4 @@ void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler)
    #pragma omp parallel for private(i)
    for (i=0;i<overlap_n; ++i) x[my_n+i]=MAX(x[my_n+i], remote_values[i]);
 }
+
