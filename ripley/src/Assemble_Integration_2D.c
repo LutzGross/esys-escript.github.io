@@ -1,4 +1,4 @@
-Ripley_Assemble_Gradient_2D(Ripley_Grid *grid, Escript in, Escript out)
+Ripley_Assemble_Integration_2D(Ripley_Grid *grid, Escript in, double *out)
 {
    /* GENERATOR SNIP TOP */
    if (out_data_type==RIPLEY_ELEMENTS) {
