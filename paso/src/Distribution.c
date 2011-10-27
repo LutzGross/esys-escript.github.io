@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Paso: system matrix pattern                            */
+/*   Paso: distribution                                       */
 
 /**************************************************************/
 
@@ -104,8 +104,8 @@ dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
  }
 }
 
-/* Pseudo random numbers such that the values are independend from
-   the distribution but the global length yet :*/
+/* Pseudo random numbers such that the values are independent from
+   the distribution */
 
 static double Paso_Distribution_random_seed=.4142135623730951;
 
@@ -153,3 +153,4 @@ dim_t Paso_Distribution_numPositives(const double* x, const Paso_Distribution *i
    
    return out;
 }
+

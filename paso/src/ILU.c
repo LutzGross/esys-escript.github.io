@@ -19,7 +19,7 @@
 /**************************************************************/
 
 /* Copyrights by ACcESS Australia 2003,2004,2005              */
-/* Author: Lutz Gross, l.gross@uq.edu.au                                */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 
@@ -40,9 +40,8 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 
 /**************************************************************/
 
-/*   constructs the incomplete block factorization of 
+/*   constructs the incomplete block factorization            */
 
-*/
 Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
@@ -301,7 +300,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
        time_fac=Esys_timer()-time0;
   }
   if (Esys_noError()) {
-      if (verbose) printf("timing: ILU: coloring/elemination : %e sec\n",time_fac);
+      if (verbose) printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
      return out;
   } else  {
      Paso_Solver_ILU_free(out);
@@ -311,13 +310,13 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
 
 /**************************************************************/
 
-/* apply ILU precondition b-> x                               
+/* Applies ILU precondition b-> x
 
-     in fact it solves LUx=b in the form x= U^{-1} L^{-1}b 
+   In fact it solves LUx=b in the form x= U^{-1} L^{-1}b 
 
- should be called within a parallel region                                              
- barrier synconization should be performed to make sure that the input vector available 
-
+   Should be called within a parallel region.
+   Barrier synchronization should be performed to make sure that the input
+   vector is available.
 */
 
 void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b) {
@@ -331,7 +330,7 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
      const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
      
      
-     /* copy x into b*/
+     /* copy x into b */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n*n_block;++i) x[i]=b[i];
      /* forward substitution */
@@ -467,6 +466,5 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
          }
          #pragma omp barrier
      }
-     return;
 }
 

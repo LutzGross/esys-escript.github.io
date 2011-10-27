@@ -14,7 +14,7 @@
 
 /***************************************************************************/
 
-/* Paso: SparseMatrix:  adds the absolut values of row entries to an array */
+/* Paso: SparseMatrix: adds the absolute values of row entries to an array */
 
 /***************************************************************************/
 

@@ -98,9 +98,10 @@ err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso
                return SYSTEM_ERROR;
       }
    }
-   /* Added by PGH, assume a null pointe is an error */
+   /* Added by PGH, assume a null pointer is an error */
    return SYSTEM_ERROR;
 }
+
 /*
  * clear Paso_Function
  */
@@ -119,3 +120,4 @@ void Paso_Function_free(Paso_Function * F) {
       }
    }
 }
+

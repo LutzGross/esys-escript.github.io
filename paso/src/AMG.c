@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au, l.gross@uq.edu.au                                */
+/* Author: artak@uq.edu.au, l.gross@uq.edu.au                 */
 
 /**************************************************************/
 
@@ -107,7 +107,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   
   /*
-      is the input matrix A suitable for coarsening
+      is the input matrix A suitable for coarsening?
       
   */
   if ( (sparsity >= options->min_coarse_sparsity) || 
@@ -124,13 +124,13 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	      printf("Paso_Preconditioner: AMG: termination of coarsening by "); 
 
 	      if (sparsity >= options->min_coarse_sparsity)
-	          printf("SPAR ");
+	          printf("SPAR");
 
 	      if (total_n <= options->min_coarse_matrix_size)
-	          printf("SIZE ");
+	          printf("SIZE");
 
 	      if (level > options->level_max)
-	          printf("LEVEL ");
+	          printf("LEVEL");
 
 	      printf("\n");
 
@@ -196,7 +196,7 @@ return NULL;
 	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 */
 	 
-         /* in BoomerAMG interpolation is used FF connectiovity is required :*/
+         /* in BoomerAMG if interpolation is used FF connectivity is required */
 /*MPI:
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
                              Paso_Preconditioner_AMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
@@ -216,7 +216,7 @@ return NULL;
 	    n_C=n-n_F;
 	    if (verbose) printf("Paso_Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
 	 
-	    if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
+	    if ( n_F == 0 ) {  /* this is a nasty case. a direct solver should be used, return NULL */
 	       out = NULL;
 	    } else {
 	       out=MEMALLOC(1,Paso_Preconditioner_AMG);
@@ -245,7 +245,7 @@ return NULL;
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
 	  
 		  if (n_C != 0) {
-			   /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
+			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
 			out->x_C=MEMALLOC(n_block*n_C,double);
@@ -265,7 +265,7 @@ return NULL;
 				 if  (F_marker[i]) rows_in_F[counter[i]]=i;
 			      }
 			   }
-			   /*  create mask of C nodes with value >-1 gives new id */
+			   /*  create mask of C nodes with value >-1, gives new id */
 			   i=Paso_Util_cumsum_maskedFalse(n,counter, F_marker);
 
 			   #pragma omp parallel for private(i) schedule(static)
@@ -279,36 +279,36 @@ return NULL;
 			   /*
 			      get Prolongation :	 
 			   */					
-			   time0=Esys_timer();
 /*MPI: 
+			   time0=Esys_timer();
 			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
-*/
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
+*/
 			}
 			/*      
 			   construct Restriction operator as transposed of Prolongation operator: 
 			*/
+/*MPI:
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-/*MPI:
 			   out->R=Paso_SystemMatrix_getTranspose(out->P);
-*/
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
+*/
 			/* 
 			construct coarse level matrix:
 			*/
+/*MPI:
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-/*MPI:
 			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
 			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
 			   Paso_Preconditioner_AMG_setStrongConnections
 			   Paso_SystemMatrix_free(Atemp);
-*/
 
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
+*/
 
 			
 			/*
@@ -385,7 +385,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      time0=Esys_timer();
      Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
      time0=Esys_timer()-time0;
-     if (SHOW_TIMING) printf("timing: level %d: Presmooting: %e\n",amg->level, time0); 
+     if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
 	
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
@@ -489,7 +489,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
          {
 	    const double threshold = theta*max_offdiagonal;
             threshold_p[2*i+1]=threshold;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	    if (tau*main_row < sum_row) { /* no diagonal dominance */
                threshold_p[2*i]=1;
 	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
@@ -638,7 +638,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    rtmp_offset=-A->mainBlock->pattern->ptr[i];
 	    
 	    threshold_p[2*i+1]=threshold;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	    if (tau*main_row < sum_row) { /* no diagonal dominance */
 	       threshold_p[2*i]=1;
 	       rtmp_offset=-A->mainBlock->pattern->ptr[i];
 	       #pragma ivdep
@@ -711,6 +711,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    }
    TMPMEMFREE(threshold_p);
 }
+
 void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 							const dim_t nT, dim_t* degree_ST, index_t* offset_ST,index_t* ST)
 {
@@ -791,8 +792,8 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	
      }
      
-      /* calculate the maximum value of naigbours following active strong connections:
-	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) conenction is still active  */       
+      /* calculate the maximum value of neighbours following active strong connections:
+	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) connection is still active  */       
       #pragma omp parallel for private(i, iptr)
       for (i=0; i<my_n; ++i) {
 	 if (Status[i]>0) { /* status is still undefined */
@@ -896,7 +897,7 @@ printf("found!\n");
 			      if (ST_flag[offset_ST[j]+kptr] >0) {
 				 if (j< my_n ) {
 				    w[j]--;
-printf("%d reduced by %d and %d \n",j, i,k);
+printf("%d reduced by %d and %d\n",j, i,k);
 				 }
 				 ST_flag[offset_ST[j]+kptr]=-1;
 			      }

@@ -14,14 +14,14 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix                                       */
+/* Paso: SystemMatrix                                         */
 
-/*  nullify rows in the matrix                             */
+/*  nullify rows in the matrix                                */
 
-/*  the rows are marked by positive values in     */
-/*  mask_row. Values on the main diagonal        */
-/*  which are marked to set to zero by both mask_row       */
-/*  are set to main_diagonal_value                   */
+/*  The rows are marked by positive values in                 */
+/*  mask_row. Values on the main diagonal                     */
+/*  which are marked to set to zero by both mask_row          */
+/*  are set to main_diagonal_value                            */
 
 
 /**************************************************************/
@@ -70,5 +70,5 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
          }
        }
   } 
-  return;
 }
+

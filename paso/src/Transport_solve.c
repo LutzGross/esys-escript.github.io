@@ -43,7 +43,7 @@
 void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options) {
    const double reduction_after_divergence_factor = 0.5;
    const dim_t num_failures_max=50;
-   /* const double increase_after_convergence_factor = 1.1;  has not much of an impact if substepping is beeing used */
+   /* const double increase_after_convergence_factor = 1.1;  has not much of an impact if substepping is being used */
    
    Paso_Performance pp;  
    Paso_Function *fctfunction=NULL;
@@ -63,7 +63,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
    }
    if (blockSize>1) {
-       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >0 is not supported.");
+       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >1 is not supported.");
     } 
    if (options->verbose) {
       if (fctp->useBackwardEuler) {
@@ -112,7 +112,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
             Paso_ReactiveSolver_initialize(dt3, fctp, options);
 	    /* start iteration */
 	    for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
-	        if (options->verbose) printf("Paso_TransportProblem_solve: substep step %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
+	        if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
    	        /* updates u */
 	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u,dt3/2,q, options, &pp); /* Mu_t=Du+q u(0)=u */ 
 	        if (errorCode == SOLVER_NO_ERROR) { 
@@ -127,7 +127,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 		}
             }
             /*
-	     * error handeling:
+	     * error handling:
 	     */
              if (errorCode == SOLVER_NO_ERROR) {
                     num_failures=0;
@@ -156,7 +156,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
             } else if (errorCode == SOLVER_INPUT_ERROR) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
 	    } else if (errorCode == SOLVER_MEMORY_ERROR) {
-	        Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allication failed.");
+	        Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allocation failed.");
 	    } else if (errorCode == SOLVER_BREAKDOWN) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
 	    } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
