@@ -1,5 +1,5 @@
 """
-this script generates the assamblage routine for the ripley rectangular grid solver
+this script generates the assemblage routine for the ripley rectangular grid solver
 
 
 """
@@ -134,7 +134,7 @@ def generate(DIM):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createIntegrationCode(Q_r_faces[i], W_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
-   CODE+="\n} /* end of out_data_type branching \n"
+   CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Integration_%sD.c"%DIM, { "SNIP" : CODE})
    1/0
 
@@ -778,7 +778,7 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
                   if system:
 		      CODE2+="const register double %s = X_p[INDEX3(k,%s, %s, p.numEqu,%s)];\n"%(A_name, dj,  q, DIM)
 		  else:
-		      CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s];\n"%(A_name, dj,q,DIM)
+		      CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
  		  for j in range(len(S)):
 	                  EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP,system)
