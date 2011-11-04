@@ -79,6 +79,11 @@
 #define PASO_PMIS_COARSENING 64
 #define PASO_HMIS_COARSENING 65
 
+#define PASO_LINEAR_CRANK_NICOLSON 66
+#define PASO_CRANK_NICOLSON 67
+#define PASO_BACKWARD_EULER 68
+
+
 
 
 #define PASO_SMOOTHER 99999999
@@ -118,6 +123,7 @@ typedef struct {
     double diagonal_dominance_threshold;
     bool_t usePanel;
     index_t interpolation_method;
+    index_t ode_solver;
     
     /* diagnostic values */
     dim_t num_iter;
