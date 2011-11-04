@@ -65,6 +65,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->cycle_type=1;
   options->usePanel=TRUE;
   options->interpolation_method=PASO_DIRECT_INTERPOLATION;
+  options->ode_solver=PASO_CRANK_NICOLSON;
   
 
   /* diagnostic values */
@@ -187,6 +188,12 @@ const char* Paso_Options_name(const index_t key){
 	  return "PMIS_COARSENING";
        case PASO_HMIS_COARSENING:
 	  return "HMIS_COARSENING";
+       case PASO_CRANK_NICOLSON:
+	  return "PASO_CRANK_NICOLSON";
+       case PASO_LINEAR_CRANK_NICOLSON:
+	 return "PASO_CRANK_NICOLSON";
+       case PASO_BACKWARD_EULER:
+	 return "PASO_BACKWARD_EULER";
        default:
 	  return "<unknown>";
     }
@@ -222,5 +229,6 @@ void Paso_Options_show(const Paso_Options* options ) {
 	printf("\trefinements = %d\n",options->refinements);
 	printf("\tcoarse_matrix_refinements = %d\n",options->coarse_matrix_refinements);
 	printf("\tcycle_type = %d\n",options->cycle_type);
+	printf("\tode_solver = %d\n",options->ode_solver);
 }
 
