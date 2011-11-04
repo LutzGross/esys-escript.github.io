@@ -34,10 +34,10 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
   double version = 1.0;
   int format = 0, size = sizeof(double), scan_ret;
   dim_t numNodes, totalNumElements=0, numTags=0, numNodesPerElement=0, numNodesPerElement2, element_dim=0;
-  index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id;
+  index_t e, i0, j, gmsh_type, partition_id, itmp, elementary_id, tag_key;
   index_t numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
   Finley_Mesh *mesh_p=NULL;
-  char line[LenString_MAX+1];
+  char line[LenString_MAX+1], name[LenString_MAX+1];
   char error_msg[LenErrorMsg_MAX];
   double rtmp0, rtmp1;
   Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
@@ -69,7 +69,6 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
        Esys_MPIInfo_free( mpi_info );
        return NULL;
      }
-   
      /* start reading */
      while(1) {
        if (! Finley_noError()) break;
@@ -372,6 +371,22 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          TMPMEMFREE(element_type);
          TMPMEMFREE(vertices);
       }
+     /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
+     else if (!strncmp(&line[1], "PhysicalNames", 13)) {
+         scan_ret = fscanf(fileHandle_p, "%d", &numTags);
+         FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+         if (! Finley_noError()) break;
+         for (i0 = 0; i0 < numTags; i0++) {
+            scan_ret = fscanf(fileHandle_p, "%d %d %s\n", &itmp, &tag_key, name);
+            FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
+            if (! (itmp == 2)) Finley_setError(IO_ERROR,"Finley_Mesh_readGmsh: expecting two entries per physical name.");
+            if ( strlen(name) < 3 ) Finley_setError(IO_ERROR,"Finley_Mesh_readGmsh: illegal tagname (\" missing?)");
+            if (! Finley_noError()) break;
+            name[strlen(name)-1]='\0';
+            Finley_Mesh_addTagMap(mesh_p,&name[1],tag_key);
+         }
+      }
+
       /* search for end of data block */
       do {
          if (!fgets(line, sizeof(line), fileHandle_p)) {
@@ -384,7 +399,8 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          }
          if (! Finley_noError()) break;
        } while(line[0] != '$');
-     }
+
+     } /* end of read */
    
      /* close file */
      fclose(fileHandle_p);
