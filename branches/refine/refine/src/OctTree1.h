@@ -20,8 +20,6 @@ public:
     void walkLeaves(cellfunct c, void* v);
     void assignIDs();
     unsigned leafCount();	// inefficient, don't use too much
-    
-    void debug();
 private:
     double side[3];
     OctCell p;

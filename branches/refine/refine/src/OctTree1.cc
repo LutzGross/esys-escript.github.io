@@ -81,12 +81,3 @@ unsigned  OctTree::leafCount()
     return c;
 }
 
-void OctTree::debug()
-{
-   p.debug(false);
-}
-
-// void OctTree::debug()
-// {
-//     p.linkCheck(false);  
-// }
