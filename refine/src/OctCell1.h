@@ -1,14 +1,10 @@
 
-#ifndef OCTCELL_H_2011
-#define OCTCELL_H_2011
 namespace refine
 {
 
 class OctCell;  
-class LeafInfo;
   
 typedef void (*cellfunct)(const OctCell&, void*);  
-typedef unsigned int unkid;			// Type representing the id of an unknown/point
 
 
 
@@ -23,17 +19,9 @@ public:
       void collapsePoint(double x, double y, double z, unsigned d);
       void allSplit(unsigned int depth);
       void splitPoint(double x, double y, double z, unsigned desdepth);
+      void merge();
       void doLeafWalk(cellfunct c, void* v);  
       OctCell* findLeaf(double x, double y, double z);
-      
-      
-      void linkCheck(bool fromroot);
-      
-      
-      void debug(bool fromroot);
-      bool whohas(LeafInfo* li, bool fromroot=true);
-      
-      void gmshDump();
 //private:
       void upSplitPoint(double x, double y, double z, unsigned d);
       void upCollPoint(double x, double y, double z, unsigned d);      
@@ -47,11 +35,6 @@ public:
       unsigned int depth;
       OctCell* parent;
       unsigned int id;
-      LeafInfo* leafinfo;
 };
 
 }
-
-#include "LeafInfo.h"
-
-#endif
