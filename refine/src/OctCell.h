@@ -8,6 +8,7 @@ class OctCell;
 class LeafInfo;
   
 typedef void (*cellfunct)(const OctCell&, void*);  
+typedef void (*cellfunct2)(const OctCell&, int k, void*);
 typedef unsigned int unkid;			// Type representing the id of an unknown/point
 
 
@@ -23,7 +24,8 @@ public:
       void collapsePoint(double x, double y, double z, unsigned d);
       void allSplit(unsigned int depth);
       void splitPoint(double x, double y, double z, unsigned desdepth);
-      void doLeafWalk(cellfunct c, void* v);  
+      void doLeafWalk(cellfunct c, void* v);
+      void doLeafWalkWithKids(cellfunct2 c, int k, void* v);
       OctCell* findLeaf(double x, double y, double z);
       
       

@@ -83,6 +83,64 @@ void dumpCen(OctTree& ot)
   
 }
 
+const int HANG_NODE=1;  
+
+
+void countHang(const OctCell& c, void* v)
+{
+    for (int i=0;i<8;++i)
+    {
+        if (c.leafinfo->pmap[i]==HANG_NODE)
+	{
+	    (*reinterpret_cast<int*>(v))++;
+	}
+    }
+}
+
+void hangPoints(const OctCell& c, void* v)
+{
+  
+
+  
+      int& k=*(reinterpret_cast<int*>(v));  
+      double corners[8][3];		// perhaps not efficient but this is for debug only
+    corners[0][0]=(c.centre[0]-c.sides[0]/2); corners[0][1]=(c.centre[1]-c.sides[1]/2); corners[0][2]=(c.centre[2]-c.sides[2]/2);
+    corners[1][0]=(c.centre[0]+c.sides[0]/2); corners[1][1]=(c.centre[1]-c.sides[1]/2); corners[1][2]=(c.centre[2]-c.sides[2]/2);
+    corners[2][0]=(c.centre[0]+c.sides[0]/2); corners[2][1]=(c.centre[1]+c.sides[1]/2); corners[2][2]=(c.centre[2]-c.sides[2]/2);
+    corners[3][0]=(c.centre[0]-c.sides[0]/2); corners[3][1]=(c.centre[1]+c.sides[1]/2); corners[3][2]=(c.centre[2]-c.sides[2]/2);
+
+    corners[4][0]=(c.centre[0]-c.sides[0]/2); corners[4][1]=(c.centre[1]-c.sides[1]/2); corners[4][2]=(c.centre[2]+c.sides[2]/2);
+    corners[5][0]=(c.centre[0]+c.sides[0]/2); corners[5][1]=(c.centre[1]-c.sides[1]/2); corners[5][2]=(c.centre[2]+c.sides[2]/2);
+    corners[6][0]=(c.centre[0]+c.sides[0]/2); corners[6][1]=(c.centre[1]+c.sides[1]/2); corners[6][2]=(c.centre[2]+c.sides[2]/2);
+    corners[7][0]=(c.centre[0]-c.sides[0]/2); corners[7][1]=(c.centre[1]+c.sides[1]/2); corners[7][2]=(c.centre[2]+c.sides[2]/2);        
+    
+    for (int i=0;i<8;++i)
+    {
+        if (c.leafinfo->pmap[i]==HANG_NODE)
+	{	    
+	    cout << k++ << ' ' << corners[i][0] << ' ' << corners[i][1] << ' ' << corners[i][2] << endl;
+	}
+    }  
+}
+
+void dumpHang(OctTree& ot)
+{
+        cout << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n";
+    int c=0;
+    ot.walkLeaves(countHang, &c);
+    cout << c << endl;
+    int i=1;
+    ot.walkLeaves(hangPoints, &i); 
+    cout << "$EndNodes\n";
+    cout << "$Elements\n";
+    cout << c << endl;
+    for (int k=1;k<=c;++k)
+    {
+         cout << k << " 15 3 0 "<<k <<" 0 " << k << endl;		// 15 is the code for a single point element 
+    }
+    cout << "$EndElements\n";  
+}
+
 
 void printLInfo(const OctCell& c, void* v)
 {
@@ -120,13 +178,12 @@ void neigh(const OctCell& c, void* v)
     }
 }
 
-
-int main()
+void maintest()
 {
     int c=0;
 //    cout << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n";
     OctTree ot(1,1,1);
-    ot.allSplit(7);
+    ot.allSplit(6);
 
     
 //    ot.allCollapse(7);
@@ -177,9 +234,29 @@ int main()
 //    ot.splitPoint(0.512, 0.126,0.99, 10);
     
 //    ot.splitPoint(0.2, 0.8,0.01, 30);
-     
+cerr << "Assigning IDs\n";     
      ot.assignIDs();
+cerr << "Done assigning IDs\n";     
     dumpGrid(ot);
+    //dumpCen(ot);
+  
+  
+}
+
+
+
+
+int main()
+{
+//    maintest();
+    OctTree ot(1,1,1);
+    ot.allSplit(3);
+
+    ot.collapsePoint(0,0,0,1);
+    ot.collapsePoint(1,1,1,1);
+     ot.assignIDs();
+     dumpHang(ot);
+    //dumpGrid(ot);
     //dumpCen(ot);
 
 }

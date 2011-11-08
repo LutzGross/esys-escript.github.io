@@ -17,9 +17,6 @@ public:
     OctCell* owner;
     LeafInfo* next[6];
     unkid pmap[8];
-    
-    int z[111];		// padding to reduce odds of another struct landing on top of this
-    
 };
 
 }
