@@ -128,7 +128,7 @@ class Design(design.Design):
             see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
         """
         if self.__cmdLineArgs == "":
-            print "warning: using default command line arguments for Triangle"
+            print("warning: using default command line arguments for Triangle")
         exe="triangle %s %%s"%self.__cmdLineArgs
         return exe
 
@@ -147,7 +147,7 @@ class Design(design.Design):
             ret=0
         ret=getMPIWorldMax(ret)
         if ret > 0:
-          raise RuntimeError, "Could not build mesh: %s"%" ".join(args)
+          raise RuntimeError("Could not build mesh: %s"%" ".join(args))
         else:
             # <hack> so that users can set the mesh filename they want.
             name=self.getScriptFileName()
@@ -192,7 +192,7 @@ class Design(design.Design):
                        pts=list(PSp.getControlPoints())
                        for pt in pts:
                            c=pt.getCoordinates()
-                           if pt not in ctrlPts.keys():
+                           if pt not in list(ctrlPts.keys()):
                                vertCnt+=1
                                vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
                                ctrlPts[pt]=vertCnt
@@ -217,7 +217,7 @@ class Design(design.Design):
                            pts=list(curve.getControlPoints())
                            for pt in pts:
                                c=pt.getCoordinates()
-                               if pt not in ctrlPts.keys():
+                               if pt not in list(ctrlPts.keys()):
                                    vertCnt+=1
                                    vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
                                    ctrlPts[pt]=vertCnt
@@ -241,7 +241,7 @@ class Design(design.Design):
                                pts=list(curve.getControlPoints())
                                for pt in pts:
                                    c=pt.getCoordinates()
-                                   if pt not in ctrlPts.keys():
+                                   if pt not in list(ctrlPts.keys()):
                                        vertCnt+=1
                                        vertices+="%s %s %s %s\n"%(vertCnt,c[0],c[1],p.getID())
                                        ctrlPts[pt]=vertCnt
@@ -271,13 +271,13 @@ class Design(design.Design):
                                vectors[i].append(self.__getVector(A,B))
                                vectors[i].append(self.__getVector(A,C))
                            # get angle between vectors at each vertex
-                           for i in vectors.keys():
+                           for i in list(vectors.keys()):
                                angle=self.__getAngle(vectors[i][0],vectors[i][1])
                                vectors[i].append(angle)
                            # find the vertex with the smallest angle
                            minAngle=360.
                            indx=0
-                           for i in vectors.keys():
+                           for i in list(vectors.keys()):
                                if vectors[i][2] < minAngle:
                                    indx=i
                                    minAngle=vectors[i][2]

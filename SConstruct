@@ -352,7 +352,8 @@ except KeyError:
 
 ######################## Add some custom builders ############################
 
-py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+py_builder = Builder(action = "/home/joel/py3tools/bin/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
+#py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 runUnitTest_builder = Builder(action = runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
@@ -403,6 +404,17 @@ if IS_WINDOWS:
     python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
 else:
     python_libs=['python'+sysconfig.get_python_version()]
+
+
+# Joel's nasty hacks to hook to python3 need a script to supply these values
+python_inc_path='/usr/include/python3.1'
+python_lib_path='/usr/lib'
+python_libs='python3.1'
+
+
+#end this block of nasty hacks
+
+
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
@@ -725,7 +737,7 @@ env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley',
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
+#env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
@@ -826,7 +838,7 @@ install_all_list += ['install_dudley']
 install_all_list += ['install_finley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
-install_all_list += ['install_pyvisi_py']
+#install_all_list += ['install_pyvisi_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
@@ -859,7 +871,7 @@ if not IS_WINDOWS:
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()
-        Execute(Chmod('utest.sh', 0755))
+        Execute(Chmod('utest.sh', 0o755))
         print("Generated utest.sh.")
     except IOError:
         print("Error attempting to write unittests file.")

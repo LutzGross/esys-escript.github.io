@@ -43,7 +43,7 @@ except:
    numpyImported=False
 
 import numpy
-from transformations import _TYPE, Translation, Dilation, Transformation, DEG
+from .transformations import _TYPE, Translation, Dilation, Transformation, DEG
 import math 
 
 
@@ -159,7 +159,7 @@ class PrimitiveBase(object):
         elif isinstance(other,Transformation):
             trafo=other
         else:
-            raise TypeError, "cannot convert argument to a Transformation class object."
+            raise TypeError("cannot convert argument to a Transformation class object.")
         self.modifyBy(trafo)
         return self
 
@@ -175,7 +175,7 @@ class PrimitiveBase(object):
         elif isinstance(other,Transformation):
             trafo=other
         else:
-            raise TypeError, "cannot convert argument to Transformation class object."
+            raise TypeError("cannot convert argument to Transformation class object.")
         return self.apply(trafo)
 
 
@@ -325,7 +325,7 @@ class ReversePrimitive(object):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=-self.getUnderlyingPrimitive().substitute(sub_dict)
         return sub_dict[self]
 
@@ -372,7 +372,7 @@ class Point(Primitive, PrimitiveBase):
        try:
           l=len(x)
           if l>3:
-              raise ValueError,"x has a lanegth bigger than 3."
+              raise ValueError("x has a lanegth bigger than 3.")
           if l>1:
              y=x[1]
           else:
@@ -456,7 +456,7 @@ class Point(Primitive, PrimitiveBase):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
            c=self.getCoordinates()
            sub_dict[self]=Point(c[0],c[1],c[2],local_scale=self.getLocalScale())
         return sub_dict[self]
@@ -522,9 +522,9 @@ class Manifold1D(PrimitiveBase):
            self.getUnderlyingPrimitive().setElementDistribution(n,progression,createBump)
         else:
            if n<1:
-              raise ValueError,"number of elements must be positive."
+              raise ValueError("number of elements must be positive.")
            if progression<=0:
-              raise ValueError,"progression factor must be positive."
+              raise ValueError("progression factor must be positive.")
            self.__apply_elements=True
            self.__n=n
            self.__progression_factor=progression
@@ -628,7 +628,7 @@ class Curve(CurveBase, Primitive):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             new_p=[]
             for p in self.getControlPoints(): new_p.append(p.substitute(sub_dict))
             sub_dict[self]=self.__class__(*tuple(new_p))
@@ -792,7 +792,7 @@ class Arc(ArcBase, Primitive):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=Arc(self.getCenterPoint().substitute(sub_dict),self.getStartPoint().substitute(sub_dict),self.getEndPoint().substitute(sub_dict))
         return sub_dict[self]
 
@@ -921,7 +921,7 @@ class Ellipse(EllipseBase, Primitive):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=Ellipse(self.getCenterPoint().substitute(sub_dict),
                                    self.getPointOnMainAxis().substitute(sub_dict),
                                    self.getStartPoint().substitute(sub_dict),
@@ -1054,7 +1054,7 @@ class CurveLoop(Primitive, PrimitiveBase):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             new_c=[]
             for c in self.getCurves(): new_c.append(c.substitute(sub_dict))
             sub_dict[self]=CurveLoop(*tuple(new_c))
@@ -1087,21 +1087,21 @@ class CurveLoop(Primitive, PrimitiveBase):
        restart=True
        while restart:
           restart=False
-	  for k in curves:
-	      if not k in found:
-		  if k.getStartPoint() == s[-1]:
+          for k in curves:
+              if not k in found:
+                  if k.getStartPoint() == s[-1]:
                       found.append(k)
                       if hasattr(k,"getControlPoints"): s+=k.getControlPoints()[1:-1]
                       if k.getEndPoint() == s[0]: 
                            if len(found) == len(curves):
                              return s
                            else:
-			     raise ValueError,"loop %s is not closed."%self.getID()
-		      s.append(k.getEndPoint())
-		      restart=True
-		      break
-	  if not restart:
-               raise ValueError,"loop %s is not closed."%self.getID()           
+                             raise ValueError("loop %s is not closed."%self.getID())
+                      s.append(k.getEndPoint())
+                      restart=True
+                      break
+          if not restart:
+               raise ValueError("loop %s is not closed."%self.getID())           
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):
     """
@@ -1202,9 +1202,9 @@ class Manifold2D(PrimitiveBase):
         else:
             if not max_deviation==None:
                 if max_deviation<=0:
-                   raise ValueError, "max_deviation must be positive."
+                   raise ValueError("max_deviation must be positive.")
                 if max_deviation/DEG>=90:
-                   raise ValueError, "max_deviation must be smaller than 90 DEG"
+                   raise ValueError("max_deviation must be smaller than 90 DEG")
             self.__recombination_angle=max_deviation
 
     def getRecombination(self):
@@ -1231,14 +1231,14 @@ class Manifold2D(PrimitiveBase):
            return self.getUnderlyingPrimitive().setTransfiniteMeshing(orientation)
         else:
            if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
-              raise ValueError,"invalid orientation %s."%orientation
+              raise ValueError("invalid orientation %s."%orientation)
            if self.hasHole():
-             raise ValueError,"transfinite meshing cannot be appled to surfaces with a hole."
+             raise ValueError("transfinite meshing cannot be appled to surfaces with a hole.")
            b=self.getBoundary()
            if len(b)>4 or len(b)<3:
-             raise ValueError,"transfinite meshing permits 3 or 4 boundary lines only."
+             raise ValueError("transfinite meshing permits 3 or 4 boundary lines only.")
            for l in b: 
-               if l.getElementDistribution() == None: raise  ValueError,"transfinite meshing requires element distribution on all boundary lines."
+               if l.getElementDistribution() == None: raise  ValueError("transfinite meshing requires element distribution on all boundary lines.")
            start=b[0]
            opposite=None
            top=None
@@ -1251,17 +1251,17 @@ class Manifold2D(PrimitiveBase):
                 else:
                     opposite=l
            if top==None or bottom == None: 
-                raise ValueError,"transfinite meshing cannot be applied to boundary is not closed. Most likely the orientation of some boundray segments is wrong."
+                raise ValueError("transfinite meshing cannot be applied to boundary is not closed. Most likely the orientation of some boundray segments is wrong.")
            if opposite == None:  # three sides only
                 if not top.getElementDistribution()[0] == bottom.getElementDistribution()[0]: start, top, bottom= bottom, start, top
            if not top.getElementDistribution() == bottom.getElementDistribution():
-                raise ValueError,"transfinite meshing requires opposite faces to be have the same element distribution."
+                raise ValueError("transfinite meshing requires opposite faces to be have the same element distribution.")
            if not opposite == None:
                if not start.getElementDistribution()[0] == opposite.getElementDistribution()[0]:
-                   raise ValueError,"transfinite meshing requires oposite faces to be have the same element distribution."
+                   raise ValueError("transfinite meshing requires oposite faces to be have the same element distribution.")
            if opposite == None:
                if bottom.getEndPoint ==  top.getStartPoint():
-                   raise ValueError,"cannot identify corner proints for transfinite meshing."
+                   raise ValueError("cannot identify corner proints for transfinite meshing.")
                else:
                    points=[ bottom.getStartPoint(), bottom.getEndPoint(), top.getStartPoint() ]
            else:
@@ -1346,7 +1346,7 @@ class RuledSurface(Primitive, Manifold2D):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=RuledSurface(self.getBoundaryLoop().substitute(sub_dict))
         return sub_dict[self]
 
@@ -1458,7 +1458,7 @@ class PlaneSurface(Primitive, Manifold2D):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=PlaneSurface(self.getBoundaryLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
         return sub_dict[self]
 
@@ -1600,7 +1600,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             new_s=[]
             for s in self.getSurfaces(): new_s.append(s.substitute(sub_dict))
             sub_dict[self]=SurfaceLoop(*tuple(new_s))
@@ -1695,9 +1695,9 @@ class Manifold3D(PrimitiveBase):
         """
         if not max_deviation==None:
            if max_deviation<=0:
-                raise ValueError, "max_deviation must be positive."
+                raise ValueError("max_deviation must be positive.")
            if max_deviation/DEG>=90:
-                raise ValueError, "max_deviation must be smaller than 90 DEG"
+                raise ValueError("max_deviation must be smaller than 90 DEG")
         for i in self.getBoundary(): i.setRecombination(max_deviation)
         self.setTransfiniteMeshing()
 
@@ -1717,10 +1717,10 @@ class Manifold3D(PrimitiveBase):
         else:
            if not orientation == None:
               if not orientation in [ Manifold2D.LEFT, Manifold2D.RIGHT, Manifold2D.ALTERNATE]:
-                 raise ValueError,"invalid orientation %s."%orientation
+                 raise ValueError("invalid orientation %s."%orientation)
        
            if self.hasHole():
-             raise ValueError,"transfinite meshing cannot be appled to surfaces with a hole."
+             raise ValueError("transfinite meshing cannot be appled to surfaces with a hole.")
            b=self.getBoundary()
            # find a face with 3/4 Points:
            if len(b) == 6 :
@@ -1728,7 +1728,7 @@ class Manifold3D(PrimitiveBase):
            elif len(b) == 5:
                 des_len=3   
            else:
-                raise ValueError,"transfinite meshing permits 5 or 6 surface only."  
+                raise ValueError("transfinite meshing permits 5 or 6 surface only.")  
            # start_b=None
            # for l in b:
            #     if len(l.getPolygon()) == des_len:
@@ -1825,7 +1825,7 @@ class Volume(Manifold3D, Primitive):
         the object is given by ``sub_dict`` the value is returned, otherwise a
         new instance with substituted arguments is returned.
         """
-        if not sub_dict.has_key(self):
+        if self not in sub_dict:
             sub_dict[self]=Volume(self.getSurfaceLoop().substitute(sub_dict),[ h.substitute(sub_dict) for h in self.getHoles()])
         return sub_dict[self]
 
@@ -1943,7 +1943,7 @@ class PropertySet(Primitive, PrimitiveBase):
         """
         for i in items:
             if not (isinstance(i, Manifold1D) or isinstance(i, Manifold2D) or isinstance(i, Manifold3D) ):
-                  raise TypeError, "Illegal argument type %s added to PropertySet."%(i.__class__)
+                  raise TypeError("Illegal argument type %s added to PropertySet."%(i.__class__))
         for i in items:
             if not i in self.__items:
                if len(self.__items)>0:

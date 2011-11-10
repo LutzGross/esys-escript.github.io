@@ -28,10 +28,10 @@ an escript data import and export manager (still under development)
 :var __url__: url entry point to documentation
 """
 
-import cPickle
+import pickle
 import os
 import shutil
-import util
+from . import util
 from esys.escript import getMPIRankWorld, MPIBarrierWorld, load
 
 class DataManager(object):
@@ -55,7 +55,7 @@ class DataManager(object):
         dm.export()                         # write out data
     """
 
-    RESTART, SILO, VISIT, VTK = range(4)
+    RESTART, SILO, VISIT, VTK = list(range(4))
 
     def __init__(self, formats=[RESTART], work_dir=".", restart_prefix="restart", do_restart=True):
         """
@@ -104,7 +104,7 @@ class DataManager(object):
                 restart_folders.sort()
                 if do_restart:
                     self._restartdir=restart_folders[-1]
-                    print("Restart from "+os.path.join(self._workdir, self._restartdir))
+                    print(("Restart from "+os.path.join(self._workdir, self._restartdir)))
                     for f in restart_folders[:-1]:
                         self.__removeDirectory(f)
                     self.__loadState()
@@ -124,7 +124,7 @@ class DataManager(object):
         if self._restartdir != None:
             self.__clearData()
 
-        for name,var in data.items():
+        for name,var in list(data.items()):
             if hasattr(var, "getDomain"):
                 if self._domain==None:
                     self._domain=var.getDomain()
@@ -219,7 +219,7 @@ class DataManager(object):
         """
         self._metadata=metadata
         ss=""
-        for i,p in schema.items():
+        for i,p in list(schema.items()):
             ss="%s xmlns:%s=\"%s\""%(ss, i, p)
         self._md_schema=ss.strip()
 
@@ -300,7 +300,7 @@ class DataManager(object):
     def __loadState(self):
         stamp_file=self.__getStampFilename(self._restartdir)
         try:
-            self._stamp = cPickle.load(open(stamp_file, "rb"))
+            self._stamp = pickle.load(open(stamp_file, "rb"))
             self._N = int(self._restartdir[len(self._restartprefix)+1:])
         except:
             raise IOError("Could not load stamp file "+stamp_file)
@@ -320,13 +320,13 @@ class DataManager(object):
         stamp_file=self.__getStampFilename(restartdir)
         self._stamp['__domainmodule']=self._domain.__module__
         self._stamp['__domainclass']=type(self._domain).__name__
-        cPickle.dump(self._stamp, open(stamp_file, "wb"))
+        pickle.dump(self._stamp, open(stamp_file, "wb"))
         ff=self.__getDumpFilename("_domain", restartdir)
         self._domain.dump(ff)
-        for name, var in self._data.items():
+        for name, var in list(self._data.items()):
             ff=self.__getDumpFilename(name, restartdir)
             var.dump(ff)
-        print("Restart files saved in "+os.path.join(self._workdir, restartdir))
+        print(("Restart files saved in "+os.path.join(self._workdir, restartdir)))
         # keep only one restart directory
         old_restartdir = "%s_%04d"%(self._restartprefix, self._N-self._checkpointfreq)
         self.__removeDirectory(os.path.join(self._workdir, old_restartdir))

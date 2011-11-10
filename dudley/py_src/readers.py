@@ -54,7 +54,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :rtype: `Domain`
     """
     if useMacroElements:
-	raise TypeError("Dudley does not support macro elements")
+        raise TypeError("Dudley does not support macro elements")
     if isinstance(design, GMSHDesign):
         design.setElementOrder(1)
         ff=design.getFileFormat()

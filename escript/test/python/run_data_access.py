@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -169,4 +170,4 @@ if __name__ == "__main__":
        s=unittest.TextTestRunner(verbosity=2).run(suite)
        if not s.wasSuccessful(): sys.exit(1)
     else:
-        print "run_data_access is not executed as more than one processor is used."
+        print("run_data_access is not executed as more than one processor is used.")
