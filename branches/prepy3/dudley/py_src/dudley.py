@@ -20,5 +20,5 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escript             # This is just to ensure required libraries are loaded
-from dudleycpp import *
-from readers import *
+from .dudleycpp import *
+from .readers import *
