@@ -214,7 +214,7 @@ class Unit(object):
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of physical units requires 0 absolute values"
+              raise ValueError("Division of physical units requires 0 absolute values")
           if  isinstance(other, (_ProdUnit, _DivUnit)):
               # X/(c*d) or X/(c/d) requires brackets:
               return _DivUnit(self.getName()+"/("+other.getName()+")",self.getLongName()+"/("+other.getLongName()+")",0 , self(1.)/other(1.))
@@ -232,7 +232,7 @@ class Unit(object):
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of physical units requires 0 absolute values"
+              raise ValueError("Division of physical units requires 0 absolute values")
           if  isinstance(self, (_ProdUnit, _DivUnit)):
               # X/(a*b) or X/(a/b) requires brackets:
               return _DivUnit(other.getName()+"/("+self.getName()+")",other.getLongName()+"/("+self.getLongName()+")",0 , other(1.)/self(1.))
@@ -250,7 +250,7 @@ class Unit(object):
        """
        if isinstance(other, float) or isinstance(other, int):
           if abs(self(0.))>0:
-              raise ValueError,"Power of physical unit requires 0 absolute values"
+              raise ValueError("Power of physical unit requires 0 absolute values")
           if  isinstance(self, (_ProdUnit, _DivUnit, _PowUnit)):
               return _PowUnit("("+self.getName()+")^%s"%other, "("+self.getLongName()+")^%s"%other, 0., self(1.)**other)
           else:

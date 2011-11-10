@@ -28,9 +28,9 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
     points=[]
     tags=[]
     if 'diracPoints' in kwargs:
-	points=kwargs['diracPoints']
+        points=kwargs['diracPoints']
     if 'diracTags' in kwargs:
-	tags=kwargs['diracTags']
+        tags=kwargs['diracTags']
     return __Rectangle_driver([n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
       reducedIntegrationOrder, useElementsOnFace, useFullElementOrder, optimize, points, tags])
 
@@ -40,9 +40,9 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
     points=[]
     tags=[]
     if 'diracPoints' in kwargs:
-	points=kwargs['diracPoints']
+        points=kwargs['diracPoints']
     if 'diracTags' in kwargs:
-	tags=kwargs['diracTags']
+        tags=kwargs['diracTags']
     return __Brick_driver([n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
     integrationOrder, reducedIntegrationOrder, useElementsOnFace, useFullElementOrder,
     optimize, points, tags])

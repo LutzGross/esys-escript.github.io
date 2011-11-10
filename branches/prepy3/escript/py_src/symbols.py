@@ -34,7 +34,7 @@ some tools supporting the usage of symbols.
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from util import Symbol
+from .util import Symbol
 
 def ScalarSymbol(dim=None):
       """

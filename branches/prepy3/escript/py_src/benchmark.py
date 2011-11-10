@@ -1,4 +1,5 @@
 
+
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -232,7 +233,7 @@ class Benchmark(object):
           row=[]
           if s>0:
               t0=time.time()
-              print "%s with %s threads started."%(r.__class__,s)
+              print("%s with %s threads started."%(r.__class__,s))
               for p in self.__options:
                   setNumberOfThreads(s)
                   try:
@@ -241,7 +242,7 @@ class Benchmark(object):
                      traceback.print_exc(file=sys.stdout)
                      row.append(None)
               t0=time.time()-t0
-              print "%s with %s threads finished (walltime=%s sec)."%(r.__class__,s,t0)
+              print("%s with %s threads finished (walltime=%s sec)."%(r.__class__,s,t0))
           self.__results.append(row)
 
    def getHTML(self,filter,level=1):
@@ -453,11 +454,11 @@ if __name__=="__main__":
     bms.addBenchmark(bm)
 
     bms.run()
-    print bms.getHTML(filter=SimpleFilter())
+    print(bms.getHTML(filter=SimpleFilter()))
 
     bms.run(scale=4)
-    print bms.getHTML(filter=SimpleFilter())
+    print(bms.getHTML(filter=SimpleFilter()))
 
     bms.run(scale=[1,2])
-    print bms.getHTML(filter=SimpleFilter())
+    print(bms.getHTML(filter=SimpleFilter()))
 

@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -75,8 +76,8 @@ def build_py(target, source, env):
     try:
        py_compile.compile(str(source[0]), str(target[0]), doraise=True)
        return 0
-    except py_compile.PyCompileError, e:
-       print e
+    except py_compile.PyCompileError as e:
+       print(e)
        return 1
        
 
@@ -94,12 +95,12 @@ def runUnitTest(target, source, env):
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
            app = "cd "+ pn +" & "+sn
-  print "Executing test: " + app
+  print("Executing test: " + app)
   if not env.Execute(app):
     open(str(target[0]),'w').write("PASSED\n")
   else:
     return 1
-  print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+  print("Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath))
   return None
 
 def runPyUnitTest(target, source, env): 
@@ -115,12 +116,12 @@ def runPyUnitTest(target, source, env):
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
      app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -ov "+sn
-   print "Executing test: ",app
+   print("Executing test: ",app)
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
    else:
      return 1
-   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   print("Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath))
    return None
 
 def eps2pdf(target, source, env):
@@ -132,5 +133,5 @@ def eps2pdf(target, source, env):
 def effectiveName(inname):
    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
    if m.match(inname):
-	return "savanna"
+      return "savanna"
    return inname

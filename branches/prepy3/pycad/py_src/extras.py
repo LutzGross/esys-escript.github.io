@@ -141,7 +141,7 @@ def layer_cake(domain,xwidth,ywidth,depths):
     if not hasattr(depths,"__len__"): depths = [ depths, ]
     ndepths=len(depths)
 
-    if domain.getDim() <> 3:
+    if domain.getDim() != 3:
         raise TypeError("domain must be of dimension order 3.")        
 
     # Build the First Surface and add it to the domain

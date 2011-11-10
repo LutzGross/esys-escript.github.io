@@ -31,10 +31,10 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import escript
-import util
-from flows import StokesProblemCartesian
-from pdetools import MaxIterReached
+from . import escript
+from . import util
+from .flows import StokesProblemCartesian
+from .pdetools import MaxIterReached
 
 class PowerLaw(object):
     """
@@ -60,11 +60,11 @@ class PowerLaw(object):
          :type verbose: ``bool``
          """
          if numMaterials<1:
-            raise ValueError,"at least one material must be defined."
+            raise ValueError("at least one material must be defined.")
          self.__numMaterials=numMaterials
-         self.__eta_N=[None for i in xrange(self.__numMaterials)]
-         self.__tau_t=[1. for i in xrange(self.__numMaterials)]
-         self.__power=[1. for i in xrange(self.__numMaterials)]
+         self.__eta_N=[None for i in range(self.__numMaterials)]
+         self.__tau_t=[1. for i in range(self.__numMaterials)]
+         self.__power=[1. for i in range(self.__numMaterials)]
          self.__tau_Y=None
          self.__friction=None
          self.__mu=None
@@ -97,7 +97,7 @@ class PowerLaw(object):
          :type rtol: positive ``float``
          """
          if rtol<=0:
-             raise ValueError,"rtol needs to positive."
+             raise ValueError("rtol needs to positive.")
          self.__rtol=rtol
     def getEtaTolerance(self):
          """
@@ -161,7 +161,7 @@ class PowerLaw(object):
             if self.validMaterialId(id):
               return self.__power[id]
             else:
-              raise ValueError,"Illegal material id %s."%id
+              raise ValueError("Illegal material id %s."%id)
     def getEtaN(self, id=None):
          """
          returns the viscosity
@@ -176,7 +176,7 @@ class PowerLaw(object):
             if self.validMaterialId(id):
               return self.__eta_N[id]
             else:
-             raise ValueError,"Illegal material id %s."%id
+             raise ValueError("Illegal material id %s."%id)
     def getTauT(self, id=None):
          """
          returns the transition stress
@@ -191,7 +191,7 @@ class PowerLaw(object):
             if self.validMaterialId(id):
               return self.__tau_t[id]
             else:
-              raise ValueError,"Illegal material id %s."%id
+              raise ValueError("Illegal material id %s."%id)
     
     def setPowerLaw(self,eta_N, id=0, tau_t=1, power=1):
           """
@@ -208,7 +208,7 @@ class PowerLaw(object):
              self.__power[id]=power
              self.__tau_t[id]=tau_t
           else:
-              raise ValueError,"Illegal material id %s."%id
+              raise ValueError("Illegal material id %s."%id)
 
     def setPowerLaws(self,eta_N, tau_t, power):
           """
@@ -219,8 +219,8 @@ class PowerLaw(object):
           :param power: list of power law coefficient
           """
           if len(eta_N)!=self.__numMaterials or len(tau_t)!=self.__numMaterials or len(power)!=self.__numMaterials:
-              raise ValueError,"%s materials are expected."%self.__numMaterials
-          for i in xrange(self.__numMaterials):
+              raise ValueError("%s materials are expected."%self.__numMaterials)
+          for i in range(self.__numMaterials):
                self.setPowerLaw(id=i, eta_N=eta_N[i],tau_t=tau_t[i],power=power[i])
 
     #===========================================================================
@@ -255,20 +255,20 @@ class PowerLaw(object):
          tau_Y=self.getTauY()
          if eta0==None:
              theta=0.
-             for i in xrange(numMaterial): 
+             for i in range(numMaterial): 
                   inv_eta_i=0**s[i]/eta_N[i]
                   theta=theta+inv_eta_i
              if util.inf(theta)<=0: 
-                 raise ValueError,"unable to set positive initial guess for eta_eff. Most likely no power law with power 1 set."
+                 raise ValueError("unable to set positive initial guess for eta_eff. Most likely no power law with power 1 set.")
              eta_eff=1./theta
          else:
              if util.inf(eta0)<=0:
-                 raise ValueError,"initial guess for eta_eff is not positive."
+                 raise ValueError("initial guess for eta_eff is not positive.")
              eta_eff=eta0
 
          if mu !=None:
-             if dt == None: raise ValueError,"Time stepsize dt must be given."
-             if dt<=0: raise ValueError,"Time step size must be positive."
+             if dt == None: raise ValueError("Time stepsize dt must be given.")
+             if dt<=0: raise ValueError("Time step size must be positive.")
          if tau_Y==None and fric==None:
              eta_max=None
          else:
@@ -277,21 +277,21 @@ class PowerLaw(object):
             else:
                 if tau_Y==None: tau_Y==0
                 if util.inf(fric)<=0: 
-                    raise ValueError,"if friction present it needs to be positive."
+                    raise ValueError("if friction present it needs to be positive.")
                 eta_max=fric*util.clip(tau_Y/fric+p2,minval=0)/(gamma_dot+SMALL*util.whereZero(gamma_dot))
          rtol=self.getEtaTolerance()
          iter =0
          converged=False
          tau=eta_eff*gamma_dot
-         if self.__verbose: print "PowerLaw: Start calculation of eta_eff (tolerance = %s)\nPowerLaw: initial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau))
+         if self.__verbose: print("PowerLaw: Start calculation of eta_eff (tolerance = %s)\nPowerLaw: initial max eta_eff = %s, tau = %s."%(rtol,util.Lsup(eta_eff),util.Lsup(tau)))
          while not converged:
              if iter>max(iter_max,1):
-                raise RuntimeError,"tolerance not reached after %s steps."%max(iter_max,1)
+                raise RuntimeError("tolerance not reached after %s steps."%max(iter_max,1))
              #===========================================
              theta=0. # =1/eta
              omega=0. # = tau*theta'= eta'*tau/eta**2
              if mu !=None: theta=1./(dt*mu)
-             for i in xrange(numMaterial):
+             for i in range(numMaterial):
                   inv_eta_i=(tau/tau_t[i])**s[i]/eta_N[i]
                   theta=theta+inv_eta_i
                   omega=omega+s[i]*inv_eta_i
@@ -301,9 +301,9 @@ class PowerLaw(object):
              d=util.Lsup(eta_eff-eta_eff_old)
              l=util.Lsup(eta_eff)
              iter+=1
-             if self.__verbose: print "PowerLaw: step %s: correction = %s, max eta_eff = %s, max tau= %s"%(iter, d, l,util.Lsup(tau))
+             if self.__verbose: print("PowerLaw: step %s: correction = %s, max eta_eff = %s, max tau= %s"%(iter, d, l,util.Lsup(tau)))
              converged= d<= rtol* l
-         if self.__verbose: print "PowerLaw: Start calculation of eta_eff finalized after %s steps."%iter
+         if self.__verbose: print("PowerLaw: Start calculation of eta_eff finalized after %s steps."%iter)
          return eta_eff
 
 #====================================================================================================================================
@@ -654,7 +654,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
 
          self.__eta_eff_save=self.getEtaEff(gamma, pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
 
-         if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: eta_eff has been updated."
+         if self.checkVerbose(): print("IncompressibleIsotropicFlowCartesian: eta_eff has been updated.")
 
          if mu==None:          
              stress0=escript.Data()
@@ -694,7 +694,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           mu=self.getElasticShearModulus()
           if mu != None:
              if not dt > 0.:
-                 raise ValueError,"dt must be positive."
+                 raise ValueError("dt must be positive.")
           else:
              dt=max(0,dt)
           self.__dt=dt
@@ -707,7 +707,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
 
           self.setStokesEquation(f=self.getForce(),fixed_u_mask=mask_v,surface_stress=self.getSurfaceForce(), restoration_factor=self.getRestorationFactor())
 
-          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,)
+          if self.checkVerbose(): print("IncompressibleIsotropicFlowCartesian: start iteration for t = %s."%(self.getTime()+dt,))
           # 
           # get a new velcocity and pressure:
           #
@@ -735,7 +735,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           self.__eta_eff = self.getEtaEff(self.getGammaDot(), pressure=p,dt=dt, eta0=self.__eta_eff_save, iter_max=self.__eta_iter_max)
           self.setDeviatoricStress(2.*self.__eta_eff*D)
           self.setTime(self.getTime()+dt)
-          if self.checkVerbose(): print "IncompressibleIsotropicFlowCartesian: iteration on time step %s completed."%(self.getTime(),)
+          if self.checkVerbose(): print("IncompressibleIsotropicFlowCartesian: iteration on time step %s completed."%(self.getTime(),))
           return self.getVelocity(), self.getPressure()
 
 

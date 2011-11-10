@@ -40,6 +40,8 @@ import operator
 import itertools
 import time
 import os
+import collections
+from functools import reduce
 
 # import the 'set' module if it's not defined (python2.3/2.4 difference)
 try:
@@ -131,7 +133,7 @@ class ESySXMLParser(object):
         id_str=node.getAttribute('id').strip()
         if len(id_str)>0:
            id=int(id_str)
-           if self.__linkable_object_registry.has_key(id):
+           if id in self.__linkable_object_registry:
                raise ValueError("Object id %s already exists."%id)
            else:
                self.__linkable_object_registry[id]=obj
@@ -189,9 +191,9 @@ class ESySXMLCreator(object):
         return n
 
     def getLinkableObjectId(self, obj):
-        for id, o in self.__linkable_object_registry.items():
+        for id, o in list(self.__linkable_object_registry.items()):
             if o == obj: return id
-        id =self.__number_sequence.next()
+        id =next(self.__number_sequence)
         self.__linkable_object_registry[id]=obj
         return id
 
@@ -290,7 +292,7 @@ class Link:
         else:
             out=getattr(self.target, self.attribute)
 
-        if callable(out):
+        if isinstance(out, collections.Callable):
             return out()
         else:
             return out
@@ -347,7 +349,7 @@ class LinkableObject(object):
         If debugging is on, prints the message, otherwise does nothing.
         """
         if self.debug:
-            print "%s: %s"%(str(self),msg)
+            print("%s: %s"%(str(self),msg))
 
     def __getattr__(self,name):
         """
@@ -365,22 +367,22 @@ class LinkableObject(object):
         Returns the object stored for attribute ``name``.
         """
 
-        if self.__dict__.has_key(name):
+        if name in self.__dict__:
             return self.__dict__[name]
 
-        if self.__linked_attributes.has_key(name):
+        if name in self.__linked_attributes:
             return self.__linked_attributes[name]
 
-        if self.__class__.__dict__.has_key(name):
+        if name in self.__class__.__dict__:
             return self.__class.__dict__[name]
 
-        raise AttributeError,"No attribute %s."%name
+        raise AttributeError("No attribute %s."%name)
 
     def hasAttribute(self,name):
         """
         Returns True if self has attribute ``name``.
         """
-        return self.__dict__.has_key(name) or self.__linked_attributes.has_key(name) or  self.__class__.__dict__.has_key(name)
+        return name in self.__dict__ or name in self.__linked_attributes or  name in self.__class__.__dict__
 
     def __setattr__(self,name,value):
         """
@@ -388,7 +390,7 @@ class LinkableObject(object):
         attribute is set to name if no attribute has been specified.
         """
 
-        if self.__dict__.has_key(name):
+        if name in self.__dict__:
             del self.__dict__[name]
 
         if isinstance(value,Link):
@@ -407,10 +409,10 @@ class LinkableObject(object):
 
         if self.__linked_attributes.has_key[name]:
             del self.__linked_attributes[name]
-        elif self.__dict__.has_key(name):
+        elif name in self.__dict__:
             del self.__dict__[name]
         else:
-            raise AttributeError,"No attribute %s."%name
+            raise AttributeError("No attribute %s."%name)
 
 class _ParameterIterator:
     def __init__(self,parameterset):
@@ -418,8 +420,8 @@ class _ParameterIterator:
         self.__set=parameterset
         self.__iter=iter(parameterset.parameters)
 
-    def next(self):
-        o=self.__iter.next()
+    def __next__(self):
+        o=next(self.__iter)
         return (o,self.__set.getAttributeObject(o))
 
     def __iter__(self):
@@ -483,9 +485,9 @@ class ParameterSet(LinkableObject):
         or a ParameterSet.
         """
         if isinstance(parameters,ListType):
-            parameters = zip(parameters, itertools.repeat(None))
+            parameters = list(zip(parameters, itertools.repeat(None)))
         if isinstance(parameters,DictType):
-            parameters = parameters.iteritems()
+            parameters = iter(parameters.items())
 
         for prm, value in parameters:
             setattr(self,prm,value)
@@ -617,10 +619,10 @@ class ParameterSet(LinkableObject):
                 param.appendChild(esysxml.createDataNode('Value', str(value)))
             elif isinstance(value, dict):
                  dic = esysxml.createElement('dictionary')
-                 if len(value.keys())>0:
-                     dic.setAttribute('key_type', value.keys()[0].__class__.__name__)
-                     dic.setAttribute('value_type', value[value.keys()[0]].__class__.__name__)
-                 for k,v in value.items():
+                 if len(list(value.keys()))>0:
+                     dic.setAttribute('key_type', list(value.keys())[0].__class__.__name__)
+                     dic.setAttribute('value_type', value[list(value.keys())[0]].__class__.__name__)
+                 for k,v in list(value.items()):
                     i=esysxml.createElement('item')
                     i.appendChild(esysxml.createDataNode('key', k))
                     i.appendChild(esysxml.createDataNode('value', v))
@@ -670,11 +672,11 @@ class ParameterSet(LinkableObject):
                     shape = [int(x) for x in shape.split()]
                 if node.tagName == 'Data':
                     data = node.firstChild.nodeValue.strip()
-	    ndtype=getattr(numpy,arraytype)
-	    if ndtype==numpy.bool_:
-		data=[(x=="True") for x in data.split()]
-	    else:
-		data=[ndtype(x) for x in data.split()]
+            ndtype=getattr(numpy,arraytype)
+            if ndtype==numpy.bool_:
+                data=[(x=="True") for x in data.split()]
+            else:
+                data=[ndtype(x) for x in data.split()]
             return numpy.reshape(numpy.array(data, dtype=ndtype),
                                     shape)
 
@@ -697,14 +699,14 @@ class ParameterSet(LinkableObject):
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
                     "list":_listfromValue,
-		    "ndarray" : _ndarrayfromValue,
+                    "ndarray" : _ndarrayfromValue,
                     "NoneType":_nonefromValue,
                     }
 
         parameters = {}
         for n in _children(node):
             ptype = n.getAttribute("type")
-            if not ptypemap.has_key(ptype):
+            if ptype not in ptypemap:
                raise KeyError("cannot handle parameter type %s."%ptype)
 
             pname = pvalue = None
@@ -721,8 +723,8 @@ class ParameterSet(LinkableObject):
         # Create the instance of ParameterSet
         try:
            o = cls(debug=esysxml.debug)
-        except TypeError, inst:
-           print inst.args[0]
+        except TypeError as inst:
+           print(inst.args[0])
            if inst.args[0]=="__init__() got an unexpected keyword argument 'debug'":
               raise TypeError("The Model class %s __init__ needs to have argument 'debug'.")
            else:
@@ -950,7 +952,7 @@ class Simulation(Model):
         Sets the i-th model.
         """
         if not isinstance(value,Model):
-            raise ValueError,"assigned value is not a Model but instance of %s"%(value.__class__.__name__,)
+            raise ValueError("assigned value is not a Model but instance of %s"%(value.__class__.__name__,))
         for j in range(max(i-len(self.__models)+1,0)):
             self.__models.append(None)
         self.__models[i]=value

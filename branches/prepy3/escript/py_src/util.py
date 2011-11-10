@@ -1,4 +1,5 @@
 
+
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -35,15 +36,18 @@ Utility functions for escript
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
+
 import math
 import numpy
-import escript
+from . import escript
 import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
 from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
+
+
 
 #=========================================================
 #   some helpers:
@@ -97,39 +101,39 @@ def insertTaggedValues(target,**kwargs):
 
 def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
     try:
-	dim=len(start)
+        dim=len(start)
     except TypeError:
-	start=(start,)
-	dim=1
+        start=(start,)
+        dim=1
     try:
-	slen=len(step)
+        slen=len(step)
     except TypeError:
-	step=(step,)
-	slen=1
+      step=(step,)
+      slen=1
     if dim<1 or dim>3:
-	raise ValueError("Length of start list must be between 1 and 3.")
+      raise ValueError("Length of start list must be between 1 and 3.")
     if dim!=slen:
-	raise ValueError("Length of start and step must be the same.")
+      raise ValueError("Length of start and step must be the same.")
     dshape=dat.getShape()
     if len(dshape)==0:
-	datdim=0
-	firstdim=dat
+      datdim=0
+      firstdim=dat
     else:
-	datdim=dshape[0]
-	firstdim=dat[0]
+      datdim=dshape[0]
+      firstdim=dat[0]
     #So now we know firstdim is a scalar
     if (dim==1 and datdim>1) or (dim>1 and datdim!=dim):
-	print dim, datdim
-	raise ValueError("The dimension of dat must be equal to the length of start.")
+      print((dim, datdim))
+      raise ValueError("The dimension of dat must be equal to the length of start.")
     if dim==3:
-	d1=dat[1]
-	d2=dat[2]
-	return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
+      d1=dat[1]
+      d2=dat[2]
+      return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
     if dim==2:
-	d1=dat[1]
-	return d1.interpolateTable(tab, start[0], step[0], firstdim, start[1], step[1], undef, check_boundaries)
+      d1=dat[1]
+      return d1.interpolateTable(tab, start[0], step[0], firstdim, start[1], step[1], undef, check_boundaries)
     else:
-	return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
+      return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
 
 def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
@@ -168,20 +172,20 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     """
     # find a function space:
     fs = None
-    for n,d in data.items():
-	if isinstance(d, Data): fs=d.getFunctionSpace()
+    for n,d in list(data.items()):
+      if isinstance(d, Data): fs=d.getFunctionSpace()
     if fs == None:
-	raise ValueError, "saveDataCSV: there must be at least one Data object in the argument list."
+      raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
     
     new_data={}
-    for n,d in data.items():
-	if isinstance(d, Data):
-     	    new_data[n]=d
-        else:
+    for n,d in list(data.items()):
+      if isinstance(d, Data):
+          new_data[n]=d
+      else:
             try:
                new_data[n]=Data(d,fs)
             except:
-	       raise ValueError, "saveDataCSV: unknown non-data argument type for %s"%(str(n))
+               raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     _saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
@@ -224,7 +228,7 @@ def saveDX(filename,domain=None,**data):
            data on the interior cannot be mixed.
     """
     new_data={}
-    for n,d in data.items():
+    for n,d in list(data.items()):
           if not d.isEmpty():
             fs=d.getFunctionSpace()
             domain2=fs.getDomain()
@@ -238,7 +242,7 @@ def saveDX(filename,domain=None,**data):
                new_data[n]=d
             if domain==None: domain=domain2
     if domain==None:
-        raise ValueError,"saveDX: no domain detected."
+        raise ValueError("saveDX: no domain detected.")
     domain.saveDX(filename,new_data)
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
@@ -294,7 +298,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
            file is updated in each iteration.
     """
     new_data = {}
-    for n,d in data.items():
+    for n,d in list(data.items()):
           if not d.isEmpty(): 
             fs = d.getFunctionSpace() 
             domain2 = fs.getDomain()
@@ -306,7 +310,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
                new_data[n]=d
             if domain==None: domain=domain2
     if domain==None:
-        raise ValueError, "saveESD: no domain detected."
+        raise ValueError("saveESD: no domain detected.")
 
     if domain.onMasterProcessor() and not os.path.isdir(dataDir):
         os.mkdir(dataDir)
@@ -336,7 +340,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
         outputString += "N=%d\n" % domain.getMPISize()
 
     # now add the variables
-    for varName, d in new_data.items():
+    for varName, d in list(new_data.items()):
         varFile = datasetName+"_"+varName+".%04d"
         d.dump(os.path.join(dataDir, (varFile + ".nc") % fileNumber))
         if domain.onMasterProcessor():
@@ -382,7 +386,7 @@ def identity(shape=()):
              for i1 in range(shape[1]):
                 out[i0,i1,i0,i1]=1.
       else:
-          raise ValueError,"identity: length of shape is restricted to 2."
+          raise ValueError("identity: length of shape is restricted to 2.")
    else:
       out=1.
    return out
@@ -477,7 +481,7 @@ def Lsup(arg):
     elif isinstance(arg,int):
         return abs(float(arg))
     else:
-      raise TypeError,"Lsup: Unknown argument type."
+      raise TypeError("Lsup: Unknown argument type.")
 
 def sup(arg):
     """
@@ -498,7 +502,7 @@ def sup(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-      raise TypeError,"sup: Unknown argument type."
+      raise TypeError("sup: Unknown argument type.")
 
 def inf(arg):
     """
@@ -519,7 +523,7 @@ def inf(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-      raise TypeError,"inf: Unknown argument type."
+      raise TypeError("inf: Unknown argument type.")
 
 
 #=========================================================================
@@ -548,7 +552,7 @@ def getRank(arg):
     elif isinstance(arg,Symbol):
         return arg.getRank()
     else:
-      raise TypeError,"getRank: Unknown argument type."
+      raise TypeError("getRank: Unknown argument type.")
 
 def getShape(arg):
     """
@@ -575,7 +579,7 @@ def getShape(arg):
     elif isinstance(arg,Symbol):
         return arg.getShape()
     else:
-      raise TypeError,"getShape: Cannot identify shape"
+      raise TypeError("getShape: Cannot identify shape")
 
 def pokeDim(arg):
     """
@@ -610,15 +614,15 @@ def commonShape(arg0, arg1):
     sh1=getShape(arg1)
     if len(sh0)<len(sh1):
        if not sh0==sh1[:len(sh0)]:
-             raise ValueError,"argument 0 cannot be extended to the shape of argument 1"
+             raise ValueError("argument 0 cannot be extended to the shape of argument 1")
        return sh1
     elif len(sh0)>len(sh1):
        if not sh1==sh0[:len(sh1)]:
-             raise ValueError,"argument 1 cannot be extended to the shape of argument 0"
+             raise ValueError("argument 1 cannot be extended to the shape of argument 0")
        return sh0
     else:
        if not sh0==sh1:
-             raise ValueError,"argument 1 and argument 0 have not the same shape."
+             raise ValueError("argument 1 and argument 0 have not the same shape.")
        return sh0
 
 def commonDim(*args):
@@ -639,7 +643,7 @@ def commonDim(*args):
        d=pokeDim(a)
        if not out==None:
           if not (d==None or out==d):
-             raise ValueError,"dimension of arguments don't match"
+             raise ValueError("dimension of arguments don't match")
        else:
           out=d
     return out
@@ -695,7 +699,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,escript.Data):
        if isinstance(arg1,numpy.ndarray):
           arg1=escript.Data(arg1,arg0.getFunctionSpace())
@@ -708,7 +712,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,Symbol):
        if isinstance(arg1,numpy.ndarray):
           pass
@@ -721,7 +725,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,float):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(arg0,dtype=numpy.float64)
@@ -736,7 +740,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           arg0=numpy.array(arg0,dtype=numpy.float64)
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,int):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
@@ -751,9 +755,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     else:
-      raise TypeError,"function: Unknown type of first argument."
+      raise TypeError("function: Unknown type of first argument.")
 
     return arg0,arg1
 
@@ -805,7 +809,7 @@ class Symbol(object):
 
        """
        if len(shape)>4:
-           raise ValueError,"Symbol only supports tensors up to order 4"
+           raise ValueError("Symbol only supports tensors up to order 4")
        self.__args=args
        self.__shape=shape
        self.__dim=dim
@@ -825,7 +829,7 @@ class Symbol(object):
           return self.__args
        else:
           if i<0 or i>=len(self.__args):
-             raise IndexError,"there are only %s arguments"%len(self.__args)
+             raise IndexError("there are only %s arguments"%len(self.__args))
           return self.__args[i]
 
    def getRank(self):
@@ -971,7 +975,7 @@ class Symbol(object):
                                    is available
        :note: This method has to be overwritten by subclasses.
        """
-       raise NotImplementedError,"no code for %s representation available"%format
+       raise NotImplementedError("no code for %s representation available"%format)
 
    def substitute(self,argvals):
       """
@@ -991,14 +995,14 @@ class Symbol(object):
                                   available
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"Symbol: new value is not appropriate."
+            raise TypeError("Symbol: new value is not appropriate.")
       else:
-         raise NotImplementedError,"no substitution in %s avialable"%str(self)
+         raise NotImplementedError("no substitution in %s avialable"%str(self))
 
    def diff(self,arg):
        """
@@ -1255,18 +1259,18 @@ class GetSlice_Symbol(DependendSymbol):
       """
       if not isinstance(index,tuple): index=(index,)
       if len(index)>arg.getRank():
-           raise IndexError,"GetSlice_Symbol: index out of range."
+           raise IndexError("GetSlice_Symbol: index out of range.")
       sh=()
       index2=()
       for i in range(len(index)):
          ix=index[i]
          if isinstance(ix,int):
             if ix<0 or ix>=arg.getShape()[i]:
-               raise IndexError,"GetSlice_Symbol: index out of range."
+               raise IndexError("GetSlice_Symbol: index out of range.")
             index2=index2+(ix,)
          else:
            if not ix.step==None:
-             raise ValueError,"GetSlice_Symbol: stepping is not supported."
+             raise ValueError("GetSlice_Symbol: stepping is not supported.")
            if ix.start==None:
               s=0
            else:
@@ -1276,12 +1280,12 @@ class GetSlice_Symbol(DependendSymbol):
            else:
               e=ix.stop
               if e>arg.getShape()[i]:
-                 raise IndexError,"GetSlice_Symbol: index out of range."
+                 raise IndexError("GetSlice_Symbol: index out of range.")
            index2=index2+(slice(s,e),)
            if e>s:
                sh=sh+(e-s,)
            elif s>e:
-               raise IndexError,"GetSlice_Symbol: slice start must be less or equal slice end"
+               raise IndexError("GetSlice_Symbol: slice start must be less or equal slice end")
       for i in range(len(index),arg.getRank()):
           index2=index2+(slice(0,arg.getShape()[i]),)
           sh=sh+(arg.getShape()[i],)
@@ -1306,7 +1310,7 @@ class GetSlice_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "%s.__getitem__(%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"GetItem_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("GetItem_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1322,12 +1326,12 @@ class GetSlice_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          arg=args[0]
@@ -1355,7 +1359,7 @@ def log10(arg):
    elif isinstance(arg,Symbol):
       return log(arg)/log(10.)
    else:
-      raise TypeError,"log10: Unknown argument type."
+      raise TypeError("log10: Unknown argument type.")
 
 def wherePositive(arg):
    """
@@ -1386,7 +1390,7 @@ def wherePositive(arg):
    elif isinstance(arg,Symbol):
       return WherePositive_Symbol(arg)
    else:
-      raise TypeError,"wherePositive: Unknown argument type."
+      raise TypeError("wherePositive: Unknown argument type.")
 
 class WherePositive_Symbol(DependendSymbol):
    """
@@ -1422,7 +1426,7 @@ class WherePositive_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "wherePositive(%s)"%argstrs
       else:
-         raise NotImplementedError,"WherePositive_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("WherePositive_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1438,12 +1442,12 @@ class WherePositive_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return wherePositive(arg)
@@ -1477,7 +1481,7 @@ def whereNegative(arg):
    elif isinstance(arg,Symbol):
       return WhereNegative_Symbol(arg)
    else:
-      raise TypeError,"whereNegative: Unknown argument type."
+      raise TypeError("whereNegative: Unknown argument type.")
 
 class WhereNegative_Symbol(DependendSymbol):
    """
@@ -1513,7 +1517,7 @@ class WhereNegative_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "whereNegative(%s)"%argstrs
       else:
-         raise NotImplementedError,"WhereNegative_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("WhereNegative_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1529,12 +1533,12 @@ class WhereNegative_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return whereNegative(arg)
@@ -1568,7 +1572,7 @@ def whereNonNegative(arg):
    elif isinstance(arg,Symbol):
       return 1.-whereNegative(arg)
    else:
-      raise TypeError,"whereNonNegative: Unknown argument type."
+      raise TypeError("whereNonNegative: Unknown argument type.")
 
 def whereNonPositive(arg):
    """
@@ -1599,7 +1603,7 @@ def whereNonPositive(arg):
    elif isinstance(arg,Symbol):
       return 1.-wherePositive(arg)
    else:
-      raise TypeError,"whereNonPositive: Unknown argument type."
+      raise TypeError("whereNonPositive: Unknown argument type.")
 
 def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    """
@@ -1619,7 +1623,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    """
    if tol == None:
       if not isinstance(arg,Symbol):
-         if rtol<0: raise ValueError,"rtol must be non-negative."
+         if rtol<0: raise ValueError("rtol must be non-negative.")
          tol = Lsup(arg)*rtol
       else:
          tol=0.
@@ -1642,7 +1646,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    elif isinstance(arg,Symbol):
       return WhereZero_Symbol(arg,tol)
    else:
-      raise TypeError,"whereZero: Unknown argument type."
+      raise TypeError("whereZero: Unknown argument type.")
 
 class WhereZero_Symbol(DependendSymbol):
    """
@@ -1676,7 +1680,7 @@ class WhereZero_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "whereZero(%s,tol=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"WhereZero_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("WhereZero_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1692,12 +1696,12 @@ class WhereZero_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return whereZero(arg[0],arg[1])
@@ -1718,7 +1722,7 @@ def whereNonZero(arg,tol=0.):
    """
    if tol == None:
       if not isinstance(arg,Symbol):
-         if rtol<=0: raise ValueError,"rtol must be non-negative."
+         if rtol<=0: raise ValueError("rtol must be non-negative.")
          tol = Lsup(arg)*rtol
       else:
          tol=0.
@@ -1741,7 +1745,7 @@ def whereNonZero(arg,tol=0.):
    elif isinstance(arg,Symbol):
       return 1.-whereZero(arg,tol)
    else:
-      raise TypeError,"whereNonZero: Unknown argument type."
+      raise TypeError("whereNonZero: Unknown argument type.")
 
 def erf(arg):
    """
@@ -1756,7 +1760,7 @@ def erf(arg):
    if isinstance(arg,escript.Data):
       return arg._erf()
    else:
-      raise TypeError,"erf: Unknown argument type."
+      raise TypeError("erf: Unknown argument type.")
 
 def sin(arg):
    """
@@ -1779,7 +1783,7 @@ def sin(arg):
    elif isinstance(arg,Symbol):
       return Sin_Symbol(arg)
    else:
-      raise TypeError,"sin: Unknown argument type."
+      raise TypeError("sin: Unknown argument type.")
 
 class Sin_Symbol(DependendSymbol):
    """
@@ -1815,7 +1819,7 @@ class Sin_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "sin(%s)"%argstrs
       else:
-         raise NotImplementedError,"Sin_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Sin_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1831,12 +1835,12 @@ class Sin_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return sin(arg)
@@ -1879,7 +1883,7 @@ def cos(arg):
    elif isinstance(arg,Symbol):
       return Cos_Symbol(arg)
    else:
-      raise TypeError,"cos: Unknown argument type."
+      raise TypeError("cos: Unknown argument type.")
 
 class Cos_Symbol(DependendSymbol):
    """
@@ -1915,7 +1919,7 @@ class Cos_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "cos(%s)"%argstrs
       else:
-         raise NotImplementedError,"Cos_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Cos_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -1931,12 +1935,12 @@ class Cos_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return cos(arg)
@@ -1979,7 +1983,7 @@ def tan(arg):
    elif isinstance(arg,Symbol):
       return Tan_Symbol(arg)
    else:
-      raise TypeError,"tan: Unknown argument type."
+      raise TypeError("tan: Unknown argument type.")
 
 class Tan_Symbol(DependendSymbol):
    """
@@ -2015,7 +2019,7 @@ class Tan_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "tan(%s)"%argstrs
       else:
-         raise NotImplementedError,"Tan_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Tan_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2031,12 +2035,12 @@ class Tan_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return tan(arg)
@@ -2079,7 +2083,7 @@ def asin(arg):
    elif isinstance(arg,Symbol):
       return Asin_Symbol(arg)
    else:
-      raise TypeError,"asin: Unknown argument type."
+      raise TypeError("asin: Unknown argument type.")
 
 class Asin_Symbol(DependendSymbol):
    """
@@ -2115,7 +2119,7 @@ class Asin_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "asin(%s)"%argstrs
       else:
-         raise NotImplementedError,"Asin_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Asin_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2131,12 +2135,12 @@ class Asin_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return asin(arg)
@@ -2179,7 +2183,7 @@ def acos(arg):
    elif isinstance(arg,Symbol):
       return Acos_Symbol(arg)
    else:
-      raise TypeError,"acos: Unknown argument type."
+      raise TypeError("acos: Unknown argument type.")
 
 class Acos_Symbol(DependendSymbol):
    """
@@ -2215,7 +2219,7 @@ class Acos_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "acos(%s)"%argstrs
       else:
-         raise NotImplementedError,"Acos_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Acos_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2231,12 +2235,12 @@ class Acos_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return acos(arg)
@@ -2279,7 +2283,7 @@ def atan(arg):
    elif isinstance(arg,Symbol):
       return Atan_Symbol(arg)
    else:
-      raise TypeError,"atan: Unknown argument type."
+      raise TypeError("atan: Unknown argument type.")
 
 class Atan_Symbol(DependendSymbol):
    """
@@ -2315,7 +2319,7 @@ class Atan_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "atan(%s)"%argstrs
       else:
-         raise NotImplementedError,"Atan_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Atan_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2331,12 +2335,12 @@ class Atan_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return atan(arg)
@@ -2379,7 +2383,7 @@ def sinh(arg):
    elif isinstance(arg,Symbol):
       return Sinh_Symbol(arg)
    else:
-      raise TypeError,"sinh: Unknown argument type."
+      raise TypeError("sinh: Unknown argument type.")
 
 class Sinh_Symbol(DependendSymbol):
    """
@@ -2415,7 +2419,7 @@ class Sinh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "sinh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Sinh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Sinh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2431,12 +2435,12 @@ class Sinh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return sinh(arg)
@@ -2479,7 +2483,7 @@ def cosh(arg):
    elif isinstance(arg,Symbol):
       return Cosh_Symbol(arg)
    else:
-      raise TypeError,"cosh: Unknown argument type."
+      raise TypeError("cosh: Unknown argument type.")
 
 class Cosh_Symbol(DependendSymbol):
    """
@@ -2515,7 +2519,7 @@ class Cosh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "cosh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Cosh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Cosh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2531,12 +2535,12 @@ class Cosh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return cosh(arg)
@@ -2579,7 +2583,7 @@ def tanh(arg):
    elif isinstance(arg,Symbol):
       return Tanh_Symbol(arg)
    else:
-      raise TypeError,"tanh: Unknown argument type."
+      raise TypeError("tanh: Unknown argument type.")
 
 class Tanh_Symbol(DependendSymbol):
    """
@@ -2615,7 +2619,7 @@ class Tanh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "tanh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Tanh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Tanh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2631,12 +2635,12 @@ class Tanh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return tanh(arg)
@@ -2679,7 +2683,7 @@ def asinh(arg):
    elif isinstance(arg,Symbol):
       return Asinh_Symbol(arg)
    else:
-      raise TypeError,"asinh: Unknown argument type."
+      raise TypeError("asinh: Unknown argument type.")
 
 class Asinh_Symbol(DependendSymbol):
    """
@@ -2715,7 +2719,7 @@ class Asinh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "asinh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Asinh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Asinh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2731,12 +2735,12 @@ class Asinh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return asinh(arg)
@@ -2779,7 +2783,7 @@ def acosh(arg):
    elif isinstance(arg,Symbol):
       return Acosh_Symbol(arg)
    else:
-      raise TypeError,"acosh: Unknown argument type."
+      raise TypeError("acosh: Unknown argument type.")
 
 class Acosh_Symbol(DependendSymbol):
    """
@@ -2815,7 +2819,7 @@ class Acosh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "acosh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Acosh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Acosh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2831,12 +2835,12 @@ class Acosh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return acosh(arg)
@@ -2879,7 +2883,7 @@ def atanh(arg):
    elif isinstance(arg,Symbol):
       return Atanh_Symbol(arg)
    else:
-      raise TypeError,"atanh: Unknown argument type."
+      raise TypeError("atanh: Unknown argument type.")
 
 class Atanh_Symbol(DependendSymbol):
    """
@@ -2915,7 +2919,7 @@ class Atanh_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "atanh(%s)"%argstrs
       else:
-         raise NotImplementedError,"Atanh_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Atanh_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -2931,12 +2935,12 @@ class Atanh_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return atanh(arg)
@@ -2979,7 +2983,7 @@ def exp(arg):
    elif isinstance(arg,Symbol):
       return Exp_Symbol(arg)
    else:
-      raise TypeError,"exp: Unknown argument type."
+      raise TypeError("exp: Unknown argument type.")
 
 class Exp_Symbol(DependendSymbol):
    """
@@ -3015,7 +3019,7 @@ class Exp_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "exp(%s)"%argstrs
       else:
-         raise NotImplementedError,"Exp_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Exp_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3031,12 +3035,12 @@ class Exp_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return exp(arg)
@@ -3079,7 +3083,7 @@ def sqrt(arg):
    elif isinstance(arg,Symbol):
       return Sqrt_Symbol(arg)
    else:
-      raise TypeError,"sqrt: Unknown argument type."
+      raise TypeError("sqrt: Unknown argument type.")
 
 class Sqrt_Symbol(DependendSymbol):
    """
@@ -3115,7 +3119,7 @@ class Sqrt_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "sqrt(%s)"%argstrs
       else:
-         raise NotImplementedError,"Sqrt_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Sqrt_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3131,12 +3135,12 @@ class Sqrt_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return sqrt(arg)
@@ -3179,7 +3183,7 @@ def log(arg):
    elif isinstance(arg,Symbol):
       return Log_Symbol(arg)
    else:
-      raise TypeError,"log: Unknown argument type."
+      raise TypeError("log: Unknown argument type.")
 
 class Log_Symbol(DependendSymbol):
    """
@@ -3215,7 +3219,7 @@ class Log_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "log(%s)"%argstrs
       else:
-         raise NotImplementedError,"Log_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Log_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3231,12 +3235,12 @@ class Log_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return log(arg)
@@ -3289,7 +3293,7 @@ def sign(arg):
    elif isinstance(arg,Symbol):
       return wherePositive(arg)-whereNegative(arg)
    else:
-      raise TypeError,"sign: Unknown argument type."
+      raise TypeError("sign: Unknown argument type.")
 
 class Abs_Symbol(DependendSymbol):
    """
@@ -3325,7 +3329,7 @@ class Abs_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "abs(%s)"%argstrs
       else:
-         raise NotImplementedError,"Abs_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Abs_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3341,12 +3345,12 @@ class Abs_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return abs(arg)
@@ -3391,7 +3395,7 @@ def minval(arg):
    elif isinstance(arg,Symbol):
       return Minval_Symbol(arg)
    else:
-      raise TypeError,"minval: Unknown argument type."
+      raise TypeError("minval: Unknown argument type.")
 
 class Minval_Symbol(DependendSymbol):
    """
@@ -3427,7 +3431,7 @@ class Minval_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "minval(%s)"%argstrs
       else:
-         raise NotImplementedError,"Minval_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Minval_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3443,12 +3447,12 @@ class Minval_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return minval(arg)
@@ -3476,7 +3480,7 @@ def maxval(arg):
    elif isinstance(arg,Symbol):
       return Maxval_Symbol(arg)
    else:
-      raise TypeError,"maxval: Unknown argument type."
+      raise TypeError("maxval: Unknown argument type.")
 
 class Maxval_Symbol(DependendSymbol):
    """
@@ -3512,7 +3516,7 @@ class Maxval_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "maxval(%s)"%argstrs
       else:
-         raise NotImplementedError,"Maxval_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Maxval_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3528,12 +3532,12 @@ class Maxval_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)[0]
          return maxval(arg)
@@ -3567,15 +3571,15 @@ def trace(arg,axis_offset=0):
    if isinstance(arg,numpy.ndarray):
       sh=arg.shape
       if len(sh)<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>len(sh)-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(len(sh)-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(len(sh)-2))
       s1=1
       for i in range(axis_offset): s1*=sh[i]
       s2=1
       for i in range(axis_offset+2,len(sh)): s2*=sh[i]
       if not sh[axis_offset] == sh[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       arg_reshaped=numpy.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
       out=numpy.zeros([s1,s2],numpy.float64)
       for i1 in range(s1):
@@ -3585,21 +3589,21 @@ def trace(arg,axis_offset=0):
       return out
    elif isinstance(arg,escript.Data):
       if arg.getRank()<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(arg.getRank()-2))
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg._trace(axis_offset)
    elif isinstance(arg,float):
-      raise TypeError,"illegal argument type float."
+      raise TypeError("illegal argument type float.")
    elif isinstance(arg,int):
-      raise TypeError,"illegal argument type int."
+      raise TypeError("illegal argument type int.")
    elif isinstance(arg,Symbol):
       return Trace_Symbol(arg,axis_offset)
    else:
-      raise TypeError,"Unknown argument type."
+      raise TypeError("Unknown argument type.")
 
 class Trace_Symbol(DependendSymbol):
    """
@@ -3618,12 +3622,12 @@ class Trace_Symbol(DependendSymbol):
       :type axis_offset: ``int``
       """
       if arg.getRank()<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(arg.getRank()-2))
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       super(Trace_Symbol,self).__init__(args=[arg,axis_offset],shape=tuple(s[0:axis_offset]+s[axis_offset+2:]),dim=arg.getDim())
 
    def getMyCode(self,argstrs,format="escript"):
@@ -3645,7 +3649,7 @@ class Trace_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "trace(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"Trace_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Trace_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3661,12 +3665,12 @@ class Trace_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return trace(arg[0],axis_offset=arg[1])
@@ -3705,26 +3709,26 @@ def transpose(arg,axis_offset=None):
    """
    if isinstance(arg,numpy.ndarray):
       if axis_offset==None: axis_offset=int(arg.ndim/2)
-      return numpy.transpose(arg,axes=range(axis_offset,arg.ndim)+range(0,axis_offset))
+      return numpy.transpose(arg,axes=list(range(axis_offset,arg.ndim))+list(range(0,axis_offset)))
    elif isinstance(arg,escript.Data):
       r=arg.getRank()
       if axis_offset==None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
-        raise ValueError,"axis_offset must be between 0 and %s"%r
+        raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg._transpose(axis_offset)
    elif isinstance(arg,float):
       if not ( axis_offset==0 or axis_offset==None):
-        raise ValueError,"axis_offset must be 0 for float argument"
+        raise ValueError("axis_offset must be 0 for float argument")
       return arg
    elif isinstance(arg,int):
       if not ( axis_offset==0 or axis_offset==None):
-        raise ValueError,"axis_offset must be 0 for int argument"
+        raise ValueError("axis_offset must be 0 for int argument")
       return float(arg)
    elif isinstance(arg,Symbol):
       if axis_offset==None: axis_offset=int(arg.getRank()/2)
       return Transpose_Symbol(arg,axis_offset)
    else:
-      raise TypeError,"Unknown argument type."
+      raise TypeError("Unknown argument type.")
 
 class Transpose_Symbol(DependendSymbol):
    """
@@ -3745,7 +3749,7 @@ class Transpose_Symbol(DependendSymbol):
       """
       if axis_offset==None: axis_offset=int(arg.getRank()/2)
       if axis_offset<0 or axis_offset>arg.getRank():
-        raise ValueError,"axis_offset must be between 0 and %s"%arg.getRank()
+        raise ValueError("axis_offset must be between 0 and %s"%arg.getRank())
       s=arg.getShape()
       super(Transpose_Symbol,self).__init__(args=[arg,axis_offset],shape=s[axis_offset:]+s[:axis_offset],dim=arg.getDim())
 
@@ -3768,7 +3772,7 @@ class Transpose_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "transpose(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"Transpose_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Transpose_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3784,12 +3788,12 @@ class Transpose_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return transpose(arg[0],axis_offset=arg[1])
@@ -3832,13 +3836,13 @@ def swap_axes(arg,axis0=0,axis1=1):
    elif isinstance(arg,escript.Data):
       return arg._swap_axes(axis0,axis1)
    elif isinstance(arg,float):
-      raise TypeError,"float argument is not supported."
+      raise TypeError("float argument is not supported.")
    elif isinstance(arg,int):
-      raise TypeError,"int argument is not supported."
+      raise TypeError("int argument is not supported.")
    elif isinstance(arg,Symbol):
       return SwapAxes_Symbol(arg,axis0,axis1)
    else:
-      raise TypeError,"Unknown argument type."
+      raise TypeError("Unknown argument type.")
 
 class SwapAxes_Symbol(DependendSymbol):
    """
@@ -3858,13 +3862,13 @@ class SwapAxes_Symbol(DependendSymbol):
       :type axis1: ``int``
       """
       if arg.getRank()<2:
-         raise ValueError,"argument must have at least rank 2."
+         raise ValueError("argument must have at least rank 2.")
       if axis0<0 or axis0>arg.getRank()-1:
-         raise ValueError,"axis0 must be between 0 and %s"%arg.getRank()-1
+         raise ValueError("axis0 must be between 0 and %s"%arg.getRank()-1)
       if axis1<0 or axis1>arg.getRank()-1:
-         raise ValueError,"axis1 must be between 0 and %s"%arg.getRank()-1
+         raise ValueError("axis1 must be between 0 and %s"%arg.getRank()-1)
       if axis0 == axis1:
-         raise ValueError,"axis indices must be different."
+         raise ValueError("axis indices must be different.")
       if axis0 > axis1:
          axis0,axis1=axis1,axis0
       s=arg.getShape()
@@ -3897,7 +3901,7 @@ class SwapAxes_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "swap(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"SwapAxes_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("SwapAxes_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -3913,12 +3917,12 @@ class SwapAxes_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return swap_axes(arg[0],axis0=arg[1],axis1=arg[2])
@@ -3952,24 +3956,24 @@ def symmetric(arg):
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       elif arg.ndim==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
       return (arg+transpose(arg))/2
     elif isinstance(arg,escript.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._symmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._symmetric()
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -3977,15 +3981,15 @@ def symmetric(arg):
     elif isinstance(arg,Symbol):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
       return (arg+transpose(arg))/2
     else:
-      raise TypeError,"symmetric: Unknown argument type."
+      raise TypeError("symmetric: Unknown argument type.")
 
 def nonsymmetric(arg):
     """
@@ -4001,24 +4005,24 @@ def nonsymmetric(arg):
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       elif arg.ndim==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       else:
-        raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+        raise ValueError("nonsymmetric: rank 2 or 4 is required.")
       return (arg-transpose(arg))/2
     elif isinstance(arg,escript.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._nonsymmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._nonsymmetric()
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
@@ -4026,15 +4030,15 @@ def nonsymmetric(arg):
     elif isinstance(arg,Symbol):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       else:
-        raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+        raise ValueError("nonsymmetric: rank 2 or 4 is required.")
       return (arg-transpose(arg))/2
     else:
-      raise TypeError,"nonsymmetric: Unknown argument type."
+      raise TypeError("nonsymmetric: Unknown argument type.")
 
 def inverse(arg):
     """
@@ -4061,7 +4065,7 @@ def inverse(arg):
     elif isinstance(arg,Symbol):
       return Inverse_Symbol(arg)
     else:
-      raise TypeError,"inverse: Unknown argument type."
+      raise TypeError("inverse: Unknown argument type.")
 
 def escript_inverse(arg): # this should be escript._inverse and use LAPACK
       "arg is a Data object!!!"
@@ -4129,10 +4133,10 @@ class Inverse_Symbol(DependendSymbol):
       :type arg: `Symbol`
       """
       if not arg.getRank()==2:
-        raise ValueError,"Inverse_Symbol:: argument must have rank 2"
+        raise ValueError("Inverse_Symbol:: argument must have rank 2")
       s=arg.getShape()
       if not s[0] == s[1]:
-        raise ValueError,"Inverse_Symbol:: argument must be a square matrix."
+        raise ValueError("Inverse_Symbol:: argument must be a square matrix.")
       super(Inverse_Symbol,self).__init__(args=[arg],shape=s,dim=arg.getDim())
 
    def getMyCode(self,argstrs,format="escript"):
@@ -4154,7 +4158,7 @@ class Inverse_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "inverse(%s)"%argstrs[0]
       else:
-         raise NotImplementedError,"Inverse_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Inverse_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -4170,12 +4174,12 @@ class Inverse_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return inverse(arg[0])
@@ -4217,10 +4221,10 @@ def eigenvalues(arg):
       return arg._eigenvalues()
     elif isinstance(arg,Symbol):
       if not arg.getRank()==2:
-        raise ValueError,"eigenvalues: argument must have rank 2"
+        raise ValueError("eigenvalues: argument must have rank 2")
       s=arg.getShape()
       if not s[0] == s[1]:
-        raise ValueError,"eigenvalues: argument must be a square matrix."
+        raise ValueError("eigenvalues: argument must be a square matrix.")
       if s[0]==1:
           return arg[0]
       elif s[0]==2:
@@ -4258,13 +4262,13 @@ def eigenvalues(arg):
            -cos(alpha_3-numpy.pi/3.)*numpy.array([1.,0.,0.],dtype=numpy.float64)
           return trA+sq_p*f
       else:
-         raise TypeError,"eigenvalues: only matrix dimensions 1,2,3 are supported right now."
+         raise TypeError("eigenvalues: only matrix dimensions 1,2,3 are supported right now.")
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
       return float(arg)
     else:
-      raise TypeError,"eigenvalues: Unknown argument type."
+      raise TypeError("eigenvalues: Unknown argument type.")
 
 def eigenvalues_and_eigenvectors(arg):
     """
@@ -4282,17 +4286,17 @@ def eigenvalues_and_eigenvectors(arg):
     :note: The dimension is restricted to 3.
     """
     if isinstance(arg,numpy.ndarray):
-      raise TypeError,"eigenvalues_and_eigenvectors does not support numpy.ndarray arguments"
+      raise TypeError("eigenvalues_and_eigenvectors does not support numpy.ndarray arguments")
     elif isinstance(arg,escript.Data):
       return arg._eigenvalues_and_eigenvectors()
     elif isinstance(arg,Symbol):
-      raise TypeError,"eigenvalues_and_eigenvectors does not support Symbol arguments"
+      raise TypeError("eigenvalues_and_eigenvectors does not support Symbol arguments")
     elif isinstance(arg,float):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     else:
-      raise TypeError,"eigenvalues: Unknown argument type."
+      raise TypeError("eigenvalues: Unknown argument type.")
 
 #=======================================================
 #  Binary operations:
@@ -4346,7 +4350,7 @@ class Add_Symbol(DependendSymbol):
        sh0=getShape(arg0)
        sh1=getShape(arg1)
        if not sh0==sh1:
-          raise ValueError,"Add_Symbol: shape of arguments must match"
+          raise ValueError("Add_Symbol: shape of arguments must match")
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -4370,7 +4374,7 @@ class Add_Symbol(DependendSymbol):
       elif format=="escript":
          return "add(%s,%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -4386,12 +4390,12 @@ class Add_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          out=add(args[0],args[1])
@@ -4461,7 +4465,7 @@ class Mult_Symbol(DependendSymbol):
        sh0=getShape(arg0)
        sh1=getShape(arg1)
        if not sh0==sh1:
-          raise ValueError,"Mult_Symbol: shape of arguments must match"
+          raise ValueError("Mult_Symbol: shape of arguments must match")
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -4485,7 +4489,7 @@ class Mult_Symbol(DependendSymbol):
       elif format=="escript":
          return "mult(%s,%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -4501,12 +4505,12 @@ class Mult_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return mult(args[0],args[1])
@@ -4580,7 +4584,7 @@ class Quotient_Symbol(DependendSymbol):
        sh0=getShape(arg0)
        sh1=getShape(arg1)
        if not sh0==sh1:
-          raise ValueError,"Quotient_Symbol: shape of arguments must match"
+          raise ValueError("Quotient_Symbol: shape of arguments must match")
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -4604,7 +4608,7 @@ class Quotient_Symbol(DependendSymbol):
       if format=="escript":
          return "quotient(%s,%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -4620,12 +4624,12 @@ class Quotient_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return quotient(args[0],args[1])
@@ -4697,7 +4701,7 @@ class Power_Symbol(DependendSymbol):
        sh0=getShape(arg0)
        sh1=getShape(arg1)
        if not sh0==sh1:
-          raise ValueError,"Power_Symbol: shape of arguments must match"
+          raise ValueError("Power_Symbol: shape of arguments must match")
        d0=pokeDim(arg0)
        d1=pokeDim(arg1)
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
@@ -4723,7 +4727,7 @@ class Power_Symbol(DependendSymbol):
       elif format=="escript":
          return "power(%s,%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -4739,12 +4743,12 @@ class Power_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return power(args[0],args[1])
@@ -4784,22 +4788,22 @@ def maximum(*args):
           out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-	     if out.getRank()==0 and a.getRank()>0:
-		#We need to consider the case where we have scalars and higher 
-		#ranked objects mixed. If the scalar was first it will get
-		#picked as the initial out and we have a problem,
-		#so we swap the objects
-		res=a.copy()	#Deep copy of a
-		res.copyWithMask(out,wherePositive(out-a))
-		out=res
-	     else:
-             	out.copyWithMask(a,wherePositive(a-out))
+             if out.getRank()==0 and a.getRank()>0:
+                #We need to consider the case where we have scalars and higher 
+                #ranked objects mixed. If the scalar was first it will get
+                #picked as the initial out and we have a problem,
+                #so we swap the objects
+                res=a.copy()	#Deep copy of a
+                res.copyWithMask(out,wherePositive(out-a))
+                out=res
+             else:
+                out.copyWithMask(a,wherePositive(a-out))
           else:
              diff=add(a,-out)
              temp=add(mult(out, whereNonPositive(diff)), mult(a, wherePositive(diff)))
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
-	       # we need to convert the result to an array 
-	       temp=numpy.array(temp)             
+                # we need to convert the result to an array 
+                temp=numpy.array(temp)             
              out=temp
     return out
 
@@ -4819,29 +4823,29 @@ def minimum(*args):
     for a in args:
        if out==None:
           #out=a*1
-	  if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
-	      out=a.copy()
-	  else:
-	      out=a*1
+          if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
+             out=a.copy()
+          else:
+             out=a*1
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-	     if out.getRank()==0 and a.getRank()>0:
-		#We need to consider the case where we have scalars and higher 
-		#ranked objects mixed. If the scalar was first it will get
-		#picked as the initial out and we have a problem,
-		#so we swap the objects
-		res=a.copy()	#Deep copy of a
-		res.copyWithMask(out,whereNegative(out-a))
-		out=res
-	     else:
-		out.copyWithMask(a,whereNegative(a-out))
+            if out.getRank()==0 and a.getRank()>0:
+               #We need to consider the case where we have scalars and higher 
+               #ranked objects mixed. If the scalar was first it will get
+               #picked as the initial out and we have a problem,
+               #so we swap the objects
+               res=a.copy()	#Deep copy of a
+               res.copyWithMask(out,whereNegative(out-a))
+               out=res
+            else:
+               out.copyWithMask(a,whereNegative(a-out))
           else:
              diff=add(a,-out)
              #out=add(out,mult(whereNegative(diff),diff))
              temp=add(mult(out, whereNonNegative(diff)), mult(a, whereNegative(diff)))
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
-	       # we need to convert the result to an array 
-	       temp=numpy.array(temp)
+                 # we need to convert the result to an array 
+                 temp=numpy.array(temp)
              out=temp
     return out
 
@@ -4864,7 +4868,7 @@ def clip(arg,minval=None,maxval=None):
     """
     if not minval==None and not maxval==None:
        if minval>maxval:
-          raise ValueError,"minval = %s must be less than maxval %s"%(minval,maxval)
+          raise ValueError("minval = %s must be less than maxval %s"%(minval,maxval))
     if minval == None:
         tmp=arg
     else:
@@ -4899,7 +4903,7 @@ def inner(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not sh0==sh1:
-        raise ValueError,"inner: shape of arguments does not match"
+        raise ValueError("inner: shape of arguments does not match")
     return generalTensorProduct(arg0,arg1,axis_offset=len(sh0))
 
 def outer(arg0,arg1):
@@ -4956,9 +4960,9 @@ def matrix_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTensorProduct(arg0,arg1,axis_offset=1)
 
 def tensormult(arg0,arg1):
@@ -5011,7 +5015,7 @@ def tensor_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"tensor_mult: first argument must have rank 2 or 4"
+        raise ValueError("tensor_mult: first argument must have rank 2 or 4")
 
 def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
@@ -5044,7 +5048,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
            return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
            if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
-               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
@@ -5093,7 +5097,7 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
        sh10=sh_arg1[:axis_offset]
        sh1=sh_arg1[axis_offset:]
        if not sh01==sh10:
-           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -5115,7 +5119,7 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
       if format=="escript" or format=="str" or format=="text":
          return "generalTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -5131,12 +5135,12 @@ class GeneralTensorProduct_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return generalTensorProduct(args[0],args[1],args[2])
@@ -5174,9 +5178,9 @@ def transposed_matrix_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
 
 def transposed_tensor_mult(arg0,arg1):
@@ -5226,7 +5230,7 @@ def transposed_tensor_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTransposedTensorProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"first argument must have rank 2 or 4"
+        raise ValueError("first argument must have rank 2 or 4")
 
 def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     """
@@ -5263,7 +5267,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
            return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
        else:
            if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
-               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
@@ -5314,7 +5318,7 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
        sh0=sh_arg0[axis_offset:]
        sh1=sh_arg1[axis_offset:]
        if not sh01==sh10:
-           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -5336,7 +5340,7 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
       if format=="escript" or format=="str" or format=="text":
          return "generalTransposedTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -5352,12 +5356,12 @@ class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return generalTransposedTensorProduct(args[0],args[1],args[2])
@@ -5391,9 +5395,9 @@ def matrix_transposed_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
 
 def tensor_transposed_mult(arg0,arg1):
@@ -5436,7 +5440,7 @@ def tensor_transposed_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"first argument must have rank 2 or 4"
+        raise ValueError("first argument must have rank 2 or 4")
 
 def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     """
@@ -5473,7 +5477,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
            return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
        else:
            if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
-               raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
            arg0_c=arg0.copy()
            arg1_c=arg1.copy()
            sh0,sh1=arg0.shape,arg1.shape
@@ -5524,7 +5528,7 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
        sh10=sh_arg1[len(sh_arg1)-axis_offset:]
        sh1=sh_arg1[:len(sh_arg1)-axis_offset]
        if not sh01==sh10:
-           raise ValueError,"dimensions of last %s components in left argument don't match the last %s components in the right argument."%(axis_offset,axis_offset)
+           raise ValueError("dimensions of last %s components in left argument don't match the last %s components in the right argument."%(axis_offset,axis_offset))
        DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
 
    def getMyCode(self,argstrs,format="escript"):
@@ -5546,7 +5550,7 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
       if format=="escript" or format=="str" or format=="text":
          return "generalTensorTransposedProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
       else:
-         raise NotImplementedError,"%s does not provide program code for format %s."%(str(self),format)
+         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
 
    def substitute(self,argvals):
       """
@@ -5562,12 +5566,12 @@ class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          args=self.getSubstitutedArguments(argvals)
          return generalTensorTransposedProduct(args[0],args[1],args[2])
@@ -5612,7 +5616,7 @@ def grad(arg,where=None):
        else:
           return arg._grad(where)
     else:
-       raise TypeError,"grad: Unknown argument type."
+       raise TypeError("grad: Unknown argument type.")
 
 class Grad_Symbol(DependendSymbol):
    """
@@ -5630,7 +5634,7 @@ class Grad_Symbol(DependendSymbol):
       """
       d=arg.getDim()
       if d==None:
-         raise ValueError,"argument must have a spatial dimension"
+         raise ValueError("argument must have a spatial dimension")
       super(Grad_Symbol,self).__init__(args=[arg,where],shape=arg.getShape()+(d,),dim=d)
 
    def getMyCode(self,argstrs,format="escript"):
@@ -5652,7 +5656,7 @@ class Grad_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "grad(%s,where=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"Grad_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Grad_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -5668,12 +5672,12 @@ class Grad_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return grad(arg[0],where=arg[1])
@@ -5756,7 +5760,7 @@ class Integrate_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "integrate(%s,where=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"Integrate_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Integrate_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -5772,12 +5776,12 @@ class Integrate_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return integrate(arg[0],where=arg[1])
@@ -5857,7 +5861,7 @@ class Interpolate_Symbol(DependendSymbol):
       if format=="escript" or format=="str"  or format=="text":
          return "interpolate(%s,where=%s)"%(argstrs[0],argstrs[1])
       else:
-         raise NotImplementedError,"Interpolate_Symbol does not provide program code for format %s."%format
+         raise NotImplementedError("Interpolate_Symbol does not provide program code for format %s."%format)
 
    def substitute(self,argvals):
       """
@@ -5873,12 +5877,12 @@ class Interpolate_Symbol(DependendSymbol):
               depending on the degree of substitution
       :raise TypeError: if a value for a `Symbol` cannot be substituted
       """
-      if argvals.has_key(self):
+      if self in argvals:
          arg=argvals[self]
          if self.isAppropriateValue(arg):
             return arg
          else:
-            raise TypeError,"%s: new value is not appropriate."%str(self)
+            raise TypeError("%s: new value is not appropriate."%str(self))
       else:
          arg=self.getSubstitutedArguments(argvals)
          return interpolate(arg[0],where=arg[1])
@@ -5917,9 +5921,9 @@ def div(arg,where=None):
     elif isinstance(arg,escript.Data):
         dim=arg.getDomain().getDim()
     else:
-        raise TypeError,"div: argument type not supported"
+        raise TypeError("div: argument type not supported")
     if not arg.getShape()==(dim,):
-      raise ValueError,"div: expected shape is (%s,)"%dim
+      raise ValueError("div: expected shape is (%s,)"%dim)
     return trace(grad(arg,where))
 
 def jump(arg,domain=None):
@@ -6013,7 +6017,7 @@ def meanValue(arg):
        fs=escript.ReducedFunction(d)
     a=vol(fs)
     if a == 0:
-        raise ValueError,"FunctionSpace %s with zero volume."%str(fs)
+        raise ValueError("FunctionSpace %s with zero volume."%str(fs))
     return integrate(arg,fs)/a
  
 def diameter(domain):
@@ -6039,7 +6043,7 @@ def boundingBox(domain):
     """
     x=domain.getX()
     out=[]
-    for i in xrange(domain.getDim()):
+    for i in range(domain.getDim()):
        x_i=x[i]
        out.append((inf(x_i),sup(x_i)))
     return out
@@ -6068,36 +6072,36 @@ def mkDir(*pathname):
     if getMPIRankWorld()==0:
       for p in pathname:
        if os.path.exists(p):
-	   if not os.path.isdir(p):
-		errno=2
+          if not os.path.isdir(p):
+                errno=2
                 p_fail=p
        else:
           try:
               os.makedirs(p)
-          except Exception, e:
+          except Exception as e:
               errno=1
               p_fail=p
     
     errno=getMPIWorldMax(errno)
     if errno>0:
-	 if errno==2:
+        if errno==2:
             if p_fail == None:
-	       raise IOError,"Unable to create directory."
+               raise IOError("Unable to create directory.")
             else:
-	       raise IOError,"Unable to create directory %s. It already exists and is not a directory."%p_fail
-         elif e==None:
+               raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
+        elif e==None:
             if p_fail == None:
-	       raise IOError,"Unable to create directory."
+               raise IOError("Unable to create directory.")
             else:
-	       raise IOError,"Unable to create directory %s."%p_fail
-         else:
+               raise IOError("Unable to create directory %s."%p_fail)
+        else:
             if hasattr(e,"message"):
-               raise IOError,e.message
+               raise IOError(e.message)
             else:
                if p_fail == None:
-	          raise IOError,"Unable to create directory."
+                  raise IOError("Unable to create directory.")
                else:
-	          raise IOError,"Unable to create directory %s."%p_fail
+                  raise IOError("Unable to create directory %s."%p_fail)
 
 class FileWriter(object):
     """
@@ -6139,12 +6143,12 @@ class FileWriter(object):
                   fn2=fn+".%s"%getMPIRankWorld()
                   try:
                      self.__file=open(fn2,self.mode)
-                  except Exception, e:
+                  except Exception as e:
                      errno=1
          else:
               try:
                   self.__file=open(fn,self.mode)
-              except Exception, e:
+              except Exception as e:
                   errno=1
          self.__handelerror(errno,e,"opening")
 
@@ -6152,7 +6156,7 @@ class FileWriter(object):
          errno=getMPIWorldMax(errno)
          if errno>0:
             if e==None:
-               raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
+               raise IOError("Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation))
             else:
                raise IOError(str(e))
          
@@ -6165,7 +6169,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.close()
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"closing")
         self.closed=True
@@ -6179,7 +6183,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.flush()
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"flushing")
 
@@ -6195,7 +6199,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.write(txt)
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"writing")
 
@@ -6212,7 +6216,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.writelines(txts)
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"writing strings")
 
@@ -6229,8 +6233,8 @@ def showEscriptParams():
     Displays the parameters escript recognises with an explanation.
     """
     p=listEscriptParams()
-    for name,desc in p:
-	print name+':\t'+desc
+    for name,default,desc in p:
+        print((name+' ('+str(default)+'):\t'+desc))
 
 #Lazy related things
 #These are just wrappers
@@ -6239,9 +6243,9 @@ def resolve(arg):
    Returns the value of arg resolved.
    """
    if not isinstance(arg,Data):
-	raise TypeError, "Can only resolve Data."
+        raise TypeError("Can only resolve Data.")
    if arg.isLazy():
-	arg.resolve()
+        arg.resolve()
    return arg
    
 def delay(arg):
@@ -6249,7 +6253,7 @@ def delay(arg):
    Returns a lazy version of arg
    """
    if not isinstance(arg,Data):
-	raise TypeError, "Can only delay Data."
+       raise TypeError("Can only delay Data.")
    return arg.delay()
 
 def positive(arg):
@@ -6279,10 +6283,10 @@ def condEval(f, tval, fval):
     Wrapper to allow non-data objects to be used.
     """
     if not isinstance(tval,Data) and not isinstance(fval,Data):
-	raise TypeError, "At least one of the alternatives must be a Data object."
+        raise TypeError("At least one of the alternatives must be a Data object.")
     if isinstance(tval,Data) and isinstance(fval, Data):
-	return _condEval(f,tval,fval)
+        return _condEval(f,tval,fval)
     if not isinstance(fval, Data):
-	return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
+        return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
     return _condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
 
