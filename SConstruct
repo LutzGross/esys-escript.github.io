@@ -455,11 +455,18 @@ env.PrependENVPath(LD_LIBRARY_PATH_KEY, boost_lib_path)
 
 ######## numpy (required)
 
-try:
-    from numpy import identity
-except ImportError:
-    print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
-    Exit(1)
+#try:
+#    from numpy import identity
+#except ImportError:
+#    print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+#    Exit(1)
+
+
+# More nasty hacking
+#The problem here is that importing numpy into the scons instance of python does not
+#say much about the ability to import into the real version  of python
+#Perhaps this should be tested in an external script?
+#In my case numpy was installed for py3 and scons (running in py2) could not understand it
 
 ######## CppUnit (required for tests)
 
@@ -766,8 +773,20 @@ buildvars.write("svn_revision="+str(global_revision)+"\n")
 buildvars.write("prefix="+prefix+"\n")
 buildvars.write("cc="+env['CC']+"\n")
 buildvars.write("cxx="+env['CXX']+"\n")
-buildvars.write("python="+sys.executable+"\n")
-buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
+#buildvars.write("python="+sys.executable+"\n")
+#buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
+
+
+#Nasty hack
+
+#This should run things via the chosen executable
+
+buildvars.write("python=python3\n")
+buildvars.write("python_version=3.1\n")
+
+#nasty hack
+
+
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")

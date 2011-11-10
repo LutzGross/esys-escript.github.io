@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 
-from finleycpp import __Brick_driver, __Rectangle_driver
+from .finleycpp import __Brick_driver, __Rectangle_driver
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1, 
