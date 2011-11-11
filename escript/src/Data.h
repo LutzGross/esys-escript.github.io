@@ -18,6 +18,9 @@
 #define DATA_H
 #include "system_dep.h"
 
+
+#include <iostream>
+
 #include "DataTypes.h"
 #include "DataAbstract.h"
 #include "DataAlgorithm.h"
@@ -528,6 +531,8 @@ contains datapoints.
   int
   getNumDataPoints() const
   {
+    using namespace std;
+std::cout << getNumSamples() <<" " << getNumDataPointsPerSample() << std::endl;    
     return getNumSamples() * getNumDataPointsPerSample();
   }
   /**
