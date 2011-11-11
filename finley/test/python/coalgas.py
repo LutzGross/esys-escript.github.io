@@ -199,15 +199,15 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       """
       MaterialPropertyWithDifferential.__init__(self)
       if len(x) != len(y):
-	 raise ValueError,"length of interpolation nodes and value lists need to be identical."
+         raise ValueError("length of interpolation nodes and value lists need to be identical.")
       if len(x) < 1 :
-	 raise ValueError,"length of interpolation nodes a list needs to at least one."
+         raise ValueError("length of interpolation nodes a list needs to at least one.")
       
       x_ref=x[0]
       for i in range(1,len(x)):
-	 if x_ref >= x[i]:
-	    raise ValueError,"interpolation nodes need to be given in increasing order."
-	 x_ref=x[i] 	 
+         if x_ref >= x[i]:
+            raise ValueError("interpolation nodes need to be given in increasing order.")
+         x_ref=x[i]      
       self.__x = x 
       self.__y = y
       self.__obeyBounds = obeyBounds
@@ -222,19 +222,19 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       x0=X[0]
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
-	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+         if sup(m0) > 0:
+            raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       out=self.__x[0]
       for i in range(1,len(X)):
-	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1]) * (x-X[i-1]) + Y[i-1]
-	  out = out * m0 + z * (1-m0)
-	  m0=whereNonPositive(x-X[i])
+          z=(Y[i]-Y[i-1])/(X[i]-X[i-1]) * (x-X[i-1]) + Y[i-1]
+          out = out * m0 + z * (1-m0)
+          m0=whereNonPositive(x-X[i])
           
       if self.__obeyBounds:
-	    if inf(m0) < 1 :
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+            if inf(m0) < 1 :
+               raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       else:
-	    out = out * m0 + X[-1] * (1-m0)
+            out = out * m0 + X[-1] * (1-m0)
       return out
 
    def getValueDifferential(self, x):
@@ -244,19 +244,19 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       x0=X[0]
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
-	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+         if sup(m0) > 0:
+            raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       out=0.
       for i in range(1,len(X)):
-	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1])
-	  out = out * m0 + z * (1-m0)
-	  m0=whereNonPositive(x-X[i])
+          z=(Y[i]-Y[i-1])/(X[i]-X[i-1])
+          out = out * m0 + z * (1-m0)
+          m0=whereNonPositive(x-X[i])
      
       if self.__obeyBounds:
-	    if inf(m0) < 1:
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+            if inf(m0) < 1:
+               raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       else:
-	    out = out * m0
+            out = out * m0
       return out   
       
 
@@ -274,7 +274,7 @@ class Well(object):
        set up well 
        """
        if not len(schedule) == len(Q):
-           raise ValueError,"length of schedule and Q must match."
+           raise ValueError("length of schedule and Q must match.")
        self.__schedule=schedule
        self.__Q = Q
        self.__phase=phase
@@ -306,7 +306,7 @@ class Well(object):
              out=self.__Q[i]
              break
       return out
- 	
+        
    def getBHPLimit(self):
       """
       return bottom-hole pressure limit
@@ -326,8 +326,8 @@ class VerticalPeacemanWell(Well):
    defines a well using Peaceman's formula
    """
    def __init__(self,name, domain, schedule = [0.], BHP_limit=1.*U.atm, Q=0, r=10*U.cm, X0=[0.,0.,0.], D=[1.*U.km,1.*U.km, 1.*U.m], 
-		     perm=[1.*U.cPoise,1.*U.cPoise, 1.*U.cPoise], phase=Well.WATER, s=0, decay_factor = 5):
-		     # reset_factor=0.1):
+                     perm=[1.*U.cPoise,1.*U.cPoise, 1.*U.cPoise], phase=Well.WATER, s=0, decay_factor = 5):
+                     # reset_factor=0.1):
        """
        set up well 
        
@@ -455,25 +455,25 @@ class DualPorosity(object):
          converged=False
          while n < self.__iter_max and not converged:
             u=self.solvePDE(dt)
-            if self.verbose: print "iteration step %d:"%n
+            if self.verbose: print("iteration step %d:"%n)
             converged=True
             for i in range(len(u)):
                if isinstance(u[i], Data):
-	         norm_u=Lsup(u[i])
-	         norm_e=Lsup(u[i]-self.u[i])
+                 norm_u=Lsup(u[i])
+                 norm_e=Lsup(u[i]-self.u[i])
                else:
                  norm_e=0.
                  norm_u=1.
-	    
-	       if norm_u > 0:
-	           rerr=norm_e/norm_u
-	       else:
-	           rerr=norm_e
+            
+               if norm_u > 0:
+                   rerr=norm_e/norm_u
+               else:
+                   rerr=norm_e
                if norm_e>self.__rtol * norm_u + 1.e-10: converged=False
-	       if self.verbose: print "   comp %i: change = %e (value = %e)"%(i, norm_e,norm_u)
-	    n+=1
-	    self.u=u
-         print "iteration completed."
+               if self.verbose: print("   comp %i: change = %e (value = %e)"%(i, norm_e,norm_u))
+            n+=1
+            self.u=u
+         print("iteration completed.")
          self.t+=dt
 
 
@@ -485,97 +485,97 @@ class PorosityOneHalfModel(DualPorosity):
       """ 
 
       def __init__(self, domain, phi_f=None, phi=None, L_g=None, 
-			 perm_f_0=None, perm_f_1=None, perm_f_2=None,
-			 k_w =None, k_g=None, mu_w =None, mu_g =None,
-			 rho_w =None, rho_g=None, sigma=0, A_mg=0, f_rg=1.,   
-			   wells=[], g=9.81*U.m/U.sec**2):
-	 """
-	 set up
-	 
-	 :param domain: domain
-	 :type domain: `esys.escript.Domain`
-	 :param phi_f: porosity of the fractured rock as function of the gas pressure
-	 :type phi_f: `MaterialPropertyWithDifferential`
-	 :param phi: total porosity if None phi=1.
-	 :type phi: scalar or None
-	 :param L_g: gas adsorption as function of gas pressure
-	 :type L_g: `MaterialPropertyWithDifferential`
-	 :param S_fg: gas saturation in the fractured rock as function of the capillary pressure p_fc=S_fg- p_f
-	 :type S_fg: `MaterialPropertyWithDifferential`
-	 :param perm_f_0: permeability in the x_0 direction in the fractured media
-	 :type perm_f_0: scalar 
-	 :param perm_f_1: permeability in the x_1 direction in the fractured media
-	 :type perm_f_1: scalar
-	 :param perm_f_2: permeability in the x_2 direction in the fractured media
-	 :type perm_f_2: scalar
-	 :param k_w: relative permeability of water as function of water saturation
-	 :type k_w: `MaterialProperty`
-	 :param k_g: relative permeability of gas as function of gas saturation
-	 :type k_g: `MaterialProperty`
-	 :param mu_w: viscosity of water as function of water pressure
-	 :type mu_w: `MaterialProperty`
-	 :param mu_g: viscosity of gas as function of gas pressure
-	 :type mu_g: `MaterialProperty`
-	 :param rho_w: density of water as function of water pressure
-	 :type rho_w: `MaterialPropertyWithDifferential`
-	 :param rho_g: density of gas as function of gas pressure
-	 :type rho_g: `MaterialPropertyWithDifferential`
-	 :param wells : list of wells
-	 :type wells: list of `Well`
-	 :param sigma: shape factor for gas matrix diffusion 
-	 :param A_mg: diffusion constant for gas adsorption
-	 :param f_rg: gas re-adsorption factor
-	 """
+                         perm_f_0=None, perm_f_1=None, perm_f_2=None,
+                         k_w =None, k_g=None, mu_w =None, mu_g =None,
+                         rho_w =None, rho_g=None, sigma=0, A_mg=0, f_rg=1.,   
+                           wells=[], g=9.81*U.m/U.sec**2):
+         """
+         set up
+         
+         :param domain: domain
+         :type domain: `esys.escript.Domain`
+         :param phi_f: porosity of the fractured rock as function of the gas pressure
+         :type phi_f: `MaterialPropertyWithDifferential`
+         :param phi: total porosity if None phi=1.
+         :type phi: scalar or None
+         :param L_g: gas adsorption as function of gas pressure
+         :type L_g: `MaterialPropertyWithDifferential`
+         :param S_fg: gas saturation in the fractured rock as function of the capillary pressure p_fc=S_fg- p_f
+         :type S_fg: `MaterialPropertyWithDifferential`
+         :param perm_f_0: permeability in the x_0 direction in the fractured media
+         :type perm_f_0: scalar 
+         :param perm_f_1: permeability in the x_1 direction in the fractured media
+         :type perm_f_1: scalar
+         :param perm_f_2: permeability in the x_2 direction in the fractured media
+         :type perm_f_2: scalar
+         :param k_w: relative permeability of water as function of water saturation
+         :type k_w: `MaterialProperty`
+         :param k_g: relative permeability of gas as function of gas saturation
+         :type k_g: `MaterialProperty`
+         :param mu_w: viscosity of water as function of water pressure
+         :type mu_w: `MaterialProperty`
+         :param mu_g: viscosity of gas as function of gas pressure
+         :type mu_g: `MaterialProperty`
+         :param rho_w: density of water as function of water pressure
+         :type rho_w: `MaterialPropertyWithDifferential`
+         :param rho_g: density of gas as function of gas pressure
+         :type rho_g: `MaterialPropertyWithDifferential`
+         :param wells : list of wells
+         :type wells: list of `Well`
+         :param sigma: shape factor for gas matrix diffusion 
+         :param A_mg: diffusion constant for gas adsorption
+         :param f_rg: gas re-adsorption factor
+         """
    
-	 DualPorosity.__init__(self, domain,
-			      phi_f=phi_f, phi_m=None, phi=phi,
-			      S_fg=None, S_mg=None, 
-			      perm_f_0=perm_f_0, perm_f_1=perm_f_1, perm_f_2=perm_f_2,
-			      perm_m_0=None , perm_m_1=None, perm_m_2=None, 
-			      k_w =k_w, k_g=k_g, mu_w =mu_w, mu_g =mu_g,
-			      rho_w =rho_w, rho_g=rho_g, 
-			      wells=wells, g=g)
-	 self.L_g=L_g
-	 self.sigma = sigma 
-	 self.A_mg = A_mg
-	 self.f_rg  = f_rg
-	 self.__pde=LinearPDE(self.domain, numEquations=3, numSolutions =3)
-	 
+         DualPorosity.__init__(self, domain,
+                              phi_f=phi_f, phi_m=None, phi=phi,
+                              S_fg=None, S_mg=None, 
+                              perm_f_0=perm_f_0, perm_f_1=perm_f_1, perm_f_2=perm_f_2,
+                              perm_m_0=None , perm_m_1=None, perm_m_2=None, 
+                              k_w =k_w, k_g=k_g, mu_w =mu_w, mu_g =mu_g,
+                              rho_w =rho_w, rho_g=rho_g, 
+                              wells=wells, g=g)
+         self.L_g=L_g
+         self.sigma = sigma 
+         self.A_mg = A_mg
+         self.f_rg  = f_rg
+         self.__pde=LinearPDE(self.domain, numEquations=3, numSolutions =3)
+         
     
       def getPDEOptions(self):
-	 """
-	 returns the `SolverOptions` of the underlying PDE
-	 """
-	 return self.__pde.getSolverOptions()
-	 
+         """
+         returns the `SolverOptions` of the underlying PDE
+         """
+         return self.__pde.getSolverOptions()
+         
       def getState(self): 
-	 return self.u
+         return self.u
 
       def getOldState(self): 
-	 return self.u_old
+         return self.u_old
 
       def setInitialState(self, p_top=1.*U.atm, p_bottom= 1.*U.atm, S_fg=0,  c_mg=None):
-	    """
-	    sets the initial state
-	    
-	    :param p: pressure
-	    :param S_fg: gas saturation in fractured rock 
-	    :param c_mg: gas concentration in coal matrix at standart conditions. if not given it is calculated 
-			using the  gas adsorption curve.
-	    """    
-	    if self.domain.getDim() == 2:
-	       p_init=Scalar((p_top + p_bottom) /2, Solution(self.domain))
-	    else:
-	       z=self.u.getDomain().getX()[0]
-	       z_top=sup(z)
-	       z_bottom=inf(z)
-	       p_init=(p_bottom-p_top)/(z_bottom-z_top)*(z-z_top) + p_top
+            """
+            sets the initial state
+            
+            :param p: pressure
+            :param S_fg: gas saturation in fractured rock 
+            :param c_mg: gas concentration in coal matrix at standart conditions. if not given it is calculated 
+                        using the  gas adsorption curve.
+            """    
+            if self.domain.getDim() == 2:
+               p_init=Scalar((p_top + p_bottom) /2, Solution(self.domain))
+            else:
+               z=self.u.getDomain().getX()[0]
+               z_top=sup(z)
+               z_bottom=inf(z)
+               p_init=(p_bottom-p_top)/(z_bottom-z_top)*(z-z_top) + p_top
 
             S_fg_init=Scalar(S_fg, Solution(self.domain))
 
-	    if c_mg == None:
+            if c_mg == None:
               c_mg_init=self.L_g(p_init)
-	    else:
+            else:
               c_mg_init=Scalar(c_mg, Solution(self.domain))
 
             q_gas=Scalar(0., DiracDeltaFunctions(self.domain))
@@ -585,162 +585,162 @@ class PorosityOneHalfModel(DualPorosity):
             self.u=(p_init,S_fg_init, c_mg_init, BHP, q_gas, q_water)
 
       def solvePDE(self, dt):
-	 
-	 p_f, S_fg, c_mg, BHP_old, q_gas_old, q_water_old =self.getState() 
-	 p_f_old, S_fg_old, c_mg_old, BHP, q_gas, q_water =self.getOldState()
+         
+         p_f, S_fg, c_mg, BHP_old, q_gas_old, q_water_old =self.getState() 
+         p_f_old, S_fg_old, c_mg_old, BHP, q_gas, q_water =self.getOldState()
 
          S_fw=1-S_fg
 
-	 if self.verbose: 
-	      print "p_f range = ",inf(p_f),sup(p_f) 
-	      print "S_fg range = ",inf(S_fg),sup(S_fg)
-	      print "S_fw range = ",inf(S_fw),sup(S_fw)
-	      print "c_mg range = ",inf(c_mg),sup(c_mg)
-              print "BHP =",BHP
-              print "q_gas =",q_gas
-              print "q_water =",q_water
+         if self.verbose: 
+              print("p_f range = ",inf(p_f),sup(p_f)) 
+              print("S_fg range = ",inf(S_fg),sup(S_fg))
+              print("S_fw range = ",inf(S_fw),sup(S_fw))
+              print("c_mg range = ",inf(c_mg),sup(c_mg))
+              print("BHP =",BHP)
+              print("q_gas =",q_gas)
+              print("q_water =",q_water)
 
          k_fw=self.k_w(S_fw)
-       	 if self.verbose: print "k_fw range = ",inf(k_fw),sup(k_fw) 
+         if self.verbose: print("k_fw range = ",inf(k_fw),sup(k_fw)) 
 
 
          k_fg=self.k_g(S_fg)
-       	 if self.verbose: print "k_fg range = ",inf(k_fg),sup(k_fg) 
+         if self.verbose: print("k_fg range = ",inf(k_fg),sup(k_fg)) 
 
-	 mu_fw=self.mu_w(p_f)
-       	 if self.verbose: print "mu_fw range = ",inf(mu_fw),sup(mu_fw) 
+         mu_fw=self.mu_w(p_f)
+         if self.verbose: print("mu_fw range = ",inf(mu_fw),sup(mu_fw)) 
 
-	 mu_fg=self.mu_g(p_f)
-       	 if self.verbose: print "mu_fg range = ",inf(mu_fg),sup(mu_fg) 
+         mu_fg=self.mu_g(p_f)
+         if self.verbose: print("mu_fg range = ",inf(mu_fg),sup(mu_fg)) 
          
 
-	 phi_f   =self.phi_f.getValue(p_f)
-	 dphi_fdp=self.phi_f.getValueDifferential(p_f)
-       	 if self.verbose: print "phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp)) 
-	 
-	 rho_fw 	= self.rho_w.getValue(p_f)
-	 drho_fwdp	= self.rho_w.getValueDifferential(p_f)
-      	 if self.verbose: print "rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp)) 
+         phi_f   =self.phi_f.getValue(p_f)
+         dphi_fdp=self.phi_f.getValueDifferential(p_f)
+         if self.verbose: print("phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp))) 
+         
+         rho_fw         = self.rho_w.getValue(p_f)
+         drho_fwdp      = self.rho_w.getValueDifferential(p_f)
+         if self.verbose: print("rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp))) 
 
          rho_fg = self.rho_g.getValue(p_f)
          rho_g_surf = self.rho_g.rho_surf
-	 drho_fgdp	= self.rho_g.getValueDifferential(p_f)
-      	 if self.verbose: 
-      	        print "rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp)) 
-      	        print "rho_fg surf = ",rho_g_surf
-	      
-	 L_g = self.L_g(p_f)
-	 dL_gdp = self.L_g.getValueDifferential(p_f)
-      	 if self.verbose: print "L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp)) 
-	 	 
-	 A_fw = rho_fw * k_fw/mu_fw 
-	 A_fg = rho_fg * k_fg/mu_fg
-	 
-	 m = whereNegative(L_g - c_mg) 
-	 H = self.sigma * self.A_mg * (m + (1-m) * self.f_rg * S_fg )
-	 
-	 E_fpp= S_fw * (  rho_fw * dphi_fdp + phi_f  * drho_fwdp )
-	 E_fps=  -  phi_f * rho_fw 
-	 E_fsp= S_fg * ( rho_fg * dphi_fdp + phi_f * drho_fgdp )
-	 E_fss= phi_f * rho_fg 
-	
-	
-	 
-	 F_fw=0.
-	 F_fg=0.
-	 D_fw=0.
-	 D_fg=0.
+         drho_fgdp      = self.rho_g.getValueDifferential(p_f)
+         if self.verbose: 
+                print("rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp))) 
+                print("rho_fg surf = ",rho_g_surf)
+              
+         L_g = self.L_g(p_f)
+         dL_gdp = self.L_g.getValueDifferential(p_f)
+         if self.verbose: print("L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp))) 
+                 
+         A_fw = rho_fw * k_fw/mu_fw 
+         A_fg = rho_fg * k_fg/mu_fg
+         
+         m = whereNegative(L_g - c_mg) 
+         H = self.sigma * self.A_mg * (m + (1-m) * self.f_rg * S_fg )
+         
+         E_fpp= S_fw * (  rho_fw * dphi_fdp + phi_f  * drho_fwdp )
+         E_fps=  -  phi_f * rho_fw 
+         E_fsp= S_fg * ( rho_fg * dphi_fdp + phi_f * drho_fgdp )
+         E_fss= phi_f * rho_fg 
+        
+        
+         
+         F_fw=0.
+         F_fg=0.
+         D_fw=0.
+         D_fg=0.
 
          prod_index=Scalar(0., DiracDeltaFunctions(self.domain))
          geo_fac=Scalar(0., DiracDeltaFunctions(self.domain))
          for I in self.wells:
-	     prod_index.setTaggedValue(I.name, I.getProductivityIndex() )
-	     geo_fac.setTaggedValue(I.name, I.geo_fac)
+             prod_index.setTaggedValue(I.name, I.getProductivityIndex() )
+             geo_fac.setTaggedValue(I.name, I.geo_fac)
 
-	 F_fp_Y = A_fw * prod_index * BHP  * geo_fac
-	 F_fs_Y = A_fg * prod_index * BHP * geo_fac
-	 D_fpp =  A_fw * prod_index * geo_fac
-	 D_fsp =  A_fg * prod_index * geo_fac
+         F_fp_Y = A_fw * prod_index * BHP  * geo_fac
+         F_fs_Y = A_fg * prod_index * BHP * geo_fac
+         D_fpp =  A_fw * prod_index * geo_fac
+         D_fsp =  A_fg * prod_index * geo_fac
 
-	 
-	 if self.domain.getDim() == 3:
-	    F_fp_X = ( A_fw * self.g * rho_fw * self.perm_f[2] ) * kronecker(self.domain)[2]
-	    F_fs_X = ( A_fg * self.g * rho_fg * self.perm_f[2] ) * kronecker(self.domain)[2]
-	 else:
-	    F_fp_X = 0 * kronecker(self.domain)[1]
-	    F_fs_X = 0 * kronecker(self.domain)[1]
-	    
+         
+         if self.domain.getDim() == 3:
+            F_fp_X = ( A_fw * self.g * rho_fw * self.perm_f[2] ) * kronecker(self.domain)[2]
+            F_fs_X = ( A_fg * self.g * rho_fg * self.perm_f[2] ) * kronecker(self.domain)[2]
+         else:
+            F_fp_X = 0 * kronecker(self.domain)[1]
+            F_fs_X = 0 * kronecker(self.domain)[1]
+            
          F_mg_Y = H * L_g
 
 
-	 D=self.__pde.createCoefficient("D")
-	 A=self.__pde.createCoefficient("A")
-	 Y=self.__pde.createCoefficient("Y")
-	 X=self.__pde.createCoefficient("X") 
-	 
-	 d_dirac=self.__pde.createCoefficient("d_dirac")
-	 y_dirac=self.__pde.createCoefficient("y_dirac")
+         D=self.__pde.createCoefficient("D")
+         A=self.__pde.createCoefficient("A")
+         Y=self.__pde.createCoefficient("Y")
+         X=self.__pde.createCoefficient("X") 
+         
+         d_dirac=self.__pde.createCoefficient("d_dirac")
+         y_dirac=self.__pde.createCoefficient("y_dirac")
 
 
         
-	 D[0,0]=E_fpp
-	 D[0,1]=E_fps
-	 d_dirac[0,0]=dt * D_fpp
-	 
-	 D[1,0]=E_fsp
-	 D[1,1]=E_fss 
-	 D[1,2]= rho_g_surf
-	 d_dirac[1,0]=dt * D_fsp
-	 
-	 D[0,2]= -dt * H * dL_gdp * 0
-	 D[2,2]= 1 + dt * H
-	 
-	 
-	 for i in range(self.domain.getDim()):
-	    A[0,i,0,i] = dt * A_fw * self.perm_f[i]
-	    A[1,i,1,i] = dt * A_fg * self.perm_f[i]
+         D[0,0]=E_fpp
+         D[0,1]=E_fps
+         d_dirac[0,0]=dt * D_fpp
+         
+         D[1,0]=E_fsp
+         D[1,1]=E_fss 
+         D[1,2]= rho_g_surf
+         d_dirac[1,0]=dt * D_fsp
+         
+         D[0,2]= -dt * H * dL_gdp * 0
+         D[2,2]= 1 + dt * H
+         
+         
+         for i in range(self.domain.getDim()):
+            A[0,i,0,i] = dt * A_fw * self.perm_f[i]
+            A[1,i,1,i] = dt * A_fg * self.perm_f[i]
 
          X[0,:]=  dt * F_fp_X
-	 X[1,:]=  dt * F_fs_X
+         X[1,:]=  dt * F_fs_X
 
-	 Y[0] = E_fpp *  p_f_old + E_fps * S_fg_old 
-	 Y[1] = E_fsp *  p_f_old + E_fss * S_fg_old + rho_g_surf * c_mg_old 
-	 Y[2] = c_mg_old                                                    + dt * ( F_mg_Y -  H * dL_gdp * p_f *0 )
-	 
-	 y_dirac[0] =dt * F_fp_Y
-	 y_dirac[1] =dt * F_fs_Y 
-	 
-	 print "HHH D[0,0] = ",D[0,0]
-	 print "HHH D[0,1] = ",D[0,1]
-	 print "HHH D[0,2] = ",D[0,2]
-	 print "HHH D[1,0] = ",D[1,0]
-	 print "HHH D[1,1] = ",D[1,1]
-	 print "HHH D[1,2] = ",D[1,2]
-	 print "HHH D[2,0] = ",D[2,0]
-	 print "HHH D[2,1] = ",D[2,1]
-	 print "HHH D[2,2] = ",D[2,2]
-	 print "HHH A_fw = ",A_fw
-	 print "HHH A_fg = ",A_fg
-	 print "HHH A[0,0,0,0] = ",A[0,0,0,0]
-	 print "HHH A[0,1,0,1] = ",A[0,1,0,1]
-	 print "HHH A[1,0,1,0] = ",A[1,0,1,0]
-	 print "HHH A[1,1,1,1] = ",A[1,1,1,1]
-	 print "HHH Y[0] ",Y[0]
-	 print "HHH Y[1] ",Y[1]
-	 print "HHH Y[2] ",Y[2]
-         print "HHH F_fp_Y ",F_fp_Y
-         print "HHH F_fs_Y ",F_fs_Y
-         print "HHH F_mg_Y ",F_mg_Y
-	 print "HHH H = ",H
+         Y[0] = E_fpp *  p_f_old + E_fps * S_fg_old 
+         Y[1] = E_fsp *  p_f_old + E_fss * S_fg_old + rho_g_surf * c_mg_old 
+         Y[2] = c_mg_old                                                    + dt * ( F_mg_Y -  H * dL_gdp * p_f *0 )
+         
+         y_dirac[0] =dt * F_fp_Y
+         y_dirac[1] =dt * F_fs_Y 
+         
+         print("HHH D[0,0] = ",D[0,0])
+         print("HHH D[0,1] = ",D[0,1])
+         print("HHH D[0,2] = ",D[0,2])
+         print("HHH D[1,0] = ",D[1,0])
+         print("HHH D[1,1] = ",D[1,1])
+         print("HHH D[1,2] = ",D[1,2])
+         print("HHH D[2,0] = ",D[2,0])
+         print("HHH D[2,1] = ",D[2,1])
+         print("HHH D[2,2] = ",D[2,2])
+         print("HHH A_fw = ",A_fw)
+         print("HHH A_fg = ",A_fg)
+         print("HHH A[0,0,0,0] = ",A[0,0,0,0])
+         print("HHH A[0,1,0,1] = ",A[0,1,0,1])
+         print("HHH A[1,0,1,0] = ",A[1,0,1,0])
+         print("HHH A[1,1,1,1] = ",A[1,1,1,1])
+         print("HHH Y[0] ",Y[0])
+         print("HHH Y[1] ",Y[1])
+         print("HHH Y[2] ",Y[2])
+         print("HHH F_fp_Y ",F_fp_Y)
+         print("HHH F_fs_Y ",F_fs_Y)
+         print("HHH F_mg_Y ",F_mg_Y)
+         print("HHH H = ",H)
 
-	 self.__pde.setValue(A=A, D=D, X=X, Y=Y, d_dirac=d_dirac , y_dirac=y_dirac)
-	 
-	 u2 = self.__pde.getSolution()
-	 # this is deals with round-off errors to maintain physical meaningful values
-	 # we should do this in a better way to detect values that are totally wrong
-	 p_f=u2[0]
-	 S_fg=clip(u2[1],minval=0, maxval=1)
-	 c_mg=clip(u2[2],minval=0)
+         self.__pde.setValue(A=A, D=D, X=X, Y=Y, d_dirac=d_dirac , y_dirac=y_dirac)
+         
+         u2 = self.__pde.getSolution()
+         # this is deals with round-off errors to maintain physical meaningful values
+         # we should do this in a better way to detect values that are totally wrong
+         p_f=u2[0]
+         S_fg=clip(u2[1],minval=0, maxval=1)
+         c_mg=clip(u2[2],minval=0)
          
 
 
@@ -748,12 +748,12 @@ class PorosityOneHalfModel(DualPorosity):
          BHP_limit=Scalar(0., DiracDeltaFunctions(self.domain))
          water_well_mask=Scalar(0., DiracDeltaFunctions(self.domain))
          for I in self.wells:
-	     q.setTaggedValue(I.name, I.getFlowRate(self.t+dt))
-	     BHP_limit.setTaggedValue(I.name, I.getBHPLimit())
-	     if I.getPhase() == Well.WATER:
-	          water_well_mask.setTaggedValue(I.name, 1)
-	 
-	 p_f_wells=interpolate(p_f, DiracDeltaFunctions(self.domain))
+             q.setTaggedValue(I.name, I.getFlowRate(self.t+dt))
+             BHP_limit.setTaggedValue(I.name, I.getBHPLimit())
+             if I.getPhase() == Well.WATER:
+                  water_well_mask.setTaggedValue(I.name, 1)
+         
+         p_f_wells=interpolate(p_f, DiracDeltaFunctions(self.domain))
          S_fg_wells=interpolate(S_fg, DiracDeltaFunctions(self.domain))
          A_fw_wells= self.k_w(1-S_fg_wells)/self.mu_w(p_f_wells)*self.rho_w(p_f_wells)
          A_fg_wells= self.k_g(S_fg_wells)/self.mu_g(p_f_wells)*self.rho_g(p_f_wells)

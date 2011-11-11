@@ -352,7 +352,7 @@ except KeyError:
 
 ######################## Add some custom builders ############################
 
-py_builder = Builder(action = "/home/joel/py3tools/bin/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
+py_builder = Builder(action = "scripts/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
 #py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 

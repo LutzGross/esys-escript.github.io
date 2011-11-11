@@ -59,187 +59,187 @@ except KeyError:
      ESCRIPT_WORKDIR='.'
 
 class Test_TableInterpolation(unittest.TestCase):
-    RES_TOL=1.e-7 # RES_TOLerance to compare results	
-	
-	
+    RES_TOL=1.e-7 # RES_TOLerance to compare results    
+        
+        
     def test_NullFunctionSpace(self):
-	arL=[[0, -1, -2, -3, -4], [1, 1, -2, -3, -4], [2, 2, 2, -3, -4], [3, 3, 3, 3, -4], [4, 4, 4, 4, 4]]
-	arn=numpy.array(arL)
-	ars=[arL,arn]
-	d0=Data(0)
-	d1=Data(1)
-	d2=Data(2)
-	d35=Data(3.5)
-	d4=Data(4)
-	dm05=Data(-0.5)
-	d175=Data(1.75)
-	d225=Data(2.25)
-	for arr in ars:
-	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
-	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
-	    self.assertTrue(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
-	    self.assertTrue(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
-	       # Point out of bounds
-	    self.assertRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
-	    self.assertRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
-	    self.assertRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
-	    self.assertRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
-	       #Test to ensure not check_boundaries does not throw in the above cases
-	    d1.interpolateTable(arL,0, 1, d4, 0, 0.5, 100, check_boundaries=False)
-	    d4.interpolateTable( arL,0, 0.5, d1, 0, 1, 100, check_boundaries=False  )
-	    dm05.interpolateTable( arL,0,1, d1 , 0,1, 100, check_boundaries=False  )
-	    d1.interpolateTable( arL,0,1, dm05 , 0,1, 100,check_boundaries=False  )
-	       
-	       # interpolated value too large
-	    self.assertRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
+        arL=[[0, -1, -2, -3, -4], [1, 1, -2, -3, -4], [2, 2, 2, -3, -4], [3, 3, 3, 3, -4], [4, 4, 4, 4, 4]]
+        arn=numpy.array(arL)
+        ars=[arL,arn]
+        d0=Data(0)
+        d1=Data(1)
+        d2=Data(2)
+        d35=Data(3.5)
+        d4=Data(4)
+        dm05=Data(-0.5)
+        d175=Data(1.75)
+        d225=Data(2.25)
+        for arr in ars:
+            self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
+            self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
+            self.assertTrue(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
+            self.assertTrue(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
+               # Point out of bounds
+            self.assertRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
+            self.assertRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
+            self.assertRaises(RuntimeError, dm05.interpolateTable, arL,0,1, d1 , 0,1, 100, check_boundaries=True  )
+            self.assertRaises(RuntimeError, d1.interpolateTable, arL,0,1, dm05 , 0,1, 100,check_boundaries=True  )
+               #Test to ensure not check_boundaries does not throw in the above cases
+            d1.interpolateTable(arL,0, 1, d4, 0, 0.5, 100, check_boundaries=False)
+            d4.interpolateTable( arL,0, 0.5, d1, 0, 1, 100, check_boundaries=False  )
+            dm05.interpolateTable( arL,0,1, d1 , 0,1, 100, check_boundaries=False  )
+            d1.interpolateTable( arL,0,1, dm05 , 0,1, 100,check_boundaries=False  )
+               
+               # interpolated value too large
+            self.assertRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 
 
     def test_FunctionSpace3D(self):
-	vs=[(1,3,5,7,11,13,17,19), (-1,1,-1,1,-1,1,-1,1), (0.5, 17, 0.25, 42, 0.125, 35, 0.625, 49)]   #There is no particular significance to these numbers
-	for fs in self.functionspaces:
-	    points=fs.getX()
-	    for t in vs:
-		v0, v1, v2, v3, v4, v5, v6, v7 =t
-		x=points[0]
-		y=points[1]
-		z=points[2]
-		xmax=sup(x)
-		xmin=inf(x)
-		ymax=sup(y)
-		ymin=inf(y)
-		zmax=sup(z)
-		zmin=inf(z)
-		xwidth=(xmax-xmin)/(self.xn-1)
-		ywidth=(ymax-ymin)/(self.yn-1)
-		zwidth=(zmax-zmin)/(self.zn-1)		
-		table=[]
-		for k in xrange(self.zn):
-		    face=[]
-		    for j in xrange(self.yn):
-			row=[]
-			for i in xrange(self.xn):
-				row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
-			face.append(row)
-		    table.append(face)
-	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin)
-		lsupref=Lsup(ref)
-		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
-		    res=interpolateTable(table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth),900)
-	    	    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
-		    # Test undef
-		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth), -1)
-		    # Test bounds checking
-		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, zwidth), 900,True)
-		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, zwidth), 900, True)
-		    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth/3), 900, True)
+        vs=[(1,3,5,7,11,13,17,19), (-1,1,-1,1,-1,1,-1,1), (0.5, 17, 0.25, 42, 0.125, 35, 0.625, 49)]   #There is no particular significance to these numbers
+        for fs in self.functionspaces:
+            points=fs.getX()
+            for t in vs:
+                v0, v1, v2, v3, v4, v5, v6, v7 =t
+                x=points[0]
+                y=points[1]
+                z=points[2]
+                xmax=sup(x)
+                xmin=inf(x)
+                ymax=sup(y)
+                ymin=inf(y)
+                zmax=sup(z)
+                zmin=inf(z)
+                xwidth=(xmax-xmin)/(self.xn-1)
+                ywidth=(ymax-ymin)/(self.yn-1)
+                zwidth=(zmax-zmin)/(self.zn-1)          
+                table=[]
+                for k in range(self.zn):
+                    face=[]
+                    for j in range(self.yn):
+                        row=[]
+                        for i in range(self.xn):
+                                row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
+                        face.append(row)
+                    table.append(face)
+                ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin)
+                lsupref=Lsup(ref)
+                if lsupref!=0 and xwidth>0:             #This will happen in cases where there are no samples on this rank
+                    res=interpolateTable(table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth),900)
+                    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+                    # Test undef
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth), -1)
+                    # Test bounds checking
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, zwidth), 900,True)
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, zwidth), 900, True)
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth/3), 900, True)
 
     def test_FunctionSpace2D(self):
-	vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
-	for fs in self.functionspaces:
-	    points=fs.getX()
-	    for t in vs:
-		v0, v1, v2, v3 =t
-		x=points[0]
-		y=points[1]
-		xmax=sup(x)
-		xmin=inf(x)
-		ymax=sup(y)
-		ymin=inf(y)
-		xwidth=(xmax-xmin)/(self.xn-1)
-		ywidth=(ymax-ymin)/(self.yn-1)
-		table=[]
-		for j in xrange(self.yn):
-		      row=[]
-		      for i in xrange(self.xn):
-	   	 	row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
-	    	      table.append(row)
-	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
-		lsupref=Lsup(ref)
-		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
-	    	    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
-	    	    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
-		    #Now we try for the new interface
-		    res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
-		    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
-		    
-	    
+        vs=[(1,3,5,7), (-1,1,-1,1), (0.5, 17, 0.25, 42)]   #There is no particular significance to these numbers
+        for fs in self.functionspaces:
+            points=fs.getX()
+            for t in vs:
+                v0, v1, v2, v3 =t
+                x=points[0]
+                y=points[1]
+                xmax=sup(x)
+                xmin=inf(x)
+                ymax=sup(y)
+                ymin=inf(y)
+                xwidth=(xmax-xmin)/(self.xn-1)
+                ywidth=(ymax-ymin)/(self.yn-1)
+                table=[]
+                for j in range(self.yn):
+                      row=[]
+                      for i in range(self.xn):
+                        row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
+                      table.append(row)
+                ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
+                lsupref=Lsup(ref)
+                if lsupref!=0 and xwidth>0:             #This will happen in cases where there are no samples on this rank
+                    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
+                    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
+                    #Now we try for the new interface
+                    res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
+                    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+                    
+            
 
     def test_FunctionSpace1D(self):
-	vs=[(1,3), (-1,1), (0.5, 17)]     #There is no particular significance to these numbers
-	for fs in self.functionspaces:
-	    points=fs.getX()
-	    for t in vs:
-		v0, v1 =t
-		x=points[0]
-		xmax=sup(x)
-		xmin=inf(x)
-		xwidth=(xmax-xmin)/(self.xn-1)
-		table=[]
-		for i in xrange(self.xn):
-	   	   table.append(v0+v1*xwidth*i)
-	    	ref=v0+v1*(x-xmin)
-		lsupref=Lsup(ref)
-		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
-		   res=x.interpolateTable(table, xmin, xwidth,500)
-		   self.assertTrue(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
-		   #Now we try for the new interface
-		   res=interpolateTable(table,points[0:1], (xmin,), (xwidth, ),500)
-		   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
-		   res=interpolateTable(table,points[0:1], xmin, xwidth,500)
-		   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
+        vs=[(1,3), (-1,1), (0.5, 17)]     #There is no particular significance to these numbers
+        for fs in self.functionspaces:
+            points=fs.getX()
+            for t in vs:
+                v0, v1 =t
+                x=points[0]
+                xmax=sup(x)
+                xmin=inf(x)
+                xwidth=(xmax-xmin)/(self.xn-1)
+                table=[]
+                for i in range(self.xn):
+                   table.append(v0+v1*xwidth*i)
+                ref=v0+v1*(x-xmin)
+                lsupref=Lsup(ref)
+                if lsupref!=0 and xwidth>0:             #This will happen in cases where there are no samples on this rank
+                   res=x.interpolateTable(table, xmin, xwidth,500)
+                   self.assertTrue(Lsup(res-ref)/lsupref<self.RES_TOL,"Failed for %s"%str(fs))
+                   #Now we try for the new interface
+                   res=interpolateTable(table,points[0:1], (xmin,), (xwidth, ),500)
+                   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
+                   res=interpolateTable(table,points[0:1], xmin, xwidth,500)
+                   self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call (no tuple)."%str(fs))
 
 class Test_saveCSV(unittest.TestCase):
 
    def test_save1(self):
-	X=self.domain.getX()
-	X0=X[0]
-	fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
-	saveDataCSV(fname,C=X, D=X0)
-	saveDataCSV(fname,append=True, J=X0, H=X)
-	self.assertTrue(os.path.exists(fname), "test file not created")
-	f=open(fname,'r')
-	line=f.readline()
-	self.assertTrue(line=="C_0, C_1, D\n")    #This tests both separator strings
-	#Now we find out how many rows it has
-	linecount=0
-	while line != '':
-		linecount+=1
-		line=f.readline()
-	self.assertTrue(linecount==self.linecount1*2)
-	f.close()
-	#Now to other output
-	T2=Tensor(7,X.getFunctionSpace())
-	T3=Tensor3(8,X.getFunctionSpace())
-	T4=Tensor4(9,X.getFunctionSpace())
-	saveDataCSV(fname,A=T2,B=T3,C=T4)
-	f=open(fname,'r')
-	line=f.readline()
-	self.assertTrue(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
-	line=f.readline()
-	line_expected=[7.]*4+[8.]*8+[9.]*16
-	line_got=[float(elt) for elt in line.split(',')]
-	self.assertTrue(line_got==line_expected)
-	linecount=1
-	while line != '':
-		linecount+=1
-		line=f.readline()
-	self.assertTrue(linecount==self.linecount1)
-	f.close()	
-	#Now to test separators and mask
-	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
-	f=open(fname,'r')
-	line=f.readline()
-	self.assertTrue(line=='U/0|U/1|V\n')
-	line=f.readline()
-	line_got=[float(elt) for elt in line.split('|')]
-	self.assertTrue(self.line_expected==line_got)
-	linecount=1
-	while line!='':
-		linecount+=1
-		line=f.readline()
-	self.assertTrue(linecount==self.linecount2)
-	
-	
+        X=self.domain.getX()
+        X0=X[0]
+        fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
+        saveDataCSV(fname,C=X, D=X0)
+        saveDataCSV(fname,append=True, J=X0, H=X)
+        self.assertTrue(os.path.exists(fname), "test file not created")
+        f=open(fname,'r')
+        line=f.readline()
+        self.assertTrue(line=="C_0, C_1, D\n")    #This tests both separator strings
+        #Now we find out how many rows it has
+        linecount=0
+        while line != '':
+                linecount+=1
+                line=f.readline()
+        self.assertTrue(linecount==self.linecount1*2)
+        f.close()
+        #Now to other output
+        T2=Tensor(7,X.getFunctionSpace())
+        T3=Tensor3(8,X.getFunctionSpace())
+        T4=Tensor4(9,X.getFunctionSpace())
+        saveDataCSV(fname,A=T2,B=T3,C=T4)
+        f=open(fname,'r')
+        line=f.readline()
+        self.assertTrue(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
+        line=f.readline()
+        line_expected=[7.]*4+[8.]*8+[9.]*16
+        line_got=[float(elt) for elt in line.split(',')]
+        self.assertTrue(line_got==line_expected)
+        linecount=1
+        while line != '':
+                linecount+=1
+                line=f.readline()
+        self.assertTrue(linecount==self.linecount1)
+        f.close()       
+        #Now to test separators and mask
+        saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
+        f=open(fname,'r')
+        line=f.readline()
+        self.assertTrue(line=='U/0|U/1|V\n')
+        line=f.readline()
+        line_got=[float(elt) for elt in line.split('|')]
+        self.assertTrue(self.line_expected==line_got)
+        linecount=1
+        while line!='':
+                linecount+=1
+                line=f.readline()
+        self.assertTrue(linecount==self.linecount2)
+        
+        
 class Test_Domain(unittest.TestCase):
 
    def test_getListOfTags(self): # requires self.boundary_tag_list
@@ -249,68 +249,68 @@ class Test_Domain(unittest.TestCase):
            self.assertTrue(i in tags, "tag %s is missing."%i)
 
    def test_RandomData(self):
-        fs=Function(self.domain)	# The choice of functionspace is arbitrary
-	dat=RandomData((2,2,2,2),fs,8)	# Choice of seed is arbitrary
-	self.assertTrue(Lsup(dat-1)<1.0001)
+        fs=Function(self.domain)        # The choice of functionspace is arbitrary
+        dat=RandomData((2,2,2,2),fs,8)  # Choice of seed is arbitrary
+        self.assertTrue(Lsup(dat-1)<1.0001)
 
    def test_Factories(self):
-	fs=Function(self.domain)	# The choice of functionspace is arbitrary
-	dime=self.domain.getDim()
-	if dime>0:
-	   z=[]
-	   bad=[]
-	   for i in range(dime):
-		z+=[i]
-		bad+=[i]
-	   bad+=[i]
-	   d=Vector(z,fs)
-	   self.assertTrue(d.getShape()==(dime,))
-	   self.assertRaises(RuntimeError, Vector, bad,fs)	#test wrong shape
-	   y=[]
-	   bad=[]
-	   for i in range(dime):
-		y+=[z]
-		bad+=[z]
-	   bad+=[z]
-	   z=y
-	   d=Tensor(z,fs)
-	   self.assertTrue(d.getShape()==(dime,dime))
-	   try:
-		Tensor(bad,fs)
-	   except RuntimeError:
-		pass
-	   else:
-		self.fail("Tensor should have rejected bad shape")
-	   y=[]
-	   bad=[]
-	   for i in range(dime):
-		y+=[z]
-		bad+=[z]
-	   bad+=[z]
-	   z=y
-	   d=Tensor3(z,fs)
-	   self.assertTrue(d.getShape()==(dime,dime,dime))
-	   try:
-		Tensor3(bad,fs)
-	   except RuntimeError:
-		pass
-	   else:
-		self.fail("Tensor3 should have rejected bad shape")
-	   y=[]
-	   bad=[]
-	   for i in range(dime):
-		y+=[z]
-		bad+=[z]
-	   bad+=[z]
-	   z=y
-	   d=Tensor4(z,fs)
-	   self.assertTrue(d.getShape()==(dime,dime,dime,dime))
-	   try:
-		Tensor4(bad,fs)
-	   except RuntimeError:
-		pass
-	   else:
-		self.fail("Tensor4 should have rejected bad shape")
+        fs=Function(self.domain)        # The choice of functionspace is arbitrary
+        dime=self.domain.getDim()
+        if dime>0:
+           z=[]
+           bad=[]
+           for i in range(dime):
+                z+=[i]
+                bad+=[i]
+           bad+=[i]
+           d=Vector(z,fs)
+           self.assertTrue(d.getShape()==(dime,))
+           self.assertRaises(RuntimeError, Vector, bad,fs)      #test wrong shape
+           y=[]
+           bad=[]
+           for i in range(dime):
+                y+=[z]
+                bad+=[z]
+           bad+=[z]
+           z=y
+           d=Tensor(z,fs)
+           self.assertTrue(d.getShape()==(dime,dime))
+           try:
+                Tensor(bad,fs)
+           except RuntimeError:
+                pass
+           else:
+                self.fail("Tensor should have rejected bad shape")
+           y=[]
+           bad=[]
+           for i in range(dime):
+                y+=[z]
+                bad+=[z]
+           bad+=[z]
+           z=y
+           d=Tensor3(z,fs)
+           self.assertTrue(d.getShape()==(dime,dime,dime))
+           try:
+                Tensor3(bad,fs)
+           except RuntimeError:
+                pass
+           else:
+                self.fail("Tensor3 should have rejected bad shape")
+           y=[]
+           bad=[]
+           for i in range(dime):
+                y+=[z]
+                bad+=[z]
+           bad+=[z]
+           z=y
+           d=Tensor4(z,fs)
+           self.assertTrue(d.getShape()==(dime,dime,dime,dime))
+           try:
+                Tensor4(bad,fs)
+           except RuntimeError:
+                pass
+           else:
+                self.fail("Tensor4 should have rejected bad shape")
 
 
    def test_addTags(self):
@@ -335,7 +335,7 @@ class Test_Domain(unittest.TestCase):
         r.setTaggedValue(1,1.)
         s.setTaggedValue(tag2,2.)
         r.setTaggedValue(2,2.)
-        self.assertRaises(RuntimeError,s.setTaggedValue,tag3,3.)	#tag3 does not exist
+        self.assertRaises(RuntimeError,s.setTaggedValue,tag3,3.)        #tag3 does not exist
         self.assertTrue(Lsup(s-r)<=0.)
         # get tag:
         names=getTagNames(self.domain)
@@ -447,22 +447,22 @@ class Test_Domain(unittest.TestCase):
 
 class Test_GlobalMinMax(unittest.TestCase):
    def test_GlobalMinMax(self):
-	myrank=getMPIRankWorld()
-	d=Data(myrank,Function(self.domain))
-	minproc=inf(d)
-	maxproc=sup(d)		#This tells us where to expect values to be
-	if d.getNumberOfDataPoints()>0:
-		d.setValueOfDataPoint(0,myrank-0.001);
-	p,n=d.minGlobalDataPoint()
-	self.assertTrue(p==minproc,"Incorrect process indentified as holding min")
-	self.assertTrue(n==0,"Incorrect position for min")
-	if d.getNumberOfDataPoints()>0:
-		d.setValueOfDataPoint(0,myrank+0.001)
-	p,n=d.maxGlobalDataPoint()	
-	self.assertTrue(p==maxproc,"Incorrect process indentified as holding min")
-	self.assertTrue(n==0,"Incorrect position for min")
+        myrank=getMPIRankWorld()
+        d=Data(myrank,Function(self.domain))
+        minproc=inf(d)
+        maxproc=sup(d)          #This tells us where to expect values to be
+        if d.getNumberOfDataPoints()>0:
+                d.setValueOfDataPoint(0,myrank-0.001);
+        p,n=d.minGlobalDataPoint()
+        self.assertTrue(p==minproc,"Incorrect process indentified as holding min")
+        self.assertTrue(n==0,"Incorrect position for min")
+        if d.getNumberOfDataPoints()>0:
+                d.setValueOfDataPoint(0,myrank+0.001)
+        p,n=d.maxGlobalDataPoint()      
+        self.assertTrue(p==maxproc,"Incorrect process indentified as holding min")
+        self.assertTrue(n==0,"Incorrect position for min")
 
-	
+        
 
 class Test_SetDataPointValue(unittest.TestCase):
    arg0=9.81
@@ -1574,44 +1574,44 @@ class Test_Dump(unittest.TestCase):
           self._diffDataObjects(d,filemame)
 
    def test_canTag_Failures(self):
-	d=Data(self.arg0,Solution(self.domain))
-	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
-	d=Data(self.arg0,ReducedSolution(self.domain))
-	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
-	
+        d=Data(self.arg0,Solution(self.domain))
+        self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+        d=Data(self.arg0,ReducedSolution(self.domain))
+        self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
+        
 class Test_Lazy(unittest.TestCase):
   def makeLazyObj(self):
-	d=delay(Data(1,self.mainfs,True))
-	e=delay(Data(2,self.mainfs,True))
-	p=(d+e*d)/e
-	q=p/(3*d)
-	r1=q*q
-	r2=q+q
-	r3=q/4
-	f=delay(Data(4,self.otherfs,True))
-	t=Data(4,self.mainfs)
-	t.tag()
-	t=delay(t)
-	t=t*2
-	return r1,r2,r3,f,t
+        d=delay(Data(1,self.mainfs,True))
+        e=delay(Data(2,self.mainfs,True))
+        p=(d+e*d)/e
+        q=p/(3*d)
+        r1=q*q
+        r2=q+q
+        r3=q/4
+        f=delay(Data(4,self.otherfs,True))
+        t=Data(4,self.mainfs)
+        t.tag()
+        t=delay(t)
+        t=t*2
+        return r1,r2,r3,f,t
   
   def test_GroupRes(self):
-	rr1,rr2,rr3,rf,rt=self.makeLazyObj()
-	rr1=resolve(rr1)
-	rr2=resolve(rr2)
-	rr3=resolve(rr3)
-	rf=resolve(rf)
-	rt=resolve(rt)
-	r1,r2,r3,f,t=self.makeLazyObj()
-	resolveGroup((r1,r2,r3))
-	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)
-	self.assertTrue(err<0.001, "Same functionspace group resolve")
-	r1,r2,r3,f,t=self.makeLazyObj()
-	resolveGroup((r1,r2,r3,rt))
-	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)
-	self.assertTrue(err<0.001, "Same functionspace group resolve with early collapse")
-	r1,r2,r3,f,t=self.makeLazyObj()
-	err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
-	self.assertTrue(err<0.001, "Same functionspace group resolve with mixed functionspaces")
-	
-	
+        rr1,rr2,rr3,rf,rt=self.makeLazyObj()
+        rr1=resolve(rr1)
+        rr2=resolve(rr2)
+        rr3=resolve(rr3)
+        rf=resolve(rf)
+        rt=resolve(rt)
+        r1,r2,r3,f,t=self.makeLazyObj()
+        resolveGroup((r1,r2,r3))
+        err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)
+        self.assertTrue(err<0.001, "Same functionspace group resolve")
+        r1,r2,r3,f,t=self.makeLazyObj()
+        resolveGroup((r1,r2,r3,rt))
+        err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)
+        self.assertTrue(err<0.001, "Same functionspace group resolve with early collapse")
+        r1,r2,r3,f,t=self.makeLazyObj()
+        err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
+        self.assertTrue(err<0.001, "Same functionspace group resolve with mixed functionspaces")
+        
+        

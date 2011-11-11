@@ -33,7 +33,6 @@ Environment for implementing models in escript
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 from sys import stdout
 import numpy
 import operator
@@ -484,9 +483,9 @@ class ParameterSet(LinkableObject):
         Declares a set of parameters. parameters can be a list, a dictionary
         or a ParameterSet.
         """
-        if isinstance(parameters,ListType):
+        if isinstance(parameters,list):
             parameters = list(zip(parameters, itertools.repeat(None)))
-        if isinstance(parameters,DictType):
+        if isinstance(parameters,dict):
             parameters = iter(parameters.items())
 
         for prm, value in parameters:
@@ -1198,12 +1197,15 @@ class Simulation(Model):
             if isinstance(n, minidom.Text):
                 continue
             sims.append(esysxml.getComponent(n))
-        sims.sort(_comp)
+        sims.sort(key=_cmpkey)
         sim=cls([s[1] for s in sims], debug=esysxml.debug)
         esysxml.registerLinkableObject(sim, node)
         return sim
 
     fromDom = classmethod(fromDom)
+
+def _cmpkey(a):
+  return a[0]
 
 def _comp(a,b):
     if a[0]<a[1]:

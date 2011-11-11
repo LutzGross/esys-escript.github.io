@@ -550,7 +550,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaw(eta_N=2.)
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
         
      def test_PowerLaw_QuadLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -559,7 +559,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01],tau_t=[1, 25.], power=[1,2])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_QuadSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -568,7 +568,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.],tau_t=[1, 25.], power=[1,2])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -577,7 +577,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,1./16.],tau_t=[1, 64.], power=[1,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -586,7 +586,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,25./4.],tau_t=[1, 64.], power=[1,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_QuadLarge_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -596,7 +596,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01,1./16.],tau_t=[1, 25.,64.], power=[1,2,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_QuadLarge_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -606,7 +606,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,0.01,25./4.],tau_t=[1, 25.,64.], power=[1,2,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_QuadSmall_CubeLarge(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -615,7 +615,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.,1./16.],tau_t=[1, 25.,64.], power=[1,2,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_QuadSmall_CubeSmall(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -624,7 +624,7 @@ class Test_Rheologies(unittest.TestCase):
          pl.setDruckerPragerLaw(tau_Y=100.)
          pl.setPowerLaws(eta_N=[2.,10.,25./4.],tau_t=[1, 25.,64.], power=[1,2,3])
          pl.setEtaTolerance(self.TOL)
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i]),taus[i])
 
      def test_PowerLaw_withShear(self):
          taus=[0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
@@ -636,7 +636,7 @@ class Test_Rheologies(unittest.TestCase):
          dt=1./3.
          pl.setEtaTolerance(self.TOL)
          self.assertRaises(ValueError, pl.getEtaEff,gamma_dot_s[0])
-         for i in xrange(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
+         for i in range(len(taus)): self.checkResult(i,gamma_dot_s[i], pl.getEtaEff(gamma_dot_s[i],dt=dt),taus[i])
 
 class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
    TOL=1.e-5
@@ -680,7 +680,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
       x=self.dom.getX()
       B=self.tau_Y/sqrt((self.dom.getDim()-1)*self.dom.getDim()*0.5)
       dt=B/int(self.N_dt/2)
-      if self.VERBOSE: print "dt =",dt
+      if self.VERBOSE: print("dt =",dt)
       if self.latestart:
           t=dt
       else:
@@ -730,7 +730,7 @@ class Test_IncompressibleIsotropicFlowCartesian(unittest.TestCase):
          error_s=Lsup(mod.getDeviatoricStress()-s_ref)/Lsup(s_ref)
          error_v=Lsup(mod.getVelocity()-v_ref)/Lsup(v_ref)
          error_t=abs(mod.getTime()-t_ref)/abs(t_ref)
-         if self.VERBOSE: print "time step ",N_t,"time = ",mod.getTime(),"errors s,p,v = ",error_s, error_p, error_v
+         if self.VERBOSE: print("time step ",N_t,"time = ",mod.getTime(),"errors s,p,v = ",error_s, error_p, error_v)
          self.assertTrue( error_p <= 10*self.TOL, "time step %s: pressure error %s too high."%(N_t,error_p) )
          self.assertTrue( error_v <= 10*self.TOL, "time step %s: velocity error %s too high."%(N_t,error_v) )
          self.assertTrue( error_t <= 10*self.TOL, "time step %s: time marker error %s too high."%(N_t,error_t) )
