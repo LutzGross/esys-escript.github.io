@@ -109,18 +109,18 @@ DIFFCOAL  = { "D" : 0.005 * U.ft**2/U.day,
               "f_r": 1.}
 
 LANGMUIR = [
-[ 0	* U.psi , 0.00000000 * U.Mscf/U.ft**3],
-[ 100	* U.psi , 0.00213886 * U.Mscf/U.ft**3],
-[ 200	* U.psi , 0.00383259 * U.Mscf/U.ft**3],
-[ 300	* U.psi , 0.00520706 * U.Mscf/U.ft**3],
-[ 400	* U.psi , 0.00634474 * U.Mscf/U.ft**3],
-[ 500	* U.psi , 0.00730199 * U.Mscf/U.ft**3],
-[ 600	* U.psi , 0.00811857 * U.Mscf/U.ft**3],
-[ 700	* U.psi , 0.00882336 * U.Mscf/U.ft**3],
-[ 800	* U.psi , 0.00943786 * U.Mscf/U.ft**3],
-[ 900	* U.psi , 0.00997836 * U.Mscf/U.ft**3],
-[ 1000	* U.psi , 0.01045748 * U.Mscf/U.ft**3],
-[ 1200	* U.psi , 0.01126912 * U.Mscf/U.ft**3] ]
+[ 0     * U.psi , 0.00000000 * U.Mscf/U.ft**3],
+[ 100   * U.psi , 0.00213886 * U.Mscf/U.ft**3],
+[ 200   * U.psi , 0.00383259 * U.Mscf/U.ft**3],
+[ 300   * U.psi , 0.00520706 * U.Mscf/U.ft**3],
+[ 400   * U.psi , 0.00634474 * U.Mscf/U.ft**3],
+[ 500   * U.psi , 0.00730199 * U.Mscf/U.ft**3],
+[ 600   * U.psi , 0.00811857 * U.Mscf/U.ft**3],
+[ 700   * U.psi , 0.00882336 * U.Mscf/U.ft**3],
+[ 800   * U.psi , 0.00943786 * U.Mscf/U.ft**3],
+[ 900   * U.psi , 0.00997836 * U.Mscf/U.ft**3],
+[ 1000  * U.psi , 0.01045748 * U.Mscf/U.ft**3],
+[ 1200  * U.psi , 0.01126912 * U.Mscf/U.ft**3] ]
 
 
 PVDG = [
@@ -220,7 +220,7 @@ wellspecs = {
 
 
 # print input
-print("<%s> Execution started."%time.asctime())
+print(("<%s> Execution started."%time.asctime()))
 DIM=2
 domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
 
@@ -229,35 +229,35 @@ for I in wellspecs:
      domain.setTagMap(I, N)
      N+=1
      domain.addDiracPoint(wellspecs[I]["X0"][:DIM], I)
-     print("<%s> Well %s introduced to domain."%(time.asctime(), I))
+     print(("<%s> Well %s introduced to domain."%(time.asctime(), I)))
      
 
 #domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
 
-print("<%s> Domain has been generated."%time.asctime())
+print(("<%s> Domain has been generated."%time.asctime()))
 
-print "length x-direction = %f km"%(sup(domain.getX()[0])/U.km)
-print "cell size in x direction = %f m"%(CELL_X/U.m)
-print "length y-direction = %f km"%(sup(domain.getX()[1])/U.km)
-print "cell size in y direction = %f m"%(CELL_Y/U.m)
-print "fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy))
-print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
-print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
+print("length x-direction = %f km"%(sup(domain.getX()[0])/U.km))
+print("cell size in x direction = %f m"%(CELL_X/U.m))
+print("length y-direction = %f km"%(sup(domain.getX()[1])/U.km))
+print("cell size in y direction = %f m"%(CELL_Y/U.m))
+print("fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy)))
+print("fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy)))
+print("fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy)))
 
 
 mkDir(OUTPUT_DIR)
 
 
 
-print("<%s> Mesh set up completed."%time.asctime())
+print(("<%s> Mesh set up completed."%time.asctime()))
 well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"], 
-							    Q=wellspecs['P1']["Q"], 
-							    r=wellspecs['P1']["r"], 
-							    X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
-							    D=[CELL_X, CELL_Y, CELL_Z], 
-							    perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
-							    schedule=wellspecs['P1']["schedule"], 
-							    s=wellspecs['P1']["s"]) 
+                                                            Q=wellspecs['P1']["Q"], 
+                                                            r=wellspecs['P1']["r"], 
+                                                            X0=[ wellspecs['P1' ]["X0"][0], wellspecs['P1']["X0"][1], wellspecs['P1']["X0"][2]] ,
+                                                            D=[CELL_X, CELL_Y, CELL_Z], 
+                                                            perm=[PERM_F_X, PERM_F_Y, PERM_F_Z],
+                                                            schedule=wellspecs['P1']["schedule"], 
+                                                            s=wellspecs['P1']["s"]) 
 rho_w = WaterDensity(B_ref=PVTW["B_ref"], p_ref = PVTW["p_ref"], C=PVTW["C"], gravity=GRAVITY["water"])
 p_top = EQUIL["DATUM_PRESS"] + P_0
 p_bottom=p_top + CONST_G * CELL_Z * rho_w(p_top)
@@ -265,25 +265,25 @@ p_bottom=p_top + CONST_G * CELL_Z * rho_w(p_top)
 model = PorosityOneHalfModel(domain, 
                              phi_f=Porosity(phi_0=PHI_F_0, p_0=(p_bottom +p_top)/2., p_ref=ROCK["p_ref"], C = ROCK["C"]),
                              L_g=InterpolationTable([ l[0] for l in LANGMUIR ], [ l[1] for l in LANGMUIR ] ),
-			     perm_f_0=PERM_F_X, 
-			     perm_f_1=PERM_F_Y, 
-			     perm_f_2=PERM_F_Z,
-			     k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ], obeyBounds=False ),  
-			     k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),  
-			     mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
-			     mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
-			     rho_w = rho_w, 
-			     rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]), 
-			     sigma=SIGMA,
-			     A_mg=DIFFCOAL["D"], 
-   	   		     f_rg=DIFFCOAL["f_r"],
-			     wells=[ well_P1, ], g= CONST_G)
+                             perm_f_0=PERM_F_X, 
+                             perm_f_1=PERM_F_Y, 
+                             perm_f_2=PERM_F_Z,
+                             k_w =InterpolationTable([ l[0] for l in SWFN ], [ l[1] for l in SWFN ], obeyBounds=False ),  
+                             k_g= InterpolationTable([ l[0] for l in SGFN ], [ l[1] for l in SGFN ], obeyBounds=False ),  
+                             mu_w = WaterViscosity(mu_ref = PVTW["mu_ref"], p_ref=PVTW["p_ref"], C=PVTW["C_v"]),      
+                             mu_g = InterpolationTable([ l[0] for l in PVDG ], [ l[2] for l in PVDG ] ),
+                             rho_w = rho_w, 
+                             rho_g=GasDensity( p = [ l[0] for l in PVDG ], B = [ l[1] for l in PVDG ], gravity=GRAVITY["gas"]), 
+                             sigma=SIGMA,
+                             A_mg=DIFFCOAL["D"], 
+                             f_rg=DIFFCOAL["f_r"],
+                             wells=[ well_P1, ], g= CONST_G)
 # this needs to be revised:.
 model.setInitialState(S_fg=0,  c_mg=None, p_top=p_top, p_bottom=p_bottom)
 model.getPDEOptions().setVerbosityOn()
 model.getPDEOptions().setSolverMethod(model.getPDEOptions().DIRECT)
 model.setIterationControl(iter_max=10, rtol=1.e-4, verbose=True)
-print "<%s> Problem set up completed."%time.asctime()
+print("<%s> Problem set up completed."%time.asctime())
 t=0
 n_t = 0
 
@@ -292,14 +292,14 @@ p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
 if SAVE_VTK:
    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-   print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-print "EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
-print "DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+   print("<%s> Initial state saved to file %s."%(time.asctime(),FN))
+print("EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+print("DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
 
 
 
 for dt in DT:
-  print "<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day)
+  print("<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day))
   
   model.update(dt)
 
@@ -308,9 +308,9 @@ for dt in DT:
   if SAVE_VTK:
      FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
      saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-     print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
-  print "EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
-  print "DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+     print("<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN ))
+  print("EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+  print("DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
 
   n_t+=1
   t+=dt

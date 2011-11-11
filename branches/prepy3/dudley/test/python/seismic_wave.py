@@ -133,11 +133,11 @@ eta[water]=eta[absorber]/40.
 eta[bedrock]=eta[absorber]/40.
 
 if output:
-   print "event location = ",xc
-   print "radius of event = ",src_radius
-   print "time of event = ",tc
-   print "length of event = ",tc_length
-   print "direction = ",event
+   print("event location = ",xc)
+   print("radius of event = ",src_radius)
+   print("time of event = ",tc)
+   print("length of event = ",tc_length)
+   print("direction = ",event)
 
 t_end=30.
 dt_write=0.1
@@ -152,19 +152,19 @@ def getDomain():
     global netotal
     
     v_p={}
-    for tag in rho_tab.keys():
+    for tag in list(rho_tab.keys()):
        v_p[tag]=sqrt((2*mu_tab[tag]+lmbd_tab[tag])/rho_tab[tag])
     v_p_ref=min(v_p.values())
-    print "velocities: bedrock = %s, sand = %s, water =%s, absorber =%s, reference =%s"%(v_p[bedrock],v_p[sand],v_p[water],v_p[absorber],v_p_ref)
+    print("velocities: bedrock = %s, sand = %s, water =%s, absorber =%s, reference =%s"%(v_p[bedrock],v_p[sand],v_p[water],v_p[absorber],v_p_ref))
 
     sections={}
     sections["x"]=[d_absorber, x_sand, l_sand, l_x_water, l_sand, l-x_sand-2*l_sand-l_x_water, d_absorber]
     sections["y"]=[d_absorber, y_sand, l_sand, l_y_water, l_sand, l-y_sand-2*l_sand-l_y_water, d_absorber]
     sections["z"]=[d_absorber,h-h_water-h_sand,h_sand,h_water]
     if output:
-      print "sections x = ",sections["x"]
-      print "sections y = ",sections["y"]
-      print "sections z = ",sections["z"]
+      print("sections x = ",sections["x"])
+      print("sections y = ",sections["y"])
+      print("sections z = ",sections["z"])
 
     mats= [ 
             [ [absorber, absorber, absorber, absorber, absorber, absorber, absorber],
@@ -224,7 +224,7 @@ def getDomain():
     ne_y=sum(num_elem["y"])
     ne_z=sum(num_elem["z"])
     netotal=ne_x*ne_y*ne_z
-    if output: print "grid : %s x %s x %s (%s elements)"%(ne_x,ne_y,ne_z,netotal)
+    if output: print("grid : %s x %s x %s (%s elements)"%(ne_x,ne_y,ne_z,netotal))
     dom=Brick(ne_x,ne_y,ne_z,l0=o*ne_x,l1=o*ne_y,l2=o*ne_z,order=o)
     x_old=dom.getX()
     x_new=0
@@ -280,7 +280,7 @@ def getMaterialProperties(dom):
    lmbd=Scalar(lmbd_tab[bedrock],Function(dom))
    tags=Scalar(bedrock,Function(dom))
    
-   for tag in rho_tab.keys():
+   for tag in list(rho_tab.keys()):
       rho.setTaggedValue(tag,rho_tab[tag])
       eta.setTaggedValue(tag,eta_tab[tag])
       mu.setTaggedValue(tag,mu_tab[tag])
@@ -297,7 +297,7 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
    mypde.setValue(D=k*rho)
 
    dt=(1./5.)*inf(dom.getSize()/sqrt((2*mu+lmbd)/rho))
-   if output: print "time step size = ",dt
+   if output: print("time step size = ",dt)
    # ... set initial values ....
    n=0
    t=0
@@ -315,7 +315,7 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
 
    starttime = time.clock()
    while t<t_end and n<n_end:
-     if output: print n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u),
+     if output: print(n+1,"-th time step t ",t+dt," max u and F: ",Lsup(u), end=' ')
      # prediction:
      u_pr=u+dt*v+(dt**2/2)*a+(dt**3/6)*a2
      v_pr=v+dt*a+(dt**2/2)*a2
@@ -326,9 +326,9 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
      # ... force due to event:
      if abs(t-tc)<5*tc_length:
         F=exp(-((t-tc)/tc_length)**2)*exp(-(length(x-xc)/src_radius)**2)*event
-        if output: print Lsup(F)
+        if output: print(Lsup(F))
      else:
-        if output: print 0.
+        if output: print(0.)
      # ... get new acceleration ....
      mypde.setValue(X=-stress,Y=F-eta*v_pr)
      a=mypde.getSolution()
@@ -349,7 +349,7 @@ def wavePropagation(dom,rho,mu,lmbd,eta):
    endtime = time.clock()
    totaltime = endtime-starttime
    global netotal
-   print ">>number of elements: %s, total time: %s, per time step: %s <<"%(netotal,totaltime,totaltime/n)
+   print(">>number of elements: %s, total time: %s, per time step: %s <<"%(netotal,totaltime,totaltime/n))
 if __name__ =="__main__":
    dom=getDomain()
    rho,mu,lmbd,eta=getMaterialProperties(dom)

@@ -111,7 +111,7 @@ def advect(phi, velocity, dt):
   advectPDE.setValue(Y=Y)    
   phi = advectPDE.getSolution()
 
-  print "Advection step done"
+  print("Advection step done")
   return phi
 
 def reinitialise(phi):
@@ -123,7 +123,7 @@ def reinitialise(phi):
   previous = 100.0
   mask = whereNegative(abs(phi)-1.2*h)
   reinitPDE.setValue(q=mask, r=phi)
-  print "Reinitialisation started."
+  print("Reinitialisation started.")
   while (iter<=reinit_max):
     prod_scal =0.0
     for i in range(numDim):
@@ -135,10 +135,10 @@ def reinitialise(phi):
     reinitPDE.setValue(D=1.0, Y=phi+dtau*coeff-0.5*dtau**2*ps2)
     phi = reinitPDE.getSolution()
     error = Lsup((previous-phi)*whereNegative(abs(phi)-3.0*h))/h
-    print "Reinitialisation iteration :", iter, " error:", error
+    print("Reinitialisation iteration :", iter, " error:", error)
     previous = phi
     iter +=1
-  print "Reinitialisation finalized."
+  print("Reinitialisation finalized.")
   return phi
 
 def update_phi(phi, velocity, dt, t_step):
@@ -217,7 +217,7 @@ def solve_vel_penalty(rho, eta, velocity, pressure):
       for j in range(numDim):
         A[i,j,i,j] += eta
         A[i,j,j,i] += eta
-	A[i,i,j,j] += penalty*eta
+        A[i,i,j,j] += penalty*eta
 
     Y = Vector(0.0,Function(mesh))
     Y[1] -= rho*g
@@ -230,22 +230,22 @@ def solve_vel_penalty(rho, eta, velocity, pressure):
     velocity = velocityPDE.getSolution()
     p_iter +=1
     if p_iter >=500:
-      print "You're screwed..."
+      print("You're screwed...")
       sys.exit(1)    
     
     pressure -= penalty*eta*(trace(grad(velocity)))
     error = penalty*Lsup(trace(grad(velocity)))/Lsup(grad(velocity))
-    print "\nPressure iteration number:", p_iter
-    print "error", error
+    print("\nPressure iteration number:", p_iter)
+    print("error", error)
     ref = pressure*1.0
     
   return velocity, pressure
   
 ### MAIN LOOP, OVER TIME ###
 while t_step <= t_step_end:
-  print "######################"
-  print "Time step:", t_step
-  print "######################"
+  print("######################")
+  print("Time step:", t_step)
+  print("######################")
   rho = update_parameter(phi, rho1, rho2)
   eta = update_parameter(phi, eta1, eta2)
 
@@ -254,7 +254,7 @@ while t_step <= t_step_end:
   phi = update_phi(phi, velocity, dt, t_step)
 
 ### PSEUDO POST-PROCESSING ###
-  print "##########  Saving image", t_step, " ###########" 
+  print("##########  Saving image", t_step, " ###########") 
   saveVTK("phi3D.%2.2i.vtk"%t_step,layer=phi)  
 
   t_step += 1

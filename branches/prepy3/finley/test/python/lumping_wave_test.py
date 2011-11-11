@@ -74,7 +74,7 @@ def runValetAcceleration(order):
    f_list=[l(u_f)]
    HRZ_list=[l(u_HRZ)]
    RS_list=[l(u_RS)]
-   print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+   print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
    
    while t< 4/n/c:
        t+=dt
@@ -96,7 +96,7 @@ def runValetAcceleration(order):
        f_list.append(l(u_f))
        HRZ_list.append(l(u_HRZ))
        RS_list.append(l(u_RS))
-       print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+       print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
      
    
    import matplotlib.pyplot as plt
@@ -148,7 +148,7 @@ def runValetDisplacement(order):
    f_list=[l(u_f)]
    HRZ_list=[l(u_HRZ)]
    RS_list=[l(u_RS)]
-   print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+   print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
    
    while t< 4/n/c:
        t+=dt
@@ -166,7 +166,7 @@ def runValetDisplacement(order):
        f_list.append(l(u_f))
        HRZ_list.append(l(u_HRZ))
        RS_list.append(l(u_RS))
-       print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+       print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
      
    
    import matplotlib.pyplot as plt

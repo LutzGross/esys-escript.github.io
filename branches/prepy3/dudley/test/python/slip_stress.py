@@ -67,11 +67,11 @@ g=9.81
 fstart =  [lockToGrid(50000.0,width,ne_w), lockToGrid(40000.0,width,ne_w), lockToGrid(8000.,height,ne)]
 fend =  [lockToGrid(50000.0,width,ne_w), lockToGrid(60000.0,width,ne_w), lockToGrid(20000.,height,ne)]
 
-print "=== generate mesh over %s x %s x %s ==="%(width,width,height)
+print("=== generate mesh over %s x %s x %s ==="%(width,width,height))
 dom=Brick(l0=width, l1=width, l2=height, n0=ne_w, n1=ne_w, n2=ne)
-print "  total number of elements = ",ne*ne_w*ne_w
+print("  total number of elements = ",ne*ne_w*ne_w)
 
-print "=== prepare PDE coefficients ==="
+print("=== prepare PDE coefficients ===")
 # fixed displacements:
 d=dom.getDim()
 x=dom.getX()
@@ -101,14 +101,14 @@ for i in range(d):
       A[i,i,j,j] += lmbd
 pde.setValue(A=A,q=mask,Y=-kronecker(Function(dom))[d-1]*g*rho,X=sigma0)
 
-print "=== solve pde === "
+print("=== solve pde === ")
 u=pde.getSolution(verbose=True)
 
-print "=== calculate stress ==="
+print("=== calculate stress ===")
 g_s=grad(u)
 sigma=mu*symmetric(g_s)+lmbd*trace(g_s)*kronecker(d)
 
-print "=== start rendering ==="
+print("=== start rendering ===")
 # Create a Scene.
 s = Scene(renderer = JPG_RENDERER, num_viewport = 1, x_size=XSIZE, y_size=YSIZE )
 dc1 = DataCollector(source = Source.ESCRIPT)
@@ -149,4 +149,4 @@ t3.shadowOn()
 
 # Render the object.
 s.render("stress_contour.jpg")
-print "=== finished rendering ==="
+print("=== finished rendering ===")

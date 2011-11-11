@@ -1446,7 +1446,7 @@ class PDECoef(object):
           for u in range(num):
              for e in range(num):
                 search.append((e,u))
-          search.sort(self.__CompTuple2)
+          search.sort(self.__CompTuple2)	# Might be able to use a lambda here?
           for item in search:
              s=self.getShape(domain,item[0],item[1])
              if len(s)==0 and len(shape)==0:

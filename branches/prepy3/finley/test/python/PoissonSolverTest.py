@@ -37,14 +37,14 @@ def getDomain(dim,ne,height):
      ne2=int(ne*height+0.5)
      mydomain=finley.Brick(n0=ne,n1=ne,n2=ne2,l2=height,order=2)
      totne=ne2*ne*ne
-    print "%d -dimensional domain generated."%dim
-    print "height of the domain is ",height
-    print "total number of elements is ",totne
+    print("%d -dimensional domain generated."%dim)
+    print("height of the domain is ",height)
+    print("total number of elements is ",totne)
     return mydomain
 
 
 def Solve1(mydomain,height):
-    print "Fully constraint solution"
+    print("Fully constraint solution")
     l=[1.,1.,1.]
     l[mydomain.getDim()-1]=height
     cf=ContinuousFunction(mydomain)
@@ -73,14 +73,14 @@ def Solve1(mydomain,height):
     mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
-    print "error = ",error
+    print("error = ",error)
     return error
 
 def Solve2(mydomain,height):
-    print "Partially constraint solution"
+    print("Partially constraint solution")
     l=[1.,1.,1.]
     l[mydomain.getDim()-1]=height
-    print l
+    print(l)
     cf=ContinuousFunction(mydomain)
     x=cf.getX()
     #construct exact solution:
@@ -106,7 +106,7 @@ def Solve2(mydomain,height):
     mypde.setValue(f=f,q=msk)
     u=mypde.getSolution()
     error=Lsup(u-u_ex)/Lsup(u_ex)
-    print "error = ",error
+    print("error = ",error)
     return error
 
 
@@ -116,17 +116,17 @@ def main() :
        for dim in [2,3]:
        # for dim in [2]:
           for height in height_list:
-             print "***************************************************************"
+             print("***************************************************************")
              mydomain= getDomain(dim,ne,height)
-             print "---------------------------------------------------------------"
+             print("---------------------------------------------------------------")
              error=max(error,Solve1(mydomain,height))
-             print "---------------------------------------------------------------"
+             print("---------------------------------------------------------------")
              error=max(error,Solve2(mydomain,height))
-             print "***************************************************************"
+             print("***************************************************************")
 
-    print "***************************************************************"
-    print "maximum error: ",error
-    print "***************************************************************"
+    print("***************************************************************")
+    print("maximum error: ",error)
+    print("***************************************************************")
 
 
 

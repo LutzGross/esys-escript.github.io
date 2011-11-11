@@ -123,15 +123,15 @@ for d in [2,3]:
                    ( o == "2F" and r == "Yes" )  :
                  pass
                else:
-                  print "generate file ",filename
+                  print("generate file ",filename)
                   if c == "Yes":
                      NE_X=int(NE**(1./d)/2+0.5)
                      NE_Y=int(NE**(1./d)+0.5)
                   else:
                      NE_X=int(NE**(1./d)+0.5)
                      NE_Y=NE_X
-                  print filename
-                  print "generating ",NE_X, NE_Y
+                  print(filename)
+                  print("generating ",NE_X, NE_Y)
                   if o == "2":
                      o2=2
                      full=False
@@ -153,7 +153,7 @@ for d in [2,3]:
                   # set tags:
                   for fs in [ContinuousFunction(dom), Function(dom), FunctionOnBoundary(dom), FunctionOnContactOne(dom)]:
                        m=whereNegative(fs.getX()[d-1]-CUT)
-		       fs.getDomain().setTagMap('tag1',1)
+                       fs.getDomain().setTagMap('tag1',1)
                        fs.setTags('tag1',m)
                        fs.setTags(100,1-m)
                   dom.write(os.path.join(MESH_DIRECTORY,filename))

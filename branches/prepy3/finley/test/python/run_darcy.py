@@ -61,7 +61,7 @@ class Test_Darcy(unittest.TestCase):
     #
     def rescaleDomain(self):
         x=self.dom.getX().copy()
-        for i in xrange(self.dom.getDim()):
+        for i in range(self.dom.getDim()):
              x_inf=inf(x[i])
              x_sup=sup(x[i])
              if i == self.dom.getDim()-1:
@@ -79,7 +79,7 @@ class Test_Darcy(unittest.TestCase):
     def getVectorMask(self,include_bottom=True):
         x=self.dom.getX().copy()
         out=Vector(0.,Solution(self.dom))
-        for i in xrange(self.dom.getDim()):
+        for i in range(self.dom.getDim()):
              x_inf=inf(x[i])
              x_sup=sup(x[i])
              if i != self.dom.getDim()-1: out[i]+=whereZero(x[i]-x_sup)
@@ -308,7 +308,7 @@ class Test_Darcy2D(Test_Darcy):
     SOLVER=DarcyFlow.POST
     def setUp(self):
         NE=40  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
-	self.dom = Rectangle(NE,NE)
+        self.dom = Rectangle(NE,NE)
         self.rescaleDomain()
     def tearDown(self):
         del self.dom

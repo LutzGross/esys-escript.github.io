@@ -82,32 +82,32 @@ OFFSET_Z_WEAK=int((OFFSET_Z_WEAK*NE)/H+0.5)*(H/NE)
 #
 #   print input
 #
-print "spatial dimenstion DIM = ",DIM
-print "height H =",H
-print "length L = ",L
-print "vertical number of element NE = ", NE
-print "horizontal number of element NE_L = ", NE_L
-print "total number of element = ", NE_L**(DIM-1)*NE
-print "height of viscosity layer H_VISC = ",H_VISC
-print "viscosity in top layer ETA_TOP = ",ETA_TOP
-print "viscosity in bottom/viscous layer ETA_BOTTOM = ",ETA_BOTTOM
-print "friction angle FRICTION_ANGLE =",FRICTION_ANGLE/DEG
-print "C =",C
-print "width of weak zone W_WEAK = ",W_WEAK
-print "elements in weak zone = ",W_WEAK/H*NE
-print "strike of weak zone ALPHA_WEAK = ",ALPHA_WEAK/DEG 
-print "x-offset of weak zone OFFSET_X_WEAK = ",OFFSET_X_WEAK
-print "z-offset of weak zone OFFSET_Z_WEAK = ",OFFSET_Z_WEAK
-print "friction angle in weak zone FRICTION_ANGLE_WEAK =",FRICTION_ANGLE_WEAK/DEG
-print "C in weak zone C_WEAK =",C_WEAK
-print "density RHO = ",RHO
-print "Gravity G = ",G
+print("spatial dimenstion DIM = ",DIM)
+print("height H =",H)
+print("length L = ",L)
+print("vertical number of element NE = ", NE)
+print("horizontal number of element NE_L = ", NE_L)
+print("total number of element = ", NE_L**(DIM-1)*NE)
+print("height of viscosity layer H_VISC = ",H_VISC)
+print("viscosity in top layer ETA_TOP = ",ETA_TOP)
+print("viscosity in bottom/viscous layer ETA_BOTTOM = ",ETA_BOTTOM)
+print("friction angle FRICTION_ANGLE =",FRICTION_ANGLE/DEG)
+print("C =",C)
+print("width of weak zone W_WEAK = ",W_WEAK)
+print("elements in weak zone = ",W_WEAK/H*NE)
+print("strike of weak zone ALPHA_WEAK = ",ALPHA_WEAK/DEG) 
+print("x-offset of weak zone OFFSET_X_WEAK = ",OFFSET_X_WEAK)
+print("z-offset of weak zone OFFSET_Z_WEAK = ",OFFSET_Z_WEAK)
+print("friction angle in weak zone FRICTION_ANGLE_WEAK =",FRICTION_ANGLE_WEAK/DEG)
+print("C in weak zone C_WEAK =",C_WEAK)
+print("density RHO = ",RHO)
+print("Gravity G = ",G)
 if COMPRESSION:
-     print "Direction: compression"
+     print("Direction: compression")
 else:
-     print "Direction: expansion"
-print "surface velocity = ",V0
-print "end time T_END = ",T_END
+     print("Direction: expansion")
+print("surface velocity = ",V0)
+print("end time T_END = ",T_END)
 mkDir(VIS_DIR)
 #
 #   set up geomtry:
@@ -116,7 +116,7 @@ mkDir(VIS_DIR)
 if RESTART:
    dom=LoadMesh("mesh.nc")
    if not dom.getDim() == DIM:
-         raise ValueError,"Expected DIM and dimension of mesh in restart file don't match."
+         raise ValueError("Expected DIM and dimension of mesh in restart file don't match.")
 
    FF=open("stamp.csv","r").read().split(",")
    t=float(FF[0])          # time stamp
@@ -171,37 +171,37 @@ flow.setTolerance(1.e-5)
 
 while n<1:
 
-  print "========= Time step %d ======="%( n+1,)
+  print("========= Time step %d ======="%( n+1,))
   m=0
   dtau_lsup =1.
   while dtau_lsup > TOL * tau_lsup:
-     print "--- iteration step %d ---- "%m
+     print("--- iteration step %d ---- "%m)
      if n==0 and m==0:
         eta_top=ETA_TOP
      else:
         tau_Y=clip(c*cos(friction_angle)+p*sin(friction_angle), minval=0.)
         eta_top=clip(safeDiv(tau_Y,gamma_dot),maxval=ETA_TOP)
-        print "eta_top=",eta_top
+        print("eta_top=",eta_top)
      eta_eff=eta_top*(1-mask_visc) + ETA_BOTTOM*mask_visc
-     print "eta_eff=",eta_eff
+     print("eta_eff=",eta_eff)
      flow.initialize(fixed_u_mask=fixed_v_mask,eta=eta_eff,f=-RHO*G*unitVector(DIM-1,DIM))
      v,p=flow.solve(v,-3.*p,max_iter=MAX_ITER,verbose=VERBOSE,usePCG=True)
-     print "p=",p
+     print("p=",p)
      p*=-(1./3.)
      gamma_dot=sqrt(2.)*length(deviatoric(symmetric(grad(v))))
      tau, tau_old = eta_eff*gamma_dot, tau
      dtau_lsup=Lsup(tau-tau_old)
      tau_lsup=Lsup(tau)
-     print "increment tau = ",dtau_lsup,tau_lsup, dtau_lsup > TOL * tau_lsup, TOL
-     print "flux balance = ",integrate(inner(v,dom.getNormal()))
+     print("increment tau = ",dtau_lsup,tau_lsup, dtau_lsup > TOL * tau_lsup, TOL)
+     print("flux balance = ",integrate(inner(v,dom.getNormal())))
      m+=1
      if m>MAX_ITER:
-        raise ValueError,"no convergence."
-  print "iteration complted after %d steps"%(m,)
-  print p
+        raise ValueError("no convergence.")
+  print("iteration complted after %d steps"%(m,))
+  print(p)
   saveVTK("test.vtu",v=v, p=p, eta=eta_eff, tau=tau);
 
-  print "Max velocity =", Lsup(v)
+  print("Max velocity =", Lsup(v))
   #Courant condition
   #dt=0.4*h/(Lsup(velocity))
   n+=1
@@ -214,7 +214,7 @@ while n<1:
 #   set up heat problem:
 #
 heat=TemperatureCartesian(dom,useBackwardEuler=False)
-print "<%s> Temperature transport has been set up."%time.asctime()
+print("<%s> Temperature transport has been set up."%time.asctime())
 heat.getSolverOptions().setTolerance(T_TOL)
 heat.getSolverOptions().setVerbosity(VERBOSE)
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])
@@ -246,7 +246,7 @@ flow.setElasticShearModulus(MUE)
 flow.setTolerance(FLOW_TOL)
 flow.setEtaTolerance(FLOW_TOL)
 flow.setExternals(fixed_v_mask=fixed_v_mask)
-print "<%s> Flow solver has been set up."%time.asctime()
+print("<%s> Flow solver has been set up."%time.asctime())
 #
 # topography set-up
 #
@@ -256,19 +256,19 @@ surface_area=integrate(top_boundary_mask)
 if CREATE_TOPOGRAPHY:
     mts=Mountains(dom,eps=TOPO_SMOOTH)
     mts.setTopography(topography)
-    print "<%s> topography has been set up."%time.asctime()
+    print("<%s> topography has been set up."%time.asctime())
 #
 #  let the show begin:
 #
 t1 = time.time()
-print "<%s> Start time step %s (t=%s)."%(time.asctime(),n,t)
+print("<%s> Start time step %s (t=%s)."%(time.asctime(),n,t))
 while t<T_END:
     if CREATE_TOPOGRAPHY: topography_old=topography
     v_old, p_old, stress_old=v, p, stress
     T_old=T
     #======= solve for velovity ====================================================================
     eta_N=exp(Ar*((1.+V_REF*(1-Function(dom).getX()[DIM-1]))/(T_OFFSET_REF+interpolate(T,Function(dom)))-1./T_OFFSET_REF))
-    print "viscosity range :", inf(eta_N), sup(eta_N)
+    print("viscosity range :", inf(eta_N), sup(eta_N))
     flow.setPowerLaws([eta_N, eta_N ], [ 1., TAU_0],  [1,N])
     flow.setExternals(F=Ra*T*unitVector(DIM-1,DIM))
     # if dt<=0 or not CREATE_TOPOGRAPHY:
@@ -278,7 +278,7 @@ while t<T_END:
         topography_last=topography
         Topo_norm, error_Topo=1,1
         i=0
-        print "DDDDD : ====",dt
+        print("DDDDD : ====",dt)
         while error_Topo > TOPO_TOL * Topo_norm:
             flow.setStatus(t, v_old, p_old, stress_old)
             flow.setExternals(f=-SURFACE_LOAD*(topography-dt*v)*unitVector(DIM-1,DIM)*top_boundary_mask, restoration_factor=SURFACE_LOAD*dt*top_boundary_mask) 
@@ -289,37 +289,37 @@ while t<T_END:
             topography_last, topography=topography, mts.update(dt, allow_substeps=True)
             error_Topo=sqrt(integrate(((topography-topography_last)*top_boundary_mask)**2))
             Topo_norm=sqrt(integrate((topography*top_boundary_mask)**2))
-            print "DDDDD :", "input=",integrate(v*top_boundary_mask)[DIM-1],"output=", integrate(topography*top_boundary_mask)/Lsup(topography), error_Topo, Topo_norm
-            print "topography update step %s error = %e, norm = %e."%(i, error_Topo, Topo_norm), Lsup(v)
+            print("DDDDD :", "input=",integrate(v*top_boundary_mask)[DIM-1],"output=", integrate(topography*top_boundary_mask)/Lsup(topography), error_Topo, Topo_norm)
+            print("topography update step %s error = %e, norm = %e."%(i, error_Topo, Topo_norm), Lsup(v))
             i+=1
             if i > TOPO_ITER_MAX: 
-               raise RuntimeError,"topography did not converge after %s steps."%TOPO_ITER_MAX
+               raise RuntimeError("topography did not converge after %s steps."%TOPO_ITER_MAX)
     v=flow.getVelocity()
     for d in range(DIM):
-         print "range %d-velocity"%d,inf(v[d]),sup(v[d])
-    print "Courant = ",inf(dom.getSize()/(length(v)+1e-19)), inf(dom.getSize()**2)
-    print "<%s> flow solver completed."%time.asctime()
+         print("range %d-velocity"%d,inf(v[d]),sup(v[d]))
+    print("Courant = ",inf(dom.getSize()/(length(v)+1e-19)), inf(dom.getSize()**2))
+    print("<%s> flow solver completed."%time.asctime())
     n+=1
     t+=dt
     # print "influx= ",integrate(inner(v,dom.getNormal())), sqrt(integrate(length(v)**2,FunctionOnBoundary(dom))), integrate(1., FunctionOnBoundary(dom))
-    print "<%s> Time step %s (t=%s) completed."%(time.asctime(),n,t)
+    print("<%s> Time step %s (t=%s) completed."%(time.asctime(),n,t))
     #======= setup Temperature problem ====================================================================
     #
     heat.setValue(v=v,Q=CHI_REF*flow.getTau()**2/flow.getCurrentEtaEff())
     dt=heat.getSafeTimeStepSize()
-    print "<%s> New time step size is %e"%(time.asctime(),dt)
+    print("<%s> New time step size is %e"%(time.asctime(),dt))
     if n == 10: 1/0
     #======= set-up topography ==================================================================================
     if CREATE_TOPOGRAPHY:
         dt=min(mts.getSafeTimeStepSize()*0.5,dt)
-        print "<%s> New time step size is %e"%(time.asctime(),dt)
-    print "<%s> Start time step %s (t=%s)."%(time.asctime(),n+1,t+dt)
+        print("<%s> New time step size is %e"%(time.asctime(),dt))
+    print("<%s> Start time step %s (t=%s)."%(time.asctime(),n+1,t+dt))
     #
     #  solve temperature:
     #
     T=heat.getSolution(dt)
-    print "Temperature range ",inf(T),sup(T)
-    print "<%s> temperature update completed."%time.asctime()
+    print("Temperature range ",inf(T),sup(T))
+    print("<%s> temperature update completed."%time.asctime())
     #======= anaysis ==================================================================================
     #
     #  .... Nusselt number
@@ -328,16 +328,16 @@ while t<T_END:
     Nu=1.-integrate(v[DIM-1]*T)/integrate(dTdz)
     eta_bar=integrate(flow.getTau())/integrate(flow.getTau()/flow.getCurrentEtaEff())
     Ra_eff= (t_REF*RHO_0*G*H*(T_1-T_0)*ALPHA_0)/eta_bar
-    print "nusselt number = %e"%Nu
-    print "av. eta = %e"%eta_bar
-    print "effective Rayleigh number = %e"%Ra_eff
+    print("nusselt number = %e"%Nu)
+    print("av. eta = %e"%eta_bar)
+    print("effective Rayleigh number = %e"%Ra_eff)
     if CREATE_TOPOGRAPHY:
        topo_level=integrate(topography*top_boundary_mask)/surface_area
        valleys_deep=inf(topography)
        mountains_heigh=sup(topography)
-       print "topography level = ",topo_level
-       print "valleys deep = ", valleys_deep
-       print "mountains_heigh = ", mountains_heigh
+       print("topography level = ",topo_level)
+       print("valleys deep = ", valleys_deep)
+       print("mountains_heigh = ", mountains_heigh)
        diagnostics_file.write("%e %e %e %e %e %e %e\n"%(t,Nu, topo_level, valleys_deep, mountains_heigh, eta_bar, Ra_eff))
     else:
        diagnostics_file.write("%e %e %e %e\n"%(t,Nu, eta_bar, Ra_eff))
@@ -349,7 +349,7 @@ while t<T_END:
          saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),T=T,v=v,eta=flow.getCurrentEtaEff(), topography=topography_old, vex=mts.getVelocity())
       else:
          saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),T=T,v=v,eta=flow.getCurrentEtaEff())
-      print "<%s> Visualization file %d for time step %e generated."%(time.asctime(),counter_vis,t)
+      print("<%s> Visualization file %d for time step %e generated."%(time.asctime(),counter_vis,t))
       counter_vis+=1
       t_vis+=DT_VIS
       n_vis+=DN_VIS
@@ -363,13 +363,13 @@ while t<T_END:
          old_restart_dir="%s_%s_"%(PREFIX_RESTART,c-1)
          new_restart_dir="%s_%s_"%(PREFIX_RESTART,c)
          mkDir(new_restart_dir)
-	 dom.MPIBarrier()
+         dom.MPIBarrier()
          file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %s; %e;\n"%(t, t_vis, n_vis, n, counter_vis, dt))
          v.dump(os.path.join(new_restart_dir,"v.nc"))
          p.dump(os.path.join(new_restart_dir,"p.nc"))
          T.dump(os.path.join(new_restart_dir,"T.nc"))
          if CREATE_TOPOGRAPHY: topography.dump(os.path.join(new_restart_dir,"topo.nc"))
          removeRestartDirectory(old_restart_dir)
-         print "<%s> Restart files written to %s."%(time.asctime(),new_restart_dir)
-print "<%s> Calculation finalized after %s sec."%(time.asctime(),time.time() - t1)
+         print("<%s> Restart files written to %s."%(time.asctime(),new_restart_dir))
+print("<%s> Calculation finalized after %s sec."%(time.asctime(),time.time() - t1))
 

@@ -106,7 +106,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 #        l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
 #        d=Data(0, Solution(self.domain))
 #        l.setValue(d, 7)
-#        self.assertTrue(sup(d)>6, "value not set")	# guarantees we have set something
+#        self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
 #        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")        
 
 
@@ -153,7 +153,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 #        l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
 #        d=Data(0, Solution(self.domain))
 #        l.setValue(d, 7)
-#        self.assertTrue(sup(d)>6, "value not set")	# guarantees we have set something
+#        self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
 #        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")
            
          
@@ -439,7 +439,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return dot(A,x)
       def Ms(b):
           out=zeros((b.size,),float64)
-          for i in xrange(size(b)):
+          for i in range(size(b)):
             out[i]=b[i]/A[i,i]
           return out
 
@@ -514,7 +514,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return dot(A,x)
       def Ms(b):
           out=zeros((size(b),),float64)
-          for i in xrange(size(b)):
+          for i in range(size(b)):
             out[i]=b[i]/A[i,i]
           return out
 
@@ -585,13 +585,13 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-	  out=dot(A,x)
-          for i in xrange(size(x)):
+          out=dot(A,x)
+          for i in range(size(x)):
             out[i]/=A[i,i]
           return out
 
       tol=1.e-5
-      for i in xrange(size(b)): b[i]/=A[i,i]
+      for i in range(size(b)): b[i]/=A[i,i]
       x=TFQMR(b,Ap,x_ref*0,dot, atol=0, rtol=tol, iter_max=12)
       self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
@@ -659,12 +659,12 @@ class Test_pdetools_noLumping(unittest.TestCase):
 
       def Ap(x):
           b=dot(A,x)
-          for i in xrange(size(b)):
+          for i in range(size(b)):
             b[i]/=A[i,i]
           return b
 
       tol=1.e-4
-      for i in xrange(size(b)): b[i]/=A[i,i]
+      for i in range(size(b)): b[i]/=A[i,i]
       x=GMRES(b,Ap,x_ref*0,dot,atol=0, rtol=tol, iter_max=12)
       self.assertTrue(Lsup(x-x_ref)<=Lsup(x_ref)*tol*10.,"wrong solution")
 
@@ -734,7 +734,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
           return dot(A,x)
       def P_Rp(x):
           out=zeros(size(x), float64)
-          for i in xrange(size(x)):
+          for i in range(size(x)):
             out[i]=x[i]/A[i,i]
           return out
        
@@ -808,7 +808,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                      -8.7934289814322  ])
            def eval(self,x):
               out=dot(self.A,x)-self.b
-              for i in xrange(size(self.b)):
+              for i in range(size(self.b)):
                 out[i]/=self.A[i,i]
               return out
            def bilinearform(self,x0,x1):
@@ -885,7 +885,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                      -8.7934289814322  ])
            def eval(self,x):
               out=dot(self.A,x)-self.b
-              for i in xrange(size(self.b)):
+              for i in range(size(self.b)):
                 out[i]/=self.A[i,i]
               return out
            def bilinearform(self,x0,x1):
@@ -994,7 +994,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                return out*(1.+tol)
            def solve_prec(self,Bv, tol):
                out=Bv*1.
-               for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
+               for i in range(size(out)): out[i]*=self.Sinv[i,i]
                return out*(1-tol)
 
       tol=1.e-8
@@ -1104,7 +1104,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                return out*(1.+tol)
            def solve_prec(self,Bv, tol):
                out=Bv*1.
-               for i in xrange(size(out)): out[i]*=self.Sinv[i,i]
+               for i in range(size(out)): out[i]*=self.Sinv[i,i]
                return out*(1-tol)
 
       tol=1.e-8
