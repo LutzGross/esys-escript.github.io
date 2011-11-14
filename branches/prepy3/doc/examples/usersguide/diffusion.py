@@ -51,7 +51,7 @@ T=Tref
 while t<tend:
       i+=1
       t+=h
-      print("time step :",t)
+      print(("time step :",t))
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       saveVTK("T.%d.vtu"%i,temp=T)

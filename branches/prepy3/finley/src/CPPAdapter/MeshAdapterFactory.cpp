@@ -654,8 +654,8 @@ namespace finley {
         
       }
       
-      Domain_ptr res=brick(extract<int>(args[0]), extract<int>(args[1]),
-                           extract<int>(args[2]), extract<int>(args[3]),
+      Domain_ptr res=brick(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
+                           static_cast<int>(extract<float>(args[2])), extract<int>(args[3]),
                            extract<double>(args[4]), extract<double>(args[5]),
                            extract<double>(args[6]), extract<int>(args[7]),
                            extract<int>(args[8]), extract<int>(args[9]),
@@ -794,7 +794,7 @@ namespace finley {
           }
       }
       
-      return rectangle(extract<int>(args[0]), extract<int>(args[1]),
+      return rectangle(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),

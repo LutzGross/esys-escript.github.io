@@ -605,7 +605,7 @@ class SolverOptions(object):
 
         :rtype: ``int`` or ``None``
         """
-        if self.__restart < 0:
+        if (self.__restart is None) or (self.__restart < 0):
             return None
         else:
             return self.__restart
