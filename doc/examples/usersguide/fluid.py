@@ -61,17 +61,17 @@ solution.setTolerance(tolerance)
 
 while t <= t_end:
 
-  print(" ----- Time step = %s -----"%( t ))
-  print("Time = %s seconds"%( time ))  
+  print((" ----- Time step = %s -----"%( t )))
+  print(("Time = %s seconds"%( time )))  
  
   solution.initialize(fixed_u_mask=boundary_cond,eta=eta,f=Y)
   velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter,verbose=verbose,usePCG=True)
   
-  print("Max velocity =", Lsup(velocity), "m/s")
+  print(("Max velocity =", Lsup(velocity), "m/s"))
   
   #Courant condition
   dt=0.4*h/(Lsup(velocity))
-  print("dt", dt) 
+  print(("dt", dt)) 
   
   #displace the mesh
   displacement = velocity * dt
