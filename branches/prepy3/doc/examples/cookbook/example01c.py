@@ -43,7 +43,7 @@ import os, sys #This package is necessary to handle saving our data.
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
-    print "This example will not run in an MPI world."
+    print("This example will not run in an MPI world.")
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -68,7 +68,7 @@ tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
-print "Expected Number of time outputs is: ", (tend-t)/h
+print("Expected Number of time outputs is: ", (tend-t)/h)
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","example01")
@@ -103,7 +103,7 @@ while t<tend:
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       totE=integrate(rhocp*T)
-      print "time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE)
+      print("time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE))
       t_list.append(t)
       E_list.append(totE)
 

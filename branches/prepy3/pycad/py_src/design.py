@@ -346,7 +346,7 @@ class Design(object):
         for i in self.getItems():
             for p in i.getPrimitives():
                 if not p in prims: prims.append(p)
-        prims.sort()
+        prims.sort(key=(lambda x:x.getID()))
         return prims
 
     def setOptions(self,**kwargs):

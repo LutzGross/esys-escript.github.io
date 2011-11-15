@@ -50,7 +50,7 @@ from mpl_toolkits.mplot3d import Axes3D
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
-    print "This example will not run in an MPI world."
+    print("This example will not run in an MPI world.")
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -121,7 +121,7 @@ def gzpot(p, y, x, *args):
     psol=rec.getValue(gz)
 
     err = np.sum((np.array(y) - np.array(psol))**2.)
-    print "Lsup= ",Lsup(np.array(psol)-np.array(sol_angz))/Lsup(np.array(psol))
+    print("Lsup= ",Lsup(np.array(psol)-np.array(sol_angz))/Lsup(np.array(psol)))
     return err
 
 #Initial Guess

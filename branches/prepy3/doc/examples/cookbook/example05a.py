@@ -45,7 +45,7 @@ import pylab as pl #Plotting package
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -121,7 +121,7 @@ d.addItems(PropertySet("top",tblock),PropertySet("bottom",bblock),\
 d.setScriptFileName(os.path.join(save_path,"example05.geo"))
 d.setMeshFileName(os.path.join(save_path,"example05.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
-print "Domain has been generated ..."
+print("Domain has been generated ...")
 ##############################################################SOLVE PDE
 mypde=LinearPDE(domain)
 mypde.getSolverOptions().setVerbosityOn()
@@ -135,10 +135,10 @@ mypde.setValue(q=whereZero(x[1]-sup(x[1])),r=Ttop)
 qS=Scalar(0,FunctionOnBoundary(domain))
 qS.setTaggedValue("linebottom",qin)
 mypde.setValue(y=qS)
-print "PDE has been generated ..."
+print("PDE has been generated ...")
 ###########################################################GET SOLUTION
 T=mypde.getSolution()
-print "PDE has been solved  ..."
+print("PDE has been solved  ...")
 
 #######################################################################
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
@@ -147,4 +147,4 @@ pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"Tcontour.png"))
-print "Solution has been plotted  ..."
+print("Solution has been plotted  ...")

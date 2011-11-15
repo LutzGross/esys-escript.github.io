@@ -45,7 +45,7 @@ tend=0.1    #end time
 #calculating )the timestep
 h=(1./5.)*sqrt(rho/(lam+2*mu))*(mx/ndx)
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 #uncomment the following lines to give the user a chance to stop
 #proceeder = raw_input("Is this ok?(y/n)")

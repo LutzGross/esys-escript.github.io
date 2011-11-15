@@ -54,7 +54,7 @@ T=T_D
 N=0; t=0
 # stop when t_end is reached:
 while t<t_end:
-    print N,"-th time step t=",t
+    print(N,"-th time step t=",t)
     # update PDE coefficient:
     mypde.setValue(Y=dt*rhocp*T+dt*Q)
     # new temperature:
