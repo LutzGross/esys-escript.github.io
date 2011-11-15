@@ -62,8 +62,8 @@ def subsample(u, nx=50, ny=50):
     dx = (sup(xx[0])-x0)/nx # x spacing
     dy = (sup(xx[1])-y0)/ny # y spacing
     grid = [ ] 
-    for j in xrange(0,ny-1):
-        for i in xrange(0,nx-1):
+    for j in range(0,ny-1):
+        for i in range(0,nx-1):
                grid.append([x0+dx/2+dx*i,y0+dy/2+dy*j])
     uLoc = Locator(u.getFunctionSpace(),grid)
     subu= uLoc(u) # get data of u at sample points closests to grid points

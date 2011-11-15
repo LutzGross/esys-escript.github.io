@@ -44,7 +44,7 @@ import os, sys
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 #################################################ESTABLISHING VARIABLES
 # where to put output files
@@ -111,7 +111,7 @@ d.setScriptFileName(os.path.join(save_path,"example06.geo"))
 
 d.setMeshFileName(os.path.join(save_path,"example06.msh"))
 domain=MakeDomain(d)
-print "Domain has been generated ..."
+print("Domain has been generated ...")
 
 # set up kappa (thermal conductivity across domain) using tags
 kappa=Scalar(0,Function(domain))
@@ -128,10 +128,10 @@ mypde.setValue(q=whereZero(x[1]-sup(x[1])),r=Ttop)
 qS=Scalar(0,FunctionOnBoundary(domain))
 qS.setTaggedValue("linebottom",qin)
 mypde.setValue(y=qS)
-print "PDE has been generated ..."
+print("PDE has been generated ...")
 ###########################################################GET SOLUTION
 T=mypde.getSolution()
-print "PDE has been solved ..."
+print("PDE has been solved ...")
 ###############################################################PLOTTING
 # show temperature:
 xi, yi, zi = toRegGrid(T, nx=50, ny=50)
@@ -153,4 +153,4 @@ pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
 pl.legend()
 pl.savefig(os.path.join(save_path,"flux.png"))
-print "Flux has been plotted  ..."
+print("Flux has been plotted  ...")

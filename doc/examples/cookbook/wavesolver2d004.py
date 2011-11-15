@@ -59,7 +59,7 @@ tend=0.5    #end time
 #calculating )the timestep
 h=(1./5.)*sqrt(rho/(lam+2*mu))*(mx/ndx)
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 #uncomment the following lines to give the user a chance to stop
 #proceeder = raw_input("Is this ok?(y/n)")
@@ -181,7 +181,7 @@ mypde.setValue(D=kmat*rho)
 # define small radius around point xc
 # Lsup(x) returns the maximum value of the argument x
 src_radius = 50#2*Lsup(domain.getSize())
-print "src_radius = ",src_radius
+print("src_radius = ",src_radius)
 
 #dunit=numpy.array([0.,1.]) # defines direction of point source
 dunit=(x-xc)
@@ -205,7 +205,7 @@ u=x*0.
 #~ 
 #~ y2=np.exp(-50.*x2)*np.sin(40*3.14157*x2)
 
-print u
+print(u)
 u_m1=u
 t=0
 
@@ -246,7 +246,7 @@ while t<tend:
     #stress = 
     t+=h
     n+=1
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)
     #~ u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
     #~ 
     #~ #     print "u at point charge=",u_pc

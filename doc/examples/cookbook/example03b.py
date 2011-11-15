@@ -74,8 +74,8 @@ tend=200.* yr #the time we want to end the simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning
-print "Expected Number of Output Files is: ", outputs
-print "Step size is: ", h/day, "days"
+print("Expected Number of Output Files is: ", outputs)
+print("Step size is: ", h/day, "days")
 i=0 #loop counter 
 #the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","example03")
@@ -108,7 +108,7 @@ while t<=tend:
       mypde.setValue(Y=qH+T*rhocp/h)
       T=mypde.getSolution()
       saveVTK(os.path.join(save_path,"data.%03d.vtu"%i), T=T)
-      print "time step %s at t=%e days completed."%(i,t/day)
+      print("time step %s at t=%e days completed."%(i,t/day))
 
 # use 
 #

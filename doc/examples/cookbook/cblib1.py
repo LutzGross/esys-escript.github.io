@@ -103,7 +103,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
    # define small radius around point xc
    # Lsup(x) returns the maximum value of the argument x
    src_radius = 50#2*Lsup(domain.getSize())
-   print "src_radius = ",src_radius
+   print("src_radius = ",src_radius)
 
    dunit=numpy.array([0.,1.]) # defines direction of point source
 
@@ -151,7 +151,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
      #stress = 
       t+=h
       n+=1
-      print n,"-th time step t ",t
+      print(n,"-th time step t ",t)
       u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
 
 #     print "u at point charge=",u_pc
@@ -224,7 +224,7 @@ def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    # define small radius around point xc
    # Lsup(x) returns the maximum value of the argument x
    src_radius = 50#2*Lsup(domain.getSize())
-   print "src_radius = ",src_radius
+   print("src_radius = ",src_radius)
 
    dunit=numpy.array([0.,1.]) # defines direction of point source
 
@@ -270,7 +270,7 @@ def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
      #stress = 
      t+=h
      n+=1
-     print n,"-th time step t ",t
+     print(n,"-th time step t ",t)
      u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
 
 #     print "u at point charge=",u_pc
