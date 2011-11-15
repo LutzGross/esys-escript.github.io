@@ -16,6 +16,8 @@ EnsurePythonVersion(2,5)
 import sys, os, platform, re
 from distutils import sysconfig
 from site_init import *
+import subprocess
+from subprocess import PIPE, Popen
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
@@ -126,6 +128,7 @@ vars.AddVariables(
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
+  ('pythoncmd', 'which python to compile with','python'),
 )
 
 ##################### Create environment and help text #######################
@@ -405,14 +408,42 @@ if IS_WINDOWS:
 else:
     python_libs=['python'+sysconfig.get_python_version()]
 
+#if we want to use a python other than the one scons is running
+if env['pythoncmd']!='python':
+   py3scons=False	# Is scons running on python3?
+   initstring='from __future__ import print_function;from distutils import sysconfig;'
+   if IS_WINDOWS:
+      cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
+   else:
+      cmd='print("python"+sysconfig.get_python_version())'
+   p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+   python_libs=p.stdout.readline()
+   if type(python_libs)!=str():
+      py3scons=True
+      python_libs=python_libs.encode()
+   p.wait()
+   python_libs=python_libs.strip()
+   # Now we know whether we are using python3 or not
+   p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
+   python_inc_path=p.stdout.readline()
+   if py3scons:
+         python_inc_path=python_inc_path.encode()
+   p.wait()   
+   python_inc_path=python_inc_path.strip()
+   if IS_WINDOWS:
+        cmd="os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
+   elif env['PLATFORM']=='darwin':
+        cmd="sysconfig.get_config_var(\"LIBPL\")"
+   else:
+        cmd="sysconfig.get_config_var(\"LIBDIR\")"
 
-# Joel's nasty hacks to hook to python3 need a script to supply these values
-python_inc_path='/usr/include/python3.1'
-python_lib_path='/usr/lib'
-python_libs='python3.1'
+   p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
+   python_lib_path=p.stdout.readline()
+   if py3scons:
+      python_lib_path=python_lib_path.decode()
+   p.wait()
+   python_lib_path=python_lib_path.strip()
 
-
-#end this block of nasty hacks
 
 
 
@@ -455,18 +486,17 @@ env.PrependENVPath(LD_LIBRARY_PATH_KEY, boost_lib_path)
 
 ######## numpy (required)
 
-#try:
-#    from numpy import identity
-#except ImportError:
-#    print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
-#    Exit(1)
-
-
-# More nasty hacking
-#The problem here is that importing numpy into the scons instance of python does not
-#say much about the ability to import into the real version  of python
-#Perhaps this should be tested in an external script?
-#In my case numpy was installed for py3 and scons (running in py2) could not understand it
+if env['pythoncmd']=='python':
+    try:
+      from numpy import identity
+    except ImportError:
+      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+      Exit(1)
+else:
+    p=subprocess.call([env['pythoncmd'],'-c','import numpy'])
+    if p!=0:
+      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+      Exit(1)
 
 ######## CppUnit (required for tests)
 
@@ -773,20 +803,18 @@ buildvars.write("svn_revision="+str(global_revision)+"\n")
 buildvars.write("prefix="+prefix+"\n")
 buildvars.write("cc="+env['CC']+"\n")
 buildvars.write("cxx="+env['CXX']+"\n")
-#buildvars.write("python="+sys.executable+"\n")
+buildvars.write("python="+env['pythoncmd']+"\n")
 #buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
 
-
-#Nasty hack
-
-#This should run things via the chosen executable
-
-buildvars.write("python=python3\n")
-buildvars.write("python_version=3.1\n")
-
-#nasty hack
+if env['pythoncmd']=='python':
+   verstring=str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])
+else:
+   p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
+   verstring=p.stdout.readline().strip()
+   p.wait()
 
 
+buildvars.write("python_version="+verstring+"\n")
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")
