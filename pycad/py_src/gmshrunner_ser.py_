@@ -39,7 +39,7 @@ def runGmsh(args):
     if getMPIRankWorld() == 0:
         import subprocess
         try:
-            ret = subprocess.call(args) / 256
+            ret = subprocess.call(args) // 256
         except:
             ret = 1
     else:

@@ -90,6 +90,18 @@ class PrimitiveBase(object):
        else:
            return -1
 
+    def __eq__(self,other):
+       """
+       Two primitives are equal if they have the same ID()
+       """
+       if isinstance(other, PrimitiveBase):
+           return self.getID()==other.getID()
+       else:
+           return False
+
+    def __hash__(self):
+       return self.getID()
+       
     def getConstructionPoints(self):
         """
         Returns the points used to construct the primitive.
