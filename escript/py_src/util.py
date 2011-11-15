@@ -1124,6 +1124,21 @@ class Symbol(object):
        """
        return mult(other,self)
 
+   def __truediv__(self,other):
+       """
+       Divides this object by another object.
+
+       :param other: object dividing this object
+       :type other: `escript.Symbol`, ``float``, `escript.Data`,
+                    ``numpy.ndarray``
+       :return: a `Symbol` representing the quotient of this object and
+                ``other``
+       :rtype: `DependendSymbol`
+       """
+       return quotient(self,other)
+   
+
+
    def __div__(self,other):
        """
        Divides this object by another object.
@@ -1149,6 +1164,20 @@ class Symbol(object):
        :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
        """
        return quotient(other,self)
+
+   def __rtruediv__(self,other):
+       """
+       Divides another object by this object.
+
+       :param other: object to be divided by this object
+       :type other: `escript.Symbol`, ``float``, `escript.Data`,
+                    ``numpy.ndarray``
+       :return: a `Symbol` representing the quotient of ``other`` and this
+                object
+       :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
+       """
+       return quotient(other,self)
+
 
    def __pow__(self,other):
        """
@@ -6141,7 +6170,7 @@ class FileWriter(object):
          self.__file=None
          self.closed=False
          self.newlines=os.linesep
-         e=None
+         err=None
          # if not the master:
          if getMPIRankWorld()>0:
               if createLocalFiles:
@@ -6150,12 +6179,14 @@ class FileWriter(object):
                      self.__file=open(fn2,self.mode)
                   except Exception as e:
                      errno=1
+                     err=e
          else:
               try:
                   self.__file=open(fn,self.mode)
               except Exception as e:
                   errno=1
-         self.__handelerror(errno,e,"opening")
+                  err=e
+         self.__handelerror(errno,err,"opening")
 
     def __handelerror(self,errno,e,operation):
          errno=getMPIWorldMax(errno)

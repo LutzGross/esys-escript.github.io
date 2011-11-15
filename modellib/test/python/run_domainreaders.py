@@ -58,7 +58,7 @@ def Test_domain(dommodule, f):
 
 
 if getMPISizeWorld() > 1: 
-    print "Warning: modellib/test/python/run_domainreaders.py has not been executed as number of MPI ranks is greater than 1."
+    print("Warning: modellib/test/python/run_domainreaders.py has not been executed as number of MPI ranks is greater than 1.")
 else:
 
    des=Design()
