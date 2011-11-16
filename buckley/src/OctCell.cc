@@ -2,7 +2,7 @@
 #include "OctCell.h"
 #include "LeafInfo.h"
 
-using namespace refine;
+using namespace buckley;
 
 using namespace std;
 
@@ -133,8 +133,8 @@ void OctCell::splitPoint(double x, double y, double z, unsigned d)
 {
     // find cell
     // if it doesn't need refining, then bail
-    // refine neighbours to be at least d-1
-    // refine this cell
+    // buckley neighbours to be at least d-1
+    // buckley this cell
     OctCell* start=this;
     do
     {
@@ -303,8 +303,8 @@ void OctCell::collapsePoint(double x, double y, double z, unsigned d)
 {
     // find cell
     // if it doesn't need refining, then bail
-    // refine neighbours to be at least d-1
-    // refine this cell
+    // buckley neighbours to be at least d-1
+    // buckley this cell
     OctCell* start=this;
     do
     {

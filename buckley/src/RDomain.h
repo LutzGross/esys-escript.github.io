@@ -22,7 +22,7 @@
 #include "system_dep.h"
 #include "RDomainException.h"
 
-namespace refine {
+namespace buckley {
 
   
 typedef int ASM_ptr;
@@ -34,10 +34,10 @@ class RDomain : public escript::AbstractDomain
 
  public:
 
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   RDomain(double xside=1, double yside=1, double zside=1);
 
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual ~RDomain();
 
   /**
@@ -45,56 +45,56 @@ class RDomain : public escript::AbstractDomain
      Returns true if the given integer is a valid function space type
      for this domain.
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a continuous FunctionSpace code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
      Return a continuous on reduced order FunctionSpace code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedContinuousFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace code with reduced integration order
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedFunctionCode() const;
 
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a code for a function on boundary FunctionSpace with reduced integration order
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedFunctionOnBoundaryCode() const;
 
 
@@ -102,49 +102,49 @@ class RDomain : public escript::AbstractDomain
      \brief
      Return a FunctionOnContactZero code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactZero for reduced integration order code 
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne for reduced integration order code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a Solution code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getSolutionCode() const;
 
   /**
      \brief
      Return a ReducedSolution code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
      Return a DiracDeltaFunctions code
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getDiracDeltaFunctionsCode() const;
 
   /**
@@ -153,7 +153,7 @@ class RDomain : public escript::AbstractDomain
      stiffness matrix when a particular solver package
      and symmetric matrix is used.
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
 
   /**
@@ -162,7 +162,7 @@ class RDomain : public escript::AbstractDomain
      stiffness matrix when a particular solver package
      and symmetric matrix is used.
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
 
   /**
@@ -171,14 +171,14 @@ class RDomain : public escript::AbstractDomain
      arg has to be defined on this.
      has to be implemented by the Domain Adapter.
   */
-  REFINE_DLL_API 
+  BUCKLEY_DLL_API 
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
 //  /**
 //     \brief
 //     Return the domain as const AbstractContinuousDomain&
 //  */
-//   REFINE_DLL_API 
+//   BUCKLEY_DLL_API 
 //   static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
 
 
@@ -188,7 +188,7 @@ class RDomain : public escript::AbstractDomain
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual void addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
@@ -204,7 +204,7 @@ class RDomain : public escript::AbstractDomain
 //     \brief
 //     adds a PDE onto the lumped stiffness matrix matrix
 //  */
-//  REFINE_DLL_API
+//  BUCKLEY_DLL_API
 //  virtual void addPDEToLumpedSystem(
 //                     escript::Data& mat,
 //                     const escript::Data& D, 
@@ -214,7 +214,7 @@ class RDomain : public escript::AbstractDomain
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
@@ -223,7 +223,7 @@ class RDomain : public escript::AbstractDomain
      adds a PDE onto a transport problem
   */
 
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual void addPDEToTransportProblem(
                      escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
@@ -237,7 +237,7 @@ class RDomain : public escript::AbstractDomain
      \brief
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
@@ -250,7 +250,7 @@ class RDomain : public escript::AbstractDomain
 
   */
 
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual ATP_ptr newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
@@ -261,7 +261,7 @@ class RDomain : public escript::AbstractDomain
      \brief
      Return the number of data points summed across all MPI processes
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual int getNumDataPointsGlobal() const;
 
   /**
@@ -269,21 +269,21 @@ class RDomain : public escript::AbstractDomain
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
 
   /**
      \brief
      assigns new location to the domain
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual void setNewX(const escript::Data& arg);
 
   /**
      \brief
      \param full
   */
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
   virtual void Print_Mesh_Info(const bool full=false) const;
 
 

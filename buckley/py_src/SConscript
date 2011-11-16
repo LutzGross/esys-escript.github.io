@@ -24,6 +24,6 @@ sources = Glob('*.py')
 pyc = local_env.PyCompile(sources)
 
 # install
-py_inst = local_env.Install(local_env['pyinstall']+'/refine', pyc)
-env.Alias('install_refine_py', py_inst)
+py_inst = local_env.Install(local_env['pyinstall']+'/buckley', pyc)
+env.Alias('install_buckley_py', py_inst)
 

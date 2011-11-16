@@ -13,7 +13,7 @@
 
 
 /**
-\file refine/src/system_dep.h
+\file bucley/src/system_dep.h
 \ingroup Other
  */
 /*
@@ -38,16 +38,16 @@
 #   include <math.h>
 #endif
 
-#define REFINE_DLL_API
+#define BUCKLEY_DLL_API
 
 #ifdef _WIN32
 
-#   ifndef REFINE_STATIC_LIB
-#      undef REFINE_DLL_API
-#      ifdef REFINE_EXPORTS
-#         define REFINE_DLL_API __declspec(dllexport)
+#   ifndef BUCKLEY_STATIC_LIB
+#      undef BUCKLEY_DLL_API
+#      ifdef BUCKLEY_EXPORTS
+#         define BUCKLEY_DLL_API __declspec(dllexport)
 #      else
-#         define REFINE_DLL_API __declspec(dllimport)
+#         define BUCKLEY_DLL_API __declspec(dllimport)
 #      endif
 #   endif
 #endif

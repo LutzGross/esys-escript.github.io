@@ -6,13 +6,13 @@
 
 #include "FaceConsts.h"
 
-using namespace refine;
+using namespace buckley;
 using namespace std;
 
 
 
 
-LeafInfo::LeafInfo(refine::OctCell* c)
+LeafInfo::LeafInfo(buckley::OctCell* c)
 {
     owner=c;
     memset(next, 0, sizeof(OctCell*)*6);

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "OctCell.h"
 
-using namespace refine;
+using namespace buckley;
 
 using namespace std;
 
@@ -109,20 +109,20 @@ void OctCell::outwardRefine(unsigned desireddepth)
     minside=(minside>sides[2])?sides[2]:minside;
     minside/=5;		// this will work provided that all other divisions have been safe 
     
-    cerr << "Outward refine: " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
-    cerr << "-\n";
+//    cerr << "Outward buckley: " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0]-sides[0]/2-minside, centre[1], centre[2], desireddepth);
-    cerr << "-\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0]+sides[0]/2+minside, centre[1], centre[2], desireddepth);
-    cerr << "-\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0], centre[1]-sides[1]/2-minside, centre[2], desireddepth);
-    cerr << "-\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0], centre[1]+sides[1]/2+minside, centre[2], desireddepth);
-    cerr << "-\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0], centre[1], centre[2]-sides[2]/2-minside, desireddepth);
-    cerr << "-\n";
+//    cerr << "-\n";
     upSplitPoint(centre[0], centre[1], centre[2]+sides[2]/2+minside, desireddepth);
-    cerr << "----\n";
+//    cerr << "----\n";
 }
 
 // Works up  the tree until it finds 
@@ -140,7 +140,7 @@ void OctCell::upSplitPoint(double x, double y, double z, unsigned d)
     }
     else
     {
-        cerr << "Up to " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+//        cerr << "Up to " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
       
         // it's in this cell somewhere so start moving down again
         splitPoint(x, y, z, d);       
@@ -162,7 +162,7 @@ void OctCell::upCollPoint(double x, double y, double z, unsigned d)
     }
     else
     {
-        cerr << "Up to " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+//        cerr << "Up to " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
       
         // it's in this cell somewhere so start moving down again
         collapsePoint(x, y, z, d);       
@@ -192,8 +192,8 @@ void OctCell::splitPoint(double x, double y, double z, unsigned d)
 {
     // find cell
     // if it doesn't need refining, then bail
-    // refine neighbours to be at least d-1
-    // refine this cell
+    // buckley neighbours to be at least d-1
+    // buckley this cell
     OctCell* start=this;
     do
     {
@@ -249,8 +249,8 @@ void OctCell::collapsePoint(double x, double y, double z, unsigned d)
 {
     // find cell
     // if it doesn't need refining, then bail
-    // refine neighbours to be at least d-1
-    // refine this cell
+    // buckley neighbours to be at least d-1
+    // buckley this cell
     OctCell* start=this;
     do
     {
@@ -276,8 +276,8 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     minside=(minside>sides[2])?sides[2]:minside;
     minside/=5;		// this will work provided that all other divisions have been safe 
     
-    cerr << "Outward collapse: " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
-    cerr << "-" << (centre[0]-sides[0]/2-minside) << ' ' <<  centre[1] << ' ' <<  centre[2]<<"\n";
+//    cerr << "Outward collapse: " << centre[0] << " " << centre[1] << " " << centre[2] << "\n";
+//    cerr << "-" << (centre[0]-sides[0]/2-minside) << ' ' <<  centre[1] << ' ' <<  centre[2]<<"\n";
     upCollPoint(centre[0]-sides[0]/2-minside, centre[1]-minside, centre[2]-minside, desireddepth);
     
     upCollPoint(centre[0]-sides[0]/2-minside, centre[1]-minside, centre[2]+minside, desireddepth);
@@ -287,7 +287,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     upCollPoint(centre[0]-sides[0]/2-minside, centre[1]+minside, centre[2]+minside, desireddepth);
     
     
-    cerr << "-\n";
+//    cerr << "-\n";
     upCollPoint(centre[0]+sides[0]/2+minside, centre[1]-minside, centre[2]-minside, desireddepth);
     
     upCollPoint(centre[0]+sides[0]/2+minside, centre[1]-minside, centre[2]+minside, desireddepth);
@@ -297,7 +297,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     upCollPoint(centre[0]+sides[0]/2+minside, centre[1]+minside, centre[2]+minside, desireddepth);
     
     
-    cerr << "-\n";
+//    cerr << "-\n";
     upCollPoint(centre[0]-minside, centre[1]-sides[1]/2-minside, centre[2]-minside, desireddepth);
     
     upCollPoint(centre[0]-minside, centre[1]-sides[1]/2-minside, centre[2]+minside, desireddepth);
@@ -310,7 +310,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     
     
     
-    cerr << "-\n";
+//    cerr << "-\n";
     upCollPoint(centre[0]-minside, centre[1]+sides[1]/2+minside, centre[2]-minside, desireddepth);
     
     upCollPoint(centre[0]-minside, centre[1]+sides[1]/2+minside, centre[2]+minside, desireddepth);
@@ -320,7 +320,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     upCollPoint(centre[0]+minside, centre[1]+sides[1]/2+minside, centre[2]+minside, desireddepth);
     
     
-    cerr << "-\n";
+//    cerr << "-\n";
     upCollPoint(centre[0]-minside, centre[1]-minside, centre[2]-sides[2]/2-minside, desireddepth);
     
     upCollPoint(centre[0]-minside, centre[1]+minside, centre[2]-sides[2]/2-minside, desireddepth);
@@ -329,7 +329,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
     
     upCollPoint(centre[0]+minside, centre[1]+minside, centre[2]-sides[2]/2-minside, desireddepth);    
     
-    cerr << "-\n";
+//    cerr << "-\n";
     upCollPoint(centre[0]-minside, centre[1]-minside, centre[2]+sides[2]/2+minside, desireddepth);
 
     upCollPoint(centre[0]-minside, centre[1]+minside, centre[2]+sides[2]/2+minside, desireddepth);
@@ -338,7 +338,7 @@ void OctCell::outwardCollapse(unsigned desireddepth)
 
     upCollPoint(centre[0]+minside, centre[1]+minside, centre[2]+sides[2]/2+minside, desireddepth);
     
-    cerr << "----\n";
+//    cerr << "----\n";
 }
 
 void OctCell::doLeafWalk(cellfunct c, void* v)

@@ -19,7 +19,7 @@ Import('*')
 local_env = env.Clone()
 py_wrapper_local_env = env.Clone()
 local_unroll_env = env.Clone()
-local_unroll_env.Append(CFLAGS = env['refine_assemble_flags'])
+local_unroll_env.Append(CFLAGS = env['buckley_assemble_flags'])
 
 
 # Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
@@ -51,26 +51,26 @@ local_env.Prepend(LIBS = ['escript', 'esysUtils', 'paso'])
 if IS_WINDOWS :
   local_env.Append(CPPDEFINES = ['REFINE_EXPORTS'])
 
-module_name = 'refine'
+module_name = 'buckley'
 
 un = [ local_unroll_env.SharedObject(x) for x in unroll_sources]
 
 lib = local_env.SharedLibrary(module_name, sources+un)
-env.Alias('build_refine_lib', lib)
+env.Alias('build_buckley_lib', lib)
 
-include_path = Dir('refine', local_env['incinstall'])
+include_path = Dir('buckley', local_env['incinstall'])
 
 hdr_inst1 = local_env.Install(include_path, headers )
-env.Alias('install_refine_headers', hdr_inst1)
+env.Alias('install_buckley_headers', hdr_inst1)
 
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-env.Alias('install_refine_lib', lib_inst)
+env.Alias('install_buckley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['refine', 'escript', 'esysUtils', 'paso'])
+py_wrapper_local_env.Prepend(LIBS = ['buckley', 'escript', 'esysUtils', 'paso'])
 py_wrapper_name = module_name + 'cpp'
-py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'refinecpp.cpp')
-env.Alias('build_refinecpp_lib', py_wrapper_lib)
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'buckleycpp.cpp')
+env.Alias('build_buckleycpp_lib', py_wrapper_lib)
 
 tmp_inst = os.path.join(local_env['pyinstall'], module_name)
 if IS_WINDOWS:
@@ -81,11 +81,11 @@ else:
 share_name = os.path.join(tmp_inst, py_wrapper_name+wrapper_ext)
 mod_inst = py_wrapper_local_env.InstallAs(target=share_name,
                                           source=py_wrapper_lib[0])
-env.Alias('install_refinecpp_lib', mod_inst)
+env.Alias('install_buckleycpp_lib', mod_inst)
 
 # configure python module
-local_env.SConscript(dirs = ['#/refine/py_src'], variant_dir='py', duplicate=0)
+local_env.SConscript(dirs = ['#/buckley/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/refine/test'], variant_dir='$BUILD_DIR/$PLATFORM/refine/test', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/buckley/test'], variant_dir='$BUILD_DIR/$PLATFORM/buckley/test', duplicate=0, exports=['py_wrapper_lib'])
 

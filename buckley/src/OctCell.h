@@ -1,7 +1,7 @@
 
 #ifndef OCTCELL_H_2011
 #define OCTCELL_H_2011
-namespace refine
+namespace buckley
 {
 
 class OctCell;  

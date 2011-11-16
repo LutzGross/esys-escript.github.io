@@ -18,7 +18,7 @@
 
 #include "esysUtils/EsysException.h"
 
-namespace refine
+namespace buckley
 {
 
   /**
@@ -41,40 +41,40 @@ namespace refine
     \brief
     Default constructor for the exception.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     RDomainException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     RDomainException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     RDomainException(const std::string &str) :
     Parent(str) { updateMessage();}
     /**
     \brief
     Copy Constructor for the exception.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     RDomainException(const RDomainException &other) : Parent(other)
       {
         updateMessage();
       }
 
     /// Destructor
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     virtual ~RDomainException() THROW(NO_ARG) {}
 
     /**
     \brief
     Assignment operator.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     inline RDomainException &
     operator=(const RDomainException &other ) THROW(NO_ARG)
        {
@@ -87,7 +87,7 @@ namespace refine
     \brief
     Returns the name of the exception.
     */
-    REFINE_DLL_API
+    BUCKLEY_DLL_API
     virtual const std::string & exceptionName() const;
 
   private:
