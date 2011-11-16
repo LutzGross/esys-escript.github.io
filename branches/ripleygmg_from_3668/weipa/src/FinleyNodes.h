@@ -20,6 +20,9 @@ class DBfile;
 class NcFile;
 struct Dudley_NodeFile;
 struct Finley_NodeFile;
+namespace ripley {
+class NodeFile;
+}
 
 namespace weipa {
 
@@ -51,6 +54,9 @@ public:
 
     /// \brief Initialises with finley node file.
     bool initFromFinley(const Finley_NodeFile* finleyFile);
+
+    /// \brief Initialises with ripley node file.
+    bool initFromRipley(const ripley::NodeFile* ripleyFile);
 
     /// \brief Reads node data from a NetCDF file.
     bool readFromNc(NcFile* ncFile);

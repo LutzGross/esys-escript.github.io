@@ -255,6 +255,6 @@ Ripley_Assemble_Gradient_2D(Ripley_Grid *grid, Escript in, Escript out)
             } /* close component loop i */
          } /* close k0 loop */
       } /* end of face 3 */
-   } /* end of out_data_type branching
+   } /* end of out_data_type branching */
    /* GENERATOR SNIP BOTTOM */
 }

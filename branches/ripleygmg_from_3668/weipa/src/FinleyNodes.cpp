@@ -20,6 +20,7 @@ extern "C" {
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 }
+#include <ripley/NodeFile.h>
 #endif
 
 #if USE_NETCDF
@@ -248,6 +249,49 @@ bool FinleyNodes::initFromFinley(const Finley_NodeFile* finleyFile)
         nodeGRNI.insert(nodeGRNI.end(), numNodes, 0);
         copy(iPtr, iPtr+numNodes, nodeGRNI.begin());
 
+    }
+    return true;
+#else // VISIT_PLUGIN
+    return false;
+#endif
+}
+
+//
+//
+//
+bool FinleyNodes::initFromRipley(const ripley::NodeFile* ripleyFile)
+{
+#ifndef VISIT_PLUGIN
+    numDims = ripleyFile->getNumDim();
+    numNodes = ripleyFile->getNumNodes();
+
+    int mpisize = ripleyFile->getMPIInfo()->size;
+    int* iPtr = ripleyFile->getNodesDistribution()->first_component;
+    nodeDist.clear();
+    nodeDist.insert(nodeDist.end(), mpisize+1, 0);
+    copy(iPtr, iPtr+mpisize+1, nodeDist.begin());
+
+    CoordArray::iterator it;
+    for (it = coords.begin(); it != coords.end(); it++)
+        delete[] *it;
+    coords.clear();
+
+    if (numNodes > 0) {
+        for (int i=0; i<numDims; i++) {
+            const double* srcPtr = &ripleyFile->getCoordinates()[i];
+            float* c = new float[numNodes];
+            coords.push_back(c);
+            for (int j=0; j<numNodes; j++, srcPtr+=numDims) {
+                *c++ = (const float) *srcPtr;
+            }
+        }
+
+        nodeID = ripleyFile->getIdVector();
+        nodeTag = ripleyFile->getTagVector();
+        nodeGDOF = ripleyFile->getGlobalDegreesOfFreedom();
+        nodeGNI = ripleyFile->getGlobalNodesIndex();
+        nodeGRDFI = ripleyFile->getGlobalReducedDOFIndex();
+        nodeGRNI = ripleyFile->getGlobalReducedNodesIndex();
     }
     return true;
 #else // VISIT_PLUGIN

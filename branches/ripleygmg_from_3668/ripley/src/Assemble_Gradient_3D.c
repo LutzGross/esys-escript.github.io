@@ -1,4 +1,4 @@
-Ripley_Assemble_Gradient_3D(Ripley_Grid *grid, Escript in, Escript out)
+Ripley_Assemble_Gradient_3D(Ripley_Grid *grid, escriptDataC *in, escriptDataC *out)
 {
    /* GENERATOR SNIP TOP */
    if (out_data_type==RIPLEY_ELEMENTS) {
@@ -939,6 +939,6 @@ Ripley_Assemble_Gradient_3D(Ripley_Grid *grid, Escript in, Escript out)
             } /* close k0 loop */
          } /* close k1 loop */
       } /* end of face 5 */
-   } /* end of out_data_type branching
+   } /* end of out_data_type branching */
    /* GENERATOR SNIP BOTTOM */
 }

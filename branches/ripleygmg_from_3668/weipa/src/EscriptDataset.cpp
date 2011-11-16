@@ -22,6 +22,7 @@
 #include <escript/Data.h>
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
+#include <ripley/RipleyDomain.h>
 #endif
 
 #include <cstring>
@@ -104,7 +105,8 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
 #endif
         // FinleyDomain can handle both finley and dudley
         if (dynamic_cast<const finley::MeshAdapter*>(domain)
-                || dynamic_cast<const dudley::MeshAdapter*>(domain)) {
+                || dynamic_cast<const dudley::MeshAdapter*>(domain)
+                || dynamic_cast<const ripley::RipleyDomain*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
