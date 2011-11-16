@@ -1,7 +1,7 @@
 #include "RDomain.h"
 #include "RDomainException.h"
 
-using namespace refine;
+using namespace buckley;
 
 namespace
 {
@@ -168,21 +168,21 @@ int RDomain::getNumDataPointsGlobal() const
 }
 
 
-  REFINE_DLL_API
+  BUCKLEY_DLL_API
 std::pair<int,int> RDomain::getDataShape(int functionSpaceCode) const
 {
    throw RDomainException("Not Implemented");  
   
 }
 
-REFINE_DLL_API
+BUCKLEY_DLL_API
 void RDomain::setNewX(const escript::Data& arg)
 {
     throw RDomainException("This domain does not support changing coordinates");  
 }
 
 
-REFINE_DLL_API
+BUCKLEY_DLL_API
 void RDomain::Print_Mesh_Info(const bool full) const
 {
     throw RDomainException("Not Implemented");

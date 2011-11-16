@@ -4,7 +4,7 @@
 
 #include "OctCell.h"
 
-namespace refine
+namespace buckley
 {
 
 class LeafInfo

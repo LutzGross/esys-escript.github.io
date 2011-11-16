@@ -4,7 +4,7 @@
 #include <cstring>  // for memset
 #include "FaceConsts.h"
 
-using namespace refine;
+using namespace buckley;
 
 
 // Note: This code assumes x,y,z are positive

@@ -35,7 +35,7 @@
 using namespace boost::python;
 
 /**
-   \page refine
+   \page buckley
 
    \version 1.0.0 
 
@@ -53,7 +53,7 @@ using namespace boost::python;
 
 */
 
-BOOST_PYTHON_MODULE(refinecpp)
+BOOST_PYTHON_MODULE(buckleycpp)
 {
 // This feature was added in boost v1.34
 #if ((BOOST_VERSION/100)%1000 > 34) || (BOOST_VERSION/100000 >1)
@@ -65,13 +65,13 @@ BOOST_PYTHON_MODULE(refinecpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<refine::RDomainException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<buckley::RDomainException>(&(esysUtils::esysExceptionTranslator));
 
-//   def("LoadMesh",refine::loadMesh,
+//   def("LoadMesh",buckley::loadMesh,
 //       (arg("fileName")="file.nc"),":rtype: `Domain`"
 //       );
 // 
-//   def("ReadMesh",refine::readMesh,
+//   def("ReadMesh",buckley::readMesh,
 //       (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
 // 	,"Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.\n\n"
 // ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
@@ -82,7 +82,7 @@ BOOST_PYTHON_MODULE(refinecpp)
 
 
 
-//   def ("Brick",refine::brick,
+//   def ("Brick",buckley::brick,
 //       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
 //       arg("order")=1,
 //       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
@@ -106,24 +106,24 @@ BOOST_PYTHON_MODULE(refinecpp)
 // );
 
 
-  class_<refine::RDomain, bases<escript::AbstractContinuousDomain> >
+  class_<buckley::RDomain, bases<escript::AbstractContinuousDomain> >
       ("RDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<double, double, double>())
-      .def(init<const refine::RDomain&>())
-      .def("write",&refine::RDomain::write,args("filename"),
+      .def(init<const buckley::RDomain&>())
+      .def("write",&buckley::RDomain::write,args("filename"),
 "Write the current mesh to a file with the given name.")
-      .def("print_mesh_info",&refine::RDomain::Print_Mesh_Info,(arg("full")=false),
+      .def("print_mesh_info",&buckley::RDomain::Print_Mesh_Info,(arg("full")=false),
 ":param full:\n:type full: ``bool``")
-      .def("dump",&refine::RDomain::dump,args("fileName")
+      .def("dump",&buckley::RDomain::dump,args("fileName")
 ,"dumps the mesh to a file with the given name.")
-      .def("getDescription",&refine::RDomain::getDescription,
+      .def("getDescription",&buckley::RDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
-      .def("getDim",&refine::RDomain::getDim,":rtype: ``int``")
-      .def("getDataShape",&refine::RDomain::getDataShape, args("functionSpaceCode"),
+      .def("getDim",&buckley::RDomain::getDim,":rtype: ``int``")
+      .def("getDataShape",&buckley::RDomain::getDataShape, args("functionSpaceCode"),
 ":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
-      .def("getNumDataPointsGlobal",&refine::RDomain::getNumDataPointsGlobal,
+      .def("getNumDataPointsGlobal",&buckley::RDomain::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
-      .def("addPDEToSystem",&refine::RDomain::addPDEToSystem,
+      .def("addPDEToSystem",&buckley::RDomain::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
@@ -138,7 +138,7 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
 
-      .def("addPDEToRHS",&refine::RDomain::addPDEToRHS, 
+      .def("addPDEToRHS",&buckley::RDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
@@ -147,7 +147,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
-      .def("addPDEToTransportProblem",&refine::RDomain::addPDEToTransportProblem,
+      .def("addPDEToTransportProblem",&buckley::RDomain::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 ":param tp:\n:type tp: `TransportProblemAdapter`\n"
 ":param source:\n:type source: `Data`\n"
@@ -163,7 +163,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("newOperator",&refine::RDomain::newSystemMatrix,
+      .def("newOperator",&buckley::RDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
@@ -172,7 +172,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("newTransportProblem",&refine::RDomain::newTransportProblem,
+      .def("newTransportProblem",&buckley::RDomain::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
 "creates a TransportProblemAdapter\n\n"
 ":param theta:\n:type theta: ``float``\n"
@@ -180,7 +180,7 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("getSystemMatrixTypeId",&refine::RDomain::getSystemMatrixTypeId,
+      .def("getSystemMatrixTypeId",&buckley::RDomain::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner, and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -189,7 +189,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("getTransportTypeId",&refine::RDomain::getTransportTypeId,
+      .def("getTransportTypeId",&buckley::RDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the transport problem type to be used when a particular solver, perconditioner, package and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -198,20 +198,20 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("setX",&refine::RDomain::setNewX,
+      .def("setX",&buckley::RDomain::setNewX,
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
-      .def("getX",&refine::RDomain::getX, ":return: locations in the FEM nodes\n\n"
+      .def("getX",&buckley::RDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
-      .def("getNormal",&refine::RDomain::getNormal,
+      .def("getNormal",&buckley::RDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")
-      .def("getSize",&refine::RDomain::getSize,":return: the element size\n"
+      .def("getSize",&buckley::RDomain::getSize,":return: the element size\n"
 ":rtype: `Data`")
-      .def("saveDX",&refine::RDomain::saveDX,args("filename" ,"arg"),
+      .def("saveDX",&buckley::RDomain::saveDX,args("filename" ,"arg"),
 "Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier"
 "\n\n:param filename: \n:type filename: ``string``\n"
 "\n:param arg: \n:type arg: ``dict``\n")
-      .def("saveVTK",&refine::RDomain::saveVTK,
+      .def("saveVTK",&buckley::RDomain::saveVTK,
 args("filename" ,"arg",  "metadata", "metadata_schema"),
 "Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier"
 "\n\n:param filename:\n:type filename: ``string``\n"
@@ -219,17 +219,17 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
 ":param metadata:\n:type metadata: ``string``\n"
 ":param metadata_schema:\n:type metadata_schema: ``string``\n"
 )
-      .def("setTagMap",&refine::RDomain::setTagMap,args("name","tag"),
+      .def("setTagMap",&buckley::RDomain::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
 ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
-      .def("getTag",&refine::RDomain::getTag,args("name"),":return: tag id for "
+      .def("getTag",&buckley::RDomain::getTag,args("name"),":return: tag id for "
 "``name``\n:rtype: ``string``")
-      .def("isValidTagName",&refine::RDomain::isValidTagName,args("name"),
+      .def("isValidTagName",&buckley::RDomain::isValidTagName,args("name"),
 ":return: True is ``name`` corresponds to a tag\n:rtype: ``bool``")
-      .def("showTagNames",&refine::RDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
-      .def("getMPISize",&refine::RDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
-      .def("getMPIRank",&refine::RDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
-      .def("MPIBarrier",&refine::RDomain::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor",&refine::RDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+      .def("showTagNames",&buckley::RDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
+      .def("getMPISize",&buckley::RDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
+      .def("getMPIRank",&buckley::RDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
+      .def("MPIBarrier",&buckley::RDomain::MPIBarrier,"Wait until all processes have reached this point")
+      .def("onMasterProcessor",&buckley::RDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
 }
