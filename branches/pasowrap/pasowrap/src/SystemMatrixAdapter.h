@@ -22,7 +22,6 @@ extern "C" {
 }
 
 #include "PasoException.h"
-#include "PasoError.h"
 
 #include "escript/AbstractSystemMatrix.h"
 #include "escript/Data.h"

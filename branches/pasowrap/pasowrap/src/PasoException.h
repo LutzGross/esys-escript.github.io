@@ -11,25 +11,26 @@
 *
 *******************************************************/
 
+/* File extracted from finley and modified */
 
-#if !defined  dudley_DudleyAdapterException_20040526_H
-#define dudley_DudleyAdapterException_20040526_H
+#if !defined  PasoException_20040526_H
+#define PasoException_20040526_H
 #include "system_dep.h"
 
 #include "esysUtils/EsysException.h"
 
-namespace dudley
+namespace paso
 {
 
   /**
   \brief
-  DudleyAdapterException exception class.
+  PasoException exception class.
 
   Description:
-  DudleyAdapterException exception class.
+  PasoException exception class.
   The class provides a public function returning the exception name
   */
-  class DudleyAdapterException : public esysUtils::EsysException
+  class PasoException : public esysUtils::EsysException
   {
 
   protected:
@@ -41,42 +42,42 @@ namespace dudley
     \brief
     Default constructor for the exception.
     */
-    DUDLEY_DLL_API
-    DudleyAdapterException() : Parent() { updateMessage();}
+    PASOWRAP_DLL_API
+    PasoException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    DUDLEY_DLL_API
-    DudleyAdapterException(const char *cstr) : Parent(cstr) { updateMessage();}
+    PASOWRAP_DLL_API
+    PasoException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
-    DUDLEY_DLL_API
-    DudleyAdapterException(const std::string &str) :
+    PASOWRAP_DLL_API
+    PasoException(const std::string &str) :
     Parent(str) { updateMessage();}
     /**
     \brief
     Copy Constructor for the exception.
     */
-    DUDLEY_DLL_API
-    DudleyAdapterException(const DudleyAdapterException &other) : Parent(other)
+    PASOWRAP_DLL_API
+    PasoException(const PasoException &other) : Parent(other)
       {
         updateMessage();
       }
 
     /// Destructor
-    DUDLEY_DLL_API
-    virtual ~DudleyAdapterException() THROW(NO_ARG) {}
+    PASOWRAP_DLL_API
+    virtual ~PasoException() THROW(NO_ARG) {}
 
     /**
     \brief
     Assignment operator.
     */
-    DUDLEY_DLL_API
-    inline DudleyAdapterException &
-    operator=(const DudleyAdapterException &other ) THROW(NO_ARG)
+    PASOWRAP_DLL_API
+    inline PasoException &
+    operator=(const PasoException &other ) THROW(NO_ARG)
        {
          Parent::operator=(other);
          updateMessage();
@@ -87,7 +88,7 @@ namespace dudley
     \brief
     Returns the name of the exception.
     */
-    DUDLEY_DLL_API
+    PASOWRAP_DLL_API
     virtual const std::string & exceptionName() const;
 
   private:
