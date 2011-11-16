@@ -23,13 +23,13 @@ namespace buckley
 
   /**
   \brief
-  RDomainException exception class.
+  BuckleyException exception class.
 
   Description:
-  RDomainException exception class.
+  BuckleyException exception class.
   The class provides a public function returning the exception name
   */
-  class RDomainException : public esysUtils::EsysException
+  class BuckleyException : public esysUtils::EsysException
   {
 
   protected:
@@ -42,41 +42,41 @@ namespace buckley
     Default constructor for the exception.
     */
     BUCKLEY_DLL_API
-    RDomainException() : Parent() { updateMessage();}
+    BuckleyException() : Parent() { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     BUCKLEY_DLL_API
-    RDomainException(const char *cstr) : Parent(cstr) { updateMessage();}
+    BuckleyException(const char *cstr) : Parent(cstr) { updateMessage();}
     /**
     \brief
     Constructor for the exception.
     */
     BUCKLEY_DLL_API
-    RDomainException(const std::string &str) :
+    BuckleyException(const std::string &str) :
     Parent(str) { updateMessage();}
     /**
     \brief
     Copy Constructor for the exception.
     */
     BUCKLEY_DLL_API
-    RDomainException(const RDomainException &other) : Parent(other)
+    BuckleyException(const BuckleyException &other) : Parent(other)
       {
         updateMessage();
       }
 
     /// Destructor
     BUCKLEY_DLL_API
-    virtual ~RDomainException() THROW(NO_ARG) {}
+    virtual ~BuckleyException() THROW(NO_ARG) {}
 
     /**
     \brief
     Assignment operator.
     */
     BUCKLEY_DLL_API
-    inline RDomainException &
-    operator=(const RDomainException &other ) THROW(NO_ARG)
+    inline BuckleyException &
+    operator=(const BuckleyException &other ) THROW(NO_ARG)
        {
          Parent::operator=(other);
          updateMessage();
