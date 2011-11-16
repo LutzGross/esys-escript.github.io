@@ -12,18 +12,18 @@
 *******************************************************/
 
 
-#include "RDomainException.h"
+#include "BuckleyException.h"
 
 
 using namespace buckley;
 
 
 const std::string 
-RDomainException::exceptionNameValue("RDomainException");
+BuckleyException::exceptionNameValue("BuckleyException");
 
 
 const std::string &
-RDomainException::exceptionName() const
+BuckleyException::exceptionName() const
 {
   return exceptionNameValue;
 }

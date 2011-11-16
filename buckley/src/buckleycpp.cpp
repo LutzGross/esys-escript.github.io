@@ -16,12 +16,9 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 
-#include "RDomain.h"
-// #include "RDomainFactory.h"
-// #include "SystemMatrixAdapter.h"
-// #include "TransportProblemAdapter.h"
+#include "BuckleyDomain.h"
 
-#include "RDomainException.h"
+#include "BuckleyException.h"
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include "escript/AbstractContinuousDomain.h"
@@ -65,7 +62,7 @@ BOOST_PYTHON_MODULE(buckleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<buckley::RDomainException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<buckley::BuckleyException>(&(esysUtils::esysExceptionTranslator));
 
 //   def("LoadMesh",buckley::loadMesh,
 //       (arg("fileName")="file.nc"),":rtype: `Domain`"
@@ -106,24 +103,24 @@ BOOST_PYTHON_MODULE(buckleycpp)
 // );
 
 
-  class_<buckley::RDomain, bases<escript::AbstractContinuousDomain> >
-      ("RDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<double, double, double>())
-      .def(init<const buckley::RDomain&>())
-      .def("write",&buckley::RDomain::write,args("filename"),
+  class_<buckley::BuckleyDomain, bases<escript::AbstractContinuousDomain> >
+      ("BuckleyDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<double, double, double>())
+      .def(init<const buckley::BuckleyDomain&>())
+      .def("write",&buckley::BuckleyDomain::write,args("filename"),
 "Write the current mesh to a file with the given name.")
-      .def("print_mesh_info",&buckley::RDomain::Print_Mesh_Info,(arg("full")=false),
+      .def("print_mesh_info",&buckley::BuckleyDomain::Print_Mesh_Info,(arg("full")=false),
 ":param full:\n:type full: ``bool``")
-      .def("dump",&buckley::RDomain::dump,args("fileName")
+      .def("dump",&buckley::BuckleyDomain::dump,args("fileName")
 ,"dumps the mesh to a file with the given name.")
-      .def("getDescription",&buckley::RDomain::getDescription,
+      .def("getDescription",&buckley::BuckleyDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
-      .def("getDim",&buckley::RDomain::getDim,":rtype: ``int``")
-      .def("getDataShape",&buckley::RDomain::getDataShape, args("functionSpaceCode"),
+      .def("getDim",&buckley::BuckleyDomain::getDim,":rtype: ``int``")
+      .def("getDataShape",&buckley::BuckleyDomain::getDataShape, args("functionSpaceCode"),
 ":return: a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples\n:rtype: ``tuple``")
-      .def("getNumDataPointsGlobal",&buckley::RDomain::getNumDataPointsGlobal,
+      .def("getNumDataPointsGlobal",&buckley::BuckleyDomain::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
-      .def("addPDEToSystem",&buckley::RDomain::addPDEToSystem,
+      .def("addPDEToSystem",&buckley::BuckleyDomain::addPDEToSystem,
 args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
@@ -138,7 +135,7 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
 
-      .def("addPDEToRHS",&buckley::RDomain::addPDEToRHS, 
+      .def("addPDEToRHS",&buckley::BuckleyDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
@@ -147,7 +144,7 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
-      .def("addPDEToTransportProblem",&buckley::RDomain::addPDEToTransportProblem,
+      .def("addPDEToTransportProblem",&buckley::BuckleyDomain::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 ":param tp:\n:type tp: `TransportProblemAdapter`\n"
 ":param source:\n:type source: `Data`\n"
@@ -163,7 +160,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-      .def("newOperator",&buckley::RDomain::newSystemMatrix,
+      .def("newOperator",&buckley::BuckleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
 ":param row_blocksize:\n:type row_blocksize: ``int``\n"
@@ -172,7 +169,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("newTransportProblem",&buckley::RDomain::newTransportProblem,
+      .def("newTransportProblem",&buckley::BuckleyDomain::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
 "creates a TransportProblemAdapter\n\n"
 ":param theta:\n:type theta: ``float``\n"
@@ -180,7 +177,7 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``\n"
 )
-      .def("getSystemMatrixTypeId",&buckley::RDomain::getSystemMatrixTypeId,
+      .def("getSystemMatrixTypeId",&buckley::BuckleyDomain::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner, and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -189,7 +186,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("getTransportTypeId",&buckley::RDomain::getTransportTypeId,
+      .def("getTransportTypeId",&buckley::BuckleyDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the transport problem type to be used when a particular solver, perconditioner, package and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
@@ -198,20 +195,20 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``\n"
 )
-      .def("setX",&buckley::RDomain::setNewX,
+      .def("setX",&buckley::BuckleyDomain::setNewX,
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
-      .def("getX",&buckley::RDomain::getX, ":return: locations in the FEM nodes\n\n"
+      .def("getX",&buckley::BuckleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
-      .def("getNormal",&buckley::RDomain::getNormal,
+      .def("getNormal",&buckley::BuckleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")
-      .def("getSize",&buckley::RDomain::getSize,":return: the element size\n"
+      .def("getSize",&buckley::BuckleyDomain::getSize,":return: the element size\n"
 ":rtype: `Data`")
-      .def("saveDX",&buckley::RDomain::saveDX,args("filename" ,"arg"),
+      .def("saveDX",&buckley::BuckleyDomain::saveDX,args("filename" ,"arg"),
 "Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier"
 "\n\n:param filename: \n:type filename: ``string``\n"
 "\n:param arg: \n:type arg: ``dict``\n")
-      .def("saveVTK",&buckley::RDomain::saveVTK,
+      .def("saveVTK",&buckley::BuckleyDomain::saveVTK,
 args("filename" ,"arg",  "metadata", "metadata_schema"),
 "Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier"
 "\n\n:param filename:\n:type filename: ``string``\n"
@@ -219,17 +216,17 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
 ":param metadata:\n:type metadata: ``string``\n"
 ":param metadata_schema:\n:type metadata_schema: ``string``\n"
 )
-      .def("setTagMap",&buckley::RDomain::setTagMap,args("name","tag"),
+      .def("setTagMap",&buckley::BuckleyDomain::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
 ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
-      .def("getTag",&buckley::RDomain::getTag,args("name"),":return: tag id for "
+      .def("getTag",&buckley::BuckleyDomain::getTag,args("name"),":return: tag id for "
 "``name``\n:rtype: ``string``")
-      .def("isValidTagName",&buckley::RDomain::isValidTagName,args("name"),
+      .def("isValidTagName",&buckley::BuckleyDomain::isValidTagName,args("name"),
 ":return: True is ``name`` corresponds to a tag\n:rtype: ``bool``")
-      .def("showTagNames",&buckley::RDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
-      .def("getMPISize",&buckley::RDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
-      .def("getMPIRank",&buckley::RDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
-      .def("MPIBarrier",&buckley::RDomain::MPIBarrier,"Wait until all processes have reached this point")
-      .def("onMasterProcessor",&buckley::RDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+      .def("showTagNames",&buckley::BuckleyDomain::showTagNames,":return: A space separated list of tag names\n:rtype: ``string``")
+      .def("getMPISize",&buckley::BuckleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
+      .def("getMPIRank",&buckley::BuckleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
+      .def("MPIBarrier",&buckley::BuckleyDomain::MPIBarrier,"Wait until all processes have reached this point")
+      .def("onMasterProcessor",&buckley::BuckleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
 }

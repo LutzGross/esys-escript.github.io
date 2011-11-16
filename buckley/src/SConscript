@@ -27,8 +27,8 @@ del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
         OctTree.cc
-        RDomain.cc
-        RDomainException.cc
+        BuckleyDomain.cc
+        BuckleyException.cc
 """.split()
 unroll_sources= """
         OctCell.cc
@@ -39,10 +39,10 @@ unroll_sources= """
 headers = """
         FaceConsts.h
         OctTree.h
-        RDomain.h
+        BuckleyDomain.h
         LeafInfo.h
         OctCell.h
-        RDomainException.h
+        BuckleyException.h
         system_dep.h
 """.split()
 

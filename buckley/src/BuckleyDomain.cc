@@ -1,5 +1,5 @@
-#include "RDomain.h"
-#include "RDomainException.h"
+#include "BuckleyDomain.h"
+#include "BuckleyException.h"
 
 using namespace buckley;
 
@@ -13,107 +13,107 @@ namespace
 }
 
 
-RDomain::RDomain(double x, double y, double z)
+BuckleyDomain::BuckleyDomain(double x, double y, double z)
 :ot(x,y,z)
 {
 }
 
-RDomain::~RDomain()
+BuckleyDomain::~BuckleyDomain()
 {
 }
 
-bool RDomain::isValidFunctionSpaceType(int functionSpaceType) const
+bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 {
     return functionSpaceType==initialspace;
 }
 
-std::string RDomain::getDescription() const
+std::string BuckleyDomain::getDescription() const
 {
     return "Dummy text for domain";
 }
 
-int RDomain::getContinuousFunctionCode() const
+int BuckleyDomain::getContinuousFunctionCode() const
 {
     return initialspace;    
 }
 
-int RDomain::getReducedContinuousFunctionCode() const
+int BuckleyDomain::getReducedContinuousFunctionCode() const
 {
     return initialspace;
 }
 
-int RDomain::getFunctionCode() const
+int BuckleyDomain::getFunctionCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getReducedFunctionCode() const
+int BuckleyDomain::getReducedFunctionCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getFunctionOnBoundaryCode() const
+int BuckleyDomain::getFunctionOnBoundaryCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getReducedFunctionOnBoundaryCode() const
+int BuckleyDomain::getReducedFunctionOnBoundaryCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getFunctionOnContactZeroCode() const
+int BuckleyDomain::getFunctionOnContactZeroCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getReducedFunctionOnContactZeroCode() const
+int BuckleyDomain::getReducedFunctionOnContactZeroCode() const
 {
     return invalidspace;
 }
 
-int RDomain::getFunctionOnContactOneCode() const
+int BuckleyDomain::getFunctionOnContactOneCode() const
 {
     return invalidspace;
 }
 
-int RDomain::getReducedFunctionOnContactOneCode() const
+int BuckleyDomain::getReducedFunctionOnContactOneCode() const
 {
     return invalidspace;  
 }
 
-int RDomain::getSolutionCode() const
+int BuckleyDomain::getSolutionCode() const
 {
     return initialspace;  
 }
 
-int RDomain::getReducedSolutionCode() const
+int BuckleyDomain::getReducedSolutionCode() const
 {
     return initialspace;  
 }
 
 // hahaha - no 
-int RDomain::getDiracDeltaFunctionsCode() const
+int BuckleyDomain::getDiracDeltaFunctionsCode() const
 {
     return invalidspace  ;
 }
 
-int RDomain::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int BuckleyDomain::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
     return notIMPLEMENTED;  
 }
 
-int RDomain::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int BuckleyDomain::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
     return notIMPLEMENTED;  
 }
 
-void RDomain::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
+void BuckleyDomain::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-void RDomain::addPDEToSystem(
+void BuckleyDomain::addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
                      const escript::Data& D, const escript::Data& X, const escript::Data& Y,
@@ -121,17 +121,17 @@ void RDomain::addPDEToSystem(
                      const escript::Data& d_contact, const escript::Data& y_contact, 
                      const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-void RDomain::addPDEToRHS(escript::Data& rhs,
+void BuckleyDomain::addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-void RDomain::addPDEToTransportProblem(
+void BuckleyDomain::addPDEToTransportProblem(
                      escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
@@ -140,50 +140,50 @@ void RDomain::addPDEToTransportProblem(
                      const escript::Data& d_contact,const escript::Data& y_contact,
                      const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-ASM_ptr RDomain::newSystemMatrix(
+ASM_ptr BuckleyDomain::newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
                       const escript::FunctionSpace& column_functionspace,
                       const int type) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-ATP_ptr RDomain::newTransportProblem(
+ATP_ptr BuckleyDomain::newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
-int RDomain::getNumDataPointsGlobal() const
+int BuckleyDomain::getNumDataPointsGlobal() const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }
 
 
   BUCKLEY_DLL_API
-std::pair<int,int> RDomain::getDataShape(int functionSpaceCode) const
+std::pair<int,int> BuckleyDomain::getDataShape(int functionSpaceCode) const
 {
-   throw RDomainException("Not Implemented");  
+   throw BuckleyException("Not Implemented");  
   
 }
 
 BUCKLEY_DLL_API
-void RDomain::setNewX(const escript::Data& arg)
+void BuckleyDomain::setNewX(const escript::Data& arg)
 {
-    throw RDomainException("This domain does not support changing coordinates");  
+    throw BuckleyException("This domain does not support changing coordinates");  
 }
 
 
 BUCKLEY_DLL_API
-void RDomain::Print_Mesh_Info(const bool full) const
+void BuckleyDomain::Print_Mesh_Info(const bool full) const
 {
-    throw RDomainException("Not Implemented");
+    throw BuckleyException("Not Implemented");
 }

@@ -20,7 +20,7 @@
 
 #include "OctTree.h"
 #include "system_dep.h"
-#include "RDomainException.h"
+#include "BuckleyException.h"
 
 namespace buckley {
 
@@ -29,16 +29,17 @@ typedef int ASM_ptr;
 typedef int ATP_ptr;		// not what they are supposed to be
   
 
-class RDomain : public escript::AbstractDomain 
+// This should inherit from AbstractContinuousDomain
+class BuckleyDomain : public escript::AbstractDomain 
 {
 
  public:
 
   BUCKLEY_DLL_API 
-  RDomain(double xside=1, double yside=1, double zside=1);
+  BuckleyDomain(double xside=1, double yside=1, double zside=1);
 
   BUCKLEY_DLL_API 
-  virtual ~RDomain();
+  virtual ~BuckleyDomain();
 
   /**
      \brief
