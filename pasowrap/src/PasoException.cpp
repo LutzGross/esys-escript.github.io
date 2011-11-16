@@ -12,18 +12,22 @@
 *******************************************************/
 
 
-#include "DudleyAdapterException.h"
+#include "PasoException.h"
+extern "C"
+{
+#include <esysUtils/error.h>
+}
 
-
-using namespace dudley;
+namespace paso
+{
 
 
 const std::string 
-DudleyAdapterException::exceptionNameValue("DudleyAdapterException");
+PasoException::exceptionNameValue("PasoException");
 
 
 const std::string &
-DudleyAdapterException::exceptionName() const
+PasoException::exceptionName() const
 {
   return exceptionNameValue;
 }
@@ -40,4 +44,6 @@ void checkPasoError()
     Esys_resetError();
     throw PasoException(Esys_getErrorMessage());
   }
+}
+
 }
