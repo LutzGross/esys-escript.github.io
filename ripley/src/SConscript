@@ -1,0 +1,107 @@
+
+########################################################
+#
+# Copyright (c) 2003-2011 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+import os
+Import('*')
+
+local_env = env.Clone()
+py_wrapper_local_env = env.Clone()
+local_unroll_env = env.Clone()
+
+
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+sources = """
+    ElementFile.cpp
+    IndexList.cpp
+    NodeFile.cpp
+    RipleyException.cpp
+    RipleyDomain.cpp
+    RipleyDomainFactory.cpp
+    RipleyError.cpp
+    SystemMatrixAdapter.cpp
+    TransportProblemAdapter.cpp
+    Util.cpp
+""".split()
+unroll_sources= """
+    Assemble_Gradient_2D.c
+    Assemble_Gradient_3D.c
+    Assemble_PDE_Single_2D.c
+    Assemble_PDE_Single_2D_reduced.c
+    Assemble_PDE_Single_3D.c
+    Assemble_PDE_Single_3D_reduced.c
+    Assemble_PDE_System_2D.c
+    Assemble_PDE_System_2D_reduced.c
+    Assemble_PDE_System_3D.c
+    Assemble_PDE_System_3D_reduced.c
+""".split()
+
+headers = """
+    ElementFile.h
+    IndexList.h
+    NodeFile.h
+    Ripley.h
+    RipleyException.h
+    RipleyDomain.h
+    RipleyDomainFactory.h
+    RipleyError.h
+    system_dep.h
+    SystemMatrixAdapter.h
+    TransportProblemAdapter.h
+    Util.h
+""".split()
+
+local_env.Prepend(LIBS = ['escript', 'esysUtils', 'paso'])
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
+
+module_name = 'ripley'
+
+un = [] #[ local_unroll_env.SharedObject(x) for x in unroll_sources]
+
+lib = local_env.SharedLibrary(module_name, sources+un)
+env.Alias('build_ripley_lib', lib)
+
+include_path = Dir('ripley', local_env['incinstall'])
+
+hdr_inst = local_env.Install(include_path, headers)
+env.Alias('install_ripley_headers', hdr_inst)
+
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+env.Alias('install_ripley_lib', lib_inst)
+
+### Python wrapper ###
+py_wrapper_local_env.Prepend(LIBS = ['ripley', 'escript', 'esysUtils', 'paso'])
+py_wrapper_name = module_name + 'cpp'
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'ripleycpp.cpp')
+env.Alias('build_ripleycpp_lib', py_wrapper_lib)
+
+tmp_inst = os.path.join(local_env['pyinstall'], module_name)
+if IS_WINDOWS:
+    wrapper_ext = '.pyd'
+else:
+    wrapper_ext = '.so'
+
+share_name = os.path.join(tmp_inst, py_wrapper_name+wrapper_ext)
+mod_inst = py_wrapper_local_env.InstallAs(target=share_name,
+                                          source=py_wrapper_lib[0])
+env.Alias('install_ripleycpp_lib', mod_inst)
+
+# configure python module
+local_env.SConscript(dirs = ['#/ripley/py_src'], variant_dir='py', duplicate=0)
+
+# configure unit tests
+local_env.SConscript(dirs = ['#/ripley/test'], variant_dir='$BUILD_DIR/$PLATFORM/ripley/test', duplicate=0, exports=['py_wrapper_lib'])
+
