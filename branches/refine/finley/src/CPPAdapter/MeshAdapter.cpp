@@ -11,7 +11,8 @@
 *
 *******************************************************/
 
-
+#include <pasowrap/PasoException.h>
+#include <pasowrap/TransportProblemAdapter.h>
 #include "MeshAdapter.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
@@ -26,6 +27,7 @@ extern "C" {
 
 using namespace std;
 using namespace escript;
+using namespace paso;
 
 namespace finley {
 
@@ -872,7 +874,7 @@ void MeshAdapter::addPDEToTransportProblem(
                                            const escript::Data& d_contact,const escript::Data& y_contact,
                                            const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-   TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
+   paso::TransportProblemAdapter* tpa=dynamic_cast<paso::TransportProblemAdapter*>(&tp);
    if (tpa==0)
    {
 	throw FinleyAdapterException("finley only supports its own transport problems.");

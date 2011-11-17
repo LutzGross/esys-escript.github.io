@@ -27,7 +27,7 @@
 #define INC_PASO_PERFORMANCE
 
 #define PERFORMANCE_UNMONITORED_EVENT -1
-#define PERFORMANCE_NUM_EVENTS 10                         /* maximum number of events handeled by PAPI */
+#define PERFORMANCE_NUM_EVENTS 10                         /* maximum number of events handled by PAPI */
 
 #define PERFORMANCE_ALL 0
 #define PERFORMANCE_SOLVER 1
@@ -48,7 +48,7 @@ struct Paso_Performance {
     int event_set;                                                       /* papi event sets for the monitors */
     int num_events;                                                     /* number of events tracked by the monitors */
     int events[PERFORMANCE_NUM_EVENTS];                                 /* the event tracked by the monitors */
-    long_long values[PERFORMANCE_NUM_MONITORS][PERFORMANCE_NUM_EVENTS]; /* counter accummulator */
+    long_long values[PERFORMANCE_NUM_MONITORS][PERFORMANCE_NUM_EVENTS]; /* counter accumulator */
     long_long cycles[PERFORMANCE_NUM_MONITORS];                         /* cycle accumulator */
     int set[PERFORMANCE_NUM_MONITORS];
 };

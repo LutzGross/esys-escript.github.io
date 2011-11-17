@@ -33,10 +33,12 @@ build_dir = 'build'
 # C compiler command name or full path.
 # DEFAULT: auto-detected
 cc = 'icc'
+#cc = 'gcc'
 
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
-cxx = 'icc'
+cxx = 'icpc'
+#cxx = 'g++'
 
 # Flags to use with both C and C++ compilers. Do not set unless you know
 # what you are doing - use cc_extra to specify additional flags!
@@ -49,19 +51,22 @@ cxx = 'icc'
 
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
-#cc_debug = '-g'
+cc_debug = '-g'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
 cc_extra = '-sox'
+#cc_extra = '-fopenmp'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
 cxx_extra = '-sox'
+#cxx_extra = '-fopenmp'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
 ld_extra = '-shared-intel -L/opt/hdf5/1.8.6/lib'
+#ld_extra = '-L/opt/hdf5/1.8.6/lib -fopenmp'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -69,7 +74,7 @@ werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = False
+debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -78,6 +83,7 @@ verbose = True
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
 openmp = True
+#openmp = False
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -91,6 +97,7 @@ omp_ldflags = '-openmp'
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
 mpi = 'OPENMPI'
+#mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = ['/opt/mpi/gcc/openmpi/1.4.3/include', '/opt/mpi/gcc/openmpi/1.4.3/lib']
@@ -101,12 +108,15 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 # Prefix or paths to python headers and libraries. See note above.
 # By default, this is determined using the running python executable.
 python_prefix = ['/opt/python/2.6.7/include/python2.6', '/opt/python/2.6.7/lib']
+#python_prefix = ['/opt/python/2.7.2/include/python2.7', '/opt/python/2.7.2/lib']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = ['/opt/boost/1.39.0/include/boost-1_39', '/opt/boost/1.39.0/lib']
+#boost_prefix = ['/opt/boost/1.39.0/include/boost-1_39', '/opt/boost/1.39.0/lib']
+boost_prefix = ['/opt/boost/1.46.1-python-2.6/include/', '/opt/boost/1.46.1-python-2.6/lib']
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-gcc41-mt-1_39']
+#boost_libs = ['boost_python-gcc41-mt-1_39']
+boost_libs = ['boost_python']
 
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
@@ -158,7 +168,8 @@ mkl = True
 mkl_prefix = ['/opt/intel-mkl/10.3.5.220/mkl/include', '/opt/intel-mkl/10.3.5.220/mkl/lib/intel64']
 
 # MKL library/libraries to link against
-mkl_libs = ['mkl_intel_lp64', 'mkl_gnu_thread', 'libmkl_lapack95_lp64', 'mkl_core', 'gomp', 'pthread']
+#mkl_libs = ['mkl_intel_lp64', 'mkl_gnu_thread', 'libmkl_lapack95_lp64', 'mkl_core', 'pthread', ]
+mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'libmkl_lapack95_lp64', 'mkl_core', 'iomp5', 'pthread']
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
@@ -174,12 +185,14 @@ mkl_libs = ['mkl_intel_lp64', 'mkl_gnu_thread', 'libmkl_lapack95_lp64', 'mkl_cor
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
 lapack = 'mkl'
+#lapack = 'none'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 lapack_prefix = mkl_prefix
 
 # LAPACK library/libraries to link against
-lapack_libs = ['mkl_rt']
+#lapack_libs = ['mkl_rt']
+lapack_libs = ['libmkl_lapack95_lp64', 'mkl_intel_thread']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
@@ -187,7 +200,7 @@ silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = [ '/opt/silo/4.7.2/include', '/opt/silo/4.7.2/lib']
-#silo_prefix = [ '/opt/silo/4.7.2/include', '/opt/silo/4.7.2/lib' ,  '/opt/hdf5/1.8.6/lib' ]
+#silo_prefix = [ '/opt/silo/4.7.2/include', '/opt/silo/4.7.2/lib' , '/opt/hdf5/1.8.6/lib']
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5', 'hdf5']
@@ -209,12 +222,13 @@ visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2/'
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
 #boomeramg = True
+boomeramg = False
 
 # Prefix or paths to BoomerAMG headers and libraries. See note above.
-#boomeramg_prefix = '/opt/hypre/2.0.0/'
+boomeramg_prefix = '/opt/hypre/2.0.0/'
 
 # BoomerAMG library/libraries to link against
-#boomeramg_libs = ['HYPRE']
+boomeramg_libs = ['HYPRE']
 #boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
 
 

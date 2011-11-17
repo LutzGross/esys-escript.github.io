@@ -39,7 +39,7 @@ void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escri
 	numQuad= Finley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet,Finley_Assemble_reducedIntegrationOrder(mask))->Parametrization->numQuadNodes;
 	
 	if (1!=getDataPointSize(mask)) {
-	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: number of components of mask is 1.");
+	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: number of components of mask must be 1.");
 	} else if (!numSamplesEqual(mask,numQuad,numElements)) {
 	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: illegal number of samples of mask Data object");
 	}

@@ -32,7 +32,7 @@
 *  =======
 *
 *  PCG solves the linear system A*x = b using the
-*  preconditioned conjugate gradient method plus a smoother
+*  preconditioned conjugate gradient method plus a smoother.
 *  A has to be symmetric.
 *
 *  Convergence test: norm( b - A*x )< TOL.
@@ -42,7 +42,7 @@
 *  =========
 *
 *  r       (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess x
+*          On entry, residual of initial guess x.
 *
 *  x       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess.
@@ -54,10 +54,10 @@
 *  INFO    (output) INT
 *
 *          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
-*          = SOLVEr_MAXITER_REACHED
+*          = SOLVER_MAXITER_REACHED
 *          = SOLVER_INPUT_ERROR Illegal parameter:
-*          = SOLVEr_BREAKDOWN: If parameters rHO or OMEGA become smaller
-*          = SOLVER_MEMORY_ERROR : If parameters rHO or OMEGA become smaller
+*          = SOLVER_BREAKDOWN: If parameters RHO or OMEGA become smaller
+*          = SOLVER_MEMORY_ERROR : If parameters RHO or OMEGA become smaller
 *
 *  ==============================================================
 */
@@ -94,7 +94,7 @@ err_t Paso_Solver_PCG(
   double norm_of_residual=0,norm_of_residual_global;
   register double d;
 
-  /* Should not be any executable code before this ifdef */
+  /* There should not be any executable code before this ifdef */
 
 #ifdef USE_DYNAMIC_SCHEDULING
 
@@ -165,7 +165,7 @@ err_t Paso_Solver_PCG(
     num_iter=0;
 
     /* PGH */
-    /* without this we get a use of an unititialised var below */
+    /* without this we get a use of an uninitialised var below */
     tau = 0;
 
     /* start of iteration */
@@ -176,7 +176,7 @@ err_t Paso_Solver_PCG(
            /* The next lines were commented out before I got here */
            /* v=prec(r)  */
            /* tau=v*r; */
-           /* leading to the use of an unititialised var below */
+           /* leading to the use of an uninitialised var below */
 
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
@@ -396,3 +396,4 @@ err_t Paso_Solver_PCG(
   /*     End of PCG */
   return status;
 }
+

@@ -44,8 +44,8 @@ C=Tensor4(0.,Function(mydomain))
 for i in range(mydomain.getDim()):
   for j in range(mydomain.getDim()):
      C[i,i,j,j]+=lam
-     C[j,i,j,i]+=mu
-     C[j,i,i,j]+=mu
+     C[i,j,i,j]+=mu
+     C[i,j,j,i]+=mu
 msk=whereZero(x[0])*[1.,0.,0.] \
    +whereZero(x[1])*[0.,1.,0.] \
    +whereZero(x[2])*[0.,0.,1.]

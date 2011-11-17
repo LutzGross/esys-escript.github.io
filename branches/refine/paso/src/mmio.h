@@ -41,7 +41,7 @@ int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
 int mm_write_mtx_array_size(FILE *f, int M, int N);
 
 
-/********************* MM_typecode query fucntions ***************************/
+/********************* MM_typecode query functions ***************************/
 
 #define mm_is_matrix(typecode)	((typecode)[0]=='M')
 
@@ -63,7 +63,7 @@ int mm_write_mtx_array_size(FILE *f, int M, int N);
 int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 
-/********************* MM_typecode modify fucntions ***************************/
+/********************* MM_typecode modify functions ***************************/
 
 #define mm_set_matrix(typecode)	((*typecode)[0]='M')
 #define mm_set_coordinate(typecode)	((*typecode)[1]='C')
@@ -104,7 +104,7 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
    MM_matrix_typecode: 4-character sequence
 
-				    ojbect 		sparse/   	data        storage
+				    object 		sparse/   	data        storage
 						  		dense     	type        scheme
 
    string position:	 [0]        [1]			[2]         [3]
@@ -112,7 +112,7 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
    Matrix typecode:  M(atrix)  C(oord)		R(eal)   	G(eneral)
 						        A(array)	C(omplex)   H(ermitian)
 											P(attern)   S(ymmetric)
-								    		I(nteger)	K(kew)
+								    		I(nteger)	sKew
 
  ***********************************************************************/
 

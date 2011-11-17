@@ -420,7 +420,7 @@ Finley_ReferenceElementInfo Finley_ReferenceElement_InfoList[]={
 /**************************************************************/
 
 /*   get a quadrature scheme with NumQuadNodes quadrature nodes for the tri  */
-/*   as a queezed scheme on a quad [0,1]^2 */
+/*   as a squeezed scheme on a quad [0,1]^2 */
 
 Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id,int numQuadNodes) {
   Finley_ReferenceElement *out=NULL;

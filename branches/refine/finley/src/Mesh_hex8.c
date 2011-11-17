@@ -425,7 +425,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t* numElements,
      Finley_Mesh_addTagMap(out,"front", 10);
      Finley_Mesh_addTagMap(out,"back", 20);
   }
-  /* prepare mesh for further calculatuions:*/
+  /* prepare mesh for further calculations:*/
   if (Finley_noError()) {
          Finley_Mesh_resolveNodeIds(out);
   }

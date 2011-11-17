@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: NodeFile : creates the mappings using the indexReducedNodes */
+/*   Finley: NodeFile : creates the mappings using by indexReducedNodes */
 /*                 no distribution is happening                          */
 
 /**************************************************************/
@@ -75,7 +75,7 @@ void Finley_Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced
 
   len_loc_dof=max_DOF-min_DOF+1;
   if (! ((min_DOF<=myFirstDOF) && (myLastDOF-1<=max_DOF)) ) {
-      Finley_setError(SYSTEM_ERROR,"Local elements do not span local degrees of freedom.");
+      Finley_setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
       return;
   }
   rcv_len=TMPMEMALLOC(mpiSize,dim_t);

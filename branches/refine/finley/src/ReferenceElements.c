@@ -624,7 +624,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
         
 	
 	/*  set up the basic integration scheme 
-	    note that quadscheme->numDim is not necessarily the diemnsion of the element 
+	    note that quadscheme->numDim is not necessarily the dimension of the element 
 	*/
 	
 	if (order<0) order=MAX(2*basisfunction->numOrder,0);
@@ -639,7 +639,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
 		quadscheme->getQuadNodes(numQuadNodes, quadNodes, quadWeights);
 	
 		/*  set the basis functions on the quadrature points:
-		 *  note: Finley_ShapeFunction_alloc will introduce 0. if the dimensions of the quadrature scheme and the dimension of the element don;t match.
+		 *  note: Finley_ShapeFunction_alloc will introduce 0. If the dimensions of the quadrature scheme and the dimension of the element don't match.
 		 */
 
 

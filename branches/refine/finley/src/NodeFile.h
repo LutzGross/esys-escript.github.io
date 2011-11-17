@@ -39,11 +39,11 @@ struct Finley_NodeFile {
                                        /* the same degreesOfFreedom to the same node */
   double *Coordinates;                 /* Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of the */
                                        /* node i. */
-  index_t *globalReducedDOFIndex;    /* assigns each local node a global unique Id in a dens labeling of reduced DOF*/
+  index_t *globalReducedDOFIndex;    /* assigns each local node a global unique Id in a dense labeling of reduced DOF*/
                                      /* value <0 indicates that the DOF is not used */
-  index_t *globalReducedNodesIndex;    /* assigns each local node a global unique Id in a dens labeling */
+  index_t *globalReducedNodesIndex;    /* assigns each local node a global unique Id in a dense labeling */
                                      /* value <0 indicates that the DOF is not used */
-  index_t *globalNodesIndex;           /* assigns each local reduced node a global unique Id in a dens labeling */
+  index_t *globalNodesIndex;           /* assigns each local reduced node a global unique Id in a dense labeling */
 
 
  Finley_NodeMapping *nodesMapping;
@@ -59,16 +59,14 @@ struct Finley_NodeFile {
  Paso_Connector* degreesOfFreedomConnector;
  Paso_Connector *reducedDegreesOfFreedomConnector;
   
-                     /* these a the packed versions of Id */
+                     /* these are the packed versions of Id */
  index_t *reducedNodesId;        
  index_t *degreesOfFreedomId;
  index_t *reducedDegreesOfFreedomId;
 
 
  int status; /* the status counts the updates done on the node coordinates */
-              /* the value of status is increased by when the node coordinates are updated.*/
-                                                                                                                                                                                                 
-                                                                                                                                                                                                 
+              /* the value of status is increased by 1 when the node coordinates are updated.*/
 };
 
 typedef struct Finley_NodeFile Finley_NodeFile;

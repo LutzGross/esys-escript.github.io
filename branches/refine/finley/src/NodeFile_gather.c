@@ -15,7 +15,7 @@
 /**************************************************************
  *
  *   Finley: Mesh: NodeFile                                   
- *   gathers the NodeFile out from the NodeFile in using the entries 
+ *   gathers the NodeFile 'out' from the NodeFile 'in' using the entries 
  *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive) 
  *   the node index[i]
  *

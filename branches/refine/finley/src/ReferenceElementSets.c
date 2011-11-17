@@ -14,7 +14,7 @@
 
 /***************************************************************************************************************
 
-    Finley: Reference elements set managing the reference elements for the full and reduced intergation order
+    Finley: Reference elements set managing the reference elements for the full and reduced integration order
 
 **************************************************************************************************************/
 
@@ -52,7 +52,7 @@ Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeI
 
 	if (Finley_noError()) {
 	     if (! (Finley_ReferenceElement_getNumNodes(out->referenceElement) == Finley_ReferenceElement_getNumNodes(out->referenceElementReducedQuadrature) ) ) {
-		Finley_setError(VALUE_ERROR,"Finley_ReferenceElementSet_alloc: numNodes in referenceElement  and referenceElementReducedQuadrature don't match.");
+		Finley_setError(VALUE_ERROR,"Finley_ReferenceElementSet_alloc: numNodes in referenceElement and referenceElementReducedQuadrature don't match.");
              }
         }
 

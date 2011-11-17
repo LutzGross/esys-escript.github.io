@@ -81,7 +81,7 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	/* call LDU symbolic factorization: */
 	error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
 	if (error != UMFPACK_OK) {
-	   if (verbose) printf("UMFPACK: symbolic factorization factorization failed.\n");
+	   if (verbose) printf("UMFPACK: symbolic factorization failed.\n");
 	   Esys_setError(VALUE_ERROR,"UMFPACK: symbolic factorization failed.");
 	   return;
 	} else {
@@ -102,12 +102,12 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
 	if (error != UMFPACK_OK) {
 	   if (verbose) printf("UMFPACK: forward/backward substitution failed.\n");
-	   Esys_setError(VALUE_ERROR,"forward/backward substition failed. Most likely the matrix is singular.");
+	   Esys_setError(VALUE_ERROR,"forward/backward substitution failed. Most likely the matrix is singular.");
 	   return;
 	}
 	if (verbose) printf("UMFPACK: forward/backward substitution completed (time = %e).\n",Esys_timer()-time0);
      }
      #else
-	 Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK:UMFPACK is not avialble.");
+	 Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK: UMFPACK is not available.");
      #endif
 }

@@ -16,8 +16,8 @@
 
 /*   Finley: Mesh: NodeFile */
 
-/* copies node file in into node file out starting from offset          */
-/* the nodes offset to in->numNodes+offset-1 in out will be overwritten */
+/* Copies node file in into node file out starting from offset.         */
+/* The nodes offset to in->numNodes+offset-1 in out will be overwritten */
 
 
 /**************************************************************/

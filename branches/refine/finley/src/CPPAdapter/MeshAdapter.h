@@ -28,8 +28,8 @@ extern "C" {
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
-#include "SystemMatrixAdapter.h"
-#include "TransportProblemAdapter.h"
+#include <pasowrap/SystemMatrixAdapter.h>
+#include <pasowrap/TransportProblemAdapter.h>
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"

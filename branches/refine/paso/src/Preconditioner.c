@@ -111,9 +111,9 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
     }
 }
 
-/* applies the preconditioner */
-/* has to be called within a parallel reqion */
-/* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
+/* Applies the preconditioner. */
+/* Has to be called within a parallel region. */
+/* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,double* x,double* b){
 
     switch (prec->type) {
@@ -137,5 +137,5 @@ void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,d
            break;
 
     }
-
 }
+

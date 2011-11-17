@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Finley: simple mapping fram names to tag keys via a linked list */
+/* Finley: simple mapping from names to tag keys via a linked list */
 
 /**************************************************************/
 

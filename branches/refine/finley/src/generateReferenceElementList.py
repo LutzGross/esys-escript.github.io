@@ -10,7 +10,7 @@
 #
 #******************************************************/
 #
-#  this code generates the  Finley_ReferenceElement_InfoList in ReferenceElements.c
+#  this code generates the Finley_ReferenceElement_InfoList in ReferenceElements.c
 #
 GEOBASE = {
 "Point": (1, 1, "Point", [0] ),

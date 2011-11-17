@@ -389,7 +389,7 @@ Now we can write the script to solve our Poisson problem
   y_grid = numpy.linspace(0.,1.,50)
   x=mydomain.getX()[0].toListOfTuples()
   y=mydomain.getX()[1].toListOfTuples()
-  z=interpolate(u,mydomain.getX().getFunctionSpace())
+  z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
   z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
   # interpolate u to a rectangular grid:
   matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)

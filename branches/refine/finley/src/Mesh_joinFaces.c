@@ -49,14 +49,14 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    NN_Contact=self->ContactElements->numNodes;
 
    if (faceRefElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+     sprintf(error_msg,"Finley_Mesh_joinFaces: joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
 
 
    if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces:contact element file for %s need to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
+     sprintf(error_msg,"Finley_Mesh_joinFaces: contact element file for %s needs to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
