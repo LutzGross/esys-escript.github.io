@@ -25,7 +25,7 @@ extern "C" {
 
 #include "escript/AbstractSystemMatrix.h"
 #include "escript/Data.h"
-#include "escript/UtilC.h"
+#include "escript/UtilC.h"   
 
 #include <boost/python/object.hpp>
 #include <boost/shared_ptr.hpp>

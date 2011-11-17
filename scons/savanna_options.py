@@ -209,7 +209,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.3.0/2.3.0/linux-x86_64/l
 
 # Build dynamic libraries only
 #DEFAULT: False
-#build_shared = True
+build_shared = True
 
 
 ### ADVANCED OPTIONS ###

@@ -409,14 +409,12 @@ class Locator:
         Returns the value of ``data`` at the Locator if ``data`` is a `Data`
         object otherwise the object is returned.
         """
-        print "Norris"
         if isinstance(data,escript.Data):
            dat=util.interpolate(data,self.getFunctionSpace())
            id=self.getId()
            r=data.getRank()
            if isinstance(id,list):
                out=[]
-               print "Zorro"
                for i in id:
                   o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
@@ -425,7 +423,6 @@ class Locator:
                      out.append(o)
                return out
            else:
-	     print "Thom"
              out=numpy.array(dat.getTupleForGlobalDataPoint(*id))
              if data.getRank()==0:
                 return out[0]

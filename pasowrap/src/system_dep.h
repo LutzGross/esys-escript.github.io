@@ -13,7 +13,7 @@
 
 
 /**
-\file dudley/src/CPPAdapter/system_dep.h
+\file posowrap/src/system_dep.h
 \ingroup Other
  */
 /*
@@ -42,9 +42,9 @@
 
 #ifdef _WIN32
 
-#   ifndef DUDLEY_STATIC_LIB
+#   ifndef PASOWRAP_STATIC_LIB
 #      undef PASOWRAP_DLL_API
-#      ifdef DUDLEY_EXPORTS
+#      ifdef PASOWRAP_EXPORTS
 #         define PASOWRAP_DLL_API __declspec(dllexport)
 #      else
 #         define PASOWRAP_DLL_API __declspec(dllimport)

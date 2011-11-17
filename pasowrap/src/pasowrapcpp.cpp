@@ -12,9 +12,7 @@
 *******************************************************/
 
 
-#ifdef ESYS_MPI
-#include "esysUtils/Esys_MPI.h"
-#endif
+
 extern "C" {
 #include <paso/Paso.h>
 }
@@ -22,7 +20,7 @@ extern "C" {
 #include "SystemMatrixAdapter.h"
 #include "TransportProblemAdapter.h"
 
-#include "PasoException.h"
+#include "PasoException.h"   
 #include "esysUtils/esysExceptionTranslator.h"
 
 #include "escript/AbstractContinuousDomain.h"
