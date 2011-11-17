@@ -466,6 +466,7 @@ TODO Note that this constructor will also copy data to all points if it only con
   //
   // The main data storage array, a 2D array of data blocks.
   // noSamples * noDataPointsPerSample
+  public:  
   DataBlocks2D m_data;
 
 };
