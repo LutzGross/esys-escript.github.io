@@ -27,6 +27,7 @@ extern "C" {
 
 using namespace std;
 using namespace escript;
+using namespace paso;
 
 namespace dudley {
 
