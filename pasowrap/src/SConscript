@@ -34,7 +34,7 @@ headers = """
   system_dep.h
 """.split()
 
-local_env.Prepend(LIBS = ['esysUtils','escript','paso'])
+local_env.Prepend(LIBS = ['escript','paso','esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASOWRAP_EXPORTS'])
 
