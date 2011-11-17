@@ -17,7 +17,7 @@
 *  =======
 *
 *  GMRES solves the linear system A*x=b using the
-*  truncated and restered GMRES method with preconditioning. 
+*  truncated and restarted GMRES method with preconditioning. 
 *
 *  Convergence test: norm( b - A*x )< TOL.
 *
@@ -27,7 +27,7 @@
 *  =========
 *
 *  r       (input/output) double array, dimension n.
-*          On entry, residual of inital guess X
+*          On entry, residual of initial guess X
 *
 *  x       (input/output) double array, dimension n.
 *          On input, the initial guess.
@@ -43,7 +43,7 @@
 *
 *  Length_of_recursion (input) gives the number of residual to be kept in orthogonalization process
 *
-*  restart (input) If restart>0, iteration is resterted a after restart steps.
+*  restart (input) If restart>0, iteration is restarted a after restart steps.
 *
 *  INFO    (output) int
 *
@@ -370,8 +370,8 @@ err_t Paso_Solver_GMRES(
                 memcpy(P_PRES_dot_AP,&loc_dots[1],sizeof(double)*order);
          #endif
          R_PRES_dot_AP0=R_PRES_dot_P_PRES[0];
-         /***   if sum_BREAKF is equal to zero a breakdown occurs.
-          ***   iteration procedure can be continued but R_PRES is not the
+         /***   If sum_BREAKF is equal to zero a breakdown occurs.
+          ***   Iteration procedure can be continued but R_PRES is not the
           ***   residual of X_PRES approximation.
           ***/
          sum_BREAKF=0.;
@@ -416,7 +416,7 @@ err_t Paso_Solver_GMRES(
             }
             for (i=0;i<order;++i) ALPHA[i]*=Factor;
             /*                                                                 
-            ***** update of solution X_PRES and its residual R_PRES:            
+            ***** Update of solution X_PRES and its residual R_PRES:            
             ***                                                               
             ***   P is used to accumulate X and AP to accumulate R. X and R     
             ***   are still needed until they are put into the X and R memory   

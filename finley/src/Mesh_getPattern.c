@@ -124,7 +124,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
                                                        0,Paso_Distribution_getMyNumComponents(colDistribution),
                                                        0);
 
-     /* if everthing is in order we can create the return value */
+     /* if everything is in order we can create the return value */
      if (Finley_noError()) {
           out=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
                                              rowDistribution,

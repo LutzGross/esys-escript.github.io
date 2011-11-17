@@ -94,10 +94,10 @@ mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.
 mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = ['/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/include/boost-1_39', '/sw/libs/boost/x86_64/gcc-4.1.2/python-2.6.2/boost_1_39_0/lib']
+boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.6.5/boost_1_42_0'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-gcc41-mt']
+boost_libs = ['boost_python-gcc43-mt']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
@@ -110,7 +110,7 @@ cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.1.2/netcdf-3.6.2'
+netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.3.2/netcdf-4.1.1'
 
 # netCDF library/libraries to link against
 #netcdf_libs = ['netcdf_c++', 'netcdf']
@@ -187,7 +187,7 @@ lapack_libs = ['mkl_lapack']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.7.2'
+silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.8'
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5', 'hdf5']
@@ -197,7 +197,7 @@ silo_libs = ['siloh5', 'hdf5']
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/libsim/V2'
+visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.3.0/2.3.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -209,7 +209,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.1.1/2.1.1/linux-x86_64/l
 
 # Build dynamic libraries only
 #DEFAULT: False
-#build_shared = True
+build_shared = True
 
 
 ### ADVANCED OPTIONS ###

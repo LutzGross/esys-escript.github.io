@@ -22,7 +22,7 @@
 
 /**************************************************************/
 
-/*  prints the mesh to the standarts output: */
+/*  prints the mesh to standard output: */
 
 void Finley_Mesh_print(Finley_Mesh *in) {
   dim_t NN,i,j,numDim,NN2;

@@ -14,12 +14,12 @@
 
 /**************************************************************/
 
-/* Paso: SharedComponents organizes the coupling with in a pattern/matrix   */
-/*       across processors                                         */
+/* Paso: SharedComponents organizes the coupling within a     */
+/*       pattern/matrix across processors                     */
 
 /**************************************************************/
  
-/* Author: Lutz Gross, l.gross@uq.edu.au */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 
@@ -28,8 +28,7 @@
 
 /**************************************************************/
 
-/* allocates a SharedComponents  */
-
+/* allocates SharedComponents  */
 
 /**************************************************************/
 
@@ -102,7 +101,7 @@ Paso_SharedComponents* Paso_SharedComponents_getReference(Paso_SharedComponents*
      return in;
 }
   
-/* deallocates a SharedComponents: */
+/* deallocates SharedComponents */
 
 void Paso_SharedComponents_free(Paso_SharedComponents* in) {
   if (in!=NULL) {
@@ -114,8 +113,9 @@ void Paso_SharedComponents_free(Paso_SharedComponents* in) {
         Esys_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
         #ifdef Paso_TRACE
-        printf("Paso_SharedComponents_dealloc: system matrix pattern as been deallocated.\n");
+        printf("Paso_SharedComponents_dealloc: system matrix pattern has been deallocated.\n");
         #endif
      }
    }
 }
+

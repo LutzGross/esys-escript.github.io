@@ -36,7 +36,6 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes, Finley_ElementFile* eleme
     Finley_resetError();
     if (nodes==NULL || elements==NULL) return;
     my_mpi_rank = nodes->MPIInfo->rank;
-    /* set some parameter */
     jac=Finley_ElementFile_borrowJacobeans(elements,nodes,FALSE,Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
 		numQuadTotal=jac->numQuadTotal;

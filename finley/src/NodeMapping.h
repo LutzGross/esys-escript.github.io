@@ -12,10 +12,8 @@
 *******************************************************/
 
 
-/*                                                                                                                     */
-/* NodeMapping provides a mapping from the local nodes typically to the degrees of freedom,                            */
-/*    the reduced degrees of freedom or the reduced node set                                                           */
-/*                                                                                                                     */
+/* NodeMapping provides a mapping from the local nodes typically to the     */
+/* degrees of freedom, the reduced degrees of freedom or the reduced node set */
 
 #ifndef INC_FINLEY_NODEMAPPING
 #define INC_FINLEY_NODEMAPPING
@@ -25,7 +23,7 @@
 
 struct Finley_NodeMapping {
   dim_t numNodes; /* number of FEM nodes */
-  index_t *target; /* target[i] defines the target if FEM  node i =0,...,numNodes */
+  index_t *target; /* target[i] defines the target if FEM node i =0,...,numNodes */
   index_t unused;  /* target[i]=unused defines that no target is defined for FEM  node i */
   dim_t numTargets; /* number of targets */
   index_t *map;  /* maps the target nodes back to the FEM nodes: target[map[i]]=i */

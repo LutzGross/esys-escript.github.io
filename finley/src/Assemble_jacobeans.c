@@ -188,7 +188,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,dou
 }
 /**************************************************************/
 /*                                                            */
-/*  Jacobean 1D manifold in 2D and 1D elements woth contact   */
+/*  Jacobean 1D manifold in 2D and 1D elements with contact   */
 /*                                                            */
 void Finley_Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
                                    dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
@@ -223,7 +223,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,d
               D_0=dXdv00_0*dXdv00_0+dXdv10_0*dXdv10_0;
               D_1=dXdv00_1*dXdv00_1+dXdv10_1*dXdv10_1;
               if (D_0 == 0.  || D_1 == 0.) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_M1D_E1D: element %d (id %d) has length zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_M1D_E1D_C: element %d (id %d) has length zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
@@ -281,7 +281,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E2D(double* coordinates, dim_t numQuad,dou
               }
               D  =  dXdv00*dXdv11 - dXdv01*dXdv10;
               if (D==0.) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_E2D: element %d (id %d) has area zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_M1D_E2D: element %d (id %d) has area zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
@@ -348,7 +348,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,d
               D_0  =  dXdv00_0*dXdv11_0 - dXdv01_0*dXdv10_0;
               D_1  =  dXdv00_1*dXdv11_1 - dXdv01_1*dXdv10_1;
               if ( (D_0 ==0.) || (D_1 ==0.) ) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_E2D_C: element %d (id %d) has area zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_2D_M1D_E2D_C: element %d (id %d) has area zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
@@ -499,7 +499,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E3D(double* coordinates, dim_t numQuad,dou
               }
               D  =  dXdv00*(dXdv11*dXdv22-dXdv12*dXdv21)+ dXdv01*(dXdv20*dXdv12-dXdv10*dXdv22)+dXdv02*(dXdv10*dXdv21-dXdv20*dXdv11);
               if (D==0.) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D: element %d (id %d) has volume zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_M2D_E3D: element %d (id %d) has volume zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
@@ -603,7 +603,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,d
               D_0=dXdv00_0*(dXdv11_0*dXdv22_0-dXdv12_0*dXdv21_0)+dXdv01_0*(dXdv20_0*dXdv12_0-dXdv10_0*dXdv22_0)+dXdv02_0*(dXdv10_0*dXdv21_0-dXdv20_0*dXdv11_0);
               D_1=dXdv00_1*(dXdv11_1*dXdv22_1-dXdv12_1*dXdv21_1)+dXdv01_1*(dXdv20_1*dXdv12_1-dXdv10_1*dXdv22_1)+dXdv02_1*(dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1);
               if ( (D_0==0.) || (D_1 == 0.)) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D_C: element %d (id %d) has volume zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_M2D_E3D_C: element %d (id %d) has volume zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;
@@ -698,7 +698,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,dou
               m11=dXdv01*dXdv01+dXdv11*dXdv11+dXdv21*dXdv21;
               D=m00*m11-m01*m01;
               if (D==0.) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D_M2D_E2D: element %d (id %d) has area zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD=1./D;
@@ -724,7 +724,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,dou
 }
 /**************************************************************/
 /*                                                            */
-/*  Jacobean 2D manifold in 3D with 2D elements  with contact */
+/*  Jacobean 2D manifold in 3D with 2D elements with contact  */
 /*                                                            */
 void Finley_Assemble_jacobeans_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,double* QuadWeights,
                                      dim_t numShape, dim_t numElements, dim_t numNodes, index_t* nodes,
@@ -785,7 +785,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,d
               m11_1=dXdv01_1*dXdv01_1+dXdv11_1*dXdv11_1+dXdv21_1*dXdv21_1;
               D_1=m00_1*m11_1-m01_1*m01_1;
               if ( (D_0==0.) || (D_1 == 0.) ) {
-                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D_M2D: element %d (id %d) has area zero.",e,element_id[e]);
+                  sprintf(error_msg,"Finley_Assemble_jacobeans_3D_M2D_E2D_C: element %d (id %d) has area zero.",e,element_id[e]);
                   Finley_setError(ZERO_DIVISION_ERROR,error_msg);
               } else {
                  invD_0=1./D_0;

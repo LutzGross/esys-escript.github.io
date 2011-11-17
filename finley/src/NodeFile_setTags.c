@@ -35,7 +35,7 @@ void Finley_NodeFile_setTags(Finley_NodeFile* self,const int newTag, escriptData
     if (self==NULL) return;
     numNodes=self->numNodes;
     if (1!=getDataPointSize(mask)) {
-       Finley_setError(TYPE_ERROR,"Finley_NodeFile_setTags: number of components of mask is 1.");
+       Finley_setError(TYPE_ERROR,"Finley_NodeFile_setTags: number of components of mask must be 1.");
     } else if (!numSamplesEqual(mask,1,numNodes)) {
        Finley_setError(TYPE_ERROR,"Finley_NodeFile_setTags: illegal number of samples of mask Data object");
     }

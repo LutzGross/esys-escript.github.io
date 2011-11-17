@@ -30,7 +30,7 @@
 
 /**************************************************************/
 
-/*     The ids of the allowed reference ellements: */
+/*     The ids of the allowed reference elements: */
 
 #define MAX_numNodes 64
 
@@ -139,13 +139,13 @@ typedef struct Finley_ReferenceElementInfo {
                                                 typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 
 						this is the number of nodes on the particular face. */
   index_t relevantGeoNodes[MAX_numNodes];    /* list to gather the geometrically relevant nodes (length used is numRelevantGeoNodes)
-                                                this list is used for VTK interface */
+                                                this list is used for the VTK interface */
   
   dim_t numNodesOnFace;                       /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes defining the face */
                                               /* the following lists are only used for face elements defined by numNodesOnFace>0 */
   index_t faceNodes[MAX_numNodes];             /* list of the nodes defining the face */
   index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
-  index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. the permutation has keep 0 fixed. */
+  index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. The permutation has to keep 0 fixed. */
                                               /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
 }  Finley_ReferenceElementInfo;
 

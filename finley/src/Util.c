@@ -32,7 +32,7 @@
 
 /**************************************************************/
 
-/*   returns true if any of the values in the short array values is not equalt to Zero */
+/*   returns true if any of the values in the short array values is not equal to Zero */
 
 bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
    dim_t q;
@@ -57,7 +57,7 @@ void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in
 /**************************************************************/
 
 
-/*   gathers maybelong values out from in by index: */
+/*   gathers integer values out from in by index: */
 
 /*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
 
@@ -72,7 +72,7 @@ void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in,
 
 /**************************************************************/
 
-/*   adds a vector in into out using and index. */
+/*   adds a vector in into out using an index. */
 
 /*        out(1:numData,index[p])+=in(1:numData,p) where p = {k=1...len , index[k]<upperBound}*/
 
@@ -104,7 +104,7 @@ void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, 
        }
 }
 
-/*    multiplies a two sets of matries: */
+/*    multiplies two sets of matrices: */
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
 
@@ -121,7 +121,7 @@ void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B
        }
     }
 }
-/*    multiplies a set of matries with a single matrix: */
+/*    multiplies a set of matrices with a single matrix: */
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
 
@@ -139,7 +139,7 @@ void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t 
     }
 }
 /*    inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
-/*    the determinante is returned. */
+/*    the determinant is returned. */
 
 void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det){
    dim_t q;
@@ -154,7 +154,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                D=1./D;
                invA[q]=D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -176,7 +176,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(0,1,q,2,2)]=-A12*D;
                invA[INDEX3(1,1,q,2,2)]= A11*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -208,7 +208,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
                invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)*D;
                invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)*D;
             } else {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: Non-regular matrix");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
                return;
             }
          }
@@ -218,7 +218,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
    return;
 }
 
-/*    sets the derterminate of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
+/*    sets the determinat of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 
 void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
    dim_t q;
@@ -262,7 +262,7 @@ void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
    return;
 }
 /*    returns the normalized vector Normal[dim,len] orthogonal to A(:,0,q) and A(:,1,q) in the case of dim=3  */
-/*    or the vector A(:,0,q) in the case of dim=2                                             */
+/*    or the vector A(:,0,q) in the case of dim=2 */
 
 void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal) {
    dim_t q;
@@ -278,7 +278,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             A21=A[INDEX3(1,0,q,2,dim1)];
             length = sqrt(A11*A11+A21*A21);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -300,7 +300,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
             CO_A33=A11*A22-A21*A12;
             length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
             if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR,"__FILE__: area equals zero.");
+               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                return;
             } else {
                invlength=1./length;
@@ -317,7 +317,7 @@ void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* No
 }
 
 /*    return the length of the vector which is orthogonal to the vectors A(:,0,q) and A(:,1,q) in the case of dim=3 */
-/*    or the vector A(:,0,q) in the case of dim=2                                                                   */
+/*    or the vector A(:,0,q) in the case of dim=2 */
 
 void  Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* length) {
    dim_t q;
@@ -353,9 +353,9 @@ void  Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,do
   return;
 }
 
-/* inverts the map map of length len */
+/* inverts a map of length len */
 /* there is no range checking! */
-/* at output Map[invMap[i]]=i for i=0:lenInvMap */
+/* output: Map[invMap[i]]=i for i=0:lenInvMap */
 
 void Finley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_t* Map) {
    dim_t i;
@@ -380,7 +380,7 @@ int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2 ) {
 }
 
 void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
-     /* OMP : needs parallelization !*/
+     /* TODO: needs OpenMP parallelization !*/
      qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
 }
 
@@ -481,7 +481,7 @@ index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t 
 dim_t Finley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
       dim_t out,k;
       out=0;
-      /*OMP */
+      /* TODO: OMP */
       for (k=0;k<N;k++) {
         if (mask[k]>=0) {
           index[out]=k;
@@ -499,7 +499,8 @@ bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value) {
    for (i=0;i<N;i++) out = out || (array[i]==value);
    return out;
 }
-/* calculates the cummultative sum in array and returns the total sum */
+
+/* calculates the cumulative sum in array and returns the total sum */
 index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    index_t out=0,tmp;
    dim_t i;
@@ -541,6 +542,7 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    #endif
    return out;
 }
+
 void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Esys_MPIInfo* mpiinfo)
 {
    dim_t i;
@@ -572,7 +574,7 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
          local_minFoundValue=minFoundValue;
          MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm );
          #endif
-         /* if we found a new tag we need to add this too the valuesInUseList */
+         /* if we found a new tag we need to add this to the valuesInUseList */
 
          if (minFoundValue < INDEX_T_MAX) {
              newValuesInUse=MEMALLOC(nv+1,index_t);

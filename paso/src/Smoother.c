@@ -14,11 +14,11 @@
 
 /**************************************************************/
 
-/* Paso: Gauss-Seidel                */
+/* Paso: Gauss-Seidel                                         */
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au                                   */
+/* Author: artak@uq.edu.au                                    */
 
 /**************************************************************/
 
@@ -32,7 +32,7 @@
 
 /**************************************************************/
 
-/* free all memory used by Smoother                                */
+/* free all memory used by Smoother                           */
 
 void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in) {
      if (in!=NULL) {
@@ -50,9 +50,8 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
 }
 /**************************************************************/
 
-/*   constructs the symmetric Gauss-Seidel preconditioner     
+/*   constructs the symmetric Gauss-Seidel preconditioner     */
 
-*/
 Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose) 
 {
   
@@ -103,15 +102,14 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
 
 /*
 
-performs a few sweeps of the  from
+performs a few sweeps of the form
 
 S (x_{k} -  x_{k-1}) = b - A x_{k-1}
 
-where x_{0}=0 and S provides some approximatioon of A.
+where x_{0}=0 and S provides some approximation of A.
 
-Under MPI S is build on using A_p->mainBlock only.
-if Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
-
+Under MPI S is built using A_p->mainBlock only.
+If Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
 */
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
@@ -176,7 +174,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Precondi
    }
 }
 
-/* inplace Gauss-Seidel sweep in seqential mode: */
+/* inplace Gauss-Seidel sweep in sequential mode: */
 
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x)
 {
@@ -194,7 +192,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
    
-   (void)pivot;			/* silence warning from var being unused by macros */
+   (void)pivot;		/* silence warning from var being unused by macros */
    (void)block_len;    
    /* forward substitution */
    

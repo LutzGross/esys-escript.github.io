@@ -53,10 +53,10 @@
 *  INFO    (output) INT
 *
 *          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
-*          = SOLVEr_MAXITER_REACHED
+*          = SOLVER_MAXITER_REACHED
 *          = SOLVER_INPUT_ERROR Illegal parameter:
-*          = SOLVEr_BREAKDOWN: If parameters rHO or OMEGA become smaller
-*          = SOLVER_MEMORY_ERROR : If parameters rHO or OMEGA become smaller
+*          = SOLVER_BREAKDOWN: If parameters RHO or OMEGA become smaller
+*          = SOLVER_MEMORY_ERROR : If parameters RHO or OMEGA become smaller
 *
 *  ==============================================================
 */

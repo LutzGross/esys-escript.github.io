@@ -188,7 +188,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
 	    }
 	    else
 	    {
-		Dudley_setError(ZERO_DIVISION_ERROR, "__FILE__: Non-regular matrix");
+		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
 		return;
 	    }
 	}
@@ -214,7 +214,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
 	    }
 	    else
 	    {
-		Dudley_setError(ZERO_DIVISION_ERROR, "__FILE__: Non-regular matrix");
+		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
 		return;
 	    }
 	}
@@ -250,7 +250,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
 	    }
 	    else
 	    {
-		Dudley_setError(ZERO_DIVISION_ERROR, "__FILE__: Non-regular matrix");
+		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
 		return;
 	    }
 	}
@@ -331,7 +331,7 @@ void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *No
 	    length = sqrt(A11 * A11 + A21 * A21);
 	    if (!length > 0)
 	    {
-		Dudley_setError(ZERO_DIVISION_ERROR, "__FILE__: area equals zero.");
+		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
 		return;
 	    }
 	    else
@@ -357,7 +357,7 @@ void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *No
 	    length = sqrt(CO_A13 * CO_A13 + CO_A23 * CO_A23 + CO_A33 * CO_A33);
 	    if (!length > 0)
 	    {
-		Dudley_setError(ZERO_DIVISION_ERROR, "__FILE__: area equals zero.");
+		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
 		return;
 	    }
 	    else

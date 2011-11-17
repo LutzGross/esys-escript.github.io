@@ -16,8 +16,8 @@
 
 /*   Finley: Mesh: NodeFile                                   */
 
-/*   creates a dense labeling of the global degrees of freedom  */
-/*   and returns the new number of  global degrees of freedom  */
+/*   creates a dense labeling of the global degrees of freedom */
+/*   and returns the new number of global degrees of freedom  */
 
 /**************************************************************/
 
@@ -151,7 +151,7 @@ void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Esys_MPI_rank* mpiR
   index_t min_DOF,max_DOF, k;
   dim_t n;
   Esys_MPI_rank p, p_min=in->MPIInfo->size, p_max=-1;
-  /* first we calculate the min and max dof on this processor to reduce costs for seraching */
+  /* first we calculate the min and max dof on this processor to reduce costs for searching */
   Finley_NodeFile_setDOFRange(&min_DOF,&max_DOF,in);
 
   for (p=0; p<in->MPIInfo->size; ++p) {
@@ -298,7 +298,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
   #endif
   Esys_MPI_rank myRank=in->MPIInfo->rank;
 
-  /* find the range of node ids controled by me */
+  /* find the range of node ids controlled by me */
 
   myFirstDOF=dof_distribution[myRank];
   myLastDOF=dof_distribution[myRank+1];
@@ -371,7 +371,7 @@ dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node
        }
        node_distribution[in->MPIInfo->size]=globalNumNodes;
 
-       /* offset nodebuffer */
+       /* offset node buffer */
        itmp=node_distribution[in->MPIInfo->rank];
        #pragma omp for private(n) schedule(static)
        for (n=0;n<my_buffer_len;n++) Node_buffer[n+header_len]+=itmp;

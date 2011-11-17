@@ -13,12 +13,13 @@
 
 
 /**************************************************************/
-/*                                                                                            */
-/*   Finley: ElementFile                                                                      */
-/*                                                                                            */
-/*   returns the maximum and minimum node reference number of nodes describing the elements:; */
-/*                                                                                            */
-/*                                                                                            */
+/*                                                            */
+/*   Finley: ElementFile                                      */
+/*                                                            */
+/*   returns the maximum and minimum node reference number of */
+/*   nodes describing the elements                            */
+/*                                                            */
+/*                                                            */
 /**************************************************************/
 
 #include "ElementFile.h"

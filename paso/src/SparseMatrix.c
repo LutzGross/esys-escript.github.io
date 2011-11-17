@@ -100,10 +100,11 @@ void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
 }
 
 
-/* allocates a SparseMatrix of type type using the given matrix pattern 
-   Values are initialized by zero. 
-   if patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed that the pattern is allready unrolled to match the requested block size
-   and offsets otherwise unrolling and offset adjustment will be performed. 
+/* Allocates a SparseMatrix of given type using the given matrix pattern.
+   Values are initialized with zero.
+   If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed that the
+   pattern is already unrolled to match the requested block size
+   and offsets. Otherwise unrolling and offset adjustment will be performed.
 */
 Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Pattern *pattern, int row_block_size, int col_block_size, const bool_t patternIsUnrolled) {
 
@@ -113,11 +114,11 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
 
   if (patternIsUnrolled) {
      if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
-         Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset does not match.");
+         Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_alloc: requested offset and pattern offset do not match.");
          return NULL;
      }
   }
-  /* do we need to apply unrolling ? */
+  /* do we need to apply unrolling? */
   unroll
         /* we don't like non-square blocks */
     =   (row_block_size!=col_block_size)
@@ -125,7 +126,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
     /* or any block size bigger than 3 */
     ||  (col_block_size>3) 
     # endif
-        /* or if lock size one requested and the block size is not 1 */
+        /* or if block size one requested and the block size is not 1 */
     ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) ) 
         /* offsets don't match */
     || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1) ) ;
@@ -254,7 +255,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Cannot read file for reading.");
+		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Cannot open file for reading.");
 		return NULL;
 	}
 
@@ -276,7 +277,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	/* get matrix size */
 	if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
 	{
-		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not parse matrix size");
+		Esys_setError(IO_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not parse matrix size.");
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -290,7 +291,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
-		Esys_setError(MEMORY_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not allocate memory" );
+		Esys_setError(MEMORY_ERROR, "Paso_SparseMatrix_loadMM_toCSR: Could not allocate memory." );
 		fclose( fileHandle_p );
 		return NULL;
 	}
@@ -355,7 +356,7 @@ void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p) {
    /* open the file */
    fileHandle_p = fopen(fileName_p, "w");
    if (fileHandle_p==NULL) {
-      Esys_setError(IO_ERROR,"file could not be opened for writing");
+      Esys_setError(IO_ERROR,"Paso_SparseMatrix_saveMM: File could not be opened for writing");
       return;
    }
    if (A_p->type & MATRIX_FORMAT_CSC) {

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: write Mesh */
+/*   Finley: write Mesh in finley file format */
 
 /**************************************************************/
 
@@ -22,7 +22,7 @@
 
 /**************************************************************/
 
-/*  writes the mesh to the external file fname unsing the Finley file format: */
+/*  writes the mesh to the external file fname using the Finley file format: */
 
 void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
   char error_msg[LenErrorMsg_MAX];

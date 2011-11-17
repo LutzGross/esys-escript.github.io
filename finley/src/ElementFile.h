@@ -26,10 +26,10 @@
 
 
 struct Finley_ElementFile_Jacobeans {
-  Finley_Status_t status;               /* status of mesh when jacobeans where updated last time */
+  Finley_Status_t status;               /* status of mesh when jacobians were updated last time */
   dim_t numDim;                         /* spatial dimension */
   Finley_ShapeFunction* BasisFunctions; /* basis function used */
-  dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobeans = numSub * BasisFunctions->numQuadNodes*/
+  dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobians = numSub * BasisFunctions->numQuadNodes*/
   dim_t numSides;                   /* number of sides (=1 normal, =2 contact) */
   index_t* offsets;         /* offset to sides (borrowed reference) */
   dim_t numSub;         /* number of subelements        */
@@ -50,13 +50,13 @@ struct Finley_ElementFile {
 
   dim_t numElements;                             /* number of elements. */
   
-  index_t *Id;                                 /* Id[i] is the id nmber of
+  index_t *Id;                                 /* Id[i] is the id number of
                                                 node i. this number is not
                                                 used but useful when
-                                                elements are resorted. in
+                                                elements are resorted. In
                                                 the entire code the term
                                                 'element id' refers to i
-                                                but nor to Id[i] if not
+                                                and not to Id[i] unless
                                                 explicitly stated
                                                 otherwise. */
 
@@ -69,24 +69,23 @@ struct Finley_ElementFile {
   dim_t numNodes;                              /* number of nodes per element */
   index_t *Nodes;                              /* Nodes[INDEX(k, i, numNodes)]
                                                 is the k-the node in the
-                                                i-the element. note that
+                                                i-the element. Note that
                                                 in the way the nodes are
                                                 ordered Nodes[INDEX(k, i, numNodes)
-                                                is k-the node of element i
-                                                when refering to the
-                                                linear version of the
-                                                mesh. */
+                                                is the k-th node of element i
+                                                when referring to the
+                                                linear version of the mesh. */
   index_t minColor;                           /* minimum color */
   index_t maxColor;                           /* maximum color */
-  index_t *Color;                             /* assigns each element a color. elements with the same color     
-                                                 are don't share a node so they can be processed simultaneously 
-                                                 at anytime Color must provide a valid value. In any case one can set  
-                                                 Color[e]=e  for all e */
+  index_t *Color;                             /* assigns each element a color. Elements with the same color     
+                                                 don't share a node so they can be processed simultaneously.
+                                                 At anytime Color must provide a valid value. In any case one can set  
+                                                 Color[e]=e for all e */
 
-  Finley_ElementFile_Jacobeans* jacobeans;           /* jacobeans of the shape function used for solution approximation */
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobeans of the shape function used for solution approximation for reduced order of shape function*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobeans of the shape function used for solution approximation for reduced integration order and  reduced order of shape function*/
+  Finley_ElementFile_Jacobeans* jacobeans;           /* jacobians of the shape function used for solution approximation */
+  Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobians of the shape function used for solution approximation for reduced order of shape function*/
+  Finley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order*/
+  Finley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order and reduced order of shape function*/
 
 };
 

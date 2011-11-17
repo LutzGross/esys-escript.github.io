@@ -14,8 +14,8 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix :                           */
-/*  sets the values of the system matrix to a value */
+/* Paso: SystemMatrix :                                       */
+/*  sets the values of the system matrix to a value           */
 
 /**************************************************************/
 

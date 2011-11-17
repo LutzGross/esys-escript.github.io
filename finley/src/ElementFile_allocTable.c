@@ -16,7 +16,7 @@
 
 /*   Finley: ElementFile */
 
-/*   allocates and deallocates element table                  */
+/*   allocates and deallocates an element table               */
 
 /**************************************************************/
 

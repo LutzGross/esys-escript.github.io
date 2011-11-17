@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrixPatternPattern */
+/* Paso: SystemMatrixPattern */
 
 /**************************************************************/
  
@@ -42,15 +42,15 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   Esys_resetError();
 
   if (output_distribution->mpi_info != input_distribution->mpi_info ) {
-     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and input_distribution mpi communicator don't match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and input_distribution MPI communicators don't match.");
      return NULL;
   }
   if (output_distribution->mpi_info != col_connector->mpi_info ) {
-     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and col_connector mpi communicator don't match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and col_connector MPI communicators don't match.");
      return NULL;
   }
   if (output_distribution->mpi_info != row_connector->mpi_info ) {
-     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and row_connector mpi communicator don't match.");
+     Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrixPattern_alloc: output_distribution and row_connector MPI communicators don't match.");
      return NULL;
   }
 
@@ -65,10 +65,10 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
       Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: type of row_couplePattern does not match expected type.");
   }
   if (col_couplePattern->numOutput != mainPattern->numOutput) {
-            Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of output for couple and main pattern don't match.");
+            Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of outputs for couple and main pattern don't match.");
   }
   if (mainPattern->numOutput !=  Paso_Distribution_getMyNumComponents(output_distribution)) {
-      Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of output and given distribution don't match.");
+      Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of outputs and given distribution don't match.");
   }
   if (mainPattern->numInput != Paso_Distribution_getMyNumComponents(input_distribution)) {
      Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of input for main pattern and number of send components in connector don't match.");
@@ -93,7 +93,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   out->input_distribution=Paso_Distribution_getReference(input_distribution);
   out->mpi_info= Esys_MPIInfo_getReference(output_distribution->mpi_info);
   #ifdef Paso_TRACE
-  printf("Paso_SystemMatrixPattern_dealloc: system matrix pattern as been allocated.\n");
+  printf("Paso_SystemMatrixPattern_alloc: system matrix pattern has been allocated.\n");
   #endif
   return out;
 }
@@ -123,7 +123,7 @@ void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern* in) {
         Esys_MPIInfo_free(in->mpi_info);
         MEMFREE(in);
         #ifdef Paso_TRACE
-        printf("Paso_SystemMatrixPattern_free: system matrix pattern as been deallocated.\n");
+        printf("Paso_SystemMatrixPattern_free: system matrix pattern has been deallocated.\n");
         #endif
      }
    }
@@ -135,3 +135,4 @@ dim_t Paso_SystemMatrixPattern_getNumOutput(Paso_SystemMatrixPattern* in) {
        return in->mainPattern->numOutput;
     }
 }
+

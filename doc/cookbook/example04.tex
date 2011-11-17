@@ -127,7 +127,13 @@ the masking technique to do this but \pycad offers a more convenient technique
 called tagging. With this technique items in the domain are named using the
 \verb|PropertySet| class. We can then later use this name to set values
 specifically for those sample points located on the named items. Here we name
-the bottom face of the domain where we will set the heat influx:
+the bottom face of the domain where we will set the heat influx
+\footnote{In some applications, eg.
+when dealing with influxes,
+it is required to have the surface beeing meshed without the need of explicitly
+name the surface. In this case the line forming the surface of the domain need to be
+added to the \texttt{Design} 
+using \texttt{d.addItem(rec, l01, l12, l23, l30)}}:
 \begin{python}
 ps=PropertySet("linebottom",l12))
 d.addItem(ps)
