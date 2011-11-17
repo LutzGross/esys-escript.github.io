@@ -1193,10 +1193,16 @@ const boost::python::object
 Data::getValueOfDataPointAsTuple(int dataPointNo)
 {
    forceResolve();
+   
+cout << "HERE\n";   
+   
+   
    if (getNumDataPointsPerSample()>0) {
        int sampleNo = dataPointNo/getNumDataPointsPerSample();
        int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-       //
+cout << "SampleNo=" << sampleNo << " dpinsample=" <<       dataPointNoInSample << endl; 
+cout.flush();
+	//
        // Check a valid sample number has been supplied
        if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
            throw DataException("Error - Data::getValueOfDataPointAsTuple: invalid sampleNo.");
@@ -1311,7 +1317,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 {
   // This could be lazier than it is now
   forceResolve();
-
+cout << "In global point\n";
   // copy datapoint into a buffer
   // broadcast buffer to all nodes
   // convert buffer to tuple
@@ -2152,6 +2158,7 @@ void
 Data::calc_minGlobalDataPoint(int& ProcNo,
        	                int& DataPointNo) const
 {
+cout << "In   Data::calc_minGlobalDataPoint\n";
   if (isLazy())
   {
     Data temp(*this);	// to get around the fact that you can't resolve a const Data
@@ -2166,6 +2173,10 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 
   int numSamples=temp.getNumSamples();
   int numDPPSample=temp.getNumDataPointsPerSample();
+  
+  cout << temp.m_data->getNumSamples() << endl;
+  cout << "size=" << dynamic_cast<DataExpanded*>(temp.m_data.get())->m_data.m_data.size() << endl;
+  
 
   double local_val, local_min;
   #ifdef ESYS_MPI
@@ -2200,10 +2211,24 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
   next[0] = min;
   next[1] = numSamples;
   int lowProc = 0;
+  
+cout << "Samples=" << numSamples << endl;  
+cout << "lowi=" << lowi << " lowj=" << lowj << " DPPS=" << numDPPSample << endl;   
+  DataPointNo = lowj + lowi * numDPPSample;  
   double *globalMins = new double[get_MPISize()*2+1];
-  /*int error =*/ MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
-
+  int* dpn=new int[get_MPISize()*2+1]; 
+  /*int error =*/ 
+  MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
+  MPI_Gather (&DataPointNo, 1, MPI_INT, dpn, 1, MPI_INT, 0, get_MPIComm() ); 
+for  (int q=0;q<get_MPISize();++q)
+{
+   cout << "Min=" << globalMins[2*q] << "   numsamples=" << globalMins[2*q+1] << endl; 
+   cout << "Point=" << dpn[q] << endl;
+}
+  
+  
   if( get_MPIRank()==0 ){
+        // Find a rank which has at least one rank (or pick the last process)
 	for (lowProc=0; lowProc<get_MPISize(); lowProc++)
 		if (globalMins[lowProc*2+1] > 0) break;
 	min = globalMins[lowProc*2];
@@ -2213,11 +2238,18 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
 			min = globalMins[i*2];
 		}
   }
-  MPI_Bcast( &lowProc, 1, MPI_INT, 0, get_MPIComm() );
-  DataPointNo = lowj + lowi * numDPPSample;
-  MPI_Bcast(&DataPointNo, 1, MPI_INT, lowProc, get_MPIComm() );
+  int iv[2];
+  iv[0]=lowProc;
+  iv[1]=dpn[lowProc];
+  MPI_Bcast( iv, 2, MPI_INT, 0, get_MPIComm() );
+  // now iv will contain the rankid and the point number for that rank
+  ProcNo = iv[0];
+  DataPointNo=iv[1];
+
   delete [] globalMins;
-  ProcNo = lowProc;
+  delete [] dpn;
+cout << "Miniumum rank is " << lowProc << endl;  
+cout << DataPointNo << endl;
 #else
   ProcNo = 0;
   DataPointNo = lowj + lowi * numDPPSample;

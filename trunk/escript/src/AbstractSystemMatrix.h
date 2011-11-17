@@ -70,6 +70,7 @@ class AbstractSystemMatrix {
   ESCRIPT_DLL_API
   virtual ~AbstractSystemMatrix();
 
+
   /**
     \brief
     matrix*vector multiplication
@@ -138,6 +139,14 @@ class AbstractSystemMatrix {
   */
   ESCRIPT_DLL_API
   Data solve(Data& in, boost::python::object& options) const;
+  
+  /**
+    \brief
+    nullifyRowsAndCols - calls Paso_SystemMatrix_nullifyRowsAndCols.
+  */
+  ESCRIPT_DLL_API
+  virtual void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const;  
+  
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
