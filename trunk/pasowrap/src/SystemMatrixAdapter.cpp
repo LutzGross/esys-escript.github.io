@@ -21,7 +21,7 @@ struct null_deleter
 {
    void operator()(void const *ptr) const
       {
-      }
+      }   
 };
 
 
