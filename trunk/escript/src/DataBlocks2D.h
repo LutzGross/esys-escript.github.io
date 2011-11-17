@@ -220,8 +220,7 @@ class DataBlocks2D {
  protected:
 
  private:
-  public:
-   
+
   //
   // The underlying array of data values.
   // The two dimensional array of multi-dimensional data points is flattened

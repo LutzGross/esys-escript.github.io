@@ -372,16 +372,10 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const d
   if (numSamples*numDataPointsPerSample > 0) {
      //TODO: global error handling
      if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
-       
-ostringstream oss;
-oss << "sampleNo=" << sampleNo << " numSamples=" << numSamples << endl;  
-cerr << oss.str();       
-       
-          
-          throw DataException("Error - DataExpanded::copyToDataPoint[scalar] invalid sampleNo.");
+          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
      }
      if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
-           throw DataException("Error - DataExpanded::copyToDataPoint[scalar] invalid dataPointNoInSample.");
+           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVectorRW();
@@ -433,15 +427,10 @@ DataExpanded::copyToDataPoint(const int sampleNo, const int dataPointNo, const W
   if (numSamples*numDataPointsPerSample > 0) {
      //TODO: global error handling
      if ((sampleNo >= numSamples) || (sampleNo < 0 )) {
-
-// ostringstream oss;
-// oss << "sampleNo=" << sampleNo << " numSamples=" << numSamples << endl;  
-// throw DataException(oss.str());
-
-         throw DataException("Error - DataExpanded::copyToDataPoint[wrapped] invalid sampleNo.");
+          throw DataException("Error - DataExpanded::copyDataPoint invalid sampleNo.");
      }
      if ((dataPointNo >= numDataPointsPerSample) || (dataPointNo < 0)) {
-           throw DataException("Error - DataExpanded::copyToDataPoint[wrapped] invalid dataPointNoInSample.");
+           throw DataException("Error - DataExpanded::copyDataPoint invalid dataPointNoInSample.");
      }
      ValueType::size_type offset = getPointOffset(sampleNo, dataPointNo);
      ValueType& vec=getVectorRW();
