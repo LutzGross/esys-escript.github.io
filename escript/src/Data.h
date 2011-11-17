@@ -16,9 +16,6 @@
 
 #ifndef DATA_H
 #define DATA_H
-
-#include <iostream>
-
 #include "system_dep.h"
 
 #include "DataTypes.h"
@@ -531,7 +528,6 @@ contains datapoints.
   int
   getNumDataPoints() const
   {
-std::cout << getNumSamples() <<" " << getNumDataPointsPerSample() << std::endl; 
     return getNumSamples() * getNumDataPointsPerSample();
   }
   /**
