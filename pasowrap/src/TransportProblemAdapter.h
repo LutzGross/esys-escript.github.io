@@ -115,6 +115,15 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
   PASOWRAP_DLL_API
   virtual double getUnlimitedTimeStepSize() const;
 
+  /**
+     \brief
+     returns the identifier of the transport problem type to be used
+     when a particular solver, preconditioner and package is used
+  */
+  PASOWRAP_DLL_API
+  static int getTransportTypeId(const int solver, const int preconditioner,
+          const int package, const bool symmetry, Esys_MPIInfo* mpiInfo);
+
  protected:
 
  private:

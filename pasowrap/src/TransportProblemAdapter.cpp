@@ -157,6 +157,19 @@ double TransportProblemAdapter::getUnlimitedTimeStepSize() const
     return LARGE_POSITIVE_FLOAT;
 }
 
+int TransportProblemAdapter::getTransportTypeId(const int solver,
+        const int preconditioner, const int package, const bool symmetry,
+        Esys_MPIInfo* mpiInfo)
+{
+    int out=Paso_TransportProblem_getTypeId(
+            SystemMatrixAdapter::mapOptionToPaso(solver),
+            SystemMatrixAdapter::mapOptionToPaso(preconditioner),
+            SystemMatrixAdapter::mapOptionToPaso(package),
+            symmetry?1:0, mpiInfo);
+    checkPasoError();
+    return out;
+}
 
 
 }  // end of namespace
+
