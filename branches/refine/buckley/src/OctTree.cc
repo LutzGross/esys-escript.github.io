@@ -9,11 +9,12 @@ using namespace buckley;
 
 // Note: This code assumes x,y,z are positive
 OctTree::OctTree(double x, double y, double z)
-:p(fabs(x)/2, fabs(y)/2, fabs(z)/2, fabs(x), fabs(y), fabs(z),0)
+:p(fabs(x)/2, fabs(y)/2, fabs(z)/2, fabs(x), fabs(y), fabs(z),0), modified(true)
 {
     side[0]=fabs(x);
     side[1]=fabs(y);
     side[2]=fabs(z);
+    leafcount=1;
 }
 
 OctTree::~OctTree(){}
@@ -21,39 +22,40 @@ OctTree::~OctTree(){}
 // guarantees that all leaves are at depth >=d
 void OctTree::allSplit(unsigned int d)
 {
-    p.allSplit(d);  
+    modified=true;
+    p.allSplit(d, &leafcount);  
 }
 
 void OctTree::allCollapse(unsigned d)
 {
-   p.collapseAll(d);  
-  
+    modified=true;  
+   p.collapseAll(d, &leafcount);    
 }
 
 void OctTree::collapsePoint(double x, double y, double z, unsigned int d)
 {
-    p.collapsePoint(x,y,z,d);  
+    modified=true;  
+    p.collapsePoint(x,y,z,d, &leafcount);  
   
 }
 
 void OctTree::splitPoint(double x, double y, double z, unsigned int desdepth)
-{
+{  
     if ((x<0) || (y<0) || (z<0) ||
         (x>side[0]) || (y>side[1]) || (z>side[2]))
     {
         return;
     }
-    p.splitPoint(x, y, z, desdepth);
+    modified=true;    
+    p.splitPoint(x, y, z, desdepth, &leafcount);
 }
 
 namespace 
 {
 
-// I haven't decided whether I want to have a generally mutable interface to nodes or not
-// the use of const_cast is ok coz it's me doing it
 void zorderlabel(const OctCell& c, void* v)
 {
-    const_cast<OctCell&>(c).id=(*reinterpret_cast<unsigned*>(v))++;  
+    c.id=(*reinterpret_cast<unsigned*>(v))++;  
 }
 
 void countleaves(const OctCell& c, void* v)
@@ -65,7 +67,7 @@ void clearIDs(const OctCell& c, void* v)
 {
     if (c.leaf)
     {
-        memset(const_cast<OctCell&>(c).leafinfo->pmap,0,sizeof(unkid)*8);
+        memset(c.leafinfo->pmap,0,sizeof(unkid)*8);
     }
 }
 
@@ -102,35 +104,72 @@ void setUnkids(const OctCell& c, int kidnum, void* v)
 }
 
 
+typedef struct
+{
+   const OctCell** ca;
+   unkid id;  
+} copier;
+
+void copytoarr(const OctCell& c, void* v)
+{
+    copier* cs=reinterpret_cast<copier*>(v);
+    cs->ca[cs->id++]=&c;
 }
 
-void OctTree::assignIDs()
+
+}
+
+
+const OctCell** OctTree::process() const
+{
+    assignIDs();
+    // nasty hack process for now
+    // ultimately, this should be done by starting each thread midway through the traversal
+    const OctCell** temp=new const OctCell*[leafcount];
+    copier c;
+    c.ca=temp;
+    c.id=0;
+    p.doLeafWalk_const(copytoarr, &c);
+    return temp;
+}
+
+void OctTree::assignIDs() const
 {
     unsigned id=0;
-    p.doLeafWalk(zorderlabel, &id);
-    p.doLeafWalk(clearIDs, 0);
+    p.doLeafWalk_const(zorderlabel, &id);
+    p.doLeafWalk_const(clearIDs, 0);
     unkid i=HANG_NODE+1;
-    p.doLeafWalkWithKids(setUnkids, 0, &i);
+    p.doLeafWalkWithKids_const(setUnkids, 0, &i);
 }
 
 
-void OctTree::walkLeaves(cellfunct c, void* v)
+void OctTree::walkLeaves(const_cellfn c, void* v) const
+{
+    p.doLeafWalk_const(c, v);  
+}
+
+void OctTree::walkLeaves(cellfn c, void* v)
 {
     p.doLeafWalk(c, v);  
 }
 
 
 
-void OctTree::walkWithKids(cellfunct2 c, void* v)
+void OctTree::walkWithKids(const_cellfn2 c, void* v)
 {
-    p.doLeafWalkWithKids(c, 0, v);  	// we need to pick a childnum to start but a level 0 leaf is a trivial
+    p.doLeafWalkWithKids_const(c, 0, v);  	// we need to pick a childnum to start but a level 0 leaf is a trivial
 }					// tree anyway
 
-unsigned  OctTree::leafCount()
+unsigned  OctTree::leafCountByWalk() const
 {
     unsigned c;
-    p.doLeafWalk(countleaves, &c);
+    p.doLeafWalk_const(countleaves, &c);
     return c;
+}
+
+unsigned  OctTree::leafCount() const
+{
+    return leafcount;
 }
 
 void OctTree::debug()

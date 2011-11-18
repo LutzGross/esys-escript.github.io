@@ -113,6 +113,7 @@ vars.AddVariables(
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
+  ('buckley_assemble_flags', 'compiler flags for some buckley optimisations', ''),
   # To enable passing function pointers through python
   BoolVariable('iknowwhatimdoing', 'Allow non-standard C', False),
   # An option for specifying the compiler tools (see windows branch)
@@ -722,6 +723,7 @@ env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', d
 env.SConscript(dirs = ['escript/src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
+env.SConscript(dirs = ['buckley/src'], variant_dir='$BUILD_DIR/$PLATFORM/buckley', duplicate=0)
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
@@ -796,6 +798,8 @@ env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_e
 env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
 env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
 
+env.Alias('build_buckley', ['install_buckley_headers', 'build_buckley_lib', 'build_buckleycpp_lib'])
+env.Alias('install_buckley', ['build_buckley', 'install_buckley_lib', 'install_buckleycpp_lib', 'install_buckley_py'])
 
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
@@ -815,6 +819,7 @@ build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_pasowrap']
+build_all_list += ['build_buckley']
 build_all_list += ['build_dudley']
 build_all_list += ['build_finley']
 build_all_list += ['build_weipa']
@@ -829,6 +834,7 @@ install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
 install_all_list += ['install_escript']
 install_all_list += ['install_pasowrap']
+install_all_list += ['install_buckley']
 install_all_list += ['install_dudley']
 install_all_list += ['install_finley']
 install_all_list += ['install_weipa']

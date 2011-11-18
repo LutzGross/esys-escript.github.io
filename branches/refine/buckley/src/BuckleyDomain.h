@@ -148,6 +148,20 @@ class BuckleyDomain : public escript::AbstractDomain
   BUCKLEY_DLL_API 
   virtual int getDiracDeltaFunctionsCode() const;
 
+  BUCKLEY_DLL_API
+  virtual escript::Data getX() const;
+  
+  BUCKLEY_DLL_API
+  virtual void setToX(escript::Data& arg) const  ;
+  
+  
+  BUCKLEY_DLL_API
+  virtual int getDim() const
+  {
+      return 3;
+  }
+ 
+  
   /**
      \brief
      return the identifier of the matrix type to be used for the global
@@ -292,6 +306,8 @@ class BuckleyDomain : public escript::AbstractDomain
 
  private:
     OctTree ot;
+    bool modified;
+    mutable const OctCell** leaves;
 };
 
 } // end of namespace

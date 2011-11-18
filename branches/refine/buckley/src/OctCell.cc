@@ -58,7 +58,7 @@ OctCell::~OctCell()
 // If we are allocating from a pool we need to keep a record of it somewhere
 // maybe keep track (static?) of holding object with operators
 // or define OctCell::new ?
-void OctCell::split()
+void OctCell::split(size_t* leafc)
 {
     if (leaf)
     {
@@ -66,7 +66,7 @@ void OctCell::split()
 	{
 	    if (leafinfo->next[f] && (depth>leafinfo->next[f]->owner->depth))
 	    {
-		leafinfo->next[f]->owner->split();
+		leafinfo->next[f]->owner->split(leafc);
 	    }  
 	  
 	}
@@ -88,16 +88,17 @@ void OctCell::split()
 	leafinfo->split(kids);
 	delete leafinfo;
 	leafinfo=0;
+	(*leafc)+=7;
     }  
 }
 
-void OctCell::allSplit(unsigned int depth)
+void OctCell::allSplit(unsigned int depth, size_t* leafc)
 {
     if (depth>0)  
     {
         if (leaf)
 	{
-	    split();    
+	    split(leafc);    
 	}
 	if (depth==1)
 	{
@@ -105,8 +106,8 @@ void OctCell::allSplit(unsigned int depth)
 	}
         for (unsigned int i=0;i<8;i++)
 	{
-	    kids[i]->split();
-	    kids[i]->allSplit(depth-1);
+	    kids[i]->split(leafc);
+	    kids[i]->allSplit(depth-1, leafc);
 	}
     }
 }
@@ -129,7 +130,7 @@ OctCell* OctCell::findLeaf(double x, double y, double z)
 
 // divide the leaf containing the point (if required)
 // This needs to be more efficient but will do for now
-void OctCell::splitPoint(double x, double y, double z, unsigned d)
+void OctCell::splitPoint(double x, double y, double z, unsigned d, size_t* leafc)
 {
     // find cell
     // if it doesn't need refining, then bail
@@ -143,13 +144,13 @@ void OctCell::splitPoint(double x, double y, double z, unsigned d)
 	{
 	    return;  
 	}
-	l->split();
+	l->split(leafc);
 	start=l;
     } while (start->depth+1 <d);
 }
 
 // collapse the children of this cell into it
-void OctCell::collapse()
+void OctCell::collapse(size_t* leafc)
 {
     if (!leaf)
     {
@@ -158,7 +159,7 @@ void OctCell::collapse()
 	{
 	    if (! kids[i]->leaf)
 	    {
-                kids[i]->collapse();	// so we know we are only dealing with leaves
+                kids[i]->collapse(leafc);	// so we know we are only dealing with leaves
 	    }
 	}
 	// now we need to ensure that collapsing this would not break any neighbours
@@ -267,7 +268,7 @@ void OctCell::collapse()
 	{
 	    if (! nparent->kids[faces[oppdir(k)][i]]->leaf)	// if there are any non-leaves on the neighbour face
 	    {
-		nparent->kids[faces[oppdir(k)][i]]->collapse();
+		nparent->kids[faces[oppdir(k)][i]]->collapse(leafc);
 	    }      
 	}
     }
@@ -277,11 +278,12 @@ void OctCell::collapse()
 	{
 	    delete kids[i];
 	}
-	leaf=true;	
+	leaf=true;
+	(*leafc)-=7;
     }
 }
 
-void OctCell::collapseAll(unsigned int desdepth)
+void OctCell::collapseAll(unsigned int desdepth, size_t* leafc)
 {
     if (leaf)
     {
@@ -289,17 +291,17 @@ void OctCell::collapseAll(unsigned int desdepth)
     }
     for (unsigned i=0;i<8;++i)
     {
-	kids[i]->collapseAll(desdepth);
+	kids[i]->collapseAll(desdepth, leafc);
     }
     if (depth>=desdepth)
     {
-        collapse();
+        collapse(leafc);
     }
 }
 
 
 // The leaf which contains (x,y,z) should be at depth at most d
-void OctCell::collapsePoint(double x, double y, double z, unsigned d)
+void OctCell::collapsePoint(double x, double y, double z, unsigned d, size_t* leafc)
 {
     // find cell
     // if it doesn't need refining, then bail
@@ -314,13 +316,29 @@ void OctCell::collapsePoint(double x, double y, double z, unsigned d)
 	    return;  
 	}
 	l=l->parent;
-	l->collapse();
+	l->collapse(leafc);
 	start=l;
     } while (start->depth+1 >d);
   
 }
 
-void OctCell::doLeafWalk(cellfunct c, void* v)
+
+void OctCell::doLeafWalk_const(const_cellfn c, void* v) const
+{
+    if (leaf)
+    {
+        c(*this, v);
+    }
+    else
+    {
+        for (unsigned int i=0;i<8;++i)
+        {
+            kids[i]->doLeafWalk_const(c,v);
+        }
+    }  
+}
+
+void OctCell::doLeafWalk(cellfn c, void* v)
 {
     if (leaf)
     {
@@ -335,7 +353,7 @@ void OctCell::doLeafWalk(cellfunct c, void* v)
     }
 }
 
-void OctCell::doLeafWalkWithKids(cellfunct2 c, int k, void* v)
+void OctCell::doLeafWalkWithKids_const(const_cellfn2 c, int k, void* v) const
 {
     if (leaf)
     {
@@ -345,7 +363,7 @@ void OctCell::doLeafWalkWithKids(cellfunct2 c, int k, void* v)
     {
         for (unsigned int i=0;i<8;++i)
         {
-            kids[i]->doLeafWalkWithKids(c,i, v);
+            kids[i]->doLeafWalkWithKids_const(c,i, v);
         }
     }
   
@@ -481,9 +499,9 @@ void writeEl(const OctCell& c, void* v)
     static int e=1;
     static int i=1;
     ostream& os=reinterpret_cast<ostream&>(v);
-    cout << e << " 5 0 ";		// element number
-    cout << i << ' ' << (i+1) << ' ' << (i+2) << ' ' << (i+3) << ' ';
-    cout << (i+4) << ' ' << (i+5) << ' ' << (i+6) << ' ' << (i+7) << endl;
+    os << e << " 5 0 ";		// element number
+    os << i << ' ' << (i+1) << ' ' << (i+2) << ' ' << (i+3) << ' ';
+    os << (i+4) << ' ' << (i+5) << ' ' << (i+6) << ' ' << (i+7) << endl;
     e++;
     i+=8;
 }
@@ -503,14 +521,14 @@ void OctCell::gmshDump()
 	  os << "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n";
 
 	  int c=0;
-	  doLeafWalk(countleaves, &c);
+	  doLeafWalk_const(countleaves, &c);
 	  os << c*8 << endl;
 	  int i=1;
-	  doLeafWalk(writePoints, &os);
+	  doLeafWalk_const(writePoints, &os);
 	  os << "$EndNodes\n";
 	  os << "$Elements\n";
 	  os << c << endl;
-	  doLeafWalk(writeEl, &os);
+	  doLeafWalk_const(writeEl, &os);
 	  i=1;
 	  os << "$EndElements\n";  
     }

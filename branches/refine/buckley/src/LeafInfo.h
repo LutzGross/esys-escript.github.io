@@ -16,7 +16,7 @@ public:
     void merge();
     OctCell* owner;
     LeafInfo* next[6];
-    unkid pmap[8];
+    mutable unkid pmap[8];
 };
 
 }

@@ -1,7 +1,11 @@
 #include "BuckleyDomain.h"
 #include "BuckleyException.h"
 
+#include <escript/FunctionSpace.h>
+
 using namespace buckley;
+
+
 
 namespace
 {
@@ -10,22 +14,168 @@ namespace
     const int invalidspace=-1;
     
     const int notIMPLEMENTED=-1;
+    
+    const int ctsfn=initialspace;
 }
 
 
 BuckleyDomain::BuckleyDomain(double x, double y, double z)
-:ot(x,y,z)
+:ot(x,y,z),modified(true),leaves(0)
 {
 }
 
 BuckleyDomain::~BuckleyDomain()
 {
+    if (leaves)
+    {
+       delete[] leaves;
+    }
 }
 
 bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 {
     return functionSpaceType==initialspace;
 }
+
+escript::Data BuckleyDomain::getX() const
+{
+   return escript::FunctionSpace(this->getPtr(), ctsfn).getX();
+}
+
+
+// typedef struct 
+// {
+//     escript::Vector* vec;  
+//     size_t chunksize;
+//     unkid id;
+//   
+// } idstruct;
+// 
+// 
+// void copycoords(const OctCell& c, void* v)
+// {
+//     idstruct* s=reinterpret_cast<idstruct*>(v);
+// #ifdef OMP    
+//     if (id / s->chunksize==omp_get_num_thread())
+//     {
+// #endif      
+//         s->vec[id++]
+// 
+// 
+// #ifdef OMP    
+//     }
+// #endif
+// }
+
+
+void BuckleyDomain::setToX(escript::Data& arg) const
+{
+   const BuckleyDomain& argDomain=dynamic_cast<const BuckleyDomain&>(*(arg.getFunctionSpace().getDomain()));
+   if (argDomain!=*this) 
+      throw BuckleyException("Error - Illegal domain of data point locations");
+   
+   if (arg.getFunctionSpace().getTypeCode()==invalidspace)
+   {
+       throw BuckleyException("Error - Invalid functionspace for coordinate loading");
+   }
+   if (modified)	// is the cached data we have about this domain stale?
+   {
+      if (leaves!=0)
+      {
+	  delete [] leaves;
+      }
+      leaves=ot.process();
+   }
+   
+   if (arg.getFunctionSpace().getTypeCode()==getContinuousFunctionCode())	// values on nodes
+   {
+      escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));     
+      int i;	// one day OMP-3 will be default
+// Why isn't this parallelised??
+// well it isn't threadsafe the way it is written
+// up to 8 cells could touch a point and try to write its coords
+// This can be fixed but I haven't done it yet
+//       #pragma omp parallel for private(i) schedule(static)
+      for (i=0;i<ot.leafCount();++i)
+      {
+	  const OctCell& oc=*leaves[i];
+	  const double dx=oc.sides[0]/2;
+	  const double dy=oc.sides[1]/2;
+	  const double dz=oc.sides[2]/2;
+	  const double cx=oc.centre[0];
+	  const double cy=oc.centre[1];
+	  const double cz=oc.centre[2];
+	  
+	  // So this section is likely to be horribly slow
+	  // Once the system is working unroll this
+	  for (unsigned int j=0;j<8;++j)
+	  {
+	      unkid destpoint=oc.leafinfo->pmap[j];
+	      if (destpoint<2)
+	      {
+		  continue;	// it's a hanging node so don't produce
+	      }
+	      
+	      double x=cx;
+	      double y=cy;
+	      double z=cz;
+	      if (j>3)
+	      {
+		  z+=dz;
+	      }
+	      else
+	      {
+		  z-=dz;
+	      }
+	      switch (j)
+	      {
+		case 0:
+		case 3:
+		case 4:
+		case 7: x-=dx;
+		  
+		default:  x+=dx;
+		
+	      }
+	      
+	      switch (j)
+	      {
+		case 0:
+		case 1:
+		case 4:
+		case 5: y-=dy;
+		
+		default:  y+=dy;
+	      }	      
+	      
+	      vec[destpoint*3]=x;
+	      vec[destpoint*3+1]=y;
+	      vec[destpoint*3+2]=z;
+	  }
+	
+      }
+   }
+   else		// so it's not on the nodes and we need to do some interpolation
+   {
+      throw BuckleyException("Please don't use other functionspaces on this yet.");
+     
+   }
+     
+//    Dudley_Mesh* mesh=m_dudleyMesh.get();
+//    // in case of values node coordinates we can do the job directly:
+//    if (arg.getFunctionSpace().getTypeCode()==Nodes) {
+//       escriptDataC _arg=arg.getDataC();
+//       Dudley_Assemble_NodeCoordinates(mesh->Nodes,&_arg);
+//    } else {
+//       escript::Data tmp_data=Vector(0.0,continuousFunction(*this),true);
+//       escriptDataC _tmp_data=tmp_data.getDataC();
+//       Dudley_Assemble_NodeCoordinates(mesh->Nodes,&_tmp_data);
+//       // this is then interpolated onto arg:
+//       interpolateOnDomain(arg,tmp_data);
+//    }
+//    checkDudleyError();
+}
+
 
 std::string BuckleyDomain::getDescription() const
 {
@@ -34,7 +184,7 @@ std::string BuckleyDomain::getDescription() const
 
 int BuckleyDomain::getContinuousFunctionCode() const
 {
-    return initialspace;    
+    return ctsfn;    
 }
 
 int BuckleyDomain::getReducedContinuousFunctionCode() const
