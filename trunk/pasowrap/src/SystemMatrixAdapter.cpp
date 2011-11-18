@@ -179,7 +179,17 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
-void paso::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
+int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
+        const int package, const bool symmetry, Esys_MPIInfo* mpiInfo)
+{
+    int out=Paso_SystemMatrix_getSystemMatrixTypeId(mapOptionToPaso(solver),
+            mapOptionToPaso(preconditioner), mapOptionToPaso(package),
+            symmetry?1:0, mpiInfo);
+    checkPasoError();
+    return out;
+}
+
+void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 {
    Paso_SystemMatrix* mat=m_system_matrix.get();
    int first_row_index  = mat->row_distribution->first_component[mat->mpi_info->rank];
