@@ -1,3 +1,17 @@
+
+/*******************************************************
+*
+* Copyright (c) 2011 by University of Queensland
+* Earth Systems Science Computational Center (ESSCC)
+* http://www.uq.edu.au/esscc
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
+*
+*******************************************************/
+
+#include <iostream>
 #include "BuckleyDomain.h"
 #include "BuckleyException.h"
 
@@ -213,6 +227,14 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 }
 
 
+void BuckleyDomain::refineAll(unsigned min_depth)
+{
+    modified=true;
+    ot.allSplit(min_depth);  
+}
+
+
+
 std::string BuckleyDomain::getDescription() const
 {
     return "Dummy text for domain";
@@ -377,5 +399,10 @@ void BuckleyDomain::setNewX(const escript::Data& arg)
 BUCKLEY_DLL_API
 void BuckleyDomain::Print_Mesh_Info(const bool full) const
 {
-    throw BuckleyException("Not Implemented");
+    if (modified)
+    {
+        processMods();
+    }
+    std::cout << "Buckley tree with " << ot.leafCount();
+    std::cout << ((ot.leafCount()>1)?" leaves ":" leaf ") << "and " << numpts << " unknowns\n";
 }
