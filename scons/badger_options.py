@@ -72,7 +72,7 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-#werror = False
+werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
@@ -97,7 +97,7 @@ dudley_assemble_flags = '-funroll-loops'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/usr/lib/openmpi'

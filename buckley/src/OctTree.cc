@@ -120,7 +120,7 @@ void copytoarr(const OctCell& c, void* v)
 }
 
 
-const OctCell** OctTree::process() const
+const OctCell** OctTree::process(unkid& numunk) const
 {
     assignIDs();
     // nasty hack process for now
@@ -130,6 +130,7 @@ const OctCell** OctTree::process() const
     c.ca=temp;
     c.id=0;
     p.doLeafWalk_const(copytoarr, &c);
+    numunk=c.id;
     return temp;
 }
 
