@@ -291,6 +291,10 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   BUCKLEY_DLL_API
   virtual void setNewX(const escript::Data& arg);
 
+  
+  BUCKLEY_DLL_API
+  virtual void refineAll(unsigned min_depth);
+  
   /**
      \brief
      \param full

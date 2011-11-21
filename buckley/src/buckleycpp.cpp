@@ -119,7 +119,7 @@ BOOST_PYTHON_MODULE(buckleycpp)
 
   class_<buckley::BuckleyDomain, bases<escript::AbstractContinuousDomain> >
       ("BuckleyDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",no_init)
-      .def(init<const buckley::BuckleyDomain&>())
+      .def("refineAll",&buckley::BuckleyDomain::refineAll, args("min_dpeth"),"Ensure all leaves are at depth >= min_depth")
       .def("write",&buckley::BuckleyDomain::write,args("filename"),
 "Write the current mesh to a file with the given name.")
       .def("print_mesh_info",&buckley::BuckleyDomain::Print_Mesh_Info,(arg("full")=false),
