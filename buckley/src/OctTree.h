@@ -20,7 +20,7 @@ public:
     void walkLeaves(const_cellfn c, void* v) const;
     void walkLeaves(cellfn c, void* v);
     void walkWithKids(const_cellfn2 c, void* v);
-    void assignIDs() const;
+    unkid assignIDs() const;
     unsigned leafCountByWalk() const;	// inefficient, don't use too much
     unsigned leafCount() const;
     
