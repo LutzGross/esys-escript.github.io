@@ -2,7 +2,7 @@
 #include "BuckleyException.h"
 
 #include <escript/FunctionSpace.h>
-
+#include <escript/FunctionSpaceFactory.h>
 using namespace buckley;
 
 
@@ -20,7 +20,7 @@ namespace
 
 
 BuckleyDomain::BuckleyDomain(double x, double y, double z)
-:ot(x,y,z),modified(true),leaves(0)
+:ot(x,y,z),modified(true),leaves(0),numpts(0)
 {
 }
 
@@ -39,7 +39,7 @@ bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 
 escript::Data BuckleyDomain::getX() const
 {
-   return escript::FunctionSpace(this->getPtr(), ctsfn).getX();
+   return escript::continuousFunction(*this).getX();
 }
 
 
@@ -67,6 +67,16 @@ escript::Data BuckleyDomain::getX() const
 // #endif
 // }
 
+bool BuckleyDomain::operator==(const BuckleyDomain& other) const
+{
+  return this==&(other);
+}
+
+bool BuckleyDomain::operator!=(const BuckleyDomain& other) const
+{
+  return this!=&(other);
+}
+
 
 void BuckleyDomain::setToX(escript::Data& arg) const
 {
@@ -84,7 +94,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
       {
 	  delete [] leaves;
       }
-      leaves=ot.process();
+      leaves=ot.process(numpts);
    }
    
    if (arg.getFunctionSpace().getTypeCode()==getContinuousFunctionCode())	// values on nodes
@@ -293,7 +303,7 @@ void BuckleyDomain::addPDEToTransportProblem(
     throw BuckleyException("Not Implemented");
 }
 
-ASM_ptr BuckleyDomain::newSystemMatrix(
+escript::ASM_ptr BuckleyDomain::newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
@@ -303,7 +313,7 @@ ASM_ptr BuckleyDomain::newSystemMatrix(
     throw BuckleyException("Not Implemented");
 }
 
-ATP_ptr BuckleyDomain::newTransportProblem(
+escript::ATP_ptr BuckleyDomain::newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -321,6 +331,12 @@ int BuckleyDomain::getNumDataPointsGlobal() const
   BUCKLEY_DLL_API
 std::pair<int,int> BuckleyDomain::getDataShape(int functionSpaceCode) const
 {
+   switch (functionSpaceCode)
+   {
+     case ctsfn: return std::pair<int,int>(1,numpts);  
+     
+   // for element instead of node based reps we should return 8? but we don't have any of those yet  
+   }
    throw BuckleyException("Not Implemented");  
   
 }

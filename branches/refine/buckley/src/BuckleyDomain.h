@@ -17,6 +17,7 @@
 
 #include <escript/Data.h>
 #include <escript/AbstractContinuousDomain.h>
+#include <escript/AbstractSystemMatrix.h>
 
 #include "OctTree.h"
 #include "system_dep.h"
@@ -24,13 +25,9 @@
 
 namespace buckley {
 
-  
-typedef int ASM_ptr;
-typedef int ATP_ptr;		// not what they are supposed to be
-  
+ 
 
-// This should inherit from AbstractContinuousDomain
-class BuckleyDomain : public escript::AbstractDomain 
+class BuckleyDomain : public escript::AbstractContinuousDomain 
 {
 
  public:
@@ -253,7 +250,7 @@ class BuckleyDomain : public escript::AbstractDomain
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
   BUCKLEY_DLL_API
-  virtual ASM_ptr newSystemMatrix(
+  virtual escript::ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
                       const int column_blocksize,
@@ -266,7 +263,7 @@ class BuckleyDomain : public escript::AbstractDomain
   */
 
   BUCKLEY_DLL_API
-  virtual ATP_ptr newTransportProblem(
+  virtual escript::ATP_ptr newTransportProblem(
                       const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -300,6 +297,13 @@ class BuckleyDomain : public escript::AbstractDomain
   */
   BUCKLEY_DLL_API
   virtual void Print_Mesh_Info(const bool full=false) const;
+  
+  BUCKLEY_DLL_API
+  bool operator==(const BuckleyDomain& other) const;
+  
+  BUCKLEY_DLL_API
+  bool operator!=(const BuckleyDomain& other) const;
+  
 
 
  protected:
@@ -308,6 +312,7 @@ class BuckleyDomain : public escript::AbstractDomain
     OctTree ot;
     bool modified;
     mutable const OctCell** leaves;
+    mutable unkid numpts;	// number of independent (non-hanging) verticies
 };
 
 } // end of namespace

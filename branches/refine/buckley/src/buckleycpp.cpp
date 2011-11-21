@@ -50,6 +50,20 @@ using namespace boost::python;
 
 */
 
+namespace buckley
+{
+  
+escript::Domain_ptr buckley(double x, double y, double z)
+{
+    BuckleyDomain* temp=new BuckleyDomain(x, y, z);  
+    return temp->getPtr();
+}
+  
+  
+  
+}
+
+
 BOOST_PYTHON_MODULE(buckleycpp)
 {
 // This feature was added in boost v1.34
@@ -78,7 +92,7 @@ BOOST_PYTHON_MODULE(buckleycpp)
 // ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
 
 
-
+     def("Buckley", buckley::buckley, (arg("n0")=1, arg("n1")=1, arg("n2")=1), "Creates an OctTree mesh for a box with the specified dimensions");
 //   def ("Brick",buckley::brick,
 //       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
 //       arg("order")=1,
@@ -104,7 +118,7 @@ BOOST_PYTHON_MODULE(buckleycpp)
 
 
   class_<buckley::BuckleyDomain, bases<escript::AbstractContinuousDomain> >
-      ("BuckleyDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<double, double, double>())
+      ("BuckleyDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",no_init)
       .def(init<const buckley::BuckleyDomain&>())
       .def("write",&buckley::BuckleyDomain::write,args("filename"),
 "Write the current mesh to a file with the given name.")

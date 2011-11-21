@@ -24,7 +24,7 @@ public:
     unsigned leafCountByWalk() const;	// inefficient, don't use too much
     unsigned leafCount() const;
     
-    const OctCell** process() const;	// tree mutations are complete for now
+    const OctCell** process(unkid& numunk) const;	// tree mutations are complete for now
     
     void debug();
 private:
