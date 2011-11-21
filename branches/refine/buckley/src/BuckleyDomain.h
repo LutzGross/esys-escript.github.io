@@ -304,15 +304,20 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   BUCKLEY_DLL_API
   bool operator!=(const BuckleyDomain& other) const;
   
-
+  BUCKLEY_DLL_API
+  const int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
  protected:
 
  private:
+   
+    void processMods() const;
+   
     OctTree ot;
-    bool modified;
+    mutable bool modified;
     mutable const OctCell** leaves;
     mutable unkid numpts;	// number of independent (non-hanging) verticies
+    mutable int* samplerefids;
 };
 
 } // end of namespace

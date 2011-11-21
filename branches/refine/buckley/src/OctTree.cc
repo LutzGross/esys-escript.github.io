@@ -130,17 +130,18 @@ const OctCell** OctTree::process(unkid& numunk) const
     c.ca=temp;
     c.id=0;
     p.doLeafWalk_const(copytoarr, &c);
-    numunk=c.id;
+    numunk=assignIDs()-(HANG_NODE+1);
     return temp;
 }
 
-void OctTree::assignIDs() const
+unkid OctTree::assignIDs() const
 {
-    unsigned id=0;
+    unkid id=0;
     p.doLeafWalk_const(zorderlabel, &id);
     p.doLeafWalk_const(clearIDs, 0);
     unkid i=HANG_NODE+1;
     p.doLeafWalkWithKids_const(setUnkids, 0, &i);
+    return i;
 }
 
 

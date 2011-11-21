@@ -20,7 +20,7 @@ namespace
 
 
 BuckleyDomain::BuckleyDomain(double x, double y, double z)
-:ot(x,y,z),modified(true),leaves(0),numpts(0)
+:ot(x,y,z),modified(true),leaves(0),numpts(0),samplerefids(0)
 {
 }
 
@@ -29,6 +29,10 @@ BuckleyDomain::~BuckleyDomain()
     if (leaves)
     {
        delete[] leaves;
+    }
+    if (samplerefids)
+    {
+       delete[] samplerefids;
     }
 }
 
@@ -39,6 +43,10 @@ bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 
 escript::Data BuckleyDomain::getX() const
 {
+   if (modified)	// is the cached data we have about this domain stale?
+   {
+      processMods();
+   }   
    return escript::continuousFunction(*this).getX();
 }
 
@@ -78,6 +86,28 @@ bool BuckleyDomain::operator!=(const BuckleyDomain& other) const
 }
 
 
+const int* BuckleyDomain::borrowSampleReferenceIDs(int functionSpaceType) const
+{
+  return samplerefids;
+}
+
+
+void BuckleyDomain::processMods() const
+{
+      if (leaves!=0)
+      {
+	  delete [] leaves;
+	  delete [] samplerefids;
+      }
+      leaves=ot.process(numpts);
+      samplerefids=new int[numpts];
+      for (int i=0;i<numpts;++i)
+      {
+	  samplerefids[i]=i;
+      }
+      modified=false;
+}
+
 void BuckleyDomain::setToX(escript::Data& arg) const
 {
    const BuckleyDomain& argDomain=dynamic_cast<const BuckleyDomain&>(*(arg.getFunctionSpace().getDomain()));
@@ -90,11 +120,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
    }
    if (modified)	// is the cached data we have about this domain stale?
    {
-      if (leaves!=0)
-      {
-	  delete [] leaves;
-      }
-      leaves=ot.process(numpts);
+      processMods();
    }
    
    if (arg.getFunctionSpace().getTypeCode()==getContinuousFunctionCode())	// values on nodes
@@ -125,7 +151,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 	      {
 		  continue;	// it's a hanging node so don't produce
 	      }
-	      
+	      destpoint-=2;
 	      double x=cx;
 	      double y=cy;
 	      double z=cz;
@@ -142,7 +168,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 		case 0:
 		case 3:
 		case 4:
-		case 7: x-=dx;
+		case 7: x-=dx; break;
 		  
 		default:  x+=dx;
 		
@@ -153,7 +179,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 		case 0:
 		case 1:
 		case 4:
-		case 5: y-=dy;
+		case 5: y-=dy; break;
 		
 		default:  y+=dy;
 	      }	      
