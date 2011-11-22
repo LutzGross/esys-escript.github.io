@@ -406,3 +406,9 @@ void BuckleyDomain::Print_Mesh_Info(const bool full) const
     std::cout << "Buckley tree with " << ot.leafCount();
     std::cout << ((ot.leafCount()>1)?" leaves ":" leaf ") << "and " << numpts << " unknowns\n";
 }
+
+void BuckleyDomain::refinePoint(double x, double y, double z, unsigned int desdepth)
+{
+    modified=true;
+    ot.splitPoint(x, y, z, desdepth);  
+}

@@ -310,6 +310,9 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   
   BUCKLEY_DLL_API
   const int* borrowSampleReferenceIDs(int functionSpaceType) const;
+  
+  BUCKLEY_DLL_API
+  void refinePoint(double x, double y, double z, unsigned int desdepth);
 
  protected:
 
@@ -322,6 +325,9 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     mutable const OctCell** leaves;
     mutable unkid numpts;	// number of independent (non-hanging) verticies
     mutable int* samplerefids;
+    
+
+    
 };
 
 } // end of namespace
