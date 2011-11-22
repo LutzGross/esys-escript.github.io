@@ -303,16 +303,23 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   virtual void Print_Mesh_Info(const bool full=false) const;
   
   BUCKLEY_DLL_API
-  bool operator==(const BuckleyDomain& other) const;
+  bool operator==(const AbstractDomain& other) const;
   
   BUCKLEY_DLL_API
-  bool operator!=(const BuckleyDomain& other) const;
+  bool operator!=(const AbstractDomain& other) const;
   
   BUCKLEY_DLL_API
   const int* borrowSampleReferenceIDs(int functionSpaceType) const;
   
   BUCKLEY_DLL_API
   void refinePoint(double x, double y, double z, unsigned int desdepth);
+  
+  BUCKLEY_DLL_API
+  void collapseAll(unsigned max_depth);
+  
+  BUCKLEY_DLL_API
+  void collapsePoint(double x, double y, double z, unsigned int desdepth); 
+  
 
  protected:
 

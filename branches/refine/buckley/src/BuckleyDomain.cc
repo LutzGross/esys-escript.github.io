@@ -89,13 +89,21 @@ escript::Data BuckleyDomain::getX() const
 // #endif
 // }
 
-bool BuckleyDomain::operator==(const BuckleyDomain& other) const
+bool BuckleyDomain::operator==(const AbstractDomain& other) const
 {
+  if (dynamic_cast<const BuckleyDomain*>(&other)==0)
+  {
+      return false;
+  }
   return this==&(other);
 }
 
-bool BuckleyDomain::operator!=(const BuckleyDomain& other) const
+bool BuckleyDomain::operator!=(const AbstractDomain& other) const
 {
+  if (dynamic_cast<const BuckleyDomain*>(&other)==0)
+  {
+      return true;
+  }
   return this!=&(other);
 }
 
@@ -237,7 +245,7 @@ void BuckleyDomain::refineAll(unsigned min_depth)
 
 std::string BuckleyDomain::getDescription() const
 {
-    return "Dummy text for domain";
+    return "Buckley domain";
 }
 
 int BuckleyDomain::getContinuousFunctionCode() const
@@ -412,3 +420,20 @@ void BuckleyDomain::refinePoint(double x, double y, double z, unsigned int desde
     modified=true;
     ot.splitPoint(x, y, z, desdepth);  
 }
+
+
+
+void BuckleyDomain::collapseAll(unsigned desdepth)
+{
+    modified=true;
+    ot.allCollapse(desdepth);
+}
+
+void BuckleyDomain::collapsePoint(double x, double y, double z, unsigned int desdepth)
+{
+    modified=true;
+    ot.collapsePoint(x, y, z, desdepth);  
+}
+
+
+
