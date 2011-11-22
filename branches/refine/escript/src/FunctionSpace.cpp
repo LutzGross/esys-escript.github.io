@@ -59,7 +59,7 @@ FunctionSpace::FunctionSpace(const_Domain_ptr domain,
                              int functionSpaceType):
 /*  m_domain(dynamic_cast<const AbstractDomain*>(&domain)),*/
   m_domain(domain),
-  m_functionSpaceType(functionSpaceType)
+  m_functionSpaceType(functionSpaceType), m_generation(domain->getGeneration())
 {
   if (!m_domain->isValidFunctionSpaceType(functionSpaceType)) {
     std::stringstream temp;
@@ -71,7 +71,7 @@ FunctionSpace::FunctionSpace(const_Domain_ptr domain,
 
 FunctionSpace::FunctionSpace(const FunctionSpace& other)
 :m_domain(other.m_domain),
-m_functionSpaceType(other.m_functionSpaceType)
+m_functionSpaceType(other.m_functionSpaceType), m_generation(other.m_generation)
 {
 }
 
@@ -110,7 +110,10 @@ FunctionSpace::toString() const
   std::stringstream temp;
   temp << m_domain->functionSpaceTypeAsString(m_functionSpaceType)
        << " on " << m_domain->getDescription();
-
+  if (m_generation>1)
+  {
+      temp << " at generation " << m_generation << endl;
+  }
   return temp.str();
 }
 
@@ -206,7 +209,7 @@ FunctionSpace::operator=(const FunctionSpace& other)
 bool
 FunctionSpace::operator==(const FunctionSpace& other) const
 {
-  return ((*(other.m_domain)==*(m_domain)) && (other.m_functionSpaceType==m_functionSpaceType));
+  return ((*(other.m_domain)==*(m_domain)) && (other.m_functionSpaceType==m_functionSpaceType) && (m_generation==other.m_generation));
 }
 
 bool
@@ -218,6 +221,10 @@ FunctionSpace::operator!=(const FunctionSpace& other) const
 escript::Data
 FunctionSpace::getX() const 
 {
+  if (m_generation != m_domain->getGeneration())
+  {
+      throw DataException("Domain has changed since FunctionSpace was created.");
+  }
   Data out=escript::Vector(0,*this,true);
   getDomain()->setToX(out);
   out.setProtection();
@@ -227,6 +234,10 @@ FunctionSpace::getX() const
 escript::Data
 FunctionSpace::getNormal() const
 {
+  if (m_generation != m_domain->getGeneration())
+  {
+      throw DataException("Domain has changed since FunctionSpace was created.");
+  }  
   Data out=escript::Vector(0,*this,true);
   getDomain()->setToNormal(out);
   out.setProtection();
@@ -236,6 +247,10 @@ FunctionSpace::getNormal() const
 escript::Data
 FunctionSpace::getSize() const
 {
+  if (m_generation != m_domain->getGeneration())
+  {
+      throw DataException("Domain has changed since FunctionSpace was created.");
+  }  
   Data out=escript::Scalar(0,*this,true);
   getDomain()->setToSize(out);
   out.setProtection();
@@ -307,5 +322,21 @@ FunctionSpace::getApproximationOrder() const
 {
    return m_domain->getApproximationOrder(m_functionSpaceType);
 }
+
+bool
+FunctionSpace::probeInterpolation(const FunctionSpace& other) const
+{
+  if (*this==other) {
+    return true;
+  } else {
+    const_Domain_ptr domain=getDomain();
+    if  (*domain==*other.getDomain()) {
+      return domain->probeInterpolationOnDomain(getTypeCode(), m_generation, other.getTypeCode(), other.m_generation);
+    } else {
+      return domain->probeInterpolationACross(getTypeCode(),*(other.getDomain()),other.getTypeCode());
+    }
+  }
+}
+
 
 }  // end of namespace
