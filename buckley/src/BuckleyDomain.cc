@@ -30,11 +30,12 @@ namespace
     const int notIMPLEMENTED=-1;
     
     const int ctsfn=initialspace;
+    const int discfn=2;
 }
 
 
 BuckleyDomain::BuckleyDomain(double x, double y, double z)
-:ot(x,y,z),modified(true),leaves(0),numpts(0),samplerefids(0)
+:ot(x,y,z),modified(true),leaves(0),numpts(0),samplerefids(0), m_generation(1)
 {
 }
 
@@ -52,7 +53,7 @@ BuckleyDomain::~BuckleyDomain()
 
 bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 {
-    return functionSpaceType==initialspace;
+    return (functionSpaceType==ctsfn || functionSpaceType==discfn);
 }
 
 escript::Data BuckleyDomain::getX() const
@@ -213,7 +214,30 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 	
       }
    }
-   else		// so it's not on the nodes and we need to do some interpolation
+   else if (arg.getFunctionSpace().getTypeCode()==getFunctionCode())	// not on the nodes
+   {
+      // This is actually simpler because there is no overlap between different leaves
+      escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));     
+      int i;	// one day OMP-3 will be default
+      #pragma omp parallel for private(i) schedule(static)
+      for (i=0;i<ot.leafCount();++i)
+      {
+	  const OctCell& oc=*leaves[i];
+ 
+	  // So this section is likely to be horribly slow
+	  // Once the system is working unroll this
+	  for (unsigned int j=0;j<8;++j)
+	  {
+	      double x, y, z;
+	      oc.quadCoords(j,x,y,z);
+	      vec[i*24+3*j]=x;
+	      vec[i*24+3*j+1]=y;
+	      vec[i*24+3*j+2]=z;
+	  }
+	
+      }      
+   }
+   else		
    {
       throw BuckleyException("Please don't use other functionspaces on this yet.");
      
@@ -237,7 +261,11 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 
 void BuckleyDomain::refineAll(unsigned min_depth)
 {
-    modified=true;
+    if (!modified)
+    {
+        modified=true;
+	m_generation++;
+    }  
     ot.allSplit(min_depth);  
 }
 
@@ -260,7 +288,7 @@ int BuckleyDomain::getReducedContinuousFunctionCode() const
 
 int BuckleyDomain::getFunctionCode() const
 {
-    return invalidspace;  
+    return discfn;  
 }
 
 int BuckleyDomain::getReducedFunctionCode() const
@@ -390,8 +418,7 @@ std::pair<int,int> BuckleyDomain::getDataShape(int functionSpaceCode) const
    switch (functionSpaceCode)
    {
      case ctsfn: return std::pair<int,int>(1,numpts);  
-     
-   // for element instead of node based reps we should return 8? but we don't have any of those yet  
+     case discfn: return std::pair<int, int>(8,ot.leafCount());
    }
    throw BuckleyException("Not Implemented");  
   
@@ -413,11 +440,16 @@ void BuckleyDomain::Print_Mesh_Info(const bool full) const
     }
     std::cout << "Buckley tree with " << ot.leafCount();
     std::cout << ((ot.leafCount()>1)?" leaves ":" leaf ") << "and " << numpts << " unknowns\n";
+    std::cout << " Generation=" << m_generation << std::endl;
 }
 
 void BuckleyDomain::refinePoint(double x, double y, double z, unsigned int desdepth)
 {
-    modified=true;
+    if (!modified)
+    {
+        modified=true;
+	m_generation++;
+    }
     ot.splitPoint(x, y, z, desdepth);  
 }
 
@@ -425,15 +457,36 @@ void BuckleyDomain::refinePoint(double x, double y, double z, unsigned int desde
 
 void BuckleyDomain::collapseAll(unsigned desdepth)
 {
-    modified=true;
+    if (!modified)
+    {
+        modified=true;
+	m_generation++;
+    }    
     ot.allCollapse(desdepth);
 }
 
 void BuckleyDomain::collapsePoint(double x, double y, double z, unsigned int desdepth)
 {
-    modified=true;
+    if (!modified)
+    {
+        modified=true;
+	m_generation++;
+    }
     ot.collapsePoint(x, y, z, desdepth);  
 }
 
+unsigned BuckleyDomain::getGeneration() const
+{
+    return m_generation;
+}
 
 
+std::string BuckleyDomain::functionSpaceTypeAsString(int functionSpaceType) const
+{
+    switch (functionSpaceType)
+    {
+    case ctsfn: return "ContinuousFunction";
+    case discfn: return "DiscontinuousFunction";
+    default: return "Invalid";  
+    };
+}

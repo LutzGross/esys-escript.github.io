@@ -319,6 +319,12 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   
   BUCKLEY_DLL_API
   void collapsePoint(double x, double y, double z, unsigned int desdepth); 
+
+  BUCKLEY_DLL_API
+  unsigned  getGeneration() const; 
+  
+  BUCKLEY_DLL_API
+  virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;  
   
 
  protected:
@@ -332,7 +338,7 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     mutable const OctCell** leaves;
     mutable unkid numpts;	// number of independent (non-hanging) verticies
     mutable int* samplerefids;
-    
+    unsigned m_generation;
 
     
 };

@@ -35,6 +35,7 @@ public:
       OctCell* findLeaf(double x, double y, double z);
       
       void childCoords(unsigned k, double& x, double& y, double& z) const;
+      void quadCoords(unsigned k, double& x, double& y, double& z) const;
       
       
       void linkCheck(bool fromroot);

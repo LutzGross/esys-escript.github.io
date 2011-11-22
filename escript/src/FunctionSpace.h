@@ -329,20 +329,7 @@ public:
 
   ESCRIPT_DLL_API
   bool
-  probeInterpolation(const FunctionSpace& other) const
-  {
-    if (*this==other) {
-      return true;
-    } else {
-      const_Domain_ptr domain=getDomain();
-      if  (*domain==*other.getDomain()) {
-        return domain->probeInterpolationOnDomain(getTypeCode(),other.getTypeCode());
-      } else {
-        return domain->probeInterpolationACross(getTypeCode(),*(other.getDomain()),other.getTypeCode());
-      }
-    }
-  }
-
+  probeInterpolation(const FunctionSpace& other) const;
 
  protected:
 
@@ -366,6 +353,9 @@ public:
   //
   // function space type code.
   int m_functionSpaceType;
+  
+  // domain generation this space references
+  unsigned m_generation;
 
 };
 

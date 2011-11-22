@@ -225,7 +225,7 @@ bool AbstractDomain::ownSample(int fs_code, index_t id) const
   return false;
 }
 
-bool AbstractDomain::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+bool AbstractDomain::probeInterpolationOnDomain(int functionSpaceType_source, unsigned gen1, int functionSpaceType_target, unsigned gen2 ) const
 {
   throwStandardException("AbstractDomain::probeInterpolationOnDomain");
   return false;
@@ -315,6 +315,11 @@ bool AbstractDomain::supportsContactElements() const
 {
   throwStandardException("AbstractDomain::supportsContactElements");
   return false;
+}
+
+unsigned AbstractDomain::getGeneration() const
+{
+      return 1;
 }
 
 } // end of namespace
