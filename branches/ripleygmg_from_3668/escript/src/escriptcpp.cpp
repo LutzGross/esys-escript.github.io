@@ -610,11 +610,12 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":return: the solution *u* of the linear system *this*u=in*\n\n:param in:\n:type in: `Data`")
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply,args("right"),
 "matrix*vector multiplication")
+     .def("nullifyRowsAndCols",&escript::AbstractSystemMatrix::nullifyRowsAndCols)
      .def("saveMM",&escript::AbstractSystemMatrix::saveMM, args("fileName"), 
 "writes the matrix to a file using the Matrix Market file format")
      .def("saveHB",&escript::AbstractSystemMatrix::saveHB, args("filename"),
 "writes the matrix to a file using the Harwell-Boeing file format")
-     .def("resetValues",&escript::AbstractSystemMatrix::resetValues, "resets the matrix entries")
+     .def("resetValues",&escript::AbstractSystemMatrix::resetValues, "resets the matrix entries")   
      .def(self*other<escript::Data>());
   //
   // Interface for AbstractTransportProblem

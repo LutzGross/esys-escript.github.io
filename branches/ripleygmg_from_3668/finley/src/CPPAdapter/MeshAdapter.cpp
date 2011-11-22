@@ -11,7 +11,8 @@
 *
 *******************************************************/
 
-
+#include <pasowrap/PasoException.h>
+#include <pasowrap/TransportProblemAdapter.h>
 #include "MeshAdapter.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
@@ -26,6 +27,7 @@ extern "C" {
 
 using namespace std;
 using namespace escript;
+using namespace paso;
 
 namespace finley {
 
@@ -777,7 +779,7 @@ void MeshAdapter::addPDEToSystem(
    SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
    if (smat==0)
    {
-	throw FinleyAdapterException("finley only supports its own system matrices.");
+	throw FinleyAdapterException("finley only supports Paso system matrices.");
    }
    escriptDataC _rhs=rhs.getDataC();
    escriptDataC _A  =A.getDataC();
@@ -875,7 +877,7 @@ void MeshAdapter::addPDEToTransportProblem(
    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
    if (tpa==0)
    {
-	throw FinleyAdapterException("finley only supports its own transport problems.");
+	throw FinleyAdapterException("finley only supports Paso transport problems.");
    }
 
 
@@ -2050,16 +2052,15 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
-   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
-   checkPasoError();
-   return out;
+   return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
+           package, symmetry, mesh->MPIInfo);
 }
+
 int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
-   int out=Paso_TransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
-   checkPasoError();
-   return out;
+   return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
+           package, symmetry, mesh->MPIInfo);
 }
 
 escript::Data MeshAdapter::getX() const

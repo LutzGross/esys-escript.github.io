@@ -43,7 +43,7 @@ cc_optim = '-O3 -mmmx -msse'
 
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
-#cc_debug = '-g'
+cc_debug = '-g'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
@@ -63,7 +63,7 @@ cxx_extra = '-Wextra -Wno-unused-parameter'
 
 # Whether to build a debug version
 # DEFAULT: False
-#debug = True
+debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False

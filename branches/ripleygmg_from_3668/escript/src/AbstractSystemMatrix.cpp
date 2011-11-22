@@ -94,6 +94,13 @@ void AbstractSystemMatrix::setToSolution(Data& out,Data& in, boost::python::obje
 {
     throw SystemMatrixException("Error - setToSolution not available");
 }
+
+
+void AbstractSystemMatrix::nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const
+{
+    throw   SystemMatrixException("Error - nullifyRowsAndCols interface not available.");
+}
+
 void AbstractSystemMatrix::saveMM(const std::string& fileName) const
 {
     throw SystemMatrixException("Error - Matrix Market interface not available.");
