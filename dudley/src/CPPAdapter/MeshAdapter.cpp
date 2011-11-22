@@ -27,6 +27,7 @@ extern "C" {
 
 using namespace std;
 using namespace escript;
+using namespace paso;
 
 namespace dudley {
 
@@ -698,7 +699,7 @@ void MeshAdapter::addPDEToSystem(
    SystemMatrixAdapter* smat=dynamic_cast<SystemMatrixAdapter*>(&mat);
    if (smat==0)
    {
-	throw DudleyAdapterException("Dudley only accepts its own system matrices");
+	throw DudleyAdapterException("Dudley only accepts Paso system matrices");
    }
    escriptDataC _rhs=rhs.getDataC();
    escriptDataC _A =A.getDataC();
@@ -799,7 +800,7 @@ void MeshAdapter::addPDEToTransportProblem(
    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
    if (tpa==0)
    {
-	throw DudleyAdapterException("Dudley only accepts its own Transportproblems");
+	throw DudleyAdapterException("Dudley only accepts Paso transport problems");
    }
    DataTypes::ShapeType shape;
    source.expand();
@@ -1800,16 +1801,15 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   int out=Paso_SystemMatrix_getSystemMatrixTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
-   checkPasoError();
-   return out;
+   return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
+           package, symmetry, mesh->MPIInfo);
 }
+
 int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   int out=Paso_TransportProblem_getTypeId(SystemMatrixAdapter::mapOptionToPaso(solver),SystemMatrixAdapter::mapOptionToPaso(preconditioner), SystemMatrixAdapter::mapOptionToPaso(package),symmetry?1:0, mesh->MPIInfo);
-   checkPasoError();
-   return out;
+   return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
+           package, symmetry, mesh->MPIInfo);
 }
 
 escript::Data MeshAdapter::getX() const

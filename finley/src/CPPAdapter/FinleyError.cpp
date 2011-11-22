@@ -35,17 +35,5 @@ namespace finley {
       throw FinleyAdapterException(Finley_getErrorMessage());
     }
   }
-  void checkPasoError() 
-  {
-    if (Esys_noError()) {
-      return;
-    } else {
-      //
-      // reset the error code to no error otherwise the next call to
-      // this function may resurrect a previous error
-      Esys_resetError();
-      throw FinleyAdapterException(Esys_getErrorMessage());
-    }
-  }
 
 }  // end of namespace
