@@ -121,6 +121,9 @@ BOOST_PYTHON_MODULE(buckleycpp)
       ("BuckleyDomain","A concrete class representing a domain. For more details, please consult the c++ documentation.",no_init)
       .def("refineAll",&buckley::BuckleyDomain::refineAll, args("min_depth"),"Ensure all leaves are at depth >= min_depth")
       .def("refine",&buckley::BuckleyDomain::refinePoint, args("x", "y", "z" ,"min_depth"),"ensure leaf containing (x, y, z) is at depth >= min_depth")
+      .def("collapseAll", &buckley::BuckleyDomain::collapseAll,args("max_depth"),"Ensure all leaves are at depth <= min_depth")
+      .def("collapse",&buckley::BuckleyDomain::collapsePoint, args("x", "y", "z" ,"max_depth"),"ensure leaf containing (x, y, z) is at depth <= min_depth")
+      
       .def("write",&buckley::BuckleyDomain::write,args("filename"),
 "Write the current mesh to a file with the given name.")
       .def("print_mesh_info",&buckley::BuckleyDomain::Print_Mesh_Info,(arg("full")=false),
