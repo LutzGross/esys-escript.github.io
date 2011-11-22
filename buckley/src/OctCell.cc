@@ -52,7 +52,23 @@ OctCell::~OctCell()
 }
 
 
-
+void OctCell::childCoords(unsigned  k, double& x, double& y, double& z) const
+{
+    x=centre[0];
+    y=centre[1];
+    z=centre[2];
+    switch(k)
+    {
+      case 0: x-=sides[0]/2;  y-=sides[1]/2;  z-=sides[2]/2; break;  
+      case 1: x+=sides[0]/2;  y-=sides[1]/2;  z-=sides[2]/2; break;  
+      case 2: x+=sides[0]/2;  y+=sides[1]/2;  z-=sides[2]/2; break;  
+      case 3: x-=sides[0]/2;  y+=sides[1]/2;  z-=sides[2]/2; break;  
+      case 4: x-=sides[0]/2;  y-=sides[1]/2;  z+=sides[2]/2; break;  
+      case 5: x+=sides[0]/2;  y-=sides[1]/2;  z+=sides[2]/2; break;  
+      case 6: x+=sides[0]/2;  y+=sides[1]/2;  z+=sides[2]/2; break;  
+      default: x-=sides[0]/2;  y+=sides[1]/2;  z+=sides[2]/2; break;  
+    };
+}
 
 
 // If we are allocating from a pool we need to keep a record of it somewhere

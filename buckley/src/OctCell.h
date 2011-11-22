@@ -34,6 +34,8 @@ public:
       void doLeafWalkWithKids_const(const_cellfn2 c, int k, void* v) const;
       OctCell* findLeaf(double x, double y, double z);
       
+      void childCoords(unsigned k, double& x, double& y, double& z) const;
+      
       
       void linkCheck(bool fromroot);
       

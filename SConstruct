@@ -801,6 +801,9 @@ env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'instal
 env.Alias('build_buckley', ['install_buckley_headers', 'build_buckley_lib', 'build_buckleycpp_lib'])
 env.Alias('install_buckley', ['build_buckley', 'install_buckley_lib', 'install_buckleycpp_lib', 'install_buckley_py'])
 
+env.Alias('build_buckley', ['install_buckley_headers', 'build_buckley_lib', 'build_buckleycpp_lib'])
+env.Alias('install_buckley', ['build_buckley', 'install_buckley_lib', 'install_buckleycpp_lib', 'install_buckley_py'])
+
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
 
