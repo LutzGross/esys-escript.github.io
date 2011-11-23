@@ -21,5 +21,4 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escript		# This is just to ensure required libraries are loaded
 from ripleycpp import *
-from readers import *
 

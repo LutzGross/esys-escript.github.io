@@ -18,7 +18,6 @@
 #ifndef VISIT_PLUGIN
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
-#include <ripley/RipleyDomain.h>
 extern "C" {
 #include <dudley/Mesh.h>
 #include <finley/Mesh.h>
@@ -117,20 +116,6 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
         if (nodes->initFromDudley(dudleyMesh->Nodes) &&
                 cells->initFromDudley(dudleyMesh->Elements) &&
                 faces->initFromDudley(dudleyMesh->FaceElements)) {
-            initialized = true;
-        }
-    } else if (dynamic_cast<const ripley::RipleyDomain*>(escriptDomain)) {
-        const ripley::RipleyDomain* ripleyMesh =
-            dynamic_cast<const ripley::RipleyDomain*>(escriptDomain);
-
-        nodes = FinleyNodes_ptr(new FinleyNodes("Elements"));
-        cells = FinleyElements_ptr(new FinleyElements("Elements", nodes));
-        faces = FinleyElements_ptr(new FinleyElements("FaceElements", nodes));
-        contacts = FinleyElements_ptr(new FinleyElements("ContactElements", nodes));
-
-        if (nodes->initFromRipley(ripleyMesh->getNodes().get()) &&
-                cells->initFromRipley(ripleyMesh->getElements()) &&
-                faces->initFromRipley(ripleyMesh->getFaceElements())) {
             initialized = true;
         }
     }

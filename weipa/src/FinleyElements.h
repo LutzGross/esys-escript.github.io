@@ -21,7 +21,6 @@ extern "C" {
 #include <dudley/ElementType.h> // for Dudley_ElementTypeId
 #include <finley/ReferenceElements.h> // for Finley_ElementTypeId
 }
-#include <ripley/ElementFile.h> // for ripley::ElementTypeId
 
 class DBfile;
 class NcFile;
@@ -73,9 +72,6 @@ public:
 
     /// \brief Initialises with data from a Finley_ElementFile instance.
     bool initFromFinley(const Finley_ElementFile* finleyFile);
-
-    /// \brief Initialises with data from a Ripley_ElementFile instance.
-    bool initFromRipley(const ripley::ElementFile_ptr ripleyFile);
 
     /// \brief Reads element data from escript/finley NetCDF file.
     bool readFromNc(NcFile* ncfile);
@@ -149,7 +145,6 @@ private:
     FinleyElements() {}
     FinleyElementInfo getDudleyTypeInfo(Dudley_ElementTypeId typeId);
     FinleyElementInfo getFinleyTypeInfo(Finley_ElementTypeId typeId);
-    FinleyElementInfo getRipleyTypeInfo(ripley::ElementTypeId typeId);
     void buildMeshes();
     void buildReducedElements(const FinleyElementInfo& f);
     IntVec prepareGhostIndices(int ownIndex);
