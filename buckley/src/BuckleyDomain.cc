@@ -528,13 +528,13 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
     {
         throw BuckleyException("Domain mismatch in setToGradient");
     }
-    if ((grad.getFunctionSpace().getTypeCode()==discfn) || (arg.getFunctionSpace().getTypeCode()==ctsfn))
+    if ((grad.getFunctionSpace().getTypeCode()!=discfn) || (arg.getFunctionSpace().getTypeCode()!=ctsfn))
     {
         throw BuckleyException("Invalid functionspaces passed to setToGradient");  
     }
-    if ((grad.getDataPointShape()!=VECTOR3) || (arg.getDataPointShape()!=MAT3X3))
+    if ((grad.getDataPointShape()!=MAT3X3) || (arg.getDataPointShape()!=VECTOR3))
     {
-        throw BuckleyException("Expected shapes for grad inputs are (3,) and (3,3)");
+        throw BuckleyException("Expected shapes for grad inputs are (3,3) and (3,)");
     }
     if (modified)
     {
