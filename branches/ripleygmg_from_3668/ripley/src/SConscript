@@ -23,16 +23,10 @@ local_unroll_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
-    ElementFile.cpp
-    IndexList.cpp
-    NodeFile.cpp
+    Brick.cpp
+    Rectangle.cpp
     RipleyException.cpp
     RipleyDomain.cpp
-    RipleyDomainFactory.cpp
-    RipleyError.cpp
-    SystemMatrixAdapter.cpp
-    TransportProblemAdapter.cpp
-    Util.cpp
 """.split()
 unroll_sources= """
     Assemble_Gradient_2D.c
@@ -48,21 +42,18 @@ unroll_sources= """
 """.split()
 
 headers = """
-    ElementFile.h
-    IndexList.h
-    NodeFile.h
+    Brick.h
+    Rectangle.h
     Ripley.h
     RipleyException.h
     RipleyDomain.h
-    RipleyDomainFactory.h
-    RipleyError.h
     system_dep.h
-    SystemMatrixAdapter.h
-    TransportProblemAdapter.h
-    Util.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript', 'esysUtils', 'paso'])
+local_env.Prepend(LIBS = ['escript', 'esysUtils', 'pasowrap', 'paso'])
+if local_env['silo']:
+    local_env.Append(CPPDEFINES = ['USE_SILO'])
+    local_env.AppendUnique(LIBS = env['silo_libs'])
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])

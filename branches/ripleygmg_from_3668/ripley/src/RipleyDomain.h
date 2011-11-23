@@ -14,34 +14,20 @@
 #ifndef __RIPLEY_DOMAIN_H__
 #define __RIPLEY_DOMAIN_H__
 
-#include <ripley/NodeFile.h>
-#include <ripley/ElementFile.h>
-#include <ripley/RipleyError.h>
-#include <ripley/SystemMatrixAdapter.h>
-#include <ripley/TransportProblemAdapter.h>
-
-extern "C" {
-//#include "ripley/Assemble.h"
-#include "paso/SystemMatrixPattern.h"
-#include "paso/Transport.h"
-}
+#include <ripley/Ripley.h>
+#include <ripley/RipleyException.h>
 #include <escript/AbstractContinuousDomain.h>
+#include <escript/Data.h>
 #include <escript/FunctionSpace.h>
-#include <escript/FunctionSpaceFactory.h>
 
-#include <boost/python/dict.hpp>
-#include <boost/python/extract.hpp>
+struct Paso_SystemMatrixPattern;
 
 namespace ripley {
 
 /**
    \brief
-   RipleyDomain implements the AbstractContinuousDomain interface
-   for the Ripley library.
-
-   Description:
-   RipleyDomain implements the AbstractContinuousDomain interface
-   for the Ripley library.
+   RipleyDomain extends the AbstractContinuousDomain interface
+   for the Ripley library and is the base class for Rectangle and Brick.
 */
 
 class RipleyDomain : public escript::AbstractContinuousDomain
@@ -49,108 +35,32 @@ class RipleyDomain : public escript::AbstractContinuousDomain
 public:
 
     /**
-       \brief
-       Constructor with name, dimensionality and mpi info structure.
+       \brief recovers mesh from a file created with the dump() method
+       \param filename the name of the file
     */
     RIPLEY_DLL_API
-    RipleyDomain(const std::string& name, dim_t numDim, Esys_MPIInfo *mpiInfo);
+    static escript::Domain_ptr loadMesh(const std::string& filename);
+
+    /**
+       \brief reads a mesh from a file created with the write() method
+       \param filename the name of the file
+    */
+    RIPLEY_DLL_API
+    static escript::Domain_ptr readMesh(const std::string& filename);
 
     /**
        \brief
-       Destructor for RipleyDomain. As specified in the constructor
-       this calls Ripley_Mesh_free for the pointer given to the
-       constructor.
+       Constructor with number of dimensions. Allocates MPI info structure.
+    */
+    RIPLEY_DLL_API
+    RipleyDomain(dim_t dim);
+
+    /**
+       \brief
+       Destructor for RipleyDomain
     */
     RIPLEY_DLL_API
     ~RipleyDomain();
-
-    /**
-       \brief
-       returns the number of processors used for this domain
-    */
-    RIPLEY_DLL_API
-    virtual int getMPISize() const;
-
-    /**
-       \brief
-       returns the MPI rank of this processor
-    */
-    RIPLEY_DLL_API
-    virtual int getMPIRank() const;
-
-    /**
-       \brief
-       if compiled for MPI then executes an MPI_Barrier, else does nothing
-    */
-    RIPLEY_DLL_API
-    virtual void MPIBarrier() const;
-
-    /**
-       \brief
-       returns true if on MPI processor 0, else false
-    */
-    RIPLEY_DLL_API
-    virtual bool onMasterProcessor() const;
-
-    /**
-       \brief
-       returns the MPI communicator
-    */
-    RIPLEY_DLL_API
-  #ifdef ESYS_MPI
-    MPI_Comm
-  #else
-    unsigned int
-  #endif
-    getMPIComm() const;
-
-    /**
-       \brief
-       writes the current mesh to a file with the given name.
-       \param fileName The name of the file to write to.
-    */
-    RIPLEY_DLL_API
-    void write(const std::string& fileName) const;
-
-    /**
-       \brief
-       \param full whether to print all data, including coordinates etc.
-    */
-    RIPLEY_DLL_API
-    void Print_Mesh_Info(const bool full=false) const;
-
-    /**
-       \brief
-       dumps the mesh to a file with the given name.
-       \param fileName The name of the output file
-    */
-    RIPLEY_DLL_API
-    void dump(const std::string& fileName) const;
-
-    /**
-       \brief
-       returns the tag key for the given sample number.
-       \param functionSpaceType The function space type.
-       \param sampleNo The sample number.
-    */
-    RIPLEY_DLL_API
-    int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
-
-    /**
-       \brief
-       returns the reference number of the given sample number.
-       \param functionSpaceType The function space type.
-    */
-    RIPLEY_DLL_API
-    const int* borrowSampleReferenceIDs(int functionSpaceType) const;
-
-    /**
-       \brief
-       returns true if the given integer is a valid function space type
-       for this domain.
-    */
-    RIPLEY_DLL_API
-    virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
     /**
        \brief
@@ -161,153 +71,123 @@ public:
 
     /**
        \brief
+       returns the number of processors used for this domain
+    */
+    RIPLEY_DLL_API
+    virtual int getMPISize() const { return m_mpiInfo->size; }
+
+    /**
+       \brief
+       returns the MPI rank of this processor
+    */
+    RIPLEY_DLL_API
+    virtual int getMPIRank() const { return m_mpiInfo->rank; }
+
+    /**
+       \brief
+       if compiled for MPI then executes an MPI_Barrier, else does nothing
+    */
+    RIPLEY_DLL_API
+    virtual void MPIBarrier() const {
+#ifdef ESYS_MPI
+        MPI_Barrier(m_mpiInfo->comm);
+#endif
+    }
+
+    /**
+       \brief
+       returns true if on MPI processor 0, else false
+    */
+    RIPLEY_DLL_API
+    virtual bool onMasterProcessor() const { return getMPIRank()==0; }
+
+    /**
+       \brief
+       returns the MPI communicator
+    */
+    RIPLEY_DLL_API
+#ifdef ESYS_MPI
+    MPI_Comm
+#else
+    unsigned int
+#endif
+    getMPIComm() const {
+#ifdef ESYS_MPI
+        return m_mpiInfo->comm;
+#else
+        return 0;
+#endif
+    }
+
+    /**
+       \brief
+       returns true if the argument is a valid function space type for this
+       domain
+    */
+    RIPLEY_DLL_API
+    virtual bool isValidFunctionSpaceType(int fsType) const;
+
+    /**
+       \brief
        returns a description for the given function space type code
     */
     RIPLEY_DLL_API
-    virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
+    virtual std::string functionSpaceTypeAsString(int fsType) const;
 
     /**
        \brief
-       builds the table of function space type names
+       returns the number of spatial dimensions of the domain
     */
     RIPLEY_DLL_API
-    void setFunctionSpaceTypeNames();
+    virtual int getDim() const { return m_numDim; }
 
     /**
-       \brief
-       returns a continuous FunctionSpace code
+       \brief equality operator
     */
     RIPLEY_DLL_API
-    virtual int getContinuousFunctionCode() const;
+    virtual bool operator==(const escript::AbstractDomain& other) const;
 
     /**
-       \brief
-       returns a continuous on reduced order nodes FunctionSpace code
+       \brief inequality operator
     */
     RIPLEY_DLL_API
-    virtual int getReducedContinuousFunctionCode() const;
+    virtual bool operator!=(const escript::AbstractDomain& other) const {
+        return !(operator==(other));
+    }
 
     /**
        \brief
-       returns a function FunctionSpace code
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
     */
     RIPLEY_DLL_API
-    virtual int getFunctionCode() const;
+    void write(const std::string& filename) const;
 
     /**
        \brief
-       returns a function with reduced integration order FunctionSpace code
+       dumps the mesh to a file with the given name
+       \param filename The name of the output file
     */
     RIPLEY_DLL_API
-    virtual int getReducedFunctionCode() const;
-
-    /**
-       \brief
-       returns a function on boundary FunctionSpace code
-    */
-    RIPLEY_DLL_API
-    virtual int getFunctionOnBoundaryCode() const;
-
-    /**
-       \brief
-       returns a function on boundary with reduced integration order
-       FunctionSpace code
-    */
-    RIPLEY_DLL_API
-    virtual int getReducedFunctionOnBoundaryCode() const;
-
-    /**
-       \brief
-       return a FunctionOnContactZero code
-    */
-    RIPLEY_DLL_API
-    virtual int getFunctionOnContactZeroCode() const;
-
-    /**
-       \brief
-       returns a FunctionOnContactZero code with reduced integration order
-    */
-    RIPLEY_DLL_API
-    virtual int getReducedFunctionOnContactZeroCode() const;
-
-    /**
-       \brief
-       returns a FunctionOnContactOne code
-    */
-    RIPLEY_DLL_API
-    virtual int getFunctionOnContactOneCode() const;
-
-    /**
-       \brief
-       returns a FunctionOnContactOne code with reduced integration order
-    */
-    RIPLEY_DLL_API
-    virtual int getReducedFunctionOnContactOneCode() const;
-
-    /**
-       \brief
-       returns a Solution FunctionSpace code
-    */
-    RIPLEY_DLL_API
-    virtual int getSolutionCode() const;
-
-    /**
-       \brief
-       returns a ReducedSolution FunctionSpace code
-    */
-    RIPLEY_DLL_API
-    virtual int getReducedSolutionCode() const;
-
-    /**
-       \brief
-       returns a DiracDeltaFunctions FunctionSpace code
-    */
-    RIPLEY_DLL_API
-    virtual int getDiracDeltaFunctionsCode() const;
-
-    /**
-       \brief
-    */
-    typedef std::map<int, std::string> FunctionSpaceNamesMapType;
-
-    /**
-       \brief
-    */
-    RIPLEY_DLL_API
-    virtual int getDim() const;
-
-    /**
-       \brief
-        Returns a status indicator of the domain. The status identifier should be
-        unique over the lifetime of the object but may be updated if changes to
-        the domain happen, e.g. modifications to its geometry.
-    */
-    RIPLEY_DLL_API
-    virtual StatusType getStatus() const;
-
-    /**
-       \brief
-       returns the number of data points summed across all MPI processes
-    */
-    RIPLEY_DLL_API
-    virtual int getNumDataPointsGlobal() const;
+    void dump(const std::string& filename) const;
 
     /**
        \brief
        returns the number of data points per sample, and the number of samples
        as a pair.
-       \param functionSpaceCode The function space type
+       \param fsType The function space type
     */
     RIPLEY_DLL_API
-    virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
+    virtual std::pair<int,int> getDataShape(int fsType) const;
 
     /**
        \brief
-       copies the location of data points into arg. The domain of arg has to
-       match this.
+       returns the tag key for the given sample number
+       \param fsType The function space type
+       \param sampleNo The sample number
     */
     RIPLEY_DLL_API
-    virtual void setToX(escript::Data& arg) const;
+    int getTagFromSampleNo(int fsType, int sampleNo) const;
 
     /**
        \brief
@@ -316,7 +196,9 @@ public:
        \param tag tag key
     */
     RIPLEY_DLL_API
-    virtual void setTagMap(const std::string& name, int tag);
+    virtual void setTagMap(const std::string& name, int tag) {
+        m_tagMap[name] = tag;
+    }
 
     /**
        \brief
@@ -324,7 +206,9 @@ public:
        \param name tag name
     */
     RIPLEY_DLL_API
-    virtual int getTag(const std::string& name) const;
+    virtual int getTag(const std::string& name) const {
+        return m_tagMap.find(name)->second;
+    }
 
     /**
        \brief
@@ -332,7 +216,9 @@ public:
        \param name tag name to be checked
     */
     RIPLEY_DLL_API
-    virtual bool isValidTagName(const std::string& name) const;
+    virtual bool isValidTagName(const std::string& name) const {
+        return (m_tagMap.find(name)!=m_tagMap.end());
+    }
 
     /**
        \brief
@@ -343,7 +229,16 @@ public:
 
     /**
        \brief
-       assigns new location to the domain
+       returns the reference number of the given sample number
+       \param fsType The function space type
+    */
+    RIPLEY_DLL_API
+    const int* borrowSampleReferenceIDs(int fsType) const;
+
+    /**
+       \brief
+       assigns new location to the domain.
+       \note This is not supported in Ripley
     */
     RIPLEY_DLL_API
     virtual void setNewX(const escript::Data& arg);
@@ -354,17 +249,19 @@ public:
        have to be given on the same domain
     */
     RIPLEY_DLL_API
-    virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
+    virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
 
     /**
        \brief
+       returns true if data on fsType_source can be interpolated onto
+       fsType_target, false otherwise
     */
     RIPLEY_DLL_API
-    virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+    virtual bool probeInterpolationOnDomain(int fsType_source, int fsType_target) const;
 
     /**
        \brief
-       given a vector of FunctionSpace typecodes, passes back a code which all
+       given a vector of FunctionSpace type codes, passes back a code which all
        can be interpolated to
        \return true if result is valid, false if not
     */
@@ -382,156 +279,10 @@ public:
 
     /**
        \brief
-       determines whether interpolation from source to target is possible.
+       determines whether interpolation from source to target is possible
     */
     RIPLEY_DLL_API
-    virtual bool probeInterpolationACross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
-
-    /**
-       \brief
-       copies the surface normals at data points into out. The actual function
-       space to be considered is defined by out. out has to be defined on this.
-    */
-    RIPLEY_DLL_API
-    virtual void setToNormal(escript::Data& out) const;
-
-    /**
-       \brief
-       copies the size of samples into out. The actual function space to be
-       considered is defined by out. out has to be defined on this.
-    */
-    RIPLEY_DLL_API
-    virtual void setToSize(escript::Data& out) const;
-
-    /**
-       \brief
-       copies the gradient of arg into grad. The actual function space to be
-       considered for the gradient is defined by grad. arg and grad have to be
-       defined on this.
-    */
-    RIPLEY_DLL_API
-    virtual void setToGradient(escript::Data& grad,const escript::Data& arg) const;
-
-    /**
-       \brief
-       copies the integrals of the function defined by arg into integrals.
-       arg has to be defined on this.
-    */
-    RIPLEY_DLL_API
-    virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
-
-    /**
-       \brief
-       returns the identifier of the matrix type to be used for the global
-       stiffness matrix when a particular solver, package, perconditioner,
-       and symmetric matrix is used.
-       \param solver
-       \param preconditioner
-       \param package
-       \param symmetry
-    */
-    RIPLEY_DLL_API
-    virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
-
-    /**
-       \brief
-       returns the identifier of the transport problem type to be used when a
-       particular solver, perconditioner, package and symmetric matrix is used.
-       \param solver
-       \param preconditioner
-       \param package
-       \param symmetry
-    */
-    RIPLEY_DLL_API
-    virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
-
-    /**
-       \brief
-       returns true if data on this domain and a function space of type
-       functionSpaceCode has to be considered as cell centered data.
-    */
-    RIPLEY_DLL_API
-    virtual bool isCellOriented(int functionSpaceCode) const;
-
-    /**
-       \brief
-    */
-    RIPLEY_DLL_API
-    virtual bool ownSample(int fs_code, index_t id) const;
-
-    /**
-       \brief
-       adds a PDE onto the stiffness matrix mat and a rhs
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToSystem(
-                       escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-                       const escript::Data& A, const escript::Data& B, const escript::Data& C,
-                       const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-                       const escript::Data& d, const escript::Data& y,
-               const escript::Data& d_contact, const escript::Data& y_contact,
-                       const escript::Data& d_dirac, const escript::Data& y_dirac) const;
-
-
-    /**
-       \brief
-       adds a PDE onto the lumped stiffness matrix mat
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToLumpedSystem(
-                       escript::Data& mat,
-                       const escript::Data& D,
-                       const escript::Data& d,
-                       const escript::Data& d_dirac,
-                       const bool useHRZ) const;
-
-    /**
-       \brief
-       adds a PDE onto the stiffness matrix mat and a rhs
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToRHS(escript::Data& rhs,
-                       const escript::Data& X, const escript::Data& Y,
-                       const escript::Data& y, const escript::Data& y_contact,
-                       const escript::Data& y_dirac) const;
-
-    /**
-       \brief
-       adds a PDE onto a transport problem
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToTransportProblem(
-                       escript::AbstractTransportProblem& tp, escript::Data& source,
-                       const escript::Data& M,
-                       const escript::Data& A, const escript::Data& B, const escript::Data& C,const  escript::Data& D,
-                       const  escript::Data& X,const  escript::Data& Y,
-                       const escript::Data& d, const escript::Data& y,
-                       const escript::Data& d_contact,const escript::Data& y_contact,
-                       const escript::Data& d_dirac,const escript::Data& y_dirac) const;
-
-
-    /**
-       \brief
-       creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros
-    */
-    RIPLEY_DLL_API
-    escript::ASM_ptr newSystemMatrix(
-                        const int row_blocksize,
-                        const escript::FunctionSpace& row_functionspace,
-                        const int column_blocksize,
-                        const escript::FunctionSpace& column_functionspace,
-                        const int type) const;
-
-    /**
-     \brief
-      creates a TransportProblemAdapter
-    */
-    RIPLEY_DLL_API
-    escript::ATP_ptr newTransportProblem(
-                        const bool useBackwardEuler,
-                        const int blocksize,
-                        const escript::FunctionSpace& functionspace,
-                        const int type) const;
+    virtual bool probeInterpolationACross(int, const escript::AbstractDomain&, int) const;
 
     /**
        \brief
@@ -554,177 +305,335 @@ public:
     virtual escript::Data getSize() const;
 
     /**
-       \brief equality operator
+       \brief
+       copies the location of data points into arg. The domain of arg has to
+       match this domain.
     */
     RIPLEY_DLL_API
-    virtual bool operator==(const escript::AbstractDomain& other) const;
-
-    /**
-       \brief unequality operator
-    */
-    RIPLEY_DLL_API
-    virtual bool operator!=(const escript::AbstractDomain& other) const;
+    virtual void setToX(escript::Data& arg) const;
 
     /**
        \brief
-       assigns new tag newTag to all samples of functionspace with a positive
-       value of mask for any its sample point
+       copies the surface normals at data points into out. The actual function
+       space to be considered is defined by out. out has to be defined on this
+       domain.
     */
     RIPLEY_DLL_API
-    virtual void setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const;
+    virtual void setToNormal(escript::Data& out) const;
 
     /**
        \brief
-       returns the number of tags in use
+       copies the size of samples into out. The actual function space to be
+       considered is defined by out. out has to be defined on this domain.
     */
     RIPLEY_DLL_API
-    virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
+    virtual void setToSize(escript::Data& out) const;
 
     /**
        \brief
-       returns a pointer to the list of tags in use
+       copies the gradient of arg into grad. The actual function space to be
+       considered for the gradient is defined by grad. arg and grad have to be
+       defined on this domain.
     */
     RIPLEY_DLL_API
-    virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
+    virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
 
     /**
        \brief
-       checks if this domain allows tags for the specified functionSpaceCode
+       returns true if this rank owns the sample id on given function space
     */
     RIPLEY_DLL_API
-    virtual
-    bool canTag(int functionSpaceCode) const;
+    virtual bool ownSample(int fsType, index_t id) const;
+
+    /**
+       \brief
+       returns the number of data points summed across all MPI processes
+    */
+    RIPLEY_DLL_API
+    virtual int getNumDataPointsGlobal() const;
+
+    /**
+       \brief
+       assigns new tag newTag to all samples of given function space with a
+       positive value of mask for any of its sample points
+    */
+    RIPLEY_DLL_API
+    virtual void setTags(const int fsType, const int newTag, const escript::Data& mask) const;
+
+    /**
+       \brief
+       returns true if data on this domain and given function space type has
+       to be considered as cell centered data
+    */
+    RIPLEY_DLL_API
+    virtual bool isCellOriented(int fsType) const;
+
+    /**
+       \brief
+       returns a status indicator of the domain. The status identifier should
+       be unique over the lifetime of the object but may be updated if changes
+       to the domain happen, e.g. modifications to its geometry.
+    */
+    RIPLEY_DLL_API
+    virtual StatusType getStatus() const { return m_status; }
+
+    /**
+       \brief
+       returns the number of tags in use for a function space type
+    */
+    RIPLEY_DLL_API
+    virtual int getNumberOfTagsInUse(int fsType) const;
+
+    /**
+       \brief
+       returns a pointer to the list of tags in use for a function space type
+    */
+    RIPLEY_DLL_API
+    virtual const int* borrowListOfTagsInUse(int fsType) const;
+
+    /**
+       \brief
+       checks if this domain allows tags for the specified function space type
+    */
+    RIPLEY_DLL_API
+    virtual bool canTag(int fsType) const;
 
     /**
        \brief
        returns the approximation order used for a function space
     */
     RIPLEY_DLL_API
-    virtual
-    int getApproximationOrder(const int functionSpaceCode) const { return 1; }
+    virtual int getApproximationOrder(const int fsType) const { return 1; }
 
     /**
        \brief
        returns true if this domain supports contact elements, false otherwise
     */
     RIPLEY_DLL_API
-    bool supportsContactElements() const { return false; }
+    virtual bool supportsContactElements() const { return false; }
 
     /**
        \brief
-       prepares the mesh for further calculations
+       returns a continuous FunctionSpace code
     */
-    void prepare(bool optimize);
+    RIPLEY_DLL_API
+    virtual int getContinuousFunctionCode() const { return Nodes; }
 
     /**
        \brief
-       creates node/DOF mappings
+       returns a continuous on reduced order nodes FunctionSpace code
     */
-    void createMappings(const IndexVector &dofDistribution,
-                        const IndexVector &nodeDistribution);
+    RIPLEY_DLL_API
+    virtual int getReducedContinuousFunctionCode() const { return ReducedNodes; }
 
-    NodeFile_ptr getNodes() const { return m_nodes; }
-    ElementFile_ptr getElements() const { return m_elements; }
-    ElementFile_ptr getFaceElements() const { return m_faceElements; }
-    ElementFile_ptr getPoints() const { return m_points; }
+    /**
+       \brief
+       returns a function FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getFunctionCode() const { return Elements; }
 
-    void setNodes(NodeFile_ptr file) { m_nodes = file; }
-    void setElements(ElementFile_ptr file) { m_elements = file; }
-    void setFaceElements(ElementFile_ptr file) { m_faceElements = file; }
-    void setPoints(ElementFile_ptr file) { m_points = file; }
+    /**
+       \brief
+       returns a function with reduced integration order FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getReducedFunctionCode() const { return ReducedElements; }
+
+    /**
+       \brief
+       returns a function on boundary FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getFunctionOnBoundaryCode() const { return FaceElements; }
+
+    /**
+       \brief
+       returns a function on boundary with reduced integration order
+       FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getReducedFunctionOnBoundaryCode() const { return ReducedFaceElements; }
+
+    /**
+       \brief
+       return a FunctionOnContactZero code
+    */
+    RIPLEY_DLL_API
+    virtual int getFunctionOnContactZeroCode() const {
+        throw RipleyException("Ripley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactZero code with reduced integration order
+    */
+    RIPLEY_DLL_API
+    virtual int getReducedFunctionOnContactZeroCode() const {
+        throw RipleyException("Ripley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactOne code
+    */
+    RIPLEY_DLL_API
+    virtual int getFunctionOnContactOneCode() const {
+        throw RipleyException("Ripley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactOne code with reduced integration order
+    */
+    RIPLEY_DLL_API
+    virtual int getReducedFunctionOnContactOneCode() const {
+        throw RipleyException("Ripley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a Solution FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getSolutionCode() const { return DegreesOfFreedom; }
+
+    /**
+       \brief
+       returns a ReducedSolution FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getReducedSolutionCode() const { return ReducedDegreesOfFreedom; }
+
+    /**
+       \brief
+       returns a DiracDeltaFunctions FunctionSpace code
+    */
+    RIPLEY_DLL_API
+    virtual int getDiracDeltaFunctionsCode() const { return Points; }
+
+    /**
+       \brief
+       returns the identifier of the matrix type to be used for the global
+       stiffness matrix when a particular solver, package, perconditioner,
+       and symmetric matrix is used
+       \param solver
+       \param preconditioner
+       \param package
+       \param symmetry
+    */
+    RIPLEY_DLL_API
+    virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+
+    /**
+       \brief
+       returns the identifier of the transport problem type to be used when a
+       particular solver, perconditioner, package and symmetric matrix is used
+       \param solver
+       \param preconditioner
+       \param package
+       \param symmetry
+    */
+    RIPLEY_DLL_API
+    virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+
+    /**
+       \brief
+       copies the integrals of the function defined by arg into integrals.
+       arg has to be defined on this domain.
+    */
+    RIPLEY_DLL_API
+    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
+
+    /**
+       \brief
+       adds a PDE onto the stiffness matrix mat and rhs
+    */
+    RIPLEY_DLL_API
+    virtual void addPDEToSystem(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y,
+            const escript::Data& d_contact, const escript::Data& y_contact,
+            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+
+
+    /**
+       \brief
+       adds a PDE onto the lumped stiffness matrix mat
+    */
+    RIPLEY_DLL_API
+    virtual void addPDEToLumpedSystem(escript::Data& mat,
+            const escript::Data& D, const escript::Data& d,
+            const escript::Data& d_dirac, const bool useHRZ) const;
+
+    /**
+       \brief
+       adds a PDE onto rhs
+    */
+    RIPLEY_DLL_API
+    virtual void addPDEToRHS(escript::Data& rhs, const escript::Data& X,
+            const escript::Data& Y, const escript::Data& y,
+            const escript::Data& y_contact, const escript::Data& y_dirac) const;
+
+    /**
+       \brief
+       adds a PDE onto a transport problem
+    */
+    RIPLEY_DLL_API
+    virtual void addPDEToTransportProblem(escript::AbstractTransportProblem& tp,
+            escript::Data& source, const escript::Data& M,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y,
+            const escript::Data& d_contact, const escript::Data& y_contact,
+            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+
+
+    /**
+       \brief
+       creates a stiffness matrix and initializes it with zeros
+    */
+    RIPLEY_DLL_API
+    virtual escript::ASM_ptr newSystemMatrix(const int row_blocksize,
+            const escript::FunctionSpace& row_functionspace,
+            const int column_blocksize,
+            const escript::FunctionSpace& column_functionspace, const int type) const;
+
+    /**
+     \brief
+      creates a transport problem
+    */
+    RIPLEY_DLL_API
+    virtual escript::ATP_ptr newTransportProblem(const bool useBackwardEuler,
+            const int blocksize, const escript::FunctionSpace& functionspace,
+            const int type) const;
+
+    /**
+       \brief
+       writes information about the mesh to standard output
+       \param full whether to print additional data
+    */
+    RIPLEY_DLL_API
+    virtual void Print_Mesh_Info(const bool full=false) const;
 
 protected:
-    /**
-       \brief
-       Redistributes elements to minimize communication during assemblage.
-    */
-    void optimizeElementOrdering(void);
+    /// returns the number of nodes per MPI rank
+    virtual dim_t getNumNodes() const;
+    /// returns the number of elements per MPI rank
+    virtual dim_t getNumElements() const;
+    /// returns the number of face elements on current MPI rank
+    virtual dim_t getNumFaceElements() const;
+    virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
+            bool reducedColOrder) const;
 
-    /**
-       \brief
-       Optimizes the labeling of the DOFs on each processor.
-    */
-    void optimizeDOFLabeling(const IndexVector &distribution);
-
-    /**
-       \brief
-       Resets the tags in the node file and all element files.
-    */
-    void updateTagsInUse(void);
-
-    /**
-       \brief
-       Redistributes the Nodes and Elements including overlap according to
-       the DOF_distribution. It will create an element coloring but will not
-       create any mappings.
-    */
-    void distributeByRankOfDOF(const IndexVector &dofDistribution);
-
-    /**
-       \brief
-       Tries to reduce the coloring for all element files.
-    */
-    void createColoring(const IndexVector &node_localDOF_map);
-
-    /**
-       \brief
-       At input the element nodes refer to the numbering defined by the global
-       Id assigned to the nodes in the NodeFile. It is also not ensured that
-       all nodes referred by an element are actually available on the process.
-       At the output, a local node labeling is used and all nodes are
-       available. In particular the numbering of the element nodes is between
-       0 and NodeFile->numNodes. The method does not create a distribution of
-       the degrees of freedom.
-    */
-    void resolveNodeIds(void);
-
-    /**
-       \brief
-       Assigns new node reference numbers to elements.
-       If k is the old node, the new node is newNode[k-offset].
-    */
-    void relabelElementNodes(const IndexVector &newNode, index_t offset);
-
-    /**
-      \brief
-      optimizes the distribution of DOFs across processors using ParMETIS.
-      On return a new distribution is given and the globalDOF are relabeled
-      accordingly but the mesh has not been redistributed yet.
-    */
-    void optimizeDOFDistribution(RankVector &distribution);
-
-    /**
-       \brief
-       Marks the used nodes with offset.
-    */
-    void markNodes(IndexVector &mask, index_t offset);
-
-    /**
-       \brief
-       Returns a reference to the matrix pattern.
-    */
-    Paso_SystemMatrixPattern *getPattern(bool reduce_row_order, bool reduce_col_order) const;
-
-    /**
-       \brief
-       Creates a new matrix pattern.
-    */
-    Paso_SystemMatrixPattern *makePattern(bool reduce_row_order, bool reduce_col_order) const;
-
-private:
-    std::string m_name;
+    dim_t m_numDim;
+    StatusType m_status;
     Esys_MPIInfo *m_mpiInfo;
-    NodeFile_ptr m_nodes;
-    ElementFile_ptr m_elements;
-    ElementFile_ptr m_faceElements;
-    ElementFile_ptr m_points;
     TagMap m_tagMap;
-    Paso_SystemMatrixPattern *m_fullFullPattern;
-    Paso_SystemMatrixPattern *m_fullReducedPattern;
-    Paso_SystemMatrixPattern *m_reducedFullPattern;
-    Paso_SystemMatrixPattern *m_reducedReducedPattern;
-
-    static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 };
 
 } // end of namespace ripley

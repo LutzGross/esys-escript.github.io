@@ -17,7 +17,6 @@
 #ifndef VISIT_PLUGIN
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
-#include <ripley/RipleyDomain.h>
 #elif not defined(ABS)
 #define ABS(X) ((X)>0?(X):-(X))
 #endif
@@ -275,38 +274,6 @@ bool FinleyElements::initFromFinley(const Finley_ElementFile* finleyFile)
                 delete[] quadNodes[i];
             quadNodes.clear();
         }
-
-        buildMeshes();
-    }
-    return true;
-
-#else // VISIT_PLUGIN
-    return false;
-#endif
-}
-
-//
-//
-//
-bool FinleyElements::initFromRipley(const ripley::ElementFile_ptr ripleyFile)
-{
-#ifndef VISIT_PLUGIN
-    numElements = ripleyFile->getNumElements();
-
-    if (numElements > 0) {
-        nodesPerElement = ripleyFile->getNumNodes();
-
-        nodes = ripleyFile->getNodes();
-        color = ripleyFile->getColorVector();
-        ID = ripleyFile->getIdVector();
-        owner = ripleyFile->getOwnerVector();
-        tag = ripleyFile->getTagVector();
-
-        FinleyElementInfo f = getRipleyTypeInfo(ripleyFile->getTypeId());
-        type = f.elementType;
-        elementFactor = f.elementFactor;
-        if (elementFactor > 1 || f.reducedElementSize != nodesPerElement)
-            buildReducedElements(f);
 
         buildMeshes();
     }
@@ -1008,51 +975,6 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
 
         default:
             cerr << "WARNING: Unknown Finley Type " << typeId << endl;
-            break;
-    }
-    return ret;
-}
-
-//
-//
-//
-FinleyElementInfo FinleyElements::getRipleyTypeInfo(ripley::ElementTypeId typeId)
-{
-    FinleyElementInfo ret;
-    ret.multiCellIndices = NULL;
-    ret.elementFactor = 1;
-    ret.useQuadNodes = false;
-    ret.quadDim = 0;
-
-    switch (typeId) {
-        case ripley::Line2Face://untested
-        case ripley::Point1://untested
-            cerr << "WARNING: Ripley type " <<typeId<< " is untested!" << endl;
-            ret.elementSize = 1;
-            ret.elementType = ZONETYPE_POLYGON;
-            break;
-
-        case ripley::Rec4Face://untested
-            cerr << "WARNING: Ripley type " <<typeId<< " is untested!" << endl;
-        case ripley::Line2:
-            ret.elementSize = ret.reducedElementSize = 2;
-            ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
-            break;
-
-        case ripley::Hex8Face://untested
-            cerr << "WARNING: Ripley type " <<typeId<< " is untested!" << endl;
-        case ripley::Rec4:
-            ret.elementSize = ret.reducedElementSize = 4;
-            ret.elementType = ret.reducedElementType = ZONETYPE_QUAD;
-            break;
-
-        case ripley::Hex8:
-            ret.elementSize = ret.reducedElementSize = 8;
-            ret.elementType = ret.reducedElementType = ZONETYPE_HEX;
-            break;
-
-        default:
-            cerr << "WARNING: Unknown Ripley Type " << typeId << endl;
             break;
     }
     return ret;
