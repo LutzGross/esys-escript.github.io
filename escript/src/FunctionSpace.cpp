@@ -218,6 +218,8 @@ FunctionSpace::operator!=(const FunctionSpace& other) const
   return !(operator==(other));
 }
 
+
+
 escript::Data
 FunctionSpace::getX() const 
 {

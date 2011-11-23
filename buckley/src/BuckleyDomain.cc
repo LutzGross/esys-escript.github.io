@@ -31,6 +31,31 @@ namespace
     
     const int ctsfn=initialspace;
     const int discfn=2;
+    
+    
+    
+    const unsigned int NUM_QUAD=8;	// number of quadrature points required
+
+
+escript::DataTypes::ShapeType make3()
+{
+    escript::DataTypes::ShapeType s;
+    s.push_back(3);
+    return s;
+}
+
+escript::DataTypes::ShapeType make3x3()
+{
+    escript::DataTypes::ShapeType s;
+    s.push_back(3);
+    s.push_back(3);
+    return s;
+}
+
+
+    const escript::DataTypes::ShapeType VECTOR3=make3();
+    const escript::DataTypes::ShapeType MAT3X3=make3x3();
+
 }
 
 
@@ -226,13 +251,13 @@ void BuckleyDomain::setToX(escript::Data& arg) const
  
 	  // So this section is likely to be horribly slow
 	  // Once the system is working unroll this
-	  for (unsigned int j=0;j<8;++j)
+	  for (unsigned int j=0;j<NUM_QUAD;++j)
 	  {
 	      double x, y, z;
 	      oc.quadCoords(j,x,y,z);
-	      vec[i*24+3*j]=x;
-	      vec[i*24+3*j+1]=y;
-	      vec[i*24+3*j+2]=z;
+	      vec[i*NUM_QUAD*3+3*j]=x;
+	      vec[i*NUM_QUAD*3+3*j+1]=y;
+	      vec[i*NUM_QUAD*3+3*j+2]=z;
 	  }
 	
       }      
@@ -418,7 +443,7 @@ std::pair<int,int> BuckleyDomain::getDataShape(int functionSpaceCode) const
    switch (functionSpaceCode)
    {
      case ctsfn: return std::pair<int,int>(1,numpts);  
-     case discfn: return std::pair<int, int>(8,ot.leafCount());
+     case discfn: return std::pair<int, int>(NUM_QUAD,ot.leafCount());
    }
    throw BuckleyException("Not Implemented");  
   
@@ -489,4 +514,65 @@ std::string BuckleyDomain::functionSpaceTypeAsString(int functionSpaceType) cons
     case discfn: return "DiscontinuousFunction";
     default: return "Invalid";  
     };
+}
+
+
+void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) const
+{
+    // sanity checks
+    if (!grad.getFunctionSpace().upToDate() ||  !arg.getFunctionSpace().upToDate())
+    {
+        throw BuckleyException("Stale functionspaces passed to setToGradient");
+    }
+    if ((grad.getFunctionSpace().getDomain().get()!=this) || (arg.getFunctionSpace().getDomain().get()!=this))
+    {
+        throw BuckleyException("Domain mismatch in setToGradient");
+    }
+    if ((grad.getFunctionSpace().getTypeCode()==discfn) || (arg.getFunctionSpace().getTypeCode()==ctsfn))
+    {
+        throw BuckleyException("Invalid functionspaces passed to setToGradient");  
+    }
+    if ((grad.getDataPointShape()!=VECTOR3) || (arg.getDataPointShape()!=MAT3X3))
+    {
+        throw BuckleyException("Expected shapes for grad inputs are (3,) and (3,3)");
+    }
+    if (modified)
+    {
+        processMods();
+    }
+    double* dest=grad.getSampleDataRW(0);
+    for (int i=0;i<ot.leafCount();++i)
+    {
+        double quadpts[NUM_QUAD][3];
+	for (int j=0;j<NUM_QUAD;++j)
+	{
+	    leaves[i]->quadCoords(j, quadpts[j][0], quadpts[j][1], quadpts[j][2]);
+	}
+        double values[8][3];
+	const LeafInfo* li=leaves[i]->leafinfo;
+	const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(i);
+	for (int j=0;j<8;++j)
+	{
+	    // now we need to collate the values at the corner points
+	    if (li->pmap[j]<2)	// hanging node so we will need to interpolate
+	    {
+	        throw BuckleyException("Haven't got this far yet");
+	      
+	    }
+	    else
+	    {
+	        values[j][0]=src[0];
+		values[j][1]=src[1];
+	        values[j][2]=src[2];
+		throw BuckleyException("Haven't got this far yet");
+		// sort out that const_cast situation.
+		// Why isn't getSampleDataRO  const?
+		// Do I need to be more agressive with mutables?
+		// Finley dodges this issue by asking for DataC and using that --- which is a constant operation
+	    }
+	}
+      
+    }
+    
+    
 }

@@ -58,18 +58,20 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    ESCRIPT_DLL_API
    const_Domain_ptr getPtr() const; 
 
-   // structure holding values for X, size and normal
-   typedef int StatusType;
-   struct ValueBuffer
-   {
-       StatusType m_status;
-       boost::shared_ptr<Data> m_data;
-   };
-   typedef struct ValueBuffer ValueBuffer;
 
-   // 
-   // map from function space type code to value buffer
-   typedef std::map<int, ValueBuffer> BufferMapType;
+   typedef int StatusType;	// Note: status is not the same thing as generation.
+   
+//    // structure holding values for X, size and normal   
+//    struct ValueBuffer
+//    {
+//        StatusType m_status;
+//        boost::shared_ptr<Data> m_data;
+//    };
+//    typedef struct ValueBuffer ValueBuffer;
+// 
+//    // 
+//    // map from function space type code to value buffer
+//    typedef std::map<int, ValueBuffer> BufferMapType;
 
 
   /**
@@ -417,11 +419,14 @@ Note: This is _not_ equivalent to weak_ptr::lock.
 
   /**
      \brief
-      Returns a status indicator of the domain. The status identifier should be unique over 
-      the live time if the object but may be updated if changes to the domain happen, e.g. 
-      modifications to its geometry. 
+      Returns a status indicator of the domain. This value should change when the domain is modified in a 
+      way which does not invalidate existing uses of the domain.
 
      This has to be implemented by the actual Domain adapter.
+     \warning This value is only to be used to indicate changes which do not invalidate existing Data objects.
+     for example moving points would be a change to status. Adding / removing elements would change the expected
+     layout of Data objects and hence invalidate existing ones.  This second type of change should be indicated 
+     by a change in generation.
   */
   ESCRIPT_DLL_API
   virtual StatusType getStatus() const;
@@ -460,6 +465,11 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    ESCRIPT_DLL_API
    virtual bool supportsContactElements() const;
    
+   /**
+   \brief generation indicates when changes to the domain have invalidated any existing Data.
+   
+   \note Changes which preserve node/element ordering should be indicated via a change in status instead.
+   */
    ESCRIPT_DLL_API
    virtual unsigned getGeneration() const;
 
@@ -467,14 +477,14 @@ Note: This is _not_ equivalent to weak_ptr::lock.
 
  private:
 
-   // buffer for coordinates used by function spaces
-   BufferMapType m_x_buffer;
-
-   // buffer for normal vectors used by function spaces
-   BufferMapType m_normal_buffer;
-
-   // buffer for normal element size used by function spaces
-   BufferMapType m_size_buffer;
+//    // buffer for coordinates used by function spaces
+//    BufferMapType m_x_buffer;
+// 
+//    // buffer for normal vectors used by function spaces
+//    BufferMapType m_normal_buffer;
+// 
+//    // buffer for normal element size used by function spaces
+//    BufferMapType m_size_buffer;
 
 };
 
