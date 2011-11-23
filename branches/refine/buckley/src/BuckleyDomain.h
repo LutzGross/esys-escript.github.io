@@ -326,7 +326,10 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   BUCKLEY_DLL_API
   virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;  
   
-
+  BUCKLEY_DLL_API
+  void setToGradient(escript::Data& grad, const escript::Data& arg) const;  
+  
+  
  protected:
 
  private:

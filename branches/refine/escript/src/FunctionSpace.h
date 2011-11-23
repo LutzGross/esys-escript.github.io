@@ -331,6 +331,14 @@ public:
   bool
   probeInterpolation(const FunctionSpace& other) const;
 
+  /**
+     \brief Does this functionspace reference the most recent generation of its domain?
+  */
+  ESCRIPT_DLL_API
+  bool
+  upToDate() const;
+  
+  
  protected:
 
  private:
@@ -358,6 +366,12 @@ public:
   unsigned m_generation;
 
 };
+
+inline bool FunctionSpace::upToDate() const
+{
+    return m_generation==m_domain->getGeneration();    
+}
+
 
 } // end of namespace
 
