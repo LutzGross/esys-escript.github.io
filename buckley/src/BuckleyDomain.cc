@@ -517,6 +517,68 @@ std::string BuckleyDomain::functionSpaceTypeAsString(int functionSpaceType) cons
 }
 
 
+// interpolate an element from ctsfn to discfn
+// qvalues and values2 must be big enough to hold a datapoint for each quadrature point
+// the results end up in the values2 array
+void BuckleyDomain::interpolateElementFromCtsToDisc(const LeafInfo* li, size_t ptsize, 
+						    double* qvalues, double* values2) const
+{
+    // qvalues does double duty.
+    // first it is used to hold the values of the corner points
+
+    // we will do this with a sequence of interpolations    
+    // first allong the positive x-lines [0->1], [3->2], [4->5], [6->7]
+    
+    for (size_t k=0;k<ptsize;++k)
+    {
+        values2[k]=qvalues[k]+0.25*(qvalues[ptsize+k]-qvalues[k]);	//0
+        values2[ptsize+k]=qvalues[k]+0.75*(qvalues[ptsize+k]-qvalues[k]); //1
+      
+        values2[3*ptsize+k]=qvalues[3*ptsize+k]+0.25*(qvalues[2*ptsize+k]-qvalues[3*ptsize+k]);	//3
+        values2[2*ptsize+k]=qvalues[3*ptsize+k]+0.75*(qvalues[2*ptsize+k]-qvalues[3*ptsize+k]); //2 
+	
+        values2[4*ptsize+k]=qvalues[4*ptsize+k]+0.25*(qvalues[5*ptsize+k]-qvalues[4*ptsize+k]);	//4
+        values2[5*ptsize+k]=qvalues[4*ptsize+k]+0.75*(qvalues[5*ptsize+k]-qvalues[4*ptsize+k]); //5
+      
+        values2[7*ptsize+k]=qvalues[7*ptsize+k]+0.25*(qvalues[6*ptsize+k]-qvalues[7*ptsize+k]);	//7
+        values2[6*ptsize+k]=qvalues[7*ptsize+k]+0.75*(qvalues[6*ptsize+k]-qvalues[7*ptsize+k]); //6     		
+    }
+    
+    // now along the postive y-lines from values2 to qvalues
+    for (size_t k=0;k<ptsize;++k)
+    {
+        qvalues[k]=values2[k]+0.25*(values2[3*ptsize+k]-values2[k]);	//0
+        qvalues[3*ptsize+k]=values2[k]+0.75*(values2[3*ptsize+k]-values2[k]); //3
+      
+        qvalues[1*ptsize+k]=values2[1*ptsize+k]+0.25*(values2[2*ptsize+k]-values2[1*ptsize+k]);	//1
+        qvalues[2*ptsize+k]=values2[1*ptsize+k]+0.75*(values2[2*ptsize+k]-values2[1*ptsize+k]); //2 
+	
+        qvalues[4*ptsize+k]=values2[4*ptsize+k]+0.25*(values2[7*ptsize+k]-values2[4*ptsize+k]);	//4
+        qvalues[7*ptsize+k]=values2[4*ptsize+k]+0.75*(values2[7*ptsize+k]-values2[4*ptsize+k]); //7
+      
+        qvalues[5*ptsize+k]=values2[5*ptsize+k]+0.25*(values2[6*ptsize+k]-values2[5*ptsize+k]);	//5
+        qvalues[6*ptsize+k]=values2[5*ptsize+k]+0.75*(values2[6*ptsize+k]-values2[5*ptsize+k]); //6     		
+    }    
+    
+    // now the z-order
+    for (size_t k=0;k<ptsize;++k)
+    {
+        values2[k]=qvalues[k]+0.25*(qvalues[4*ptsize+k]-qvalues[k]);	//0
+        values2[4*ptsize+k]=qvalues[k]+0.75*(qvalues[4*ptsize+k]-qvalues[k]); //4
+      
+        values2[1*ptsize+k]=qvalues[1*ptsize+k]+0.25*(qvalues[5*ptsize+k]-qvalues[1*ptsize+k]);	//1
+        values2[5*ptsize+k]=qvalues[1*ptsize+k]+0.75*(qvalues[5*ptsize+k]-qvalues[1*ptsize+k]); //5 
+	
+        values2[2*ptsize+k]=qvalues[2*ptsize+k]+0.25*(qvalues[6*ptsize+k]-qvalues[2*ptsize+k]);	//2
+        values2[6*ptsize+k]=qvalues[2*ptsize+k]+0.75*(qvalues[6*ptsize+k]-qvalues[2*ptsize+k]); //6
+      
+        values2[3*ptsize+k]=qvalues[3*ptsize+k]+0.25*(qvalues[7*ptsize+k]-qvalues[3*ptsize+k]);	//3
+        values2[7*ptsize+k]=qvalues[3*ptsize+k]+0.75*(qvalues[7*ptsize+k]-qvalues[3*ptsize+k]); //7     		
+    }        
+       
+}
+
+
 void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) const
 {
     // sanity checks
@@ -540,6 +602,10 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
     {
         processMods();
     }
+    
+    
+    throw BuckleyException("Yeah this doesn't work right now");
+    
     double* dest=grad.getSampleDataRW(0);
     for (int i=0;i<ot.leafCount();++i)
     {
@@ -548,7 +614,9 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 	{
 	    leaves[i]->quadCoords(j, quadpts[j][0], quadpts[j][1], quadpts[j][2]);
 	}
-        double values[8][3];
+        double values[8*3];	// the values of the corner points of this cell
+        double values2[8*3];
+	double valuetemp[8];
 	const LeafInfo* li=leaves[i]->leafinfo;
 	const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(i);
 	for (int j=0;j<8;++j)
@@ -561,17 +629,42 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 	    }
 	    else
 	    {
-	        values[j][0]=src[0];
-		values[j][1]=src[1];
-	        values[j][2]=src[2];
-		throw BuckleyException("Haven't got this far yet");
+	        values[j*3+0]=src[j*3+0];
+		values[j*3+1]=src[j*3+1];
+	        values[j*3+2]=src[j*3+2];
 		// sort out that const_cast situation.
 		// Why isn't getSampleDataRO  const?
 		// Do I need to be more agressive with mutables?
 		// Finley dodges this issue by asking for DataC and using that --- which is a constant operation
 	    }
 	}
-      
+	
+	valuetemp[0]=values[0];
+	valuetemp[1]=values[1];
+	valuetemp[2]=values[2];
+	
+	
+	// now we have all the values we can interpolate
+        
+	interpolateElementFromCtsToDisc(li, 8*3, values, values2);
+        // ok so now values2 has the vectors for each of the points in it
+	// first we want to translate so that the value from point_0 is at the origin	
+	for (int j=0;j<8;++j)
+	{
+	    values2[j*3]-=valuetemp[0];
+	    values2[j*3+1]-=valuetemp[1];
+	    values2[j*3+1]-=valuetemp[2];  
+	}
+	// still need to compute each matrix
+
+        double dx=leaves[i]->sides[0]/4;
+	double dy=leaves[i]->sides[1]/4;
+	double dz=leaves[i]->sides[2]/4;
+
+	throw BuckleyException("This still does not poopulate the arrays corresponding to each point.");
+	
+
+	dest+=3*3*8;		// move on to next element
     }
     
     
