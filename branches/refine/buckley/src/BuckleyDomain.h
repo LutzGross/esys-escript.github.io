@@ -344,6 +344,10 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     unsigned m_generation;
 
     
+
+   void interpolateElementFromCtsToDisc(const LeafInfo* li, size_t ptsize, 
+						    double* qvalues, double* values2) const;
+    
 };
 
 } // end of namespace
