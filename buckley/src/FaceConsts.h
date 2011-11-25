@@ -62,6 +62,24 @@ bool canhang[8][8] = {{false, true, true, true, true, true, false, true},	// 0
 		      {false, true, true, true, true, true, false, true},	// 6
 		      {true, false, true, true, true, true, true, false}	// 7
 		      };
+
+/*		      
+#define CANTHANG 0, 0, 0
+// if the nth node of the c'th child of its parent hangs then use child [c][n][0] of the current cell and the [c][n][2]'th node
+// of the [c][n][1]'th child of the parent to interpolate its values
+unsigned short hangskip[8][8][3] = {{{CANTHANG}, {0, 1, 1}, {0, 2, 2}, {0, 3, 3}, {0, 4, 4}, {0, 5, 5}, {CANTHANG}, {0, 7, 7}},	//0	   
+				    {1, 0, 0}, {CANTHANG}, {1, 2, 2}, {1, 3, 3}, {1, 4, 4}, {1, 5, 5}, {1, 6, 6}, {CANTHANG}},    //1
+				    {2, 0, 0}, {2, 1, 1}, {CANTHANG}, {2, 3, 3}, {CANTHANG}, {2, 5, 5}, {2, 6, 6}, {2, 7, 7}},    //2
+				    {3, 0, 0}, {3, 1, 1}, {3, 2, 2}, {CANTHANG}, {3, 4, 4}, {CANTHANG}, {3, 6, 6}, {3, 7, 7}},    //3
+				    {4, 0, 0}, {4, 1, 1}, {CANTHANG}, {4, 3, 3}, {CANTHANG}, {4, 5, 5}, {4, 6, 6}, {4, 7, 7}},	  //4
+				    {5, 0, 0}, {5, 1, 1}, {5, 2, 2}, {CANTHANG}, {5, 4, 4}, {CANTHANG}, {5, 6, 6}, {5, 7, 7}},	//5
+				    {CANTHANG}, {6, 1, 1}, {6, 2, 2}, {6, 3, 3}, {6, 4, 4}, {6, 5, 5}, {CANTHANG}, {6, 7, 7}},	//6
+				    {7, 0, 0}, {CANTHANG}, {7, 2, 2}, {7, 3, 3}, {7, 4, 4}, {7, 5, 5}, {7, 6, 6}, {CANTHANG}}};
+#undef CANTHANG
+
+// won't explicitly use this array since there is a simple pattern here
+
+*/
 }	// end of namespace
 
 // This really should be typed as unkid --- will fix that once I've untangled what goes where
