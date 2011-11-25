@@ -615,14 +615,34 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
         double values[8*3];	// the values of the corner points of this cell
         double values2[8*3];
 	double valuetemp[8];
+	double safepoint[3];
 	const LeafInfo* li=leaves[i]->leafinfo;
+	int whichchild=-1;	// which child of our parent are we
 	for (int j=0;j<8;++j)
 	{
 	    // now we need to collate the values at the corner points
 	    if (li->pmap[j]<2)	// hanging node so we will need to interpolate
 	    {
-	        throw BuckleyException("Haven't got this far yet");
-	      
+	        // We know that if a node is hanging, then there must be at least one face
+		// touching that edge which is less refined.
+		// This means that nothing else touching this edge can be further refined.
+		// based on this, if we know which child we are, then we can find the opposite
+		// corner which we can use to interpolate with
+		
+		// to understand this code please see the hangskip table in FaceConsts.h
+		if (whichchild==-1)   // we don't know which child we are yet
+		{
+		    whichchild=leaves[i]->whichChild();
+		    const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(li->pmap[whichchild]-2);
+		    safepoint[0]=src[0];	// any hanging nodes in this cell can use the same
+		    safepoint[1]=src[1];	// safepoint as the start of interpolation
+		    safepoint[2]=src[2];
+		}
+		// The other end of the interpolation line matches the number of the hanging node
+		const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(leaves[i]->parent->kids[j]->leafinfo->pmap[j]-2);
+		values[j*3+0]=(safepoint[0]+src[0])/2;
+		values[j*3+1]=(safepoint[1]+src[1])/2;
+		values[j*3+2]=(safepoint[2]+src[2])/2;
 	    }
 	    else
 	    {

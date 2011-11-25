@@ -45,6 +45,9 @@ public:
       bool whohas(LeafInfo* li, bool fromroot=true);
       
       void gmshDump();
+      
+      
+      int whichChild() const;
 //private:
       void upSplitPoint(double x, double y, double z, unsigned d);
       void upCollPoint(double x, double y, double z, unsigned d);      
