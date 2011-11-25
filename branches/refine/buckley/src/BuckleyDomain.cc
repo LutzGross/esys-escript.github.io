@@ -18,7 +18,7 @@
 #include <escript/FunctionSpace.h>
 #include <escript/FunctionSpaceFactory.h>
 using namespace buckley;
-
+using namespace std;
 
 
 namespace
@@ -603,9 +603,7 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
         processMods();
     }
     
-    
-    throw BuckleyException("Yeah this doesn't work right now");
-    
+       
     double* dest=grad.getSampleDataRW(0);
     for (int i=0;i<ot.leafCount();++i)
     {
@@ -618,7 +616,6 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
         double values2[8*3];
 	double valuetemp[8];
 	const LeafInfo* li=leaves[i]->leafinfo;
-	const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(i);
 	for (int j=0;j<8;++j)
 	{
 	    // now we need to collate the values at the corner points
@@ -629,9 +626,11 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 	    }
 	    else
 	    {
-	        values[j*3+0]=src[j*3+0];
-		values[j*3+1]=src[j*3+1];
-	        values[j*3+2]=src[j*3+2];
+	        // for ctsfn each point is a sample
+		const double* src=const_cast<escript::Data&>(arg).getSampleDataRO(li->pmap[j]-2);
+	        values[j*3+0]=src[0];
+		values[j*3+1]=src[1];
+	        values[j*3+2]=src[2];
 		// sort out that const_cast situation.
 		// Why isn't getSampleDataRO  const?
 		// Do I need to be more agressive with mutables?
@@ -643,28 +642,46 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 	valuetemp[1]=values[1];
 	valuetemp[2]=values[2];
 	
-	
 	// now we have all the values we can interpolate
         
-	interpolateElementFromCtsToDisc(li, 8*3, values, values2);
+	interpolateElementFromCtsToDisc(li, 3, values, values2);
         // ok so now values2 has the vectors for each of the points in it
 	// first we want to translate so that the value from point_0 is at the origin	
 	for (int j=0;j<8;++j)
 	{
 	    values2[j*3]-=valuetemp[0];
 	    values2[j*3+1]-=valuetemp[1];
-	    values2[j*3+1]-=valuetemp[2];  
+	    values2[j*3+2]-=valuetemp[2];  
 	}
 	// still need to compute each matrix
 
         double dx=leaves[i]->sides[0]/4;
 	double dy=leaves[i]->sides[1]/4;
 	double dz=leaves[i]->sides[2]/4;
+	using namespace escript::DataTypes;
+	
+	for (int j=0; j<8;++j)
+	{
+	    double lx=dx, ly=dy, lz=dz;
+	    if (j>3){lz*=3;}
+	    if (j==1 || j==2 || j==5 || j==6) {lx*=3;}
+	    if (j==2 || j==3 || j==6 || j==7) {ly*=3;}
+	    dest[getRelIndex(MAT3X3, 0, 0)]=values2[j*3+0]/lx;
+	    dest[getRelIndex(MAT3X3, 0, 1)]=values2[j*3+0]/ly;
+	    dest[getRelIndex(MAT3X3, 0, 2)]=values2[j*3+0]/lz;
+	    dest[getRelIndex(MAT3X3, 1, 0)]=values2[j*3+1]/lx;
+	    dest[getRelIndex(MAT3X3, 1, 1)]=values2[j*3+1]/ly;
+	    dest[getRelIndex(MAT3X3, 1, 2)]=values2[j*3+1]/lz;
+	    dest[getRelIndex(MAT3X3, 2, 0)]=values2[j*3+2]/lx;
+	    dest[getRelIndex(MAT3X3, 2, 1)]=values2[j*3+2]/ly;
+	    dest[getRelIndex(MAT3X3, 2, 2)]=values2[j*3+2]/lz;
+	    dest+=9;
+	}
 
-	throw BuckleyException("This still does not poopulate the arrays corresponding to each point.");
+//	throw BuckleyException("This still does not poopulate the arrays corresponding to each point.");
 	
 
-	dest+=3*3*8;		// move on to next element
+//	dest+=3*3*8;		// move on to next element
     }
     
     
