@@ -89,7 +89,6 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
-            return pair<int,int>(1, getNumNodes());
         case DegreesOfFreedom:
             return pair<int,int>(1, getNumNodes());
         case Elements:
@@ -97,16 +96,15 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
         case FaceElements:
             return pair<int,int>(ptsPerSample/2, getNumFaceElements());
             /*
+        case Points:
+            return pair<int,int>(1, getNumNodes());
         case ReducedNodes:
+        case ReducedDegreesOfFreedom:
             return pair<int,int>(1, getNumReducedNodes());
         case ReducedElements:
             return pair<int,int>(1, getNumReducedElements());
         case ReducedFaceElements:
             return pair<int,int>(1, getNumReducedFaceElements());
-        case Points:
-            return pair<int,int>(1, getNumNodes());
-        case ReducedDegreesOfFreedom:
-            return pair<int,int>(1, getNumReducedNodes());
             */
         default:
             break;
@@ -355,6 +353,11 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     return sma;
 }
 
+void RipleyDomain::setNewX(const escript::Data& arg)
+{
+    throw RipleyException("setNewX(): Operation not supported");
+}
+
 //
 // the methods that follow have to be implemented by the subclasses
 //
@@ -382,11 +385,6 @@ void RipleyDomain::dump(const string& filename) const
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
 {
     throw RipleyException("borrowSampleReferenceIDs() not implemented");
-}
-
-void RipleyDomain::setNewX(const escript::Data& arg)
-{
-    throw RipleyException("setNewX(): Operation not supported");
 }
 
 void RipleyDomain::interpolateOnDomain(escript::Data& target,
@@ -511,6 +509,31 @@ Paso_SystemMatrixPattern* RipleyDomain::getPattern(bool reducedRowOrder,
 dim_t RipleyDomain::getNumDataPointsGlobal() const
 {
     throw RipleyException("getNumDataPointsGlobal() not implemented");
+}
+
+IndexVector RipleyDomain::getNumNodesPerDim() const
+{
+    throw RipleyException("getNumNodesPerDim() not implemented");
+}
+
+IndexVector RipleyDomain::getNumElementsPerDim() const
+{
+    throw RipleyException("getNumElementsPerDim() not implemented");
+}
+
+IndexVector RipleyDomain::getNumFacesPerBoundary() const
+{
+    throw RipleyException("getNumFacesPerBoundary() not implemented");
+}
+
+IndexVector RipleyDomain::getNodeDistribution() const
+{
+    throw RipleyException("getNodeDistribution() not implemented");
+}
+
+pair<double,double> RipleyDomain::getFirstCoordAndSpacing(dim_t dim) const
+{
+    throw RipleyException("getFirstCoordAndSpacing() not implemented");
 }
 
 dim_t RipleyDomain::getNumFaceElements() const

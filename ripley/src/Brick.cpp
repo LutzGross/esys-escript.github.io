@@ -166,8 +166,8 @@ void Brick::dump(const string& fileName) const
     DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 3, DB_DOUBLE,
             DB_COLLINEAR, NULL);
 
-    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 3, NULL, 0,
-            DB_INT, DB_NODECENT, NULL);
+    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 3, NULL,
+            0, DB_INT, DB_NODECENT, NULL);
 
     if (m_mpiInfo->rank == 0) {
         vector<string> tempstrings;
@@ -211,10 +211,21 @@ void Brick::dump(const string& fileName) const
 
 const int* Brick::borrowSampleReferenceIDs(int fsType) const
 {
-    if (fsType == Nodes)
-        return &m_nodeId[0];
+    switch (fsType) {
+        case Nodes:
+            return &m_nodeId[0];
+        case Elements:
+            return &m_elementId[0];
+        case FaceElements:
+            return &m_faceId[0];
+        default:
+            break;
+    }
 
-    throw RipleyException("borrowSampleReferenceIDs() only implemented for Nodes");
+    stringstream msg;
+    msg << "borrowSampleReferenceIDs() not implemented for function space type "
+        << fsType;
+    throw RipleyException(msg.str());
 }
 
 bool Brick::ownSample(int fsCode, index_t id) const
@@ -322,6 +333,9 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 //private
 void Brick::populateSampleIds()
 {
+    // identifiers are ordered from left to right, bottom to top, front to back
+    // on each rank, except for the shared nodes which are owned by the rank
+    // below / to the left / to the front of the current rank
     const index_t firstId = getNumNodes()*m_mpiInfo->rank;
     const index_t diff0 = m_N0*(m_N1*m_N2-1)+1;
     const index_t diff1 = m_N0*m_N1*(m_N2*m_NX-1)+m_N0;
@@ -337,6 +351,20 @@ void Brick::populateSampleIds()
         if (m_offset2 > 0 && k/(m_N0*m_N1)==0)
             id -= diff2;
         m_nodeId[k]=id;
+    }
+
+    // elements
+    m_elementId.resize(getNumElements());
+#pragma omp parallel for
+    for (dim_t k=0; k<getNumElements(); k++) {
+        m_elementId[k]=k;
+    }
+
+    // face elements
+    m_faceId.resize(getNumFaceElements());
+#pragma omp parallel for
+    for (dim_t k=0; k<getNumFaceElements(); k++) {
+        m_faceId[k]=k;
     }
 }
 
