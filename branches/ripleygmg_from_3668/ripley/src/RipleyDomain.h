@@ -229,7 +229,7 @@ public:
 
     /**
        \brief
-       returns the reference number of the given sample number
+       returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
     RIPLEY_DLL_API
@@ -515,7 +515,7 @@ public:
     /**
        \brief
        returns the identifier of the matrix type to be used for the global
-       stiffness matrix when a particular solver, package, perconditioner,
+       stiffness matrix when a particular solver, package, preconditioner,
        and symmetric matrix is used
        \param solver
        \param preconditioner
@@ -528,7 +528,7 @@ public:
     /**
        \brief
        returns the identifier of the transport problem type to be used when a
-       particular solver, perconditioner, package and symmetric matrix is used
+       particular solver, preconditioner, package and symmetric matrix is used
        \param solver
        \param preconditioner
        \param package
@@ -619,14 +619,55 @@ public:
     RIPLEY_DLL_API
     virtual void Print_Mesh_Info(const bool full=false) const;
 
+    /**
+       \brief
+       returns the number of nodes per MPI rank in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumNodesPerDim() const;
+
+    /**
+       \brief
+       returns the number of elements per MPI rank in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumElementsPerDim() const;
+
+    /**
+       \brief
+       returns the number of face elements in the order
+       (left,right,bottom,top,[front,back]) on current MPI rank
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumFacesPerBoundary() const;
+
+    /**
+       \brief
+       returns the node distribution vector
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNodeDistribution() const;
+
+    /**
+       \brief
+       returns the first coordinate value and the node spacing along given
+       dimension as a pair
+    */
+    RIPLEY_DLL_API
+    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
+
 protected:
     /// returns the number of nodes per MPI rank
     virtual dim_t getNumNodes() const;
+
     /// returns the number of elements per MPI rank
     virtual dim_t getNumElements() const;
+
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
+
     virtual void assembleCoordinates(escript::Data& arg) const;
+
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const;
 
