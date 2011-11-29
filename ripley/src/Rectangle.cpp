@@ -532,14 +532,6 @@ void Rectangle::populateSampleIds()
         }
     }
 
-    for (dim_t k=0; k<m_nodeDistribution.size(); k++) {
-        cout << m_nodeDistribution[k] << endl;
-    }
-    cout<<endl;
-    for (dim_t k=0; k<getNumNodes(); k++) {
-        cout << m_nodeId[k] << endl;
-    }
-
     // elements
     m_elementId.resize(getNumElements());
 #pragma omp parallel for
