@@ -103,6 +103,43 @@ public:
     RIPLEY_DLL_API
     virtual void Print_Mesh_Info(const bool full=false) const;
 
+    /**
+       \brief
+       returns the number of nodes per MPI rank in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumNodesPerDim() const;
+
+    /**
+       \brief
+       returns the number of elements per MPI rank in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumElementsPerDim() const;
+
+    /**
+       \brief
+       returns the number of face elements in the order
+       (left,right,bottom,top,[front,back]) on current MPI rank
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumFacesPerBoundary() const;
+
+    /**
+       \brief
+       returns the node distribution vector
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNodeDistribution() const { return m_nodeDistribution; }
+
+    /**
+       \brief
+       returns the first coordinate value and the node spacing along given
+       dimension as a pair
+    */
+    RIPLEY_DLL_API
+    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
+
 protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1*m_N2; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1*m_NE2; }
@@ -135,6 +172,9 @@ private:
     IndexVector m_nodeId;
     IndexVector m_elementId;
     IndexVector m_faceId;
+
+    // vector with first node id on each rank
+    IndexVector m_nodeDistribution;
 };
 
 } // end of namespace ripley
