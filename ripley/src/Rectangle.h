@@ -16,6 +16,8 @@
 
 #include <ripley/RipleyDomain.h>
 
+struct Paso_Pattern;
+
 namespace ripley {
 
 /**
@@ -148,6 +150,9 @@ protected:
 
 private:
     void populateSampleIds();
+    int insertNeighbours(IndexVector& index, index_t node) const;
+    void generateCouplePatterns(Paso_Pattern** colPattern,
+                                Paso_Pattern** rowPattern) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1;

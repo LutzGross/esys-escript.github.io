@@ -240,8 +240,8 @@ bool Rectangle::ownSample(int fsCode, index_t id) const
 {
 #ifdef ESYS_MPI
     if (fsCode == Nodes) {
-        const index_t myFirst=getNumNodes()*m_mpiInfo->rank;
-        const index_t myLast=getNumNodes()*(m_mpiInfo->rank+1)-1;
+        const index_t myFirst=m_nodeDistribution[m_mpiInfo->rank];
+        const index_t myLast=m_nodeDistribution[m_mpiInfo->rank+1]-1;
         return (m_nodeId[id]>=myFirst && m_nodeId[id]<=myLast);
     } else
         throw RipleyException("ownSample() only implemented for Nodes");
@@ -269,6 +269,10 @@ void Rectangle::interpolateOnDomain(escript::Data& target,
         case Nodes:
         case DegreesOfFreedom:
             switch (target.getFunctionSpace().getTypeCode()) {
+                case DegreesOfFreedom:
+                    target=in;
+                    break;
+
                 case Elements:
                 {
                     const double tmp0_2 = 0.62200846792814621559;
@@ -295,13 +299,10 @@ void Rectangle::interpolateOnDomain(escript::Data& target,
                     break;
                 }
 
-                case DegreesOfFreedom:
-                    target=in;
-                    break;
-                    
                 default:
                     throw RipleyException(msg.str());
             }
+            break;
         default:
             throw RipleyException(msg.str());
     }
@@ -313,38 +314,153 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     if (reducedRowOrder || reducedColOrder)
         throw RipleyException("getPattern() not implemented for reduced order");
 
-/*
-    // create distribution
-    IndexVector dist;
-    for (index_t i=0; i<m_mpiInfo->size+1; i++)
-        dist.push_back(i*getNumNodes());
-    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
-            &dist[0], 1, 0);
-
-    // connectors
-    dim_t numNeighbours = 0;
-    RankVector neighbour(numNeighbours);
-    IndexVector offsetInShared(numNeighbours+1);
-    IndexVector shared(offsetInShared[numNeighbours]);
+    // connector
+    RankVector neighbour;
+    IndexVector offsetInShared(1,0);
+    IndexVector sendShared, recvShared;
+    const IndexVector faces=getNumFacesPerBoundary();
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    // corner node from bottom-left
+    if (faces[0] == 0 && faces[2] == 0) {
+        neighbour.push_back(m_mpiInfo->rank-m_NX-1);
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(m_nodeId[m_N0+left]);
+        recvShared.push_back(m_nodeId[0]);
+    }
+    // bottom edge
+    if (faces[2] == 0) {
+        neighbour.push_back(m_mpiInfo->rank-m_NX);
+        offsetInShared.push_back(offsetInShared.back()+m_N0-left);
+        for (dim_t i=left; i<m_N0; i++) {
+            // easy case, we know the neighbour id's
+            sendShared.push_back(m_nodeId[m_N0+i]);
+            recvShared.push_back(m_nodeId[i]);
+        }
+    }
+    // corner node from bottom-right
+    if (faces[1] == 0 && faces[2] == 0) {
+        neighbour.push_back(m_mpiInfo->rank-m_NX+1);
+        const index_t N0=(neighbour.back()%m_NX == 0 ? m_N0 : m_N0-1);
+        const index_t N1=(neighbour.back()/m_NX == 0 ? m_N1 : m_N1-1);
+        const index_t first=m_nodeDistribution[neighbour.back()];
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(m_nodeId[(bottom+1)*m_N0-1]);
+        recvShared.push_back(first+N0*(N1-1));
+    }
+    // left edge
+    if (faces[0] == 0) {
+        neighbour.push_back(m_mpiInfo->rank-1);
+        offsetInShared.push_back(offsetInShared.back()+m_N1-bottom);
+        for (dim_t i=bottom; i<m_N1; i++) {
+            // easy case, we know the neighbour id's
+            sendShared.push_back(m_nodeId[i*m_N0+1]);
+            recvShared.push_back(m_nodeId[i*m_N0]);
+        }
+    }
+    // right edge
+    if (faces[1] == 0) {
+        neighbour.push_back(m_mpiInfo->rank+1);
+        const index_t rightN0=(neighbour.back()%m_NX == 0 ? m_N0 : m_N0-1);
+        const index_t first=m_nodeDistribution[neighbour.back()];
+        offsetInShared.push_back(offsetInShared.back()+m_N1-bottom);
+        for (dim_t i=bottom; i<m_N1; i++) {
+            sendShared.push_back(m_nodeId[(i+1)*m_N0-1]);
+            recvShared.push_back(first+rightN0*(i-bottom));
+        }
+    }
+    // corner node from top-left
+    if (faces[0] == 0 && faces[3] == 0) {
+        neighbour.push_back(m_mpiInfo->rank+m_NX-1);
+        const index_t N0=(neighbour.back()%m_NX == 0 ? m_N0 : m_N0-1);
+        const index_t first=m_nodeDistribution[neighbour.back()];
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(m_nodeId[m_N0*(m_N1-1)+left]);
+        recvShared.push_back(first+N0-1);
+    }
+    // top edge
+    if (faces[3] == 0) {
+        neighbour.push_back(m_mpiInfo->rank+m_NX);
+        const index_t first=m_nodeDistribution[neighbour.back()];
+        offsetInShared.push_back(offsetInShared.back()+m_N0-left);
+        for (dim_t i=left; i<m_N0; i++) {
+            sendShared.push_back(m_nodeId[m_N0*(m_N1-1)+i]);
+            recvShared.push_back(first+i-left);
+        }
+    }
+    // corner node from top-right
+    if (faces[1] == 0 && faces[3] == 0) {
+        neighbour.push_back(m_mpiInfo->rank+m_NX+1);
+        const index_t first=m_nodeDistribution[neighbour.back()];
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(m_nodeId[m_N0*m_N1-1]);
+        recvShared.push_back(first);
+    }
+    const int numDOF=m_nodeDistribution[m_mpiInfo->rank+1]-m_nodeDistribution[m_mpiInfo->rank];
+    cout << "--- rcv_shcomp ---" << endl;
+    cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
+    for (size_t i=0; i<neighbour.size(); i++) {
+        cout << "neighbor[" << i << "]=" << neighbour[i]
+            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << endl;
+    }
+    for (size_t i=0; i<recvShared.size(); i++) {
+        cout << "shared[" << i << "]=" << recvShared[i] << endl;
+    }
+    cout << "--- snd_shcomp ---" << endl;
+    for (size_t i=0; i<sendShared.size(); i++) {
+        cout << "shared[" << i << "]=" << sendShared[i] << endl;
+    }
 
     Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
-            getNumNodes(), numNeighbours, &neighbour[0], &shared[0],
+            numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
             &offsetInShared[0], 1, 0, m_mpiInfo);
     Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
-            getNumNodes(), numNeighbours, &neighbour[0], &shared[0],
+            numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
             &offsetInShared[0], 1, 0, m_mpiInfo);
     Paso_Connector* connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+    Paso_SharedComponents_free(snd_shcomp);
+    Paso_SharedComponents_free(rcv_shcomp);
 
     // create patterns
-    dim_t M=0, N=0;
-    int* ptr=NULL;
-    index_t* index=NULL;
+    dim_t M, N;
+    IndexVector ptr(1,0);
+    IndexVector index;
+
+    // main pattern
+    for (index_t i=0; i<numDOF; i++) {
+        // always add the node itself
+        index.push_back(i);
+        int num=insertNeighbours(index, i);
+        ptr.push_back(ptr.back()+num+1);
+    }
+    M=N=ptr.size()-1;
+    // paso will manage the memory
+    index_t* indexC = MEMALLOC(index.size(),index_t);
+    index_t* ptrC = MEMALLOC(ptr.size(), index_t);
+    copy(index.begin(), index.end(), indexC);
+    copy(ptr.begin(), ptr.end(), ptrC);
     Paso_Pattern *mainPattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            M, N, ptr, index);
-    Paso_Pattern *colCouplePattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            M, N, ptr, index);
-    Paso_Pattern *rowCouplePattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            M, N, ptr, index);
+            M, N, ptrC, indexC);
+
+    cout << "--- main_pattern ---" << endl;
+    cout << "M=" << M << ", N=" << N << endl;
+    for (size_t i=0; i<ptr.size(); i++) {
+        cout << "ptr[" << i << "]=" << ptr[i] << endl;
+    }
+    for (size_t i=0; i<index.size(); i++) {
+        cout << "index[" << i << "]=" << index[i] << endl;
+    }
+
+    ptr.clear();
+    index.clear();
+
+    // column & row couple patterns
+    Paso_Pattern *colCouplePattern, *rowCouplePattern;
+    generateCouplePatterns(&colCouplePattern, &rowCouplePattern);
+
+    // allocate paso distribution
+    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0);
 
     Paso_SystemMatrixPattern* pattern = Paso_SystemMatrixPattern_alloc(
             MATRIX_FORMAT_DEFAULT, distribution, distribution,
@@ -354,11 +470,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     Paso_Pattern_free(colCouplePattern);
     Paso_Pattern_free(rowCouplePattern);
     Paso_Distribution_free(distribution);
-    Paso_SharedComponents_free(snd_shcomp);
-    Paso_SharedComponents_free(rcv_shcomp);
     return pattern;
-*/
-    throw RipleyException("getPattern() not implemented");
 }
 
 void Rectangle::Print_Mesh_Info(const bool full) const
@@ -425,20 +537,10 @@ pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
 //protected
 dim_t Rectangle::getNumFaceElements() const
 {
+    const IndexVector faces = getNumFacesPerBoundary();
     dim_t n=0;
-    //left
-    if (m_offset0==0)
-        n+=m_NE1;
-    //right
-    if (m_mpiInfo->rank%m_NX==m_NX-1)
-        n+=m_NE1;
-    //bottom
-    if (m_offset1==0)
-        n+=m_NE0;
-    //top
-    if (m_mpiInfo->rank/m_NX==m_NY-1)
-        n+=m_NE0;
-
+    for (size_t i=0; i<faces.size(); i++)
+        n+=faces[i];
     return n;
 }
 
@@ -518,9 +620,9 @@ void Rectangle::populateSampleIds()
     }
     if (left>0 && bottom>0) {
         const int neighbour=m_mpiInfo->rank-m_NX-1;
-        const index_t bottomN0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t bottomN1=(neighbour/m_NX == 0 ? m_N1 : m_N1-1);
-        m_nodeId[0]=m_nodeDistribution[neighbour]+bottomN1*bottomN0-1;
+        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
+        const index_t N1=(neighbour/m_NX == 0 ? m_N1 : m_N1-1);
+        m_nodeId[0]=m_nodeDistribution[neighbour]+N0*N1-1;
     }
 
     // the rest of the id's are contiguous
@@ -545,6 +647,252 @@ void Rectangle::populateSampleIds()
     for (dim_t k=0; k<getNumFaceElements(); k++) {
         m_faceId[k]=k;
     }
+}
+
+//private
+int Rectangle::insertNeighbours(IndexVector& index, index_t node) const
+{
+    const dim_t myN0 = (m_offset0==0 ? m_N0 : m_N0-1);
+    const dim_t myN1 = (m_offset1==0 ? m_N1 : m_N1-1);
+    const int x=node%myN0;
+    const int y=node/myN0;
+    int num=0;
+    if (y>0) {
+        if (x>0) {
+            // bottom-left
+            index.push_back(node-myN0-1);
+            num++;
+        }
+        // bottom
+        index.push_back(node-myN0);
+        num++;
+        if (x<myN0-1) {
+            // bottom-right
+            index.push_back(node-myN0+1);
+            num++;
+        }
+    }
+    if (x<myN0-1) {
+        // right
+        index.push_back(node+1);
+        num++;
+        if (y<myN1-1) {
+            // top-right
+            index.push_back(node+myN0+1);
+            num++;
+        }
+    }
+    if (y<myN1-1) {
+        // top
+        index.push_back(node+myN0);
+        num++;
+        if (x>0) {
+            // top-left
+            index.push_back(node+myN0-1);
+            num++;
+        }
+    }
+    if (x>0) {
+        // left
+        index.push_back(node-1);
+        num++;
+    }
+
+    return num;
+}
+
+//private
+void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern** rowPattern) const
+{
+    IndexVector ptr(1,0);
+    IndexVector index;
+    const dim_t myN0 = (m_offset0==0 ? m_N0 : m_N0-1);
+    const dim_t myN1 = (m_offset1==0 ? m_N1 : m_N1-1);
+    const IndexVector faces=getNumFacesPerBoundary();
+
+    // bottom edge
+    dim_t n=0;
+    if (faces[0] == 0) {
+        index.push_back(2*(myN0+myN1+1));
+        index.push_back(2*(myN0+myN1+1)+1);
+        n+=2;
+        if (faces[2] == 0) {
+            index.push_back(0);
+            index.push_back(1);
+            index.push_back(2);
+            n+=3;
+        }
+    } else if (faces[2] == 0) {
+        index.push_back(1);
+        index.push_back(2);
+        n+=2;
+    }
+    // n=neighbours of bottom-left corner node
+    ptr.push_back(ptr.back()+n);
+    n=0;
+    if (faces[2] == 0) {
+        for (dim_t i=1; i<myN0-1; i++) {
+            index.push_back(i);
+            index.push_back(i+1);
+            index.push_back(i+2);
+            ptr.push_back(ptr.back()+3);
+        }
+        index.push_back(myN0-1);
+        index.push_back(myN0);
+        n+=2;
+        if (faces[1] == 0) {
+            index.push_back(myN0+1);
+            index.push_back(myN0+2);
+            index.push_back(myN0+3);
+            n+=3;
+        }
+    } else {
+        for (dim_t i=1; i<myN0-1; i++) {
+            ptr.push_back(ptr.back());
+        }
+        if (faces[1] == 0) {
+            index.push_back(myN0+2);
+            index.push_back(myN0+3);
+            n+=2;
+        }
+    }
+    // n=neighbours of bottom-right corner node
+    ptr.push_back(ptr.back()+n);
+
+    // 2nd row to 2nd last row
+    for (dim_t i=1; i<myN1-1; i++) {
+        // left edge
+        if (faces[0] == 0) {
+            index.push_back(2*(myN0+myN1+2)-i);
+            index.push_back(2*(myN0+myN1+2)-i-1);
+            index.push_back(2*(myN0+myN1+2)-i-2);
+            ptr.push_back(ptr.back()+3);
+        } else {
+            ptr.push_back(ptr.back());
+        }
+        for (dim_t j=1; j<myN0-1; j++) {
+            ptr.push_back(ptr.back());
+        }
+        // right edge
+        if (faces[1] == 0) {
+            index.push_back(myN0+i+1);
+            index.push_back(myN0+i+2);
+            index.push_back(myN0+i+3);
+            ptr.push_back(ptr.back()+3);
+        } else {
+            ptr.push_back(ptr.back());
+        }
+    }
+
+    // top edge
+    n=0;
+    if (faces[0] == 0) {
+        index.push_back(2*myN0+myN1+5);
+        index.push_back(2*myN0+myN1+4);
+        n+=2;
+        if (faces[3] == 0) {
+            index.push_back(2*myN0+myN1+3);
+            index.push_back(2*myN0+myN1+2);
+            index.push_back(2*myN0+myN1+1);
+            n+=3;
+        }
+    } else if (faces[3] == 0) {
+        index.push_back(2*myN0+myN1+2);
+        index.push_back(2*myN0+myN1+1);
+        n+=2;
+    }
+    // n=neighbours of top-left corner node
+    ptr.push_back(ptr.back()+n);
+    n=0;
+    if (faces[3] == 0) {
+        for (dim_t i=1; i<myN0-1; i++) {
+            index.push_back(2*myN0+myN1+i+1);
+            index.push_back(2*myN0+myN1+i);
+            index.push_back(2*myN0+myN1+i-1);
+            ptr.push_back(ptr.back()+3);
+        }
+        index.push_back(myN0+myN1+4);
+        index.push_back(myN0+myN1+3);
+        n+=2;
+        if (faces[1] == 0) {
+            index.push_back(myN0+myN1+2);
+            index.push_back(myN0+myN1+1);
+            index.push_back(myN0+myN1);
+            n+=3;
+        }
+    } else {
+        for (dim_t i=1; i<myN0-1; i++) {
+            ptr.push_back(ptr.back());
+        }
+        if (faces[1] == 0) {
+            index.push_back(myN0+myN1+1);
+            index.push_back(myN0+myN1);
+            n+=2;
+        }
+    }
+    // n=neighbours of top-right corner node
+    ptr.push_back(ptr.back()+n);
+
+    dim_t M=ptr.size()-1;
+    map<index_t,index_t> idMap;
+    dim_t N=0;
+    for (IndexVector::iterator it=index.begin(); it!=index.end(); it++) {
+        if (idMap.find(*it)==idMap.end()) {
+            idMap[*it]=N;
+            *it=N++;
+        } else {
+            *it=idMap[*it];
+        }
+    }
+
+    cout << "--- colCouple_pattern ---" << endl;
+    cout << "M=" << M << ", N=" << N << endl;
+    for (size_t i=0; i<ptr.size(); i++) {
+        cout << "ptr[" << i << "]=" << ptr[i] << endl;
+    }
+    for (size_t i=0; i<index.size(); i++) {
+        cout << "index[" << i << "]=" << index[i] << endl;
+    }
+
+    // now build the row couple pattern
+    IndexVector ptr2(1,0);
+    IndexVector index2;
+    for (dim_t id=0; id<N; id++) {
+        n=0;
+        for (dim_t i=0; i<M; i++) {
+            for (dim_t j=ptr[i]; j<ptr[i+1]; j++) {
+                if (index[j]==id) {
+                    index2.push_back(i);
+                    n++;
+                    break;
+                }
+            }
+        }
+        ptr2.push_back(ptr2.back()+n);
+    }
+
+    cout << "--- rowCouple_pattern ---" << endl;
+    cout << "M=" << N << ", N=" << M << endl;
+    for (size_t i=0; i<ptr2.size(); i++) {
+        cout << "ptr[" << i << "]=" << ptr2[i] << endl;
+    }
+    for (size_t i=0; i<index2.size(); i++) {
+        cout << "index[" << i << "]=" << index2[i] << endl;
+    }
+
+    // paso will manage the memory
+    index_t* indexC = MEMALLOC(index.size(), index_t);
+    index_t* ptrC = MEMALLOC(ptr.size(), index_t);
+    copy(index.begin(), index.end(), indexC);
+    copy(ptr.begin(), ptr.end(), ptrC);
+    *colPattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);
+
+    // paso will manage the memory
+    indexC = MEMALLOC(index2.size(), index_t);
+    ptrC = MEMALLOC(ptr2.size(), index_t);
+    copy(index2.begin(), index2.end(), indexC);
+    copy(ptr2.begin(), ptr2.end(), ptrC);
+    *rowPattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, N, M, ptrC, indexC);
 }
 
 } // end of namespace ripley
