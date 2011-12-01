@@ -27,6 +27,9 @@ sources = """
     FinleyDomain.cpp
     FinleyElements.cpp
     FinleyNodes.cpp
+    RipleyDomain.cpp
+    RipleyElements.cpp
+    RipleyNodes.cpp
     VisItControl.cpp
 """.split()
 
@@ -40,6 +43,9 @@ headers = """
     FinleyElements.h
     FinleyNodes.h
     NodeData.h
+    RipleyDomain.h
+    RipleyElements.h
+    RipleyNodes.h
     VisItControl.h
     vtkCellType.h
     weipa.h
