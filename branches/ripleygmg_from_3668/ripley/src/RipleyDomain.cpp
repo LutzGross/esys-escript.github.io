@@ -111,8 +111,8 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     }
 
     stringstream msg;
-    msg << "Invalid function space type " << fsType << " for "
-        << getDescription();
+    msg << "getDataShape(): Unsupported function space type "
+        << functionSpaceTypeAsString(fsType) << " for " << getDescription();
     throw RipleyException(msg.str());
 }
 

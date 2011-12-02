@@ -83,6 +83,15 @@ public:
 
     /**
        \brief
+       copies the gradient of 'in' into 'out'. The actual function space to be
+       considered for the gradient is defined by 'in'. Both arguments have to
+       be defined on this domain.
+    */
+    RIPLEY_DLL_API
+    virtual void setToGradient(escript::Data& out, const escript::Data& in) const;
+
+    /**
+       \brief
        returns the number of data points summed across all MPI processes
     */
     RIPLEY_DLL_API

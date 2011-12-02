@@ -239,46 +239,69 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 bool Rectangle::ownSample(int fsCode, index_t id) const
 {
 #ifdef ESYS_MPI
-    if (fsCode == Nodes) {
+    if (fsCode != ReducedNodes) {
         const index_t myFirst=m_nodeDistribution[m_mpiInfo->rank];
         const index_t myLast=m_nodeDistribution[m_mpiInfo->rank+1]-1;
         return (m_nodeId[id]>=myFirst && m_nodeId[id]<=myLast);
-    } else
-        throw RipleyException("ownSample() only implemented for Nodes");
+    } else {
+        stringstream msg;
+        msg << "ownSample() not implemented for "
+            << functionSpaceTypeAsString(fsCode);
+        throw RipleyException(msg.str());
+    }
 #else
     return true;
 #endif
 }
 
-void Rectangle::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) const
 {
+    escript::Data& in = *const_cast<escript::Data*>(&cIn);
     const dim_t numComp = in.getDataPointSize();
-    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
-    const double tmp0_2 = 0.62200846792814621559;
-    const double tmp0_1 = 0.044658198738520451079;
-    const double tmp0_0 = 0.16666666666666666667;
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    if (out.getFunctionSpace().getTypeCode() == Elements) {
+        /* GENERATOR SNIP_GRAD_ELEMENTS TOP */
+        const double tmp0_13 = 0.78867513459481288225/h1;
+        const double tmp0_0 = 0.78867513459481288225/h0;
+        const double tmp0_4 = 0.21132486540518711775/h0;
+        const double tmp0_10 = 0.78867513459481288225/h1;
+        const double tmp0_1 = 0.21132486540518711775/h0;
+        const double tmp0_8 = -0.21132486540518711775/h1;
+        const double tmp0_14 = 0.21132486540518711775/h1;
+        const double tmp0_5 = 0.78867513459481288225/h0;
+        const double tmp0_11 = -0.78867513459481288225/h1;
+        const double tmp0_2 = -0.21132486540518711775/h0;
+        const double tmp0_9 = 0.21132486540518711775/h1;
+        const double tmp0_15 = -0.21132486540518711775/h1;
+        const double tmp0_6 = -0.78867513459481288225/h0;
+        const double tmp0_3 = -0.78867513459481288225/h0;
+        const double tmp0_12 = -0.78867513459481288225/h1;
+        const double tmp0_7 = -0.21132486540518711775/h0;
 #pragma omp parallel for
-    for (index_t k1=0; k1 < m_NE1; ++k1) {
-        for (index_t k0=0; k0 < m_NE0; ++k0) {
-            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
-            double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
-                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
-                o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
-                o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
-            } /* end of component loop i */
-        } /* end of k0 loop */
-    } /* end of k1 loop */
-    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
-}
-
-void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
-{
-    throw RipleyException("interpolateNodesOnFaces() not implemented");
+        for (index_t k1 =0; k1 < m_NE1; ++k1) {
+            for (index_t k0 =0; k0 < m_NE0; ++k0) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = f_00[i]*tmp0_3 + f_01[i]*tmp0_2 + f_10[i]*tmp0_0 + f_11[i]*tmp0_1;
+                    o[INDEX3(i,1,0,numComp,2)] = f_00[i]*tmp0_11 + f_01[i]*tmp0_10 + f_10[i]*tmp0_8 + f_11[i]*tmp0_9;
+                    o[INDEX3(i,0,1,numComp,2)] = f_00[i]*tmp0_3 + f_01[i]*tmp0_2 + f_10[i]*tmp0_0 + f_11[i]*tmp0_1;
+                    o[INDEX3(i,1,1,numComp,2)] = f_00[i]*tmp0_15 + f_01[i]*tmp0_14 + f_10[i]*tmp0_12 + f_11[i]*tmp0_13;
+                    o[INDEX3(i,0,2,numComp,2)] = f_00[i]*tmp0_7 + f_01[i]*tmp0_6 + f_10[i]*tmp0_4 + f_11[i]*tmp0_5;
+                    o[INDEX3(i,1,2,numComp,2)] = f_00[i]*tmp0_11 + f_01[i]*tmp0_10 + f_10[i]*tmp0_8 + f_11[i]*tmp0_9;
+                    o[INDEX3(i,0,3,numComp,2)] = f_00[i]*tmp0_7 + f_01[i]*tmp0_6 + f_10[i]*tmp0_4 + f_11[i]*tmp0_5;
+                    o[INDEX3(i,1,3,numComp,2)] = f_00[i]*tmp0_15 + f_01[i]*tmp0_14 + f_10[i]*tmp0_12 + f_11[i]*tmp0_13;
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of k1 loop */
+        /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
+    } else {
+        throw RipleyException("setToGradient() not implemented");
+    }
 }
 
 void Rectangle::addPDEToSystem(escript::AbstractSystemMatrix& mat,
@@ -381,6 +404,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
         recvShared.push_back(first);
     }
     const int numDOF=m_nodeDistribution[m_mpiInfo->rank+1]-m_nodeDistribution[m_mpiInfo->rank];
+    /*
     cout << "--- rcv_shcomp ---" << endl;
     cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
     for (size_t i=0; i<neighbour.size(); i++) {
@@ -394,6 +418,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     for (size_t i=0; i<sendShared.size(); i++) {
         cout << "shared[" << i << "]=" << sendShared[i] << endl;
     }
+    */
 
     Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
             numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
@@ -426,6 +451,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     Paso_Pattern *mainPattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
             M, N, ptrC, indexC);
 
+    /*
     cout << "--- main_pattern ---" << endl;
     cout << "M=" << M << ", N=" << N << endl;
     for (size_t i=0; i<ptr.size(); i++) {
@@ -434,6 +460,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     for (size_t i=0; i<index.size(); i++) {
         cout << "index[" << i << "]=" << index[i] << endl;
     }
+    */
 
     ptr.clear();
     index.clear();
@@ -829,6 +856,7 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
         }
     }
 
+    /*
     cout << "--- colCouple_pattern ---" << endl;
     cout << "M=" << M << ", N=" << N << endl;
     for (size_t i=0; i<ptr.size(); i++) {
@@ -837,6 +865,7 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
     for (size_t i=0; i<index.size(); i++) {
         cout << "index[" << i << "]=" << index[i] << endl;
     }
+    */
 
     // now build the row couple pattern
     IndexVector ptr2(1,0);
@@ -855,6 +884,7 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
         ptr2.push_back(ptr2.back()+n);
     }
 
+    /*
     cout << "--- rowCouple_pattern ---" << endl;
     cout << "M=" << N << ", N=" << M << endl;
     for (size_t i=0; i<ptr2.size(); i++) {
@@ -863,6 +893,7 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
     for (size_t i=0; i<index2.size(); i++) {
         cout << "index[" << i << "]=" << index2[i] << endl;
     }
+    */
 
     // paso will manage the memory
     index_t* indexC = MEMALLOC(index.size(), index_t);
@@ -877,6 +908,39 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
     copy(index2.begin(), index2.end(), indexC);
     copy(ptr2.begin(), ptr2.end(), ptrC);
     *rowPattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, N, M, ptrC, indexC);
+}
+
+//protected
+void Rectangle::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
+    const double tmp0_2 = 0.62200846792814621559;
+    const double tmp0_1 = 0.044658198738520451079;
+    const double tmp0_0 = 0.16666666666666666667;
+#pragma omp parallel for
+    for (index_t k1=0; k1 < m_NE1; ++k1) {
+        for (index_t k0=0; k0 < m_NE0; ++k0) {
+            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+            double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
+                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
+                o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
+                o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
+            } /* end of component loop i */
+        } /* end of k0 loop */
+    } /* end of k1 loop */
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+}
+
+//protected
+void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("interpolateNodesOnFaces() not implemented");
 }
 
 } // end of namespace ripley

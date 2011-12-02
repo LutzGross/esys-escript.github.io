@@ -261,19 +261,6 @@ bool Brick::ownSample(int fsCode, index_t id) const
 #endif
 }
 
-void Brick::interpolateOnDomain(escript::Data& target,
-                                const escript::Data& in) const
-{
-    const Brick& inDomain=dynamic_cast<const Brick&>(*(in.getFunctionSpace().getDomain()));
-    const Brick& targetDomain=dynamic_cast<const Brick&>(*(target.getFunctionSpace().getDomain()));
-    if (inDomain != *this)
-        throw RipleyException("Illegal domain of interpolant");
-    if (targetDomain != *this)
-        throw RipleyException("Illegal domain of interpolation target");
-
-    throw RipleyException("interpolateOnDomain() not implemented");
-}
-
 Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                                             bool reducedColOrder) const
 {
