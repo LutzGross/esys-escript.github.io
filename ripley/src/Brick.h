@@ -89,14 +89,6 @@ public:
 
     /**
        \brief
-       interpolates data given on source onto target where source and target
-       have to be given on the same domain
-    */
-    RIPLEY_DLL_API
-    virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
-
-    /**
-       \brief
        writes information about the mesh to standard output
        \param full whether to print additional data
     */

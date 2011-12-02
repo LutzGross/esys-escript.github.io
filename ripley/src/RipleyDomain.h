@@ -331,12 +331,12 @@ public:
 
     /**
        \brief
-       copies the gradient of arg into grad. The actual function space to be
-       considered for the gradient is defined by grad. arg and grad have to be
-       defined on this domain.
+       copies the gradient of 'in' into 'out'. The actual function space to be
+       considered for the gradient is defined by 'in'. Both arguments have to
+       be defined on this domain.
     */
     RIPLEY_DLL_API
-    virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
+    virtual void setToGradient(escript::Data& out, const escript::Data& in) const;
 
     /**
        \brief
