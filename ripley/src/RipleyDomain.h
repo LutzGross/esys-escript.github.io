@@ -558,7 +558,6 @@ public:
             const escript::Data& d_contact, const escript::Data& y_contact,
             const escript::Data& d_dirac, const escript::Data& y_dirac) const;
 
-
     /**
        \brief
        adds a PDE onto the lumped stiffness matrix mat
@@ -670,6 +669,12 @@ protected:
 
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const;
+
+    /// interpolates data on nodes in 'in' onto elements in 'out'
+    virtual void interpolateNodesOnElements(escript::Data& out, escript::Data& in) const;
+
+    /// interpolates data on nodes in 'in' onto face elements in 'out'
+    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const;
 
     dim_t m_numDim;
     StatusType m_status;

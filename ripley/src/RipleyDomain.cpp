@@ -231,6 +231,47 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
     return true;
 }
 
+void RipleyDomain::interpolateOnDomain(escript::Data& target,
+                                       const escript::Data& in) const
+{
+    const RipleyDomain& inDomain=dynamic_cast<const RipleyDomain&>(*(in.getFunctionSpace().getDomain()));
+    const RipleyDomain& targetDomain=dynamic_cast<const RipleyDomain&>(*(target.getFunctionSpace().getDomain()));
+    if (inDomain != *this)
+        throw RipleyException("Illegal domain of interpolant");
+    if (targetDomain != *this)
+        throw RipleyException("Illegal domain of interpolation target");
+
+    stringstream msg;
+    msg << "interpolateOnDomain() not implemented for function space "
+        << functionSpaceTypeAsString(in.getFunctionSpace().getTypeCode())
+        << " -> "
+        << functionSpaceTypeAsString(target.getFunctionSpace().getTypeCode());
+
+    switch (in.getFunctionSpace().getTypeCode()) {
+        case Nodes:
+        case DegreesOfFreedom:
+            switch (target.getFunctionSpace().getTypeCode()) {
+                case DegreesOfFreedom:
+                    target=in;
+                    break;
+
+                case Elements:
+                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in));
+                    break;
+
+                case FaceElements:
+                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in));
+                    break;
+
+                default:
+                    throw RipleyException(msg.str());
+            }
+            break;
+        default:
+            throw RipleyException(msg.str());
+    }
+}
+
 escript::Data RipleyDomain::getX() const
 {
     return escript::continuousFunction(*this).getX();
@@ -385,12 +426,6 @@ void RipleyDomain::dump(const string& filename) const
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
 {
     throw RipleyException("borrowSampleReferenceIDs() not implemented");
-}
-
-void RipleyDomain::interpolateOnDomain(escript::Data& target,
-                                       const escript::Data& in) const
-{
-    throw RipleyException("interpolateOnDomain() not implemented");
 }
 
 bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
@@ -554,6 +589,16 @@ dim_t RipleyDomain::getNumNodes() const
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const
 {
     throw RipleyException("assembleCoordinates() not implemented");
+}
+
+void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("interpolateNodesOnElements() not implemented");
+}
+
+void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("interpolateNodesOnFaces() not implemented");
 }
 
 

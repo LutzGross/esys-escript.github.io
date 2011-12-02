@@ -232,7 +232,7 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
     stringstream msg;
     msg << "borrowSampleReferenceIDs() not implemented for function space type "
-        << fsType;
+        << functionSpaceTypeAsString(fsType);
     throw RipleyException(msg.str());
 }
 
@@ -250,62 +250,46 @@ bool Rectangle::ownSample(int fsCode, index_t id) const
 #endif
 }
 
-void Rectangle::interpolateOnDomain(escript::Data& target,
-                                    const escript::Data& in) const
+void Rectangle::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
 {
-    const Rectangle& inDomain=dynamic_cast<const Rectangle&>(*(in.getFunctionSpace().getDomain()));
-    const Rectangle& targetDomain=dynamic_cast<const Rectangle&>(*(target.getFunctionSpace().getDomain()));
-    if (inDomain != *this)
-        throw RipleyException("Illegal domain of interpolant");
-    if (targetDomain != *this)
-        throw RipleyException("Illegal domain of interpolation target");
-
-    stringstream msg;
-    msg << "interpolateOnDomain() not implemented for function space "
-        << in.getFunctionSpace().getTypeCode() << " -> "
-        << target.getFunctionSpace().getTypeCode();
-
-    switch (in.getFunctionSpace().getTypeCode()) {
-        case Nodes:
-        case DegreesOfFreedom:
-            switch (target.getFunctionSpace().getTypeCode()) {
-                case DegreesOfFreedom:
-                    target=in;
-                    break;
-
-                case Elements:
-                {
-                    const double tmp0_2 = 0.62200846792814621559;
-                    const double tmp0_1 = 0.044658198738520451079;
-                    const double tmp0_0 = 0.16666666666666666667;
-                    const dim_t numComp = in.getDataPointSize();
-                    escript::Data* inn=const_cast<escript::Data*>(&in);
+    const dim_t numComp = in.getDataPointSize();
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
+    const double tmp0_2 = 0.62200846792814621559;
+    const double tmp0_1 = 0.044658198738520451079;
+    const double tmp0_0 = 0.16666666666666666667;
 #pragma omp parallel for
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        for (index_t k0=0; k0 < m_NE0; ++k0) {
-                            const register double* f_10 = inn->getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-                            const register double* f_11 = inn->getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-                            const register double* f_01 = inn->getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-                            const register double* f_00 = inn->getSampleDataRO(INDEX2(k0,k1, m_N0));
-                            double* o = target.getSampleDataRW(INDEX2(k0,k1,m_NE0));
-                            for (index_t i=0; i < numComp; ++i) {
-                                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
-                                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
-                                o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
-                                o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
-                            } // close component loop i
-                        } // close k0 loop
-                    } // close k1 loop
-                    break;
-                }
+    for (index_t k1=0; k1 < m_NE1; ++k1) {
+        for (index_t k0=0; k0 < m_NE0; ++k0) {
+            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+            double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
+                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
+                o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
+                o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
+            } /* end of component loop i */
+        } /* end of k0 loop */
+    } /* end of k1 loop */
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+}
 
-                default:
-                    throw RipleyException(msg.str());
-            }
-            break;
-        default:
-            throw RipleyException(msg.str());
-    }
+void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("interpolateNodesOnFaces() not implemented");
+}
+
+void Rectangle::addPDEToSystem(escript::AbstractSystemMatrix& mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D,
+        const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y,
+        const escript::Data& d_contact, const escript::Data& y_contact,
+        const escript::Data& d_dirac, const escript::Data& y_dirac) const
+{
+    throw RipleyException("addPDEToSystem() not implemented");
 }
 
 Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,

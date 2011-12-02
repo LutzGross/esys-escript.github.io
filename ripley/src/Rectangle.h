@@ -90,14 +90,6 @@ public:
 
     /**
        \brief
-       interpolates data given on source onto target where source and target
-       have to be given on the same domain
-    */
-    RIPLEY_DLL_API
-    virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
-
-    /**
-       \brief
        writes information about the mesh to standard output
        \param full whether to print additional data
     */
@@ -141,12 +133,27 @@ public:
     RIPLEY_DLL_API
     virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
 
+    /**
+       \brief
+       adds a PDE onto the stiffness matrix mat and rhs
+    */
+    RIPLEY_DLL_API
+    virtual void addPDEToSystem(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y,
+            const escript::Data& d_contact, const escript::Data& y_contact,
+            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+
 protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
     virtual dim_t getNumFaceElements() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
+    virtual void interpolateNodesOnElements(escript::Data& out, escript::Data& in) const;
+    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const;
 
 private:
     void populateSampleIds();
