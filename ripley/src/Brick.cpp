@@ -261,6 +261,123 @@ bool Brick::ownSample(int fsCode, index_t id) const
 #endif
 }
 
+void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
+{
+    escript::Data& in = *const_cast<escript::Data*>(&cIn);
+    const dim_t numComp = in.getDataPointSize();
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    const double h2 = m_l1/m_gNE2;
+    if (out.getFunctionSpace().getTypeCode() == Elements) {
+        /* GENERATOR SNIP_GRAD_ELEMENTS TOP */
+        const double tmp0_22 = -0.044658198738520451079/h1;
+        const double tmp0_16 = 0.16666666666666666667/h0;
+        const double tmp0_33 = -0.62200846792814621559/h1;
+        const double tmp0_0 = -0.62200846792814621559/h0;
+        const double tmp0_21 = -0.16666666666666666667/h1;
+        const double tmp0_17 = 0.62200846792814621559/h0;
+        const double tmp0_52 = -0.044658198738520451079/h2;
+        const double tmp0_1 = -0.16666666666666666667/h0;
+        const double tmp0_20 = -0.62200846792814621559/h1;
+        const double tmp0_14 = -0.044658198738520451079/h0;
+        const double tmp0_53 = -0.62200846792814621559/h2;
+        const double tmp0_49 = 0.16666666666666666667/h2;
+        const double tmp0_2 = 0.16666666666666666667/h0;
+        const double tmp0_27 = -0.044658198738520451079/h1;
+        const double tmp0_15 = -0.16666666666666666667/h0;
+        const double tmp0_50 = -0.16666666666666666667/h2;
+        const double tmp0_48 = 0.62200846792814621559/h2;
+        const double tmp0_3 = 0.044658198738520451079/h0;
+        const double tmp0_26 = -0.16666666666666666667/h1;
+        const double tmp0_12 = -0.62200846792814621559/h0;
+        const double tmp0_51 = 0.044658198738520451079/h2;
+        const double tmp0_25 = 0.62200846792814621559/h1;
+        const double tmp0_13 = 0.16666666666666666667/h0;
+        const double tmp0_56 = 0.16666666666666666667/h2;
+        const double tmp0_24 = 0.16666666666666666667/h1;
+        const double tmp0_10 = 0.62200846792814621559/h0;
+        const double tmp0_57 = 0.62200846792814621559/h2;
+        const double tmp0_11 = -0.16666666666666666667/h0;
+        const double tmp0_54 = -0.044658198738520451079/h2;
+        const double tmp0_38 = 0.16666666666666666667/h1;
+        const double tmp0_34 = -0.044658198738520451079/h1;
+        const double tmp0_42 = 0.16666666666666666667/h2;
+        const double tmp0_35 = -0.16666666666666666667/h1;
+        const double tmp0_36 = -0.62200846792814621559/h1;
+        const double tmp0_41 = 0.62200846792814621559/h2;
+        const double tmp0_8 = 0.044658198738520451079/h0;
+        const double tmp0_37 = 0.62200846792814621559/h1;
+        const double tmp0_29 = 0.16666666666666666667/h1;
+        const double tmp0_40 = -0.62200846792814621559/h2;
+        const double tmp0_9 = 0.16666666666666666667/h0;
+        const double tmp0_30 = 0.62200846792814621559/h1;
+        const double tmp0_28 = -0.16666666666666666667/h1;
+        const double tmp0_43 = 0.044658198738520451079/h2;
+        const double tmp0_32 = 0.16666666666666666667/h1;
+        const double tmp0_31 = 0.044658198738520451079/h1;
+        const double tmp0_39 = 0.044658198738520451079/h1;
+        const double tmp0_58 = -0.62200846792814621559/h2;
+        const double tmp0_55 = 0.044658198738520451079/h2;
+        const double tmp0_18 = -0.62200846792814621559/h0;
+        const double tmp0_45 = -0.16666666666666666667/h2;
+        const double tmp0_59 = -0.16666666666666666667/h2;
+        const double tmp0_4 = -0.044658198738520451079/h0;
+        const double tmp0_19 = 0.044658198738520451079/h0;
+        const double tmp0_44 = -0.044658198738520451079/h2;
+        const double tmp0_5 = 0.62200846792814621559/h0;
+        const double tmp0_47 = 0.16666666666666666667/h2;
+        const double tmp0_6 = -0.16666666666666666667/h0;
+        const double tmp0_23 = 0.044658198738520451079/h1;
+        const double tmp0_46 = -0.16666666666666666667/h2;
+        const double tmp0_7 = -0.044658198738520451079/h0;
+#pragma omp parallel for
+        for (index_t k2 =0; k2 < m_NE2; ++k2) {
+            for (index_t k1 =0; k1 < m_NE1; ++k1) {
+                for (index_t k0 =0; k0 < m_NE0; ++k0) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_000[i]*tmp0_0 + f_011[i]*tmp0_4 + f_100[i]*tmp0_5 + f_111[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i]) + tmp0_2*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,0,numComp,3)] = f_000[i]*tmp0_20 + f_010[i]*tmp0_25 + f_101[i]*tmp0_22 + f_111[i]*tmp0_23 + tmp0_21*(f_001[i] + f_100[i]) + tmp0_24*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,0,numComp,3)] = f_000[i]*tmp0_40 + f_001[i]*tmp0_41 + f_110[i]*tmp0_44 + f_111[i]*tmp0_43 + tmp0_42*(f_011[i] + f_101[i]) + tmp0_45*(f_010[i] + f_100[i]);
+                        o[INDEX3(i,0,1,numComp,3)] = f_000[i]*tmp0_0 + f_011[i]*tmp0_4 + f_100[i]*tmp0_5 + f_111[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i]) + tmp0_2*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,1,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_27 + f_010[i]*tmp0_32 + f_011[i]*tmp0_31 + f_100[i]*tmp0_33 + f_101[i]*tmp0_28 + f_110[i]*tmp0_30 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,2,1,numComp,3)] = f_000[i]*tmp0_46 + f_001[i]*tmp0_47 + f_010[i]*tmp0_52 + f_011[i]*tmp0_51 + f_100[i]*tmp0_53 + f_101[i]*tmp0_48 + f_110[i]*tmp0_50 + f_111[i]*tmp0_49;
+                        o[INDEX3(i,0,2,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_7 + f_010[i]*tmp0_12 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_8 + f_110[i]*tmp0_10 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,2,numComp,3)] = f_000[i]*tmp0_20 + f_010[i]*tmp0_25 + f_101[i]*tmp0_22 + f_111[i]*tmp0_23 + tmp0_21*(f_001[i] + f_100[i]) + tmp0_24*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,2,numComp,3)] = f_000[i]*tmp0_46 + f_001[i]*tmp0_47 + f_010[i]*tmp0_53 + f_011[i]*tmp0_48 + f_100[i]*tmp0_52 + f_101[i]*tmp0_51 + f_110[i]*tmp0_50 + f_111[i]*tmp0_49;
+                        o[INDEX3(i,0,3,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_7 + f_010[i]*tmp0_12 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_8 + f_110[i]*tmp0_10 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,3,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_27 + f_010[i]*tmp0_32 + f_011[i]*tmp0_31 + f_100[i]*tmp0_33 + f_101[i]*tmp0_28 + f_110[i]*tmp0_30 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,2,3,numComp,3)] = f_000[i]*tmp0_54 + f_001[i]*tmp0_55 + f_110[i]*tmp0_58 + f_111[i]*tmp0_57 + tmp0_56*(f_011[i] + f_101[i]) + tmp0_59*(f_010[i] + f_100[i]);
+                        o[INDEX3(i,0,4,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_12 + f_010[i]*tmp0_7 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_10 + f_110[i]*tmp0_8 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,4,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_33 + f_010[i]*tmp0_32 + f_011[i]*tmp0_30 + f_100[i]*tmp0_27 + f_101[i]*tmp0_28 + f_110[i]*tmp0_31 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,2,4,numComp,3)] = f_000[i]*tmp0_40 + f_001[i]*tmp0_41 + f_110[i]*tmp0_44 + f_111[i]*tmp0_43 + tmp0_42*(f_011[i] + f_101[i]) + tmp0_45*(f_010[i] + f_100[i]);
+                        o[INDEX3(i,0,5,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_12 + f_010[i]*tmp0_7 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_10 + f_110[i]*tmp0_8 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,5,numComp,3)] = f_000[i]*tmp0_34 + f_010[i]*tmp0_39 + f_101[i]*tmp0_36 + f_111[i]*tmp0_37 + tmp0_35*(f_001[i] + f_100[i]) + tmp0_38*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,5,numComp,3)] = f_000[i]*tmp0_46 + f_001[i]*tmp0_47 + f_010[i]*tmp0_52 + f_011[i]*tmp0_51 + f_100[i]*tmp0_53 + f_101[i]*tmp0_48 + f_110[i]*tmp0_50 + f_111[i]*tmp0_49;
+                        o[INDEX3(i,0,6,numComp,3)] = f_000[i]*tmp0_14 + f_011[i]*tmp0_18 + f_100[i]*tmp0_19 + f_111[i]*tmp0_17 + tmp0_15*(f_001[i] + f_010[i]) + tmp0_16*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,6,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_33 + f_010[i]*tmp0_32 + f_011[i]*tmp0_30 + f_100[i]*tmp0_27 + f_101[i]*tmp0_28 + f_110[i]*tmp0_31 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,2,6,numComp,3)] = f_000[i]*tmp0_46 + f_001[i]*tmp0_47 + f_010[i]*tmp0_53 + f_011[i]*tmp0_48 + f_100[i]*tmp0_52 + f_101[i]*tmp0_51 + f_110[i]*tmp0_50 + f_111[i]*tmp0_49;
+                        o[INDEX3(i,0,7,numComp,3)] = f_000[i]*tmp0_14 + f_011[i]*tmp0_18 + f_100[i]*tmp0_19 + f_111[i]*tmp0_17 + tmp0_15*(f_001[i] + f_010[i]) + tmp0_16*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,7,numComp,3)] = f_000[i]*tmp0_34 + f_010[i]*tmp0_39 + f_101[i]*tmp0_36 + f_111[i]*tmp0_37 + tmp0_35*(f_001[i] + f_100[i]) + tmp0_38*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,7,numComp,3)] = f_000[i]*tmp0_54 + f_001[i]*tmp0_55 + f_110[i]*tmp0_58 + f_111[i]*tmp0_57 + tmp0_56*(f_011[i] + f_101[i]) + tmp0_59*(f_010[i] + f_100[i]);
+                    } /* end of component loop i */
+                } /* end of k0 loop */
+            } /* end of k1 loop */
+        } /* end of k2 loop */
+        /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
+    } else {
+        throw RipleyException("setToGradient() not implemented");
+    }
+}
+
 Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                                             bool reducedColOrder) const
 {
@@ -554,6 +671,50 @@ void Brick::populateSampleIds()
     for (dim_t k=0; k<getNumFaceElements(); k++) {
         m_faceId[k]=k;
     }
+}
+
+//protected
+void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
+    const double tmp0_3 = 0.0094373878376559314545;
+    const double tmp0_2 = 0.035220810900864519624;
+    const double tmp0_1 = 0.13144585576580214704;
+    const double tmp0_0 = 0.49056261216234406855;
+#pragma omp parallel for
+    for (index_t k2=0; k2 < m_NE2; ++k2) {
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
+                const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
+                const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
+                const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
+                const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
+                const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
+                const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
+                const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
+                double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_000[i]*tmp0_0 + f_111[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i] + f_100[i]) + tmp0_2*(f_011[i] + f_101[i] + f_110[i]);
+                    o[INDEX2(i,numComp,1)] = f_011[i]*tmp0_3 + f_100[i]*tmp0_0 + tmp0_1*(f_000[i] + f_101[i] + f_110[i]) + tmp0_2*(f_001[i] + f_010[i] + f_111[i]);
+                    o[INDEX2(i,numComp,2)] = f_010[i]*tmp0_0 + f_101[i]*tmp0_3 + tmp0_1*(f_000[i] + f_011[i] + f_110[i]) + tmp0_2*(f_001[i] + f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,3)] = f_001[i]*tmp0_3 + f_110[i]*tmp0_0 + tmp0_1*(f_010[i] + f_100[i] + f_111[i]) + tmp0_2*(f_000[i] + f_011[i] + f_101[i]);
+                    o[INDEX2(i,numComp,4)] = f_001[i]*tmp0_0 + f_110[i]*tmp0_3 + tmp0_1*(f_000[i] + f_011[i] + f_101[i]) + tmp0_2*(f_010[i] + f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,5)] = f_010[i]*tmp0_3 + f_101[i]*tmp0_0 + tmp0_1*(f_001[i] + f_100[i] + f_111[i]) + tmp0_2*(f_000[i] + f_011[i] + f_110[i]);
+                    o[INDEX2(i,numComp,6)] = f_011[i]*tmp0_0 + f_100[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i] + f_111[i]) + tmp0_2*(f_000[i] + f_101[i] + f_110[i]);
+                    o[INDEX2(i,numComp,7)] = f_000[i]*tmp0_3 + f_111[i]*tmp0_0 + tmp0_1*(f_011[i] + f_101[i] + f_110[i]) + tmp0_2*(f_001[i] + f_010[i] + f_100[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of k1 loop */
+    } /* end of k2 loop */
+    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+}
+
+//protected
+void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("interpolateNodesOnFaces() not implemented");
 }
 
 } // end of namespace ripley
