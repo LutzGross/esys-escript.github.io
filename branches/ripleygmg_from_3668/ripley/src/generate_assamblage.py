@@ -158,14 +158,7 @@ def generate(DIM):
         CODE+="\n} /* end of face %s */\n"%i
    CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Gradient_%sD.c"%DIM, { "SNIP" : CODE})
-   
-   1/0
 
-
-
-
-
-   
    #generate PDE assemblage
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
    insertCode("Assemble_PDE_System_%sD.c"%DIM, { "SNIP" : CODE , "SNIP_PRE" : PRECODE } )
@@ -816,5 +809,5 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
        PRECODE+="const double %s = %s;\n"%(GLOBAL_TMP[t],ccode(t.evalf(n=DIGITS)))
    return CODE, PRECODE
 
-for d in [2]:
+for d in [3]:
      generate(d)
