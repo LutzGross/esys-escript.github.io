@@ -74,10 +74,8 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
     numElements = shape.second;
     if (fsType==ripley::Elements)
         NperDim = ripleyDomain->getNumElementsPerDim();
-    else {
+    else
         NperDim = ripleyDomain->getNumFacesPerBoundary();
-        numElements=0; // ignore faces for now
-    }
 
     if (numElements > 0) {
         nodesPerElement = shape.first;
@@ -103,15 +101,42 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
         IntVec NN = ripleyDomain->getNumNodesPerDim();
         nodes.clear();
         if (ripleyDomain->getDim() == 2) {
-            int id=0;
-            for (int i=0; i<numElements; i++) {
-                nodes.push_back(id);
-                nodes.push_back(id+1);
-                nodes.push_back(id+1+NN[0]);
-                nodes.push_back(id+NN[0]);
-                id++;
-                if ((i+1)%NperDim[0]==0)
+            if (fsType==ripley::Elements) {
+                int id=0;
+                for (int i=0; i<numElements; i++) {
+                    nodes.push_back(id);
+                    nodes.push_back(id+1);
+                    nodes.push_back(id+1+NN[0]);
+                    nodes.push_back(id+NN[0]);
                     id++;
+                    if ((i+1)%NperDim[0]==0)
+                        id++;
+                }
+            } else if (fsType==ripley::FaceElements) {
+                int id=0;
+                for (int i=0; i<NperDim[0]; i++) {
+                    nodes.push_back(id);
+                    nodes.push_back(id+NN[0]);
+                    id+=NN[0];
+                }
+                id=NN[0]-1;
+                for (int i=0; i<NperDim[1]; i++) {
+                    nodes.push_back(id);
+                    nodes.push_back(id+NN[0]);
+                    id+=NN[0];
+                }
+                id=0;
+                for (int i=0; i<NperDim[2]; i++) {
+                    nodes.push_back(id);
+                    nodes.push_back(id+1);
+                    id++;
+                }
+                id=NN[0]*(NN[1]-1);
+                for (int i=0; i<NperDim[3]; i++) {
+                    nodes.push_back(id);
+                    nodes.push_back(id+1);
+                    id++;
+                }
             }
         } else {
             int id=0;
@@ -133,8 +158,7 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
             }
         }
 
-        nodeMesh=originalMesh;
-        //buildMeshes();
+        buildMeshes();
     }
     return true;
 
