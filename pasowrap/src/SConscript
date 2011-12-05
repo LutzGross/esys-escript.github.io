@@ -23,12 +23,14 @@ del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
   PasoException.cpp
+  PatternBuilder.cpp
   SystemMatrixAdapter.cpp
   TransportProblemAdapter.cpp
 """.split()
 
 headers = """
   PasoException.h
+  PatternBuilder.h
   SystemMatrixAdapter.h      
   TransportProblemAdapter.h
   system_dep.h
