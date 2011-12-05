@@ -645,18 +645,29 @@ void Rectangle::populateSampleIds()
         }
     }
 
-    // elements
+    // element id's
     m_elementId.resize(getNumElements());
 #pragma omp parallel for
     for (dim_t k=0; k<getNumElements(); k++) {
         m_elementId[k]=k;
     }
 
-    // face elements
+    // face element id's
     m_faceId.resize(getNumFaceElements());
 #pragma omp parallel for
     for (dim_t k=0; k<getNumFaceElements(); k++) {
         m_faceId[k]=k;
+    }
+
+    // generate face offset vector
+    const IndexVector facesPerEdge = getNumFacesPerBoundary();
+    m_faceOffset.assign(facesPerEdge.size(), -1);
+    index_t offset=0;
+    for (size_t i=0; i<facesPerEdge.size(); i++) {
+        if (facesPerEdge[i]>0) {
+            m_faceOffset[i]=offset;
+            offset+=facesPerEdge[i];
+        }
     }
 }
 
@@ -940,7 +951,69 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out, escript::Data& in
 //protected
 void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
 {
-    throw RipleyException("interpolateNodesOnFaces() not implemented");
+    const dim_t numComp = in.getDataPointSize();
+    /* GENERATOR SNIP_INTERPOLATE_FACES TOP */
+    if (m_faceOffset[0] > -1) {
+        const index_t k0 = 0;
+        const double tmp0_1 = 0.78867513459481288225;
+        const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+            const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+            double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_01[i]*tmp0_0;
+                o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_01[i]*tmp0_1;
+            } /* end of component loop i */
+        } /* end of k1 loop */
+    } /* end of face 0 */
+    if (m_faceOffset[1] > -1) {
+        const index_t k0 = 0;
+        const double tmp0_1 = 0.21132486540518711775;
+        const double tmp0_0 = 0.78867513459481288225;
+#pragma omp parallel for
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+            const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+            double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_10[i]*tmp0_0 + f_11[i]*tmp0_1;
+                o[INDEX2(i,numComp,1)] = f_10[i]*tmp0_1 + f_11[i]*tmp0_0;
+            } /* end of component loop i */
+        } /* end of k1 loop */
+    } /* end of face 1 */
+    if (m_faceOffset[2] > -1) {
+        const index_t k1 = 0;
+        const double tmp0_1 = 0.78867513459481288225;
+        const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+        for (index_t k0=0; k0 < m_NE0; ++k0) {
+            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+            double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_10[i]*tmp0_0;
+                o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_10[i]*tmp0_1;
+            } /* end of component loop i */
+        } /* end of k0 loop */
+    } /* end of face 2 */
+    if (m_faceOffset[3] > -1) {
+        const index_t k1 = 0;
+        const double tmp0_1 = 0.78867513459481288225;
+        const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+        for (index_t k0=0; k0 < m_NE0; ++k0) {
+            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+            double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k1,m_NE0));
+            for (index_t i=0; i < numComp; ++i) {
+                o[INDEX2(i,numComp,0)] = f_01[i]*tmp0_1 + f_11[i]*tmp0_0;
+                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_0 + f_11[i]*tmp0_1;
+            } /* end of component loop i */
+        } /* end of k0 loop */
+    } /* end of face 3 */
+    /* GENERATOR SNIP_INTERPOLATE_FACES BOTTOM */
 }
 
 } // end of namespace ripley
