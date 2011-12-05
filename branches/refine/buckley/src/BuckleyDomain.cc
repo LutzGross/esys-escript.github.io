@@ -17,8 +17,11 @@
 
 #include <escript/FunctionSpace.h>
 #include <escript/FunctionSpaceFactory.h>
+
+#include <pasowrap/PatternBuilder.h>
 using namespace buckley;
 using namespace std;
+using namespace paso;
 
 
 namespace
@@ -412,6 +415,10 @@ void BuckleyDomain::addPDEToTransportProblem(
     throw BuckleyException("Not Implemented");
 }
 
+
+
+
+
 escript::ASM_ptr BuckleyDomain::newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
@@ -419,7 +426,62 @@ escript::ASM_ptr BuckleyDomain::newSystemMatrix(
                       const escript::FunctionSpace& column_functionspace,
                       const int type) const
 {
-    throw BuckleyException("Not Implemented");
+   // This setup chunk copied from finley
+   int reduceRowOrder=0;
+   int reduceColOrder=0;
+   // is the domain right?
+   const BuckleyDomain& row_domain=dynamic_cast<const BuckleyDomain&>(*(row_functionspace.getDomain()));
+   if (row_domain!=*this) 
+      throw BuckleyException("Error - domain of row function space does not match the domain of matrix generator.");
+   const BuckleyDomain& col_domain=dynamic_cast<const BuckleyDomain&>(*(column_functionspace.getDomain()));
+   if (col_domain!=*this) 
+      throw BuckleyException("Error - domain of columnn function space does not match the domain of matrix generator.");
+   // is the function space type right 
+   
+//    if (row_functionspace.getTypeCode()==DegreesOfFreedom) {
+      reduceRowOrder=0;
+//    } else if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+//       reduceRowOrder=1;
+//    } else {
+//       throw FinleyAdapterException("Error - illegal function space type for system matrix rows.");
+//    }
+//    if (column_functionspace.getTypeCode()==DegreesOfFreedom) {
+      reduceColOrder=0;
+/*   } else if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+      reduceColOrder=1;*/
+//    } else {
+//       throw FinleyAdapterException("Error - illegal function space type for system matrix columns.");
+//    }
+   // generate matrix:
+   
+   // This is just here to remind me that I need to consider multiple ranks
+   const unsigned int numranks=1;
+   PatternBuilder* pb=makePB(numpts/numranks,26);
+   
+   // again, dummy values for a sole rank
+   Paso_SystemMatrixPattern* psystemMatrixPattern=pb->generatePattern(0, numpts); 
+   
+ 
+//    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
+//    checkFinleyError();
+//    Paso_SystemMatrix* fsystemMatrix;
+//    int trilinos = 0;
+//    if (trilinos) {
+// #ifdef TRILINOS
+//       /* Allocation Epetra_VrbMatrix here */
+// #endif
+//    }
+//    else {
+//       fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
+//    }
+//    checkPasoError();
+//    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+//    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
+//    return ASM_ptr(sma);
+   
+  
+  
+    throw BuckleyException("Not Implemented ::newSystemMatrix");
 }
 
 escript::ATP_ptr BuckleyDomain::newTransportProblem(
@@ -686,6 +748,9 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 	    if (j>3){lz*=3;}
 	    if (j==1 || j==2 || j==5 || j==6) {lx*=3;}
 	    if (j==2 || j==3 || j==6 || j==7) {ly*=3;}
+	    
+	    // is an element with a kink in it a problem here?
+	    
 	    dest[getRelIndex(MAT3X3, 0, 0)]=values2[j*3+0]/lx;
 	    dest[getRelIndex(MAT3X3, 0, 1)]=values2[j*3+0]/ly;
 	    dest[getRelIndex(MAT3X3, 0, 2)]=values2[j*3+0]/lz;
