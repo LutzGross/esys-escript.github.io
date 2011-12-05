@@ -10,11 +10,15 @@ DIGITS=20
 #
 #  quadrature form in [0,1]
 #
-q0=sqrt(RealNumber(15))/5
-qD1=[ (1-q0)/2,  RealNumber(1)/2,  (1+q0)/2 ]
-wD1=[RealNumber(5)/18, RealNumber(4)/ 9, RealNumber(5)/18 ]
+
+q0=1/sqrt(RealNumber(3))
+qD1=[ (1-q0)/2,  (1+q0)/2 ]
+wD1=[RealNumber(1)/2, RealNumber(1)/2 ]
+
 qD1_r=[ RealNumber(1)/2 ]
 wD1_r= [RealNumber(1)]
+
+
 print "1D quadrature nodes =",qD1
 print "1D quadrature weights =",wD1
 print "1D reduced quadrature nodes =",qD1_r
@@ -121,25 +125,6 @@ def generate(DIM):
 
    # interpolation to Quad points
    CODE="\nif (out_data_type==RIPLEY_ELEMENTS) {\n"
-   CODE+=createIntegrationCode(Q, W, loopindex=idx_full)
-   CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
-   CODE+=createIntegrationCode(Q_r, W_r, loopindex=idx_full)
-   CODE+="} else if (out_data_type==RIPLEY_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
-        CODE+="if (face_offset(%s)>-1) {\n"%i
-        CODE+=createIntegrationCode(Q_faces[i], W_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
-        CODE+="\n} /* end of face %s */\n"%i
-   CODE+="} else if (out_data_type==RIPLEY_REDUCED_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
-        CODE+="if (face_offset(%s)>-1) {\n"%i
-        CODE+=createIntegrationCode(Q_r_faces[i], W_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
-        CODE+="\n} /* end of face %s */\n"%i
-   CODE+="\n} /* end of out_data_type branching */\n"
-   insertCode("Assemble_Integration_%sD.c"%DIM, { "SNIP" : CODE})
-   1/0
-
-   # interpolation to Quad points
-   CODE="\nif (out_data_type==RIPLEY_ELEMENTS) {\n"
    CODE+=createCode(f_interpolation, x, Q, loopindex=idx_full)
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
    CODE+=createCode(f_interpolation, x, Q_r, loopindex=idx_full)
@@ -155,9 +140,8 @@ def generate(DIM):
         CODE+="\n} /* end of face %s */\n"%i
    CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Interpolation_%sD.c"%DIM, { "SNIP" : CODE})
-
-
-   # gradient to Quad points
+   
+      # gradient to Quad points
    CODE="\nif (out_data_type==RIPLEY_ELEMENTS) {\n"
    CODE+=createGradientCode(f_interpolation, x, Q, loopindex=idx_full)
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
@@ -174,6 +158,13 @@ def generate(DIM):
         CODE+="\n} /* end of face %s */\n"%i
    CODE+="\n} /* end of out_data_type branching */\n"
    insertCode("Assemble_Gradient_%sD.c"%DIM, { "SNIP" : CODE})
+   
+   1/0
+
+
+
+
+
    
    #generate PDE assemblage
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
@@ -388,50 +379,6 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                   elif  loopindex[i] == -2:
                      k1+=",M%s-1"%i
             TXT+="const register double %s = in[INDEX2(i,INDEX%s(%s, %s),NCOMP)];\n"%(s.name,DIM,k1[1:],M1)
-   #  interpolation to quadrature points
-   for q in xrange(len(Q)):
-      IDX2="INDEX%s(%s,%s)"%(DIM,k,N)
-      if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
-      TXT+="out[INDEX3(i,%s,%s,NCOMP,%s)] = %s;\n"%(q,IDX2,len(Q),ccode(F[q]))
-   TXT+="} /* close component loop i */\n"
-   for i in xrange(DIM): 
-           if loopindex[i]>-1 : TXT+="} /* close k%i loop */\n"%loopindex[i]
-   return TXT
-   
-def createIntegrationCode(Q, W, gridoffset="", loopindex=(0,1,2)):
-   DIM=len(loopindex)
-   GLOBAL_TMP={}
-   LOCAL_TMP_E={}
-   TXT_E=""
-   for q in range(len(W)):
-        if not GLOBAL_TMP.has_key(W[q]):
-	     GLOBAL_TMP[W[q]]=Symbol("w_%s"%len(GLOBAL_TMP))
-        A=Symbol("f_%s"%q)
-        TXT_E+="const register double %s = in[INDEX3(i,%s,e, NCOMP,%s)];\n"%(A,q,len(W))
-        if not LOCAL_TMP_E.has_key(GLOBAL_TMP[W[q]]):
-	     LOCAL_TMP_E[GLOBAL_TMP[W[q]]]=0
-	LOCAL_TMP_E[GLOBAL_TMP[W[q]]]=LOCAL_TMP_E[GLOBAL_TMP[W[q]]]+A
-   for p in LOCAL_TMP_E.keys():
-        TXT_E+="const register double %s = %s;\n"%( p, ccode(LOCAL_TMP_E[p]))
-   print TXT_E
-   print GLOBAL_TMP
-   1/0
-   #=================
-
-
-   
-   k3=""
-   for i in xrange(DIM-1,-1,-1): 
-          if loopindex[i] > -1: k3+=",k%i"%loopindex[i]
-   TXT=""
-   for a,v in  consts.items():
-      TXT+="const double %s = %s;\n"%(ccode(a), ccode(v.evalf(n=DIGITS)))
-   TXT+="#pragma omp parallel for private(i%s)"%k3
-   for i in xrange(DIM-1,-1,-1): 
-          if loopindex[i] > -1: TXT+="\nfor (k%i =k%i_0; k%i < N%i; ++k%i) {"%(loopindex[i],loopindex[i], loopindex[i],loopindex[i],loopindex[i])
-   TXT+="\nfor (i =0; i < NCOMP; ++i) {\n"
-   print TXT
-   1/0
    #  interpolation to quadrature points
    for q in xrange(len(Q)):
       IDX2="INDEX%s(%s,%s)"%(DIM,k,N)
