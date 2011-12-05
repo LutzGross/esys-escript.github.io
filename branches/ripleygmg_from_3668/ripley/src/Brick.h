@@ -171,6 +171,11 @@ private:
     /// first node on this rank is at (offset0,offset1,offset2) in global mesh
     dim_t m_offset0, m_offset1, m_offset2;
 
+    /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top,
+    /// 4=front, 5=back)
+    IndexVector m_faceOffset;
+
     /// vector of sample reference identifiers
     IndexVector m_nodeId;
     IndexVector m_elementId;
