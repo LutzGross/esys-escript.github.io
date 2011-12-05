@@ -331,9 +331,9 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
         const double tmp0_46 = -0.16666666666666666667/h2;
         const double tmp0_7 = -0.044658198738520451079/h0;
 #pragma omp parallel for
-        for (index_t k2 =0; k2 < m_NE2; ++k2) {
-            for (index_t k1 =0; k1 < m_NE1; ++k1) {
-                for (index_t k0 =0; k0 < m_NE0; ++k0) {
+        for (index_t k2=0; k2 < m_NE2; ++k2) {
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
                     const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
                     const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
                     const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
@@ -373,8 +373,410 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
             } /* end of k1 loop */
         } /* end of k2 loop */
         /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
+    } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        /* GENERATOR SNIP_GRAD_FACES TOP */
+        if (m_faceOffset[0] > -1) {
+            const double tmp0_22 = 0.21132486540518711775/h1;
+            const double tmp0_16 = 0.16666666666666666667/h0;
+            const double tmp0_33 = 0.21132486540518711775/h2;
+            const double tmp0_0 = -0.62200846792814621559/h0;
+            const double tmp0_21 = -0.21132486540518711775/h1;
+            const double tmp0_17 = 0.62200846792814621559/h0;
+            const double tmp0_1 = -0.16666666666666666667/h0;
+            const double tmp0_20 = -0.78867513459481288225/h1;
+            const double tmp0_14 = -0.044658198738520451079/h0;
+            const double tmp0_2 = 0.16666666666666666667/h0;
+            const double tmp0_27 = 0.21132486540518711775/h1;
+            const double tmp0_15 = -0.16666666666666666667/h0;
+            const double tmp0_3 = 0.044658198738520451079/h0;
+            const double tmp0_26 = 0.78867513459481288225/h1;
+            const double tmp0_12 = -0.62200846792814621559/h0;
+            const double tmp0_25 = -0.78867513459481288225/h1;
+            const double tmp0_13 = 0.16666666666666666667/h0;
+            const double tmp0_24 = -0.21132486540518711775/h1;
+            const double tmp0_10 = 0.62200846792814621559/h0;
+            const double tmp0_11 = -0.16666666666666666667/h0;
+            const double tmp0_34 = 0.78867513459481288225/h2;
+            const double tmp0_35 = -0.78867513459481288225/h2;
+            const double tmp0_8 = 0.044658198738520451079/h0;
+            const double tmp0_29 = 0.78867513459481288225/h2;
+            const double tmp0_9 = 0.16666666666666666667/h0;
+            const double tmp0_30 = 0.21132486540518711775/h2;
+            const double tmp0_28 = -0.78867513459481288225/h2;
+            const double tmp0_32 = -0.21132486540518711775/h2;
+            const double tmp0_31 = -0.21132486540518711775/h2;
+            const double tmp0_18 = -0.62200846792814621559/h0;
+            const double tmp0_4 = -0.044658198738520451079/h0;
+            const double tmp0_19 = 0.044658198738520451079/h0;
+            const double tmp0_5 = 0.62200846792814621559/h0;
+            const double tmp0_6 = -0.16666666666666666667/h0;
+            const double tmp0_23 = 0.78867513459481288225/h1;
+            const double tmp0_7 = -0.044658198738520451079/h0;
+#pragma omp parallel for
+            for (index_t k2=0; k2 < m_NE2; ++k2) {
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_000[i]*tmp0_0 + f_011[i]*tmp0_4 + f_100[i]*tmp0_5 + f_111[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i]) + tmp0_2*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,0,numComp,3)] = f_000[i]*tmp0_20 + f_001[i]*tmp0_21 + f_010[i]*tmp0_23 + f_011[i]*tmp0_22;
+                        o[INDEX3(i,2,0,numComp,3)] = f_000[i]*tmp0_28 + f_001[i]*tmp0_29 + f_010[i]*tmp0_31 + f_011[i]*tmp0_30;
+                        o[INDEX3(i,0,1,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_7 + f_010[i]*tmp0_12 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_8 + f_110[i]*tmp0_10 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,1,numComp,3)] = f_000[i]*tmp0_20 + f_001[i]*tmp0_21 + f_010[i]*tmp0_23 + f_011[i]*tmp0_22;
+                        o[INDEX3(i,2,1,numComp,3)] = f_000[i]*tmp0_32 + f_001[i]*tmp0_33 + f_010[i]*tmp0_35 + f_011[i]*tmp0_34;
+                        o[INDEX3(i,0,2,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_12 + f_010[i]*tmp0_7 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_10 + f_110[i]*tmp0_8 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,2,numComp,3)] = f_000[i]*tmp0_24 + f_001[i]*tmp0_25 + f_010[i]*tmp0_27 + f_011[i]*tmp0_26;
+                        o[INDEX3(i,2,2,numComp,3)] = f_000[i]*tmp0_28 + f_001[i]*tmp0_29 + f_010[i]*tmp0_31 + f_011[i]*tmp0_30;
+                        o[INDEX3(i,0,3,numComp,3)] = f_000[i]*tmp0_14 + f_011[i]*tmp0_18 + f_100[i]*tmp0_19 + f_111[i]*tmp0_17 + tmp0_15*(f_001[i] + f_010[i]) + tmp0_16*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,3,numComp,3)] = f_000[i]*tmp0_24 + f_001[i]*tmp0_25 + f_010[i]*tmp0_27 + f_011[i]*tmp0_26;
+                        o[INDEX3(i,2,3,numComp,3)] = f_000[i]*tmp0_32 + f_001[i]*tmp0_33 + f_010[i]*tmp0_35 + f_011[i]*tmp0_34;
+                    } /* end of component loop i */
+                } /* end of k1 loop */
+            } /* end of k2 loop */
+        } /* end of face 0 */
+        if (m_faceOffset[1] > -1) {
+            const double tmp0_22 = 0.78867513459481288225/h1;
+            const double tmp0_16 = 0.16666666666666666667/h0;
+            const double tmp0_33 = 0.78867513459481288225/h2;
+            const double tmp0_0 = -0.62200846792814621559/h0;
+            const double tmp0_21 = 0.21132486540518711775/h1;
+            const double tmp0_17 = 0.62200846792814621559/h0;
+            const double tmp0_1 = -0.16666666666666666667/h0;
+            const double tmp0_20 = -0.21132486540518711775/h1;
+            const double tmp0_14 = -0.044658198738520451079/h0;
+            const double tmp0_2 = 0.16666666666666666667/h0;
+            const double tmp0_27 = -0.21132486540518711775/h1;
+            const double tmp0_15 = -0.16666666666666666667/h0;
+            const double tmp0_3 = 0.044658198738520451079/h0;
+            const double tmp0_26 = 0.21132486540518711775/h1;
+            const double tmp0_12 = -0.62200846792814621559/h0;
+            const double tmp0_25 = 0.78867513459481288225/h1;
+            const double tmp0_13 = 0.16666666666666666667/h0;
+            const double tmp0_24 = -0.78867513459481288225/h1;
+            const double tmp0_10 = 0.62200846792814621559/h0;
+            const double tmp0_11 = -0.16666666666666666667/h0;
+            const double tmp0_34 = -0.78867513459481288225/h2;
+            const double tmp0_35 = -0.21132486540518711775/h2;
+            const double tmp0_8 = 0.044658198738520451079/h0;
+            const double tmp0_29 = 0.21132486540518711775/h2;
+            const double tmp0_9 = 0.16666666666666666667/h0;
+            const double tmp0_30 = -0.21132486540518711775/h2;
+            const double tmp0_28 = 0.78867513459481288225/h2;
+            const double tmp0_32 = 0.21132486540518711775/h2;
+            const double tmp0_31 = -0.78867513459481288225/h2;
+            const double tmp0_18 = -0.62200846792814621559/h0;
+            const double tmp0_4 = -0.044658198738520451079/h0;
+            const double tmp0_19 = 0.044658198738520451079/h0;
+            const double tmp0_5 = 0.62200846792814621559/h0;
+            const double tmp0_6 = -0.16666666666666666667/h0;
+            const double tmp0_23 = -0.78867513459481288225/h1;
+            const double tmp0_7 = -0.044658198738520451079/h0;
+#pragma omp parallel for
+            for (index_t k2=0; k2 < m_NE2; ++k2) {
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_000[i]*tmp0_0 + f_011[i]*tmp0_4 + f_100[i]*tmp0_5 + f_111[i]*tmp0_3 + tmp0_1*(f_001[i] + f_010[i]) + tmp0_2*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,0,numComp,3)] = f_100[i]*tmp0_23 + f_101[i]*tmp0_20 + f_110[i]*tmp0_22 + f_111[i]*tmp0_21;
+                        o[INDEX3(i,2,0,numComp,3)] = f_100[i]*tmp0_31 + f_101[i]*tmp0_28 + f_110[i]*tmp0_30 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,0,1,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_7 + f_010[i]*tmp0_12 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_8 + f_110[i]*tmp0_10 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,1,numComp,3)] = f_100[i]*tmp0_23 + f_101[i]*tmp0_20 + f_110[i]*tmp0_22 + f_111[i]*tmp0_21;
+                        o[INDEX3(i,2,1,numComp,3)] = f_100[i]*tmp0_35 + f_101[i]*tmp0_32 + f_110[i]*tmp0_34 + f_111[i]*tmp0_33;
+                        o[INDEX3(i,0,2,numComp,3)] = f_000[i]*tmp0_6 + f_001[i]*tmp0_12 + f_010[i]*tmp0_7 + f_011[i]*tmp0_11 + f_100[i]*tmp0_13 + f_101[i]*tmp0_10 + f_110[i]*tmp0_8 + f_111[i]*tmp0_9;
+                        o[INDEX3(i,1,2,numComp,3)] = f_100[i]*tmp0_27 + f_101[i]*tmp0_24 + f_110[i]*tmp0_26 + f_111[i]*tmp0_25;
+                        o[INDEX3(i,2,2,numComp,3)] = f_100[i]*tmp0_31 + f_101[i]*tmp0_28 + f_110[i]*tmp0_30 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,0,3,numComp,3)] = f_000[i]*tmp0_14 + f_011[i]*tmp0_18 + f_100[i]*tmp0_19 + f_111[i]*tmp0_17 + tmp0_15*(f_001[i] + f_010[i]) + tmp0_16*(f_101[i] + f_110[i]);
+                        o[INDEX3(i,1,3,numComp,3)] = f_100[i]*tmp0_27 + f_101[i]*tmp0_24 + f_110[i]*tmp0_26 + f_111[i]*tmp0_25;
+                        o[INDEX3(i,2,3,numComp,3)] = f_100[i]*tmp0_35 + f_101[i]*tmp0_32 + f_110[i]*tmp0_34 + f_111[i]*tmp0_33;
+                    } /* end of component loop i */
+                } /* end of k1 loop */
+            } /* end of k2 loop */
+        } /* end of face 1 */
+        if (m_faceOffset[2] > -1) {
+            const double tmp0_22 = -0.044658198738520451079/h1;
+            const double tmp0_16 = -0.16666666666666666667/h1;
+            const double tmp0_33 = 0.21132486540518711775/h2;
+            const double tmp0_0 = -0.78867513459481288225/h0;
+            const double tmp0_21 = 0.16666666666666666667/h1;
+            const double tmp0_17 = -0.62200846792814621559/h1;
+            const double tmp0_1 = -0.21132486540518711775/h0;
+            const double tmp0_20 = 0.044658198738520451079/h1;
+            const double tmp0_14 = -0.16666666666666666667/h1;
+            const double tmp0_2 = 0.21132486540518711775/h0;
+            const double tmp0_27 = 0.044658198738520451079/h1;
+            const double tmp0_15 = -0.044658198738520451079/h1;
+            const double tmp0_3 = 0.78867513459481288225/h0;
+            const double tmp0_26 = 0.16666666666666666667/h1;
+            const double tmp0_12 = 0.16666666666666666667/h1;
+            const double tmp0_25 = 0.62200846792814621559/h1;
+            const double tmp0_13 = 0.62200846792814621559/h1;
+            const double tmp0_24 = -0.62200846792814621559/h1;
+            const double tmp0_10 = -0.044658198738520451079/h1;
+            const double tmp0_11 = 0.044658198738520451079/h1;
+            const double tmp0_34 = 0.78867513459481288225/h2;
+            const double tmp0_35 = -0.78867513459481288225/h2;
+            const double tmp0_8 = -0.62200846792814621559/h1;
+            const double tmp0_29 = 0.78867513459481288225/h2;
+            const double tmp0_9 = -0.16666666666666666667/h1;
+            const double tmp0_30 = 0.21132486540518711775/h2;
+            const double tmp0_28 = -0.78867513459481288225/h2;
+            const double tmp0_32 = -0.21132486540518711775/h2;
+            const double tmp0_31 = -0.21132486540518711775/h2;
+            const double tmp0_18 = 0.16666666666666666667/h1;
+            const double tmp0_4 = -0.21132486540518711775/h0;
+            const double tmp0_19 = 0.62200846792814621559/h1;
+            const double tmp0_5 = -0.78867513459481288225/h0;
+            const double tmp0_6 = 0.78867513459481288225/h0;
+            const double tmp0_23 = -0.16666666666666666667/h1;
+            const double tmp0_7 = 0.21132486540518711775/h0;
+#pragma omp parallel for
+            for (index_t k2=0; k2 < m_NE2; ++k2) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_000[i]*tmp0_0 + f_001[i]*tmp0_1 + f_100[i]*tmp0_3 + f_101[i]*tmp0_2;
+                        o[INDEX3(i,1,0,numComp,3)] = f_000[i]*tmp0_8 + f_010[i]*tmp0_13 + f_101[i]*tmp0_10 + f_111[i]*tmp0_11 + tmp0_12*(f_011[i] + f_110[i]) + tmp0_9*(f_001[i] + f_100[i]);
+                        o[INDEX3(i,2,0,numComp,3)] = f_000[i]*tmp0_28 + f_001[i]*tmp0_29 + f_100[i]*tmp0_31 + f_101[i]*tmp0_30;
+                        o[INDEX3(i,0,1,numComp,3)] = f_000[i]*tmp0_0 + f_001[i]*tmp0_1 + f_100[i]*tmp0_3 + f_101[i]*tmp0_2;
+                        o[INDEX3(i,1,1,numComp,3)] = f_000[i]*tmp0_14 + f_001[i]*tmp0_15 + f_010[i]*tmp0_21 + f_011[i]*tmp0_20 + f_100[i]*tmp0_17 + f_101[i]*tmp0_16 + f_110[i]*tmp0_19 + f_111[i]*tmp0_18;
+                        o[INDEX3(i,2,1,numComp,3)] = f_000[i]*tmp0_32 + f_001[i]*tmp0_33 + f_100[i]*tmp0_35 + f_101[i]*tmp0_34;
+                        o[INDEX3(i,0,2,numComp,3)] = f_000[i]*tmp0_4 + f_001[i]*tmp0_5 + f_100[i]*tmp0_7 + f_101[i]*tmp0_6;
+                        o[INDEX3(i,1,2,numComp,3)] = f_000[i]*tmp0_14 + f_001[i]*tmp0_17 + f_010[i]*tmp0_21 + f_011[i]*tmp0_19 + f_100[i]*tmp0_15 + f_101[i]*tmp0_16 + f_110[i]*tmp0_20 + f_111[i]*tmp0_18;
+                        o[INDEX3(i,2,2,numComp,3)] = f_000[i]*tmp0_28 + f_001[i]*tmp0_29 + f_100[i]*tmp0_31 + f_101[i]*tmp0_30;
+                        o[INDEX3(i,0,3,numComp,3)] = f_000[i]*tmp0_4 + f_001[i]*tmp0_5 + f_100[i]*tmp0_7 + f_101[i]*tmp0_6;
+                        o[INDEX3(i,1,3,numComp,3)] = f_000[i]*tmp0_22 + f_010[i]*tmp0_27 + f_101[i]*tmp0_24 + f_111[i]*tmp0_25 + tmp0_23*(f_001[i] + f_100[i]) + tmp0_26*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,3,numComp,3)] = f_000[i]*tmp0_32 + f_001[i]*tmp0_33 + f_100[i]*tmp0_35 + f_101[i]*tmp0_34;
+                    } /* end of component loop i */
+                } /* end of k0 loop */
+            } /* end of k2 loop */
+        } /* end of face 2 */
+        if (m_faceOffset[3] > -1) {
+            const double tmp0_22 = 0.16666666666666666667/h1;
+            const double tmp0_16 = 0.16666666666666666667/h1;
+            const double tmp0_33 = -0.78867513459481288225/h2;
+            const double tmp0_0 = -0.21132486540518711775/h0;
+            const double tmp0_21 = -0.62200846792814621559/h1;
+            const double tmp0_17 = 0.16666666666666666667/h1;
+            const double tmp0_1 = 0.78867513459481288225/h0;
+            const double tmp0_20 = -0.16666666666666666667/h1;
+            const double tmp0_14 = 0.044658198738520451079/h1;
+            const double tmp0_2 = -0.78867513459481288225/h0;
+            const double tmp0_27 = -0.62200846792814621559/h1;
+            const double tmp0_15 = 0.62200846792814621559/h1;
+            const double tmp0_3 = 0.21132486540518711775/h0;
+            const double tmp0_26 = -0.16666666666666666667/h1;
+            const double tmp0_12 = -0.16666666666666666667/h1;
+            const double tmp0_25 = -0.044658198738520451079/h1;
+            const double tmp0_13 = -0.044658198738520451079/h1;
+            const double tmp0_24 = 0.62200846792814621559/h1;
+            const double tmp0_10 = 0.044658198738520451079/h1;
+            const double tmp0_11 = -0.62200846792814621559/h1;
+            const double tmp0_34 = -0.21132486540518711775/h2;
+            const double tmp0_35 = 0.78867513459481288225/h2;
+            const double tmp0_8 = 0.16666666666666666667/h1;
+            const double tmp0_29 = -0.21132486540518711775/h2;
+            const double tmp0_9 = 0.62200846792814621559/h1;
+            const double tmp0_30 = -0.78867513459481288225/h2;
+            const double tmp0_28 = 0.78867513459481288225/h2;
+            const double tmp0_32 = 0.21132486540518711775/h2;
+            const double tmp0_31 = 0.21132486540518711775/h2;
+            const double tmp0_18 = -0.16666666666666666667/h1;
+            const double tmp0_4 = -0.78867513459481288225/h0;
+            const double tmp0_19 = -0.044658198738520451079/h1;
+            const double tmp0_5 = 0.21132486540518711775/h0;
+            const double tmp0_6 = -0.21132486540518711775/h0;
+            const double tmp0_23 = 0.044658198738520451079/h1;
+            const double tmp0_7 = 0.78867513459481288225/h0;
+#pragma omp parallel for
+            for (index_t k2=0; k2 < m_NE2; ++k2) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_010[i]*tmp0_2 + f_011[i]*tmp0_0 + f_110[i]*tmp0_1 + f_111[i]*tmp0_3;
+                        o[INDEX3(i,1,0,numComp,3)] = f_000[i]*tmp0_11 + f_010[i]*tmp0_9 + f_101[i]*tmp0_13 + f_111[i]*tmp0_10 + tmp0_12*(f_001[i] + f_100[i]) + tmp0_8*(f_011[i] + f_110[i]);
+                        o[INDEX3(i,2,0,numComp,3)] = f_010[i]*tmp0_30 + f_011[i]*tmp0_28 + f_110[i]*tmp0_29 + f_111[i]*tmp0_31;
+                        o[INDEX3(i,0,1,numComp,3)] = f_010[i]*tmp0_2 + f_011[i]*tmp0_0 + f_110[i]*tmp0_1 + f_111[i]*tmp0_3;
+                        o[INDEX3(i,1,1,numComp,3)] = f_000[i]*tmp0_18 + f_001[i]*tmp0_19 + f_010[i]*tmp0_16 + f_011[i]*tmp0_14 + f_100[i]*tmp0_21 + f_101[i]*tmp0_20 + f_110[i]*tmp0_15 + f_111[i]*tmp0_17;
+                        o[INDEX3(i,2,1,numComp,3)] = f_010[i]*tmp0_34 + f_011[i]*tmp0_32 + f_110[i]*tmp0_33 + f_111[i]*tmp0_35;
+                        o[INDEX3(i,0,2,numComp,3)] = f_010[i]*tmp0_6 + f_011[i]*tmp0_4 + f_110[i]*tmp0_5 + f_111[i]*tmp0_7;
+                        o[INDEX3(i,1,2,numComp,3)] = f_000[i]*tmp0_18 + f_001[i]*tmp0_21 + f_010[i]*tmp0_16 + f_011[i]*tmp0_15 + f_100[i]*tmp0_19 + f_101[i]*tmp0_20 + f_110[i]*tmp0_14 + f_111[i]*tmp0_17;
+                        o[INDEX3(i,2,2,numComp,3)] = f_010[i]*tmp0_30 + f_011[i]*tmp0_28 + f_110[i]*tmp0_29 + f_111[i]*tmp0_31;
+                        o[INDEX3(i,0,3,numComp,3)] = f_010[i]*tmp0_6 + f_011[i]*tmp0_4 + f_110[i]*tmp0_5 + f_111[i]*tmp0_7;
+                        o[INDEX3(i,1,3,numComp,3)] = f_000[i]*tmp0_25 + f_010[i]*tmp0_23 + f_101[i]*tmp0_27 + f_111[i]*tmp0_24 + tmp0_22*(f_011[i] + f_110[i]) + tmp0_26*(f_001[i] + f_100[i]);
+                        o[INDEX3(i,2,3,numComp,3)] = f_010[i]*tmp0_34 + f_011[i]*tmp0_32 + f_110[i]*tmp0_33 + f_111[i]*tmp0_35;
+                    } /* end of component loop i */
+                } /* end of k0 loop */
+            } /* end of k2 loop */
+        } /* end of face 3 */
+        if (m_faceOffset[4] > -1) {
+            const double tmp0_22 = -0.16666666666666666667/h2;
+            const double tmp0_16 = -0.62200846792814621559/h2;
+            const double tmp0_33 = 0.044658198738520451079/h2;
+            const double tmp0_0 = -0.78867513459481288225/h0;
+            const double tmp0_21 = 0.044658198738520451079/h2;
+            const double tmp0_17 = -0.16666666666666666667/h2;
+            const double tmp0_1 = 0.78867513459481288225/h0;
+            const double tmp0_20 = 0.16666666666666666667/h2;
+            const double tmp0_14 = 0.78867513459481288225/h1;
+            const double tmp0_2 = 0.21132486540518711775/h0;
+            const double tmp0_27 = 0.62200846792814621559/h2;
+            const double tmp0_15 = 0.21132486540518711775/h1;
+            const double tmp0_3 = -0.21132486540518711775/h0;
+            const double tmp0_26 = 0.16666666666666666667/h2;
+            const double tmp0_12 = -0.21132486540518711775/h1;
+            const double tmp0_25 = -0.044658198738520451079/h2;
+            const double tmp0_13 = -0.78867513459481288225/h1;
+            const double tmp0_24 = -0.16666666666666666667/h2;
+            const double tmp0_10 = 0.21132486540518711775/h1;
+            const double tmp0_11 = 0.78867513459481288225/h1;
+            const double tmp0_34 = 0.16666666666666666667/h2;
+            const double tmp0_35 = 0.62200846792814621559/h2;
+            const double tmp0_8 = -0.78867513459481288225/h1;
+            const double tmp0_29 = 0.16666666666666666667/h2;
+            const double tmp0_9 = -0.21132486540518711775/h1;
+            const double tmp0_30 = -0.044658198738520451079/h2;
+            const double tmp0_28 = 0.044658198738520451079/h2;
+            const double tmp0_32 = -0.62200846792814621559/h2;
+            const double tmp0_31 = -0.16666666666666666667/h2;
+            const double tmp0_18 = -0.044658198738520451079/h2;
+            const double tmp0_4 = -0.21132486540518711775/h0;
+            const double tmp0_19 = 0.62200846792814621559/h2;
+            const double tmp0_5 = 0.21132486540518711775/h0;
+            const double tmp0_6 = 0.78867513459481288225/h0;
+            const double tmp0_23 = -0.62200846792814621559/h2;
+            const double tmp0_7 = -0.78867513459481288225/h0;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_000[i]*tmp0_0 + f_010[i]*tmp0_3 + f_100[i]*tmp0_1 + f_110[i]*tmp0_2;
+                        o[INDEX3(i,1,0,numComp,3)] = f_000[i]*tmp0_8 + f_010[i]*tmp0_11 + f_100[i]*tmp0_9 + f_110[i]*tmp0_10;
+                        o[INDEX3(i,2,0,numComp,3)] = f_000[i]*tmp0_16 + f_001[i]*tmp0_19 + f_110[i]*tmp0_18 + f_111[i]*tmp0_21 + tmp0_17*(f_010[i] + f_100[i]) + tmp0_20*(f_011[i] + f_101[i]);
+                        o[INDEX3(i,0,1,numComp,3)] = f_000[i]*tmp0_0 + f_010[i]*tmp0_3 + f_100[i]*tmp0_1 + f_110[i]*tmp0_2;
+                        o[INDEX3(i,1,1,numComp,3)] = f_000[i]*tmp0_12 + f_010[i]*tmp0_15 + f_100[i]*tmp0_13 + f_110[i]*tmp0_14;
+                        o[INDEX3(i,2,1,numComp,3)] = f_000[i]*tmp0_22 + f_001[i]*tmp0_26 + f_010[i]*tmp0_25 + f_011[i]*tmp0_28 + f_100[i]*tmp0_23 + f_101[i]*tmp0_27 + f_110[i]*tmp0_24 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,0,2,numComp,3)] = f_000[i]*tmp0_4 + f_010[i]*tmp0_7 + f_100[i]*tmp0_5 + f_110[i]*tmp0_6;
+                        o[INDEX3(i,1,2,numComp,3)] = f_000[i]*tmp0_8 + f_010[i]*tmp0_11 + f_100[i]*tmp0_9 + f_110[i]*tmp0_10;
+                        o[INDEX3(i,2,2,numComp,3)] = f_000[i]*tmp0_22 + f_001[i]*tmp0_26 + f_010[i]*tmp0_23 + f_011[i]*tmp0_27 + f_100[i]*tmp0_25 + f_101[i]*tmp0_28 + f_110[i]*tmp0_24 + f_111[i]*tmp0_29;
+                        o[INDEX3(i,0,3,numComp,3)] = f_000[i]*tmp0_4 + f_010[i]*tmp0_7 + f_100[i]*tmp0_5 + f_110[i]*tmp0_6;
+                        o[INDEX3(i,1,3,numComp,3)] = f_000[i]*tmp0_12 + f_010[i]*tmp0_15 + f_100[i]*tmp0_13 + f_110[i]*tmp0_14;
+                        o[INDEX3(i,2,3,numComp,3)] = f_000[i]*tmp0_30 + f_001[i]*tmp0_33 + f_110[i]*tmp0_32 + f_111[i]*tmp0_35 + tmp0_31*(f_010[i] + f_100[i]) + tmp0_34*(f_011[i] + f_101[i]);
+                    } /* end of component loop i */
+                } /* end of k0 loop */
+            } /* end of k1 loop */
+        } /* end of face 4 */
+        if (m_faceOffset[5] > -1) {
+            const double tmp0_22 = 0.16666666666666666667/h2;
+            const double tmp0_16 = 0.62200846792814621559/h2;
+            const double tmp0_33 = -0.044658198738520451079/h2;
+            const double tmp0_0 = -0.78867513459481288225/h0;
+            const double tmp0_21 = -0.16666666666666666667/h2;
+            const double tmp0_17 = 0.16666666666666666667/h2;
+            const double tmp0_1 = 0.78867513459481288225/h0;
+            const double tmp0_20 = -0.044658198738520451079/h2;
+            const double tmp0_14 = 0.21132486540518711775/h1;
+            const double tmp0_2 = -0.21132486540518711775/h0;
+            const double tmp0_27 = -0.16666666666666666667/h2;
+            const double tmp0_15 = 0.78867513459481288225/h1;
+            const double tmp0_3 = 0.21132486540518711775/h0;
+            const double tmp0_26 = -0.16666666666666666667/h2;
+            const double tmp0_12 = -0.21132486540518711775/h1;
+            const double tmp0_25 = 0.16666666666666666667/h2;
+            const double tmp0_13 = -0.78867513459481288225/h1;
+            const double tmp0_24 = 0.044658198738520451079/h2;
+            const double tmp0_10 = 0.78867513459481288225/h1;
+            const double tmp0_11 = 0.21132486540518711775/h1;
+            const double tmp0_34 = -0.62200846792814621559/h2;
+            const double tmp0_35 = -0.16666666666666666667/h2;
+            const double tmp0_8 = -0.78867513459481288225/h1;
+            const double tmp0_29 = -0.62200846792814621559/h2;
+            const double tmp0_9 = -0.21132486540518711775/h1;
+            const double tmp0_30 = 0.044658198738520451079/h2;
+            const double tmp0_28 = -0.044658198738520451079/h2;
+            const double tmp0_32 = 0.62200846792814621559/h2;
+            const double tmp0_31 = 0.16666666666666666667/h2;
+            const double tmp0_18 = 0.044658198738520451079/h2;
+            const double tmp0_4 = -0.21132486540518711775/h0;
+            const double tmp0_19 = -0.62200846792814621559/h2;
+            const double tmp0_5 = 0.21132486540518711775/h0;
+            const double tmp0_6 = -0.78867513459481288225/h0;
+            const double tmp0_23 = 0.62200846792814621559/h2;
+            const double tmp0_7 = 0.78867513459481288225/h0;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = f_001[i]*tmp0_0 + f_011[i]*tmp0_2 + f_101[i]*tmp0_1 + f_111[i]*tmp0_3;
+                        o[INDEX3(i,1,0,numComp,3)] = f_001[i]*tmp0_8 + f_011[i]*tmp0_10 + f_101[i]*tmp0_9 + f_111[i]*tmp0_11;
+                        o[INDEX3(i,2,0,numComp,3)] = f_000[i]*tmp0_19 + f_001[i]*tmp0_16 + f_110[i]*tmp0_20 + f_111[i]*tmp0_18 + tmp0_17*(f_011[i] + f_101[i]) + tmp0_21*(f_010[i] + f_100[i]);
+                        o[INDEX3(i,0,1,numComp,3)] = f_001[i]*tmp0_0 + f_011[i]*tmp0_2 + f_101[i]*tmp0_1 + f_111[i]*tmp0_3;
+                        o[INDEX3(i,1,1,numComp,3)] = f_001[i]*tmp0_12 + f_011[i]*tmp0_14 + f_101[i]*tmp0_13 + f_111[i]*tmp0_15;
+                        o[INDEX3(i,2,1,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_22 + f_010[i]*tmp0_28 + f_011[i]*tmp0_24 + f_100[i]*tmp0_29 + f_101[i]*tmp0_23 + f_110[i]*tmp0_27 + f_111[i]*tmp0_25;
+                        o[INDEX3(i,0,2,numComp,3)] = f_001[i]*tmp0_4 + f_011[i]*tmp0_6 + f_101[i]*tmp0_5 + f_111[i]*tmp0_7;
+                        o[INDEX3(i,1,2,numComp,3)] = f_001[i]*tmp0_8 + f_011[i]*tmp0_10 + f_101[i]*tmp0_9 + f_111[i]*tmp0_11;
+                        o[INDEX3(i,2,2,numComp,3)] = f_000[i]*tmp0_26 + f_001[i]*tmp0_22 + f_010[i]*tmp0_29 + f_011[i]*tmp0_23 + f_100[i]*tmp0_28 + f_101[i]*tmp0_24 + f_110[i]*tmp0_27 + f_111[i]*tmp0_25;
+                        o[INDEX3(i,0,3,numComp,3)] = f_001[i]*tmp0_4 + f_011[i]*tmp0_6 + f_101[i]*tmp0_5 + f_111[i]*tmp0_7;
+                        o[INDEX3(i,1,3,numComp,3)] = f_001[i]*tmp0_12 + f_011[i]*tmp0_14 + f_101[i]*tmp0_13 + f_111[i]*tmp0_15;
+                        o[INDEX3(i,2,3,numComp,3)] = f_000[i]*tmp0_33 + f_001[i]*tmp0_30 + f_110[i]*tmp0_34 + f_111[i]*tmp0_32 + tmp0_31*(f_011[i] + f_101[i]) + tmp0_35*(f_010[i] + f_100[i]);
+                    } /* end of component loop i */
+                } /* end of k0 loop */
+            } /* end of k1 loop */
+        } /* end of face 5 */
+        /* GENERATOR SNIP_GRAD_FACES BOTTOM */
     } else {
-        throw RipleyException("setToGradient() not implemented");
+        stringstream msg;
+        msg << "setToGradient() not implemented for "
+            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        throw RipleyException(msg.str());
     }
 }
 
@@ -728,7 +1130,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
     const dim_t numComp = in.getDataPointSize();
     /* GENERATOR SNIP_INTERPOLATE_FACES TOP */
     if (m_faceOffset[0] > -1) {
-        const index_t k0 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.16666666666666666667;
         const double tmp0_0 = 0.62200846792814621559;
@@ -739,7 +1140,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
                 const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
                 const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*tmp0_0 + f_011[i]*tmp0_2 + tmp0_1*(f_001[i] + f_010[i]);
                     o[INDEX2(i,numComp,1)] = f_001[i]*tmp0_2 + f_010[i]*tmp0_0 + tmp0_1*(f_000[i] + f_011[i]);
@@ -750,7 +1151,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
         } /* end of k2 loop */
     } /* end of face 0 */
     if (m_faceOffset[1] > -1) {
-        const index_t k0 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.62200846792814621559;
         const double tmp0_0 = 0.16666666666666666667;
@@ -761,7 +1161,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
                 const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
                 const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_100[i]*tmp0_1 + f_111[i]*tmp0_2 + tmp0_0*(f_101[i] + f_110[i]);
                     o[INDEX2(i,numComp,1)] = f_101[i]*tmp0_2 + f_110[i]*tmp0_1 + tmp0_0*(f_100[i] + f_111[i]);
@@ -772,7 +1172,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
         } /* end of k2 loop */
     } /* end of face 1 */
     if (m_faceOffset[2] > -1) {
-        const index_t k1 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.16666666666666666667;
         const double tmp0_0 = 0.62200846792814621559;
@@ -783,7 +1182,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
                 const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
                 const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*tmp0_0 + f_101[i]*tmp0_2 + tmp0_1*(f_001[i] + f_100[i]);
                     o[INDEX2(i,numComp,1)] = f_001[i]*tmp0_2 + f_100[i]*tmp0_0 + tmp0_1*(f_000[i] + f_101[i]);
@@ -794,7 +1193,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
         } /* end of k2 loop */
     } /* end of face 2 */
     if (m_faceOffset[3] > -1) {
-        const index_t k1 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.62200846792814621559;
         const double tmp0_0 = 0.16666666666666666667;
@@ -805,7 +1203,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
                 const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
                 const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_010[i]*tmp0_1 + f_111[i]*tmp0_2 + tmp0_0*(f_011[i] + f_110[i]);
                     o[INDEX2(i,numComp,1)] = f_011[i]*tmp0_2 + f_110[i]*tmp0_1 + tmp0_0*(f_010[i] + f_111[i]);
@@ -816,7 +1214,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
         } /* end of k2 loop */
     } /* end of face 3 */
     if (m_faceOffset[4] > -1) {
-        const index_t k2 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.16666666666666666667;
         const double tmp0_0 = 0.62200846792814621559;
@@ -827,7 +1224,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
                 const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
                 const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*tmp0_0 + f_110[i]*tmp0_2 + tmp0_1*(f_010[i] + f_100[i]);
                     o[INDEX2(i,numComp,1)] = f_010[i]*tmp0_2 + f_100[i]*tmp0_0 + tmp0_1*(f_000[i] + f_110[i]);
@@ -838,7 +1235,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
         } /* end of k1 loop */
     } /* end of face 4 */
     if (m_faceOffset[5] > -1) {
-        const index_t k2 = 0;
         const double tmp0_2 = 0.044658198738520451079;
         const double tmp0_1 = 0.16666666666666666667;
         const double tmp0_0 = 0.62200846792814621559;
@@ -849,7 +1245,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
                 const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
                 const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
                 const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
-                double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_001[i]*tmp0_0 + f_111[i]*tmp0_2 + tmp0_1*(f_011[i] + f_101[i]);
                     o[INDEX2(i,numComp,1)] = f_011[i]*tmp0_2 + f_101[i]*tmp0_0 + tmp0_1*(f_001[i] + f_111[i]);
