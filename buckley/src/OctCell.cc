@@ -575,6 +575,7 @@ void OctCell::gmshDump()
 // This code assumes that the cell is not the root
 int OctCell::whichChild() const
 {
+    if (parent==0) {return 0;}
     for (int i=0;i<8;++i)
     {
         if (parent->kids[i]==this) {return i;}

@@ -342,6 +342,10 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     mutable unkid numpts;	// number of independent (non-hanging) verticies
     mutable int* samplerefids;
     unsigned m_generation;
+    
+    // may need to switch this to something NUMA friendly?
+    mutable std::vector<const OctCell*> face_cells[6];
+
 
     
 
