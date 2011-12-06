@@ -15,15 +15,12 @@
 /************************************************************/
 /* Paso: SystemMatrix                                       */
 /*							    */
-/*  Merge the MainBlock and CoupleBlock in the matrix       */
-/*  Input: SystemMatrix A				    */
+/*  Extend the ST sets of rows in row_coupleBlock 	    */
+/*  Input: SystemMatrix A and ST info			    */
 /*  Output: 						    */
-/*	p_ptr: the pointer to a vector of locations that    */
-/*	       start a row.				    */
-/*	p_idx: the pointer to the column indices for each   */
-/*	       of the rows, and is ordered by rows.	    */
-/*	p_val: the pointer to the data corresponding 	    */
-/*	       directly to the column entries in p_idx.     */
+/*	degree_ST:					    */
+/*	offset_ST:					    */
+/*	ST: 					 	    */
 /************************************************************/
 
 /* Copyrights by ACcESS Australia 2003 */

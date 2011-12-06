@@ -54,6 +54,8 @@ sources = """
 	LocalAMG.c
 	LocalAMG_Prolongation.c
 	AMG_Prolongation.c
+	AMG_Restriction.c
+	AMG_Interpolation.c
 	SchurComplement.c
 	Preconditioner.c
 	SparseMatrix.c
@@ -88,6 +90,7 @@ sources = """
 	SystemMatrix_debug.c
 	SystemMatrix_mergeMainAndCouple.c
 	SystemMatrix_extendedRows.c
+	SystemMatrix_copyRemoteCoupleBlock.c
 	TFQMR.c
 	MINRES.c
 	UMFPACK.c

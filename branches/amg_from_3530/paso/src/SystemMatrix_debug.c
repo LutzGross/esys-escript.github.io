@@ -94,45 +94,46 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
    dim_t iPtr, q, p;
    const dim_t n=Paso_SystemMatrix_getNumRows(A);
    const dim_t block_size=A->block_size;
+   index_t rank=A->mpi_info->rank;
    
-   printf("Main Block:\n-----------\n");
+   fprintf(stderr, "rank %d Main Block:\n-----------\n", rank);
    for (q=0; q< n; ++q){
-      printf("Row %d:\n",q);
+      fprintf(stderr, "rank %d Row %d: ",rank, q);
       for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
-	 printf("%d, ",A->mainBlock->pattern->index[iPtr]);
+	 fprintf(stderr, "%d, ",A->mainBlock->pattern->index[iPtr]);
       }
-      printf("\n");
+//      fprintf(stderr, "\n");
       for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
-	 printf("%f, ",A->mainBlock->val[iPtr*block_size]);
+	 fprintf(stderr, "%f, ",A->mainBlock->val[iPtr*block_size]);
       }
-      printf("\n");
+      fprintf(stderr, "\n");
    }
    if ( ( A->col_coupleBlock != NULL) && (A->mpi_info->size>1) ) {
-      printf("Column Couple Block:\n------------------\n");
+      fprintf(stderr, "rank %d Column Couple Block:\n------------------\n", rank);
       for (q=0; q< A->col_coupleBlock->pattern->numOutput; ++q){
-	 printf("Row %d:\n",q);
+	 fprintf(stderr, "rank %d Row %d: ",rank, q);
 	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-	    printf("%d, ",A->col_coupleBlock->pattern->index[iPtr]);
+	    fprintf(stderr, "%d, ",A->col_coupleBlock->pattern->index[iPtr]);
 	 }
-	 printf("\n");
+//	 fprintf(stderr, "\n");
 	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-	    printf("%f, ",A->col_coupleBlock->val[iPtr*block_size]);
+	    fprintf(stderr, "%f, ",A->col_coupleBlock->val[iPtr*block_size]);
 	 }
-	 printf("\n");
+	 fprintf(stderr, "\n");
       }
    }
    if ( ( A->row_coupleBlock != NULL ) && (A->mpi_info->size>1) ) {
-      printf("Row Couple Block:\n--------------------\n");
+      fprintf(stderr, "rank %d Row Couple Block:\n--------------------\n", rank);
       for (p=0; p< A->row_coupleBlock->pattern->numOutput; ++p){
-	 printf("Row %d:\n",p);
+	 fprintf(stderr, "rank %d Row %d:",rank, p);
 	 for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-	    printf("%d, ",A->row_coupleBlock->pattern->index[iPtr]);
+	    fprintf(stderr, "%d, ",A->row_coupleBlock->pattern->index[iPtr]);
 	 }
-	 printf("\n");
+//	 fprintf(stderr, "\n");
 	 for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-	    printf("%f, ",A->row_coupleBlock->val[iPtr*block_size]);
+	    fprintf(stderr, "%f, ",A->row_coupleBlock->val[iPtr*block_size]);
 	 }
-	 printf("\n");
+	 fprintf(stderr, "\n");
       }      
    }
    return; 

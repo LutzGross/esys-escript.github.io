@@ -66,8 +66,8 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	    const index_t irow2= A->row_coupler->connector->recv->offsetInShared[p+1];
 	    const index_t a = A->row_coupleBlock->pattern->ptr[irow1];
 	    const index_t b = A->row_coupleBlock->pattern->ptr[irow2];
-	    printf(" %d %d : %d %d : %d %d\n",A->row_coupler->connector->recv->offsetInShared[p], A->row_coupler->connector->recv->offsetInShared[p+1],a,b,irow1,irow2);
-	    printf("reveive from %d len = %d\n",A->row_coupler->connector->recv->neighbor[p], (b-a) * block_size);
+//	    printf(" %d %d : %d %d : %d %d\n",A->row_coupler->connector->recv->offsetInShared[p], A->row_coupler->connector->recv->offsetInShared[p+1],a,b,irow1,irow2);
+//	    printf("reveive from %d len = %d\n",A->row_coupler->connector->recv->neighbor[p], (b-a) * block_size);
 	     
 	    MPI_Irecv(&(A->row_coupleBlock->val[a * block_size]), (b-a) * block_size,  MPI_DOUBLE,
 	       A->row_coupler->connector->recv->neighbor[p], 
@@ -102,7 +102,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	    
 	 }
 	 #ifdef ESYS_MPI
-	 printf("send to %d len = %d\n",A->row_coupler->connector->send->neighbor[p], z-z0);
+//	 printf("send to %d len = %d\n",A->row_coupler->connector->send->neighbor[p], z-z0);
 	 MPI_Issend(&(send_buffer[z0]),z-z0, MPI_DOUBLE,
 		       A->row_coupler->connector->send->neighbor[p], 
 		       A->mpi_info->msg_tag_counter+A->mpi_info->rank,
@@ -125,7 +125,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
    return; 		      
 }
 
-#ifdef AAAA
+#ifdef AAAAAA
 void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool_t recreatePattern)
 {
    Paso_Pattern* couple_pattern=Null;

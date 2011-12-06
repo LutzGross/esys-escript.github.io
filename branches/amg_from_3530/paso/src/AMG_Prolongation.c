@@ -1,4 +1,4 @@
-
+//
 /*******************************************************
 *
 * Copyright (c) 2003-2010 by University of Queensland
@@ -46,13 +46,13 @@
    
 */
 
-#define MY_DEBUG 1
+#define MY_DEBUG 0
  
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, 
                                                            const index_t* offset_S, const dim_t* degree_S, const index_t* S,
-							   const dim_t n_C, const index_t* counter_C, const index_t interpolation_method) 
+							   const dim_t n_C, index_t* counter_C, const index_t interpolation_method) 
 {
-   Esys_MPIInfo *mpi_info=A_p->mpi_info;
+   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
    Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
@@ -71,10 +71,16 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
    index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
+   index_t *recv_shared=NULL, *send_shared=NULL;
    index_t sum, j, iptr;;
    dim_t i, my_n_C, k, l, p, q, global_label, num_neighbors;
-   dim_t *recv_len=NULL, *send_len=NULL;
    Esys_MPI_rank *neighbor=NULL;
+   #ifdef ESYS_MPI
+     MPI_Request* mpi_requests=NULL;
+     MPI_Status* mpi_stati=NULL;
+   #else
+     int *mpi_requests=NULL, *mpi_stati=NULL;
+   #endif
 
    if (MY_DEBUG) {
      fprintf(stderr, "size=%d rank=%d n=%d my_n=%d overlap_n=%d\n", 
@@ -126,6 +132,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      global_label += k;
    }
    dist[size] = global_label;
+if (MY_DEBUG) {
+char *str1, *str2;
+str1 = TMPMEMALLOC(size*15+50, char);
+str2 = TMPMEMALLOC(15, char);
+strcpy(str1, "dist=");
+for (p=0;p<size+1;p++) {
+  sprintf(str2, "(%d)%d ", p, dist[p]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "rank%d: %s\n", rank, str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
+
    input_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    TMPMEMFREE(dist);
 
@@ -133,8 +153,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    main_p = MEMALLOC(my_n+1, index_t);
    couple_p = MEMALLOC(my_n+1, index_t);
    couple_marker = MEMALLOC(overlap_n, double);
-   #pragma omp parallel for private(i) schedule(static)
-   for (i=0; i<overlap_n; i++) couple_marker[i] = 0;
+   memset(couple_marker, 0, overlap_n*sizeof(double));
    if (!(Esys_checkPtr(main_p) || Esys_checkPtr(couple_p))) {
      /* count the number of entries per row in the Prolongation matrix :*/
      /* #pragma omp parallel for private(i,k,iptr,j,p) schedule(static) */
@@ -151,6 +170,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 		if (j <my_n) k++;
 		else {
 		  couple_marker[j-my_n] = 1;
+if (MY_DEBUG) fprintf(stderr, "rank %d overlap %d, j %d, my_n %d\n", rank, overlap_n, j, my_n);
 		  l++; 
 		}
 	    }
@@ -162,38 +182,26 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 
      /* number of unknowns in the col-coupleBlock of the interplation matrix */
      sum = 0;
-     if (num_threads>1) {
-	#pragma omp parallel private(i,p)
-	{
-          p=0;
-	  #pragma omp for schedule(static)
-	  for (i=0;i<overlap_n;++i) {
-	    if (couple_marker[i] > 0) {
-	      p++;
-	    }
-	  }
-	}
-	#pragma omp critical
-	{
-	  sum += p;
-	}
-     } else { /* num_threads=1 */
-	for (i=0;i<overlap_n;++i) {
-	  if (couple_marker[i] > 0) {
-            sum++;
-	  }
+     for (i=0;i<overlap_n;++i) {
+	if (couple_marker[i] > 0) {
+	  counter_C[i+my_n] = sum;
+	  sum++;
 	}
      }
+
+if (MY_DEBUG) fprintf(stderr, "rank %d Strange sum %d\n", rank, sum);
 
      /* allocate and create index vector for prolongation: */
      p = Paso_Util_cumsum(my_n, main_p);
      main_p[my_n] = p;
      main_idx = MEMALLOC(p, index_t);
+if (MY_DEBUG) fprintf(stderr, "rank%d: len of mainBlock %d\n", rank, p);
      p = Paso_Util_cumsum(my_n, couple_p);
      couple_p[my_n] = p;
      couple_idx = MEMALLOC(p, index_t);
+if (MY_DEBUG) fprintf(stderr, "rank%d: len of coupleBlock %d %d\n", rank, p, my_n);
      if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
-	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
+//	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
 	for (i=0; i<my_n; i++) {
 	  if (counter_C[i]>=0) {
 	    main_idx[main_p[i]]=counter_C[i];  /* i is a C unknown */
@@ -209,6 +217,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 		  k++; 
 		} else {
 		  couple_idx[couple_p[i]+l] = counter_C[j];
+if (MY_DEBUG) fprintf(stderr, "rank%d: couple_index %d, l%d p%d i%d j%d counter_C%d n_C%d\n", rank, couple_idx[couple_p[i]+l], l, couple_p[i], i, j, counter_C[j], my_n_C);
 		  l++;
 		}
 	      }
@@ -217,6 +226,26 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 	}
      }
    }
+
+if (MY_DEBUG) fprintf(stderr, "rank%d: couple_index len %d my_n_C %d sum %d\n", rank, l, my_n_C, sum);
+
+if (MY_DEBUG) {
+char *str1, *str2;
+str1 = TMPMEMALLOC(size*15+50, char);
+str2 = TMPMEMALLOC(15, char);
+strcpy(str1, "couple ptr and index --");
+for (p=0;p<my_n;p++) {
+  sprintf(str2, ") row%d (", p);
+  strcat(str1, str2);
+  for (i=couple_p[p]; i<couple_p[p+1]; i++) {
+    sprintf(str2, "%d,", couple_idx[i]);
+    strcat(str1, str2);
+  }
+}
+fprintf(stderr, "rank%d: %s\n", rank, str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 
    if (Esys_noError()) {   
      main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
@@ -230,47 +259,39 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      MEMFREE(couple_idx);
    }
 
-   /* now we need to create the Sparse Matrix (mainBlock and coupleBlock) */
-   if (Esys_noError()) {
-     main_block = Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, 
-		couple_pattern, row_block_size, col_block_size, FALSE);
-     couple_block = Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, 
-		couple_pattern, row_block_size, col_block_size, FALSE);
-   }
-
-   /* now fill in the matrix */
-/*   if (Esys_noError()) {
-     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
-	|| ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
-	if (row_block_size == 1) {
-	  Paso_Preconditioner_AMG_setClassicProlongation();
-	} else {
-	  Paso_Preconditioner_AMG_setClassicProlongation_Block();
-	}
-     } else {
-	if (row_block_size == 1) {
-	  Paso_Preconditioner_AMG_setDirectProlongation();
-	} else {
-	  Paso_Preconditioner_AMG_setDirectProlongation_Block();
-	}
-     }
-   }
-*/
    /* prepare the receiver for the col_connector. 
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
-   coupler = Paso_Coupler_alloc(A_p->row_coupler->connector, 1);
-   Paso_Coupler_startCollect(coupler, couple_marker);
-   recv_len = TMPMEMALLOC(size,dim_t);
-   send_len = TMPMEMALLOC(size,dim_t);
+//   coupler = Paso_Coupler_alloc(A_p->row_coupler->connector, 1);
+//   Paso_Coupler_startCollect(coupler, couple_marker);
    neighbor = TMPMEMALLOC(size, Esys_MPI_rank);
    offsetInShared = TMPMEMALLOC(size+1, index_t);
    recv = A_p->col_coupler->connector->recv;
+   send = A_p->col_coupler->connector->send;
    i = recv->numSharedComponents;
+   recv_shared = TMPMEMALLOC(i,index_t);
+   memset(recv_shared, 0, sizeof(index_t)*i);
    k = A_p->col_coupler->connector->send->numSharedComponents;
+   send_shared = TMPMEMALLOC(k,index_t);
+if (MY_DEBUG) fprintf(stderr, "rank%d: recv sharedcomponent %d send sharedcomponent %d\n", rank, i, k);
    if (k > i) i = k;
    shared = TMPMEMALLOC(i, index_t);
-   memset(recv_len, 0, sizeof(dim_t)*size);
+
+   #ifdef ESYS_MPI
+     mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
+     mpi_stati=TMPMEMALLOC(size*2,MPI_Status);
+   #else
+     mpi_requests=TMPMEMALLOC(size*2,int);
+     mpi_stati=TMPMEMALLOC(size*2,int);
+   #endif
+
+   for (p=0; p<send->numNeighbors; p++) {
+     i = send->offsetInShared[p];
+     MPI_Irecv (&(send_shared[i]), send->offsetInShared[p+1]-i, MPI_INT,
+		send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+		mpi_info->comm, &mpi_requests[p]);
+   }
+
    num_neighbors = 0;
    q = 0;
    p = recv->numNeighbors;
@@ -278,9 +299,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    for (i=0; i<p; i++) {
      l = 0;
      k = recv->offsetInShared[i+1];
+if (MY_DEBUG) fprintf(stderr, "rank%d: recv-A %d\n", rank, k);
      for (j=recv->offsetInShared[i]; j<k; j++) {
 	if (couple_marker[j] == 1) {
 	  shared[q] = my_n_C + q;
+	  recv_shared[j] = 1;
 	  q++;
 	  l = 1;
 	}
@@ -288,32 +311,40 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      if (l == 1) {
 	iptr = recv->neighbor[i];
 	neighbor[num_neighbors] = iptr;
-        recv_len[iptr] = q - offsetInShared[num_neighbors];
 	num_neighbors++;
 	offsetInShared[num_neighbors] = q;
      }
+     MPI_Issend(&(recv_shared[recv->offsetInShared[i]]), 
+		k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
+		mpi_info->msg_tag_counter+rank, mpi_info->comm,
+		&mpi_requests[i+send->numNeighbors]);
    }
-   Paso_Coupler_finishCollect(coupler);
+if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d, shared %d\n", rank, num_neighbors, q);
+//   Paso_Coupler_finishCollect(coupler);
    recv = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
                                       offsetInShared, 1, 0, mpi_info);
 
    /* now we can build the sender */
-   #ifdef ESYS_MPI
-     MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
-   #else
-     for (p=0; p<size; p++) snd_len[p] = rcv_len[p];
-   #endif
-   send = A_p->col_coupler->connector->send;
+   MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
+   mpi_info->msg_tag_counter += size;
+   TMPMEMFREE(mpi_requests);
+   TMPMEMFREE(mpi_stati);
+
    num_neighbors = 0;
    q = 0;
    p = send->numNeighbors;
    offsetInShared[0]=0;
+if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d\n", rank, p);
+if (MY_DEBUG) fprintf(stderr, "rank%d: shared %d\n", rank, send->offsetInShared[p]);
    for (i=0; i<p; i++) {
      l = 0;
      k = send->offsetInShared[i+1];
      for (j=send->offsetInShared[i]; j<k; j++) {
-        if (coupler->recv_buffer[j] == 1) {
-          shared[q] = counter_C[send->shared[j]];
+//        if (coupler->recv_buffer[j] == 1) {
+//	if (counter_C[send->shared[j]] >= 0) {
+	if (send_shared[j] == 1) {
+	  /* is it where the error occurs?? due to array access exceed */
+          shared[q] = counter_C[send->shared[j]];  /*XXX*/
           q++;
           l = 1;
         }
@@ -325,14 +356,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
         offsetInShared[num_neighbors] = q;
      }
    }
-   Paso_Coupler_free(coupler);
+if (MY_DEBUG) fprintf(stderr, "rank%d: for send--neighbors %d, shared %d\n", rank, num_neighbors, q);
+//   Paso_Coupler_free(coupler);
    send = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
 				      offsetInShared, 1, 0, mpi_info);
    col_connector = Paso_Connector_alloc(send, recv);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-   TMPMEMFREE(recv_len);
-   TMPMEMFREE(send_len);
+   TMPMEMFREE(recv_shared);
+   TMPMEMFREE(send_shared);
    TMPMEMFREE(neighbor);
    TMPMEMFREE(offsetInShared);
    TMPMEMFREE(shared);
@@ -348,6 +380,63 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
 		row_block_size, col_block_size, FALSE);
    } 
+
+if (MY_DEBUG) fprintf(stderr, "before filling data\n");
+
+   /* now fill in the matrix */
+   if (Esys_noError()) {
+     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
+        || ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
+        if (row_block_size == 1) {
+          Paso_Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C);
+        } else {
+          Paso_Preconditioner_AMG_setClassicProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
+        }
+     } else {
+        if (row_block_size == 1) { 
+          Paso_Preconditioner_AMG_setDirectProlongation(out, A_p, offset_S, degree_S, S, counter_C);
+        } else {
+          Paso_Preconditioner_AMG_setDirectProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
+        }
+     }
+   }  
+
+if (MY_DEBUG) fprintf(stderr, "after filling data rank%d r-shared%d s-shared%d\n", rank, out->col_coupler->connector->recv->offsetInShared[1], out->col_coupler->connector->send->offsetInShared[1]);
+
+if (MY_DEBUG) {
+     index_t rank, col, p, ptr, range;
+     rank = A_p->mpi_info->rank;
+     fprintf(stderr, "rank%d: Start to print Matrix A\n", rank);
+     for (p=0; p<my_n; p++) {
+        range = A_p->mainBlock->pattern->ptr[p+1];
+        for (ptr = A_p->mainBlock->pattern->ptr[p]; ptr < range; ptr++) {
+          col = A_p->mainBlock->pattern->index[ptr];
+          fprintf(stderr, "rank%d: row %d col %d val %g\n", rank, p, col, A_p->mainBlock->val[ptr]);
+        }
+
+        range = A_p->col_coupleBlock->pattern->ptr[p+1];
+        for (ptr = A_p->col_coupleBlock->pattern->ptr[p]; ptr < range; ptr++) {
+          col = A_p->col_coupleBlock->pattern->index[ptr];
+          fprintf(stderr, "rank%d: row %d col %d(%d) val %g\n", rank, p, col, col+my_n, A_p->mainBlock->val[ptr]);
+        }
+     }
+
+
+     fprintf(stderr, "rank%d: Start to print Matrix P\n", rank);
+     for (p=0; p<my_n; p++) {
+	range = out->mainBlock->pattern->ptr[p+1];
+	for (ptr = out->mainBlock->pattern->ptr[p]; ptr < range; ptr++) {
+	  col = out->mainBlock->pattern->index[ptr];
+	  fprintf(stderr, "rank%d: row %d col %d val %g\n", rank, p, col, out->mainBlock->val[ptr]);
+	} 
+
+	range = out->col_coupleBlock->pattern->ptr[p+1];
+	for (ptr = out->col_coupleBlock->pattern->ptr[p]; ptr < range; ptr++) {
+          col = out->col_coupleBlock->pattern->index[ptr];
+          fprintf(stderr, "rank%d: row %d col %d(%d) val %g\n", rank, p, col, col+my_n_C, out->mainBlock->val[ptr]);
+        }
+     }
+}
   
    /* clean up */ 
    Paso_SystemMatrixPattern_free(pattern);
@@ -380,30 +469,47 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 
 */
 
-void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p, 
-					           const Paso_SparseMatrix* A_p,
-						   const index_t *counter_C) { 
+void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P, 
+	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
+        const index_t* S, const index_t *counter_C) { 
+   Esys_MPIInfo *mpi_info=A->mpi_info;
+   Paso_SparseMatrix *main_block=P->mainBlock;
+   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+   Paso_Pattern *main_pattern=main_block->pattern;
+   Paso_Pattern *couple_pattern=couple_block->pattern;
+   const dim_t row_block_size=A->row_block_size;
+   const dim_t col_block_size=A->col_block_size;
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   const dim_t n = my_n + overlap_n;
+   const dim_t num_threads=omp_get_max_threads();
+   index_t size=mpi_info->size, rank=mpi_info->rank, range;
+
    dim_t i;
-   const dim_t n =A_p->numRows;
    register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
    register index_t iPtr, j, offset; 
    index_t *where_p, *start_p;
    
-   #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
-   for (i=0;i<n;++i) {
+//   #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
+   for (i=0; i<my_n; i++) {
       if (counter_C[i]>=0) {
-	    offset = P_p->pattern->ptr[i];
-	    P_p->val[offset]=1.;  /* i is a C row */
-      } else if (P_p->pattern->ptr[i + 1] > P_p->pattern->ptr[i]) {
+	    offset = main_pattern->ptr[i];
+	    main_block->val[offset]=1.;  /* i is a C row */
+      } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) || 
+		 (couple_pattern->ptr[i +1] > couple_pattern->ptr[i])) {
 	 /* if i is an F row we first calculate alpha and beta: */
+
 	 sum_all_neg=0; /* sum of all negative values in row i of A */
 	 sum_all_pos=0; /* sum of all positive values in row i of A */
 	 sum_strong_neg=0; /* sum of all negative values A_ij where j is in C and strongly connected to i*/
 	 sum_strong_pos=0; /* sum of all positive values A_ij where j is in C and strongly connected to i*/
 	 A_ii=0; 
-	 for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
-	    j=A_p->pattern->index[iPtr];
-	    A_ij=A_p->val[iPtr];
+
+	 /* first check the mainBlock */
+	 range = A->mainBlock->pattern->ptr[i + 1];
+	 for (iPtr=A->mainBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+	    j=A->mainBlock->pattern->index[iPtr];
+	    A_ij=A->mainBlock->val[iPtr];
 	    if(j==i) {
 	       A_ii=A_ij;
 	    } else {
@@ -416,14 +522,14 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 	       
 	       if (counter_C[j]>=0) {
 		  /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */ 
-		  start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
+		  start_p=&(main_pattern->index[main_pattern->ptr[i]]);
 		  where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
-					    P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
+					    main_pattern->ptr[i + 1] - main_pattern->ptr[i],
 					    sizeof(index_t),
 					    Paso_comparIndex);
 		  if (! (where_p == NULL) ) { /* yes i stronly connect with j */
-			offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
-			P_p->val[offset]=A_ij; /* will be modified later */
+			offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
+			main_block->val[offset]=A_ij; /* will be modified later */
 			if (A_ij< 0)  {
 			   sum_strong_neg+=A_ij;
 			} else {
@@ -434,6 +540,37 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 
 	    } 
 	 }
+
+         /* now we deal with the col_coupleBlock */
+         range = A->col_coupleBlock->pattern->ptr[i + 1];
+         for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+            j=A->col_coupleBlock->pattern->index[iPtr];
+            A_ij=A->col_coupleBlock->val[iPtr];
+            if(A_ij< 0)  {
+                  sum_all_neg+=A_ij;
+            } else {
+                  sum_all_pos+=A_ij;
+            }
+
+            if (counter_C[j]>=0) {
+                  /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
+                  start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
+                  where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
+                                            couple_pattern->ptr[i + 1] - couple_pattern->ptr[i],
+                                            sizeof(index_t),
+                                            Paso_comparIndex);
+                  if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+                        offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
+                        couple_block->val[offset]=A_ij; /* will be modified later */
+                        if (A_ij< 0)  {
+                           sum_strong_neg+=A_ij;
+                        } else {
+                           sum_strong_pos+=A_ij;
+                        }
+                  }
+            }
+         }
+
 	 if(sum_strong_neg<0) { 
 	    alpha= sum_all_neg/sum_strong_neg;
 	 } else {
@@ -450,61 +587,90 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 	    alpha*=rtmp;
 	    beta*=rtmp;
 	 }
-	 for (iPtr=P_p->pattern->ptr[i];iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
-	    A_ij=P_p->val[iPtr];
+
+	 range = main_pattern->ptr[i + 1];
+	 for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
+	    A_ij=main_block->val[iPtr];
 	    if (A_ij > 0 ) {
-	       P_p->val[iPtr]*=beta;
+	       main_block->val[iPtr] = A_ij * beta;
 	    } else {
-	       P_p->val[iPtr]*=alpha;
+	       main_block->val[iPtr] = A_ij * alpha;
 	    }
 	 }
+
+         range = couple_pattern->ptr[i + 1];
+         for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
+            A_ij=couple_block->val[iPtr];
+            if (A_ij > 0 ) {
+               couple_block->val[iPtr] = A_ij * beta;
+            } else {
+               couple_block->val[iPtr] = A_ij * alpha;
+            }
+         }
       }
    } 
 }
 
-void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, 
-						         const Paso_SparseMatrix* A_p,
-						         const index_t *counter_C) { 
+void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
+        Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
+        const index_t* S, const index_t *counter_C) {
+   Esys_MPIInfo *mpi_info=A->mpi_info;
+   Paso_SparseMatrix *main_block=P->mainBlock;
+   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+   Paso_Pattern *main_pattern=main_block->pattern;
+   Paso_Pattern *couple_pattern=couple_block->pattern;
+   const dim_t row_block_size=A->row_block_size;
+   const dim_t col_block_size=A->col_block_size;
+   const dim_t A_block = A->block_size;
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   const dim_t n = my_n + overlap_n;
+   const dim_t num_threads=omp_get_max_threads();
+   index_t size=mpi_info->size, rank=mpi_info->rank, range;
+
    dim_t i;
-   const dim_t n =A_p->numRows;
-   const dim_t row_block=A_p->row_block_size;
-   const dim_t A_block = A_p->block_size;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
    register double A_ij, rtmp;
    register index_t iPtr, j, offset, ib; 
    index_t *where_p, *start_p;
    
-   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
+//   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
    {
-      sum_all_neg=TMPMEMALLOC(row_block, double); /* sum of all negative values in row i of A */
-      sum_all_pos=TMPMEMALLOC(row_block, double); /* sum of all positive values in row i of A */
-      sum_strong_neg=TMPMEMALLOC(row_block, double); /* sum of all negative values A_ij where j is in C and strongly connected to i*/
-      sum_strong_pos=TMPMEMALLOC(row_block, double); /* sum of all positive values A_ij where j is in C and strongly connected to i*/
-      alpha=TMPMEMALLOC(row_block, double);
-      beta=TMPMEMALLOC(row_block, double);
-      A_ii=TMPMEMALLOC(row_block, double);
+      sum_all_neg=TMPMEMALLOC(row_block_size, double); /* sum of all negative values in row i of A */
+      sum_all_pos=TMPMEMALLOC(row_block_size, double); /* sum of all positive values in row i of A */
+      sum_strong_neg=TMPMEMALLOC(row_block_size, double); /* sum of all negative values A_ij where j is in C and strongly connected to i*/
+      sum_strong_pos=TMPMEMALLOC(row_block_size, double); /* sum of all positive values A_ij where j is in C and strongly connected to i*/
+      alpha=TMPMEMALLOC(row_block_size, double);
+      beta=TMPMEMALLOC(row_block_size, double);
+      A_ii=TMPMEMALLOC(row_block_size, double);
       
-      #pragma omp for schedule(static)
-      for (i=0;i<n;++i) {
-	 if (counter_C[i]>=0) {
-	    offset = P_p->pattern->ptr[i];
-	    for (ib =0; ib<row_block; ++ib) P_p->val[row_block*offset+ib]=1.;  /* i is a C row */
-         } else if (P_p->pattern->ptr[i + 1] > P_p->pattern->ptr[i]) {
+//      #pragma omp for schedule(static)
+      for (i=0;i<my_n;++i) {
+	 if (counter_C[i]>=0) { /* i is a C row */
+	    offset = main_pattern->ptr[i];
+	    for (ib =0; ib<row_block_size; ++ib) 
+		main_block->val[row_block_size*offset+ib]=1.; 
+         } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
+		    (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
 	    /* if i is an F row we first calculate alpha and beta: */
-	    for (ib =0; ib<row_block; ++ib) {
+	    for (ib =0; ib<row_block_size; ++ib) {
 	       sum_all_neg[ib]=0;
 	       sum_all_pos[ib]=0;
 	       sum_strong_neg[ib]=0;
 	       sum_strong_pos[ib]=0;
 	       A_ii[ib]=0;
 	    }
-	    for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
-	       j=A_p->pattern->index[iPtr];
+
+	    /* first check the mainBlock */
+	    range = A->mainBlock->pattern->ptr[i + 1];
+	    for (iPtr=A->mainBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+	       j=A->mainBlock->pattern->index[iPtr];
 	       if(j==i) {
-		  for (ib =0; ib<row_block; ++ib) A_ii[ib]=A_p->val[A_block*iPtr+ib+row_block*ib];
+		  for (ib =0; ib<row_block_size; ++ib) 
+		    A_ii[ib]=A->mainBlock->val[A_block*iPtr+ib+row_block_size*ib];
 	       } else {
-		  for (ib =0; ib<row_block; ++ib) {
-		     A_ij=A_p->val[A_block*iPtr+ib+row_block*ib];
+		  for (ib =0; ib<row_block_size; ++ib) {
+		     A_ij=A->mainBlock->val[A_block*iPtr+ib+row_block_size*ib];
 		     if(A_ij< 0)  {
 			sum_all_neg[ib]+=A_ij;
 		     } else {
@@ -514,16 +680,16 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
 	       
 		  if (counter_C[j]>=0) {
 		     /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */ 
-		     start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
+		     start_p=&(main_pattern->index[main_pattern->ptr[i]]);
 		     where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
-					     P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
+					     main_pattern->ptr[i + 1]-main_pattern->ptr[i],
 					     sizeof(index_t),
 					     Paso_comparIndex);
 		     if (! (where_p == NULL) ) { /* yes i stronly connect with j */
-			      offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
-			      for (ib =0; ib<row_block; ++ib) {
-				 A_ij=A_p->val[A_block*iPtr+ib+row_block*ib];
-				 P_p->val[row_block*offset+ib]=A_ij; /* will be modified later */
+			      offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
+			      for (ib =0; ib<row_block_size; ++ib) {
+				 A_ij=A->mainBlock->val[A_block*iPtr+ib+row_block_size*ib];
+				 main_block->val[row_block_size*offset+ib]=A_ij; /* will be modified later */
 			         if (A_ij< 0)  {
 				     sum_strong_neg[ib]+=A_ij;
 				 } else {
@@ -535,7 +701,50 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
 	    
 	       } 
 	    }
-	    for (ib =0; ib<row_block; ++ib) {
+
+	    /* now we deal with the col_coupleBlock */
+	    range = A->col_coupleBlock->pattern->ptr[i + 1];
+            for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+               j=A->col_coupleBlock->pattern->index[iPtr];
+               if(j==i) {
+                  for (ib =0; ib<row_block_size; ++ib)
+                    A_ii[ib]=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
+               } else {
+                  for (ib =0; ib<row_block_size; ++ib) {
+                     A_ij=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
+                     if(A_ij< 0)  {
+                        sum_all_neg[ib]+=A_ij;
+                     } else {
+                        sum_all_pos[ib]+=A_ij;
+                     }
+                  }
+
+                  if (counter_C[j]>=0) {
+                     /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
+                     start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
+                     where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
+                                             couple_pattern->ptr[i + 1]-couple_pattern->ptr[i],
+                                             sizeof(index_t),
+                                             Paso_comparIndex);
+                     if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+                              offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
+                              for (ib =0; ib<row_block_size; ++ib) {
+                                 A_ij=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
+                                 couple_block->val[row_block_size*offset+ib]=A_ij; /* will be modified later */
+                                 if (A_ij< 0)  {
+                                     sum_strong_neg[ib]+=A_ij;
+                                 } else {
+                                    sum_strong_pos[ib]+=A_ij;
+                                 }
+                              }
+                     }
+                  }
+
+               }
+            }
+
+
+	    for (ib =0; ib<row_block_size; ++ib) {
 	       if(sum_strong_neg[ib]<0) { 
 		  alpha[ib]= sum_all_neg[ib]/sum_strong_neg[ib];
 	       } else {
@@ -553,17 +762,32 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
 		  beta[ib]*=rtmp;
 	       }
 	    }
-      
-	    for (iPtr=P_p->pattern->ptr[i];iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
-	       for (ib =0; ib<row_block; ++ib) {
-		  A_ij=P_p->val[row_block*iPtr+ib];
+
+	    range = main_pattern->ptr[i + 1];      
+	    for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
+	       for (ib =0; ib<row_block_size; ++ib) {
+		  A_ij=main_block->val[row_block_size*iPtr+ib];
 		  if (A_ij > 0 ) {
-		     P_p->val[row_block*iPtr+ib]*=beta[ib];
+		     main_block->val[row_block_size*iPtr+ib] = A_ij * beta[ib];
 		  } else {
-		     P_p->val[row_block*iPtr+ib]*=alpha[ib];
+		     main_block->val[row_block_size*iPtr+ib] = A_ij * alpha[ib];
 		  }
 	       }
 	    }
+
+	    range = couple_pattern->ptr[i + 1];
+	    for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
+	      for (ib =0; ib<row_block_size; ++ib) {
+                  A_ij=couple_block->val[row_block_size*iPtr+ib];
+                  if (A_ij > 0 ) {
+                     couple_block->val[row_block_size*iPtr+ib] = A_ij * beta[ib];
+                  } else {
+                     couple_block->val[row_block_size*iPtr+ib] = A_ij * alpha[ib];
+                  }
+               }
+            }
+
+
 	 }
       }/* end i loop */
       TMPMEMFREE(sum_all_neg); 
@@ -592,40 +816,54 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p,
               
 
 */
-void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p, 
-				 	           Paso_SparseMatrix* A_p,
-                                                   const index_t* offset_S, const dim_t* degree_S, const index_t* S,
-						   const index_t *counter_C) { 
+void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P, 
+	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
+	const index_t* S, const index_t *counter_C) { 
+   Esys_MPIInfo *mpi_info=A->mpi_info;
+   Paso_SparseMatrix *main_block=P->mainBlock;
+   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+   Paso_Pattern *main_pattern=main_block->pattern;
+   Paso_Pattern *couple_pattern=couple_block->pattern;
+   const dim_t row_block_size=A->row_block_size;
+   const dim_t col_block_size=A->col_block_size;
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   const dim_t n = my_n + overlap_n;
+   const dim_t num_threads=omp_get_max_threads();
+   index_t size=mpi_info->size, rank=mpi_info->rank, range, range_j;
+
    dim_t i, q;
-   const dim_t n =A_p->numRows;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
    const dim_t ll = Paso_Util_iMax(n, degree_S);
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
    
 
-   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
+//   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
    {
         D_s=TMPMEMALLOC(ll,double);
         D_s_offset=TMPMEMALLOC(ll,index_t);
 
 
    	#pragma omp for private(i) schedule(static)
-        for (i=0;i<n;++i) {
+        for (i=0;i<my_n;++i) {
             if (counter_C[i]>=0) {
-	        P_p->val[P_p->pattern->ptr[i]]=1.;  /* i is a C row */
-            } else if (P_p->pattern->ptr[i + 1] > P_p->pattern->ptr[i]) {
+	        main_block->val[main_pattern->ptr[i]]=1.;  /* i is a C row */
+            } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
+		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
 	       const index_t *start_s = &(S[offset_S[i]]);
-	       const index_t *start_p = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
-               const dim_t degree_P_i   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
+	       const index_t *start_p = &(main_pattern->index[main_pattern->ptr[i]]);
+               const dim_t degree_P_i   = main_pattern->ptr[i + 1]- main_pattern->ptr[i];
               /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
                                                                       which are not in C (=no interpolation nodes) */
-              const double A_ii = A_p->val[ptr_main_A[i]];
+              const double A_ii = A->mainBlock->val[ptr_main_A[i]];
               double a=A_ii;
 
-	      for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
-	         const index_t j=A_p->pattern->index[iPtr];
-	         const double A_ij=A_p->val[iPtr];
+	      /* first, check the mainBlock */
+	      range = A->mainBlock->pattern->ptr[i + 1];
+	      for (iPtr=A->mainBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+	         const index_t j=A->mainBlock->pattern->index[iPtr];
+	         const double A_ij=A->mainBlock->val[iPtr];
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
 	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
@@ -637,22 +875,25 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p,
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setBoomerProlongation: interpolation point is missing.");
                                } else {
-  		                    const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
-  	                            P_p->val[offset]+=A_ij; 
+  		                    const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
+  	                            main_block->val[offset]+=A_ij; 
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
-	                       const index_t *start_p_j = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
-                               const dim_t degree_P_j   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
+	                       const index_t *start_p_j = &(main_pattern->index[main_pattern->ptr[i]]);
+                               const dim_t degree_P_j   = main_pattern->ptr[i + 1]-main_pattern->ptr[i];
                                double s=0.;
                                dim_t len_D_s=0;
-	                       for (iPtr_j=A_p->pattern->ptr[j];iPtr_j<A_p->pattern->ptr[j + 1]; ++iPtr_j) {
-	                            const double A_jm=A_p->val[iPtr_j];
-	                            const index_t m=A_p->pattern->index[iPtr_j];
+
+			       /* first, the mainBlock part */
+			       range_j = A->mainBlock->pattern->ptr[j + 1];
+	                       for (iPtr_j=A->mainBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+	                            const double A_jm=A->mainBlock->val[iPtr_j];
+	                            const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
 	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-  		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          if (! SAMESIGN(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
@@ -662,11 +903,34 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p,
                                          len_D_s++;
                                     }
                                }
+
+			       /* then the coupleBlock part */
+                               range_j = A->col_coupleBlock->pattern->ptr[j + 1];
+                               for (iPtr_j=A->col_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+                                    const double A_jm=A->col_coupleBlock->val[iPtr_j];
+                                    const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                              D_s[len_D_s]=A_jm;
+                                         } else {
+                                              D_s[len_D_s]=0.;
+                                         }
+                                         D_s_offset[len_D_s]=offset_m + my_n;
+                                         len_D_s++;
+                                    }
+                               }
+
                                for (q=0;q<len_D_s;++q) s+=D_s[q];
                                if (ABS(s)>0) {
                                    s=A_ij/s;
                                    for (q=0;q<len_D_s;++q) {
-                                        P_p->val[D_s_offset[q]]+=s*D_s[q];
+					if (D_s_offset[q] < my_n) 
+                                          main_block->val[D_s_offset[q]]+=s*D_s[q];
+					else 
+					  couple_block->val[D_s_offset[q]-my_n]+=s*D_s[q];
                                    }
                                } else {
                                    a+=A_ij;
@@ -674,11 +938,102 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p,
                           }
                      }
                  }
-              }  /* i has been processed, now we need to do some rescaling */
+              }  
+
+	      if (A->mpi_info->size > 1) {
+              /* now, deal with the coupleBlock */
+              range = A->col_coupleBlock->pattern->ptr[i + 1];
+              for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+                 const index_t j=A->col_coupleBlock->pattern->index[iPtr];
+                 const double A_ij=A->col_coupleBlock->val[iPtr];
+                 if ( (i!=j) && (degree_S[j]>0) ) {
+                    /* is (i,j) a strong connection ?*/
+                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
+                    if (where_s == NULL) { /* weak connections are accummulated */
+                        a+=A_ij;
+                    } else {   /* yes i stronly connect with j */
+                        if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
+                               if (where_p == NULL)  {
+                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setBoomerProlongation: interpolation point is missing.");
+                               } else {
+                                    const index_t offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
+                                    couple_block->val[offset]+=A_ij;
+                               }
+                          } else {  /* j is not an interpolation point */
+                               /* find all interpolation points m of k */
+                               const index_t *start_p_j = &(couple_pattern->index[couple_pattern->ptr[i]]);
+                               const dim_t degree_P_j   = couple_pattern->ptr[i + 1]-couple_pattern->ptr[i];
+                               double s=0.;
+                               dim_t len_D_s=0;
+
+                               /* first, the row_coupleBlock part */
+                               range_j = A->row_coupleBlock->pattern->ptr[j + 1];
+                               for (iPtr_j=A->row_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+                                    const double A_jm=A->row_coupleBlock->val[iPtr_j];
+                                    const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+                                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                              D_s[len_D_s]=A_jm;
+                                         } else {
+                                              D_s[len_D_s]=0.;
+                                         }
+                                         D_s_offset[len_D_s]=offset_m;
+                                         len_D_s++;
+                                    }
+                               }
+
+                               /* then the remote_coupleBlock part */
+                               range_j = A->remote_coupleBlock->pattern->ptr[j + 1];
+                               for (iPtr_j=A->remote_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+                                    const double A_jm=A->remote_coupleBlock->val[iPtr_j];
+                                    const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                              D_s[len_D_s]=A_jm;
+                                         } else {
+                                              D_s[len_D_s]=0.;
+                                         }
+                                         D_s_offset[len_D_s]=offset_m + my_n;
+                                         len_D_s++;
+                                    }
+                               }
+
+                               for (q=0;q<len_D_s;++q) s+=D_s[q];
+                               if (ABS(s)>0) {
+                                   s=A_ij/s;
+                                   for (q=0;q<len_D_s;++q) {
+					if (D_s_offset[q] < my_n)
+                                          main_block->val[D_s_offset[q]]+=s*D_s[q];
+					else
+					  couple_block->val[D_s_offset[q]-my_n]+=s*D_s[q];
+                                   }
+                               } else {
+                                   a+=A_ij;
+                               }
+                          }
+                     }
+                 }
+              }
+	      }
+
+	      /* i has been processed, now we need to do some rescaling */
               if (ABS(a)>0.) {
                    a=-1./a;
-                   for (iPtr=P_p->pattern->ptr[i]; iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
-                        P_p->val[iPtr]*=a;
+		   range = main_pattern->ptr[i + 1];
+                   for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
+                        main_block->val[iPtr]*=a;
+                   }
+
+		   range = couple_pattern->ptr[i + 1];
+                   for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
+                        couple_block->val[iPtr]*=a;
                    }
               }
           }
@@ -688,44 +1043,57 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SparseMatrix* P_p,
      }    /* end of parallel region */
 }
 
-void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p, 
-				 	           Paso_SparseMatrix* A_p,
-                                                   const index_t* offset_S, const dim_t* degree_S, const index_t* S,
-						   const index_t *counter_C) { 
+void Paso_Preconditioner_AMG_setClassicProlongation_Block(
+	Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S,
+	const dim_t* degree_S, const index_t* S, const index_t *counter_C) {
+   Esys_MPIInfo *mpi_info=A->mpi_info;
+   Paso_SparseMatrix *main_block=P->mainBlock;
+   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+   Paso_Pattern *main_pattern=main_block->pattern;
+   Paso_Pattern *couple_pattern=couple_block->pattern;
+   const dim_t row_block=A->row_block_size;
+   const dim_t col_block=A->col_block_size;
+   const dim_t my_n=A->mainBlock->numRows;
+   const dim_t overlap_n=A->row_coupleBlock->numRows;
+   const dim_t n = my_n + overlap_n;
+   const dim_t A_block = A->block_size;
+   const dim_t num_threads=omp_get_max_threads();
+   index_t size=mpi_info->size, rank=mpi_info->rank, range, range_j;
+
    dim_t i, q, ib;
-   const dim_t row_block=A_p->row_block_size;
-   const dim_t A_block = A_p->block_size;
-   const dim_t n =A_p->numRows;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
    const dim_t ll = Paso_Util_iMax(n, degree_S);
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
    
 
-   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
+//   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
    {
         double *a=TMPMEMALLOC(row_block, double);
         D_s=TMPMEMALLOC(row_block*ll,double);
         D_s_offset=TMPMEMALLOC(row_block*ll,index_t);
 
    	#pragma omp for private(i) schedule(static)
-        for (i=0;i<n;++i) {
+        for (i=0;i<my_n;++i) {
             if (counter_C[i]>=0) {
-	        const index_t offset = P_p->pattern->ptr[i];
-	        for (ib =0; ib<row_block; ++ib) P_p->val[row_block*offset+ib]=1.;  /* i is a C row */
-            } else if (P_p->pattern->ptr[i + 1] > P_p->pattern->ptr[i]) {
+	        const index_t offset = main_pattern->ptr[i];
+	        for (ib =0; ib<row_block; ++ib) main_block->val[row_block*offset+ib]=1.;  /* i is a C row */
+            } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
+		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
 	       const index_t *start_s = &(S[offset_S[i]]);
-	       const index_t *start_p = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
-               const dim_t degree_P_i   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
+	       const index_t *start_p = &(main_pattern->index[main_pattern->ptr[i]]);
+               const dim_t degree_P_i   = main_pattern->ptr[i + 1] - main_pattern->ptr[i];
               /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
                                                                       which are not in C (=no interpolation nodes) */
-              const double *A_ii = &(A_p->val[ptr_main_A[i]*A_block]);
+              const double *A_ii = &(A->mainBlock->val[ptr_main_A[i]*A_block]);
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
               
 
-	      for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
-	         const index_t j=A_p->pattern->index[iPtr];
-	         const double* A_ij=&(A_p->val[iPtr*A_block]);
+	      /* first, check the mainBlock */
+	      range = A->mainBlock->pattern->ptr[i + 1];
+	      for (iPtr=A->mainBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+	         const index_t j=A->mainBlock->pattern->index[iPtr];
+	         const double* A_ij=&(A->mainBlock->val[iPtr*A_block]);
 
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
@@ -738,21 +1106,24 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setBoomerProlongation: interpolation point is missing.");
                                } else {
-  		                    const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
-                                    for (ib=0; ib<row_block; ib++) P_p->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
+  		                    const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
+                                    for (ib=0; ib<row_block; ib++) main_block->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
-	                       const index_t *start_p_j = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
-                               const dim_t degree_P_j   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
+	                       const index_t *start_p_j = &(main_pattern->index[main_pattern->ptr[i]]);
+                               const dim_t degree_P_j   = main_pattern->ptr[i + 1]- main_pattern->ptr[i];
                                dim_t len_D_s=0;
-	                       for (iPtr_j=A_p->pattern->ptr[j];iPtr_j<A_p->pattern->ptr[j + 1]; ++iPtr_j) {
-	                            const double* A_jm=&(A_p->val[iPtr_j*A_block]);
-	                            const index_t m=A_p->pattern->index[iPtr_j];
+
+			       /* first, the mainBlock part */
+			       range_j = A->mainBlock->pattern->ptr[j + 1];
+	                       for (iPtr_j=A->mainBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
+	                            const double* A_jm=&(A->mainBlock->val[iPtr_j*A_block]);
+	                            const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
 	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-  		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          for (ib=0; ib<row_block; ib++) {
                                               if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
@@ -764,15 +1135,42 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p
                                          len_D_s++;
                                     }
                                }
+
+			       /* then the coupleBlock part */
+                               range_j = A->col_coupleBlock->pattern->ptr[j + 1];
+                               for (iPtr_j=A->col_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
+                                    const double* A_jm=&(A->col_coupleBlock->val[iPtr_j*A_block]);
+                                    const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         for (ib=0; ib<row_block; ib++) {
+                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                                   D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
+                                              } else {
+                                                   D_s[len_D_s*row_block+ib]=0.;
+                                              }
+                                         }
+                                         D_s_offset[len_D_s]=offset_m + my_n;
+                                         len_D_s++;
+                                    }
+                               }
+
                                for (ib=0; ib<row_block; ib++) { 
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
                         
                                    if (ABS(s)>0) {
                                        s=A_ij[(row_block+1)*ib]/s;
-                                       for (q=0;q<len_D_s;++q) {
-                                            P_p->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
-                                       }
+				       if (D_s_offset[q] < my_n) 
+                                         for (q=0;q<len_D_s;++q) {
+                                            main_block->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
+                                         }
+				       else
+					 for (q=0;q<len_D_s;++q) {
+					    couple_block->val[(D_s_offset[q]-my_n)*row_block+ib]+=s*D_s[q*row_block+ib];
+					 }
                                    } else {
                                        a[ib]+=A_ij[(row_block+1)*ib];
                                    }
@@ -780,13 +1178,115 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p
                           }
                      }
                  }
-              }  /* i has been processed, now we need to do some rescaling */
+              }  
+
+
+	      if (A->mpi_info->size > 1) {
+	      /* now, deal with the coupleBlock */
+	      range = A->col_coupleBlock->pattern->ptr[i + 1];
+	      for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
+	         const index_t j=A->col_coupleBlock->pattern->index[iPtr];
+	         const double* A_ij=&(A->col_coupleBlock->val[iPtr*A_block]);
+
+                 if ( (i!=j) && (degree_S[j]>0) ) {
+                    /* is (i,j) a strong connection ?*/
+	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
+	            if (where_s == NULL) { /* weak connections are accummulated */
+                        for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
+                    } else {   /* yes i stronly connect with j */
+                        if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
+	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
+                               if (where_p == NULL)  {
+                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setBoomerProlongation: interpolation point is missing.");
+                               } else {
+  		                    const index_t offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
+                                    for (ib=0; ib<row_block; ib++) couple_block->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
+                               }
+                          } else {  /* j is not an interpolation point */
+                               /* find all interpolation points m of k */
+	                       const index_t *start_p_j = &(couple_pattern->index[couple_pattern->ptr[i]]);
+                               const dim_t degree_P_j   = couple_pattern->ptr[i + 1]- couple_pattern->ptr[i];
+                               dim_t len_D_s=0;
+
+			       /* first, the row_coupleBlock part */
+			       range_j = A->row_coupleBlock->pattern->ptr[j + 1];
+	                       for (iPtr_j=A->row_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
+	                            const double* A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
+	                            const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         for (ib=0; ib<row_block; ib++) {
+                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                                   D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
+                                              } else {
+                                                   D_s[len_D_s*row_block+ib]=0.;
+                                              }
+                                         }
+                                         D_s_offset[len_D_s]=offset_m;
+                                         len_D_s++;
+                                    }
+                               }
+
+			       /* then the remote_coupleBlock part */
+                               range_j = A->remote_coupleBlock->pattern->ptr[j + 1];
+                               for (iPtr_j=A->remote_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
+                                    const double* A_jm=&(A->remote_coupleBlock->val[iPtr_j*A_block]);
+                                    const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
+                                    /* is m an interpolation point ? */
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+                                    if (! (where_p_m==NULL)) {
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
+                                         for (ib=0; ib<row_block; ib++) {
+                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                                   D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
+                                              } else {
+                                                   D_s[len_D_s*row_block+ib]=0.;
+                                              }
+                                         }
+                                         D_s_offset[len_D_s]=offset_m + my_n;
+                                         len_D_s++;
+                                    }
+                               }
+
+                               for (ib=0; ib<row_block; ib++) { 
+                                   double s=0;
+                                   for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
+                        
+                                   if (ABS(s)>0) {
+                                       s=A_ij[(row_block+1)*ib]/s;
+				       if (D_s_offset[q] < my_n) 
+                                         for (q=0;q<len_D_s;++q) {
+                                            main_block->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
+                                         }
+				       else
+					 for (q=0;q<len_D_s;++q) {
+					    couple_block->val[(D_s_offset[q]-my_n)*row_block+ib]+=s*D_s[q*row_block+ib];
+					 }
+                                   } else {
+                                       a[ib]+=A_ij[(row_block+1)*ib];
+                                   }
+                               }
+                          }
+                     }
+                 }
+	      }
+	      }
+
+	      /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) { 
                    register double a2=a[ib];
                    if (ABS(a2)>0.) {
                         a2=-1./a2;
-                        for (iPtr=P_p->pattern->ptr[i]; iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
-                             P_p->val[iPtr*row_block+ib]*=a2;
+			range = main_pattern->ptr[i + 1];
+                        for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
+                             main_block->val[iPtr*row_block+ib]*=a2;
+                        }
+
+			range = couple_pattern->ptr[i + 1];
+			for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
+                             couple_block->val[iPtr*row_block+ib]*=a2;
                         }
                    }
               }
