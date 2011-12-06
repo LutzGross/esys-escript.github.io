@@ -65,6 +65,8 @@ struct Paso_Preconditioner_AMG {
    Paso_Preconditioner_Smoother* Smoother;
    dim_t post_sweeps;
    dim_t pre_sweeps;
+   dim_t options_smoother;  /* used in direct solver */
+   bool_t verbose;	    /* used in direct solver */
    index_t reordering;  /* applied reordering in direct solver */
    dim_t refinements;  /* number of refinements in direct solver (typically =0) */
    double* r;         /* buffer for residual */
@@ -79,7 +81,11 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix * A_p,d
 void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b);
 void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,  dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
 void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A, dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
-Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
+Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, index_t* counter_C, const index_t interpolation_method);
+void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
+void Paso_Preconditioner_AMG_setClassicProlongation_Block(Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
+void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
+void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
 double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_AMG * in);
 dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in);
 index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in);
@@ -88,6 +94,10 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist);
+Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P);
+Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(Paso_SystemMatrix* A, Paso_SystemMatrix* P);
+Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A);
+void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG* amg);
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
    dim_t level;
