@@ -92,6 +92,14 @@ public:
 
     /**
        \brief
+       copies the integrals of the function defined by arg into integrals.
+       arg has to be defined on this domain.
+    */
+    RIPLEY_DLL_API
+    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
+
+    /**
+       \brief
        returns the number of data points summed across all MPI processes
     */
     RIPLEY_DLL_API

@@ -89,6 +89,7 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
+        case ReducedNodes:
         case DegreesOfFreedom:
             return pair<int,int>(1, getNumNodes());
         case Elements:
@@ -102,7 +103,6 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
             /*
         case Points:
             return pair<int,int>(1, getNumPoints());
-        case ReducedNodes:
         case ReducedDegreesOfFreedom:
             return pair<int,int>(1, getNumReducedNodes());
             */
@@ -114,11 +114,6 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     msg << "getDataShape(): Unsupported function space type "
         << functionSpaceTypeAsString(fsType) << " for " << getDescription();
     throw RipleyException(msg.str());
-}
-
-int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
-{
-    throw RipleyException("getTagFromSampleNo() not implemented");
 }
 
 string RipleyDomain::showTagNames() const
@@ -479,6 +474,11 @@ bool RipleyDomain::ownSample(int fsType, index_t id) const
     throw RipleyException("ownSample() not implemented");
 }
 
+int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
+{
+    throw RipleyException("getTagFromSampleNo() not implemented");
+}
+
 void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
 {
     throw RipleyException("setTags() not implemented");
@@ -496,9 +496,9 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
 
 bool RipleyDomain::canTag(int fsType) const
 {
-    throw RipleyException("canTag() not implemented");
+    return false;
+    //throw RipleyException("canTag() not implemented");
 }
-
 
 void RipleyDomain::addPDEToSystem(
         escript::AbstractSystemMatrix& mat, escript::Data& rhs,
