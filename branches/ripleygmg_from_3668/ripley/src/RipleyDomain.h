@@ -670,11 +670,13 @@ protected:
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const;
 
-    /// interpolates data on nodes in 'in' onto elements in 'out'
-    virtual void interpolateNodesOnElements(escript::Data& out, escript::Data& in) const;
+    /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
+    virtual void interpolateNodesOnElements(escript::Data& out,
+                                       escript::Data& in, bool reduced) const;
 
-    /// interpolates data on nodes in 'in' onto face elements in 'out'
-    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const;
+    /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
+    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+                                         bool reduced) const;
 
     dim_t m_numDim;
     StatusType m_status;

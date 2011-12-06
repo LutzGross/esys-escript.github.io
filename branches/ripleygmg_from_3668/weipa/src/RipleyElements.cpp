@@ -139,22 +139,26 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
                 }
             }
         } else {
-            int id=0;
-            for (int i=0; i<numElements; i++) {
-                nodes.push_back(id+NN[0]*NN[1]);
-                nodes.push_back(id);
-                nodes.push_back(id+1);
-                nodes.push_back(id+NN[0]*NN[1]+1);
+            if (fsType==ripley::Elements) {
+                int id=0;
+                for (int i=0; i<numElements; i++) {
+                    nodes.push_back(id+NN[0]*NN[1]);
+                    nodes.push_back(id);
+                    nodes.push_back(id+1);
+                    nodes.push_back(id+NN[0]*NN[1]+1);
 
-                nodes.push_back(id+NN[0]*(NN[1]+1));
-                nodes.push_back(id+NN[0]);
-                nodes.push_back(id+1+NN[0]);
-                nodes.push_back(id+NN[0]*(NN[1]+1)+1);
-                id++;
-                if ((i+1)%NperDim[0]==0)
+                    nodes.push_back(id+NN[0]*(NN[1]+1));
+                    nodes.push_back(id+NN[0]);
+                    nodes.push_back(id+1+NN[0]);
+                    nodes.push_back(id+NN[0]*(NN[1]+1)+1);
                     id++;
-                if ((i+1)%(NperDim[0]*NperDim[1])==0)
-                    id+=NN[0];
+                    if ((i+1)%NperDim[0]==0)
+                        id++;
+                    if ((i+1)%(NperDim[0]*NperDim[1])==0)
+                        id+=NN[0];
+                }
+            } else if (fsType==ripley::FaceElements) {
+                return false;
             }
         }
 
