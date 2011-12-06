@@ -975,6 +975,263 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
     }
 }
 
+void Brick::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
+{
+    escript::Data& in = *const_cast<escript::Data*>(&arg);
+    const dim_t numComp = in.getDataPointSize();
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    const double h2 = m_l2/m_gNE2;
+    if (arg.getFunctionSpace().getTypeCode() == Elements) {
+        const double w_0 = h0*h1*h2/8.;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+#pragma omp for
+            for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            const register double f_4 = f[INDEX2(i,4,numComp)];
+                            const register double f_5 = f[INDEX2(i,5,numComp)];
+                            const register double f_6 = f[INDEX2(i,6,numComp)];
+                            const register double f_7 = f[INDEX2(i,7,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k0 loop */
+                } /* end of k1 loop */
+            } /* end of k2 loop */
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        }
+    } else if (arg.getFunctionSpace().getTypeCode() == ReducedElements) {
+        const double w_0 = h0*h1*h2;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+#pragma omp for
+            for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k0 loop */
+                } /* end of k1 loop */
+            } /* end of k2 loop */
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        }
+    } else if (arg.getFunctionSpace().getTypeCode() == FaceElements) {
+        const double w_0 = h1*h2/4.;
+        const double w_1 = h0*h2/4.;
+        const double w_2 = h0*h1/4.;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[1] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[2] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[3] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[4] > -1) {
+#pragma omp for
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[5] > -1) {
+#pragma omp for
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        }
+
+    } else if (arg.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        const double w_0 = h1*h2;
+        const double w_1 = h0*h2;
+        const double w_2 = h0*h1;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[1] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[2] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_1;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[3] > -1) {
+#pragma omp for
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_1;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[4] > -1) {
+#pragma omp for
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_2;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+            if (m_faceOffset[5] > -1) {
+#pragma omp for
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const double* f = in.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_2;
+                        }  /* end of component loop i */
+                    } /* end of k1 loop */
+                } /* end of k2 loop */
+            }
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        }
+
+    } else {
+        stringstream msg;
+        msg << "setToIntegrals() not implemented for "
+            << functionSpaceTypeAsString(arg.getFunctionSpace().getTypeCode());
+        throw RipleyException(msg.str());
+    }
+}
+
 Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                                             bool reducedColOrder) const
 {
