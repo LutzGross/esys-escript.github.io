@@ -299,6 +299,27 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
             } /* end of k0 loop */
         } /* end of k1 loop */
         /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
+    } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        /* GENERATOR SNIP_GRAD_REDUCED_ELEMENTS TOP */
+        const double tmp0_3 = 0.5/h1;
+        const double tmp0_2 = -0.5/h1;
+        const double tmp0_1 = -0.5/h0;
+        const double tmp0_0 = 0.5/h0;
+#pragma omp parallel for
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = tmp0_0*(f_10[i] + f_11[i]) + tmp0_1*(f_00[i] + f_01[i]);
+                    o[INDEX3(i,1,0,numComp,2)] = tmp0_2*(f_00[i] + f_10[i]) + tmp0_3*(f_01[i] + f_11[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of k1 loop */
+        /* GENERATOR SNIP_GRAD_REDUCED_ELEMENTS BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         /* GENERATOR SNIP_GRAD_FACES TOP */
         if (m_faceOffset[0] > -1) {
@@ -406,6 +427,81 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
             } /* end of k0 loop */
         } /* end of face 3 */
         /* GENERATOR SNIP_GRAD_FACES BOTTOM */
+    } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        /* GENERATOR SNIP_GRAD_REDUCED_FACES TOP */
+        if (m_faceOffset[0] > -1) {
+            const double tmp0_3 = -1/h1;
+            const double tmp0_2 = 1.0/h1;
+            const double tmp0_1 = -0.5/h0;
+            const double tmp0_0 = 0.5/h0;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(1,k1+1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = tmp0_0*(f_10[i] + f_11[i]) + tmp0_1*(f_00[i] + f_01[i]);
+                    o[INDEX3(i,1,0,numComp,2)] = f_00[i]*tmp0_3 + f_01[i]*tmp0_2;
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 0 */
+        if (m_faceOffset[1] > -1) {
+            const double tmp0_3 = 1.0/h1;
+            const double tmp0_2 = -1/h1;
+            const double tmp0_1 = -0.5/h0;
+            const double tmp0_0 = 0.5/h0;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = tmp0_0*(f_10[i] + f_11[i]) + tmp0_1*(f_00[i] + f_01[i]);
+                    o[INDEX3(i,1,0,numComp,2)] = f_10[i]*tmp0_2 + f_11[i]*tmp0_3;
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 1 */
+        if (m_faceOffset[2] > -1) {
+            const double tmp0_3 = 0.5/h1;
+            const double tmp0_2 = -0.5/h1;
+            const double tmp0_1 = 1.0/h0;
+            const double tmp0_0 = -1/h0;
+#pragma omp parallel for
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = f_00[i]*tmp0_0 + f_10[i]*tmp0_1;
+                    o[INDEX3(i,1,0,numComp,2)] = tmp0_2*(f_00[i] + f_10[i]) + tmp0_3*(f_01[i] + f_11[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 2 */
+        if (m_faceOffset[3] > -1) {
+            const double tmp0_3 = -0.5/h1;
+            const double tmp0_2 = 0.5/h1;
+            const double tmp0_1 = -1/h0;
+            const double tmp0_0 = 1.0/h0;
+#pragma omp parallel for
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = f_01[i]*tmp0_1 + f_11[i]*tmp0_0;
+                    o[INDEX3(i,1,0,numComp,2)] = tmp0_2*(f_01[i] + f_11[i]) + tmp0_3*(f_00[i] + f_10[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 3 */
+        /* GENERATOR SNIP_GRAD_REDUCED_FACES BOTTOM */
     } else {
         stringstream msg;
         msg << "setToGradient() not implemented for "
@@ -1032,94 +1128,168 @@ void Rectangle::generateCouplePatterns(Paso_Pattern** colPattern, Paso_Pattern**
 }
 
 //protected
-void Rectangle::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+void Rectangle::interpolateNodesOnElements(escript::Data& out,
+                                        escript::Data& in, bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
-    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
-    const double tmp0_2 = 0.62200846792814621559;
-    const double tmp0_1 = 0.044658198738520451079;
-    const double tmp0_0 = 0.16666666666666666667;
+    if (reduced) {
+        /* GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS TOP */
+        const double tmp0_0 = 0.25000000000000000000;
 #pragma omp parallel for
-    for (index_t k1=0; k1 < m_NE1; ++k1) {
-        for (index_t k0=0; k0 < m_NE0; ++k0) {
-            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
-            double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
-                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
-                o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
-                o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
-            } /* end of component loop i */
-        } /* end of k0 loop */
-    } /* end of k1 loop */
-    /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = tmp0_0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of k1 loop */
+        /* GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS BOTTOM */
+    } else {
+        /* GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
+        const double tmp0_2 = 0.62200846792814621559;
+        const double tmp0_1 = 0.044658198738520451079;
+        const double tmp0_0 = 0.16666666666666666667;
+#pragma omp parallel for
+        for (index_t k1=0; k1 < m_NE1; ++k1) {
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_2 + f_11[i]*tmp0_1 + tmp0_0*(f_01[i] + f_10[i]);
+                    o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_1 + f_10[i]*tmp0_2 + tmp0_0*(f_00[i] + f_11[i]);
+                    o[INDEX2(i,numComp,2)] = f_01[i]*tmp0_2 + f_10[i]*tmp0_1 + tmp0_0*(f_00[i] + f_11[i]);
+                    o[INDEX2(i,numComp,3)] = f_00[i]*tmp0_1 + f_11[i]*tmp0_2 + tmp0_0*(f_01[i] + f_10[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of k1 loop */
+        /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+    }
 }
 
 //protected
-void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+                                        bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
-    /* GENERATOR SNIP_INTERPOLATE_FACES TOP */
-    if (m_faceOffset[0] > -1) {
-        const double tmp0_1 = 0.78867513459481288225;
-        const double tmp0_0 = 0.21132486540518711775;
+    if (reduced) {
+        /* GENERATOR SNIP_INTERPOLATE_REDUCED_FACES TOP */
+        if (m_faceOffset[0] > -1) {
+            const double tmp0_0 = 0.50000000000000000000;
 #pragma omp parallel for
-        for (index_t k1=0; k1 < m_NE1; ++k1) {
-            const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
-            const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
-            double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_01[i]*tmp0_0;
-                o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_01[i]*tmp0_1;
-            } /* end of component loop i */
-        } /* end of k1 loop */
-    } /* end of face 0 */
-    if (m_faceOffset[1] > -1) {
-        const double tmp0_1 = 0.21132486540518711775;
-        const double tmp0_0 = 0.78867513459481288225;
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = tmp0_0*(f_00[i] + f_01[i]);
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 0 */
+        if (m_faceOffset[1] > -1) {
+            const double tmp0_0 = 0.50000000000000000000;
 #pragma omp parallel for
-        for (index_t k1=0; k1 < m_NE1; ++k1) {
-            const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
-            const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
-            double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_10[i]*tmp0_0 + f_11[i]*tmp0_1;
-                o[INDEX2(i,numComp,1)] = f_10[i]*tmp0_1 + f_11[i]*tmp0_0;
-            } /* end of component loop i */
-        } /* end of k1 loop */
-    } /* end of face 1 */
-    if (m_faceOffset[2] > -1) {
-        const double tmp0_1 = 0.78867513459481288225;
-        const double tmp0_0 = 0.21132486540518711775;
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = tmp0_0*(f_10[i] + f_11[i]);
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 1 */
+        if (m_faceOffset[2] > -1) {
+            const double tmp0_0 = 0.50000000000000000000;
 #pragma omp parallel for
-        for (index_t k0=0; k0 < m_NE0; ++k0) {
-            const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
-            const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
-            double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_10[i]*tmp0_0;
-                o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_10[i]*tmp0_1;
-            } /* end of component loop i */
-        } /* end of k0 loop */
-    } /* end of face 2 */
-    if (m_faceOffset[3] > -1) {
-        const double tmp0_1 = 0.78867513459481288225;
-        const double tmp0_0 = 0.21132486540518711775;
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = tmp0_0*(f_00[i] + f_10[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 2 */
+        if (m_faceOffset[3] > -1) {
+            const double tmp0_0 = 0.50000000000000000000;
 #pragma omp parallel for
-        for (index_t k0=0; k0 < m_NE0; ++k0) {
-            const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
-            const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
-            double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
-            for (index_t i=0; i < numComp; ++i) {
-                o[INDEX2(i,numComp,0)] = f_01[i]*tmp0_1 + f_11[i]*tmp0_0;
-                o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_0 + f_11[i]*tmp0_1;
-            } /* end of component loop i */
-        } /* end of k0 loop */
-    } /* end of face 3 */
-    /* GENERATOR SNIP_INTERPOLATE_FACES BOTTOM */
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = tmp0_0*(f_01[i] + f_11[i]);
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 3 */
+        /* GENERATOR SNIP_INTERPOLATE_REDUCED_FACES BOTTOM */
+    } else {
+        /* GENERATOR SNIP_INTERPOLATE_FACES TOP */
+        if (m_faceOffset[0] > -1) {
+            const double tmp0_1 = 0.78867513459481288225;
+            const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_01[i]*tmp0_0;
+                    o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_01[i]*tmp0_1;
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 0 */
+        if (m_faceOffset[1] > -1) {
+            const double tmp0_1 = 0.21132486540518711775;
+            const double tmp0_0 = 0.78867513459481288225;
+#pragma omp parallel for
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_10[i]*tmp0_0 + f_11[i]*tmp0_1;
+                    o[INDEX2(i,numComp,1)] = f_10[i]*tmp0_1 + f_11[i]*tmp0_0;
+                } /* end of component loop i */
+            } /* end of k1 loop */
+        } /* end of face 1 */
+        if (m_faceOffset[2] > -1) {
+            const double tmp0_1 = 0.78867513459481288225;
+            const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_00[i]*tmp0_1 + f_10[i]*tmp0_0;
+                    o[INDEX2(i,numComp,1)] = f_00[i]*tmp0_0 + f_10[i]*tmp0_1;
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 2 */
+        if (m_faceOffset[3] > -1) {
+            const double tmp0_1 = 0.78867513459481288225;
+            const double tmp0_0 = 0.21132486540518711775;
+#pragma omp parallel for
+            for (index_t k0=0; k0 < m_NE0; ++k0) {
+                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_01[i]*tmp0_1 + f_11[i]*tmp0_0;
+                    o[INDEX2(i,numComp,1)] = f_01[i]*tmp0_0 + f_11[i]*tmp0_1;
+                } /* end of component loop i */
+            } /* end of k0 loop */
+        } /* end of face 3 */
+        /* GENERATOR SNIP_INTERPOLATE_FACES BOTTOM */
+    }
 }
 
 } // end of namespace ripley

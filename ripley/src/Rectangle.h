@@ -161,8 +161,10 @@ protected:
     virtual dim_t getNumFaceElements() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
-    virtual void interpolateNodesOnElements(escript::Data& out, escript::Data& in) const;
-    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const;
+    virtual void interpolateNodesOnElements(escript::Data& out,
+                                       escript::Data& in, bool reduced) const;
+    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+                                         bool reduced) const;
 
 private:
     void populateSampleIds();

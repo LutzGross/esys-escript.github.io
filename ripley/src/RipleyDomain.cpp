@@ -95,16 +95,16 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
             return pair<int,int>(ptsPerSample, getNumElements());
         case FaceElements:
             return pair<int,int>(ptsPerSample/2, getNumFaceElements());
+        case ReducedElements:
+            return pair<int,int>(1, getNumElements());
+        case ReducedFaceElements:
+            return pair<int,int>(1, getNumFaceElements());
             /*
         case Points:
-            return pair<int,int>(1, getNumNodes());
+            return pair<int,int>(1, getNumPoints());
         case ReducedNodes:
         case ReducedDegreesOfFreedom:
             return pair<int,int>(1, getNumReducedNodes());
-        case ReducedElements:
-            return pair<int,int>(1, getNumReducedElements());
-        case ReducedFaceElements:
-            return pair<int,int>(1, getNumReducedFaceElements());
             */
         default:
             break;
@@ -252,15 +252,24 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
         case DegreesOfFreedom:
             switch (target.getFunctionSpace().getTypeCode()) {
                 case DegreesOfFreedom:
+                    // FIXME!
                     target=in;
                     break;
 
                 case Elements:
-                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in));
+                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), false);
+                    break;
+
+                case ReducedElements:
+                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), true);
                     break;
 
                 case FaceElements:
-                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in));
+                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), false);
+                    break;
+
+                case ReducedFaceElements:
+                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), true);
                     break;
 
                 default:
@@ -591,12 +600,12 @@ void RipleyDomain::assembleCoordinates(escript::Data& arg) const
     throw RipleyException("assembleCoordinates() not implemented");
 }
 
-void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in) const
+void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in, bool reduced) const
 {
     throw RipleyException("interpolateNodesOnElements() not implemented");
 }
 
-void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in) const
+void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in, bool reduced) const
 {
     throw RipleyException("interpolateNodesOnFaces() not implemented");
 }
