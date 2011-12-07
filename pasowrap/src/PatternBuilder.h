@@ -12,24 +12,29 @@ namespace paso
 class PatternBuilder
 {
   public:
-    PatternBuilder(size_t numrows, unsigned char maxneighbours);
+    PatternBuilder(size_t numrows, unsigned char maxneighbours, Esys_MPIInfo* inf);
     ~PatternBuilder();
 
     double* values;
     int* pos;
+
+    void setDistribution(index_t* ranges, index_t m, index_t b, bool chooseoutput=false);
     
-    Paso_SystemMatrixPattern* generatePattern(size_t local_low, size_t local_high);
+    Paso_SystemMatrixPattern* generatePattern(size_t local_low, size_t local_high, Paso_Connector* c);
     
     
   private:
     size_t numrows;
     unsigned char maxneighbours;
     unsigned char* psums;
+    Esys_MPIInfo* mpi_info;
+    Paso_Distribution* input_d;
+    Paso_Distribution* output_d;
 };
 
 
 
-PatternBuilder* makePB(size_t numrows, unsigned char maxneighbours);
+PatternBuilder* makePB(Esys_MPIInfo* inf, size_t numrows, unsigned char maxneighbours);
 void deallocPB(PatternBuilder* pb);
 Paso_Pattern* createPasoPattern(int type, dim_t numOutput, dim_t numInput, index_t numrows, index_t total_elts);
 

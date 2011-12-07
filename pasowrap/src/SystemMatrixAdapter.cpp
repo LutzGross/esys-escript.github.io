@@ -364,6 +364,20 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }
- 
+
+SystemMatrixAdapter* makeSystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
+                      const int row_blocksize,
+                      const escript::FunctionSpace& row_functionspace,
+                      const int column_blocksize,
+                      const escript::FunctionSpace& colum_functionspace)
+{
+    return new SystemMatrixAdapter(system_matrix, row_blocksize, row_functionspace, column_blocksize, colum_functionspace);  
+  
+}
+
+void freeSystemMatrixAdapter(SystemMatrixAdapter* p)
+{
+    delete p;  
+}
 
 }  // end of namespace
