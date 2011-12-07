@@ -18,7 +18,6 @@
 
 #include "DataConstant.h"
 #include "DataException.h"
-#include "esysUtils/Esys_MPI.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

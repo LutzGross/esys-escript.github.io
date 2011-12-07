@@ -22,7 +22,7 @@
 #include <map>
 #include <boost/python/dict.hpp>
 #include <boost/python/list.hpp>
-#include "esysUtils/Esys_MPI.h"
+#include "esysUtils/Esys_MPI.hpp"
 
 
 #include "Pointers.h"

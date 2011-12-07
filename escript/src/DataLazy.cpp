@@ -13,7 +13,6 @@
 
 
 #include "DataLazy.h"
-#include "esysUtils/Esys_MPI.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -345,12 +345,12 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     
     // may need to switch this to something NUMA friendly?
     mutable std::vector<const OctCell*> face_cells[6];
-
+    Esys_MPIInfo *m_mpiInfo;
 
     
-
+/*
    void interpolateElementFromCtsToDisc(const LeafInfo* li, size_t ptsize, 
-						    double* qvalues, double* values2) const;
+						    double* qvalues, double* values2) const;*/
     
 };
 

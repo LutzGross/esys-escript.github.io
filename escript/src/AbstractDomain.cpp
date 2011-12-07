@@ -15,7 +15,6 @@
 #include "AbstractDomain.h" 
 #include "DomainException.h"
 #include "Data.h"
-#include "esysUtils/Esys_MPI.h"
 
 using namespace std;
 
