@@ -37,7 +37,6 @@ extern "C" {
 #include <omp.h>
 #endif
 
-#include "esysUtils/Esys_MPI.h"
 #include <string>
 #include <algorithm>
 #include <sstream>

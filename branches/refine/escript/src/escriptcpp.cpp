@@ -22,7 +22,6 @@
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
 #include "DataVector.h"
-#include "esysUtils/Esys_MPI.h"
 #include "EscriptParams.h"
 #include "TestDomain.h"
 

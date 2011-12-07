@@ -76,16 +76,21 @@ void OctCell::quadCoords(unsigned k, double& x, double& y, double& z) const
     x=centre[0];
     y=centre[1];
     z=centre[2];
+    
+    const double quadoffset=0.21132486540518711775;	// but we will compute relative to the centre
+    double offx=(0.5-quadoffset)*sides[0];
+    double offy=(0.5-quadoffset)*sides[1];
+    double offz=(0.5-quadoffset)*sides[2];
     switch(k)
     {
-      case 0: x-=sides[0]/4;  y-=sides[1]/4;  z-=sides[2]/4; break;  
-      case 1: x+=sides[0]/4;  y-=sides[1]/4;  z-=sides[2]/4; break;  
-      case 2: x+=sides[0]/4;  y+=sides[1]/4;  z-=sides[2]/4; break;  
-      case 3: x-=sides[0]/4;  y+=sides[1]/4;  z-=sides[2]/4; break;  
-      case 4: x-=sides[0]/4;  y-=sides[1]/4;  z+=sides[2]/4; break;  
-      case 5: x+=sides[0]/4;  y-=sides[1]/4;  z+=sides[2]/4; break;  
-      case 6: x+=sides[0]/4;  y+=sides[1]/4;  z+=sides[2]/4; break;  
-      default: x-=sides[0]/4;  y+=sides[1]/4;  z+=sides[2]/4; break;  
+      case 0: x-=offx;  y-=offy;  z-=offz; break;  
+      case 1: x+=offx;  y-=offy;  z-=offz; break;  
+      case 2: x+=offx;  y+=offy;  z-=offz; break;  
+      case 3: x-=offx;  y+=offy;  z-=offz; break;  
+      case 4: x-=offx;  y-=offy;  z+=offz; break;  
+      case 5: x+=offx;  y-=offy;  z+=offz; break;  
+      case 6: x+=offx;  y+=offy;  z+=offz; break;  
+      default: x-=offx;  y+=offy;  z+=offz; break;  
     };  
   
   

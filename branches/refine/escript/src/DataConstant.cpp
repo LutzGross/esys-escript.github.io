@@ -16,7 +16,7 @@
 #include "DataConstant.h"
 #include "DataException.h"
 #include "esysUtils/EsysAssert.h"
-#include "esysUtils/Esys_MPI.h"
+
 
 #include <iostream>
 #include <boost/python/extract.hpp>

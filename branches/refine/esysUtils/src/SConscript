@@ -29,6 +29,7 @@ headers = """
 	EsysException.h
 	EsysTypes.h
 	Esys_MPI.h
+	Esys_MPI.hpp
 	error.h
 	esys_malloc.h
 	esysExceptionTranslator.h

@@ -19,8 +19,6 @@
 #include "DataTagged.h"
 #include <limits>
 
-#include "esysUtils/Esys_MPI.h"
-
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif

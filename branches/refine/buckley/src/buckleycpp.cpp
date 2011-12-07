@@ -13,7 +13,10 @@
 
 
 #ifdef ESYS_MPI
+extern "C"
+{
 #include "esysUtils/Esys_MPI.h"
+}
 #endif
 
 #include "BuckleyDomain.h"

@@ -14,7 +14,6 @@
 
 #include "DataFactory.h"
 #include "esysUtils/esys_malloc.h"
-#include "esysUtils/Esys_MPI.h"
 
 #include <boost/python/extract.hpp>
 #include <iostream>

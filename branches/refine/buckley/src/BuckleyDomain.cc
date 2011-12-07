@@ -19,6 +19,7 @@
 #include <escript/FunctionSpaceFactory.h>
 
 #include <pasowrap/PatternBuilder.h>
+
 using namespace buckley;
 using namespace std;
 using namespace paso;
@@ -36,7 +37,7 @@ namespace
     const int discfn=2;
     const int red_discfn=-3;	// reduced discontinuous function  (reduced elements in finley terms)
     const int disc_faces=-4;
-    const int red_disc_faces=-5;
+    const int red_disc_faces=-6;
     
     
     
@@ -68,6 +69,7 @@ escript::DataTypes::ShapeType make3x3()
 BuckleyDomain::BuckleyDomain(double x, double y, double z)
 :ot(x,y,z),modified(true),leaves(0),numpts(0),samplerefids(0), m_generation(1)
 {
+    m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);  
 }
 
 BuckleyDomain::~BuckleyDomain()
@@ -80,6 +82,7 @@ BuckleyDomain::~BuckleyDomain()
     {
        delete[] samplerefids;
     }
+    Esys_MPIInfo_free(m_mpiInfo);
 }
 
 bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
@@ -581,7 +584,7 @@ std::string BuckleyDomain::functionSpaceTypeAsString(int functionSpaceType) cons
     };
 }
 
-
+/*
 // interpolate an element from ctsfn to discfn
 // qvalues and values2 must be big enough to hold a datapoint for each quadrature point
 // the results end up in the values2 array
@@ -641,7 +644,7 @@ void BuckleyDomain::interpolateElementFromCtsToDisc(const LeafInfo* li, size_t p
         values2[7*ptsize+k]=qvalues[3*ptsize+k]+0.75*(qvalues[7*ptsize+k]-qvalues[3*ptsize+k]); //7     		
     }        
        
-}
+}*/
 
 
 
@@ -661,7 +664,10 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 {
     escript::Data& in = *const_cast<escript::Data*>(&cIn);
     const dim_t numComp = in.getDataPointSize();
-
+    if (modified)	// is the cached data we have about this domain stale?
+    {
+        processMods();
+    }
     bool err=false;
 #pragma omp parallel
     {
