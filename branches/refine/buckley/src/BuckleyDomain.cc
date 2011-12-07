@@ -19,6 +19,7 @@
 #include <escript/FunctionSpaceFactory.h>
 
 #include <pasowrap/PatternBuilder.h>
+#include <pasowrap/SystemMatrixAdapter.h>
 
 using namespace buckley;
 using namespace std;
@@ -462,32 +463,28 @@ escript::ASM_ptr BuckleyDomain::newSystemMatrix(
    
    // This is just here to remind me that I need to consider multiple ranks
    const unsigned int numranks=1;
-   PatternBuilder* pb=makePB(numpts/numranks,26);
+   PatternBuilder* pb=makePB( m_mpiInfo, numpts/numranks,26);
+   
+   index_t dummy[2];
+   dummy[0]=0;
+   dummy[1]=numpts;
+   
+   pb->setDistribution(dummy, 1, 0, false);
+   pb->setDistribution(dummy, 1, 0, true);
+   
+   Paso_SharedComponents* send=Paso_SharedComponents_alloc( 0, 0, 0, 0, 0, 0, 0, m_mpiInfo);
+   Paso_SharedComponents* recv=Paso_SharedComponents_alloc(0, 0, 0, 0, 0, 0, 0, m_mpiInfo);
+   
+   Paso_Connector* conn=Paso_Connector_alloc(send, recv);
    
    // again, dummy values for a sole rank
-   Paso_SystemMatrixPattern* psystemMatrixPattern=pb->generatePattern(0, numpts); 
+   Paso_SystemMatrixPattern* psystemMatrixPattern=pb->generatePattern(0, numpts, conn ); 
+   Paso_SystemMatrix* sm=Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, psystemMatrixPattern, numpts, numpts, true);
+   Paso_SystemMatrixPattern_free(psystemMatrixPattern);
+
+   SystemMatrixAdapter* sma=paso::makeSystemMatrixAdapter(sm, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
    
- 
-//    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceRowOrder,reduceColOrder);
-//    checkFinleyError();
-//    Paso_SystemMatrix* fsystemMatrix;
-//    int trilinos = 0;
-//    if (trilinos) {
-// #ifdef TRILINOS
-//       /* Allocation Epetra_VrbMatrix here */
-// #endif
-//    }
-//    else {
-//       fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
-//    }
-//    checkPasoError();
-//    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-//    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
-//    return ASM_ptr(sma);
-   
-  
-  
-    throw BuckleyException("Not Implemented ::newSystemMatrix");
+   return escript::ASM_ptr(sma);
 }
 
 escript::ATP_ptr BuckleyDomain::newTransportProblem(

@@ -174,5 +174,12 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
 
 };
 
+SystemMatrixAdapter* makeSystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
+                      const int row_blocksize,
+                      const escript::FunctionSpace& row_functionspace,
+                      const int column_blocksize,
+                      const escript::FunctionSpace& colum_functionspace);
+void freeSystemMatrixAdapter(SystemMatrixAdapter* p);
+
 } // end of namespace
 #endif
