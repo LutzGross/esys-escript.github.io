@@ -20,7 +20,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import unittest
-from test_util import Test_util_no_tagged_data
+from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symbols import Test_symbols
 
@@ -36,7 +36,7 @@ except KeyError:
 
 NE=4 # number elements
 
-class Test_UtilOnRipley(Test_util_no_tagged_data,Test_symbols):
+class Test_UtilOnRipley(Test_util,Test_symbols):
    def setUp(self):
        mpiSize=getMPISizeWorld()
        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:

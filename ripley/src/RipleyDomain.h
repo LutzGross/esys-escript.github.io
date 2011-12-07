@@ -678,10 +678,19 @@ protected:
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
 
+    /// copies data on nodes in 'in' to nodes in 'out'
+    virtual void copyNodalData(escript::Data& out, escript::Data& in) const;
+
+    // this is const because setTags is const
+    virtual void updateTagsInUse(int fsType) const;
+
     dim_t m_numDim;
     StatusType m_status;
     Esys_MPIInfo *m_mpiInfo;
     TagMap m_tagMap;
+    mutable IndexVector m_nodeTags, m_nodeTagsInUse;
+    mutable IndexVector m_elementTags, m_elementTagsInUse;
+    mutable IndexVector m_faceTags, m_faceTagsInUse;
 };
 
 } // end of namespace ripley
