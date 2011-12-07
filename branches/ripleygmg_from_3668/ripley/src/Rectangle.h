@@ -100,6 +100,15 @@ public:
 
     /**
        \brief
+       copies the surface normals at data points into out. The actual function
+       space to be considered is defined by out. out has to be defined on this
+       domain.
+    */
+    RIPLEY_DLL_API
+    virtual void setToNormal(escript::Data& out) const;
+
+    /**
+       \brief
        returns the number of data points summed across all MPI processes
     */
     RIPLEY_DLL_API

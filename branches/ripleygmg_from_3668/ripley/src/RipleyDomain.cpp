@@ -91,6 +91,7 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
         case Nodes:
         case ReducedNodes:
         case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
             return pair<int,int>(1, getNumNodes());
         case Elements:
             return pair<int,int>(ptsPerSample, getNumElements());
@@ -103,8 +104,6 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
             /*
         case Points:
             return pair<int,int>(1, getNumPoints());
-        case ReducedDegreesOfFreedom:
-            return pair<int,int>(1, getNumReducedNodes());
             */
         default:
             break;
@@ -244,11 +243,16 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
 
     switch (in.getFunctionSpace().getTypeCode()) {
         case Nodes:
+        case ReducedNodes:
         case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
             switch (target.getFunctionSpace().getTypeCode()) {
+                case Nodes:
+                case ReducedNodes:
                 case DegreesOfFreedom:
-                    // FIXME!
-                    target=in;
+                case ReducedDegreesOfFreedom:
+                    // FIXME
+                    copyNodalData(target, *const_cast<escript::Data*>(&in));
                     break;
 
                 case Elements:
@@ -327,8 +331,133 @@ bool RipleyDomain::isCellOriented(int fsType) const
             break;
     }
     stringstream msg;
-    msg << "Illegal function space type " << fsType << " on " << getDescription();
+    msg << "isCellOriented(): Illegal function space type " << fsType << " on " << getDescription();
     throw RipleyException(msg.str());
+}
+
+bool RipleyDomain::canTag(int fsType) const
+{
+    switch(fsType) {
+        case Nodes:
+        case Elements:
+        case ReducedElements:
+        case FaceElements:
+        case ReducedFaceElements:
+            return true;
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+        case Points:
+            return false;
+        default:
+            break;
+    }
+    stringstream msg;
+    msg << "canTag(): Illegal function space type " << fsType << " on " << getDescription();
+    throw RipleyException(msg.str());
+}
+
+void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& cMask) const
+{
+    IndexVector* target=NULL;
+    dim_t num=0;
+
+    switch(fsType) {
+        case Nodes:
+            num=getNumNodes();
+            target=&m_nodeTags;
+            break;
+        case Elements:
+        case ReducedElements:
+            num=getNumElements();
+            target=&m_elementTags;
+            break;
+        case FaceElements:
+        case ReducedFaceElements:
+            num=getNumFaceElements();
+            target=&m_faceTags;
+            break;
+        default: {
+            stringstream msg;
+            msg << "setTags(): not implemented for " << functionSpaceTypeAsString(fsType);
+            throw RipleyException(msg.str());
+        }
+    }
+    if (target->size() != num) {
+        target->assign(num, -1);
+    }
+
+    escript::Data& mask=*const_cast<escript::Data*>(&cMask);
+#pragma omp parallel for
+    for (index_t i=0; i<num; i++) {
+        if (mask.getSampleDataRO(i)[0] > 0) {
+            (*target)[i]=newTag;
+        }
+    }
+    updateTagsInUse(fsType);
+}
+
+int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
+{
+    switch(fsType) {
+        case Nodes:
+            if (m_nodeTags.size() > sampleNo)
+                return m_nodeTags[sampleNo];
+            break;
+        case Elements:
+        case ReducedElements:
+            if (m_elementTags.size() > sampleNo)
+                return m_elementTags[sampleNo];
+            break;
+        case FaceElements:
+        case ReducedFaceElements:
+            if (m_faceTags.size() > sampleNo)
+                return m_faceTags[sampleNo];
+            break;
+        default: {
+            stringstream msg;
+            msg << "getTagFromSampleNo(): not implemented for " << functionSpaceTypeAsString(fsType);
+            throw RipleyException(msg.str());
+        }
+    }
+    return -1;
+}
+
+int RipleyDomain::getNumberOfTagsInUse(int fsType) const
+{
+    switch(fsType) {
+        case Nodes:
+            return m_nodeTagsInUse.size();
+        case Elements:
+        case ReducedElements:
+            return m_elementTagsInUse.size();
+        case FaceElements:
+        case ReducedFaceElements:
+            return m_faceTagsInUse.size();
+        default: {
+            stringstream msg;
+            msg << "getNumberOfTagsInUse(): not implemented for " << functionSpaceTypeAsString(fsType);
+            throw RipleyException(msg.str());
+        }
+    }
+}
+
+const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
+{
+    switch(fsType) {
+        case Nodes:
+            return &m_nodeTagsInUse[0];
+        case Elements:
+        case ReducedElements:
+            return &m_elementTagsInUse[0];
+        case FaceElements:
+        case ReducedFaceElements:
+            return &m_faceTagsInUse[0];
+        default: {
+            stringstream msg;
+            msg << "borrowListOfTagsInUse(): not implemented for " << functionSpaceTypeAsString(fsType);
+            throw RipleyException(msg.str());
+        }
+    }
 }
 
 void RipleyDomain::Print_Mesh_Info(const bool full) const
@@ -403,6 +532,77 @@ void RipleyDomain::setNewX(const escript::Data& arg)
     throw RipleyException("setNewX(): Operation not supported");
 }
 
+//protected
+void RipleyDomain::copyNodalData(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+#pragma omp parallel for
+    for (index_t i=0; i<in.getNumSamples(); i++) {
+        const double* src = in.getSampleDataRO(i);
+        copy(src, src+numComp, out.getSampleDataRW(i));
+    }
+}
+
+//protected
+void RipleyDomain::updateTagsInUse(int fsType) const
+{
+    IndexVector* tagsInUse=NULL;
+    const IndexVector* tags=NULL;
+    switch(fsType) {
+        case Nodes:
+            tags=&m_nodeTags;
+            tagsInUse=&m_nodeTagsInUse;
+            break;
+        case Elements:
+        case ReducedElements:
+            tags=&m_elementTags;
+            tagsInUse=&m_elementTagsInUse;
+            break;
+        case FaceElements:
+        case ReducedFaceElements:
+            tags=&m_faceTags;
+            tagsInUse=&m_faceTagsInUse;
+            break;
+        default:
+            return;
+    }
+
+    // gather global unique tag values from tags into tagsInUse
+    tagsInUse->clear();
+    index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue;
+
+    while (true) {
+        // find smallest value bigger than lastFoundValue 
+        minFoundValue = INDEX_T_MAX;
+#pragma omp parallel private(local_minFoundValue)
+        {
+            local_minFoundValue = minFoundValue;
+#pragma omp for schedule(static) nowait
+            for (size_t i = 0; i < tags->size(); i++) {
+                const index_t v = (*tags)[i];
+                if ((v > lastFoundValue) && (v < local_minFoundValue))
+                    local_minFoundValue = v;
+            }
+#pragma omp critical
+            {
+                if (local_minFoundValue < minFoundValue)
+                    minFoundValue = local_minFoundValue;
+            }
+        }
+#ifdef ESYS_MPI
+        local_minFoundValue = minFoundValue;
+        MPI_Allreduce(&local_minFoundValue, &minFoundValue, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+#endif
+        // if we found a new value add it to the tagsInUse vector
+
+        if (minFoundValue < INDEX_T_MAX) {
+            tagsInUse->push_back(minFoundValue);
+            lastFoundValue = minFoundValue;
+        } else
+            break;
+    }
+}
+
 //
 // the methods that follow have to be implemented by the subclasses
 //
@@ -472,32 +672,6 @@ void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data
 bool RipleyDomain::ownSample(int fsType, index_t id) const
 {
     throw RipleyException("ownSample() not implemented");
-}
-
-int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
-{
-    throw RipleyException("getTagFromSampleNo() not implemented");
-}
-
-void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
-{
-    throw RipleyException("setTags() not implemented");
-}
-
-int RipleyDomain::getNumberOfTagsInUse(int fsType) const
-{
-    throw RipleyException("getNumberOfTagsInUse() not implemented");
-}
-
-const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
-{
-    throw RipleyException("borrowListOfTagsInUse() not implemented");
-}
-
-bool RipleyDomain::canTag(int fsType) const
-{
-    return false;
-    //throw RipleyException("canTag() not implemented");
 }
 
 void RipleyDomain::addPDEToSystem(
