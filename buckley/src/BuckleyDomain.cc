@@ -645,15 +645,16 @@ void BuckleyDomain::interpolateElementFromCtsToDisc(const LeafInfo* li, size_t p
 
 
 
-	    
-#define HANG_INTERPOLATE(L, Y) buffer+buffcounter; {if (whichchild<0) {whichchild=L->whichChild();\
+#define GETHANGSAMPLE(LEAF, KID, VNAME) const register double* VNAME; if (li->pmap[KID]<2) {\
+VNAME=buffer+buffcounter;\
+if (whichchild<0) {whichchild=LEAF->whichChild();\
 src1=const_cast<escript::Data&>(in).getSampleDataRO(li->pmap[whichchild]-2);}\
-const double* src2=const_cast<escript::Data&>(in).getSampleDataRO(L->parent->kids[Y]->leafinfo->pmap[Y]-2);\
+const double* src2=const_cast<escript::Data&>(in).getSampleDataRO(LEAF->parent->kids[KID]->leafinfo->pmap[KID]-2);\
 for (int k=0;k<numComp;++k)\
 {\
     buffer[buffcounter++]=(src1[k]+src2[k])/2;\
-} }
-
+}\
+} else {VNAME=in.getSampleDataRO(li->pmap[KID]-2);}
 
 // Code from Lutz' magic generator
 void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) const
@@ -742,15 +743,22 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    const double* src1=0;
 	    int whichchild=-1;
 
-	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(leaves[leaf], 0);
-	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(leaves[leaf], 1);
-	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(leaves[leaf], 5);
-	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(leaves[leaf], 6);
-	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(leaves[leaf], 7);
-	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(leaves[leaf], 2);
-	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(leaves[leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(leaves[leaf], 4);
+	    GETHANGSAMPLE(leaves[leaf], 0, f_000)
+	    GETHANGSAMPLE(leaves[leaf], 4, f_001)
+	    GETHANGSAMPLE(leaves[leaf], 5, f_101)
+	    GETHANGSAMPLE(leaves[leaf], 6, f_111)
+	    GETHANGSAMPLE(leaves[leaf], 2, f_110)
+	    GETHANGSAMPLE(leaves[leaf], 7, f_011)
+	    GETHANGSAMPLE(leaves[leaf], 3, f_010)
+	    GETHANGSAMPLE(leaves[leaf], 1, f_100)
+//	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(leaves[leaf], 0);	    
+// 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(leaves[leaf], 1);
+// 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(leaves[leaf], 5);
+// 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(leaves[leaf], 6);
+// 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(leaves[leaf], 7);
+// 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(leaves[leaf], 2);
+// 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(leaves[leaf], 3);
+// 	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(leaves[leaf], 4);
 
 	    
 	    double* o = out.getSampleDataRW(leaf);
@@ -804,15 +812,24 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    int buffcounter=0;
 	    const double* src1=0;
 	    int whichchild=-1;	    
+	    GETHANGSAMPLE(leaves[leaf], 0, f_000)
+	    GETHANGSAMPLE(leaves[leaf], 4, f_001)
+	    GETHANGSAMPLE(leaves[leaf], 5, f_101)
+	    GETHANGSAMPLE(leaves[leaf], 6, f_111)
+	    GETHANGSAMPLE(leaves[leaf], 2, f_110)
+	    GETHANGSAMPLE(leaves[leaf], 7, f_011)
+	    GETHANGSAMPLE(leaves[leaf], 3, f_010)
+	    GETHANGSAMPLE(leaves[leaf], 1, f_100)
+
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(leaves[leaf], 0);
-	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(leaves[leaf], 1);
-	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(leaves[leaf], 5);
-	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(leaves[leaf], 6);
-	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(leaves[leaf], 7);
-	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(leaves[leaf], 2);
-	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(leaves[leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(leaves[leaf], 4);	    
+// 	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(leaves[leaf], 0);
+// 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(leaves[leaf], 1);
+// 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(leaves[leaf], 5);
+// 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(leaves[leaf], 6);
+// 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(leaves[leaf], 7);
+// 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(leaves[leaf], 2);
+// 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(leaves[leaf], 3);
+// 	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(leaves[leaf], 4);	    
 
             double* o = out.getSampleDataRW(leaf);
 	    for (index_t i=0; i < numComp; ++i) {
@@ -875,14 +892,23 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    const double* src1=0;
 	    int whichchild=-1;	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[0][leaf], 0);
+	    GETHANGSAMPLE(face_cells[0][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[0][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[0][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[0][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[0][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[0][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[0][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[0][leaf], 1, f_100)
+
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[0][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[0][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[0][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[0][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[0][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[0][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[0][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[0][leaf], 4);	  	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[0][leaf], 4);	  	*/    
 	    
 
             double* o = out.getSampleDataRW(leaf);	// face 0 start at the beginning of the object
@@ -952,15 +978,25 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    int buffcounter=0;
 	    const double* src1=0;
 	    int whichchild=-1;	    
+
+	    GETHANGSAMPLE(face_cells[1][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[1][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[1][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[1][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[1][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[1][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[1][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[1][leaf], 1, f_100)	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[1][leaf], 0);
+	    
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[1][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[1][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[1][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[1][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[1][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[1][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[1][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[1][leaf], 4);	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[1][leaf], 4);	*/    
 
             double* o = out.getSampleDataRW(baseoffset+leaf);
 	    for (index_t i=0; i < numComp; ++i) {
@@ -1029,15 +1065,25 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    int buffcounter=0;
 	    const double* src1=0;
 	    int whichchild=-1;	    
+
+	    GETHANGSAMPLE(face_cells[2][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[2][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[2][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[2][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[2][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[2][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[2][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[2][leaf], 1, f_100)	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[2][leaf], 0);
+	    
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[2][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[2][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[2][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[2][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[2][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[2][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[2][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[2][leaf], 4);	   	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[2][leaf], 4);	*/   	    
 	    
 	    double* o = out.getSampleDataRW(baseoffset+leaf);
 
@@ -1107,15 +1153,25 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    int buffcounter=0;
 	    const double* src1=0;
 	    int whichchild=-1;	    
+
+	    GETHANGSAMPLE(face_cells[3][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[3][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[3][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[3][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[3][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[3][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[3][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[3][leaf], 1, f_100)	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[3][leaf], 0);
+	    
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[3][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[3][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[3][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[3][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[3][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[3][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[3][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[3][leaf], 4);	   	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[3][leaf], 4);	   	*/    
 	    
 	    double* o = out.getSampleDataRW(baseoffset+leaf);	    
 	    for (index_t i=0; i < numComp; ++i) {
@@ -1185,14 +1241,24 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    const double* src1=0;
 	    int whichchild=-1;	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[4][leaf], 0);
+	    GETHANGSAMPLE(face_cells[4][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[4][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[4][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[4][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[4][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[4][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[4][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[4][leaf], 1, f_100)	    
+	    
+	    
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[4][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[4][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[4][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[4][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[4][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[4][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[4][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[4][leaf], 4);	   	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[4][leaf], 4);	   */	    
 	    
 	    double* o = out.getSampleDataRW(baseoffset+leaf);	    
 	    for (index_t i=0; i < numComp; ++i) {
@@ -1261,15 +1327,24 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	    int buffcounter=0;
 	    const double* src1=0;
 	    int whichchild=-1;	    
+
+	    GETHANGSAMPLE(face_cells[5][leaf], 0, f_000)
+	    GETHANGSAMPLE(face_cells[5][leaf], 4, f_001)
+	    GETHANGSAMPLE(face_cells[5][leaf], 5, f_101)
+	    GETHANGSAMPLE(face_cells[5][leaf], 6, f_111)
+	    GETHANGSAMPLE(face_cells[5][leaf], 2, f_110)
+	    GETHANGSAMPLE(face_cells[5][leaf], 7, f_011)
+	    GETHANGSAMPLE(face_cells[5][leaf], 3, f_010)
+	    GETHANGSAMPLE(face_cells[5][leaf], 1, f_100)	    
 	    
-	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[5][leaf], 0);
+/*	    const register double* f_000 = (li->pmap[0]>1)?in.getSampleDataRO(li->pmap[0]-2):HANG_INTERPOLATE(face_cells[5][leaf], 0);
 	    const register double* f_001 = (li->pmap[1]>1)?in.getSampleDataRO(li->pmap[1]-2):HANG_INTERPOLATE(face_cells[5][leaf], 1);
 	    const register double* f_101 = (li->pmap[5]>1)?in.getSampleDataRO(li->pmap[5]-2):HANG_INTERPOLATE(face_cells[5][leaf], 5);
 	    const register double* f_111 = (li->pmap[6]>1)?in.getSampleDataRO(li->pmap[6]-2):HANG_INTERPOLATE(face_cells[5][leaf], 6);
 	    const register double* f_110 = (li->pmap[7]>1)?in.getSampleDataRO(li->pmap[7]-2):HANG_INTERPOLATE(face_cells[5][leaf], 7);
 	    const register double* f_011 = (li->pmap[2]>1)?in.getSampleDataRO(li->pmap[2]-2):HANG_INTERPOLATE(face_cells[5][leaf], 2);
 	    const register double* f_010 = (li->pmap[3]>1)?in.getSampleDataRO(li->pmap[3]-2):HANG_INTERPOLATE(face_cells[5][leaf], 3);
-	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[5][leaf], 4);	   	    
+	    const register double* f_100 = (li->pmap[4]>1)?in.getSampleDataRO(li->pmap[4]-2):HANG_INTERPOLATE(face_cells[5][leaf], 4);	  */ 	    
 	    
 	    double* o = out.getSampleDataRW(baseoffset+leaf);	    
 	    for (index_t i=0; i < numComp; ++i) {
@@ -1290,6 +1365,7 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 	}  
         /* GENERATOR SNIP_GRAD_FACES BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == red_disc_faces) {
+      throw BuckleyException("Haven't done reduced face function yet.");
 #if 0      
         /* GENERATOR SNIP_GRAD_REDUCED_FACES TOP */
         if (m_faceOffset[0] > -1) {
@@ -1470,7 +1546,7 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 }
 
 	    
-#undef HANG_INTERPOLATE
+#undef GETHANGSAMPLE
 
 
 
