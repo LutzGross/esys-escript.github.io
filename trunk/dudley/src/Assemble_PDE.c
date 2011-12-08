@@ -66,8 +66,7 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 	return;
     if (S == NULL && isEmpty(F))
 	return;
-
-    if (isEmpty(F) && !isEmpty(X) && !isEmpty(F))
+    if (isEmpty(F) && ( !isEmpty(X) || !isEmpty(Y) ) ) 
     {
 	Dudley_setError(TYPE_ERROR,
 			"Dudley_Assemble_PDE: right hand side coefficients are non-zero bat no right hand side vector given.");
