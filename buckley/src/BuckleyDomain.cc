@@ -479,7 +479,7 @@ escript::ASM_ptr BuckleyDomain::newSystemMatrix(
    
    // again, dummy values for a sole rank
    Paso_SystemMatrixPattern* psystemMatrixPattern=pb->generatePattern(0, numpts, conn ); 
-   Paso_SystemMatrix* sm=Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, psystemMatrixPattern, numpts, numpts, true);
+   Paso_SystemMatrix* sm=Paso_SystemMatrix_alloc(MATRIX_FORMAT_DEFAULT, psystemMatrixPattern, 1, 1, true);
    Paso_SystemMatrixPattern_free(psystemMatrixPattern);
 
    SystemMatrixAdapter* sma=paso::makeSystemMatrixAdapter(sm, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
