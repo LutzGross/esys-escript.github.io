@@ -65,7 +65,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Pas
   if (nodes==NULL || elements==NULL) return;
   if (S==NULL && isEmpty(F)) return;
 
-  if (isEmpty(F) && !isEmpty(X) && !isEmpty(F)) {
+  if (isEmpty(F) && ( !isEmpty(X) || !isEmpty(Y) ) ) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
   }
 
