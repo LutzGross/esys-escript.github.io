@@ -24,12 +24,13 @@ struct null_deleter
       }   
 };
 
-
+PASOWRAP_DLL_API
 SystemMatrixAdapter::SystemMatrixAdapter()
 {
    throw PasoException("Error - Illegal to generate default SystemMatrixAdapter.");
 }
 
+PASOWRAP_DLL_API
 SystemMatrixAdapter::SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
                                          const int row_blocksize,
                                          const escript::FunctionSpace& row_functionspace,
@@ -40,6 +41,7 @@ AbstractSystemMatrix(row_blocksize,row_functionspace,column_blocksize,column_fun
    m_system_matrix.reset(system_matrix,null_deleter());
 }
 
+PASOWRAP_DLL_API
 SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
    if (m_system_matrix.unique()) {
@@ -48,11 +50,13 @@ SystemMatrixAdapter::~SystemMatrixAdapter()
    }
 }
 
+PASOWRAP_DLL_API
 Paso_SystemMatrix* SystemMatrixAdapter::getPaso_SystemMatrix() const 
 {
    return m_system_matrix.get();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const 
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
@@ -76,6 +80,7 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
 
    switch (option) {
@@ -179,6 +184,7 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
+PASOWRAP_DLL_API
 int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
         const int package, const bool symmetry, Esys_MPIInfo* mpiInfo)
 {
@@ -189,6 +195,7 @@ int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preco
     return out;
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 {
    Paso_SystemMatrix* mat=m_system_matrix.get();
@@ -227,6 +234,7 @@ void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
@@ -251,6 +259,7 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data& col_q, const double mdv) const
 {
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
@@ -273,6 +282,7 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
@@ -290,6 +300,7 @@ void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
@@ -307,6 +318,7 @@ void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::resetValues() const
 {
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
@@ -315,6 +327,7 @@ void SystemMatrixAdapter::resetValues() const
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options) 
 {
 #define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)paso_options->__val__)
@@ -331,6 +344,8 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("num_coarse_unknowns",num_coarse_unknowns,int);
 #undef SET
 }
+
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
 {
 #define EXTRACT(__key__,__val__,__type__) paso_options->__val__=boost::python::extract<__type__>(options.attr(__key__)())
