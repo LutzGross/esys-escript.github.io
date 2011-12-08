@@ -21,7 +21,6 @@ extern "C"
 namespace paso
 {
 
-PASOWRAP_DLL_API
 const std::string 
 PasoException::exceptionNameValue("PasoException");
 
