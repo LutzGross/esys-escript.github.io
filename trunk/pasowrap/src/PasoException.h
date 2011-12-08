@@ -100,6 +100,7 @@ namespace paso
     static const std::string exceptionNameValue;
   };
 
+  PASOWRAP_DLL_API
   void checkPasoError(); 
   
   

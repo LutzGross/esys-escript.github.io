@@ -21,18 +21,18 @@ extern "C"
 namespace paso
 {
 
-
+PASOWRAP_DLL_API
 const std::string 
 PasoException::exceptionNameValue("PasoException");
 
-
+PASOWRAP_DLL_API
 const std::string &
 PasoException::exceptionName() const
 {
   return exceptionNameValue;
 }
 
-
+PASOWRAP_DLL_API
 void checkPasoError() 
 {
   if (Esys_noError()) {
