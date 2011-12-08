@@ -123,12 +123,17 @@ Paso_SystemMatrixPattern* PatternBuilder::generatePattern(size_t local_low, size
 
     mainpat->ptr[0]=0;
     rowpat->ptr[0]=0;
+    colpat->ptr[0]=0;
 
     #pragma omp parallel for private(i) schedule(static)
     for (i=0;i<numrows;++i)
     {
         mainpat->ptr[i+1]=psums[2*i];
 	rowpat->ptr[i+1]=psums[2*i+1];
+	
+	// dodgy hack - colpat should not be a clone of rowpat
+	colpat->ptr[i+1]=psums[2*i+1];
+	
 	int l=0, r=0;	//local and remote counters
 	for (int j=0;j<maxneighbours;++j)
 	{
@@ -137,6 +142,10 @@ Paso_SystemMatrixPattern* PatternBuilder::generatePattern(size_t local_low, size
 	        if ((pos[i*maxneighbours+j]>local_high) || (pos[i*maxneighbours+j]<local_low))
 		{
 		    rowpat->index[psums[2*i+1]+r]=pos[i*maxneighbours+j];	// non-local
+		    
+		    // dodgy hack - colpat should not be a clone of rowpat
+		    colpat->index[psums[2*i+1]+r]=pos[i*maxneighbours+j];	// non-local
+		    
 		    r++;
 		}
 		else
