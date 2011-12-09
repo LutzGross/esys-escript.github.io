@@ -1064,13 +1064,17 @@ void Rectangle::populateSampleIds()
             m_nodeId[i0+i1*m_N0] = firstId+i0-left+(i1-bottom)*(m_N0-left);
         }
     }
+    m_nodeTags.assign(getNumNodes(), 0);
+    updateTagsInUse(Nodes);
 
-    // element id's
+    // elements
     m_elementId.resize(getNumElements());
 #pragma omp parallel for
     for (dim_t k=0; k<getNumElements(); k++) {
         m_elementId[k]=k;
     }
+    m_elementTags.assign(getNumElements(), 0);
+    updateTagsInUse(Elements);
 
     // face element id's
     m_faceId.resize(getNumFaceElements());
