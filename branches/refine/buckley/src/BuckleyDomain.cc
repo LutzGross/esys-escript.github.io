@@ -37,8 +37,10 @@ namespace
     const int ctsfn=initialspace;
     const int discfn=2;
     const int red_discfn=-3;	// reduced discontinuous function  (reduced elements in finley terms)
-    const int disc_faces=-4;
-    const int red_disc_faces=-6;
+    const int cts_faces=-4;
+    const int red_cts_faces=-5;
+    const int disc_faces=-6;
+    const int red_disc_faces=-7;
     
     
     
@@ -392,6 +394,342 @@ void BuckleyDomain::setToIntegrals(std::vector<double>& integrals,const escript:
     throw BuckleyException("Not Implemented");
 }
 
+#define ISEMPTY(X) (X==0 || X->isEmpty())
+
+#if 0
+
+void BuckleyDomain::AssemblePDE(Finley_NodeFile* nodes,Finley_ElementFile* elements,Paso_SystemMatrix* S, escriptDataC* F,
+			 Data* A, Data* B, escriptDataC* C, escriptDataC* D, escriptDataC* X, escriptDataC* Y ) {
+
+  bool_t reducedIntegrationOrder=FALSE;
+  char error_msg[LenErrorMsg_MAX];
+  Finley_Assemble_Parameters p;
+  dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
+  type_t funcspace;
+  double blocktimer_start = blocktimer_time();
+
+
+  if (nodes==NULL || elements==NULL) return;
+  if (S==NULL && ISEMPTY(F)) return;
+  if ((ISEMPTY(F) && ( !ISEMPTY(X) || !ISEMPTY(Y) ) )
+        throw BuckleyException("Finley_Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
+  }
+
+  if (S==NULL && !ISEMPTY(A) && !ISEMPTY(B) && !ISEMPTY(C) && !ISEMPTY(D)) {
+        throw BuckleyException("Finley_Assemble_PDE: coefficients are non-zero but no matrix is given.");
+  }
+
+  if (Y==0)
+  {
+      // this is just an implementation convienience to allow me to grab the FS from Y
+      throw BuckleyException("Coefficient Y should not be NULL.");
+  }
+  /*  get the functionspace for this assemblage call */
+  
+  // note that we are not just checking the functionspace type  --- we also need to check the generation
+  FunctionSpace& functionspace=Y->getFunctionSpace();	// since Y is never null  
+  if ((X!=0 && X->getFunctionSpace()!=functionspace) ||
+      (D!=0 && D->getFunctionSpace()!=functionspace) ||
+      (C!=0 && C->getFunctionSpace()!=functionspace) ||
+      (B!=0 && B->getFunctionSpace()!=functionspace) ||
+      (A!=0 && A->getFunctionSpace()!=functionspace))
+  {
+      throw BuckleyException("All functionspaces must be the same in AssemblePDE");
+  }
+
+  if (funcspace.getTypeCode()==discfn) {
+       reducedIntegrationOrder=FALSE;
+  } else if (funcspace.getTypeCode()==disc_faces)  {
+       reducedIntegrationOrder=FALSE;
+  } else if (funcspace.getTypeCode()==red_discfn) {
+       reducedIntegrationOrder=TRUE;
+  } else if (funcspace.getTypeCode()==red_disc_faces)  {
+       reducedIntegrationOrder=TRUE;
+  } else {
+       throw BuckleyException("Assemble_PDE: illegal functionspace.");
+  }
+
+
+//  Need to look at the parameters in more depth.
+//  I was just going to port the version from finley but I borrows Jacobeans and such (which I don't generate).
+
+
+
+  /* set all parameters in p*/
+  Finley_Assemble_getAssembleParameters(nodes,elements,S,F, reducedIntegrationOrder, &p);
+  if (! Finley_noError()) return;
+
+  /* check if sample numbers are the same */
+
+  if (! numSamplesEqual(A,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient A don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  if (! numSamplesEqual(B,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient B don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  if (! numSamplesEqual(C,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient C don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  if (! numSamplesEqual(D,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient D don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  if (! numSamplesEqual(X,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient X don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  if (! numSamplesEqual(Y,p.numQuadTotal,elements->numElements) ) {
+        sprintf(error_msg,"Finley_Assemble_PDE: sample points of coefficient Y don't match (%d,%d)",p.numQuadTotal,elements->numElements);
+        Finley_setError(TYPE_ERROR,error_msg);
+  }
+
+  /*  check the dimensions: */
+
+  if (p.numEqu==1 && p.numComp==1) {
+    if (!isEmpty(A)) {
+      dimensions[0]=p.numDim;
+      dimensions[1]=p.numDim;
+      if (!isDataPointShapeEqual(A,2,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient A: illegal shape, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(B)) {
+       dimensions[0]=p.numDim;
+       if (!isDataPointShapeEqual(B,1,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient B: illegal shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
+       }
+    }
+    if (!isEmpty(C)) {
+       dimensions[0]=p.numDim;
+       if (!isDataPointShapeEqual(C,1,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient C, expected shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
+       }
+    }
+    if (!isEmpty(D)) {
+       if (!isDataPointShapeEqual(D,0,dimensions)) {
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficient D, rank 0 expected.");
+       }
+    }
+    if (!isEmpty(X)) {
+       dimensions[0]=p.numDim;
+       if (!isDataPointShapeEqual(X,1,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient X, expected shape (%d,",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
+       }
+    }
+    if (!isEmpty(Y)) {
+       if (!isDataPointShapeEqual(Y,0,dimensions)) {
+          Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: coefficient Y, rank 0 expected.");
+       }
+    }
+  } else {
+    if (!isEmpty(A)) {
+      dimensions[0]=p.numEqu;
+      dimensions[1]=p.numDim;
+      dimensions[2]=p.numComp;
+      dimensions[3]=p.numDim;
+      if (!isDataPointShapeEqual(A,4,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient A, expected shape (%d,%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2],dimensions[3]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(B)) {
+      dimensions[0]=p.numEqu;
+      dimensions[1]=p.numDim;
+      dimensions[2]=p.numComp;
+      if (!isDataPointShapeEqual(B,3,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient B, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(C)) {
+      dimensions[0]=p.numEqu;
+      dimensions[1]=p.numComp;
+      dimensions[2]=p.numDim;
+      if (!isDataPointShapeEqual(C,3,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient C, expected shape (%d,%d,%d)",dimensions[0],dimensions[1],dimensions[2]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(D)) {
+      dimensions[0]=p.numEqu;
+      dimensions[1]=p.numComp;
+      if (!isDataPointShapeEqual(D,2,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient D, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(X)) {
+      dimensions[0]=p.numEqu;
+      dimensions[1]=p.numDim;
+      if (!isDataPointShapeEqual(X,2,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient X, expected shape (%d,%d)",dimensions[0],dimensions[1]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+    if (!isEmpty(Y)) {
+      dimensions[0]=p.numEqu;
+      if (!isDataPointShapeEqual(Y,1,dimensions)) {
+          sprintf(error_msg,"Finley_Assemble_PDE: coefficient Y, expected shape (%d,)",dimensions[0]);
+          Finley_setError(TYPE_ERROR,error_msg);
+      }
+    }
+  }
+  if (Finley_noError()) {
+     if (p.numEqu == p. numComp) {
+        if (p.numEqu > 1) {
+          /* system of PDEs */
+          if (p.numDim==3) {
+            if ( p.numSides == 1 ) {
+
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+	       
+            } else if ( p.numSides == 2 ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==2) {
+            if ( p.numSides == 1 ) {
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+            } else if (  p.numSides == 2 ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==1) {
+            if ( p.numSides == 1  ) {
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+            } else if ( p.numSides == 2 ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_System2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else {
+            Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+          }
+        } else {
+          /* single PDE */
+          if (p.numDim==3) {
+            if ( p.numSides == 1  ) {
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+            } else if ( p.numSides == 2 ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==2) {
+            if ( p.numSides == 1 ) {
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                  Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+            } else if ( p.numSides == 2 ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else if (p.numDim==1) {
+            if ( p.numSides == 1 ) {
+	       if (funcspace==FINLEY_POINTS) {
+		  if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                         Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                  } else {
+	              Finley_Assemble_PDE_Points(p, elements,S,F, D, Y);
+		  }
+	       } else {
+                   Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
+	       }
+            } else if ( p.numSides == 2  ) {
+               if ( !isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X) ) {
+                  Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+               } else {
+                  Finley_Assemble_PDE_Single2_C(p,elements,S,F,D,Y);
+               }
+            } else {
+               Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+            }
+          } else {
+            Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+          }
+        }
+     } else {
+          Finley_setError(VALUE_ERROR,"Finley_Assemble_PDE requires number of equations == number of solutions  .");
+     }
+  }
+  blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
+}
+#endif 
+#undef ISEMPTY
+
 void BuckleyDomain::addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
@@ -400,14 +738,53 @@ void BuckleyDomain::addPDEToSystem(
                      const escript::Data& d_contact, const escript::Data& y_contact, 
                      const escript::Data& d_dirac, const escript::Data& y_dirac) const
 {
-    throw BuckleyException("Not Implemented");
+   BuckleyDomain* smat=dynamic_cast<BuckleyDomain*>(&mat);
+   if (smat==0)
+   {
+	throw BuckleyException("Buckley will only process its own system matrices.");
+   }
+   
+   
+   
+   
+   
+   
+/*   
+   escriptDataC _rhs=rhs.getDataC();
+   escriptDataC _A  =A.getDataC();
+   escriptDataC _B=B.getDataC();
+   escriptDataC _C=C.getDataC();
+   escriptDataC _D=D.getDataC();
+   escriptDataC _X=X.getDataC();
+   escriptDataC _Y=Y.getDataC();
+   escriptDataC _d=d.getDataC();
+   escriptDataC _y=y.getDataC();
+   escriptDataC _d_contact=d_contact.getDataC();
+   escriptDataC _y_contact=y_contact.getDataC();
+   escriptDataC _d_dirac=d_dirac.getDataC();
+   escriptDataC _y_dirac=y_dirac.getDataC();*/
+
+//   Finley_Mesh* mesh=m_finleyMesh.get();
+
+   throw BuckleyException("Not Implemented ::addPDEToSystem");
+
+#if 0
+   
+   
+   Assemble_PDE(mesh->Nodes,mesh->Elements,smat->getPaso_SystemMatrix(), &_rhs, &_A, &_B, &_C, &_D, &_X, &_Y );
+
+   Assemble_PDE(mesh->Nodes,mesh->FaceElements, smat->getPaso_SystemMatrix(), &_rhs, 0, 0, 0, &_d, 0, &_y );
+#endif  
 }
+
+
+
 
 void BuckleyDomain::addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
-    throw BuckleyException("Not Implemented");
+    throw BuckleyException("Not Implemented ::addPDEToRHS");
 }
 
 void BuckleyDomain::addPDEToTransportProblem(
