@@ -221,10 +221,14 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
+        case DegreesOfFreedom: //FIXME
+        case ReducedDegreesOfFreedom: //FIXME
             return &m_nodeId[0];
         case Elements:
+        case ReducedElements:
             return &m_elementId[0];
         case FaceElements:
+        case ReducedFaceElements:
             return &m_faceId[0];
         default:
             break;

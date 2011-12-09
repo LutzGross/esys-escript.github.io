@@ -20,6 +20,9 @@ local_env = env.Clone()
 #  files defining test runs (passing in a release)
 # 
 testruns = ['run_utilOnRipley.py']
+testruns += ['run_escriptOnRipley.py']
+#testruns += ['run_simplesolve.py']
+#testruns += ['run_linearPDEsOnRipley1.py']
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)

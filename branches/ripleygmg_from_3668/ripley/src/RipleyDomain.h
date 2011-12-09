@@ -207,7 +207,11 @@ public:
     */
     RIPLEY_DLL_API
     virtual int getTag(const std::string& name) const {
-        return m_tagMap.find(name)->second;
+        if (m_tagMap.find(name) != m_tagMap.end()) {
+            return m_tagMap.find(name)->second;
+        } else {
+            throw RipleyException("getTag(): Invalid tag name");
+        }
     }
 
     /**
