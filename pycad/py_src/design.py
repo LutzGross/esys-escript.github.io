@@ -239,11 +239,12 @@ class Design(object):
        self.setDim(dim)
        self.setElementOrder(order)
        self.setFileFormat()
-       self.setMeshFileName()
        if keep_files:
           self.setKeepFilesOn()
        else:
           self.setKeepFilesOff()
+       self.__mshname=""
+       self.setMeshFileName()
 
     def setDim(self,dim=3):
         """
@@ -405,6 +406,8 @@ class Design(object):
        """
        Sets the name for the mesh file. If no name is given a name is generated.
        """
+       if self.__mshname:
+           os.unlink(self.__mshname)
        if name == None:
            tmp_f_id=tempfile.mkstemp(suffix="."+self.getFileFormat())
            self.__mshname=tmp_f_id[1]
