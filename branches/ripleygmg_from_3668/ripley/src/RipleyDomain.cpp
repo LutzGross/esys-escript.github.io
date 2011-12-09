@@ -225,6 +225,54 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
     return true;
 }
 
+bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
+                                              int fsType_target) const
+{
+    if (fsType_target != Nodes &&
+            fsType_target != ReducedNodes &&
+            fsType_target != ReducedDegreesOfFreedom &&
+            fsType_target != DegreesOfFreedom &&
+            fsType_target != Elements &&
+            fsType_target != ReducedElements &&
+            fsType_target != FaceElements &&
+            fsType_target != ReducedFaceElements &&
+            fsType_target != Points) {
+        stringstream msg;
+        msg << "probeInterpolationOnDomain(): Invalid functionspace type "
+            << fsType_target;
+        throw RipleyException(msg.str());
+    }
+
+    switch (fsType_source) {
+        case Nodes:
+        case DegreesOfFreedom:
+            return true;
+        case ReducedNodes:
+        case ReducedDegreesOfFreedom:
+            return (fsType_target != Nodes &&
+                    fsType_target != DegreesOfFreedom);
+        case Elements:
+            return (fsType_target==Elements ||
+                    fsType_target==ReducedElements);
+        case ReducedElements:
+            return (fsType_target==ReducedElements);
+        case FaceElements:
+            return (fsType_target==FaceElements ||
+                    fsType_target==ReducedFaceElements);
+        case ReducedFaceElements:
+            return (fsType_target==ReducedFaceElements);
+        case Points:
+            return (fsType_target==Points);
+
+        default: {
+            stringstream msg;
+            msg << "probeInterpolationOnDomain(): Invalid functionspace type "
+                << fsType_source;
+            throw RipleyException(msg.str());
+        }
+    }
+}
+
 void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                        const escript::Data& in) const
 {
@@ -630,12 +678,6 @@ void RipleyDomain::dump(const string& filename) const
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
 {
     throw RipleyException("borrowSampleReferenceIDs() not implemented");
-}
-
-bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
-                                             int fsType_target) const
-{
-    throw RipleyException("probeInterpolationOnDomain() not implemented");
 }
 
 void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data& source) const
