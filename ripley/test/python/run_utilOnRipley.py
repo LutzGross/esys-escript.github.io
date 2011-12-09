@@ -44,7 +44,7 @@ class Test_UtilOnRipley(Test_util,Test_symbols):
            NY=mpiSize/x
            if NX*NY == mpiSize:
                break
-       self.domain=Rectangle(n0=NE*NX, n1=NE*NY, d0=NX, d1=NY)
+       self.domain=Rectangle(n0=NE*NX, n1=NE*NY, l0=1., l1=1., d0=NX, d1=NY)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):
        del self.functionspace
@@ -59,7 +59,7 @@ class Test_Util_SpatialFunctionsOnRipleyRect(Test_Util_SpatialFunctions_noGradOn
             NY=mpiSize/x
             if NX*NY == mpiSize:
                 break
-        self.domain = Rectangle(n0=NE*NX, n1=NE*NY, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE*NX, n1=NE*NY, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.order
         del self.domain
@@ -74,7 +74,7 @@ class Test_Util_SpatialFunctionsOnRipleyBrick(Test_Util_SpatialFunctions_noGradO
             NZ=mpiSize/(x[0]*x[1])
             if NX*NY*NZ == mpiSize:
                 break
-        self.domain = Brick(n0=NE*NX, n1=NE*NY, n2=NE*NZ, d0=NX, d1=NY, d2=NZ)
+        self.domain = Brick(n0=NE*NX, n1=NE*NY, n2=NE*NZ, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
     def tearDown(self):
         del self.order
         del self.domain

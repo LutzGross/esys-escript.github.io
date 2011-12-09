@@ -101,10 +101,8 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
             return pair<int,int>(1, getNumElements());
         case ReducedFaceElements:
             return pair<int,int>(1, getNumFaceElements());
-            /*
         case Points:
-            return pair<int,int>(1, getNumPoints());
-            */
+            return pair<int,int>(1, 0); //FIXME: dirac
         default:
             break;
     }
