@@ -55,18 +55,17 @@ class Test_DomainOnRipley(Test_Domain):
        del self.boundary_tag_list 
 
    def test_tagsContinuousFunction(self):
-       ref_tags=[]
+       ref_tags=[0]
        tags=ContinuousFunction(self.domain).getListOfTags()
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
-
    def test_tagsFunction(self):
-       ref_tags=[]
+       ref_tags=[0]
        tags=Function(self.domain).getListOfTags()
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
    def test_tagsReducedFunction(self):
-       ref_tags=[]
+       ref_tags=[0]
        tags=ReducedFunction(self.domain).getListOfTags()
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)

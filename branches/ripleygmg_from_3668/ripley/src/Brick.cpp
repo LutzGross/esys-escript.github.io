@@ -1418,6 +1418,8 @@ void Brick::populateSampleIds()
             }
         }
     }
+    m_nodeTags.assign(getNumNodes(), 0);
+    updateTagsInUse(Nodes);
 
     // elements
     m_elementId.resize(getNumElements());
@@ -1425,6 +1427,8 @@ void Brick::populateSampleIds()
     for (dim_t k=0; k<getNumElements(); k++) {
         m_elementId[k]=k;
     }
+    m_elementTags.assign(getNumElements(), 0);
+    updateTagsInUse(Elements);
 
     // face elements
     m_faceId.resize(getNumFaceElements());
