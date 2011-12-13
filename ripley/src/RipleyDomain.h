@@ -666,6 +666,9 @@ protected:
     /// returns the number of elements per MPI rank
     virtual dim_t getNumElements() const;
 
+    /// returns the number of degrees of freedom per MPI rank
+    virtual dim_t getNumDOF() const;
+
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
 
@@ -682,8 +685,11 @@ protected:
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
 
-    /// copies data on nodes in 'in' to nodes in 'out'
-    virtual void copyNodalData(escript::Data& out, escript::Data& in) const;
+    /// copies data in 'in' to 'out' (both must be on same function space)
+    virtual void copyData(escript::Data& out, escript::Data& in) const;
+
+    /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
+    virtual void averageData(escript::Data& out, escript::Data& in) const;
 
     // this is const because setTags is const
     virtual void updateTagsInUse(int fsType) const;
