@@ -2241,7 +2241,7 @@ void MeshAdapter::setTagMap(const string& name,  int tag)
 {
    Finley_Mesh* mesh=m_finleyMesh.get();
    Finley_Mesh_addTagMap(mesh, name.c_str(),tag);
-   checkPasoError();
+   checkFinleyError();
    // throwStandardException("MeshAdapter::set TagMap is not implemented.");
 }
 
@@ -2250,7 +2250,7 @@ int MeshAdapter::getTag(const string& name) const
    Finley_Mesh* mesh=m_finleyMesh.get();
    int tag=0;
    tag=Finley_Mesh_getTag(mesh, name.c_str());
-   checkPasoError();
+   checkFinleyError();
    // throwStandardException("MeshAdapter::getTag is not implemented.");
    return tag;
 }
@@ -2465,7 +2465,7 @@ void MeshAdapter:: addDiracPoints(const std::vector<double>& points, const std::
       }
       
       Finley_Mesh_addPoints(mesh, numPoints, points_ptr, tags_ptr);
-      checkPasoError();
+      checkFinleyError();
       
       TMPMEMFREE(points_ptr);
       TMPMEMFREE(tags_ptr);

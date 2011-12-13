@@ -1954,7 +1954,7 @@ void MeshAdapter::setTagMap(const string& name,  int tag)
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    Dudley_Mesh_addTagMap(mesh, name.c_str(),tag);
-   checkPasoError();
+   checkDudleyError();
    // throwStandardException("MeshAdapter::set TagMap is not implemented.");
 }
 
@@ -1963,7 +1963,7 @@ int MeshAdapter::getTag(const string& name) const
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    int tag=0;
    tag=Dudley_Mesh_getTag(mesh, name.c_str());
-   checkPasoError();
+   checkDudleyError();
    // throwStandardException("MeshAdapter::getTag is not implemented.");
    return tag;
 }
