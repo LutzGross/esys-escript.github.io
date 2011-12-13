@@ -4203,17 +4203,17 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 
 	// now we copy the tags from the mask - if the mask does not have it then it doesn't appear
   	const DataTagged::DataMapType& maskLookup=mdat->getTagLookup();
-  	DataTagged::DataMapType::const_iterator i;
+  	DataTagged::DataMapType::const_iterator it;
   	DataTagged::DataMapType::const_iterator thisLookupEnd=maskLookup.end();
-	for (i=maskLookup.begin();i!=thisLookupEnd;i++)
+	for (it=maskLookup.begin();it!=thisLookupEnd;it++)
 	{
-	    if (mdat->getDataByTagRO(i->first,0)>0)
+	    if (mdat->getDataByTagRO(it->first,0)>0)
 	    {
-		rdat->addTaggedValue(i->first,trueval.getDataPointShape(), tdat->getVectorRO(), tdat->getOffsetForTag(i->first));
+		rdat->addTaggedValue(it->first,trueval.getDataPointShape(), tdat->getVectorRO(), tdat->getOffsetForTag(it->first));
 	    }
 	    else
 	    {
-		rdat->addTaggedValue(i->first,falseval.getDataPointShape(), fdat->getVectorRO(), fdat->getOffsetForTag(i->first));
+		rdat->addTaggedValue(it->first,falseval.getDataPointShape(), fdat->getVectorRO(), fdat->getOffsetForTag(it->first));
 	    }
 	}
 

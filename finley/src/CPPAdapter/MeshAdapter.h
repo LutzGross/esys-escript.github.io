@@ -20,8 +20,6 @@ extern "C" {
 #include "finley/Mesh.h"
 #include "finley/Finley.h"
 #include "finley/Assemble.h"
-#include "paso/SystemMatrix.h"
-#include "paso/Transport.h"
 #include "esysUtils/Esys_MPI.h"
 }
 

@@ -152,7 +152,7 @@ FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
     throw DataException("FunctionSpace::getTagFromDataPointNo error: no data-points associated with this object.");
   }
 
-  if (dataPointNo<0 || dataPointNo>numDataPoints) {
+  if (dataPointNo<0 || dataPointNo>=numDataPoints) {
     throw DataException("FunctionSpace::getTagFromDataPointNo error: invalid data-point number supplied.");
   }
 
