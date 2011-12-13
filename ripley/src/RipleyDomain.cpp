@@ -108,8 +108,8 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     }
 
     stringstream msg;
-    msg << "getDataShape(): Unsupported function space type "
-        << functionSpaceTypeAsString(fsType) << " for " << getDescription();
+    msg << "getDataShape(): Unsupported function space type " << fsType
+        << " for " << getDescription();
     throw RipleyException(msg.str());
 }
 
@@ -129,95 +129,91 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
    /*
     The idea is to use equivalence classes (i.e. types which can be
     interpolated back and forth):
-    class 1: DOF <-> Nodes
-    class 2: ReducedDOF <-> ReducedNodes
-    class 3: Points
-    class 4: Elements
-    class 5: ReducedElements
-    class 6: FaceElements
-    class 7: ReducedFaceElements
-    class 8: ContactElementZero <-> ContactElementOne
-    class 9: ReducedContactElementZero <-> ReducedContactElementOne
+    class 0: DOF <-> Nodes
+    class 1: ReducedDOF <-> ReducedNodes
+    class 2: Points
+    class 3: Elements
+    class 4: ReducedElements
+    class 5: FaceElements
+    class 6: ReducedFaceElements
 
     There is also a set of lines. Interpolation is possible down a line but not
     between lines.
-    class 1 and 2 belong to all lines so aren't considered.
-    line 0: class 3
-    line 1: class 4,5
-    line 2: class 6,7
-    line 3: class 8,9
+    class 0 and 1 belong to all lines so aren't considered.
+    line 0: class 2
+    line 1: class 3,4
+    line 2: class 5,6
 
-    For classes with multiple members (eg class 2) we have vars to record if
+    For classes with multiple members (eg class 1) we have vars to record if
     there is at least one instance. e.g. hasnodes is true if we have at least
     one instance of Nodes.
     */
     if (fs.empty())
         return false;
-    vector<int> hasclass(10);
-    vector<int> hasline(4);
+    vector<bool> hasclass(7, false);
+    vector<int> hasline(3, 0);
     bool hasnodes=false;
     bool hasrednodes=false;
-    for (int i=0;i<fs.size();++i) {
+    for (size_t i=0; i<fs.size(); ++i) {
         switch (fs[i]) {
-            case Nodes: hasnodes=true; // no break is deliberate
+            case Nodes: hasnodes=true; // fall through
             case DegreesOfFreedom:
-                hasclass[1]=1;
+                hasclass[0]=true;
                 break;
-            case ReducedNodes: hasrednodes=true; // no break is deliberate
+            case ReducedNodes: hasrednodes=true; // fall through
             case ReducedDegreesOfFreedom:
-                hasclass[2]=1;
+                hasclass[1]=true;
                 break;
             case Points:
                 hasline[0]=1;
-                hasclass[3]=1;
+                hasclass[2]=true;
                 break;
             case Elements:
-                hasclass[4]=1;
+                hasclass[3]=true;
                 hasline[1]=1;
                 break;
             case ReducedElements:
-                hasclass[5]=1;
+                hasclass[4]=true;
                 hasline[1]=1;
                 break;
             case FaceElements:
-                hasclass[6]=1;
+                hasclass[5]=true;
                 hasline[2]=1;
                 break;
             case ReducedFaceElements:
-                hasclass[7]=1;
+                hasclass[6]=true;
                 hasline[2]=1;
                 break;
             default:
                 return false;
         }
     }
-    int totlines=hasline[0]+hasline[1]+hasline[2]+hasline[3];
+    int numLines=hasline[0]+hasline[1]+hasline[2];
 
     // fail if we have more than one leaf group
     // = there are at least two branches we can't interpolate between
-    if (totlines>1)
+    if (numLines > 1)
         return false;
-    else if (totlines==1) {
+    else if (numLines==1) {
         // we have points
         if (hasline[0]==1)
             resultcode=Points;
         else if (hasline[1]==1) {
-            if (hasclass[5]==1)
+            if (hasclass[4])
                 resultcode=ReducedElements;
             else
                 resultcode=Elements;
-        } else if (hasline[2]==1) {
-            if (hasclass[7]==1)
+        } else { // hasline[2]==1
+            if (hasclass[6])
                 resultcode=ReducedFaceElements;
             else
                 resultcode=FaceElements;
-        } else
-            throw RipleyException("Internal Ripley Error!");
-    } else { // totlines==0
-        if (hasclass[2]==1)
-            // something from class 2
+        }
+    } else { // numLines==0
+        if (hasclass[1])
+            // something from class 1
             resultcode=(hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
-        else // something from class 1
+        else // something from class 0
             resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
     }
     return true;
@@ -237,7 +233,7 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
             fsType_target != Points) {
         stringstream msg;
         msg << "probeInterpolationOnDomain(): Invalid functionspace type "
-            << fsType_target;
+            << fsType_target << " for " << getDescription();
         throw RipleyException(msg.str());
     }
 
@@ -265,7 +261,7 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
         default: {
             stringstream msg;
             msg << "probeInterpolationOnDomain(): Invalid functionspace type "
-                << fsType_source;
+                << fsType_source << " for " << getDescription();
             throw RipleyException(msg.str());
         }
     }
@@ -377,7 +373,8 @@ bool RipleyDomain::isCellOriented(int fsType) const
             break;
     }
     stringstream msg;
-    msg << "isCellOriented(): Illegal function space type " << fsType << " on " << getDescription();
+    msg << "isCellOriented(): Illegal function space type " << fsType
+        << " on " << getDescription();
     throw RipleyException(msg.str());
 }
 
@@ -398,7 +395,8 @@ bool RipleyDomain::canTag(int fsType) const
             break;
     }
     stringstream msg;
-    msg << "canTag(): Illegal function space type " << fsType << " on " << getDescription();
+    msg << "canTag(): Illegal function space type " << fsType << " on "
+        << getDescription();
     throw RipleyException(msg.str());
 }
 
@@ -424,7 +422,8 @@ void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Da
             break;
         default: {
             stringstream msg;
-            msg << "setTags(): not implemented for " << functionSpaceTypeAsString(fsType);
+            msg << "setTags(): not implemented for "
+                << functionSpaceTypeAsString(fsType);
             throw RipleyException(msg.str());
         }
     }
@@ -461,7 +460,8 @@ int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
             break;
         default: {
             stringstream msg;
-            msg << "getTagFromSampleNo(): not implemented for " << functionSpaceTypeAsString(fsType);
+            msg << "getTagFromSampleNo(): not implemented for "
+                << functionSpaceTypeAsString(fsType);
             throw RipleyException(msg.str());
         }
     }
@@ -481,7 +481,8 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
             return m_faceTagsInUse.size();
         default: {
             stringstream msg;
-            msg << "getNumberOfTagsInUse(): not implemented for " << functionSpaceTypeAsString(fsType);
+            msg << "getNumberOfTagsInUse(): not implemented for "
+                << functionSpaceTypeAsString(fsType);
             throw RipleyException(msg.str());
         }
     }
@@ -500,7 +501,8 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
             return &m_faceTagsInUse[0];
         default: {
             stringstream msg;
-            msg << "borrowListOfTagsInUse(): not implemented for " << functionSpaceTypeAsString(fsType);
+            msg << "borrowListOfTagsInUse(): not implemented for "
+                << functionSpaceTypeAsString(fsType);
             throw RipleyException(msg.str());
         }
     }
@@ -548,19 +550,19 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     // is the domain right?
     const RipleyDomain& row_domain=dynamic_cast<const RipleyDomain&>(*(row_functionspace.getDomain()));
     if (row_domain!=*this)
-        throw RipleyException("Domain of row function space does not match the domain of matrix generator");
+        throw RipleyException("newSystemMatrix(): Domain of row function space does not match the domain of matrix generator");
     const RipleyDomain& col_domain=dynamic_cast<const RipleyDomain&>(*(column_functionspace.getDomain()));
     if (col_domain!=*this)
-        throw RipleyException("Domain of column function space does not match the domain of matrix generator");
+        throw RipleyException("newSystemMatrix(): Domain of column function space does not match the domain of matrix generator");
     // is the function space type right?
     if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceRowOrder=true;
     else if (row_functionspace.getTypeCode()!=DegreesOfFreedom)
-        throw RipleyException("Illegal function space type for system matrix rows");
+        throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix rows");
     if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceColOrder=true;
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
-        throw RipleyException("Illegal function space type for system matrix columns");
+        throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix columns");
 
     // generate matrix
     Paso_SystemMatrixPattern* pattern=getPattern(reduceRowOrder, reduceColOrder);
@@ -582,6 +584,7 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 void RipleyDomain::copyNodalData(escript::Data& out, escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
 #pragma omp parallel for
     for (index_t i=0; i<in.getNumSamples(); i++) {
         const double* src = in.getSampleDataRO(i);
@@ -639,8 +642,8 @@ void RipleyDomain::updateTagsInUse(int fsType) const
         local_minFoundValue = minFoundValue;
         MPI_Allreduce(&local_minFoundValue, &minFoundValue, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
 #endif
-        // if we found a new value add it to the tagsInUse vector
 
+        // if we found a new value add it to the tagsInUse vector
         if (minFoundValue < INDEX_T_MAX) {
             tagsInUse->push_back(minFoundValue);
             lastFoundValue = minFoundValue;

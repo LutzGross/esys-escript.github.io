@@ -63,7 +63,7 @@ cxx_extra = '-Wextra -Wno-unused-parameter'
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = True
+#debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -156,7 +156,7 @@ umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
-#umfpack_libs = ['umfpack']
+umfpack_libs = ['umfpack', 'blas']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False

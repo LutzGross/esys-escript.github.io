@@ -15,26 +15,26 @@
 Import('*')
 local_env = env.Clone()
 
-if local_env['cppunit']:
-    # get the test source file names
-    sources = Glob('*.cpp')+Glob('*.c')
-    testname='ripley_UnitTest'
-
-    # build the executable
-    local_env.Append(LIBS=['ripley', 'escript', 'paso', 'esysUtils']+env['cppunit_libs'])
-    program = local_env.Program(testname, sources)
-
-    # run the tests - but only if test_targets are stale
-    local_env.RunUnitTest(testname)
-
-    # add unit test to target alias
-    Alias('build_tests', program)
-    Alias("run_tests", testname+'.passed')
-
-    # add a group of tests
-    from grouptest import *
-    tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/ripley/test", ('./'+testname,))
-    TestGroups.append(tgroup)
+#if local_env['cppunit']:
+#    # get the test source file names
+#    sources = Glob('*.cpp')
+#    testname='ripley_UnitTest'
+#
+#    # build the executable
+#    local_env.Prepend(LIBS=['ripley', 'pasowrap', 'escript', 'esysUtils', 'paso']+env['cppunit_libs'])
+#    program = local_env.Program(testname, sources)
+#
+#    # run the tests - but only if test_targets are stale
+#    local_env.RunUnitTest(testname)
+#
+#    # add unit test to target alias
+#    Alias('build_tests', program)
+#    Alias("run_tests", testname+'.passed')
+#
+#    # add a group of tests
+#    from grouptest import *
+#    tgroup=GroupTest("$BINRUNNER ", (), "", "$BUILD_DIR/ripley/test", ('./'+testname,))
+#    TestGroups.append(tgroup)
 
 # configure python unit tests
 local_env.SConscript(dirs = ['#/ripley/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
