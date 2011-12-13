@@ -157,7 +157,7 @@ env.Alias('install_finley_lib', lib_inst)
 
 ### Python wrapper ###
 if not env['build_shared']:
-    py_wrapper_local_env.Prepend(LIBS = ['finley', 'pasowrap', 'escript'])
+    py_wrapper_local_env.Prepend(LIBS = ['finley', 'pasowrap', 'escript', 'esysUtils'])
 else:
     py_wrapper_local_env.Prepend(LIBS = ['finley', 'pasowrap', 'escript', 'paso', 'esysUtils'])
 
