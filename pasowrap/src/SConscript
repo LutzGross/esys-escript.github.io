@@ -76,5 +76,5 @@ env.Alias('install_pasowrapcpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/pasowrap/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/pasowrap/test'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap/test', duplicate=0, exports=['py_wrapper_lib'])
+#local_env.SConscript(dirs = ['#/pasowrap/test'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap/test', duplicate=0, exports=['py_wrapper_lib'])
 
