@@ -538,8 +538,6 @@ bool BuckleyDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultc
     vector<int> hasline(4);	
     bool hasnodes=false;
     bool hasrednodes=false;
-    bool hascez=false;
-    bool hasrcez=false;
     for (int i=0;i<fs.size();++i)
     {
 	switch(fs[i])

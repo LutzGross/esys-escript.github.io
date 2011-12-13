@@ -54,7 +54,7 @@ void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
    target=source;
 }
 
-bool NullDomain::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+bool NullDomain::probeInterpolationOnDomain(int functionSpaceType_source, unsigned gen1, int functionSpaceType_target, unsigned gen2) const
 {
    if ((functionSpaceType_source!=functionSpaceType_target) || (functionSpaceType_target!=NullDomainFS))
    {
