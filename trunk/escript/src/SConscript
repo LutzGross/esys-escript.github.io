@@ -130,7 +130,10 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_escript_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+if not env['build_shared']:
+    py_wrapper_local_env.Prepend(LIBS = ['escript'])
+else:
+    py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptcpp.cpp')
 env.Alias('build_escriptcpp_lib', py_wrapper_lib)
