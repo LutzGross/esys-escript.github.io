@@ -62,8 +62,8 @@ class Design(design.Design):
        :param keep_files: flag to keep work files
        """
        design.Design.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
+       self.__scriptname=""
        self.setScriptFileName()
-       self.setMeshFileName()
        self.setOptions()
        self.setFileFormat(self.GMSH)
 
@@ -72,6 +72,8 @@ class Design(design.Design):
        Sets the filename for the gmsh input script. If no name is given a name
        with extension I{geo} is generated.
        """
+       if self.__scriptname:
+           os.unlink(self.__scriptname)
        if name == None:
            tmp_f_id=tempfile.mkstemp(suffix=".geo")
            self.__scriptname=tmp_f_id[1]

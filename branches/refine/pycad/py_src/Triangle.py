@@ -54,6 +54,7 @@ class Design(design.Design):
        if dim != 2:
            raise ValueError("only dimension 2 is supported by Triangle.")
        design.Design.__init__(self,dim=dim,keep_files=keep_files)
+       self.__scriptname=""
        self.setScriptFileName()
        self.setMeshFileName()
        self.setOptions()
@@ -63,6 +64,8 @@ class Design(design.Design):
        Sets the filename for the Triangle input script. If no name is given
        a name with extension I{poly} is generated.
        """
+       if self.__scriptname:
+           os.unlink(self.__scriptname)
        if name == None:
            self.__scriptname=tempfile.mkstemp(suffix=".poly")[1]
        else:
@@ -80,6 +83,8 @@ class Design(design.Design):
        """
        Sets the name of the Triangle mesh file.
        """
+       if self.__mshname:
+           os.unlink(self.__mshname)
        if name == None:
            self.__mshname=tempfile.mkstemp(suffix="")[1]
        else:

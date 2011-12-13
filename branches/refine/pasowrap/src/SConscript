@@ -36,7 +36,7 @@ headers = """
   system_dep.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript','paso','esysUtils'])
+local_env.Prepend(LIBS = ['escript', 'paso', 'esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASOWRAP_EXPORTS'])
 
@@ -55,7 +55,10 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_pasowrap_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils', 'paso', 'pasowrap'])
+if not env['build_shared']:
+    py_wrapper_local_env.Prepend(LIBS = ['pasowrap', 'escript', 'esysUtils'])
+else:
+    py_wrapper_local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'pasowrapcpp.cpp')
 env.Alias('build_pasowrapcpp_lib', py_wrapper_lib)
@@ -75,5 +78,5 @@ env.Alias('install_pasowrapcpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/pasowrap/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/pasowrap/test'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap/test', duplicate=0, exports=['py_wrapper_lib'])
+#local_env.SConscript(dirs = ['#/pasowrap/test'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap/test', duplicate=0, exports=['py_wrapper_lib'])
 

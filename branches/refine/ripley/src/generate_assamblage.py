@@ -13,8 +13,14 @@ DIGITS=20
 q0=sqrt(RealNumber(15))/5
 qD1=[ (1-q0)/2,  RealNumber(1)/2,  (1+q0)/2 ]
 wD1=[RealNumber(5)/18, RealNumber(4)/ 9, RealNumber(5)/18 ]
+
+q0=1/sqrt(RealNumber(3))
+qD1=[ (1-q0)/2,  (1+q0)/2 ]
+wD1=[RealNumber(1)/2, RealNumber(1)/2 ]
+
 qD1_r=[ RealNumber(1)/2 ]
 wD1_r= [RealNumber(1)]
+
 print "1D quadrature nodes =",qD1
 print "1D quadrature weights =",wD1
 print "1D reduced quadrature nodes =",qD1_r

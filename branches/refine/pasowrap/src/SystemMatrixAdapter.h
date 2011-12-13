@@ -33,7 +33,7 @@ extern "C" {
 
 namespace paso {
 
-class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
+class SystemMatrixAdapter: public escript::AbstractSystemMatrix {
 
 /**
    \brief
@@ -124,10 +124,18 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   virtual void resetValues() const;
 
   /**
-     \brief maps escript options onto Paso options:
+     \brief maps escript options onto Paso options
   */
   PASOWRAP_DLL_API
   static int mapOptionToPaso(const int option);
+
+  /**
+     \brief returns the identifier of the matrix type to be used for the global
+     stiffness matrix when the given solver, preconditioner and package is
+     used
+  */
+  PASOWRAP_DLL_API
+  static int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry, Esys_MPIInfo* mpiInfo);
 
   /**
      \brief extract paso options from SolutionOptions class
@@ -137,11 +145,11 @@ class SystemMatrixAdapter:public escript::AbstractSystemMatrix {
   static void escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options);
 
   /**
-     \brief copied diagonistic data back to the solver option.
+     \brief copies diagnostic data back to the solver options
   */
  
   PASOWRAP_DLL_API
-  static void pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options);
+  static void pasoToEscriptOptions(const Paso_Options* paso_options, boost::python::object& options);
  
   /**
      \brief prints information about a system matrix

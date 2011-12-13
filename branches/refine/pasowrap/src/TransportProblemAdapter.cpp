@@ -25,13 +25,14 @@ struct null_deleter
   }
 };
 
-
+PASOWRAP_DLL_API
 TransportProblemAdapter::TransportProblemAdapter()
 {
    throw PasoException("Error - Illegal to generate default TransportProblemAdapter.");
 }
 
 
+PASOWRAP_DLL_API
 TransportProblemAdapter::TransportProblemAdapter(Paso_TransportProblem* transport_problem,
                                                  const bool useBackwardEuler,
                                                  const int block_size,
@@ -41,6 +42,7 @@ AbstractTransportProblem(useBackwardEuler, block_size, functionspace)
     m_transport_problem.reset(transport_problem,null_deleter());
 }
 
+PASOWRAP_DLL_API
 TransportProblemAdapter::~TransportProblemAdapter()
 { 
     if (m_transport_problem.unique()) {
@@ -49,12 +51,13 @@ TransportProblemAdapter::~TransportProblemAdapter()
     }
 }
 
+PASOWRAP_DLL_API
 Paso_TransportProblem* TransportProblemAdapter::getPaso_TransportProblem() const 
 {
    return m_transport_problem.get();
 }
 
-
+PASOWRAP_DLL_API
 void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u0, escript::Data& source, const double dt, boost::python::object& options) const
 {
     Paso_TransportProblem* transp=getPaso_TransportProblem();
@@ -84,12 +87,15 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u
     checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void TransportProblemAdapter::resetTransport() const
 {
    Paso_TransportProblem* transp = getPaso_TransportProblem();
    Paso_TransportProblem_reset(transp);
    checkPasoError();
 }
+
+PASOWRAP_DLL_API
 void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const
 {
     if ( q.getDataPointSize()  != getBlockSize()) {
@@ -144,6 +150,7 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
    }
 }
 
+PASOWRAP_DLL_API
 double TransportProblemAdapter::getSafeTimeStepSize() const
 {
     Paso_TransportProblem* transp=getPaso_TransportProblem();
@@ -152,11 +159,26 @@ double TransportProblemAdapter::getSafeTimeStepSize() const
     return dt;
 }
 
+PASOWRAP_DLL_API
 double TransportProblemAdapter::getUnlimitedTimeStepSize() const
 {
     return LARGE_POSITIVE_FLOAT;
 }
 
+PASOWRAP_DLL_API
+int TransportProblemAdapter::getTransportTypeId(const int solver,
+        const int preconditioner, const int package, const bool symmetry,
+        Esys_MPIInfo* mpiInfo)
+{
+    int out=Paso_TransportProblem_getTypeId(
+            SystemMatrixAdapter::mapOptionToPaso(solver),
+            SystemMatrixAdapter::mapOptionToPaso(preconditioner),
+            SystemMatrixAdapter::mapOptionToPaso(package),
+            symmetry?1:0, mpiInfo);
+    checkPasoError();
+    return out;
+}
 
 
 }  // end of namespace
+
