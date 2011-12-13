@@ -37,15 +37,14 @@ namespace
     const int ctsfn=initialspace;
     const int discfn=2;
     const int red_discfn=-3;	// reduced discontinuous function  (reduced elements in finley terms)
-    const int cts_faces=-4;
-    const int red_cts_faces=-5;
-    const int disc_faces=-6;
+
+    const int disc_faces=4;
     const int red_disc_faces=-7;
     
     
     
     const unsigned int NUM_QUAD=8;	// number of quadrature points required
-
+    const unsigned int NUM_FACEQUAD=4;
 
 escript::DataTypes::ShapeType make3()
 {
@@ -90,7 +89,7 @@ BuckleyDomain::~BuckleyDomain()
 
 bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
 {
-    return (functionSpaceType==ctsfn || functionSpaceType==discfn);
+    return (functionSpaceType==ctsfn || functionSpaceType==discfn || functionSpaceType==disc_faces);
 }
 
 escript::Data BuckleyDomain::getX() const
@@ -152,14 +151,21 @@ const int* BuckleyDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 }
 
 
+// this is not threadsafe due to vector sizing and push back
 void BuckleyDomain::processMods() const
 {
       if (leaves!=0)
       {
 	  delete [] leaves;
 	  delete [] samplerefids;
+	  face_cells[0].resize(0);
+	  face_cells[1].resize(0);
+	  face_cells[2].resize(0);
+	  face_cells[3].resize(0);
+	  face_cells[4].resize(0);
+	  face_cells[5].resize(0);
       }
-      leaves=ot.process(numpts);
+      leaves=ot.process(numpts, face_cells);
       samplerefids=new int[numpts];
       for (int i=0;i<numpts;++i)
       {
@@ -274,6 +280,93 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 	
       }      
    }
+   else if (arg.getFunctionSpace().getTypeCode()==getFunctionOnBoundaryCode())	// face elements not on the nodes
+   {
+      // This is actually simpler because there is no overlap between different leaves
+      escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));
+      
+      int numfaces=face_cells[0].size()+face_cells[1].size()+face_cells[2].size()+face_cells[3].size()
+		  +face_cells[4].size()+face_cells[5].size();
+      
+      int partials[6];
+      partials[0]=0;
+      for (int i=1;i<6;++i)
+      {
+	  partials[i]=partials[i-1]+face_cells[i].size();
+      }
+      
+      double bb[6];
+      ot.getBB(bb);
+      
+      int f, i;	// one day OMP-3 will be default
+      for (f=0;f<6;++f)
+      {
+
+	  int c_tosnap;
+	  double snapvalue;
+	  int fps[4];
+	  switch (f)
+	  {
+	    case 0:  c_tosnap=0;
+		     snapvalue=bb[3];
+		     fps[0]=1;
+		     fps[1]=2;
+		     fps[2]=6;
+		     fps[3]=5;
+		     break;
+	    case 1:  c_tosnap=0;
+		     snapvalue=bb[0];
+		     fps[0]=3;
+		     fps[1]=0;
+		     fps[2]=4;
+		     fps[3]=7;		     
+		     break;
+	    case 2:  c_tosnap=1;
+		     snapvalue=bb[1];
+		     fps[0]=2;
+		     fps[1]=3;
+		     fps[2]=7;
+		     fps[3]=6;		     
+		     break;
+	    case 3:  c_tosnap=1;
+		     snapvalue=bb[4];
+		     fps[0]=0;
+		     fps[1]=1;
+		     fps[2]=5;
+		     fps[3]=4;		     
+		     break;
+	    case 4:  c_tosnap=2;
+		     snapvalue=bb[2];
+		     fps[0]=4;
+		     fps[1]=5;
+		     fps[2]=6;
+		     fps[3]=7;		     
+		     break;
+	    case 5:  c_tosnap=2;
+		     snapvalue=bb[5];
+		     fps[0]=3;
+		     fps[1]=2;
+		     fps[2]=1;
+		     fps[3]=0;		     
+		     break;
+	  }	  
+          #pragma omp parallel for private(i) schedule(static)
+	  for (i=0;i<face_cells[f].size();++i)
+	  {
+	      double coords[3];	    
+	      const OctCell& oc=*(face_cells[f][i]);
+	      for (unsigned int j=0;j<4;++j)
+	      {
+		  oc.quadCoords(fps[j], coords[0], coords[1], coords[2]);
+		  coords[c_tosnap]=snapvalue;
+		  vec[(i+partials[f])*NUM_FACEQUAD*3+3*j]=coords[0];
+	          vec[(i+partials[f])*NUM_FACEQUAD*3+3*j+1]=coords[1];
+	          vec[(i+partials[f])*NUM_FACEQUAD*3+3*j+2]=coords[2];
+	      }
+	    
+	  }
+      } 
+   }   
    else		
    {
       throw BuckleyException("Please don't use other functionspaces on this yet.");
@@ -335,7 +428,7 @@ int BuckleyDomain::getReducedFunctionCode() const
 
 int BuckleyDomain::getFunctionOnBoundaryCode() const
 {
-    return invalidspace;  
+    return disc_faces;  
 }
 
 int BuckleyDomain::getReducedFunctionOnBoundaryCode() const
@@ -391,7 +484,7 @@ int BuckleyDomain::getTransportTypeId(const int solver, const int preconditioner
 
 void BuckleyDomain::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
 {
-    throw BuckleyException("Not Implemented");
+    throw BuckleyException("Not Implemented ::setToIntegrals ");
 }
 
 #define ISEMPTY(X) (X==0 || X->isEmpty())
@@ -796,7 +889,7 @@ void BuckleyDomain::addPDEToTransportProblem(
                      const escript::Data& d_contact,const escript::Data& y_contact,
                      const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
-    throw BuckleyException("Not Implemented");
+    throw BuckleyException("Not Implemented ::addPDEToTransportProblem");
 }
 
 
@@ -870,24 +963,35 @@ escript::ATP_ptr BuckleyDomain::newTransportProblem(
                       const escript::FunctionSpace& functionspace,
                       const int type) const
 {
-    throw BuckleyException("Not Implemented");
+    throw BuckleyException("Not Implemented ::newTransportProblem");
 }
 
 int BuckleyDomain::getNumDataPointsGlobal() const
 {
-    throw BuckleyException("Not Implemented");
+    throw BuckleyException("Not Implemented ::getNumDataPointsGlobal");
 }
 
 
   BUCKLEY_DLL_API
 std::pair<int,int> BuckleyDomain::getDataShape(int functionSpaceCode) const
 {
+   if (modified)	// is the cached data we have about this domain stale?
+   {
+      processMods();
+   }  
+   int count=0;
    switch (functionSpaceCode)
    {
      case ctsfn: return std::pair<int,int>(1,numpts);  
      case discfn: return std::pair<int, int>(NUM_QUAD,ot.leafCount());
+     case disc_faces: 
+        for (int i=0;i<6;++i)
+        {
+	  count+=face_cells[i].size();
+	}
+	return std::pair<int, int>(4, count);	
    }
-   throw BuckleyException("Not Implemented");  
+   throw BuckleyException("Not Implemented ::getDataShape");  
   
 }
 
@@ -895,6 +999,12 @@ BUCKLEY_DLL_API
 void BuckleyDomain::setNewX(const escript::Data& arg)
 {
     throw BuckleyException("This domain does not support changing coordinates");  
+}
+
+void BuckleyDomain::setToSize(escript::Data& out) const
+{
+  throw BuckleyException("Not Implemented ::setToSize");
+  return;
 }
 
 
@@ -905,8 +1015,14 @@ void BuckleyDomain::Print_Mesh_Info(const bool full) const
     {
         processMods();
     }
-    std::cout << "Buckley tree with " << ot.leafCount();
-    std::cout << ((ot.leafCount()>1)?" leaves ":" leaf ") << "and " << numpts << " unknowns\n";
+    std::cout << "Buckley tree with " << ot.leafCount() << " ";
+    int count=0;
+    for (int i=0;i<6;++i)
+    {
+        count+=face_cells[i].size();
+    }
+    std::cout << ((ot.leafCount()>1)?"leaves":"leaf") << ", "; 
+    std::cout << count << " face elements and " << numpts << " unknowns\n";
     std::cout << " Generation=" << m_generation << std::endl;
 }
 
@@ -954,6 +1070,7 @@ std::string BuckleyDomain::functionSpaceTypeAsString(int functionSpaceType) cons
     {
     case ctsfn: return "ContinuousFunction";
     case discfn: return "DiscontinuousFunction";
+    case disc_faces: return "DiscontinuousFunction on Faces";
     default: return "Invalid";  
     };
 }

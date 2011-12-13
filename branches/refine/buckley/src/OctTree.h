@@ -1,6 +1,7 @@
 
 
 #include "OctCell.h"
+#include <vector>
 
 namespace buckley
 {
@@ -24,8 +25,10 @@ public:
     unsigned leafCountByWalk() const;	// inefficient, don't use too much
     unsigned leafCount() const;
     
-    const OctCell** process(unkid& numunk) const;	// tree mutations are complete for now
+    const OctCell** process(unkid& numunk,std::vector<const OctCell*> face_cells[6]) const;	// tree mutations are complete for now
     
+    
+    void getBB(double bb[6]) const;	// get the bounding box of the tree
     void debug();
 private:
 

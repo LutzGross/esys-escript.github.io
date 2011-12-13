@@ -329,6 +329,8 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   BUCKLEY_DLL_API
   void setToGradient(escript::Data& grad, const escript::Data& arg) const;  
   
+  BUCKLEY_DLL_API
+  void setToSize(escript::Data& out) const;
   
  protected:
 

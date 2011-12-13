@@ -43,6 +43,18 @@ void OctTree::collapsePoint(double x, double y, double z, unsigned int d)
   
 }
 
+
+void OctTree::getBB(double bb[6]) const
+{
+    bb[0]=p.centre[0]-p.sides[0]/2;
+    bb[1]=p.centre[1]-p.sides[1]/2;
+    bb[2]=p.centre[2]-p.sides[2]/2;
+    
+    bb[3]=p.centre[0]+p.sides[0]/2;
+    bb[4]=p.centre[1]+p.sides[1]/2;
+    bb[5]=p.centre[2]+p.sides[2]/2;
+}
+
 void OctTree::splitPoint(double x, double y, double z, unsigned int desdepth)
 {  
     if ((x<0) || (y<0) || (z<0) ||
@@ -172,20 +184,30 @@ void setUnkids(const OctCell& c, int kidnum, void* v)
 typedef struct
 {
    const OctCell** ca;
-   unkid id;  
+   unkid id;
+   std::vector<const OctCell*>* face_cells;
 } copier;
 
+
+// This is not threadsafe!!!
 void copytoarr(const OctCell& c, void* v)
 {
     copier* cs=reinterpret_cast<copier*>(v);
     cs->ca[cs->id++]=&c;
+    for (int i=0;i<6;++i)
+    {
+        if (c.leafinfo->next[i]==0)	// this face is external
+	{
+	    cs->face_cells[i].push_back(&c);    
+	}
+    }
 }
 
 
 }
 
 
-const OctCell** OctTree::process(unkid& numunk) const
+const OctCell** OctTree::process(unkid& numunk, std::vector<const OctCell*> face_cells[6]) const
 {
     unkid maxunk=assignIDs();
     // nasty hack process for now
@@ -194,6 +216,7 @@ const OctCell** OctTree::process(unkid& numunk) const
     copier c;
     c.ca=temp;
     c.id=0;
+    c.face_cells=face_cells;
     p.doLeafWalk_const(copytoarr, &c);
     numunk=maxunk-(HANG_NODE+1);
     return temp;
