@@ -87,5 +87,5 @@ env.Alias('install_buckleycpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/buckley/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/buckley/test'], variant_dir='$BUILD_DIR/$PLATFORM/buckley/test', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/buckley/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/buckley/test/python', duplicate=0, exports=['py_wrapper_lib'])
 

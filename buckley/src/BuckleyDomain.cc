@@ -42,6 +42,10 @@ namespace
     const int red_disc_faces=-7;
     
     
+    const int ctsfn_DOF = -8;	// place holder for degrees of freedom form of nodes
+    const int red_ctsfn = -9;   
+    const int red_ctsfn_DOF = -10;	// place holder for reduced degrees of freedom for of nodes
+    
     
     const unsigned int NUM_QUAD=8;	// number of quadrature points required
     const unsigned int NUM_FACEQUAD=4;
@@ -486,6 +490,144 @@ void BuckleyDomain::setToIntegrals(std::vector<double>& integrals,const escript:
 {
     throw BuckleyException("Not Implemented ::setToIntegrals ");
 }
+
+bool BuckleyDomain::canTag(int functionspacecode) const
+{
+    return false;  
+}
+
+int BuckleyDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
+{
+    throw BuckleyException("Not implemented ::getTagFromSampleNo");
+}
+
+
+// The following comment is taken from the finley version of this function
+// at the moment some of these function spaces are not supported or are duplicates
+// To make some comments in the python tests keep making sense [eg references to "lines" in run_escriptOnBuckley]
+// I'm not re-numbering here
+   /* The idea is to use equivalence classes. [Types which can be interpolated back and forth]
+	class 1: DOF <-> Nodes       [Currently there is no distinction between these]
+	class 2: ReducedDOF <-> ReducedNodes  [At the moment these are using class 1]
+	class 3: Points				[nope]
+	class 4: Elements			
+	class 5: ReducedElements
+	class 6: FaceElements
+	class 7: ReducedFaceElements
+	class 8: ContactElementZero <-> ContactElementOne		[nein, nyet, non]
+	class 9: ReducedContactElementZero <-> ReducedContactElementOne [nein, nyet, non]
+
+   There is also a set of lines. Interpolation is possible down a line but not between lines.
+   class 1 and 2 belong to all lines so aren't considered.
+	line 0: class 3		[No using]
+	line 1: class 4,5
+	line 2: class 6,7
+	line 3: class 8,9	[not using]
+
+   For classes with multiple members (eg class 2) we have vars to record if there is at least one instance.
+   eg hasnodes is true if we have at least one instance of Nodes.
+   */
+bool BuckleyDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
+{
+
+    if (fs.empty())
+    {
+        return false;
+    }
+    vector<int> hasclass(10);
+    vector<int> hasline(4);	
+    bool hasnodes=false;
+    bool hasrednodes=false;
+    bool hascez=false;
+    bool hasrcez=false;
+    for (int i=0;i<fs.size();++i)
+    {
+	switch(fs[i])
+	{
+	case(ctsfn):   hasnodes=true;	// no break is deliberate
+	case(ctsfn_DOF):
+		hasclass[1]=1;
+		break;
+	case(red_ctsfn):    hasrednodes=true;	// no break is deliberate
+	case(red_ctsfn_DOF):
+		hasclass[2]=1;
+		break;
+	case(discfn):
+		hasclass[4]=1;
+		hasline[1]=1;
+		break;
+	case(red_discfn):
+		hasclass[5]=1;
+		hasline[1]=1;
+		break;
+	case(disc_faces):
+		hasclass[6]=1;
+		hasline[2]=1;
+		break;
+	case(red_disc_faces):
+		hasclass[7]=1;
+		hasline[2]=1;
+		break;
+	default:
+		return false;
+	}
+    }
+    int totlines=hasline[0]+hasline[1]+hasline[2]+hasline[3];
+    // fail if we have more than one leaf group
+
+    if (totlines>1)
+    {
+	return false;	// there are at least two branches we can't interpolate between
+    }
+    else if (totlines==1)
+    {
+	if (hasline[0]==1)		// we have points
+	{
+	    //resultcode=Points;
+	    return false;	// should not ever happen
+	}
+	else if (hasline[1]==1)
+	{
+	    if (hasclass[5]==1)
+	    {
+		resultcode=red_discfn;
+	    }
+	    else
+	    {
+		resultcode=discfn;
+	    }
+	}
+	else if (hasline[2]==1)
+	{
+	    if (hasclass[7]==1)
+	    {
+		resultcode=red_disc_faces;
+	    }
+	    else
+	    {
+		resultcode=disc_faces;
+	    }
+	}
+	else	// so we must be in line3
+	{
+	    return false;	// not doing contact elements
+	}
+    }
+    else	// totlines==0
+    {
+	if (hasclass[2]==1)
+	{
+		// something from class 2
+		resultcode=(hasrednodes?red_ctsfn:red_ctsfn_DOF);
+	}
+	else
+	{	// something from class 1
+		resultcode=(hasnodes?ctsfn:ctsfn_DOF);
+	}
+    }
+    return true;
+}
+
 
 #define ISEMPTY(X) (X==0 || X->isEmpty())
 

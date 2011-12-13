@@ -331,6 +331,16 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   
   BUCKLEY_DLL_API
   void setToSize(escript::Data& out) const;
+
+  BUCKLEY_DLL_API
+  bool canTag(int functionspacecode) const;
+  
+  BUCKLEY_DLL_API
+  int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+  
+  
+  BUCKLEY_DLL_API
+  bool commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;  
   
  protected:
 
