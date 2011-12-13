@@ -162,6 +162,7 @@ protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1*m_N2; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1*m_NE2; }
     virtual dim_t getNumFaceElements() const;
+    virtual dim_t getNumDOF() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,

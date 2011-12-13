@@ -47,6 +47,17 @@ RipleyDomain::~RipleyDomain()
     Esys_MPIInfo_free(m_mpiInfo);
 }
 
+bool RipleyDomain::operator==(const AbstractDomain& other) const
+{
+    const RipleyDomain* o=dynamic_cast<const RipleyDomain*>(&other);
+    if (o) {
+        return (m_tagMap==o->m_tagMap && m_nodeTags==o->m_nodeTags
+                && m_elementTags==o->m_elementTags
+                && m_faceTags==o->m_faceTags);
+    }
+    return false;
+}
+
 bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 {
     switch (fsType) {
@@ -89,10 +100,11 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
-        case ReducedNodes:
-        case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
+        case ReducedNodes: //FIXME: reduced
             return pair<int,int>(1, getNumNodes());
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom: //FIXME: reduced
+            return pair<int,int>(1, getNumDOF());
         case Elements:
             return pair<int,int>(ptsPerSample, getNumElements());
         case FaceElements:
@@ -283,42 +295,56 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
         << " -> "
         << functionSpaceTypeAsString(target.getFunctionSpace().getTypeCode());
 
-    switch (in.getFunctionSpace().getTypeCode()) {
-        case Nodes:
-        case ReducedNodes:
-        case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
-            switch (target.getFunctionSpace().getTypeCode()) {
-                case Nodes:
-                case ReducedNodes:
-                case DegreesOfFreedom:
-                case ReducedDegreesOfFreedom:
-                    // FIXME
-                    copyNodalData(target, *const_cast<escript::Data*>(&in));
-                    break;
+    const int inFS = in.getFunctionSpace().getTypeCode();
+    const int outFS = target.getFunctionSpace().getTypeCode();
 
-                case Elements:
-                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), false);
-                    break;
+    // simplest case: 1:1 copy
+    if (inFS==outFS) {
+        copyData(target, *const_cast<escript::Data*>(&in));
+    // not allowed: reduced->non-reduced
+    } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
+            && (outFS==Nodes || outFS==DegreesOfFreedom)) {
+        throw RipleyException("interpolateOnDomain(): Cannot interpolate reduced data to non-reduced data.");
+    } else if ((inFS==Elements && outFS==ReducedElements)
+            || (inFS==FaceElements && outFS==ReducedFaceElements)) {
+        averageData(target, *const_cast<escript::Data*>(&in));
+    } else {
+        switch (inFS) {
+            case Nodes:
+            case ReducedNodes: //FIXME: reduced
+            case DegreesOfFreedom:
+            case ReducedDegreesOfFreedom: //FIXME: reduced
+                switch (outFS) {
+                    case Nodes:
+                    case ReducedNodes: //FIXME: reduced
+                    case DegreesOfFreedom:
+                    case ReducedDegreesOfFreedom: //FIXME: reduced
+                        // TODO
+                        break;
 
-                case ReducedElements:
-                    interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), true);
-                    break;
+                    case Elements:
+                        interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), false);
+                        break;
 
-                case FaceElements:
-                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), false);
-                    break;
+                    case ReducedElements:
+                        interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), true);
+                        break;
 
-                case ReducedFaceElements:
-                    interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), true);
-                    break;
+                    case FaceElements:
+                        interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), false);
+                        break;
 
-                default:
-                    throw RipleyException(msg.str());
-            }
-            break;
-        default:
-            throw RipleyException(msg.str());
+                    case ReducedFaceElements:
+                        interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), true);
+                        break;
+
+                    default:
+                        throw RipleyException(msg.str());
+                }
+                break;
+            default:
+                throw RipleyException(msg.str());
+        }
     }
 }
 
@@ -581,7 +607,26 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 }
 
 //protected
-void RipleyDomain::copyNodalData(escript::Data& out, escript::Data& in) const
+void RipleyDomain::averageData(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    const dim_t dpp = in.getNumDataPointsPerSample();
+    out.requireWrite();
+#pragma omp parallel for
+    for (index_t i=0; i<in.getNumSamples(); i++) {
+        const double* src = in.getSampleDataRO(i);
+        double* dest = out.getSampleDataRW(i);
+        for (index_t c=0; c<numComp; c++) {
+            double res=0.;
+            for (index_t q=0; q<dpp; q++)
+                res+=src[c+q*numComp];
+            *dest++ = res/dpp;
+        }
+    }
+}
+
+//protected
+void RipleyDomain::copyData(escript::Data& out, escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
@@ -659,11 +704,6 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 string RipleyDomain::getDescription() const
 {
     throw RipleyException("getDescription() not implemented");
-}
-
-bool RipleyDomain::operator==(const AbstractDomain& other) const
-{
-    throw RipleyException("operator==() not implemented");
 }
 
 void RipleyDomain::write(const string& filename) const
@@ -810,6 +850,11 @@ dim_t RipleyDomain::getNumElements() const
 dim_t RipleyDomain::getNumNodes() const
 {
     throw RipleyException("getNumNodes() not implemented");
+}
+
+dim_t RipleyDomain::getNumDOF() const
+{
+    throw RipleyException("getNumDOF() not implemented");
 }
 
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const

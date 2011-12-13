@@ -77,8 +77,13 @@ string Brick::getDescription() const
 
 bool Brick::operator==(const AbstractDomain& other) const
 {
-    if (dynamic_cast<const Brick*>(&other))
-        return this==&other;
+    const Brick* o=dynamic_cast<const Brick*>(&other);
+    if (o) {
+        return (RipleyDomain::operator==(other) &&
+                m_gNE0==o->m_gNE0 && m_gNE1==o->m_gNE1 && m_gNE2==o->m_gNE2
+                && m_l0==o->m_l0 && m_l1==o->m_l1 && m_l2==o->m_l2
+                && m_NX==o->m_NX && m_NY==o->m_NY && m_NZ==o->m_NZ);
+    }
 
     return false;
 }
@@ -1221,6 +1226,12 @@ pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
     throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
 }
 
+//protected
+dim_t Brick::getNumDOF() const
+{
+    return m_nodeDistribution[m_mpiInfo->rank+1]
+        -m_nodeDistribution[m_mpiInfo->rank];
+}
 
 //protected
 dim_t Brick::getNumFaceElements() const

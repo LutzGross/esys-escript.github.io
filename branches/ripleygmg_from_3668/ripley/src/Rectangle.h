@@ -175,6 +175,7 @@ public:
 protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
+    virtual dim_t getNumDOF() const;
     virtual dim_t getNumFaceElements() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
@@ -212,6 +213,7 @@ private:
     IndexVector m_faceOffset;
 
     /// vector of sample reference identifiers
+    IndexVector m_dofId;
     IndexVector m_nodeId;
     IndexVector m_elementId;
     IndexVector m_faceId;
