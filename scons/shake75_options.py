@@ -156,7 +156,7 @@ umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
-#umfpack_libs = ['umfpack']
+umfpack_libs = ['umfpack', 'blas']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
