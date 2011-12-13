@@ -249,14 +249,27 @@ cerr << "Done assigning IDs\n";
 int main()
 {
 //    maintest();
+/*
     OctTree ot(1,1,1);
-    ot.allSplit(3);
+    ot.allSplit(6);
 
-    ot.collapsePoint(0,0,0,1);
-    ot.collapsePoint(1,1,1,1);
+    ot.collapsePoint(0,0,0,2);
+    ot.collapsePoint(1,1,1,2);
+     ot.splitPoint(0,0,0,6);
+     ot.splitPoint(0.75, 0.75, 0.75,6);
      ot.assignIDs();
-     dumpHang(ot);
-    //dumpGrid(ot);
+     //dumpHang(ot);
+    dumpGrid(ot);
     //dumpCen(ot);
+*/
+    OctTree ot(1,1,1);
+    ot.allSplit(2);
 
+    ot.collapsePoint(0,0,0,2);
+    ot.collapsePoint(1,1,1,2);
+     ot.splitPoint(0,0,0,6);
+     ot.splitPoint(0.75, 0.75, 0.75,6);
+     ot.assignIDs();
+     //dumpHang(ot);
+    dumpGrid(ot);
 }

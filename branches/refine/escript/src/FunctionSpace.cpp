@@ -37,7 +37,8 @@ const_Domain_ptr nullDomainValue(new NullDomain());
 FunctionSpace::FunctionSpace():
 //   m_domain(static_cast<const AbstractDomain*>(&nullDomainValue)),
   m_domain(nullDomainValue),
-  m_functionSpaceType(dynamic_cast<const NullDomain*>(nullDomainValue.get())->getFunctionCode())
+  m_functionSpaceType(dynamic_cast<const NullDomain*>(nullDomainValue.get())->getFunctionCode()),
+  m_generation(1)
 {
 }
 

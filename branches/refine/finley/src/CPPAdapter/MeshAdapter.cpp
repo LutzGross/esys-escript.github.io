@@ -1876,7 +1876,7 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
     return true;
 }
 
-bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source, unsigned gen1, int functionSpaceType_target, unsigned gen2) const
 {
    switch(functionSpaceType_source) {
    case(Nodes):

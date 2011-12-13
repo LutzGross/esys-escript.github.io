@@ -82,7 +82,7 @@ class NullDomain : public AbstractDomain {
   ESCRIPT_DLL_API
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
   ESCRIPT_DLL_API
-  virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+  virtual bool probeInterpolationOnDomain(int functionSpaceType_source, unsigned gen1, int functionSpaceType_target, unsigned gen2) const;
 
   /**
      \brief
