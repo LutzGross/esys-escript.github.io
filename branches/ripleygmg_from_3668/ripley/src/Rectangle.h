@@ -159,24 +159,22 @@ public:
     RIPLEY_DLL_API
     virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
 
-    /**
-       \brief
-       adds a PDE onto the stiffness matrix mat and rhs
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToSystem(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y,
-            const escript::Data& d_contact, const escript::Data& y_contact,
-            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
-
 protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
     virtual dim_t getNumFaceElements() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y) const;
+    //virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+    //        const escript::Data& A, const escript::Data& B,
+    //        const escript::Data& C, const escript::Data& D,
+    //        const escript::Data& X, const escript::Data& Y,
+    //        const escript::Data& d, const escript::Data& y) const;
+
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -188,6 +186,10 @@ private:
     int insertNeighbours(IndexVector& index, index_t node) const;
     void generateCouplePatterns(Paso_Pattern** colPattern,
                                 Paso_Pattern** rowPattern) const;
+    void addToSystemMatrix(Paso_SystemMatrix* in, dim_t NN_Equa,
+            const IndexVector& Nodes_Equa, dim_t num_Equa, dim_t NN_Sol,
+            const IndexVector& Nodes_Sol, dim_t num_Sol,
+            const std::vector<double>& array) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1;

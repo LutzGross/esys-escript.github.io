@@ -568,6 +568,44 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     return sma;
 }
 
+void RipleyDomain::addPDEToSystem(
+        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y,
+        const escript::Data& d_contact, const escript::Data& y_contact,
+        const escript::Data& d_dirac,const escript::Data& y_dirac) const
+{
+    if (!d_contact.isEmpty() || !y_contact.isEmpty())
+        throw RipleyException("addPDEToSystem(): Ripley does not support contact elements");
+
+    paso::SystemMatrixAdapter* sma=dynamic_cast<paso::SystemMatrixAdapter*>(&mat);
+    if (!sma)
+        throw RipleyException("addPDEToSystem(): Ripley only accepts Paso system matrices");
+
+    if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
+        throw RipleyException("addPDEToSystem(): Right hand side coefficients are provided but no right hand side vector given");
+
+    //TODO: more input param checks (shape, function space etc)
+
+    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+
+    if (!rhs.isEmpty() && rhs.getDataPointSize() != S->logical_row_block_size)
+        throw RipleyException("addPDEToSystem(): Matrix row block size and number of components of right hand side don't match");
+
+    const int numEq=S->logical_row_block_size;
+    const int numComp=S->logical_col_block_size;
+
+    if (numEq != numComp)
+        throw RipleyException("addPDEToSystem(): Number of equations and number of solutions don't match");
+    //TODO: more system matrix checks
+
+    if (numEq==1)
+        assemblePDESingle(S, rhs, A, B, C, D, X, Y, d, y);
+    else
+        assemblePDESystem(S, rhs, A, B, C, D, X, Y, d, y);
+}
+
 void RipleyDomain::setNewX(const escript::Data& arg)
 {
     throw RipleyException("setNewX(): Operation not supported");
@@ -724,17 +762,6 @@ bool RipleyDomain::ownSample(int fsType, index_t id) const
     throw RipleyException("ownSample() not implemented");
 }
 
-void RipleyDomain::addPDEToSystem(
-        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac,const escript::Data& y_dirac) const
-{
-    throw RipleyException("addPDEToSystem() not implemented");
-}
-
 void RipleyDomain::addPDEToLumpedSystem(escript::Data& mat,
         const escript::Data& D, const escript::Data& d,
         const escript::Data& d_dirac, const bool useHRZ) const
@@ -822,6 +849,22 @@ dim_t RipleyDomain::getNumNodes() const
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const
 {
     throw RipleyException("assembleCoordinates() not implemented");
+}
+
+void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDESingle() not implemented");
+}
+
+void RipleyDomain::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDESystem() not implemented");
 }
 
 void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in, bool reduced) const
