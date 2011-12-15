@@ -237,6 +237,7 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
+        case ReducedNodes: //FIXME: reduced
             return &m_nodeId[0];
         case Elements:
         case ReducedElements:
