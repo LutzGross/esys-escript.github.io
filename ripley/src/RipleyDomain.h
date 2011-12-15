@@ -500,14 +500,14 @@ public:
        returns a Solution FunctionSpace code
     */
     RIPLEY_DLL_API
-    virtual int getSolutionCode() const { return DegreesOfFreedom; }
+    virtual int getSolutionCode() const { return Nodes; }
 
     /**
        \brief
        returns a ReducedSolution FunctionSpace code
     */
     RIPLEY_DLL_API
-    virtual int getReducedSolutionCode() const { return ReducedDegreesOfFreedom; }
+    virtual int getReducedSolutionCode() const { return ReducedNodes; }
 
     /**
        \brief
@@ -665,9 +665,6 @@ protected:
 
     /// returns the number of elements per MPI rank
     virtual dim_t getNumElements() const;
-
-    /// returns the number of degrees of freedom per MPI rank
-    virtual dim_t getNumDOF() const;
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
