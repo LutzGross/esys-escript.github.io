@@ -227,9 +227,6 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
             return &m_nodeId[0];
-        case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: //FIXME: reduced
-            return &m_dofId[0];
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
@@ -972,13 +969,6 @@ pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
 }
 
 //protected
-dim_t Rectangle::getNumDOF() const
-{
-    return m_nodeDistribution[m_mpiInfo->rank+1]
-        -m_nodeDistribution[m_mpiInfo->rank];
-}
-
-//protected
 dim_t Rectangle::getNumFaceElements() const
 {
     const IndexVector faces = getNumFacesPerBoundary();
@@ -1037,7 +1027,6 @@ void Rectangle::populateSampleIds()
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
 
-    m_dofId.resize(getNumDOF());
     m_nodeId.resize(getNumNodes());
 
     // the bottom row and left column are not owned by this rank so the
@@ -1075,9 +1064,7 @@ void Rectangle::populateSampleIds()
 #pragma omp parallel for
     for (dim_t i1=bottom; i1<m_N1; i1++) {
         for (dim_t i0=left; i0<m_N0; i0++) {
-            const index_t idx=i0-left+(i1-bottom)*(m_N0-left);
-            m_nodeId[i0+i1*m_N0] = firstId+idx;
-            m_dofId[idx] = firstId+idx;
+            m_nodeId[i0+i1*m_N0] = firstId+i0-left+(i1-bottom)*(m_N0-left);
         }
     }
     m_nodeTags.assign(getNumNodes(), 0);

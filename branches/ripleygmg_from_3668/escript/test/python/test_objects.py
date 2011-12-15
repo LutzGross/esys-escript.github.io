@@ -1573,12 +1573,6 @@ class Test_Dump(unittest.TestCase):
           d.setTaggedValue(100,self.arg4*4)
           self._diffDataObjects(d,filemame)
 
-   def test_canTag_Failures(self):
-	d=Data(self.arg0,Solution(self.domain))
-	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
-	d=Data(self.arg0,ReducedSolution(self.domain))
-	self.assertRaises(RuntimeError,d.setTaggedValue,1,self.arg0*2)
-	
 class Test_Lazy(unittest.TestCase):
   def makeLazyObj(self):
 	d=delay(Data(1,self.mainfs,True))
