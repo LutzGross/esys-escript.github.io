@@ -546,22 +546,27 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
          for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
             j=A->col_coupleBlock->pattern->index[iPtr];
             A_ij=A->col_coupleBlock->val[iPtr];
+if (MY_DEBUG && rank == 1 && i == 1)
+fprintf(stderr, "j %d A_ij %f is_in_C %d\n", j, A_ij, counter_C[j+my_n]);
             if(A_ij< 0)  {
                   sum_all_neg+=A_ij;
             } else {
                   sum_all_pos+=A_ij;
             }
 
-            if (counter_C[j]>=0) {
+            if (counter_C[j+my_n]>=0) {
                   /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
                   start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
-                  where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
+                  where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                             couple_pattern->ptr[i + 1] - couple_pattern->ptr[i],
                                             sizeof(index_t),
                                             Paso_comparIndex);
                   if (! (where_p == NULL) ) { /* yes i stronly connect with j */
                         offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                         couple_block->val[offset]=A_ij; /* will be modified later */
+if (MY_DEBUG && rank == 1 && i == 1)
+fprintf(stderr, "j_in_C %d A_ij %f offset %d\n", j, A_ij, offset);
+
                         if (A_ij< 0)  {
                            sum_strong_neg+=A_ij;
                         } else {
@@ -600,6 +605,8 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
 
          range = couple_pattern->ptr[i + 1];
          for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
+if (MY_DEBUG && rank == 1 && i == 1)
+fprintf(stderr, "iptr %d A_ij %f beta %f alpha %f\n", iPtr, couple_block->val[iPtr], beta, alpha);
             A_ij=couple_block->val[iPtr];
             if (A_ij > 0 ) {
                couple_block->val[iPtr] = A_ij * beta;
@@ -719,10 +726,10 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
                      }
                   }
 
-                  if (counter_C[j]>=0) {
+                  if (counter_C[j+my_n]>=0) {
                      /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
                      start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
-                     where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
+                     where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                              couple_pattern->ptr[i + 1]-couple_pattern->ptr[i],
                                              sizeof(index_t),
                                              Paso_comparIndex);
