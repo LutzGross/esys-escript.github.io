@@ -39,6 +39,8 @@ typedef std::vector<Esys_MPI_rank> RankVector;
 typedef std::map<std::string,index_t> TagMap;
 
 enum {
+    DegreesOfFreedom=1,
+    ReducedDegreesOfFreedom=2,
     Nodes=3,
     ReducedNodes=14,
     Elements=4,

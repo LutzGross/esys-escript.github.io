@@ -238,6 +238,8 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
+        case DegreesOfFreedom: //FIXME
+        case ReducedDegreesOfFreedom: //FIXME
             return &m_nodeId[0];
         case Elements:
         case ReducedElements:
@@ -1223,6 +1225,13 @@ pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
         return pair<double,double>((m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
 
     throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
+}
+
+//protected
+dim_t Brick::getNumDOF() const
+{
+    return m_nodeDistribution[m_mpiInfo->rank+1]
+        -m_nodeDistribution[m_mpiInfo->rank];
 }
 
 //protected

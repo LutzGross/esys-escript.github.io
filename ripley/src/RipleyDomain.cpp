@@ -61,6 +61,8 @@ bool RipleyDomain::operator==(const AbstractDomain& other) const
 bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 {
     switch (fsType) {
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
         case Nodes:
         case ReducedNodes:
         case Elements:
@@ -78,6 +80,8 @@ bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 string RipleyDomain::functionSpaceTypeAsString(int fsType) const
 {
     switch (fsType) {
+        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom";
+        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom";
         case Nodes: return "Ripley_Nodes";
         case ReducedNodes: return "Ripley_Reduced_Nodes";
         case Elements: return "Ripley_Elements";
@@ -98,6 +102,9 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
         case Nodes:
         case ReducedNodes: //FIXME: reduced
             return pair<int,int>(1, getNumNodes());
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom: //FIXME: reduced
+            return pair<int,int>(1, getNumDOF());
         case Elements:
             return pair<int,int>(ptsPerSample, getNumElements());
         case FaceElements:
@@ -134,8 +141,8 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
    /*
     The idea is to use equivalence classes (i.e. types which can be
     interpolated back and forth):
-    class 0: Nodes
-    class 1: ReducedNodes
+    class 0: DOF <-> Nodes
+    class 1: ReducedDOF <-> ReducedNodes
     class 2: Points
     class 3: Elements
     class 4: ReducedElements
@@ -148,17 +155,25 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
     line 0: class 2
     line 1: class 3,4
     line 2: class 5,6
+
+    For classes with multiple members (eg class 1) we have vars to record if
+    there is at least one instance. e.g. hasnodes is true if we have at least
+    one instance of Nodes.
     */
     if (fs.empty())
         return false;
     vector<bool> hasclass(7, false);
     vector<int> hasline(3, 0);
+    bool hasnodes=false;
+    bool hasrednodes=false;
     for (size_t i=0; i<fs.size(); ++i) {
         switch (fs[i]) {
-            case Nodes:
+            case Nodes: hasnodes=true; // fall through
+            case DegreesOfFreedom:
                 hasclass[0]=true;
                 break;
-            case ReducedNodes:
+            case ReducedNodes: hasrednodes=true; // fall through
+            case ReducedDegreesOfFreedom:
                 hasclass[1]=true;
                 break;
             case Points:
@@ -166,6 +181,7 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
                 hasclass[2]=true;
                 break;
             case Elements:
+                hasclass[3]=true;
                 hasline[1]=1;
                 break;
             case ReducedElements:
@@ -173,6 +189,7 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
                 hasline[1]=1;
                 break;
             case FaceElements:
+                hasclass[5]=true;
                 hasline[2]=1;
                 break;
             case ReducedFaceElements:
@@ -190,6 +207,7 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
     if (numLines > 1)
         return false;
     else if (numLines==1) {
+        // we have points
         if (hasline[0]==1)
             resultcode=Points;
         else if (hasline[1]==1) {
@@ -205,9 +223,10 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
         }
     } else { // numLines==0
         if (hasclass[1])
-            resultcode=ReducedNodes;
-        else
-            resultcode=Nodes;
+            // something from class 1
+            resultcode=(hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
+        else // something from class 0
+            resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
     }
     return true;
 }
@@ -217,6 +236,8 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
 {
     if (fsType_target != Nodes &&
             fsType_target != ReducedNodes &&
+            fsType_target != ReducedDegreesOfFreedom &&
+            fsType_target != DegreesOfFreedom &&
             fsType_target != Elements &&
             fsType_target != ReducedElements &&
             fsType_target != FaceElements &&
@@ -230,9 +251,12 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
 
     switch (fsType_source) {
         case Nodes:
+        case DegreesOfFreedom:
             return true;
         case ReducedNodes:
-            return (fsType_target != Nodes);
+        case ReducedDegreesOfFreedom:
+            return (fsType_target != Nodes &&
+                    fsType_target != DegreesOfFreedom);
         case Elements:
             return (fsType_target==Elements ||
                     fsType_target==ReducedElements);
@@ -278,7 +302,8 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     if (inFS==outFS) {
         copyData(target, *const_cast<escript::Data*>(&in));
     // not allowed: reduced->non-reduced
-    } else if (inFS==ReducedNodes && outFS==Nodes) {
+    } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
+            && (outFS==Nodes || outFS==DegreesOfFreedom)) {
         throw RipleyException("interpolateOnDomain(): Cannot interpolate reduced data to non-reduced data.");
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
@@ -286,11 +311,13 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     } else {
         switch (inFS) {
             case Nodes:
-            case ReducedNodes:
+            case ReducedNodes: //FIXME: reduced
                 switch (outFS) {
                     case Nodes:
                     case ReducedNodes: //FIXME: reduced
-                        copyData(target, *const_cast<escript::Data*>(&in));
+                    case DegreesOfFreedom:
+                    case ReducedDegreesOfFreedom: //FIXME: reduced
+                        nodesToDOF(target, *const_cast<escript::Data*>(&in));
                         break;
 
                     case Elements:
@@ -313,6 +340,9 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         throw RipleyException(msg.str());
                 }
                 break;
+
+            case DegreesOfFreedom:
+            case ReducedDegreesOfFreedom: //FIXME: reduced
             default:
                 throw RipleyException(msg.str());
         }
@@ -357,6 +387,8 @@ bool RipleyDomain::isCellOriented(int fsType) const
 {
     switch(fsType) {
         case Nodes:
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
             return false;
         case Elements:
         case FaceElements:
@@ -382,6 +414,8 @@ bool RipleyDomain::canTag(int fsType) const
         case FaceElements:
         case ReducedFaceElements:
             return true;
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
         case Points:
             return false;
         default:
@@ -548,13 +582,13 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     if (col_domain!=*this)
         throw RipleyException("newSystemMatrix(): Domain of column function space does not match the domain of matrix generator");
     // is the function space type right?
-    if (row_functionspace.getTypeCode()==ReducedNodes)
+    if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceRowOrder=true;
-    else if (row_functionspace.getTypeCode()!=Nodes)
+    else if (row_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix rows");
-    if (column_functionspace.getTypeCode()==ReducedNodes)
+    if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceColOrder=true;
-    else if (column_functionspace.getTypeCode()!=Nodes)
+    else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix columns");
 
     // generate matrix
@@ -846,6 +880,11 @@ dim_t RipleyDomain::getNumNodes() const
     throw RipleyException("getNumNodes() not implemented");
 }
 
+dim_t RipleyDomain::getNumDOF() const
+{
+    throw RipleyException("getNumDOF() not implemented");
+}
+
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const
 {
     throw RipleyException("assembleCoordinates() not implemented");
@@ -877,6 +916,10 @@ void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in
     throw RipleyException("interpolateNodesOnFaces() not implemented");
 }
 
+void RipleyDomain::nodesToDOF(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("nodesToDOF() not implemented");
+}
 
 } // end of namespace ripley
 
