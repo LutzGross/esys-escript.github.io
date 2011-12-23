@@ -16,8 +16,6 @@
 
 #include <ripley/RipleyDomain.h>
 
-struct Paso_Pattern;
-
 namespace ripley {
 
 /**
@@ -162,6 +160,7 @@ public:
 protected:
     virtual dim_t getNumNodes() const { return m_N0*m_N1; }
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
+    virtual dim_t getNumDOF() const;
     virtual dim_t getNumFaceElements() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
@@ -180,15 +179,13 @@ protected:
                                        escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
+    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
 
 private:
     void populateSampleIds();
     int insertNeighbours(IndexVector& index, index_t node) const;
-    void generateCouplePatterns(Paso_Pattern** colPattern,
-                                Paso_Pattern** rowPattern) const;
-    void addToSystemMatrix(Paso_SystemMatrix* in, dim_t NN_Equa,
-            const IndexVector& Nodes_Equa, dim_t num_Equa, dim_t NN_Sol,
-            const IndexVector& Nodes_Sol, dim_t num_Sol,
+    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
+            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
             const std::vector<double>& array) const;
 
     /// total number of elements in each dimension
@@ -214,6 +211,7 @@ private:
     IndexVector m_faceOffset;
 
     /// vector of sample reference identifiers
+    IndexVector m_dofId;
     IndexVector m_nodeId;
     IndexVector m_elementId;
     IndexVector m_faceId;

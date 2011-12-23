@@ -501,14 +501,14 @@ public:
        returns a Solution FunctionSpace code
     */
     RIPLEY_DLL_API
-    virtual int getSolutionCode() const { return Nodes; }
+    virtual int getSolutionCode() const { return DegreesOfFreedom; }
 
     /**
        \brief
        returns a ReducedSolution FunctionSpace code
     */
     RIPLEY_DLL_API
-    virtual int getReducedSolutionCode() const { return ReducedNodes; }
+    virtual int getReducedSolutionCode() const { return ReducedDegreesOfFreedom; }
 
     /**
        \brief
@@ -667,6 +667,9 @@ protected:
     /// returns the number of elements per MPI rank
     virtual dim_t getNumElements() const;
 
+    /// returns the number of degrees of freedom per MPI rank
+    virtual dim_t getNumDOF() const;
+
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
 
@@ -700,6 +703,9 @@ protected:
 
     /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
     virtual void averageData(escript::Data& out, escript::Data& in) const;
+
+    /// converts data on nodes in 'in' to degrees of freedom in 'out'
+    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
 
     // this is const because setTags is const
     virtual void updateTagsInUse(int fsType) const;
