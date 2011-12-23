@@ -104,6 +104,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
 
   main_num_rows=A->mainBlock->numRows;
   couple_num_rows=A->col_coupleBlock->numRows;
+  rank = A->mpi_info->rank;
 
   if (main_num_rows != couple_num_rows) {
       Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
@@ -114,7 +115,6 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
     /* prepare for global coordinates in colCoupleBlock, the results are
        in coupler->recv_buffer */
     rows=TMPMEMALLOC(main_num_rows, double);
-    rank = A->mpi_info->rank;
     row_offset = A->row_distribution->first_component[rank];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<main_num_rows; ++i) rows[i]=row_offset+i;

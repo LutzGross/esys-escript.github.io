@@ -117,7 +117,8 @@ if Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
 					const dim_t sweeps, const bool_t x_is_initial) 
 {
-   const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
+//   const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
+   const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size) + (A_p->col_coupleBlock->numCols) * (A_p->col_coupleBlock->col_block_size);
    
    double *b_new = smoother->localSmoother->buffer;
    dim_t nsweeps=sweeps;
@@ -131,9 +132,11 @@ void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditio
       }
       while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
-         Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
+
+         Paso_SystemMatrix_MatrixVector_CSR_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);	 
 	 Paso_AXPY(n, x, 1., b_new); 
+
 	 nsweeps--;
       }
       
