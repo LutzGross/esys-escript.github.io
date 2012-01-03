@@ -43,18 +43,32 @@ Rectangle::Rectangle(int n0, int n1, double l0, double l1, int d0, int d1) :
     if (m_NX*m_NY != m_mpiInfo->size)
         throw RipleyException("Invalid number of spatial subdivisions");
 
-    if (n0%m_NX > 0 || n1%m_NY > 0)
-        throw RipleyException("Number of elements must be separable into number of ranks in each dimension");
+    if ((n0+1)%m_NX > 0 || (n1+1)%m_NY > 0)
+        throw RipleyException("Number of elements+1 must be separable into number of ranks in each dimension");
 
-    // local number of elements
-    m_NE0 = n0/m_NX;
-    m_NE1 = n1/m_NY;
-    // local number of nodes (not necessarily owned)
+    if ((m_NX > 1 && (n0+1)/m_NX<2) || (m_NY > 1 && (n1+1)/m_NY<2))
+        throw RipleyException("Too few elements for the number of ranks");
+
+    // local number of elements (including overlap)
+    m_NE0 = (m_NX>1 ? (n0+1)/m_NX : n0);
+    if (m_mpiInfo->rank%m_NX>0 && m_mpiInfo->rank%m_NX<m_NX-1)
+        m_NE0++;
+    m_NE1 = (m_NY>1 ? (n1+1)/m_NY : n1);
+    if (m_mpiInfo->rank/m_NX>0 && m_mpiInfo->rank/m_NX<m_NY-1)
+        m_NE1++;
+
+    // local number of nodes
     m_N0 = m_NE0+1;
     m_N1 = m_NE1+1;
+
     // bottom-left node is at (offset0,offset1) in global mesh
-    m_offset0 = m_NE0*(m_mpiInfo->rank%m_NX);
-    m_offset1 = m_NE1*(m_mpiInfo->rank/m_NX);
+    m_offset0 = (n0+1)/m_NX*(m_mpiInfo->rank%m_NX);
+    if (m_mpiInfo->rank%m_NX>0)
+        m_offset0--;
+    m_offset1 = (n1+1)/m_NY*(m_mpiInfo->rank/m_NX);
+    if (m_mpiInfo->rank/m_NX>0)
+        m_offset1--;
+
     populateSampleIds();
 }
 
@@ -250,10 +264,14 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 bool Rectangle::ownSample(int fsCode, index_t id) const
 {
 #ifdef ESYS_MPI
-    if (fsCode != ReducedNodes) {
-        const index_t myFirst=m_nodeDistribution[m_mpiInfo->rank];
-        const index_t myLast=m_nodeDistribution[m_mpiInfo->rank+1]-1;
-        return (m_nodeId[id]>=myFirst && m_nodeId[id]<=myLast);
+    if (fsCode == Nodes) {
+        const index_t left = (m_offset0==0 ? 0 : 1);
+        const index_t bottom = (m_offset1==0 ? 0 : 1);
+        const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
+        const index_t top = (m_mpiInfo->rank/m_NX==m_NY-1 ? m_N1 : m_N1-1);
+        const index_t x=id%m_N0;
+        const index_t y=id/m_N0;
+        return (x>=left && x<right && y>=bottom && y<top);
     } else {
         stringstream msg;
         msg << "ownSample() not implemented for "
@@ -742,57 +760,71 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
     const IndexVector faces=getNumFacesPerBoundary();
+    const index_t nDOF0 = (m_gNE0+1)/m_NX;
+    const index_t nDOF1 = (m_gNE1+1)/m_NY;
+    const int numDOF=nDOF0*nDOF1;
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const int numDOF=getNumDOF();
     vector<IndexVector> colIndices(numDOF); // for the couple blocks
-    int dofCounter=numDOF;
+    int numShared=0;
+
+    m_dofMap.assign(getNumNodes(), 0);
+#pragma omp parallel for
+    for (index_t i=bottom; i<m_N1; i++) {
+        for (index_t j=left; j<m_N0; j++) {
+            m_dofMap[i*m_N0+j]=(i-bottom)*nDOF0+j-left;
+        }
+    }
 
     // corner node from bottom-left
     if (faces[0] == 0 && faces[2] == 0) {
         neighbour.push_back(m_mpiInfo->rank-m_NX-1);
         offsetInShared.push_back(offsetInShared.back()+1);
-        sendShared.push_back(-1);
-        recvShared.push_back(dofCounter);
-        colIndices[0].push_back(dofCounter-numDOF);
-        ++dofCounter;
+        sendShared.push_back(0);
+        recvShared.push_back(numDOF+numShared);
+        colIndices[0].push_back(numShared);
+        m_dofMap[0]=numDOF+numShared;
+        ++numShared;
     }
     // bottom edge
     if (faces[2] == 0) {
         neighbour.push_back(m_mpiInfo->rank-m_NX);
-        offsetInShared.push_back(offsetInShared.back()+m_N0-left);
-        for (dim_t i=0; i<m_N0-left; i++, dofCounter++) {
+        offsetInShared.push_back(offsetInShared.back()+nDOF0);
+        for (dim_t i=0; i<nDOF0; i++, numShared++) {
             sendShared.push_back(i);
-            recvShared.push_back(dofCounter);
+            recvShared.push_back(numDOF+numShared);
             if (i>0)
-                colIndices[i-1].push_back(dofCounter-numDOF);
-            colIndices[i].push_back(dofCounter-numDOF);
-            if (i<m_N0-left-1)
-                colIndices[i+1].push_back(dofCounter-numDOF);
+                colIndices[i-1].push_back(numShared);
+            colIndices[i].push_back(numShared);
+            if (i<nDOF0-1)
+                colIndices[i+1].push_back(numShared);
+            m_dofMap[i+left]=numDOF+numShared;
         }
     }
     // corner node from bottom-right
     if (faces[1] == 0 && faces[2] == 0) {
         neighbour.push_back(m_mpiInfo->rank-m_NX+1);
         offsetInShared.push_back(offsetInShared.back()+1);
-        sendShared.push_back(-1);
-        recvShared.push_back(dofCounter);
-        colIndices[m_N0-left-2].push_back(dofCounter-numDOF);
-        colIndices[m_N0-left-1].push_back(dofCounter-numDOF);
-        ++dofCounter;
+        sendShared.push_back(nDOF0-1);
+        recvShared.push_back(numDOF+numShared);
+        colIndices[nDOF0-2].push_back(numShared);
+        colIndices[nDOF0-1].push_back(numShared);
+        m_dofMap[m_N0-1]=numDOF+numShared;
+        ++numShared;
     }
     // right edge
     if (faces[1] == 0) {
         neighbour.push_back(m_mpiInfo->rank+1);
-        offsetInShared.push_back(offsetInShared.back()+m_N1-bottom);
-        for (dim_t i=0; i<m_N1-bottom; i++, dofCounter++) {
-            sendShared.push_back((i+1)*(m_N0-left)-1);
-            recvShared.push_back(dofCounter);
+        offsetInShared.push_back(offsetInShared.back()+nDOF1);
+        for (dim_t i=0; i<nDOF1; i++, numShared++) {
+            sendShared.push_back((i+1)*(nDOF0)-1);
+            recvShared.push_back(numDOF+numShared);
             if (i>0)
-                colIndices[i*(m_N0-left)-1].push_back(dofCounter-numDOF);
-            colIndices[(i+1)*(m_N0-left)-1].push_back(dofCounter-numDOF);
-            if (i<m_N1-bottom-1)
-                colIndices[(i+2)*(m_N0-left)-1].push_back(dofCounter-numDOF);
+                colIndices[i*(nDOF0)-1].push_back(numShared);
+            colIndices[(i+1)*(nDOF0)-1].push_back(numShared);
+            if (i<nDOF1-1)
+                colIndices[(i+2)*(nDOF0)-1].push_back(numShared);
+            m_dofMap[(i+bottom+1)*m_N0-1]=numDOF+numShared;
         }
     }
     // corner node from top-right
@@ -800,48 +832,53 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
         neighbour.push_back(m_mpiInfo->rank+m_NX+1);
         offsetInShared.push_back(offsetInShared.back()+1);
         sendShared.push_back(numDOF-1);
-        recvShared.push_back(dofCounter);
-        colIndices[numDOF-1].push_back(dofCounter-numDOF);
-        ++dofCounter;
+        recvShared.push_back(numDOF+numShared);
+        colIndices[numDOF-1].push_back(numShared);
+        m_dofMap[m_N0*m_N1-1]=numDOF+numShared;
+        ++numShared;
     }
     // top edge
     if (faces[3] == 0) {
         neighbour.push_back(m_mpiInfo->rank+m_NX);
-        offsetInShared.push_back(offsetInShared.back()+m_N0-left);
-        for (dim_t i=0; i<m_N0-left; i++, dofCounter++) {
-            sendShared.push_back(numDOF-m_N0+left+i);
-            recvShared.push_back(dofCounter);
+        offsetInShared.push_back(offsetInShared.back()+nDOF0);
+        for (dim_t i=0; i<nDOF0; i++, numShared++) {
+            sendShared.push_back(numDOF-nDOF0+i);
+            recvShared.push_back(numDOF+numShared);
             if (i>0)
-                colIndices[numDOF-m_N0+left+i-1].push_back(dofCounter-numDOF);
-            colIndices[numDOF-m_N0+left+i].push_back(dofCounter-numDOF);
-            if (i<m_N0-left-1)
-                colIndices[numDOF-m_N0+left+i+1].push_back(dofCounter-numDOF);
+                colIndices[numDOF-nDOF0+i-1].push_back(numShared);
+            colIndices[numDOF-nDOF0+i].push_back(numShared);
+            if (i<nDOF0-1)
+                colIndices[numDOF-nDOF0+i+1].push_back(numShared);
+            m_dofMap[m_N0*(m_N1-1)+i+left]=numDOF+numShared;
         }
     }
     // corner node from top-left
     if (faces[0] == 0 && faces[3] == 0) {
         neighbour.push_back(m_mpiInfo->rank+m_NX-1);
         offsetInShared.push_back(offsetInShared.back()+1);
-        sendShared.push_back(numDOF-m_N0+left);
-        recvShared.push_back(dofCounter);
-        colIndices[numDOF-m_N0+left].push_back(dofCounter-numDOF);
-        ++dofCounter;
+        sendShared.push_back(numDOF-nDOF0);
+        recvShared.push_back(numDOF+numShared);
+        colIndices[numDOF-nDOF0].push_back(numShared);
+        m_dofMap[m_N0*(m_N1-1)]=numDOF+numShared;
+        ++numShared;
     }
     // left edge
     if (faces[0] == 0) {
         neighbour.push_back(m_mpiInfo->rank-1);
-        offsetInShared.push_back(offsetInShared.back()+m_N1-bottom);
-        for (dim_t i=0; i<m_N1-bottom; i++, dofCounter++) {
-            sendShared.push_back(-1);
-            recvShared.push_back(dofCounter);
+        offsetInShared.push_back(offsetInShared.back()+nDOF1);
+        for (dim_t i=0; i<nDOF1; i++, numShared++) {
+            sendShared.push_back(i*nDOF0);
+            recvShared.push_back(numDOF+numShared);
             if (i>0)
-                colIndices[(i-1)*(m_N0-left)].push_back(dofCounter-numDOF);
-            colIndices[i*(m_N0-left)].push_back(dofCounter-numDOF);
-            if (i<m_N1-bottom-1)
-                colIndices[(i+1)*(m_N0-left)].push_back(dofCounter-numDOF);
+                colIndices[(i-1)*nDOF0].push_back(numShared);
+            colIndices[i*nDOF0].push_back(numShared);
+            if (i<nDOF1-1)
+                colIndices[(i+1)*nDOF0].push_back(numShared);
+            m_dofMap[(i+bottom)*m_N0]=numDOF+numShared;
         }
     }
-    /**/
+
+    /*
     cout << "--- rcv_shcomp ---" << endl;
     cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
     for (size_t i=0; i<neighbour.size(); i++) {
@@ -855,7 +892,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     for (size_t i=0; i<sendShared.size(); i++) {
         cout << "shared[" << i << "]=" << sendShared[i] << endl;
     }
-    /**/
+    */
 
     Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
             numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
@@ -914,11 +951,11 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     copy(index.begin(), index.end(), indexC);
     copy(ptr.begin(), ptr.end(), ptrC);
     M=ptr.size()-1;
-    N=dofCounter-numDOF;
+    N=numShared;
     Paso_Pattern *colCouplePattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
             M, N, ptrC, indexC);
 
-    /**/
+    /*
     cout << "--- colCouple_pattern ---" << endl;
     cout << "M=" << M << ", N=" << N << endl;
     for (size_t i=0; i<ptr.size(); i++) {
@@ -927,7 +964,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     for (size_t i=0; i<index.size(); i++) {
         cout << "index[" << i << "]=" << index[i] << endl;
     }
-    /**/
+    */
 
     // now build the row couple pattern
     IndexVector ptr2(1,0);
@@ -954,7 +991,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     Paso_Pattern *rowCouplePattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
             N, M, ptrC, indexC);
 
-    /**/
+    /*
     cout << "--- rowCouple_pattern ---" << endl;
     cout << "M=" << N << ", N=" << M << endl;
     for (size_t i=0; i<ptr2.size(); i++) {
@@ -963,7 +1000,7 @@ Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
     for (size_t i=0; i<index2.size(); i++) {
         cout << "index[" << i << "]=" << index2[i] << endl;
     }
-    /**/
+    */
 
     // allocate paso distribution
     Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
@@ -1044,8 +1081,7 @@ pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
 //protected
 dim_t Rectangle::getNumDOF() const
 {
-    return m_nodeDistribution[m_mpiInfo->rank+1]
-        -m_nodeDistribution[m_mpiInfo->rank];
+    return (m_gNE0+1)/m_NX*(m_gNE1+1)/m_NY;
 }
 
 //protected
@@ -1084,72 +1120,30 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //private
 void Rectangle::populateSampleIds()
 {
-    // identifiers are ordered from left to right, bottom to top on each rank,
-    // except for the shared nodes which are owned by the rank below / to the
-    // left of the current rank
+    // identifiers are ordered from left to right, bottom to top globablly.
 
     // build node distribution vector first.
-    // m_nodeDistribution[i] is the first node id on rank i, that is
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-    m_nodeDistribution[1]=getNumNodes();
-    for (dim_t k=1; k<m_mpiInfo->size-1; k++) {
-        const index_t x=k%m_NX;
-        const index_t y=k/m_NX;
-        index_t numNodes=getNumNodes();
-        if (x>0)
-            numNodes-=m_N1;
-        if (y>0)
-            numNodes-=m_N0;
-        if (x>0 && y>0)
-            numNodes++; // subtracted corner twice -> fix that
-        m_nodeDistribution[k+1]=m_nodeDistribution[k]+numNodes;
+    const dim_t numDOF=getNumDOF();
+    for (dim_t k=1; k<m_mpiInfo->size; k++) {
+        m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-
-    m_dofId.resize(getNumDOF());
     m_nodeId.resize(getNumNodes());
 
-    // the bottom row and left column are not owned by this rank so the
-    // identifiers need to be computed accordingly
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
-    if (left>0) {
-        const int neighbour=m_mpiInfo->rank-1;
-        const index_t leftN0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
 #pragma omp parallel for
-        for (dim_t i1=bottom; i1<m_N1; i1++) {
-            m_nodeId[i1*m_N0]=m_nodeDistribution[neighbour]
-                + (i1-bottom+1)*leftN0-1;
+    for (dim_t i1=0; i1<m_N1; i1++) {
+        for (dim_t i0=0; i0<m_N0; i0++) {
+            m_nodeId[i0+i1*m_N0] = (m_offset1+i1)*(m_gNE0+1)+m_offset0+i0;
         }
-    }
-    if (bottom>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX;
-        const index_t bottomN0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t bottomN1=(neighbour/m_NX == 0 ? m_N1 : m_N1-1);
-#pragma omp parallel for
-        for (dim_t i0=left; i0<m_N0; i0++) {
-            m_nodeId[i0]=m_nodeDistribution[neighbour]
-                + (bottomN1-1)*bottomN0 + i0 - left;
-        }
-    }
-    if (left>0 && bottom>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX-1;
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour/m_NX == 0 ? m_N1 : m_N1-1);
-        m_nodeId[0]=m_nodeDistribution[neighbour]+N0*N1-1;
     }
 
-    // the rest of the id's are contiguous
+    m_dofId.resize(numDOF);
     const index_t firstId=m_nodeDistribution[m_mpiInfo->rank];
-#pragma omp parallel for
-    for (dim_t i1=bottom; i1<m_N1; i1++) {
-        for (dim_t i0=left; i0<m_N0; i0++) {
-            const index_t idx=i0-left+(i1-bottom)*(m_N0-left);
-            m_nodeId[i0+i1*m_N0] = firstId+idx;
-            m_dofId[idx] = firstId+idx;
-        }
-    }
+    for (dim_t i=0; i<numDOF; i++)
+        m_dofId[i] = firstId+i;
+
     m_nodeTags.assign(getNumNodes(), 0);
     updateTagsInUse(Nodes);
 
@@ -1193,8 +1187,8 @@ void Rectangle::populateSampleIds()
 //private
 int Rectangle::insertNeighbours(IndexVector& index, index_t node) const
 {
-    const dim_t myN0 = (m_offset0==0 ? m_N0 : m_N0-1);
-    const dim_t myN1 = (m_offset1==0 ? m_N1 : m_N1-1);
+    const index_t myN0 = (m_gNE0+1)/m_NX;
+    const index_t myN1 = (m_gNE1+1)/m_NY;
     const int x=node%myN0;
     const int y=node/myN0;
     int num=0;
@@ -1412,9 +1406,11 @@ void Rectangle::nodesToDOF(escript::Data& out, escript::Data& in) const
 
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
+    const index_t top = (m_mpiInfo->rank/m_NX==m_NY-1 ? m_N1 : m_N1-1);
     index_t n=0;
-    for (index_t i=bottom; i<m_N1; i++) {
-        for (index_t j=left; j<m_N0; j++, n++) {
+    for (index_t i=bottom; i<top; i++) {
+        for (index_t j=left; j<right; j++, n++) {
             const double* src=in.getSampleDataRO(j+i*m_N0);
             copy(src, src+numComp, out.getSampleDataRW(n));
         }
@@ -2132,77 +2128,26 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                     /* GENERATOR SNIP_PDE_SINGLE BOTTOM */
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
-                    const index_t left = (m_offset0==0 ? 0 : 1);
-                    const index_t bottom = (m_offset1==0 ? 0 : 1);
-                    const index_t firstNode=(m_N0-bottom)*k1+k0-left;
-                    const int numDOF=getNumDOF();
-                    int dof=numDOF;
-
+                    const index_t firstNode=m_N0*k1+k0;
                     IndexVector rowIndex;
-                    if (m_offset0==0) {
-                        if (m_offset1>0 && k1==0) {
-                            rowIndex.push_back(dof++);
-                            rowIndex.push_back(dof++);
-                            rowIndex.push_back(firstNode);
-                            rowIndex.push_back(firstNode+1);
-                        } else {
-                            rowIndex.push_back(firstNode);
-                            rowIndex.push_back(firstNode+1);
-                            rowIndex.push_back(firstNode+m_N0-left);
-                            rowIndex.push_back(firstNode+m_N0-left+1);
-                        }
-                    } else {
-                        if (k0==0) {
-                            rowIndex.push_back(dof++);
-                            if (m_offset1>0 && k1==0)
-                                rowIndex.push_back(dof++);
-                            else
-                                rowIndex.push_back(firstNode);
-                            rowIndex.push_back(dof++);
-                            rowIndex.push_back(firstNode+m_N0-left);
-                        } else {
-                            rowIndex.push_back(firstNode);
-                            rowIndex.push_back(firstNode+1);
-                            rowIndex.push_back(firstNode+m_N0-left);
-                            rowIndex.push_back(firstNode+m_N0-left+1);
-                        }
-                    }
-                    Paso_Coupler_startCollect(mat->col_coupler, &EM_F[0]);
-                    double* recvBuffer=Paso_Coupler_finishCollect(mat->col_coupler);
-                    for (int i=0; i<mat->col_coupler->connector->send->numSharedComponents; i++) {
-                        if (mat->col_coupler->connector->send->shared[i]>=0)
-                            EM_F[mat->col_coupler->connector->send->shared[i]]+=recvBuffer[i];
-                    }
-
-                    IndexVector colIndex=rowIndex;
-                    /*
-                    Paso_Coupler* coupler=Paso_Coupler_alloc(mat->col_coupler->connector, 4);
-                    Paso_Coupler_startCollect(coupler, &EM_S[0]);
-                    recvBuffer=Paso_Coupler_finishCollect(coupler);
-                    for (int i=0; i<coupler->connector->recv->numSharedComponents; i++) {
-                        if (coupler->connector->recv->shared[i]>=0) {
-                            for (int j=0; j<4; j++)
-                                EM_S.push_back(recvBuffer[i+4*j]);
-                            colIndex.push_back(coupler->connector->recv->shared[i]);
-                        }
-                    }
-                    Paso_Coupler_free(coupler);*/
-
+                    rowIndex.push_back(m_dofMap[firstNode]);
+                    rowIndex.push_back(m_dofMap[firstNode+1]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
                     if (add_EM_F) {
-                        cout << "-- AddtoRHS -- " << endl;
+                        //cout << "-- AddtoRHS -- " << endl;
                         double *F_p=rhs.getSampleDataRW(0);
-                        cout << "F:"<<endl;
                         for (index_t i=0; i<4; i++) {
                             if (rowIndex[i]<getNumDOF()) {
                                 F_p[rowIndex[i]]+=EM_F[i];
-                                cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
+                                //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
                             }
                         }
-                        cout << "---"<<endl;
+                        //cout << "---"<<endl;
                     }
                     if (add_EM_S) {
-                        cout << "-- AddtoSystem -- " << endl;
-                        addToSystemMatrix(mat, rowIndex, 1, colIndex, 1, EM_S);
+                        //cout << "-- AddtoSystem -- " << endl;
+                        addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
                     }
 
                 } // end k0 loop
@@ -2232,7 +2177,7 @@ void Rectangle::addToSystemMatrix(Paso_SystemMatrix* mat,
         // down columns of array
         const dim_t j_Eq = nodes_Eq[k_Eq];
         const dim_t i_row = j_Eq;
-printf("row:%d\n", i_row);
+//printf("row:%d\n", i_row);
         // only look at the matrix rows stored on this processor
         if (i_row < numMyRows) {
             for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
@@ -2246,7 +2191,7 @@ printf("row:%d\n", i_row);
                     }
                 } else {
                     for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
-cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
+//cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
                         if (col_coupleBlock_index[k] == i_col - numMyCols) {
                             col_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
                             break;
@@ -2262,7 +2207,7 @@ cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << e
                     for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
                          k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
                     {
-cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
+//cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
                         if (row_coupleBlock_index[k] == i_col) {
                             row_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
                             break;
