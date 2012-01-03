@@ -218,6 +218,9 @@ private:
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
+
+    // vector that maps each node to a DOF index for coupling
+    mutable IndexVector m_dofMap;
 };
 
 } // end of namespace ripley
