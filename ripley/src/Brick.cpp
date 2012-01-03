@@ -47,21 +47,39 @@ Brick::Brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0,
     if (m_NX*m_NY*m_NZ != m_mpiInfo->size)
         throw RipleyException("Invalid number of spatial subdivisions");
 
-    if (n0%m_NX > 0 || n1%m_NY > 0 || n2%m_NZ > 0)
-        throw RipleyException("Number of elements must be separable into number of ranks in each dimension");
+    if ((n0+1)%m_NX > 0 || (n1+1)%m_NY > 0 || (n2+1)%m_NZ > 0)
+        throw RipleyException("Number of elements+1 must be separable into number of ranks in each dimension");
 
-    // local number of elements
-    m_NE0 = n0/m_NX;
-    m_NE1 = n1/m_NY;
-    m_NE2 = n2/m_NZ;
-    // local number of nodes (not necessarily owned)
+    if ((m_NX > 1 && (n0+1)/m_NX<2) || (m_NY > 1 && (n1+1)/m_NY<2) || (m_NZ > 1 && (n2+1)/m_NZ<2))
+        throw RipleyException("Too few elements for the number of ranks");
+
+    // local number of elements (including overlap)
+    m_NE0 = (m_NX>1 ? (n0+1)/m_NX : n0);
+    if (m_mpiInfo->rank%m_NX>0 && m_mpiInfo->rank%m_NX<m_NX-1)
+        m_NE0++;
+    m_NE1 = (m_NY>1 ? (n1+1)/m_NY : n1);
+    if (m_mpiInfo->rank%(m_NX*m_NY)/m_NX>0 && m_mpiInfo->rank%(m_NX*m_NY)/m_NX<m_NY-1)
+        m_NE1++;
+    m_NE2 = (m_NZ>1 ? (n2+1)/m_NZ : n2);
+    if (m_mpiInfo->rank/(m_NX*m_NY)>0 && m_mpiInfo->rank/(m_NX*m_NY)<m_NZ-1)
+        m_NE2++;
+
+    // local number of nodes
     m_N0 = m_NE0+1;
     m_N1 = m_NE1+1;
     m_N2 = m_NE2+1;
+
     // bottom-left-front node is at (offset0,offset1,offset2) in global mesh
-    m_offset0 = m_NE0*(m_mpiInfo->rank%m_NX);
-    m_offset1 = m_NE1*(m_mpiInfo->rank%(m_NX*m_NY)/m_NX);
-    m_offset2 = m_NE2*(m_mpiInfo->rank/(m_NX*m_NY));
+    m_offset0 = (n0+1)/m_NX*(m_mpiInfo->rank%m_NX);
+    if (m_offset0 > 0)
+        m_offset0--;
+    m_offset1 = (n1+1)/m_NY*(m_mpiInfo->rank%(m_NX*m_NY)/m_NX);
+    if (m_offset1 > 0)
+        m_offset1--;
+    m_offset2 = (n2+1)/m_NZ*(m_mpiInfo->rank/(m_NX*m_NY));
+    if (m_offset2 > 0)
+        m_offset2--;
+
     populateSampleIds();
 }
 
@@ -238,9 +256,10 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
+            return &m_nodeId[0];
         case DegreesOfFreedom: //FIXME
         case ReducedDegreesOfFreedom: //FIXME
-            return &m_nodeId[0];
+            return &m_dofId[0];
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
@@ -260,11 +279,23 @@ bool Brick::ownSample(int fsCode, index_t id) const
 {
 #ifdef ESYS_MPI
     if (fsCode == Nodes) {
-        const index_t myFirst=m_nodeDistribution[m_mpiInfo->rank];
-        const index_t myLast=m_nodeDistribution[m_mpiInfo->rank+1]-1;
-        return (m_nodeId[id]>=myFirst && m_nodeId[id]<=myLast);
-    } else
-        throw RipleyException("ownSample() only implemented for Nodes");
+        const index_t left = (m_offset0==0 ? 0 : 1);
+        const index_t bottom = (m_offset1==0 ? 0 : 1);
+        const index_t front = (m_offset2==0 ? 0 : 1);
+        const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
+        const index_t top = (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1 ? m_N1 : m_N1-1);
+        const index_t back = (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1 ? m_N2 : m_N2-1);
+        const index_t x=id%m_N0;
+        const index_t y=id%(m_N0*m_N1)/m_N0;
+        const index_t z=id/(m_N0*m_N1);
+        return (x>=left && x<right && y>=bottom && y<top && z>=front && z<back);
+
+    } else {
+        stringstream msg;
+        msg << "ownSample() not implemented for "
+            << functionSpaceTypeAsString(fsCode);
+        throw RipleyException(msg.str());
+    }
 #else
     return true;
 #endif
@@ -1230,33 +1261,16 @@ pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
 //protected
 dim_t Brick::getNumDOF() const
 {
-    return m_nodeDistribution[m_mpiInfo->rank+1]
-        -m_nodeDistribution[m_mpiInfo->rank];
+    return (m_gNE0+1)/m_NX*(m_gNE1+1)/m_NY*(m_gNE2+1)/m_NZ;
 }
 
 //protected
 dim_t Brick::getNumFaceElements() const
 {
+    const IndexVector faces = getNumFacesPerBoundary();
     dim_t n=0;
-    //left
-    if (m_offset0==0)
-        n+=m_NE1*m_NE2;
-    //right
-    if (m_mpiInfo->rank%m_NX==m_NX-1)
-        n+=m_NE1*m_NE2;
-    //bottom
-    if (m_offset1==0)
-        n+=m_NE0*m_NE2;
-    //top
-    if (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1)
-        n+=m_NE0*m_NE2;
-    //front
-    if (m_offset2==0)
-        n+=m_NE0*m_NE1;
-    //back
-    if (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1)
-        n+=m_NE0*m_NE1;
-
+    for (size_t i=0; i<faces.size(); i++)
+        n+=faces[i];
     return n;
 }
 
@@ -1291,163 +1305,57 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 void Brick::populateSampleIds()
 {
     // identifiers are ordered from left to right, bottom to top, front to back
-    // on each rank, except for the shared nodes which are owned by the rank
-    // below / to the left / to the front of the current rank
+    // globally
 
     // build node distribution vector first.
-    // m_nodeDistribution[i] is the first node id on rank i, that is
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-    m_nodeDistribution[1]=getNumNodes();
-    for (dim_t k=1; k<m_mpiInfo->size-1; k++) {
-        const index_t x = k%m_NX;
-        const index_t y = k%(m_NX*m_NY)/m_NX;
-        const index_t z = k/(m_NX*m_NY);
-        index_t numNodes=getNumNodes();
-        if (x>0)
-            numNodes-=m_N1*m_N2;
-        if (y>0)
-            numNodes-=m_N0*m_N2;
-        if (z>0)
-            numNodes-=m_N0*m_N1;
-        // if an edge was subtracted twice add it back
-        if (x>0 && y>0)
-            numNodes+=m_N2; 
-        if (x>0 && z>0)
-            numNodes+=m_N1;
-        if (y>0 && z>0)
-            numNodes+=m_N0;
-        // the corner node was removed 3x and added back 3x, so subtract it
-        if (x>0 && y>0 && z>0)
-            numNodes--;
-        m_nodeDistribution[k+1]=m_nodeDistribution[k]+numNodes;
+    const dim_t numDOF=getNumDOF();
+    for (dim_t k=1; k<m_mpiInfo->size; k++) {
+        m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-
     m_nodeId.resize(getNumNodes());
+    m_dofId.resize(numDOF);
+    m_elementId.resize(getNumElements());
+    m_faceId.resize(getNumFaceElements());
 
-    // the bottom, left and front planes are not owned by this rank so the
-    // identifiers need to be computed accordingly
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const index_t front = (m_offset2==0 ? 0 : 1);
+#pragma omp parallel
+    {
+#pragma omp for nowait
+        // nodes
+        for (dim_t i2=0; i2<m_N2; i2++) {
+            for (dim_t i1=0; i1<m_N1; i1++) {
+                for (dim_t i0=0; i0<m_N0; i0++) {
+                    m_nodeId[i0+i1*m_N0+i2*m_N0*m_N1] =
+                        (m_offset2+i2)*(m_gNE0+1)*(m_gNE1+1)
+                        +(m_offset1+i1)*(m_gNE0+1)
+                        +m_offset0+i0;
+                }
+            }
+        }
 
-    // case 1: all nodes on left plane are owned by rank on the left
-    if (left>0) {
-        const int neighbour=m_mpiInfo->rank-1;
-        const index_t leftN0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t leftN1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-#pragma omp parallel for
-        for (dim_t i2=front; i2<m_N2; i2++) {
-            for (dim_t i1=bottom; i1<m_N1; i1++) {
-                m_nodeId[i1*m_N0+i2*m_N0*m_N1]=m_nodeDistribution[neighbour]
-                    + (i1-bottom+1)*leftN0
-                    + (i2-front)*leftN0*leftN1 - 1;
-            }
-        }
-    }
-    // case 2: all nodes on bottom plane are owned by rank below
-    if (bottom>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX;
-        const index_t bottomN0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t bottomN1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-#pragma omp parallel for
-        for (dim_t i2=front; i2<m_N2; i2++) {
-            for (dim_t i0=left; i0<m_N0; i0++) {
-                m_nodeId[i0+i2*m_N0*m_N1]=m_nodeDistribution[neighbour]
-                    + bottomN0*(bottomN1-1)
-                    + (i2-front)*bottomN0*bottomN1 + i0-left;
-            }
-        }
-    }
-    // case 3: all nodes on front plane are owned by rank in front
-    if (front>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX*m_NY;
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-        const index_t N2=(neighbour/(m_NX*m_NY)==0 ? m_N2 : m_N2-1);
-#pragma omp parallel for
-        for (dim_t i1=bottom; i1<m_N1; i1++) {
-            for (dim_t i0=left; i0<m_N0; i0++) {
-                m_nodeId[i0+i1*m_N0]=m_nodeDistribution[neighbour]
-                    + N0*N1*(N2-1)+(i1-bottom)*N0 + i0-left;
-            }
-        }
-    }
-    // case 4: nodes on front bottom edge are owned by the corresponding rank
-    if (front>0 && bottom>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX*(m_NY+1);
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-        const index_t N2=(neighbour/(m_NX*m_NY)==0 ? m_N2 : m_N2-1);
-#pragma omp parallel for
-        for (dim_t i0=left; i0<m_N0; i0++) {
-            m_nodeId[i0]=m_nodeDistribution[neighbour]
-                + N0*N1*(N2-1)+(N1-1)*N0 + i0-left;
-        }
-    }
-    // case 5: nodes on left bottom edge are owned by the corresponding rank
-    if (left>0 && bottom>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX-1;
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-#pragma omp parallel for
-        for (dim_t i2=front; i2<m_N2; i2++) {
-            m_nodeId[i2*m_N0*m_N1]=m_nodeDistribution[neighbour]
-                + (1+i2-front)*N0*N1-1;
-        }
-    }
-    // case 6: nodes on left front edge are owned by the corresponding rank
-    if (left>0 && front>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX*m_NY-1;
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-        const index_t N2=(neighbour/(m_NX*m_NY)==0 ? m_N2 : m_N2-1);
-#pragma omp parallel for
-        for (dim_t i1=bottom; i1<m_N1; i1++) {
-            m_nodeId[i1*m_N0]=m_nodeDistribution[neighbour]
-                + N0*N1*(N2-1)+N0-1+(i1-bottom)*N0;
-        }
-    }
-    // case 7: bottom-left-front corner node owned by corresponding rank
-    if (left>0 && bottom>0 && front>0) {
-        const int neighbour=m_mpiInfo->rank-m_NX*(m_NY+1)-1;
-        const index_t N0=(neighbour%m_NX == 0 ? m_N0 : m_N0-1);
-        const index_t N1=(neighbour%(m_NX*m_NY)/m_NX==0 ? m_N1 : m_N1-1);
-        const index_t N2=(neighbour/(m_NX*m_NY) == 0 ? m_N2 : m_N2-1);
-        m_nodeId[0]=m_nodeDistribution[neighbour]+N0*N1*N2-1;
-    }
+        // degrees of freedom
+#pragma omp for nowait
+        for (dim_t k=0; k<numDOF; k++)
+            m_dofId[k] = m_nodeDistribution[m_mpiInfo->rank]+k;
 
-    // the rest of the id's are contiguous
-    const index_t firstId=m_nodeDistribution[m_mpiInfo->rank];
-#pragma omp parallel for
-    for (dim_t i2=front; i2<m_N2; i2++) {
-        for (dim_t i1=bottom; i1<m_N1; i1++) {
-            for (dim_t i0=left; i0<m_N0; i0++) {
-                m_nodeId[i0+i1*m_N0+i2*m_N0*m_N1] = firstId+i0-left
-                    +(i1-bottom)*(m_N0-left)
-                    +(i2-front)*(m_N0-left)*(m_N1-bottom);
-            }
-        }
-    }
+        // elements
+#pragma omp for nowait
+        for (dim_t k=0; k<getNumElements(); k++)
+            m_elementId[k]=k;
+
+        // face elements
+#pragma omp for
+        for (dim_t k=0; k<getNumFaceElements(); k++)
+            m_faceId[k]=k;
+    } // end parallel section
+
     m_nodeTags.assign(getNumNodes(), 0);
     updateTagsInUse(Nodes);
 
-    // elements
-    m_elementId.resize(getNumElements());
-#pragma omp parallel for
-    for (dim_t k=0; k<getNumElements(); k++) {
-        m_elementId[k]=k;
-    }
     m_elementTags.assign(getNumElements(), 0);
     updateTagsInUse(Elements);
-
-    // face elements
-    m_faceId.resize(getNumFaceElements());
-#pragma omp parallel for
-    for (dim_t k=0; k<getNumFaceElements(); k++) {
-        m_faceId[k]=k;
-    }
 
     // generate face offset vector and set face tags
     const IndexVector facesPerEdge = getNumFacesPerBoundary();
@@ -1757,6 +1665,30 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
         } // end of parallel section
     }
 }
+
+//protected
+void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t front = (m_offset2==0 ? 0 : 1);
+    const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
+    const index_t top = (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1 ? m_N1 : m_N1-1);
+    const index_t back = (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1 ? m_N2 : m_N2-1);
+    index_t n=0;
+    for (index_t i=front; i<back; i++) {
+        for (index_t j=bottom; j<top; j++) {
+            for (index_t k=left; k<right; k++, n++) {
+                const double* src=in.getSampleDataRO(k+j*m_N0+i*m_N0*m_N1);
+                copy(src, src+numComp, out.getSampleDataRW(n));
+            }
+        }
+    }
+}
+
 
 } // end of namespace ripley
 
