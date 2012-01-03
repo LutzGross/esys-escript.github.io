@@ -63,10 +63,10 @@ Rectangle::Rectangle(int n0, int n1, double l0, double l1, int d0, int d1) :
 
     // bottom-left node is at (offset0,offset1) in global mesh
     m_offset0 = (n0+1)/m_NX*(m_mpiInfo->rank%m_NX);
-    if (m_mpiInfo->rank%m_NX>0)
+    if (m_offset0 > 0)
         m_offset0--;
     m_offset1 = (n1+1)/m_NY*(m_mpiInfo->rank/m_NX);
-    if (m_mpiInfo->rank/m_NX>0)
+    if (m_offset1 > 0)
         m_offset1--;
 
     populateSampleIds();
@@ -1131,37 +1131,41 @@ void Rectangle::populateSampleIds()
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
     m_nodeId.resize(getNumNodes());
-
-#pragma omp parallel for
-    for (dim_t i1=0; i1<m_N1; i1++) {
-        for (dim_t i0=0; i0<m_N0; i0++) {
-            m_nodeId[i0+i1*m_N0] = (m_offset1+i1)*(m_gNE0+1)+m_offset0+i0;
-        }
-    }
-
     m_dofId.resize(numDOF);
-    const index_t firstId=m_nodeDistribution[m_mpiInfo->rank];
-    for (dim_t i=0; i<numDOF; i++)
-        m_dofId[i] = firstId+i;
+    m_elementId.resize(getNumElements());
+    m_faceId.resize(getNumFaceElements());
+
+#pragma omp parallel
+    {
+        // nodes
+#pragma omp for nowait
+        for (dim_t i1=0; i1<m_N1; i1++) {
+            for (dim_t i0=0; i0<m_N0; i0++) {
+                m_nodeId[i0+i1*m_N0] = (m_offset1+i1)*(m_gNE0+1)+m_offset0+i0;
+            }
+        }
+
+        // degrees of freedom
+#pragma omp for nowait
+        for (dim_t k=0; k<numDOF; k++)
+            m_dofId[k] = m_nodeDistribution[m_mpiInfo->rank]+k;
+
+        // elements
+#pragma omp for nowait
+        for (dim_t k=0; k<getNumElements(); k++)
+            m_elementId[k]=k;
+
+        // face elements
+#pragma omp for
+        for (dim_t k=0; k<getNumFaceElements(); k++)
+            m_faceId[k]=k;
+    } // end parallel section
 
     m_nodeTags.assign(getNumNodes(), 0);
     updateTagsInUse(Nodes);
 
-    // elements
-    m_elementId.resize(getNumElements());
-#pragma omp parallel for
-    for (dim_t k=0; k<getNumElements(); k++) {
-        m_elementId[k]=k;
-    }
     m_elementTags.assign(getNumElements(), 0);
     updateTagsInUse(Elements);
-
-    // face element id's
-    m_faceId.resize(getNumFaceElements());
-#pragma omp parallel for
-    for (dim_t k=0; k<getNumFaceElements(); k++) {
-        m_faceId[k]=k;
-    }
 
     // generate face offset vector and set face tags
     const IndexVector facesPerEdge = getNumFacesPerBoundary();

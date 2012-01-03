@@ -169,6 +169,7 @@ protected:
                                        escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
+    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
 
 private:
     void populateSampleIds();
@@ -197,6 +198,7 @@ private:
     IndexVector m_faceOffset;
 
     /// vector of sample reference identifiers
+    IndexVector m_dofId;
     IndexVector m_nodeId;
     IndexVector m_elementId;
     IndexVector m_faceId;
