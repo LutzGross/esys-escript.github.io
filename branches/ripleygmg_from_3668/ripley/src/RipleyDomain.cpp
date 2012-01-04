@@ -343,6 +343,8 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
 
             case DegreesOfFreedom:
             case ReducedDegreesOfFreedom: //FIXME: reduced
+                dofToNodes(target, *const_cast<escript::Data*>(&in));
+                break;
             default:
                 throw RipleyException(msg.str());
         }
@@ -919,6 +921,11 @@ void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in
 void RipleyDomain::nodesToDOF(escript::Data& out, escript::Data& in) const
 {
     throw RipleyException("nodesToDOF() not implemented");
+}
+
+void RipleyDomain::dofToNodes(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("dofToNodes() not implemented");
 }
 
 } // end of namespace ripley

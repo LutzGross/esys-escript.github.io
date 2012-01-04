@@ -164,6 +164,11 @@ protected:
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -173,6 +178,10 @@ protected:
 
 private:
     void populateSampleIds();
+    int insertNeighbours(IndexVector& index, index_t node) const;
+    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
+            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
+            const std::vector<double>& array) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1, m_gNE2;
@@ -205,6 +214,9 @@ private:
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
+
+    // vector that maps each node to a DOF index for coupling
+    mutable IndexVector m_dofMap;
 };
 
 } // end of namespace ripley
