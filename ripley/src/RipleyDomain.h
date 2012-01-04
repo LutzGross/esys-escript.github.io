@@ -707,6 +707,9 @@ protected:
     /// converts data on nodes in 'in' to degrees of freedom in 'out'
     virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
 
+    /// converts data on degrees of freedom in 'in' to nodes in 'out'
+    virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
+
     // this is const because setTags is const
     virtual void updateTagsInUse(int fsType) const;
 
