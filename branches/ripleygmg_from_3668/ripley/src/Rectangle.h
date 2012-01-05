@@ -180,6 +180,7 @@ protected:
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
+    virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
 
 private:
     void populateSampleIds();
