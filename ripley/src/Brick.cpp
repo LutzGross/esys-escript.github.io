@@ -1229,8 +1229,10 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                         // sharing front or back plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF1);
                         for (dim_t i=0; i<nDOF1; i++) {
-                            const int firstDOF=(i2==-1 ? i*nDOF0 : nDOF0*nDOF1*(nDOF2-1)+i*nDOF0);
-                            const int firstNode=(i2==-1 ? left+i*m_N0 : left+m_N0*m_N1*(m_N2-1)+i*m_N0);
+                            const int firstDOF=(i2==-1 ? i*nDOF0
+                                    : i*nDOF0 + nDOF0*nDOF1*(nDOF2-1));
+                            const int firstNode=(i2==-1 ? left+(i+bottom)*m_N0
+                                    : left+(i+bottom)*m_N0+m_N0*m_N1*(m_N2-1));
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
@@ -1260,8 +1262,11 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                         // sharing top or bottom plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF2);
                         for (dim_t i=0; i<nDOF2; i++) {
-                            const int firstDOF=(i1==-1 ? i*nDOF0*nDOF1 : nDOF0*((i+1)*nDOF1-1));
-                            const int firstNode=(i1==-1 ? left+i*m_N0*m_N1 : left+m_N0*((i+1)*m_N1-1));
+                            const int firstDOF=(i1==-1 ? i*nDOF0*nDOF1
+                                    : nDOF0*((i+1)*nDOF1-1));
+                            const int firstNode=(i1==-1 ?
+                                    left+(i+front)*m_N0*m_N1
+                                    : left+m_N0*((i+1+front)*m_N1-1));
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
@@ -1291,8 +1296,11 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                         // sharing left or right plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF1*nDOF2);
                         for (dim_t i=0; i<nDOF2; i++) {
-                            const int firstDOF=(i0==-1 ? i*nDOF0*nDOF1 : nDOF0*(1+i*nDOF1)-1);
-                            const int firstNode=(i0==-1 ? (bottom+i*m_N1)*m_N0 : (bottom+1+i*m_N1)*m_N0-1);
+                            const int firstDOF=(i0==-1 ? i*nDOF0*nDOF1
+                                    : nDOF0*(1+i*nDOF1)-1);
+                            const int firstNode=(i0==-1 ?
+                                    (bottom+(i+front)*m_N1)*m_N0
+                                    : (bottom+1+(i+front)*m_N1)*m_N0-1);
                             for (dim_t j=0; j<nDOF1; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j*nDOF0);
                                 recvShared.push_back(numDOF+numShared);
@@ -1319,33 +1327,56 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
                             }
                         }
                     } else if (i0==0) {
-                        // sharing an edge
+                        // sharing an edge in x direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF0);
                         const int firstDOF=(i1+1)/2*nDOF0*(nDOF1-1)
                                            +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
                         const int firstNode=(i1+1)/2*m_N0*(m_N1-1)
                                             +(i2+1)/2*m_N0*m_N1*(m_N2-1);
-                        // + left ?!
                         for (dim_t i=0; i<nDOF0; i++, numShared++) {
                             sendShared.push_back(firstDOF+i);
                             recvShared.push_back(numDOF+numShared);
-                            // FIXME: colIndices
-                            if (i>0) {
+                            if (i>0)
                                 colIndices[firstDOF+i-1].push_back(numShared);
-                            }
                             colIndices[firstDOF+i].push_back(numShared);
-                            if (i<nDOF0-1) {
+                            if (i<nDOF0-1)
                                 colIndices[firstDOF+i+1].push_back(numShared);
-                            }
                             m_dofMap[firstNode+i]=numDOF+numShared;
                         }
-
                     } else if (i1==0) {
-                        // sharing an edge
+                        // sharing an edge in y direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF1);
+                        const int firstDOF=(i0+1)/2*(nDOF0-1)
+                                           +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
+                        const int firstNode=(i0+1)/2*(m_N0-1)
+                                            +(i2+1)/2*m_N0*m_N1*(m_N2-1);
+                        for (dim_t i=0; i<nDOF1; i++, numShared++) {
+                            sendShared.push_back(firstDOF+i*nDOF0);
+                            recvShared.push_back(numDOF+numShared);
+                            if (i>0)
+                                colIndices[firstDOF+(i-1)*nDOF0].push_back(numShared);
+                            colIndices[firstDOF+i*nDOF0].push_back(numShared);
+                            if (i<nDOF1-1)
+                                colIndices[firstDOF+(i+1)*nDOF0].push_back(numShared);
+                            m_dofMap[firstNode+i*m_N0]=numDOF+numShared;
+                        }
                     } else if (i2==0) {
-                        // sharing an edge
+                        // sharing an edge in z direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF2);
+                        const int firstDOF=(i0+1)/2*(nDOF0-1)
+                                           +(i1+1)/2*nDOF0*(nDOF1-1);
+                        const int firstNode=(i0+1)/2*(m_N0-1)
+                                            +(i1+1)/2*m_N0*(m_N1-1);
+                        for (dim_t i=0; i<nDOF2; i++, numShared++) {
+                            sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
+                            recvShared.push_back(numDOF+numShared);
+                            if (i>0)
+                                colIndices[firstDOF+(i-1)*nDOF0*nDOF1].push_back(numShared);
+                            colIndices[firstDOF+i*nDOF0*nDOF1].push_back(numShared);
+                            if (i<nDOF2-1)
+                                colIndices[firstDOF+(i+1)*nDOF0*nDOF1].push_back(numShared);
+                            m_dofMap[firstNode+i*m_N0*m_N1]=numDOF+numShared;
+                        }
                     } else {
                         // sharing a node
                         const int dof=(i0+1)/2*(nDOF0-1)
@@ -1670,8 +1701,16 @@ void Brick::populateSampleIds()
 
         // elements
 #pragma omp for nowait
-        for (dim_t k=0; k<getNumElements(); k++)
-            m_elementId[k]=k;
+        for (dim_t i2=0; i2<m_NE2; i2++) {
+            for (dim_t i1=0; i1<m_NE1; i1++) {
+                for (dim_t i0=0; i0<m_NE0; i0++) {
+                    m_elementId[i0+i1*m_NE0+i2*m_NE0*m_NE1] =
+                        (m_offset2+i2)*m_gNE0*m_gNE1
+                        +(m_offset1+i1)*m_gNE0
+                        +m_offset0+i0;
+                }
+            }
+        }
 
         // face elements
 #pragma omp for
@@ -2101,14 +2140,41 @@ void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
     const index_t front = (m_offset2==0 ? 0 : 1);
-    const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
-    const index_t top = (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1 ? m_N1 : m_N1-1);
-    const index_t back = (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1 ? m_N2 : m_N2-1);
-    index_t n=0;
-    for (index_t i=front; i<back; i++) {
-        for (index_t j=bottom; j<top; j++) {
-            for (index_t k=left; k<right; k++, n++) {
-                const double* src=in.getSampleDataRO(k+j*m_N0+i*m_N0*m_N1);
+    const index_t nDOF0 = (m_gNE0+1)/m_NX;
+    const index_t nDOF1 = (m_gNE1+1)/m_NY;
+    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
+#pragma omp parallel for
+    for (index_t i=0; i<nDOF2; i++) {
+        for (index_t j=0; j<nDOF1; j++) {
+            for (index_t k=0; k<nDOF0; k++) {
+                const index_t n=k+left+(j+bottom)*m_N0+(i+front)*m_N0*m_N1;
+                const double* src=in.getSampleDataRO(n);
+                copy(src, src+numComp, out.getSampleDataRW(k+j*nDOF0+i*nDOF0*nDOF1));
+            }
+        }
+    }
+}
+
+//protected
+void Brick::dofToNodes(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+
+    //TODO: use coupler to get the rest of the values
+
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t front = (m_offset2==0 ? 0 : 1);
+    const index_t nDOF0 = (m_gNE0+1)/m_NX;
+    const index_t nDOF1 = (m_gNE1+1)/m_NY;
+    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
+#pragma omp parallel for
+    for (index_t i=0; i<nDOF2; i++) {
+        for (index_t j=0; j<nDOF1; j++) {
+            for (index_t k=0; k<nDOF0; k++) {
+                const double* src=in.getSampleDataRO(k+j*nDOF0+i*nDOF0*nDOF1);
+                const index_t n=k+left+(j+bottom)*m_N0+(i+front)*m_N0*m_N1;
                 copy(src, src+numComp, out.getSampleDataRW(n));
             }
         }

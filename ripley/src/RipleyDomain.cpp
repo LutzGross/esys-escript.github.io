@@ -313,11 +313,17 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
             case Nodes:
             case ReducedNodes: //FIXME: reduced
                 switch (outFS) {
-                    case Nodes:
-                    case ReducedNodes: //FIXME: reduced
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom: //FIXME: reduced
-                        nodesToDOF(target, *const_cast<escript::Data*>(&in));
+                        if (getMPISize()==1)
+                            copyData(target, *const_cast<escript::Data*>(&in));
+                        else
+                            nodesToDOF(target,*const_cast<escript::Data*>(&in));
+                        break;
+
+                    case Nodes:
+                    case ReducedNodes: //FIXME: reduced
+                        copyData(target, *const_cast<escript::Data*>(&in));
                         break;
 
                     case Elements:
@@ -343,7 +349,43 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
 
             case DegreesOfFreedom:
             case ReducedDegreesOfFreedom: //FIXME: reduced
-                dofToNodes(target, *const_cast<escript::Data*>(&in));
+                switch (outFS) {
+                    case Nodes:
+                    case ReducedNodes: //FIXME: reduced
+                        if (getMPISize()==1)
+                            copyData(target, *const_cast<escript::Data*>(&in));
+                        else
+                            dofToNodes(target, *const_cast<escript::Data*>(&in));
+                        break;
+
+                    case DegreesOfFreedom:
+                    case ReducedDegreesOfFreedom: //FIXME: reduced
+                        copyData(target, *const_cast<escript::Data*>(&in));
+                        break;
+
+                    case Elements:
+                    case ReducedElements:
+                        if (getMPISize()==1) {
+                            interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), outFS==ReducedElements);
+                        } else {
+                            escript::Data contIn=escript::Data(in, continuousFunction(*this));
+                            interpolateNodesOnElements(target, contIn, outFS==ReducedElements);
+                        }
+                        break;
+
+                    case FaceElements:
+                    case ReducedFaceElements:
+                        if (getMPISize()==1) {
+                            interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), outFS==ReducedFaceElements);
+                        } else {
+                            escript::Data contIn=escript::Data(in, continuousFunction(*this));
+                            interpolateNodesOnElements(target, contIn, outFS==ReducedFaceElements);
+                        }
+                        break;
+
+                    default:
+                        throw RipleyException(msg.str());
+                }
                 break;
             default:
                 throw RipleyException(msg.str());

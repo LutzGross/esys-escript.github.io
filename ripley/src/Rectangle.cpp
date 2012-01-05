@@ -1118,8 +1118,11 @@ void Rectangle::populateSampleIds()
 
         // elements
 #pragma omp for nowait
-        for (dim_t k=0; k<getNumElements(); k++)
-            m_elementId[k]=k;
+        for (dim_t i1=0; i1<m_NE1; i1++) {
+            for (dim_t i0=0; i0<m_NE0; i0++) {
+                m_elementId[i0+i1*m_NE0]=(m_offset1+i1)*m_gNE0+m_offset0+i0;
+            }
+        }
 
         // face elements
 #pragma omp for
@@ -1190,12 +1193,35 @@ void Rectangle::nodesToDOF(escript::Data& out, escript::Data& in) const
 
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
-    const index_t top = (m_mpiInfo->rank/m_NX==m_NY-1 ? m_N1 : m_N1-1);
-    index_t n=0;
-    for (index_t i=bottom; i<top; i++) {
-        for (index_t j=left; j<right; j++, n++) {
-            const double* src=in.getSampleDataRO(j+i*m_N0);
+    const index_t nDOF0 = (m_gNE0+1)/m_NX;
+    const index_t nDOF1 = (m_gNE1+1)/m_NY;
+#pragma omp parallel for
+    for (index_t i=0; i<nDOF1; i++) {
+        for (index_t j=0; j<nDOF0; j++) {
+            const index_t n=j+left+(i+bottom)*m_N0;
+            const double* src=in.getSampleDataRO(n);
+            copy(src, src+numComp, out.getSampleDataRW(j+i*nDOF0));
+        }
+    }
+}
+
+//protected
+void Rectangle::dofToNodes(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+
+    //TODO: use coupler to get the rest of the values
+
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t nDOF0 = (m_gNE0+1)/m_NX;
+    const index_t nDOF1 = (m_gNE1+1)/m_NY;
+#pragma omp parallel for
+    for (index_t i=0; i<nDOF1; i++) {
+        for (index_t j=0; j<nDOF0; j++) {
+            const double* src=in.getSampleDataRO(j+i*nDOF0);
+            const index_t n=j+left+(i+bottom)*m_N0;
             copy(src, src+numComp, out.getSampleDataRW(n));
         }
     }
