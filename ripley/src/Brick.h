@@ -80,7 +80,7 @@ public:
        returns true if this rank owns the sample id.
     */
     RIPLEY_DLL_API
-    virtual bool ownSample(int fs_code, index_t id) const;
+    virtual bool ownSample(int fsType, index_t id) const;
 
     /**
        \brief
