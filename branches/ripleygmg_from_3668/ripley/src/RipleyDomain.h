@@ -20,6 +20,7 @@
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 
+struct Paso_Pattern;
 struct Paso_SystemMatrixPattern;
 struct Paso_SystemMatrix;
 
@@ -673,20 +674,30 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
 
+    /// inserts the nodes that share an element with 'node' into 'index' and
+    /// returns the number of these neighbours
+    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
+
+    /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const;
 
+    /// assembles a single PDE into the system matrix 'mat' and the right hand
+    /// side 'rhs'
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;
 
+    /// assembles a system of PDEs into the system matrix 'mat' and the right
+    /// hand side 'rhs'
     virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;
 
+    /// returns the Paso system matrix pattern
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const;
 
@@ -698,20 +709,38 @@ protected:
     virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                                          bool reduced) const;
 
-    /// copies data in 'in' to 'out' (both must be on same function space)
-    virtual void copyData(escript::Data& out, escript::Data& in) const;
-
-    /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
-    virtual void averageData(escript::Data& out, escript::Data& in) const;
-
     /// converts data on nodes in 'in' to degrees of freedom in 'out'
     virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
 
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
     virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
 
+    /// copies data in 'in' to 'out' (both must be on same function space)
+    void copyData(escript::Data& out, escript::Data& in) const;
+
+    /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
+    void averageData(escript::Data& out, escript::Data& in) const;
+
     // this is const because setTags is const
-    virtual void updateTagsInUse(int fsType) const;
+    void updateTagsInUse(int fsType) const;
+
+    /// allocates and returns a Paso pattern structure
+    Paso_Pattern* createPasoPattern(const IndexVector& ptr,
+            const IndexVector& index, const dim_t M, const dim_t N) const;
+
+    /// creates the pattern for the main block of the system matrix
+    Paso_Pattern* createMainPattern() const;
+
+    /// creates the pattern for the column and row couple blocks of the system
+    /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
+    /// DOF i but remote and 'N' is the total number of remote components
+    void createCouplePatterns(const std::vector<IndexVector>& colIndices,
+                              const dim_t N, Paso_Pattern** colPattern,
+                              Paso_Pattern** rowPattern) const;
+
+    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
+            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
+            const std::vector<double>& array) const;
 
     dim_t m_numDim;
     StatusType m_status;

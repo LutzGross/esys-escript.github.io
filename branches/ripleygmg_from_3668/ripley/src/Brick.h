@@ -16,6 +16,8 @@
 
 #include <ripley/RipleyDomain.h>
 
+struct Paso_Connector;
+
 namespace ripley {
 
 /**
@@ -163,6 +165,7 @@ protected:
     virtual dim_t getNumElements() const { return m_NE0*m_NE1*m_NE2; }
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
@@ -179,10 +182,7 @@ protected:
 
 private:
     void populateSampleIds();
-    int insertNeighbours(IndexVector& index, index_t node) const;
-    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
-            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
-            const std::vector<double>& array) const;
+    void createPattern();
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1, m_gNE2;
@@ -216,8 +216,15 @@ private:
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
 
-    // vector that maps each node to a DOF index for coupling
-    mutable IndexVector m_dofMap;
+    // vector that maps each node to a DOF index (used for the coupler)
+    IndexVector m_dofMap;
+
+    // Paso connector used by the system matrix and to interpolate DOF to
+    // nodes
+    Paso_Connector* m_connector;
+
+    // the Paso System Matrix pattern
+    Paso_SystemMatrixPattern* m_pattern;
 };
 
 } // end of namespace ripley
