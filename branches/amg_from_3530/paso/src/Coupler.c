@@ -235,6 +235,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      }
      /* send buffer out */
      {
+
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
              #ifdef ESYS_MPI
              MPI_Issend(&(coupler->send_buffer[coupler->connector->send->offsetInShared[i] *  block_size]),

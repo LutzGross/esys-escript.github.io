@@ -183,7 +183,40 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
 
               /* get an initial guess by evaluating the preconditioner */
+{
+char *str1, *str2;
+int sum, rank, i;
+sum = numEqua;
+str1 = TMPMEMALLOC(30*sum+100, char);
+str2 = TMPMEMALLOC(15, char);
+rank = A->mpi_info->rank;
+sprintf(str1, "rank %d r[%d] = (", rank, sum);
+for (i=0; i<sum; i++) {
+  sprintf(str2, "%f ", r[i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 	      Paso_SystemMatrix_solvePreconditioner(A,x,r);
+{
+char *str1, *str2;
+int sum, rank, i;
+sum = numEqua;
+str1 = TMPMEMALLOC(sum*30+100, char);
+str2 = TMPMEMALLOC(15, char);
+rank = A->mpi_info->rank;
+sprintf(str1, "rank %d x[%d] = (", rank, sum);
+for (i=0; i<sum; i++) {
+  sprintf(str2, "%f ", x[i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
+
 
               totIter = 1;
               finalizeIteration = FALSE;
@@ -243,6 +276,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
                         last_norm2_of_residual=norm2_of_residual;
                         last_norm_max_of_residual=norm_max_of_residual;
+fprintf(stderr, "rank %d wild guess CP1 %d %d\n", A->mpi_info->rank, method, A->is_balanced);
 
                         /* call the solver */
                         switch (method) {
@@ -271,6 +305,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart, pp); 
                            break;
                         }
+fprintf(stderr, "rank %d wild guess CP2\n", A->mpi_info->rank);
 
                         totIter += cntIter;
 

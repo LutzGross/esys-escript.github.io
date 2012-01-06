@@ -329,6 +329,7 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d, shared %d\n", rank, num_nei
    mpi_info->msg_tag_counter += size;
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
+   MEMFREE(couple_marker);
 
    num_neighbors = 0;
    q = 0;

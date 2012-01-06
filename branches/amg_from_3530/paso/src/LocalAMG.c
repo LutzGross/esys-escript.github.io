@@ -254,6 +254,37 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			construct coarse level matrix:
 			*/
 			if ( Esys_noError()) {
+{
+char *str1, *str2;
+int sum, rank, i, iPtr;
+sum = A_p->numRows;
+str1 = TMPMEMALLOC(sum*sum*20+100, char);
+str2 = TMPMEMALLOC(20, char);
+sprintf(str1, "A: %d rows\n-----------\n", sum);
+for (i=0; i<sum; i++) {
+  sprintf(str2, "Row %d: ",i);
+  strcat(str1, str2);
+  for (iPtr =A_p->pattern->ptr[i]; iPtr<A_p->pattern->ptr[i+1]; ++iPtr) {
+         sprintf(str2, "(%d %f),",A_p->pattern->index[iPtr], A_p->val[iPtr]);
+         strcat(str1, str2);
+  }
+  sprintf(str1, "%s\n", str1);
+}
+fprintf(stderr, "%s\n", str1);
+sprintf(str1, "P: %d rows\n-----------\n", sum);
+for (i=0; i<sum; i++) {    
+  sprintf(str2, "Row %d: ",i);
+  strcat(str1, str2);
+  for (iPtr =out->P->pattern->ptr[i]; iPtr<out->P->pattern->ptr[i+1]; ++iPtr) {
+     sprintf(str2, "(%d %f),",out->P->pattern->index[iPtr], out->P->val[iPtr]);
+     strcat(str1, str2);
+  }
+  sprintf(str1, "%s\n", str1);
+}
+fprintf(stderr, "%s\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 			   time0=Esys_timer();
 			   if (USE_TRANSPOSE)
 			     Atemp=Paso_SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
@@ -261,6 +292,26 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			     Atemp=Paso_SparseMatrix_MatrixMatrix(A_p,out->P);
 			   A_C=Paso_SparseMatrix_MatrixMatrix(out->R,Atemp);
 			   Paso_SparseMatrix_free(Atemp);
+{
+char *str1, *str2;
+int sum, rank, i, iPtr;
+sum = A_C->numRows;
+str1 = TMPMEMALLOC(sum*sum*20+100, char);
+str2 = TMPMEMALLOC(20, char);
+sprintf(str1, "A_C: %d rows\n-----------\n", sum);
+for (i=0; i<sum; i++) {
+  sprintf(str2, "Row %d: ",i);
+  strcat(str1, str2);
+  for (iPtr =A_C->pattern->ptr[i]; iPtr<A_C->pattern->ptr[i+1]; ++iPtr) {
+         sprintf(str2, "(%d %f),",A_C->pattern->index[iPtr], A_C->val[iPtr]);
+         strcat(str1, str2);
+  }
+  sprintf(str1, "%s\n", str1);
+}
+fprintf(stderr, "%s\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
 
@@ -712,6 +763,12 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
       }
           
    }
+{
+  for (i=0;i<n;++i) {
+     if (split_marker[i] ==  PASO_AMG_IN_C)
+	fprintf(stderr, "Runge C sets: %d\n", i);
+  }
+}
    TMPMEMFREE(lambda);
    TMPMEMFREE(ST);
    TMPMEMFREE(degree_ST);
