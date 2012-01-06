@@ -258,12 +258,13 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
         case Nodes:
         case ReducedNodes: //FIXME: reduced
             return &m_nodeId[0];
-        case DegreesOfFreedom: //FIXME
-        case ReducedDegreesOfFreedom: //FIXME
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom: //FIXME: reduced
             return &m_dofId[0];
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
+        case FaceElements:
         case ReducedFaceElements:
             return &m_faceId[0];
         default:
@@ -276,17 +277,35 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
     throw RipleyException(msg.str());
 }
 
-bool Brick::ownSample(int fsCode, index_t id) const
+bool Brick::ownSample(int fsType, index_t id) const
 {
 #ifdef ESYS_MPI
-    if (fsCode == Nodes) {
-        return (m_dofMap[id] < getNumDOF());
-    } else {
-        stringstream msg;
-        msg << "ownSample() not implemented for "
-            << functionSpaceTypeAsString(fsCode);
-        throw RipleyException(msg.str());
+    switch (fsType) {
+        case Nodes:
+        case ReducedNodes: //FIXME: reduced
+            return (m_dofMap[id] < getNumDOF());
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+            return true;
+        case Elements:
+        case ReducedElements:
+            {
+                // check ownership of element's _last_ node
+                const index_t x=id%m_NE0 + 1;
+                const index_t y=id%(m_NE0*m_NE1)/m_NE0 + 1;
+                const index_t z=id/(m_NE0*m_NE1) + 1;
+                return (m_dofMap[x + m_N0*y +m_N0*m_N1*z] < getNumDOF());
+            }
+        case FaceElements:
+        case ReducedFaceElements:
+        default:
+            break;
     }
+
+    stringstream msg;
+    msg << "ownSample() not implemented for "
+        << functionSpaceTypeAsString(fsType);
+    throw RipleyException(msg.str());
 #else
     return true;
 #endif

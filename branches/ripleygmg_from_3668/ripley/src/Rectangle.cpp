@@ -262,17 +262,30 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
     throw RipleyException(msg.str());
 }
 
-bool Rectangle::ownSample(int fsCode, index_t id) const
+bool Rectangle::ownSample(int fsType, index_t id) const
 {
 #ifdef ESYS_MPI
-    if (fsCode == Nodes) {
-        return (m_dofMap[id] < getNumDOF());
-    } else {
-        stringstream msg;
-        msg << "ownSample() not implemented for "
-            << functionSpaceTypeAsString(fsCode);
-        throw RipleyException(msg.str());
+    switch (fsType) {
+        case Nodes:
+        case ReducedNodes: //FIXME: reduced
+            return (m_dofMap[id] < getNumDOF());
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+            return true;
+        case Elements:
+        case ReducedElements:
+            // check ownership of element's bottom left node
+            return (m_dofMap[id%m_NE0+m_N0*(id/m_NE0)] < getNumDOF());
+        case FaceElements:
+        case ReducedFaceElements:
+        default:
+            break;
     }
+
+    stringstream msg;
+    msg << "ownSample() not implemented for "
+        << functionSpaceTypeAsString(fsType);
+    throw RipleyException(msg.str());
 #else
     return true;
 #endif
