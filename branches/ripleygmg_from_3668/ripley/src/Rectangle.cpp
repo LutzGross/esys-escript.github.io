@@ -264,7 +264,9 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
 bool Rectangle::ownSample(int fsType, index_t id) const
 {
-#ifdef ESYS_MPI
+    if (getMPISize()==1)
+        return true;
+
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
@@ -278,6 +280,27 @@ bool Rectangle::ownSample(int fsType, index_t id) const
             return (m_dofMap[id%m_NE0+m_N0*(id/m_NE0)] < getNumDOF());
         case FaceElements:
         case ReducedFaceElements:
+            {
+                // check ownership of face element's first node
+                const IndexVector faces = getNumFacesPerBoundary();
+                dim_t n=0;
+                for (size_t i=0; i<faces.size(); i++) {
+                    n+=faces[i];
+                    if (id<n) {
+                        index_t k;
+                        if (i==1)
+                            k=m_N0-1;
+                        else if (i==3)
+                            k=m_N0*(m_N1-1);
+                        else
+                            k=0;
+                        // determine whether to move right or up
+                        const index_t delta=(i/2==0 ? m_N0 : 1);
+                        return (m_dofMap[k+(id-n+faces[i])*delta] < getNumDOF());
+                    }
+                }
+                return false;
+            }
         default:
             break;
     }
@@ -286,9 +309,6 @@ bool Rectangle::ownSample(int fsType, index_t id) const
     msg << "ownSample() not implemented for "
         << functionSpaceTypeAsString(fsType);
     throw RipleyException(msg.str());
-#else
-    return true;
-#endif
 }
 
 void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) const

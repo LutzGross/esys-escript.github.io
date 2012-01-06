@@ -279,7 +279,9 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
 
 bool Brick::ownSample(int fsType, index_t id) const
 {
-#ifdef ESYS_MPI
+    if (getMPISize()==1)
+        return true;
+
     switch (fsType) {
         case Nodes:
         case ReducedNodes: //FIXME: reduced
@@ -298,6 +300,28 @@ bool Brick::ownSample(int fsType, index_t id) const
             }
         case FaceElements:
         case ReducedFaceElements:
+            {
+                // check ownership of face element's last node
+                const IndexVector faces = getNumFacesPerBoundary();
+                dim_t n=0;
+                for (size_t i=0; i<faces.size(); i++) {
+                    n+=faces[i];
+                    if (id<n) {
+                        const index_t j=id-n+faces[i];
+                        if (i>=4) { // front or back
+                            const index_t first=(i==4 ? 0 : m_N0*m_N1*(m_N2-1));
+                            return (m_dofMap[first+j%m_NE0+1+(j/m_NE0+1)*m_N0] < getNumDOF());
+                        } else if (i>=2) { // bottom or top
+                            const index_t first=(i==2 ? 0 : m_N0*(m_N1-1));
+                            return (m_dofMap[first+j%m_NE0+1+(j/m_NE0+1)*m_N0*m_N1] < getNumDOF());
+                        } else { // left or right
+                            const index_t first=(i==0 ? 0 : m_N0-1);
+                            return (m_dofMap[first+(j%m_NE1+1)*m_N0+(j/m_NE1+1)*m_N0*m_N1] < getNumDOF());
+                        }
+                    }
+                }
+                return false;
+            }
         default:
             break;
     }
@@ -306,9 +330,6 @@ bool Brick::ownSample(int fsType, index_t id) const
     msg << "ownSample() not implemented for "
         << functionSpaceTypeAsString(fsType);
     throw RipleyException(msg.str());
-#else
-    return true;
-#endif
 }
 
 void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
