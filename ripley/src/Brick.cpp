@@ -81,6 +81,7 @@ Brick::Brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0,
         m_offset2--;
 
     populateSampleIds();
+    createPattern();
 }
 
 
@@ -279,17 +280,7 @@ bool Brick::ownSample(int fsCode, index_t id) const
 {
 #ifdef ESYS_MPI
     if (fsCode == Nodes) {
-        const index_t left = (m_offset0==0 ? 0 : 1);
-        const index_t bottom = (m_offset1==0 ? 0 : 1);
-        const index_t front = (m_offset2==0 ? 0 : 1);
-        const index_t right = (m_mpiInfo->rank%m_NX==m_NX-1 ? m_N0 : m_N0-1);
-        const index_t top = (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1 ? m_N1 : m_N1-1);
-        const index_t back = (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1 ? m_N2 : m_N2-1);
-        const index_t x=id%m_N0;
-        const index_t y=id%(m_N0*m_N1)/m_N0;
-        const index_t z=id/(m_N0*m_N1);
-        return (x>=left && x<right && y>=bottom && y<top && z>=front && z<back);
-
+        return (m_dofMap[id] < getNumDOF());
     } else {
         stringstream msg;
         msg << "ownSample() not implemented for "
@@ -1182,21 +1173,303 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
     if (reducedRowOrder || reducedColOrder)
         throw RipleyException("getPattern() not implemented for reduced order");
 
-    // connector
-    RankVector neighbour;
-    IndexVector offsetInShared(1,0);
-    IndexVector sendShared, recvShared;
-    const IndexVector faces=getNumFacesPerBoundary();
-    const index_t nDOF0 = (m_gNE0+1)/m_NX;
-    const index_t nDOF1 = (m_gNE1+1)/m_NY;
-    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
-    const int numDOF=nDOF0*nDOF1*nDOF2;
+    return m_pattern;
+}
+
+void Brick::Print_Mesh_Info(const bool full) const
+{
+    RipleyDomain::Print_Mesh_Info(full);
+    if (full) {
+        cout << "     Id  Coordinates" << endl;
+        cout.precision(15);
+        cout.setf(ios::scientific, ios::floatfield);
+        pair<double,double> xdx = getFirstCoordAndSpacing(0);
+        pair<double,double> ydy = getFirstCoordAndSpacing(1);
+        pair<double,double> zdz = getFirstCoordAndSpacing(2);
+        for (index_t i=0; i < getNumNodes(); i++) {
+            cout << "  " << setw(5) << m_nodeId[i]
+                << "  " << xdx.first+(i%m_N0)*xdx.second
+                << "  " << ydy.first+(i%(m_N0*m_N1)/m_N0)*ydy.second
+                << "  " << zdz.first+(i/(m_N0*m_N1))*zdz.second << endl;
+        }
+    }
+}
+
+IndexVector Brick::getNumNodesPerDim() const
+{
+    IndexVector ret;
+    ret.push_back(m_N0);
+    ret.push_back(m_N1);
+    ret.push_back(m_N2);
+    return ret;
+}
+
+IndexVector Brick::getNumElementsPerDim() const
+{
+    IndexVector ret;
+    ret.push_back(m_NE0);
+    ret.push_back(m_NE1);
+    ret.push_back(m_NE2);
+    return ret;
+}
+
+IndexVector Brick::getNumFacesPerBoundary() const
+{
+    IndexVector ret(6, 0);
+    //left
+    if (m_offset0==0)
+        ret[0]=m_NE1*m_NE2;
+    //right
+    if (m_mpiInfo->rank%m_NX==m_NX-1)
+        ret[1]=m_NE1*m_NE2;
+    //bottom
+    if (m_offset1==0)
+        ret[2]=m_NE0*m_NE2;
+    //top
+    if (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1)
+        ret[3]=m_NE0*m_NE2;
+    //front
+    if (m_offset2==0)
+        ret[4]=m_NE0*m_NE1;
+    //back
+    if (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1)
+        ret[5]=m_NE0*m_NE1;
+    return ret;
+}
+
+pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
+{
+    if (dim==0)
+        return pair<double,double>((m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
+    else if (dim==1)
+        return pair<double,double>((m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
+    else if (dim==2)
+        return pair<double,double>((m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
+
+    throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
+}
+
+//protected
+dim_t Brick::getNumDOF() const
+{
+    return (m_gNE0+1)/m_NX*(m_gNE1+1)/m_NY*(m_gNE2+1)/m_NZ;
+}
+
+//protected
+dim_t Brick::getNumFaceElements() const
+{
+    const IndexVector faces = getNumFacesPerBoundary();
+    dim_t n=0;
+    for (size_t i=0; i<faces.size(); i++)
+        n+=faces[i];
+    return n;
+}
+
+//protected
+void Brick::assembleCoordinates(escript::Data& arg) const
+{
+    escriptDataC x = arg.getDataC();
+    int numDim = m_numDim;
+    if (!isDataPointShapeEqual(&x, 1, &numDim))
+        throw RipleyException("setToX: Invalid Data object shape");
+    if (!numSamplesEqual(&x, 1, getNumNodes()))
+        throw RipleyException("setToX: Illegal number of samples in Data object");
+
+    pair<double,double> xdx = getFirstCoordAndSpacing(0);
+    pair<double,double> ydy = getFirstCoordAndSpacing(1);
+    pair<double,double> zdz = getFirstCoordAndSpacing(2);
+    arg.requireWrite();
+#pragma omp parallel for
+    for (dim_t i2 = 0; i2 < m_N2; i2++) {
+        for (dim_t i1 = 0; i1 < m_N1; i1++) {
+            for (dim_t i0 = 0; i0 < m_N0; i0++) {
+                double* point = arg.getSampleDataRW(i0+m_N0*i1+m_N0*m_N1*i2);
+                point[0] = xdx.first+i0*xdx.second;
+                point[1] = ydy.first+i1*ydy.second;
+                point[2] = zdz.first+i2*zdz.second;
+            }
+        }
+    }
+}
+
+//protected
+dim_t Brick::insertNeighbourNodes(IndexVector& index, index_t node) const
+{
+    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
+    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
+    const dim_t nDOF2 = (m_gNE2+1)/m_NZ;
+    const int x=node%nDOF0;
+    const int y=node%(nDOF0*nDOF1)/nDOF0;
+    const int z=node/(nDOF0*nDOF1);
+    int num=0;
+    // loop through potential neighbours and add to index if positions are
+    // within bounds
+    for (int i2=-1; i2<2; i2++) {
+        for (int i1=-1; i1<2; i1++) {
+            for (int i0=-1; i0<2; i0++) {
+                // skip node itself
+                if (i0==0 && i1==0 && i2==0)
+                    continue;
+                // location of neighbour node
+                const int nx=x+i0;
+                const int ny=y+i1;
+                const int nz=z+i2;
+                if (nx>=0 && ny>=0 && nz>=0
+                        && nx<nDOF0 && ny<nDOF1 && nz<nDOF2) {
+                    index.push_back(nz*nDOF0*nDOF1+ny*nDOF0+nx);
+                    num++;
+                }
+            }
+        }
+    }
+
+    return num;
+}
+
+//protected
+void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    out.requireWrite();
+
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
     const index_t front = (m_offset2==0 ? 0 : 1);
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
-    int numShared=0;
+    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
+    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
+    const dim_t nDOF2 = (m_gNE2+1)/m_NZ;
+#pragma omp parallel for
+    for (index_t i=0; i<nDOF2; i++) {
+        for (index_t j=0; j<nDOF1; j++) {
+            for (index_t k=0; k<nDOF0; k++) {
+                const index_t n=k+left+(j+bottom)*m_N0+(i+front)*m_N0*m_N1;
+                const double* src=in.getSampleDataRO(n);
+                copy(src, src+numComp, out.getSampleDataRW(k+j*nDOF0+i*nDOF0*nDOF1));
+            }
+        }
+    }
+}
 
+//protected
+void Brick::dofToNodes(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
+    in.requireWrite();
+    Paso_Coupler_startCollect(coupler, in.getSampleDataRW(0));
+
+    const dim_t numDOF = getNumDOF();
+    out.requireWrite();
+    const double* buffer = Paso_Coupler_finishCollect(coupler);
+
+#pragma omp parallel for
+    for (index_t i=0; i<getNumNodes(); i++) {
+        const double* src=(m_dofMap[i]<numDOF ?
+                in.getSampleDataRO(m_dofMap[i])
+                : &buffer[(m_dofMap[i]-numDOF)*numComp]);
+        copy(src, src+numComp, out.getSampleDataRW(i));
+    }
+}
+
+//private
+void Brick::populateSampleIds()
+{
+    // identifiers are ordered from left to right, bottom to top, front to back
+    // globally
+
+    // build node distribution vector first.
+    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
+    m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
+    const dim_t numDOF=getNumDOF();
+    for (dim_t k=1; k<m_mpiInfo->size; k++) {
+        m_nodeDistribution[k]=k*numDOF;
+    }
+    m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
+    m_nodeId.resize(getNumNodes());
+    m_dofId.resize(numDOF);
+    m_elementId.resize(getNumElements());
+    m_faceId.resize(getNumFaceElements());
+
+#pragma omp parallel
+    {
+#pragma omp for nowait
+        // nodes
+        for (dim_t i2=0; i2<m_N2; i2++) {
+            for (dim_t i1=0; i1<m_N1; i1++) {
+                for (dim_t i0=0; i0<m_N0; i0++) {
+                    m_nodeId[i0+i1*m_N0+i2*m_N0*m_N1] =
+                        (m_offset2+i2)*(m_gNE0+1)*(m_gNE1+1)
+                        +(m_offset1+i1)*(m_gNE0+1)
+                        +m_offset0+i0;
+                }
+            }
+        }
+
+        // degrees of freedom
+#pragma omp for nowait
+        for (dim_t k=0; k<numDOF; k++)
+            m_dofId[k] = m_nodeDistribution[m_mpiInfo->rank]+k;
+
+        // elements
+#pragma omp for nowait
+        for (dim_t i2=0; i2<m_NE2; i2++) {
+            for (dim_t i1=0; i1<m_NE1; i1++) {
+                for (dim_t i0=0; i0<m_NE0; i0++) {
+                    m_elementId[i0+i1*m_NE0+i2*m_NE0*m_NE1] =
+                        (m_offset2+i2)*m_gNE0*m_gNE1
+                        +(m_offset1+i1)*m_gNE0
+                        +m_offset0+i0;
+                }
+            }
+        }
+
+        // face elements
+#pragma omp for
+        for (dim_t k=0; k<getNumFaceElements(); k++)
+            m_faceId[k]=k;
+    } // end parallel section
+
+    m_nodeTags.assign(getNumNodes(), 0);
+    updateTagsInUse(Nodes);
+
+    m_elementTags.assign(getNumElements(), 0);
+    updateTagsInUse(Elements);
+
+    // generate face offset vector and set face tags
+    const IndexVector facesPerEdge = getNumFacesPerBoundary();
+    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, FRONT=100, BACK=200;
+    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, FRONT, BACK };
+    m_faceOffset.assign(facesPerEdge.size(), -1);
+    m_faceTags.clear();
+    index_t offset=0;
+    for (size_t i=0; i<facesPerEdge.size(); i++) {
+        if (facesPerEdge[i]>0) {
+            m_faceOffset[i]=offset;
+            offset+=facesPerEdge[i];
+            m_faceTags.insert(m_faceTags.end(), facesPerEdge[i], faceTag[i]);
+        }
+    }
+    setTagMap("left", LEFT);
+    setTagMap("right", RIGHT);
+    setTagMap("bottom", BOTTOM);
+    setTagMap("top", TOP);
+    setTagMap("front", FRONT);
+    setTagMap("back", BACK);
+    updateTagsInUse(FaceElements);
+}
+
+//private
+void Brick::createPattern()
+{
+    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
+    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
+    const dim_t nDOF2 = (m_gNE2+1)/m_NZ;
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t front = (m_offset2==0 ? 0 : 1);
+
+    // populate node->DOF mapping with own degrees of freedom.
+    // The rest is assigned in the loop further down
     m_dofMap.assign(getNumNodes(), 0);
 #pragma omp parallel for
     for (index_t i=front; i<m_N2; i++) {
@@ -1210,13 +1483,19 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
     // build list of shared components and neighbours by looping through
     // all potential neighbouring ranks and checking if positions are
     // within bounds
+    const dim_t numDOF=nDOF0*nDOF1*nDOF2;
+    vector<IndexVector> colIndices(numDOF); // for the couple blocks
+    RankVector neighbour;
+    IndexVector offsetInShared(1,0);
+    IndexVector sendShared, recvShared;
+    int numShared=0;
     const int x=m_mpiInfo->rank%m_NX;
     const int y=m_mpiInfo->rank%(m_NX*m_NY)/m_NX;
     const int z=m_mpiInfo->rank/(m_NX*m_NY);
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {
-                // skip rank itself
+                // skip this rank
                 if (i0==0 && i1==0 && i2==0)
                     continue;
                 // location of neighbour rank
@@ -1397,6 +1676,34 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
         }
     }
 
+    // create connector
+    Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
+            numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
+            &offsetInShared[0], 1, 0, m_mpiInfo);
+    Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
+            numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
+            &offsetInShared[0], 1, 0, m_mpiInfo);
+    m_connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+    Paso_SharedComponents_free(snd_shcomp);
+    Paso_SharedComponents_free(rcv_shcomp);
+
+    // create main and couple blocks
+    Paso_Pattern *mainPattern = createMainPattern();
+    Paso_Pattern *colPattern, *rowPattern;
+    createCouplePatterns(colIndices, numShared, &colPattern, &rowPattern);
+
+    // allocate paso distribution
+    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0);
+
+    // finally create the system matrix
+    m_pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            m_connector, m_connector);
+
+    Paso_Distribution_free(distribution);
+
+    // useful debug output
     /*
     cout << "--- rcv_shcomp ---" << endl;
     cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << endl;
@@ -1421,428 +1728,42 @@ Paso_SystemMatrixPattern* Brick::getPattern(bool reducedRowOrder,
     }
     */
 
-    Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
-            numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
-    Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
-            numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
-    Paso_Connector* connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
-    Paso_SharedComponents_free(snd_shcomp);
-    Paso_SharedComponents_free(rcv_shcomp);
-
-    // create patterns
-    dim_t M, N;
-    IndexVector ptr(1,0);
-    IndexVector index;
-
-    // main pattern
-    for (index_t i=0; i<numDOF; i++) {
-        // always add the node itself
-        index.push_back(i);
-        const int num=insertNeighbours(index, i);
-        ptr.push_back(ptr.back()+num+1);
-    }
-    M=N=ptr.size()-1;
-    // paso will manage the memory
-    index_t* indexC = MEMALLOC(index.size(),index_t);
-    index_t* ptrC = MEMALLOC(ptr.size(), index_t);
-    copy(index.begin(), index.end(), indexC);
-    copy(ptr.begin(), ptr.end(), ptrC);
-    Paso_Pattern *mainPattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            M, N, ptrC, indexC);
-
     /*
     cout << "--- main_pattern ---" << endl;
-    cout << "M=" << M << ", N=" << N << endl;
-    for (size_t i=0; i<ptr.size(); i++) {
-        cout << "ptr[" << i << "]=" << ptr[i] << endl;
+    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
+    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
     }
-    for (size_t i=0; i<index.size(); i++) {
-        cout << "index[" << i << "]=" << index[i] << endl;
+    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
     }
     */
-
-    // column & row couple patterns
-    ptr.assign(1, 0);
-    index.clear();
-
-    for (index_t i=0; i<numDOF; i++) {
-        index.insert(index.end(), colIndices[i].begin(), colIndices[i].end());
-        ptr.push_back(ptr.back()+colIndices[i].size());
-    }
-
-    // paso will manage the memory
-    indexC = MEMALLOC(index.size(), index_t);
-    ptrC = MEMALLOC(ptr.size(), index_t);
-    copy(index.begin(), index.end(), indexC);
-    copy(ptr.begin(), ptr.end(), ptrC);
-    M=ptr.size()-1;
-    N=numShared;
-    Paso_Pattern *colCouplePattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            M, N, ptrC, indexC);
 
     /*
     cout << "--- colCouple_pattern ---" << endl;
-    cout << "M=" << M << ", N=" << N << endl;
-    for (size_t i=0; i<ptr.size(); i++) {
-        cout << "ptr[" << i << "]=" << ptr[i] << endl;
+    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
+    for (size_t i=0; i<colPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
     }
-    for (size_t i=0; i<index.size(); i++) {
-        cout << "index[" << i << "]=" << index[i] << endl;
+    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
     }
     */
-
-    // now build the row couple pattern
-    IndexVector ptr2(1,0);
-    IndexVector index2;
-    for (dim_t id=0; id<N; id++) {
-        dim_t n=0;
-        for (dim_t i=0; i<M; i++) {
-            for (dim_t j=ptr[i]; j<ptr[i+1]; j++) {
-                if (index[j]==id) {
-                    index2.push_back(i);
-                    n++;
-                    break;
-                }
-            }
-        }
-        ptr2.push_back(ptr2.back()+n);
-    }
-
-    // paso will manage the memory
-    indexC = MEMALLOC(index2.size(), index_t);
-    ptrC = MEMALLOC(ptr2.size(), index_t);
-    copy(index2.begin(), index2.end(), indexC);
-    copy(ptr2.begin(), ptr2.end(), ptrC);
-    Paso_Pattern *rowCouplePattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-            N, M, ptrC, indexC);
 
     /*
     cout << "--- rowCouple_pattern ---" << endl;
-    cout << "M=" << N << ", N=" << M << endl;
-    for (size_t i=0; i<ptr2.size(); i++) {
-        cout << "ptr[" << i << "]=" << ptr2[i] << endl;
+    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
+    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
     }
-    for (size_t i=0; i<index2.size(); i++) {
-        cout << "index[" << i << "]=" << index2[i] << endl;
+    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
     }
     */
 
-    // allocate paso distribution
-    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0);
-
-    Paso_SystemMatrixPattern* pattern = Paso_SystemMatrixPattern_alloc(
-            MATRIX_FORMAT_DEFAULT, distribution, distribution,
-            mainPattern, colCouplePattern, rowCouplePattern,
-            connector, connector);
     Paso_Pattern_free(mainPattern);
-    Paso_Pattern_free(colCouplePattern);
-    Paso_Pattern_free(rowCouplePattern);
-    Paso_Distribution_free(distribution);
-    return pattern;
-}
-
-void Brick::Print_Mesh_Info(const bool full) const
-{
-    RipleyDomain::Print_Mesh_Info(full);
-    if (full) {
-        cout << "     Id  Coordinates" << endl;
-        cout.precision(15);
-        cout.setf(ios::scientific, ios::floatfield);
-        pair<double,double> xdx = getFirstCoordAndSpacing(0);
-        pair<double,double> ydy = getFirstCoordAndSpacing(1);
-        pair<double,double> zdz = getFirstCoordAndSpacing(2);
-        for (index_t i=0; i < getNumNodes(); i++) {
-            cout << "  " << setw(5) << m_nodeId[i]
-                << "  " << xdx.first+(i%m_N0)*xdx.second
-                << "  " << ydy.first+(i%(m_N0*m_N1)/m_N0)*ydy.second
-                << "  " << zdz.first+(i/(m_N0*m_N1))*zdz.second << endl;
-        }
-    }
-}
-
-IndexVector Brick::getNumNodesPerDim() const
-{
-    IndexVector ret;
-    ret.push_back(m_N0);
-    ret.push_back(m_N1);
-    ret.push_back(m_N2);
-    return ret;
-}
-
-IndexVector Brick::getNumElementsPerDim() const
-{
-    IndexVector ret;
-    ret.push_back(m_NE0);
-    ret.push_back(m_NE1);
-    ret.push_back(m_NE2);
-    return ret;
-}
-
-IndexVector Brick::getNumFacesPerBoundary() const
-{
-    IndexVector ret(6, 0);
-    //left
-    if (m_offset0==0)
-        ret[0]=m_NE1*m_NE2;
-    //right
-    if (m_mpiInfo->rank%m_NX==m_NX-1)
-        ret[1]=m_NE1*m_NE2;
-    //bottom
-    if (m_offset1==0)
-        ret[2]=m_NE0*m_NE2;
-    //top
-    if (m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1)
-        ret[3]=m_NE0*m_NE2;
-    //front
-    if (m_offset2==0)
-        ret[4]=m_NE0*m_NE1;
-    //back
-    if (m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1)
-        ret[5]=m_NE0*m_NE1;
-    return ret;
-}
-
-pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
-{
-    if (dim==0)
-        return pair<double,double>((m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
-    else if (dim==1)
-        return pair<double,double>((m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
-    else if (dim==2)
-        return pair<double,double>((m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
-
-    throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
-}
-
-//protected
-dim_t Brick::getNumDOF() const
-{
-    return (m_gNE0+1)/m_NX*(m_gNE1+1)/m_NY*(m_gNE2+1)/m_NZ;
-}
-
-//protected
-dim_t Brick::getNumFaceElements() const
-{
-    const IndexVector faces = getNumFacesPerBoundary();
-    dim_t n=0;
-    for (size_t i=0; i<faces.size(); i++)
-        n+=faces[i];
-    return n;
-}
-
-//protected
-void Brick::assembleCoordinates(escript::Data& arg) const
-{
-    escriptDataC x = arg.getDataC();
-    int numDim = m_numDim;
-    if (!isDataPointShapeEqual(&x, 1, &numDim))
-        throw RipleyException("setToX: Invalid Data object shape");
-    if (!numSamplesEqual(&x, 1, getNumNodes()))
-        throw RipleyException("setToX: Illegal number of samples in Data object");
-
-    pair<double,double> xdx = getFirstCoordAndSpacing(0);
-    pair<double,double> ydy = getFirstCoordAndSpacing(1);
-    pair<double,double> zdz = getFirstCoordAndSpacing(2);
-    arg.requireWrite();
-#pragma omp parallel for
-    for (dim_t i2 = 0; i2 < m_N2; i2++) {
-        for (dim_t i1 = 0; i1 < m_N1; i1++) {
-            for (dim_t i0 = 0; i0 < m_N0; i0++) {
-                double* point = arg.getSampleDataRW(i0+m_N0*i1+m_N0*m_N1*i2);
-                point[0] = xdx.first+i0*xdx.second;
-                point[1] = ydy.first+i1*ydy.second;
-                point[2] = zdz.first+i2*zdz.second;
-            }
-        }
-    }
-}
-
-//private
-void Brick::populateSampleIds()
-{
-    // identifiers are ordered from left to right, bottom to top, front to back
-    // globally
-
-    // build node distribution vector first.
-    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
-    m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-    const dim_t numDOF=getNumDOF();
-    for (dim_t k=1; k<m_mpiInfo->size; k++) {
-        m_nodeDistribution[k]=k*numDOF;
-    }
-    m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    m_nodeId.resize(getNumNodes());
-    m_dofId.resize(numDOF);
-    m_elementId.resize(getNumElements());
-    m_faceId.resize(getNumFaceElements());
-
-#pragma omp parallel
-    {
-#pragma omp for nowait
-        // nodes
-        for (dim_t i2=0; i2<m_N2; i2++) {
-            for (dim_t i1=0; i1<m_N1; i1++) {
-                for (dim_t i0=0; i0<m_N0; i0++) {
-                    m_nodeId[i0+i1*m_N0+i2*m_N0*m_N1] =
-                        (m_offset2+i2)*(m_gNE0+1)*(m_gNE1+1)
-                        +(m_offset1+i1)*(m_gNE0+1)
-                        +m_offset0+i0;
-                }
-            }
-        }
-
-        // degrees of freedom
-#pragma omp for nowait
-        for (dim_t k=0; k<numDOF; k++)
-            m_dofId[k] = m_nodeDistribution[m_mpiInfo->rank]+k;
-
-        // elements
-#pragma omp for nowait
-        for (dim_t i2=0; i2<m_NE2; i2++) {
-            for (dim_t i1=0; i1<m_NE1; i1++) {
-                for (dim_t i0=0; i0<m_NE0; i0++) {
-                    m_elementId[i0+i1*m_NE0+i2*m_NE0*m_NE1] =
-                        (m_offset2+i2)*m_gNE0*m_gNE1
-                        +(m_offset1+i1)*m_gNE0
-                        +m_offset0+i0;
-                }
-            }
-        }
-
-        // face elements
-#pragma omp for
-        for (dim_t k=0; k<getNumFaceElements(); k++)
-            m_faceId[k]=k;
-    } // end parallel section
-
-    m_nodeTags.assign(getNumNodes(), 0);
-    updateTagsInUse(Nodes);
-
-    m_elementTags.assign(getNumElements(), 0);
-    updateTagsInUse(Elements);
-
-    // generate face offset vector and set face tags
-    const IndexVector facesPerEdge = getNumFacesPerBoundary();
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, FRONT=100, BACK=200;
-    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, FRONT, BACK };
-    m_faceOffset.assign(facesPerEdge.size(), -1);
-    m_faceTags.clear();
-    index_t offset=0;
-    for (size_t i=0; i<facesPerEdge.size(); i++) {
-        if (facesPerEdge[i]>0) {
-            m_faceOffset[i]=offset;
-            offset+=facesPerEdge[i];
-            m_faceTags.insert(m_faceTags.end(), facesPerEdge[i], faceTag[i]);
-        }
-    }
-    setTagMap("left", LEFT);
-    setTagMap("right", RIGHT);
-    setTagMap("bottom", BOTTOM);
-    setTagMap("top", TOP);
-    setTagMap("front", FRONT);
-    setTagMap("back", BACK);
-    updateTagsInUse(FaceElements);
-}
-
-//private
-int Brick::insertNeighbours(IndexVector& index, index_t node) const
-{
-    const index_t nDOF0 = (m_gNE0+1)/m_NX;
-    const index_t nDOF1 = (m_gNE1+1)/m_NY;
-    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
-    const int x=node%nDOF0;
-    const int y=node%(nDOF0*nDOF1)/nDOF0;
-    const int z=node/(nDOF0*nDOF1);
-    int num=0;
-    // loop through potential neighbours and add to index if positions are
-    // within bounds
-    for (int i2=-1; i2<2; i2++) {
-        for (int i1=-1; i1<2; i1++) {
-            for (int i0=-1; i0<2; i0++) {
-                // skip node itself
-                if (i0==0 && i1==0 && i2==0)
-                    continue;
-                // location of neighbour node
-                const int nx=x+i0;
-                const int ny=y+i1;
-                const int nz=z+i2;
-                if (nx>=0 && ny>=0 && nz>=0
-                        && nx<nDOF0 && ny<nDOF1 && nz<nDOF2) {
-                    index.push_back(nz*nDOF0*nDOF1+ny*nDOF0+nx);
-                    num++;
-                }
-            }
-        }
-    }
-
-    return num;
-}
-
-//protected
-void Brick::addToSystemMatrix(Paso_SystemMatrix* mat, 
-       const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
-       dim_t num_Sol, const vector<double>& array) const
-{
-    const dim_t numMyCols = mat->pattern->mainPattern->numInput;
-    const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
-
-    const index_t* mainBlock_ptr = mat->mainBlock->pattern->ptr;
-    const index_t* mainBlock_index = mat->mainBlock->pattern->index;
-    double* mainBlock_val = mat->mainBlock->val;
-    const index_t* col_coupleBlock_ptr = mat->col_coupleBlock->pattern->ptr;
-    const index_t* col_coupleBlock_index = mat->col_coupleBlock->pattern->index;
-    double* col_coupleBlock_val = mat->col_coupleBlock->val;
-    const index_t* row_coupleBlock_ptr = mat->row_coupleBlock->pattern->ptr;
-    const index_t* row_coupleBlock_index = mat->row_coupleBlock->pattern->index;
-    double* row_coupleBlock_val = mat->row_coupleBlock->val;
-
-    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
-        // down columns of array
-        const dim_t j_Eq = nodes_Eq[k_Eq];
-        const dim_t i_row = j_Eq;
-//printf("row:%d\n", i_row);
-        // only look at the matrix rows stored on this processor
-        if (i_row < numMyRows) {
-            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                const dim_t i_col = nodes_Sol[k_Sol];
-                if (i_col < numMyCols) {
-                    for (dim_t k = mainBlock_ptr[i_row]; k < mainBlock_ptr[i_row + 1]; ++k) {
-                        if (mainBlock_index[k] == i_col) {
-                            mainBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
-                        }
-                    }
-                } else {
-                    for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
-//cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
-                        if (col_coupleBlock_index[k] == i_col - numMyCols) {
-                            col_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                // across rows of array
-                const dim_t i_col = nodes_Sol[k_Sol];
-                if (i_col < numMyCols) {
-                    for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
-                         k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
-                    {
-//cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
-                        if (row_coupleBlock_index[k] == i_col) {
-                            row_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    Paso_Pattern_free(colPattern);
+    Paso_Pattern_free(rowPattern);
 }
 
 //protected
@@ -2128,56 +2049,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 5 */
             /* GENERATOR SNIP_INTERPOLATE_FACES BOTTOM */
         } // end of parallel section
-    }
-}
-
-//protected
-void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
-{
-    const dim_t numComp = in.getDataPointSize();
-    out.requireWrite();
-
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const index_t front = (m_offset2==0 ? 0 : 1);
-    const index_t nDOF0 = (m_gNE0+1)/m_NX;
-    const index_t nDOF1 = (m_gNE1+1)/m_NY;
-    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
-#pragma omp parallel for
-    for (index_t i=0; i<nDOF2; i++) {
-        for (index_t j=0; j<nDOF1; j++) {
-            for (index_t k=0; k<nDOF0; k++) {
-                const index_t n=k+left+(j+bottom)*m_N0+(i+front)*m_N0*m_N1;
-                const double* src=in.getSampleDataRO(n);
-                copy(src, src+numComp, out.getSampleDataRW(k+j*nDOF0+i*nDOF0*nDOF1));
-            }
-        }
-    }
-}
-
-//protected
-void Brick::dofToNodes(escript::Data& out, escript::Data& in) const
-{
-    const dim_t numComp = in.getDataPointSize();
-    out.requireWrite();
-
-    //TODO: use coupler to get the rest of the values
-
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const index_t front = (m_offset2==0 ? 0 : 1);
-    const index_t nDOF0 = (m_gNE0+1)/m_NX;
-    const index_t nDOF1 = (m_gNE1+1)/m_NY;
-    const index_t nDOF2 = (m_gNE2+1)/m_NZ;
-#pragma omp parallel for
-    for (index_t i=0; i<nDOF2; i++) {
-        for (index_t j=0; j<nDOF1; j++) {
-            for (index_t k=0; k<nDOF0; k++) {
-                const double* src=in.getSampleDataRO(k+j*nDOF0+i*nDOF0*nDOF1);
-                const index_t n=k+left+(j+bottom)*m_N0+(i+front)*m_N0*m_N1;
-                copy(src, src+numComp, out.getSampleDataRW(n));
-            }
-        }
     }
 }
 

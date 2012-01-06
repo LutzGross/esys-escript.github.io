@@ -780,6 +780,132 @@ void RipleyDomain::updateTagsInUse(int fsType) const
     }
 }
 
+//protected
+Paso_Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
+        const IndexVector& index, const dim_t M, const dim_t N) const
+{
+    // paso will manage the memory
+    index_t* indexC = MEMALLOC(index.size(), index_t);
+    index_t* ptrC = MEMALLOC(ptr.size(), index_t);
+    copy(index.begin(), index.end(), indexC);
+    copy(ptr.begin(), ptr.end(), ptrC);
+    return Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);
+}
+
+//protected
+Paso_Pattern* RipleyDomain::createMainPattern() const
+{
+    IndexVector ptr(1,0);
+    IndexVector index;
+
+    for (index_t i=0; i<getNumDOF(); i++) {
+        // add the DOF itself
+        index.push_back(i);
+        const dim_t num=insertNeighbourNodes(index, i);
+        ptr.push_back(ptr.back()+num+1);
+    }
+
+    return createPasoPattern(ptr, index, ptr.size()-1, ptr.size()-1);
+}
+
+//protected
+void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
+        const dim_t N, Paso_Pattern** colPattern, Paso_Pattern** rowPattern) const
+{
+    IndexVector ptr(1,0);
+    IndexVector index;
+    for (index_t i=0; i<getNumDOF(); i++) {
+        index.insert(index.end(), colIndices[i].begin(), colIndices[i].end());
+        ptr.push_back(ptr.back()+colIndices[i].size());
+    }
+
+    const dim_t M=ptr.size()-1;
+    *colPattern=createPasoPattern(ptr, index, M, N);
+
+    IndexVector rowPtr(1,0);
+    IndexVector rowIndex;
+    for (dim_t id=0; id<N; id++) {
+        dim_t n=0;
+        for (dim_t i=0; i<M; i++) {
+            for (dim_t j=ptr[i]; j<ptr[i+1]; j++) {
+                if (index[j]==id) {
+                    rowIndex.push_back(i);
+                    n++;
+                    break;
+                }
+            }
+        }
+        rowPtr.push_back(rowPtr.back()+n);
+    }
+
+    // M and N are now reversed
+    *rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
+}
+
+//protected
+void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat, 
+       const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
+       dim_t num_Sol, const vector<double>& array) const
+{
+    const dim_t numMyCols = mat->pattern->mainPattern->numInput;
+    const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
+
+    const index_t* mainBlock_ptr = mat->mainBlock->pattern->ptr;
+    const index_t* mainBlock_index = mat->mainBlock->pattern->index;
+    double* mainBlock_val = mat->mainBlock->val;
+    const index_t* col_coupleBlock_ptr = mat->col_coupleBlock->pattern->ptr;
+    const index_t* col_coupleBlock_index = mat->col_coupleBlock->pattern->index;
+    double* col_coupleBlock_val = mat->col_coupleBlock->val;
+    const index_t* row_coupleBlock_ptr = mat->row_coupleBlock->pattern->ptr;
+    const index_t* row_coupleBlock_index = mat->row_coupleBlock->pattern->index;
+    double* row_coupleBlock_val = mat->row_coupleBlock->val;
+
+    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
+        // down columns of array
+        const dim_t j_Eq = nodes_Eq[k_Eq];
+        const dim_t i_row = j_Eq;
+//printf("row:%d\n", i_row);
+        // only look at the matrix rows stored on this processor
+        if (i_row < numMyRows) {
+            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                const dim_t i_col = nodes_Sol[k_Sol];
+                if (i_col < numMyCols) {
+                    for (dim_t k = mainBlock_ptr[i_row]; k < mainBlock_ptr[i_row + 1]; ++k) {
+                        if (mainBlock_index[k] == i_col) {
+                            mainBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
+                            break;
+                        }
+                    }
+                } else {
+                    for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
+//cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
+                        if (col_coupleBlock_index[k] == i_col - numMyCols) {
+                            col_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                // across rows of array
+                const dim_t i_col = nodes_Sol[k_Sol];
+                if (i_col < numMyCols) {
+                    for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
+                         k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
+                    {
+//cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
+                        if (row_coupleBlock_index[k] == i_col) {
+                            row_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 //
 // the methods that follow have to be implemented by the subclasses
 //
@@ -927,6 +1053,11 @@ dim_t RipleyDomain::getNumNodes() const
 dim_t RipleyDomain::getNumDOF() const
 {
     throw RipleyException("getNumDOF() not implemented");
+}
+
+dim_t RipleyDomain::insertNeighbourNodes(IndexVector& index, index_t node) const
+{
+    throw RipleyException("insertNeighbourNodes() not implemented");
 }
 
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const
