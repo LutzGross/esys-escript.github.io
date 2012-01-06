@@ -67,9 +67,9 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
               Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(alpha,A->mainBlock,in,beta,out);
            }
      } else {
-         if (Esys_noError()) {
+//         if (Esys_noError()) {
             Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(alpha,A,in,beta,out);
-         }
+//         }
      }
   }
 }
@@ -91,6 +91,7 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   }
   /* finish exchange */
   remote_values=Paso_SystemMatrix_finishCollect(A);
+//fprintf(stderr, "rank %d after collect\n", A->mpi_info->rank);
   /* process couple block */
   if (A->col_coupleBlock->pattern->ptr!=NULL) {
       if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
@@ -99,5 +100,4 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
          Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
       }
   }
-  
 }

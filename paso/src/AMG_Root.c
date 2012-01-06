@@ -25,6 +25,7 @@
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "BOOMERAMG.h"
+#define MY_DEBUG 0
 
 /***********************************************************************************/
 
@@ -50,13 +51,13 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
 	prec->amgsubstitute=NULL;
         prec->boomeramg=NULL;
 fprintf(stderr, "option %d boomer %d\n", options->preconditioner, PASO_BOOMERAMG);
-	Paso_SystemMatrix_print(A);
+	if (MY_DEBUG) Paso_SystemMatrix_print(A);
 	if (options->preconditioner == PASO_BOOMERAMG){
 	  prec->boomeramg = Paso_Preconditioner_BoomerAMG_alloc(A,options);
 	} else {
           prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
-/*          prec->is_local=FALSE;
-          prec->is_local=TRUE; 
+          prec->is_local=FALSE;
+/*          prec->is_local=TRUE; 
 */        
           if (prec->is_local) {
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);

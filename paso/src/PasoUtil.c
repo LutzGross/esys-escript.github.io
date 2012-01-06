@@ -394,29 +394,29 @@ void Paso_LinearCombination(const dim_t n, double*z, const double a,const double
    const int num_threads=omp_get_max_threads();
 
 
-   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
+//   #pragma omp parallel for private(i,local_n,rest,n_start,n_end,q)
    for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
         n_start=local_n*i+MIN(i,rest);
         n_end=local_n*(i+1)+MIN(i+1,rest);
         if (((ABS(a)==0) && (ABS(b)==0)) || (y==NULL) || (x==NULL)) {
-            #pragma ivdep
+//            #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=0.;
             }
         } else if ( ((ABS(a)==0) && (ABS(b)>0.)) || (x==NULL) )  {
-            #pragma ivdep
+//            #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=b*y[q];
             }
         } else if (((ABS(a)>0) && (ABS(b)==0.)) || (y==NULL) ) {
-            #pragma ivdep
+//            #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=a*x[q];
             }
         } else {
-            #pragma ivdep
+//            #pragma ivdep
             for (q=n_start;q<n_end;++q) {
               z[q]=a*x[q]+b*y[q];
             }

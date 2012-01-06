@@ -96,7 +96,7 @@ fprintf(stderr, "Into Restriction %d %d\n", mpi_info->rank, rank);
      }
    }
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Pcouple_cols %d\n", rank, num_Pcouple_cols);
    send_ptr[0] = 0;
    for (i=0; i<num_Pcouple_cols; i++) {
@@ -229,7 +229,7 @@ fprintf(stderr, "rank %d degree_set %d\n", rank, sum);
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Construct col_coupleBlock for R: %d %d \n", rank, n_C, sum);
 
    /* construct "ptr", "idx" and "val" for R->col_coupleBlock */
@@ -263,7 +263,7 @@ fprintf(stderr, "rank %d send %d, i%d len%d\n", rank, send->shared[j], i, recv_p
    TMPMEMFREE(recv_ptr);
    TMPMEMFREE(recv_val);
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d col_coupleBlock non-zero: %d\n", rank, sum);
 
    /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
@@ -291,7 +291,7 @@ fprintf(stderr, "rank %d col_coupleBlock non-zero: %d\n", rank, sum);
      }
    }
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Count num_Rcouple_cols %d\n", rank, num_Rcouple_cols);
 
    /* prepare the receiver for the col_connector */
@@ -380,6 +380,7 @@ fprintf(stderr, "rank %d Sender!!\n", rank);
 		main_block->len * sizeof(double));
    memcpy(out->col_coupleBlock->val, val,
 		out->col_coupleBlock->len * sizeof(double));
+   MEMFREE(val);
 
    /* clean up */ 
    Paso_SparseMatrix_free(main_block);
