@@ -689,10 +689,26 @@ protected:
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;
 
+    /// assembles a single PDE with reduced order into the system matrix 'mat'
+    /// and the right hand side 'rhs'
+    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y) const;
+
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
     virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y) const;
+
+    /// assembles a system of PDEs with reduced order into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;

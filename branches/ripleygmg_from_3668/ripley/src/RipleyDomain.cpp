@@ -664,7 +664,23 @@ void RipleyDomain::addPDEToSystem(
     if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
         throw RipleyException("addPDEToSystem(): Right hand side coefficients are provided but no right hand side vector given");
 
-    //TODO: more input param checks (shape, function space etc)
+    int fsType=UNKNOWN;
+    fsType=(A.isEmpty() ? fsType : A.getFunctionSpace().getTypeCode());
+    fsType=(B.isEmpty() ? fsType : B.getFunctionSpace().getTypeCode());
+    fsType=(C.isEmpty() ? fsType : C.getFunctionSpace().getTypeCode());
+    fsType=(D.isEmpty() ? fsType : D.getFunctionSpace().getTypeCode());
+    fsType=(X.isEmpty() ? fsType : X.getFunctionSpace().getTypeCode());
+    fsType=(Y.isEmpty() ? fsType : Y.getFunctionSpace().getTypeCode());
+    fsType=(d.isEmpty() ? fsType : d.getFunctionSpace().getTypeCode());
+    fsType=(y.isEmpty() ? fsType : y.getFunctionSpace().getTypeCode());
+    fsType=(d_dirac.isEmpty() ? fsType : d_dirac.getFunctionSpace().getTypeCode());
+    fsType=(y_dirac.isEmpty() ? fsType : y_dirac.getFunctionSpace().getTypeCode());
+    if (fsType==UNKNOWN)
+        return;
+
+    const bool reducedOrder=(fsType==ReducedElements || fsType==ReducedFaceElements);
+
+    //TODO: more input param checks (shape, etc)
 
     Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
 
@@ -679,9 +695,15 @@ void RipleyDomain::addPDEToSystem(
     //TODO: more system matrix checks
 
     if (numEq==1)
-        assemblePDESingle(S, rhs, A, B, C, D, X, Y, d, y);
+        if (reducedOrder)
+            assemblePDESingleReduced(S, rhs, A, B, C, D, X, Y, d, y);
+        else
+            assemblePDESingle(S, rhs, A, B, C, D, X, Y, d, y);
     else
-        assemblePDESystem(S, rhs, A, B, C, D, X, Y, d, y);
+        if (reducedOrder)
+            assemblePDESystemReduced(S, rhs, A, B, C, D, X, Y, d, y);
+        else
+            assemblePDESystem(S, rhs, A, B, C, D, X, Y, d, y);
 }
 
 void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
@@ -1111,12 +1133,28 @@ void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     throw RipleyException("assemblePDESingle() not implemented");
 }
 
+void RipleyDomain::assemblePDESingleReduced(Paso_SystemMatrix* mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D, const escript::Data& X,
+        const escript::Data& Y, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDESingleReduced() not implemented");
+}
+
 void RipleyDomain::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B, const escript::Data& C,
         const escript::Data& D, const escript::Data& X, const escript::Data& Y,
         const escript::Data& d, const escript::Data& y) const
 {
     throw RipleyException("assemblePDESystem() not implemented");
+}
+
+void RipleyDomain::assemblePDESystemReduced(Paso_SystemMatrix* mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D, const escript::Data& X,
+        const escript::Data& Y, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDESystemReduced() not implemented");
 }
 
 void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in, bool reduced) const

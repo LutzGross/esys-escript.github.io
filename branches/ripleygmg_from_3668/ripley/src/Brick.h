@@ -180,6 +180,11 @@ protected:
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;
+    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
