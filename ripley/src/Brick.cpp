@@ -348,6 +348,7 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
     const double C6 = .78867513459481288225;
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_ELEMENTS TOP */
 #pragma omp parallel for
         for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -405,6 +406,7 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
         } /* end of k2 loop */
         /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_REDUCED_ELEMENTS TOP */
 #pragma omp parallel for
         for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -429,6 +431,7 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
         } /* end of k2 loop */
         /* GENERATOR SNIP_GRAD_REDUCED_ELEMENTS BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_FACES TOP */
 #pragma omp parallel
         {
@@ -638,6 +641,7 @@ void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
         } // end of parallel section
         /* GENERATOR SNIP_GRAD_FACES BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_REDUCED_FACES TOP */
 #pragma omp parallel
         {
@@ -1037,6 +1041,7 @@ void Brick::setToIntegrals(vector<double>& integrals, const escript::Data& arg) 
 void Brick::setToNormal(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -1124,6 +1129,7 @@ void Brick::setToNormal(escript::Data& out) const
             }
         } // end of parallel section
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -1202,6 +1208,105 @@ void Brick::setToNormal(escript::Data& out) const
     } else {
         stringstream msg;
         msg << "setToNormal() not implemented for "
+            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        throw RipleyException(msg.str());
+    }
+}
+
+void Brick::setToSize(escript::Data& out) const
+{
+    if (out.getFunctionSpace().getTypeCode() == Elements
+            || out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
+        const dim_t numQuad=out.getNumDataPointsPerSample();
+        const double xSize=getFirstCoordAndSpacing(0).second;
+        const double ySize=getFirstCoordAndSpacing(1).second;
+        const double zSize=getFirstCoordAndSpacing(2).second;
+        const double size=min(min(xSize,ySize),zSize);
+#pragma omp parallel for
+        for (index_t k = 0; k < getNumElements(); ++k) {
+            double* o = out.getSampleDataRW(k);
+            fill(o, o+numQuad, size);
+        }
+    } else if (out.getFunctionSpace().getTypeCode() == FaceElements
+            || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
+        const dim_t numQuad=out.getNumDataPointsPerSample();
+        const double xSize=getFirstCoordAndSpacing(0).second;
+        const double ySize=getFirstCoordAndSpacing(1).second;
+        const double zSize=getFirstCoordAndSpacing(2).second;
+#pragma omp parallel
+        {
+            if (m_faceOffset[0] > -1) {
+                const double size=min(ySize,zSize);
+#pragma omp for nowait
+                for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+
+            if (m_faceOffset[1] > -1) {
+                const double size=min(ySize,zSize);
+#pragma omp for nowait
+                for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+
+            if (m_faceOffset[2] > -1) {
+                const double size=min(xSize,zSize);
+#pragma omp for nowait
+                for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+
+            if (m_faceOffset[3] > -1) {
+                const double size=min(xSize,zSize);
+#pragma omp for nowait
+                for (index_t k2 = 0; k2 < m_NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+
+            if (m_faceOffset[4] > -1) {
+                const double size=min(xSize,ySize);
+#pragma omp for nowait
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+
+            if (m_faceOffset[5] > -1) {
+                const double size=min(xSize,ySize);
+#pragma omp for nowait
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        fill(o, o+numQuad, size);
+                    }
+                }
+            }
+        } // end of parallel section
+
+    } else {
+        stringstream msg;
+        msg << "setToSize() not implemented for "
             << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
         throw RipleyException(msg.str());
     }
@@ -1812,6 +1917,7 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
+        out.requireWrite();
         /*** GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS TOP */
         const double c0 = .125;
 #pragma omp parallel for
@@ -1835,6 +1941,7 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
         } /* end of k2 loop */
         /* GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS BOTTOM */
     } else {
+        out.requireWrite();
         /*** GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
         const double c0 = .0094373878376559314545;
         const double c1 = .035220810900864519624;
@@ -1876,6 +1983,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
+        out.requireWrite();
         const double c0 = .25;
 #pragma omp parallel
         {
@@ -1973,6 +2081,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             /* GENERATOR SNIP_INTERPOLATE_REDUCED_FACES BOTTOM */
         } // end of parallel section
     } else {
+        out.requireWrite();
         const double c0 = 0.044658198738520451079;
         const double c1 = 0.16666666666666666667;
         const double c2 = 0.62200846792814621559;
