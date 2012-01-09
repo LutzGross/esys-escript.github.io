@@ -2173,7 +2173,7 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
 
                 } // end k0 loop
             } // end k1 loop
-        } // end of coloring
+        } // end of colouring
     } // end of parallel region
 }
 
@@ -2194,7 +2194,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
 
-    /* GENERATOR SNIP_PDE_SYSTEM_PRE TOP */
+    /*** GENERATOR SNIP_PDE_SYSTEM_PRE TOP */
     const double w0 = -0.1555021169820365539*h1/h0;
     const double w1 = 0.041666666666666666667;
     const double w10 = -0.041666666666666666667*h0/h1;
@@ -2285,7 +2285,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k0 + m_NE0*k1;
-                    /* GENERATOR SNIP_PDE_SYSTEM TOP */
+                    /*** GENERATOR SNIP_PDE_SYSTEM TOP */
                     ///////////////
                     // process A //
                     ///////////////
@@ -2947,8 +2947,10 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         double *F_p=rhs.getSampleDataRW(0);
                         for (index_t i=0; i<rowIndex.size(); i++) {
                             if (rowIndex[i]<getNumDOF()) {
-                                F_p[rowIndex[i]]+=EM_F[i];
-                                //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
+                                for (index_t eq=0; eq<numEq; eq++) {
+                                    F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
+                                    //cout << "F[" << INDEX2(eq,rowIndex[i],numEq) << "]=" << F_p[INDEX2(eq,rowIndex[i],numEq)] << endl;
+                                }
                             }
                         }
                         //cout << "---"<<endl;
@@ -2960,7 +2962,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
 
                 } // end k0 loop
             } // end k1 loop
-        } // end of coloring
+        } // end of colouring
     } // end of parallel region
 }
 
