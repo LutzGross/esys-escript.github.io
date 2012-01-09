@@ -335,6 +335,7 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
     const double cy7 = 1./h1;
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_ELEMENTS TOP */
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -358,6 +359,7 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
         } /* end of k1 loop */
         /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
         /*** GENERATOR SNIP_GRAD_REDUCED_ELEMENTS TOP */
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -375,6 +377,7 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
         } /* end of k1 loop */
         /* GENERATOR SNIP_GRAD_REDUCED_ELEMENTS BOTTOM */
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             /*** GENERATOR SNIP_GRAD_FACES TOP */
@@ -445,6 +448,7 @@ void Rectangle::setToGradient(escript::Data& out, const escript::Data& cIn) cons
             /* GENERATOR SNIP_GRAD_FACES BOTTOM */
         } // end of parallel section
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             /*** GENERATOR SNIP_GRAD_REDUCED_FACES TOP */
@@ -679,6 +683,7 @@ void Rectangle::setToIntegrals(vector<double>& integrals, const escript::Data& a
 void Rectangle::setToNormal(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -730,6 +735,7 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
         } // end of parallel section
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -772,6 +778,69 @@ void Rectangle::setToNormal(escript::Data& out) const
     } else {
         stringstream msg;
         msg << "setToNormal() not implemented for "
+            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        throw RipleyException(msg.str());
+    }
+}
+
+void Rectangle::setToSize(escript::Data& out) const
+{
+    if (out.getFunctionSpace().getTypeCode() == Elements
+            || out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
+        const dim_t numQuad=out.getNumDataPointsPerSample();
+        const double hSize=getFirstCoordAndSpacing(0).second;
+        const double vSize=getFirstCoordAndSpacing(1).second;
+        const double size=min(hSize,vSize);
+#pragma omp parallel for
+        for (index_t k = 0; k < getNumElements(); ++k) {
+            double* o = out.getSampleDataRW(k);
+            fill(o, o+numQuad, size);
+        }
+    } else if (out.getFunctionSpace().getTypeCode() == FaceElements
+            || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
+        const dim_t numQuad=out.getNumDataPointsPerSample();
+        const double hSize=getFirstCoordAndSpacing(0).second;
+        const double vSize=getFirstCoordAndSpacing(1).second;
+#pragma omp parallel
+        {
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
+                    fill(o, o+numQuad, vSize);
+                }
+            }
+
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                    double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
+                    fill(o, o+numQuad, vSize);
+                }
+            }
+
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                    double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
+                    fill(o, o+numQuad, hSize);
+                }
+            }
+
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                    double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
+                    fill(o, o+numQuad, hSize);
+                }
+            }
+        } // end of parallel section
+
+    } else {
+        stringstream msg;
+        msg << "setToSize() not implemented for "
             << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
         throw RipleyException(msg.str());
     }
@@ -1209,6 +1278,7 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
+        out.requireWrite();
         /*** GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS TOP */
         const double c0 = .25;
 #pragma omp parallel for
@@ -1226,6 +1296,7 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
         } /* end of k1 loop */
         /* GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS BOTTOM */
     } else {
+        out.requireWrite();
         /*** GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
         const double c0 = .16666666666666666667;
         const double c1 = .044658198738520451079;
@@ -1256,6 +1327,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
+        out.requireWrite();
         const double c0 = .5;
 #pragma omp parallel
         {
@@ -1307,6 +1379,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             /* GENERATOR SNIP_INTERPOLATE_REDUCED_FACES BOTTOM */
         } // end of parallel section
     } else {
+        out.requireWrite();
         const double c0 = 0.21132486540518711775;
         const double c1 = 0.78867513459481288225;
 #pragma omp parallel
@@ -2103,6 +2176,794 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
         } // end of coloring
     } // end of parallel region
 }
+
+//protected
+void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D,
+        const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y) const
+{
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    dim_t numEq, numComp;
+    if (!mat)
+        numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
+    else {
+        numEq=mat->logical_row_block_size;
+        numComp=mat->logical_col_block_size;
+    }
+
+    /* GENERATOR SNIP_PDE_SYSTEM_PRE TOP */
+    const double w0 = -0.1555021169820365539*h1/h0;
+    const double w1 = 0.041666666666666666667;
+    const double w10 = -0.041666666666666666667*h0/h1;
+    const double w11 = 0.1555021169820365539*h1/h0;
+    const double w12 = 0.1555021169820365539*h0/h1;
+    const double w13 = 0.01116454968463011277*h0/h1;
+    const double w14 = 0.01116454968463011277*h1/h0;
+    const double w15 = 0.041666666666666666667*h1/h0;
+    const double w16 = -0.01116454968463011277*h0/h1;
+    const double w17 = -0.1555021169820365539*h0/h1;
+    const double w18 = -0.33333333333333333333*h1/h0;
+    const double w19 = 0.25000000000000000000;
+    const double w2 = -0.15550211698203655390;
+    const double w20 = -0.25000000000000000000;
+    const double w21 = 0.16666666666666666667*h0/h1;
+    const double w22 = -0.16666666666666666667*h1/h0;
+    const double w23 = -0.16666666666666666667*h0/h1;
+    const double w24 = 0.33333333333333333333*h1/h0;
+    const double w25 = 0.33333333333333333333*h0/h1;
+    const double w26 = 0.16666666666666666667*h1/h0;
+    const double w27 = -0.33333333333333333333*h0/h1;
+    const double w28 = -0.032861463941450536761*h1;
+    const double w29 = -0.032861463941450536761*h0;
+    const double w3 = 0.041666666666666666667*h0/h1;
+    const double w30 = -0.12264065304058601714*h1;
+    const double w31 = -0.0023593469594139828636*h1;
+    const double w32 = -0.008805202725216129906*h0;
+    const double w33 = -0.008805202725216129906*h1;
+    const double w34 = 0.032861463941450536761*h1;
+    const double w35 = 0.008805202725216129906*h1;
+    const double w36 = 0.008805202725216129906*h0;
+    const double w37 = 0.0023593469594139828636*h1;
+    const double w38 = 0.12264065304058601714*h1;
+    const double w39 = 0.032861463941450536761*h0;
+    const double w4 = 0.15550211698203655390;
+    const double w40 = -0.12264065304058601714*h0;
+    const double w41 = -0.0023593469594139828636*h0;
+    const double w42 = 0.0023593469594139828636*h0;
+    const double w43 = 0.12264065304058601714*h0;
+    const double w44 = -0.16666666666666666667*h1;
+    const double w45 = -0.083333333333333333333*h0;
+    const double w46 = 0.083333333333333333333*h1;
+    const double w47 = 0.16666666666666666667*h1;
+    const double w48 = 0.083333333333333333333*h0;
+    const double w49 = -0.16666666666666666667*h0;
+    const double w5 = -0.041666666666666666667;
+    const double w50 = 0.16666666666666666667*h0;
+    const double w51 = -0.083333333333333333333*h1;
+    const double w52 = 0.025917019497006092316*h0*h1;
+    const double w53 = 0.0018607582807716854616*h0*h1;
+    const double w54 = 0.0069444444444444444444*h0*h1;
+    const double w55 = 0.09672363354357992482*h0*h1;
+    const double w56 = 0.00049858867864229740201*h0*h1;
+    const double w57 = 0.055555555555555555556*h0*h1;
+    const double w58 = 0.027777777777777777778*h0*h1;
+    const double w59 = 0.11111111111111111111*h0*h1;
+    const double w6 = -0.01116454968463011277*h1/h0;
+    const double w60 = -0.19716878364870322056*h1;
+    const double w61 = -0.19716878364870322056*h0;
+    const double w62 = -0.052831216351296779436*h0;
+    const double w63 = -0.052831216351296779436*h1;
+    const double w64 = 0.19716878364870322056*h1;
+    const double w65 = 0.052831216351296779436*h1;
+    const double w66 = 0.19716878364870322056*h0;
+    const double w67 = 0.052831216351296779436*h0;
+    const double w68 = -0.5*h1;
+    const double w69 = -0.5*h0;
+    const double w7 = 0.011164549684630112770;
+    const double w70 = 0.5*h1;
+    const double w71 = 0.5*h0;
+    const double w72 = 0.1555021169820365539*h0*h1;
+    const double w73 = 0.041666666666666666667*h0*h1;
+    const double w74 = 0.01116454968463011277*h0*h1;
+    const double w75 = 0.25*h0*h1;
+    const double w8 = -0.011164549684630112770;
+    const double w9 = -0.041666666666666666667*h1/h0;
+    /* GENERATOR SNIP_PDE_SYSTEM_PRE BOTTOM */
+
+    rhs.requireWrite();
+#pragma omp parallel
+    {
+        for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k0=0; k0<m_NE0; ++k0)  {
+                    bool add_EM_S=false;
+                    bool add_EM_F=false;
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
+                    const index_t e = k0 + m_NE0*k1;
+                    /* GENERATOR SNIP_PDE_SYSTEM TOP */
+                    ///////////////
+                    // process A //
+                    ///////////////
+                    if (!A.isEmpty()) {
+                        add_EM_S=true;
+                        const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                        if (A.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double A_00_0 = A_p[INDEX5(k,0,m,0,0, numEq,2,numComp,2)];
+                                    const register double A_01_0 = A_p[INDEX5(k,0,m,1,0, numEq,2,numComp,2)];
+                                    const register double A_10_0 = A_p[INDEX5(k,1,m,0,0, numEq,2,numComp,2)];
+                                    const register double A_11_0 = A_p[INDEX5(k,1,m,1,0, numEq,2,numComp,2)];
+                                    const register double A_00_1 = A_p[INDEX5(k,0,m,0,1, numEq,2,numComp,2)];
+                                    const register double A_01_1 = A_p[INDEX5(k,0,m,1,1, numEq,2,numComp,2)];
+                                    const register double A_10_1 = A_p[INDEX5(k,1,m,0,1, numEq,2,numComp,2)];
+                                    const register double A_11_1 = A_p[INDEX5(k,1,m,1,1, numEq,2,numComp,2)];
+                                    const register double A_00_2 = A_p[INDEX5(k,0,m,0,2, numEq,2,numComp,2)];
+                                    const register double A_01_2 = A_p[INDEX5(k,0,m,1,2, numEq,2,numComp,2)];
+                                    const register double A_10_2 = A_p[INDEX5(k,1,m,0,2, numEq,2,numComp,2)];
+                                    const register double A_11_2 = A_p[INDEX5(k,1,m,1,2, numEq,2,numComp,2)];
+                                    const register double A_00_3 = A_p[INDEX5(k,0,m,0,3, numEq,2,numComp,2)];
+                                    const register double A_01_3 = A_p[INDEX5(k,0,m,1,3, numEq,2,numComp,2)];
+                                    const register double A_10_3 = A_p[INDEX5(k,1,m,0,3, numEq,2,numComp,2)];
+                                    const register double A_11_3 = A_p[INDEX5(k,1,m,1,3, numEq,2,numComp,2)];
+                                    const register double tmp4_0 = A_10_1 + A_10_2;
+                                    const register double tmp12_0 = A_11_0 + A_11_2;
+                                    const register double tmp2_0 = A_11_0 + A_11_1 + A_11_2 + A_11_3;
+                                    const register double tmp10_0 = A_01_3 + A_10_3;
+                                    const register double tmp14_0 = A_01_0 + A_01_3 + A_10_0 + A_10_3;
+                                    const register double tmp0_0 = A_01_0 + A_01_3;
+                                    const register double tmp13_0 = A_01_2 + A_10_1;
+                                    const register double tmp3_0 = A_00_2 + A_00_3;
+                                    const register double tmp11_0 = A_11_1 + A_11_3;
+                                    const register double tmp18_0 = A_01_1 + A_10_1;
+                                    const register double tmp1_0 = A_00_0 + A_00_1;
+                                    const register double tmp15_0 = A_01_1 + A_10_2;
+                                    const register double tmp5_0 = A_00_0 + A_00_1 + A_00_2 + A_00_3;
+                                    const register double tmp16_0 = A_10_0 + A_10_3;
+                                    const register double tmp6_0 = A_01_3 + A_10_0;
+                                    const register double tmp17_0 = A_01_1 + A_01_2;
+                                    const register double tmp9_0 = A_01_0 + A_10_0;
+                                    const register double tmp7_0 = A_01_0 + A_10_3;
+                                    const register double tmp8_0 = A_01_1 + A_01_2 + A_10_1 + A_10_2;
+                                    const register double tmp19_0 = A_01_2 + A_10_2;
+                                    const register double tmp14_1 = A_10_0*w8;
+                                    const register double tmp23_1 = tmp3_0*w14;
+                                    const register double tmp35_1 = A_01_0*w8;
+                                    const register double tmp54_1 = tmp13_0*w8;
+                                    const register double tmp20_1 = tmp9_0*w4;
+                                    const register double tmp25_1 = tmp12_0*w12;
+                                    const register double tmp2_1 = A_01_1*w4;
+                                    const register double tmp44_1 = tmp7_0*w7;
+                                    const register double tmp26_1 = tmp10_0*w4;
+                                    const register double tmp52_1 = tmp18_0*w8;
+                                    const register double tmp48_1 = A_10_1*w7;
+                                    const register double tmp46_1 = A_01_3*w8;
+                                    const register double tmp50_1 = A_01_0*w2;
+                                    const register double tmp8_1 = tmp4_0*w5;
+                                    const register double tmp56_1 = tmp19_0*w8;
+                                    const register double tmp9_1 = tmp2_0*w10;
+                                    const register double tmp19_1 = A_10_3*w2;
+                                    const register double tmp47_1 = A_10_2*w4;
+                                    const register double tmp16_1 = tmp3_0*w0;
+                                    const register double tmp18_1 = tmp1_0*w6;
+                                    const register double tmp31_1 = tmp11_0*w12;
+                                    const register double tmp55_1 = tmp15_0*w2;
+                                    const register double tmp39_1 = A_10_2*w7;
+                                    const register double tmp11_1 = tmp6_0*w7;
+                                    const register double tmp40_1 = tmp11_0*w17;
+                                    const register double tmp34_1 = tmp15_0*w8;
+                                    const register double tmp33_1 = tmp14_0*w5;
+                                    const register double tmp24_1 = tmp11_0*w13;
+                                    const register double tmp3_1 = tmp1_0*w0;
+                                    const register double tmp5_1 = tmp2_0*w3;
+                                    const register double tmp43_1 = tmp17_0*w5;
+                                    const register double tmp15_1 = A_01_2*w4;
+                                    const register double tmp53_1 = tmp19_0*w2;
+                                    const register double tmp27_1 = tmp3_0*w11;
+                                    const register double tmp32_1 = tmp13_0*w2;
+                                    const register double tmp10_1 = tmp5_0*w9;
+                                    const register double tmp37_1 = A_10_1*w4;
+                                    const register double tmp38_1 = tmp5_0*w15;
+                                    const register double tmp17_1 = A_01_1*w7;
+                                    const register double tmp12_1 = tmp7_0*w4;
+                                    const register double tmp22_1 = tmp10_0*w7;
+                                    const register double tmp57_1 = tmp18_0*w2;
+                                    const register double tmp28_1 = tmp9_0*w7;
+                                    const register double tmp29_1 = tmp1_0*w14;
+                                    const register double tmp51_1 = tmp11_0*w16;
+                                    const register double tmp42_1 = tmp12_0*w16;
+                                    const register double tmp49_1 = tmp12_0*w17;
+                                    const register double tmp21_1 = tmp1_0*w11;
+                                    const register double tmp1_1 = tmp0_0*w1;
+                                    const register double tmp45_1 = tmp6_0*w4;
+                                    const register double tmp7_1 = A_10_0*w2;
+                                    const register double tmp6_1 = tmp3_0*w6;
+                                    const register double tmp13_1 = tmp8_0*w1;
+                                    const register double tmp36_1 = tmp16_0*w1;
+                                    const register double tmp41_1 = A_01_3*w2;
+                                    const register double tmp30_1 = tmp12_0*w13;
+                                    const register double tmp4_1 = A_01_2*w7;
+                                    const register double tmp0_1 = A_10_3*w8;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp5_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp13_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp25_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp13_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp10_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp10_1 + tmp13_1 + tmp44_1 + tmp45_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp36_1 + tmp38_1 + tmp43_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp38_1 + tmp49_1 + tmp51_1 + tmp7_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp14_1 + tmp19_1 + tmp1_1 + tmp2_1 + tmp38_1 + tmp40_1 + tmp42_1 + tmp4_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp16_1 + tmp18_1 + tmp35_1 + tmp36_1 + tmp41_1 + tmp43_1 + tmp47_1 + tmp48_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp24_1 + tmp25_1 + tmp27_1 + tmp29_1 + tmp33_1 + tmp52_1 + tmp53_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp36_1 + tmp37_1 + tmp39_1 + tmp3_1 + tmp43_1 + tmp46_1 + tmp50_1 + tmp5_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp10_1 + tmp33_1 + tmp54_1 + tmp55_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp21_1 + tmp23_1 + tmp30_1 + tmp31_1 + tmp33_1 + tmp56_1 + tmp57_1;
+                                }
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
+                                    const register double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
+                                    const register double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
+                                    const register double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
+                                    const register double tmp0_0 = A_01 + A_10;
+                                    const register double tmp0_1 = A_00*w18;
+                                    const register double tmp10_1 = A_01*w20;
+                                    const register double tmp12_1 = A_00*w26;
+                                    const register double tmp4_1 = A_00*w22;
+                                    const register double tmp8_1 = A_00*w24;
+                                    const register double tmp13_1 = A_10*w19;
+                                    const register double tmp9_1 = tmp0_0*w20;
+                                    const register double tmp3_1 = A_11*w21;
+                                    const register double tmp11_1 = A_11*w27;
+                                    const register double tmp1_1 = A_01*w19;
+                                    const register double tmp6_1 = A_11*w23;
+                                    const register double tmp7_1 = A_11*w25;
+                                    const register double tmp2_1 = A_10*w20;
+                                    const register double tmp5_1 = tmp0_0*w19;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp4_1 + tmp5_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp5_1 + tmp7_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp5_1 + tmp7_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp4_1 + tmp6_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp4_1 + tmp5_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp11_1 + tmp12_1 + tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp11_1 + tmp12_1 + tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp7_1 + tmp8_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp4_1 + tmp6_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp7_1 + tmp8_1 + tmp9_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process B //
+                    ///////////////
+                    if (!B.isEmpty()) {
+                        add_EM_S=true;
+                        const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                        if (B.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double B_0_0 = B_p[INDEX4(k,0,m,0, numEq,2,numComp)];
+                                    const register double B_1_0 = B_p[INDEX4(k,1,m,0, numEq,2,numComp)];
+                                    const register double B_0_1 = B_p[INDEX4(k,0,m,1, numEq,2,numComp)];
+                                    const register double B_1_1 = B_p[INDEX4(k,1,m,1, numEq,2,numComp)];
+                                    const register double B_0_2 = B_p[INDEX4(k,0,m,2, numEq,2,numComp)];
+                                    const register double B_1_2 = B_p[INDEX4(k,1,m,2, numEq,2,numComp)];
+                                    const register double B_0_3 = B_p[INDEX4(k,0,m,3, numEq,2,numComp)];
+                                    const register double B_1_3 = B_p[INDEX4(k,1,m,3, numEq,2,numComp)];
+                                    const register double tmp3_0 = B_0_0 + B_0_2;
+                                    const register double tmp1_0 = B_1_2 + B_1_3;
+                                    const register double tmp2_0 = B_0_1 + B_0_3;
+                                    const register double tmp0_0 = B_1_0 + B_1_1;
+                                    const register double tmp63_1 = B_1_1*w42;
+                                    const register double tmp79_1 = B_1_1*w40;
+                                    const register double tmp37_1 = tmp3_0*w35;
+                                    const register double tmp8_1 = tmp0_0*w32;
+                                    const register double tmp71_1 = B_0_1*w34;
+                                    const register double tmp19_1 = B_0_3*w31;
+                                    const register double tmp15_1 = B_0_3*w34;
+                                    const register double tmp9_1 = tmp3_0*w34;
+                                    const register double tmp35_1 = B_1_0*w36;
+                                    const register double tmp66_1 = B_0_3*w28;
+                                    const register double tmp28_1 = B_1_0*w42;
+                                    const register double tmp22_1 = B_1_0*w40;
+                                    const register double tmp16_1 = B_1_2*w29;
+                                    const register double tmp6_1 = tmp2_0*w35;
+                                    const register double tmp55_1 = B_1_3*w40;
+                                    const register double tmp50_1 = B_1_3*w42;
+                                    const register double tmp7_1 = tmp1_0*w29;
+                                    const register double tmp1_1 = tmp1_0*w32;
+                                    const register double tmp57_1 = B_0_3*w30;
+                                    const register double tmp18_1 = B_1_1*w32;
+                                    const register double tmp53_1 = B_1_0*w41;
+                                    const register double tmp61_1 = B_1_3*w36;
+                                    const register double tmp27_1 = B_0_3*w38;
+                                    const register double tmp64_1 = B_0_2*w30;
+                                    const register double tmp76_1 = B_0_1*w38;
+                                    const register double tmp39_1 = tmp2_0*w34;
+                                    const register double tmp62_1 = B_0_1*w31;
+                                    const register double tmp56_1 = B_0_0*w31;
+                                    const register double tmp49_1 = B_1_1*w36;
+                                    const register double tmp2_1 = B_0_2*w31;
+                                    const register double tmp23_1 = B_0_2*w33;
+                                    const register double tmp38_1 = B_1_1*w43;
+                                    const register double tmp74_1 = B_1_2*w41;
+                                    const register double tmp43_1 = B_1_1*w41;
+                                    const register double tmp58_1 = B_0_2*w28;
+                                    const register double tmp67_1 = B_0_0*w33;
+                                    const register double tmp33_1 = tmp0_0*w39;
+                                    const register double tmp4_1 = B_0_0*w28;
+                                    const register double tmp20_1 = B_0_0*w30;
+                                    const register double tmp13_1 = B_0_2*w38;
+                                    const register double tmp65_1 = B_1_2*w43;
+                                    const register double tmp0_1 = tmp0_0*w29;
+                                    const register double tmp41_1 = tmp3_0*w33;
+                                    const register double tmp73_1 = B_0_2*w37;
+                                    const register double tmp69_1 = B_0_0*w38;
+                                    const register double tmp48_1 = B_1_2*w39;
+                                    const register double tmp59_1 = B_0_1*w33;
+                                    const register double tmp17_1 = B_1_3*w41;
+                                    const register double tmp5_1 = B_0_3*w33;
+                                    const register double tmp3_1 = B_0_1*w30;
+                                    const register double tmp21_1 = B_0_1*w28;
+                                    const register double tmp42_1 = B_1_0*w29;
+                                    const register double tmp54_1 = B_1_2*w32;
+                                    const register double tmp60_1 = B_1_0*w39;
+                                    const register double tmp32_1 = tmp1_0*w36;
+                                    const register double tmp10_1 = B_0_1*w37;
+                                    const register double tmp14_1 = B_0_0*w35;
+                                    const register double tmp29_1 = B_0_1*w35;
+                                    const register double tmp26_1 = B_1_2*w36;
+                                    const register double tmp30_1 = B_1_3*w43;
+                                    const register double tmp70_1 = B_0_2*w35;
+                                    const register double tmp34_1 = B_1_3*w39;
+                                    const register double tmp51_1 = B_1_0*w43;
+                                    const register double tmp31_1 = B_0_2*w34;
+                                    const register double tmp45_1 = tmp3_0*w28;
+                                    const register double tmp11_1 = tmp1_0*w39;
+                                    const register double tmp52_1 = B_1_1*w29;
+                                    const register double tmp44_1 = B_1_3*w32;
+                                    const register double tmp25_1 = B_1_1*w39;
+                                    const register double tmp47_1 = tmp2_0*w33;
+                                    const register double tmp72_1 = B_1_3*w29;
+                                    const register double tmp40_1 = tmp2_0*w28;
+                                    const register double tmp46_1 = B_1_2*w40;
+                                    const register double tmp36_1 = B_1_2*w42;
+                                    const register double tmp24_1 = B_0_0*w37;
+                                    const register double tmp77_1 = B_0_3*w35;
+                                    const register double tmp68_1 = B_0_3*w37;
+                                    const register double tmp78_1 = B_0_0*w34;
+                                    const register double tmp12_1 = tmp0_0*w36;
+                                    const register double tmp75_1 = B_1_0*w32;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp6_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp40_1 + tmp41_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp45_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp37_1 + tmp39_1 + tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp11_1 + tmp12_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp40_1 + tmp41_1 + tmp7_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1;
+                                }
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
+                                    const register double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
+                                    const register double tmp6_1 = B_1*w50;
+                                    const register double tmp1_1 = B_1*w45;
+                                    const register double tmp5_1 = B_1*w49;
+                                    const register double tmp4_1 = B_1*w48;
+                                    const register double tmp0_1 = B_0*w44;
+                                    const register double tmp2_1 = B_0*w46;
+                                    const register double tmp7_1 = B_0*w51;
+                                    const register double tmp3_1 = B_0*w47;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp3_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp2_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp4_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp5_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp6_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp2_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp1_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp5_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process C //
+                    ///////////////
+                    if (!C.isEmpty()) {
+                        add_EM_S=true;
+                        const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                        if (C.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double C_0_0 = C_p[INDEX4(k,m,0, 0, numEq,numComp,2)];
+                                    const register double C_1_0 = C_p[INDEX4(k,m,1, 0, numEq,numComp,2)];
+                                    const register double C_0_1 = C_p[INDEX4(k,m,0, 1, numEq,numComp,2)];
+                                    const register double C_1_1 = C_p[INDEX4(k,m,1, 1, numEq,numComp,2)];
+                                    const register double C_0_2 = C_p[INDEX4(k,m,0, 2, numEq,numComp,2)];
+                                    const register double C_1_2 = C_p[INDEX4(k,m,1, 2, numEq,numComp,2)];
+                                    const register double C_0_3 = C_p[INDEX4(k,m,0, 3, numEq,numComp,2)];
+                                    const register double C_1_3 = C_p[INDEX4(k,m,1, 3, numEq,numComp,2)];
+                                    const register double tmp2_0 = C_0_1 + C_0_3;
+                                    const register double tmp1_0 = C_1_2 + C_1_3;
+                                    const register double tmp3_0 = C_0_0 + C_0_2;
+                                    const register double tmp0_0 = C_1_0 + C_1_1;
+                                    const register double tmp64_1 = C_0_2*w30;
+                                    const register double tmp14_1 = C_0_2*w28;
+                                    const register double tmp19_1 = C_0_3*w31;
+                                    const register double tmp22_1 = C_1_0*w40;
+                                    const register double tmp37_1 = tmp3_0*w35;
+                                    const register double tmp29_1 = C_0_1*w35;
+                                    const register double tmp73_1 = C_0_2*w37;
+                                    const register double tmp74_1 = C_1_2*w41;
+                                    const register double tmp52_1 = C_1_3*w39;
+                                    const register double tmp25_1 = C_1_1*w39;
+                                    const register double tmp62_1 = C_0_1*w31;
+                                    const register double tmp79_1 = C_1_1*w40;
+                                    const register double tmp43_1 = C_1_1*w36;
+                                    const register double tmp27_1 = C_0_3*w38;
+                                    const register double tmp28_1 = C_1_0*w42;
+                                    const register double tmp63_1 = C_1_1*w42;
+                                    const register double tmp59_1 = C_0_3*w34;
+                                    const register double tmp72_1 = C_1_3*w29;
+                                    const register double tmp40_1 = tmp2_0*w35;
+                                    const register double tmp13_1 = C_0_3*w30;
+                                    const register double tmp51_1 = C_1_2*w40;
+                                    const register double tmp54_1 = C_1_2*w42;
+                                    const register double tmp12_1 = C_0_0*w31;
+                                    const register double tmp2_1 = tmp1_0*w32;
+                                    const register double tmp68_1 = C_0_2*w31;
+                                    const register double tmp75_1 = C_1_0*w32;
+                                    const register double tmp49_1 = C_1_1*w41;
+                                    const register double tmp4_1 = C_0_2*w35;
+                                    const register double tmp66_1 = C_0_3*w28;
+                                    const register double tmp56_1 = C_0_1*w37;
+                                    const register double tmp5_1 = C_0_1*w34;
+                                    const register double tmp38_1 = tmp2_0*w34;
+                                    const register double tmp76_1 = C_0_1*w38;
+                                    const register double tmp21_1 = C_0_1*w28;
+                                    const register double tmp69_1 = C_0_1*w30;
+                                    const register double tmp53_1 = C_1_0*w36;
+                                    const register double tmp42_1 = C_1_2*w39;
+                                    const register double tmp32_1 = tmp1_0*w29;
+                                    const register double tmp45_1 = C_1_0*w43;
+                                    const register double tmp33_1 = tmp0_0*w32;
+                                    const register double tmp35_1 = C_1_0*w41;
+                                    const register double tmp26_1 = C_1_2*w36;
+                                    const register double tmp67_1 = C_0_0*w33;
+                                    const register double tmp31_1 = C_0_2*w34;
+                                    const register double tmp20_1 = C_0_0*w30;
+                                    const register double tmp70_1 = C_0_0*w28;
+                                    const register double tmp8_1 = tmp0_0*w39;
+                                    const register double tmp30_1 = C_1_3*w43;
+                                    const register double tmp0_1 = tmp0_0*w29;
+                                    const register double tmp17_1 = C_1_3*w41;
+                                    const register double tmp58_1 = C_0_0*w35;
+                                    const register double tmp9_1 = tmp3_0*w33;
+                                    const register double tmp61_1 = C_1_3*w36;
+                                    const register double tmp41_1 = tmp3_0*w34;
+                                    const register double tmp50_1 = C_1_3*w32;
+                                    const register double tmp18_1 = C_1_1*w32;
+                                    const register double tmp6_1 = tmp1_0*w36;
+                                    const register double tmp3_1 = C_0_0*w38;
+                                    const register double tmp34_1 = C_1_1*w29;
+                                    const register double tmp77_1 = C_0_3*w35;
+                                    const register double tmp65_1 = C_1_2*w43;
+                                    const register double tmp71_1 = C_0_3*w33;
+                                    const register double tmp55_1 = C_1_1*w43;
+                                    const register double tmp46_1 = tmp3_0*w28;
+                                    const register double tmp24_1 = C_0_0*w37;
+                                    const register double tmp10_1 = tmp1_0*w39;
+                                    const register double tmp48_1 = C_1_0*w29;
+                                    const register double tmp15_1 = C_0_1*w33;
+                                    const register double tmp36_1 = C_1_2*w32;
+                                    const register double tmp60_1 = C_1_0*w39;
+                                    const register double tmp47_1 = tmp2_0*w33;
+                                    const register double tmp16_1 = C_1_2*w29;
+                                    const register double tmp1_1 = C_0_3*w37;
+                                    const register double tmp7_1 = tmp2_0*w28;
+                                    const register double tmp39_1 = C_1_3*w40;
+                                    const register double tmp44_1 = C_1_3*w42;
+                                    const register double tmp57_1 = C_0_2*w38;
+                                    const register double tmp78_1 = C_0_0*w34;
+                                    const register double tmp11_1 = tmp0_0*w36;
+                                    const register double tmp23_1 = C_0_2*w33;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp7_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp40_1 + tmp41_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp37_1 + tmp38_1 + tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp2_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp40_1 + tmp41_1 + tmp6_1 + tmp8_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1;
+                                }
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const register double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const register double tmp1_1 = C_1*w45;
+                                    const register double tmp3_1 = C_0*w51;
+                                    const register double tmp4_1 = C_0*w44;
+                                    const register double tmp7_1 = C_0*w46;
+                                    const register double tmp5_1 = C_1*w49;
+                                    const register double tmp2_1 = C_1*w48;
+                                    const register double tmp0_1 = C_0*w47;
+                                    const register double tmp6_1 = C_1*w50;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp2_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp4_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp5_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp1_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp3_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp3_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp6_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp4_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp2_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1 + tmp5_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process D //
+                    ///////////////
+                    if (!D.isEmpty()) {
+                        add_EM_S=true;
+                        const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                        if (D.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double D_0 = D_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const register double D_1 = D_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const register double D_2 = D_p[INDEX3(k, m, 2, numEq, numComp)];
+                                    const register double D_3 = D_p[INDEX3(k, m, 3, numEq, numComp)];
+                                    const register double tmp4_0 = D_1 + D_3;
+                                    const register double tmp2_0 = D_0 + D_1 + D_2 + D_3;
+                                    const register double tmp5_0 = D_0 + D_2;
+                                    const register double tmp0_0 = D_0 + D_1;
+                                    const register double tmp6_0 = D_0 + D_3;
+                                    const register double tmp1_0 = D_2 + D_3;
+                                    const register double tmp3_0 = D_1 + D_2;
+                                    const register double tmp16_1 = D_1*w56;
+                                    const register double tmp14_1 = tmp6_0*w54;
+                                    const register double tmp8_1 = D_3*w55;
+                                    const register double tmp2_1 = tmp2_0*w54;
+                                    const register double tmp12_1 = tmp5_0*w52;
+                                    const register double tmp4_1 = tmp0_0*w53;
+                                    const register double tmp3_1 = tmp1_0*w52;
+                                    const register double tmp13_1 = tmp4_0*w53;
+                                    const register double tmp10_1 = tmp4_0*w52;
+                                    const register double tmp1_1 = tmp1_0*w53;
+                                    const register double tmp7_1 = D_3*w56;
+                                    const register double tmp0_1 = tmp0_0*w52;
+                                    const register double tmp11_1 = tmp5_0*w53;
+                                    const register double tmp9_1 = D_0*w56;
+                                    const register double tmp5_1 = tmp3_0*w54;
+                                    const register double tmp18_1 = D_2*w56;
+                                    const register double tmp17_1 = D_1*w55;
+                                    const register double tmp6_1 = D_0*w55;
+                                    const register double tmp15_1 = D_2*w55;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp5_1 + tmp6_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp5_1 + tmp8_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp10_1 + tmp11_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp12_1 + tmp13_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp12_1 + tmp13_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp10_1 + tmp11_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp14_1 + tmp15_1 + tmp16_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp14_1 + tmp17_1 + tmp18_1;
+                                }
+                             }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const register double D_0 = D_p[INDEX2(k, m, numEq)];
+                                    const register double tmp2_1 = D_0*w59;
+                                    const register double tmp1_1 = D_0*w58;
+                                    const register double tmp0_1 = D_0*w57;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp2_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process X //
+                    ///////////////
+                    if (!X.isEmpty()) {
+                        add_EM_F=true;
+                        const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                        if (X.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const register double X_0_0 = X_p[INDEX3(k, 0, 0, numEq, 2)];
+                                const register double X_1_0 = X_p[INDEX3(k, 1, 0, numEq, 2)];
+                                const register double X_0_1 = X_p[INDEX3(k, 0, 1, numEq, 2)];
+                                const register double X_1_1 = X_p[INDEX3(k, 1, 1, numEq, 2)];
+                                const register double X_0_2 = X_p[INDEX3(k, 0, 2, numEq, 2)];
+                                const register double X_1_2 = X_p[INDEX3(k, 1, 2, numEq, 2)];
+                                const register double X_0_3 = X_p[INDEX3(k, 0, 3, numEq, 2)];
+                                const register double X_1_3 = X_p[INDEX3(k, 1, 3, numEq, 2)];
+                                const register double tmp1_0 = X_1_1 + X_1_3;
+                                const register double tmp3_0 = X_0_0 + X_0_1;
+                                const register double tmp2_0 = X_1_0 + X_1_2;
+                                const register double tmp0_0 = X_0_2 + X_0_3;
+                                const register double tmp8_1 = tmp2_0*w66;
+                                const register double tmp5_1 = tmp3_0*w64;
+                                const register double tmp14_1 = tmp0_0*w64;
+                                const register double tmp3_1 = tmp3_0*w60;
+                                const register double tmp9_1 = tmp3_0*w63;
+                                const register double tmp13_1 = tmp3_0*w65;
+                                const register double tmp12_1 = tmp1_0*w66;
+                                const register double tmp10_1 = tmp0_0*w60;
+                                const register double tmp2_1 = tmp2_0*w61;
+                                const register double tmp6_1 = tmp2_0*w62;
+                                const register double tmp4_1 = tmp0_0*w65;
+                                const register double tmp11_1 = tmp1_0*w67;
+                                const register double tmp1_1 = tmp1_0*w62;
+                                const register double tmp7_1 = tmp1_0*w61;
+                                const register double tmp0_1 = tmp0_0*w63;
+                                const register double tmp15_1 = tmp2_0*w67;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp10_1 + tmp11_1 + tmp8_1 + tmp9_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const register double X_0 = X_p[INDEX2(k, 0, numEq)];
+                                const register double X_1 = X_p[INDEX2(k, 1, numEq)];
+                                const register double tmp3_1 = X_1*w71;
+                                const register double tmp2_1 = X_0*w70;
+                                const register double tmp1_1 = X_0*w68;
+                                const register double tmp0_1 = X_1*w69;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1 + tmp2_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp1_1 + tmp3_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp2_1 + tmp3_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process Y //
+                    ///////////////
+                    if (!Y.isEmpty()) {
+                        add_EM_F=true;
+                        const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                        if (Y.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const register double Y_0 = Y_p[INDEX2(k, 0, numEq)];
+                                const register double Y_1 = Y_p[INDEX2(k, 1, numEq)];
+                                const register double Y_2 = Y_p[INDEX2(k, 2, numEq)];
+                                const register double Y_3 = Y_p[INDEX2(k, 3, numEq)];
+                                const register double tmp0_0 = Y_1 + Y_2;
+                                const register double tmp1_0 = Y_0 + Y_3;
+                                const register double tmp9_1 = Y_0*w74;
+                                const register double tmp4_1 = tmp1_0*w73;
+                                const register double tmp5_1 = Y_2*w74;
+                                const register double tmp7_1 = Y_1*w74;
+                                const register double tmp6_1 = Y_2*w72;
+                                const register double tmp2_1 = Y_3*w74;
+                                const register double tmp8_1 = Y_3*w72;
+                                const register double tmp3_1 = Y_1*w72;
+                                const register double tmp0_1 = Y_0*w72;
+                                const register double tmp1_1 = tmp0_0*w73;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp4_1 + tmp6_1 + tmp7_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp1_1 + tmp8_1 + tmp9_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const register double Y_0 = Y_p[k];
+                                const register double tmp0_1 = Y_0*w75;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    /* GENERATOR SNIP_PDE_SYSTEM BOTTOM */
+
+                    // add to matrix (if add_EM_S) and RHS (if add_EM_F)
+                    const index_t firstNode=m_N0*k1+k0;
+                    IndexVector rowIndex;
+                    rowIndex.push_back(m_dofMap[firstNode]);
+                    rowIndex.push_back(m_dofMap[firstNode+1]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
+                    if (add_EM_F) {
+                        //cout << "-- AddtoRHS -- " << endl;
+                        double *F_p=rhs.getSampleDataRW(0);
+                        for (index_t i=0; i<rowIndex.size(); i++) {
+                            if (rowIndex[i]<getNumDOF()) {
+                                F_p[rowIndex[i]]+=EM_F[i];
+                                //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
+                            }
+                        }
+                        //cout << "---"<<endl;
+                    }
+                    if (add_EM_S) {
+                        //cout << "-- AddtoSystem -- " << endl;
+                        addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
+                    }
+
+                } // end k0 loop
+            } // end k1 loop
+        } // end of coloring
+    } // end of parallel region
+}
+
 
 } // end of namespace ripley
 

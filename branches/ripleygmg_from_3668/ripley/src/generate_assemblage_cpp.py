@@ -178,7 +178,7 @@ def generate(DIM, filename):
 
    #generate PDE assemblage
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
-   insertCode("Assemble_PDE_System_%sD.c"%DIM, { "SNIP" : CODE , "SNIP_PRE" : PRECODE } )
+   insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
    CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
    insertCode("Assemble_PDE_System_%sD_reduced.c"%DIM, { "SNIP" : CODE , "SNIP_PRE" : PRECODE })
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
@@ -528,8 +528,8 @@ const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (A.actsExpanded()) {\n"
-        if system: CODE+= """for (k=0; k<numEq; k++) {
-for (m=0; m<numComp; m++) {
+        if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
         DATA_A=[]
         CODE2=""
@@ -556,8 +556,8 @@ for (m=0; m<numComp; m++) {
         if system: CODE+="}\n}\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= """for (k=0; k<p.numEq; k++) {
-for (m=0; m<numComp; m++) {
+       CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
    DATA_A=[]
    CODE2=""
@@ -571,7 +571,7 @@ for (m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_A.append(A)
              if system:
-                      CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
+                      CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
              else:
                       CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
              for q in xrange(len(Q)):
@@ -593,8 +593,8 @@ const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (B.actsExpanded()) {\n"
-        if system: CODE+= """for (k=0; k<p.numEq; ++) {
-for (m=0; m<numComp; m++) {
+        if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
         DATA_B=[]
         CODE2=""
@@ -620,8 +620,8 @@ for (m=0; m<numComp; m++) {
         if system: CODE+="}\n}\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= """for (k=0; k<p.numEq; k++) {
-for (m=0; m<numComp; m++) {
+       CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
    DATA_B=[]
    CODE2=""
@@ -634,7 +634,7 @@ for (m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_B.append(A)
              if system:
-                      CODE2+="const register double %s = B_p[INDEX3(k,%s,m, p.numEq, %s)];\n"%(A_name, di,  DIM)
+                      CODE2+="const register double %s = B_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
              else:
                       CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
              for q in xrange(len(Q)):
@@ -656,8 +656,8 @@ const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (C.actsExpanded()) {\n"
-        if system: CODE+= """for (k=0; k<p.numEq; k++) {
-for (m=0; m<numComp; m++) {
+        if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
         DATA_C=[]
         CODE2=""
@@ -683,8 +683,8 @@ for (m=0; m<numComp; m++) {
         if system: CODE+="}\n}\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= """for (k=0; k<numEq; k++) {
-for (m=0; m<numComp; m++) {
+       CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
    DATA_C=[]
    CODE2=""
@@ -719,8 +719,8 @@ const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (D.actsExpanded()) {\n"
-        if system: CODE+= """for (k=0; k<numEq; k++) {
-for (m=0; m<numComp; m++) {
+        if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
         DATA_D=[]
         CODE2=""
@@ -745,8 +745,8 @@ for (m=0; m<numComp; m++) {
         if system: CODE+="}\n }\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= """for (k=0; k<numEq; k++) {
-for (m=0; m<numComp; m++) {
+       CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
 """
    DATA_D=[]
    CODE2=""
@@ -782,7 +782,7 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (X.actsExpanded()) {\n"
-        if system: CODE+= "for (k=0; k<numEq; k++) {\n"
+        if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
         DATA_X=[]
         CODE2=""
         EM = {}
@@ -805,7 +805,7 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
         if system: CODE+="}\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= "for (k=0; k<numEq; k++) {\n"
+       CODE+= "for (index_t k=0; k<numEq; k++) {\n"
    DATA_X=[]
    CODE2=""
    EM = {}
@@ -838,7 +838,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (Y.actsExpanded()) {\n"
-        if system: CODE+= "for (k=0; k<numEq; k++) {\n"
+        if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
         DATA_Y=[]
         CODE2=""
         EM = {}
@@ -850,7 +850,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                   A=Symbol(A_name)
                   DATA_Y.append(A)
                   if system:
-                      CODE2+="const register double %s = Y_p[INDEX3(k, %s, numEq)];\n"%(A_name, q)
+                      CODE2+="const register double %s = Y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
                   else:
                       CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
                   for i in range(len(S)):
@@ -860,7 +860,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
         if system: CODE+="}\n"
         CODE+="} else { /* constant data */\n"
    if system:
-       CODE+= "for (k=0; k<numEq; k++) {\n"
+       CODE+= "for (index_t k=0; k<numEq; k++) {\n"
    DATA_Y=[]
    CODE2=""
    EM = {}
@@ -887,7 +887,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
        PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS)))
    return CODE, PRECODE
 
-filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
-for d in [2,3]:
+filenames={2:"Rectangle.cpp"} #, 3:"Brick.cpp"}
+for d in filenames.keys():
      generate(d, filenames[d])
 

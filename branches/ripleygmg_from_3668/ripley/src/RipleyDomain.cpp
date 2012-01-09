@@ -684,6 +684,26 @@ void RipleyDomain::addPDEToSystem(
         assemblePDESystem(S, rhs, A, B, C, D, X, Y, d, y);
 }
 
+void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
+        const escript::Data& Y, const escript::Data& y,
+        const escript::Data& y_contact, const escript::Data& y_dirac) const
+{
+    if (!y_contact.isEmpty())
+        throw RipleyException("addPDEToRHS(): Ripley does not support contact elements");
+
+    if (rhs.isEmpty()) {
+        if (!X.isEmpty() || !Y.isEmpty())
+            throw RipleyException("addPDEToRHS(): Right hand side coefficients are provided but no right hand side vector given");
+        else
+            return;
+    }
+
+    if (rhs.getDataPointSize() == 1)
+        assemblePDESingle(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y, escript::Data(), y);
+    else
+        assemblePDESystem(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y, escript::Data(), y);
+}
+
 void RipleyDomain::setNewX(const escript::Data& arg)
 {
     throw RipleyException("setNewX(): Operation not supported");
@@ -849,6 +869,8 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
 {
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
+    const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
+    const dim_t numSubblocks_Sol = num_Sol / mat->col_block_size;
 
     const index_t* mainBlock_ptr = mat->mainBlock->pattern->ptr;
     const index_t* mainBlock_index = mat->mainBlock->pattern->index;
@@ -862,42 +884,65 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
 
     for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
         // down columns of array
-        const dim_t j_Eq = nodes_Eq[k_Eq];
-        const dim_t i_row = j_Eq;
-//printf("row:%d\n", i_row);
-        // only look at the matrix rows stored on this processor
-        if (i_row < numMyRows) {
-            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                const dim_t i_col = nodes_Sol[k_Sol];
-                if (i_col < numMyCols) {
-                    for (dim_t k = mainBlock_ptr[i_row]; k < mainBlock_ptr[i_row + 1]; ++k) {
-                        if (mainBlock_index[k] == i_col) {
-                            mainBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
-                        }
-                    }
-                } else {
-                    for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
-//cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
-                        if (col_coupleBlock_index[k] == i_col - numMyCols) {
-                            col_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
+        for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
+            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row;
+            //printf("row:%d\n", i_row);
+            // only look at the matrix rows stored on this processor
+            if (i_row < numMyRows) {
+                for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                    for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
+                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
+                        if (i_col < numMyCols) {
+                            for (dim_t k = mainBlock_ptr[i_row]; k < mainBlock_ptr[i_row + 1]; ++k) {
+                                if (mainBlock_index[k] == i_col) {
+                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
+                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
+                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
+                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
+                                            mainBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
+        //cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
+                                if (col_coupleBlock_index[k] == i_col - numMyCols) {
+                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
+                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
+                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
+                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
+                                            col_coupleBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                // across rows of array
-                const dim_t i_col = nodes_Sol[k_Sol];
-                if (i_col < numMyCols) {
-                    for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
-                         k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
-                    {
-//cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
-                        if (row_coupleBlock_index[k] == i_col) {
-                            row_coupleBlock_val[k] += array[INDEX2(k_Eq, k_Sol, nodes_Eq.size())];
-                            break;
+            } else {
+                for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                    // across rows of array
+                    for (dim_t l_col=0; l_col<numSubblocks_Sol; ++l_col) {
+                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
+                        if (i_col < numMyCols) {
+                            for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
+                                 k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
+                            {
+        //cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
+                                if (row_coupleBlock_index[k] == i_col) {
+                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
+                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
+                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
+                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
+                                        row_coupleBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -971,13 +1016,6 @@ void RipleyDomain::addPDEToLumpedSystem(escript::Data& mat,
         const escript::Data& d_dirac, const bool useHRZ) const
 {
     throw RipleyException("addPDEToLumpedSystem() not implemented");
-}
-
-void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
-        const escript::Data& Y, const escript::Data& y,
-        const escript::Data& y_contact, const escript::Data& y_dirac) const
-{
-    throw RipleyException("addPDEToRHS() not implemented");
 }
 
 void RipleyDomain::addPDEToTransportProblem(
