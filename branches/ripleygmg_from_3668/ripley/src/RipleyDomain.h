@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -680,6 +680,12 @@ protected:
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const;
+
+    /// computes the gradient of 'in' and puts the result in 'out'
+    virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
+
+    /// copies the integrals of the function defined by 'arg' into 'integrals'
+    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const;
 
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'

@@ -36,30 +36,32 @@ except KeyError:
 
 NE=4 # number elements
 
+mpiSize=getMPISizeWorld()
+for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+    NX=x
+    NY=mpiSize/x
+    if NX*NY == mpiSize:
+        break
+
+for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+    NXb=x[0]
+    NYb=x[1]
+    NZb=mpiSize/(x[0]*x[1])
+    if NXb*NYb*NZb == mpiSize:
+        break
+
 class Test_UtilOnRipley(Test_util,Test_symbols):
-   def setUp(self):
-       mpiSize=getMPISizeWorld()
-       for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-           NX=x
-           NY=mpiSize/x
-           if NX*NY == mpiSize:
-               break
-       self.domain=Rectangle(n0=NE*NX, n1=NE*NY, l0=1., l1=1., d0=NX, d1=NY)
-       self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
-   def tearDown(self):
-       del self.functionspace
-       del self.domain
+    def setUp(self):
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
 
 class Test_Util_SpatialFunctionsOnRipleyRect(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        mpiSize=getMPISizeWorld()
-        for x in [int(sqrt(mpiSize)),7,5,3,2,1]:
-            NX=x
-            NY=mpiSize/x
-            if NX*NY == mpiSize:
-                break
-        self.domain = Rectangle(n0=NE*NX, n1=NE*NY, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.order
         del self.domain
@@ -67,26 +69,16 @@ class Test_Util_SpatialFunctionsOnRipleyRect(Test_Util_SpatialFunctions_noGradOn
 class Test_Util_SpatialFunctionsOnRipleyBrick(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        mpiSize=getMPISizeWorld()
-        for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-            NX=x[0]
-            NY=x[1]
-            NZ=mpiSize/(x[0]*x[1])
-            if NX*NY*NZ == mpiSize:
-                break
-        self.domain = Brick(n0=NE*NX, n1=NE*NY, n2=NE*NZ, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
     def tearDown(self):
         del self.order
         del self.domain
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnRipley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyRect))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyBrick))
-   else:
-      pass
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(Test_UtilOnRipley))
+    suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyRect))
+    suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyBrick))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

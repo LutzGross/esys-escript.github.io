@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -54,15 +54,23 @@ Brick::Brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0,
         throw RipleyException("Too few elements for the number of ranks");
 
     // local number of elements (including overlap)
-    m_NE0 = (m_NX>1 ? (n0+1)/m_NX : n0);
+    m_NE0 = m_ownNE0 = (m_NX>1 ? (n0+1)/m_NX : n0);
     if (m_mpiInfo->rank%m_NX>0 && m_mpiInfo->rank%m_NX<m_NX-1)
         m_NE0++;
-    m_NE1 = (m_NY>1 ? (n1+1)/m_NY : n1);
+    else if (m_NX>1 && m_mpiInfo->rank%m_NX==m_NX-1)
+        m_ownNE0--;
+
+    m_NE1 = m_ownNE1 = (m_NY>1 ? (n1+1)/m_NY : n1);
     if (m_mpiInfo->rank%(m_NX*m_NY)/m_NX>0 && m_mpiInfo->rank%(m_NX*m_NY)/m_NX<m_NY-1)
         m_NE1++;
-    m_NE2 = (m_NZ>1 ? (n2+1)/m_NZ : n2);
+    else if (m_NY>1 && m_mpiInfo->rank%(m_NX*m_NY)/m_NX==m_NY-1)
+        m_ownNE1--;
+
+    m_NE2 = m_ownNE2 = (m_NZ>1 ? (n2+1)/m_NZ : n2);
     if (m_mpiInfo->rank/(m_NX*m_NY)>0 && m_mpiInfo->rank/(m_NX*m_NY)<m_NZ-1)
         m_NE2++;
+    else if (m_NZ>1 && m_mpiInfo->rank/(m_NX*m_NY)==m_NZ-1)
+        m_ownNE2--;
 
     // local number of nodes
     m_N0 = m_NE0+1;
@@ -330,712 +338,6 @@ bool Brick::ownSample(int fsType, index_t id) const
     msg << "ownSample() not implemented for "
         << functionSpaceTypeAsString(fsType);
     throw RipleyException(msg.str());
-}
-
-void Brick::setToGradient(escript::Data& out, const escript::Data& cIn) const
-{
-    escript::Data& in = *const_cast<escript::Data*>(&cIn);
-    const dim_t numComp = in.getDataPointSize();
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double h2 = m_l1/m_gNE2;
-    const double C0 = .044658198738520451079;
-    const double C1 = .16666666666666666667;
-    const double C2 = .21132486540518711775;
-    const double C3 = .25;
-    const double C4 = .5;
-    const double C5 = .62200846792814621559;
-    const double C6 = .78867513459481288225;
-
-    if (out.getFunctionSpace().getTypeCode() == Elements) {
-        out.requireWrite();
-        /*** GENERATOR SNIP_GRAD_ELEMENTS TOP */
-#pragma omp parallel for
-        for (index_t k2=0; k2 < m_NE2; ++k2) {
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
-                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
-                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
-                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
-                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
-                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
-                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
-                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
-                    double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
-                    for (index_t i=0; i < numComp; ++i) {
-                        const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                        const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                        const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                        const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                        const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                        const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                        const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                        const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                        const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                        const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                        const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                        const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                        o[INDEX3(i,0,0,numComp,3)] = V0;
-                        o[INDEX3(i,1,0,numComp,3)] = V4;
-                        o[INDEX3(i,2,0,numComp,3)] = V8;
-                        o[INDEX3(i,0,1,numComp,3)] = V0;
-                        o[INDEX3(i,1,1,numComp,3)] = V5;
-                        o[INDEX3(i,2,1,numComp,3)] = V9;
-                        o[INDEX3(i,0,2,numComp,3)] = V1;
-                        o[INDEX3(i,1,2,numComp,3)] = V4;
-                        o[INDEX3(i,2,2,numComp,3)] = V10;
-                        o[INDEX3(i,0,3,numComp,3)] = V1;
-                        o[INDEX3(i,1,3,numComp,3)] = V5;
-                        o[INDEX3(i,2,3,numComp,3)] = V11;
-                        o[INDEX3(i,0,4,numComp,3)] = V2;
-                        o[INDEX3(i,1,4,numComp,3)] = V6;
-                        o[INDEX3(i,2,4,numComp,3)] = V8;
-                        o[INDEX3(i,0,5,numComp,3)] = V2;
-                        o[INDEX3(i,1,5,numComp,3)] = V7;
-                        o[INDEX3(i,2,5,numComp,3)] = V9;
-                        o[INDEX3(i,0,6,numComp,3)] = V3;
-                        o[INDEX3(i,1,6,numComp,3)] = V6;
-                        o[INDEX3(i,2,6,numComp,3)] = V10;
-                        o[INDEX3(i,0,7,numComp,3)] = V3;
-                        o[INDEX3(i,1,7,numComp,3)] = V7;
-                        o[INDEX3(i,2,7,numComp,3)] = V11;
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-        } /* end of k2 loop */
-        /* GENERATOR SNIP_GRAD_ELEMENTS BOTTOM */
-    } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
-        out.requireWrite();
-        /*** GENERATOR SNIP_GRAD_REDUCED_ELEMENTS TOP */
-#pragma omp parallel for
-        for (index_t k2=0; k2 < m_NE2; ++k2) {
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
-                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
-                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
-                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
-                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
-                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
-                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
-                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
-                    double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-        } /* end of k2 loop */
-        /* GENERATOR SNIP_GRAD_REDUCED_ELEMENTS BOTTOM */
-    } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
-        out.requireWrite();
-        /*** GENERATOR SNIP_GRAD_FACES TOP */
-#pragma omp parallel
-        {
-            if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / h1;
-                            const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / h1;
-                            const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / h2;
-                            const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = V0;
-                            o[INDEX3(i,2,0,numComp,3)] = V2;
-                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            o[INDEX3(i,1,1,numComp,3)] = V0;
-                            o[INDEX3(i,2,1,numComp,3)] = V3;
-                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            o[INDEX3(i,1,2,numComp,3)] = V1;
-                            o[INDEX3(i,2,2,numComp,3)] = V2;
-                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            o[INDEX3(i,1,3,numComp,3)] = V1;
-                            o[INDEX3(i,2,3,numComp,3)] = V3;
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 0 */
-            if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
-                            const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
-                            const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
-                            const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = V0;
-                            o[INDEX3(i,2,0,numComp,3)] = V2;
-                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            o[INDEX3(i,1,1,numComp,3)] = V0;
-                            o[INDEX3(i,2,1,numComp,3)] = V3;
-                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            o[INDEX3(i,1,2,numComp,3)] = V1;
-                            o[INDEX3(i,2,2,numComp,3)] = V2;
-                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            o[INDEX3(i,1,3,numComp,3)] = V1;
-                            o[INDEX3(i,2,3,numComp,3)] = V3;
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 1 */
-            if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / h0;
-                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / h2;
-                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = V1;
-                            o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            o[INDEX3(i,2,1,numComp,3)] = V2;
-                            o[INDEX3(i,0,2,numComp,3)] = V0;
-                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            o[INDEX3(i,2,2,numComp,3)] = V1;
-                            o[INDEX3(i,0,3,numComp,3)] = V0;
-                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            o[INDEX3(i,2,3,numComp,3)] = V2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 2 */
-            if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
-                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
-                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
-                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = V2;
-                            o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            o[INDEX3(i,2,1,numComp,3)] = V3;
-                            o[INDEX3(i,0,2,numComp,3)] = V1;
-                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            o[INDEX3(i,2,2,numComp,3)] = V2;
-                            o[INDEX3(i,0,3,numComp,3)] = V1;
-                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            o[INDEX3(i,2,3,numComp,3)] = V3;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 3 */
-            if (m_faceOffset[4] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / h0;
-                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / h0;
-                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / h1;
-                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / h1;
-                            o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = V2;
-                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                            o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = V3;
-                            o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            o[INDEX3(i,0,2,numComp,3)] = V1;
-                            o[INDEX3(i,1,2,numComp,3)] = V2;
-                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            o[INDEX3(i,0,3,numComp,3)] = V1;
-                            o[INDEX3(i,1,3,numComp,3)] = V3;
-                            o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 4 */
-            if (m_faceOffset[5] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
-                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
-                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
-                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
-                            o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = V2;
-                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                            o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = V3;
-                            o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            o[INDEX3(i,0,2,numComp,3)] = V1;
-                            o[INDEX3(i,1,2,numComp,3)] = V2;
-                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            o[INDEX3(i,0,3,numComp,3)] = V1;
-                            o[INDEX3(i,1,3,numComp,3)] = V3;
-                            o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 5 */
-        } // end of parallel section
-        /* GENERATOR SNIP_GRAD_FACES BOTTOM */
-    } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-        out.requireWrite();
-        /*** GENERATOR SNIP_GRAD_REDUCED_FACES TOP */
-#pragma omp parallel
-        {
-            if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / h2;
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 0 */
-            if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / h2;
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 1 */
-            if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 2 */
-            if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 3 */
-            if (m_faceOffset[4] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 4 */
-            if (m_faceOffset[5] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
-                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
-                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
-                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
-                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
-                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
-                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
-                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 5 */
-        } // end of parallel section
-        /* GENERATOR SNIP_GRAD_REDUCED_FACES BOTTOM */
-    } else {
-        stringstream msg;
-        msg << "setToGradient() not implemented for "
-            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
-        throw RipleyException(msg.str());
-    }
-}
-
-void Brick::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
-{
-    escript::Data& in = *const_cast<escript::Data*>(&arg);
-    const dim_t numComp = in.getDataPointSize();
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double h2 = m_l2/m_gNE2;
-    if (arg.getFunctionSpace().getTypeCode() == Elements) {
-        const double w_0 = h0*h1*h2/8.;
-#pragma omp parallel
-        {
-            vector<double> int_local(numComp, 0);
-#pragma omp for nowait
-            for (index_t k2 = 0; k2 < m_NE2; ++k2) {
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            const register double f_4 = f[INDEX2(i,4,numComp)];
-                            const register double f_5 = f[INDEX2(i,5,numComp)];
-                            const register double f_6 = f[INDEX2(i,6,numComp)];
-                            const register double f_7 = f[INDEX2(i,7,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of k2 loop */
-
-#pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
-        } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedElements) {
-        const double w_0 = h0*h1*h2;
-#pragma omp parallel
-        {
-            vector<double> int_local(numComp, 0);
-#pragma omp for nowait
-            for (index_t k2 = 0; k2 < m_NE2; ++k2) {
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of k2 loop */
-
-#pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
-        } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == FaceElements) {
-        const double w_0 = h1*h2/4.;
-        const double w_1 = h0*h2/4.;
-        const double w_2 = h0*h1/4.;
-#pragma omp parallel
-        {
-            vector<double> int_local(numComp, 0);
-            if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[4] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[5] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            const register double f_0 = f[INDEX2(i,0,numComp)];
-                            const register double f_1 = f[INDEX2(i,1,numComp)];
-                            const register double f_2 = f[INDEX2(i,2,numComp)];
-                            const register double f_3 = f[INDEX2(i,3,numComp)];
-                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-#pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
-        } // end of parallel section
-
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-        const double w_0 = h1*h2;
-        const double w_1 = h0*h2;
-        const double w_2 = h0*h1;
-#pragma omp parallel
-        {
-            vector<double> int_local(numComp, 0);
-            if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k1=0; k1 < m_NE1; ++k1) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_0;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_1;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE2; ++k2) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_1;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[4] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_2;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-            if (m_faceOffset[5] > -1) {
-#pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    for (index_t k0=0; k0 < m_NE0; ++k0) {
-                        const double* f = in.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
-                        for (index_t i=0; i < numComp; ++i) {
-                            int_local[i]+=f[i]*w_2;
-                        }  /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            }
-
-#pragma omp critical
-            for (index_t i=0; i<numComp; i++)
-                integrals[i]+=int_local[i];
-        } // end of parallel section
-
-    } else {
-        stringstream msg;
-        msg << "setToIntegrals() not implemented for "
-            << functionSpaceTypeAsString(arg.getFunctionSpace().getTypeCode());
-        throw RipleyException(msg.str());
-    }
 }
 
 void Brick::setToNormal(escript::Data& out) const
@@ -1434,6 +736,697 @@ void Brick::assembleCoordinates(escript::Data& arg) const
                 point[2] = zdz.first+i2*zdz.second;
             }
         }
+    }
+}
+
+//protected
+void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    const double h2 = m_l1/m_gNE2;
+    const double C0 = .044658198738520451079;
+    const double C1 = .16666666666666666667;
+    const double C2 = .21132486540518711775;
+    const double C3 = .25;
+    const double C4 = .5;
+    const double C5 = .62200846792814621559;
+    const double C6 = .78867513459481288225;
+
+    if (out.getFunctionSpace().getTypeCode() == Elements) {
+        out.requireWrite();
+#pragma omp parallel for
+        for (index_t k2=0; k2 < m_NE2; ++k2) {
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                    for (index_t i=0; i < numComp; ++i) {
+                        const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                        const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                        const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                        const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                        const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                        const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                        const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                        const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                        const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                        const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                        const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        o[INDEX3(i,0,0,numComp,3)] = V0;
+                        o[INDEX3(i,1,0,numComp,3)] = V4;
+                        o[INDEX3(i,2,0,numComp,3)] = V8;
+                        o[INDEX3(i,0,1,numComp,3)] = V0;
+                        o[INDEX3(i,1,1,numComp,3)] = V5;
+                        o[INDEX3(i,2,1,numComp,3)] = V9;
+                        o[INDEX3(i,0,2,numComp,3)] = V1;
+                        o[INDEX3(i,1,2,numComp,3)] = V4;
+                        o[INDEX3(i,2,2,numComp,3)] = V10;
+                        o[INDEX3(i,0,3,numComp,3)] = V1;
+                        o[INDEX3(i,1,3,numComp,3)] = V5;
+                        o[INDEX3(i,2,3,numComp,3)] = V11;
+                        o[INDEX3(i,0,4,numComp,3)] = V2;
+                        o[INDEX3(i,1,4,numComp,3)] = V6;
+                        o[INDEX3(i,2,4,numComp,3)] = V8;
+                        o[INDEX3(i,0,5,numComp,3)] = V2;
+                        o[INDEX3(i,1,5,numComp,3)] = V7;
+                        o[INDEX3(i,2,5,numComp,3)] = V9;
+                        o[INDEX3(i,0,6,numComp,3)] = V3;
+                        o[INDEX3(i,1,6,numComp,3)] = V6;
+                        o[INDEX3(i,2,6,numComp,3)] = V10;
+                        o[INDEX3(i,0,7,numComp,3)] = V3;
+                        o[INDEX3(i,1,7,numComp,3)] = V7;
+                        o[INDEX3(i,2,7,numComp,3)] = V11;
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of k1 loop
+        } // end of k2 loop
+    } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
+#pragma omp parallel for
+        for (index_t k2=0; k2 < m_NE2; ++k2) {
+            for (index_t k1=0; k1 < m_NE1; ++k1) {
+                for (index_t k0=0; k0 < m_NE0; ++k0) {
+                    const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,k2, m_N0,m_N1));
+                    const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_N0,m_N1));
+                    const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_N0,m_N1));
+                    const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,k2+1, m_N0,m_N1));
+                    const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,k2, m_N0,m_N1));
+                    const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_N0,m_N1));
+                    const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_N0,m_N1));
+                    const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_N0,m_N1));
+                    double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
+                    for (index_t i=0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+                        o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+                        o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of k1 loop
+        } // end of k2 loop
+    } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
+#pragma omp parallel
+        {
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / h1;
+                            const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / h1;
+                            const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / h2;
+                            const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = V0;
+                            o[INDEX3(i,2,0,numComp,3)] = V2;
+                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,1,1,numComp,3)] = V0;
+                            o[INDEX3(i,2,1,numComp,3)] = V3;
+                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,1,2,numComp,3)] = V1;
+                            o[INDEX3(i,2,2,numComp,3)] = V2;
+                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,1,3,numComp,3)] = V1;
+                            o[INDEX3(i,2,3,numComp,3)] = V3;
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 0
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
+                            const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
+                            const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
+                            const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = V0;
+                            o[INDEX3(i,2,0,numComp,3)] = V2;
+                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,1,1,numComp,3)] = V0;
+                            o[INDEX3(i,2,1,numComp,3)] = V3;
+                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,1,2,numComp,3)] = V1;
+                            o[INDEX3(i,2,2,numComp,3)] = V2;
+                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,1,3,numComp,3)] = V1;
+                            o[INDEX3(i,2,3,numComp,3)] = V3;
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 1
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / h0;
+                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / h2;
+                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = V1;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,1,numComp,3)] = V2;
+                            o[INDEX3(i,0,2,numComp,3)] = V0;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,2,numComp,3)] = V1;
+                            o[INDEX3(i,0,3,numComp,3)] = V0;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,3,numComp,3)] = V2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 2
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
+                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
+                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
+                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = V2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,1,numComp,3)] = V3;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,2,numComp,3)] = V2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,3,numComp,3)] = V3;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 3
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / h0;
+                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / h0;
+                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / h1;
+                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / h1;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = V2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = V3;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = V2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = V3;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 4
+            if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
+                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
+                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
+                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = V2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = V3;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = V2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = V3;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 5
+        } // end of parallel section
+    } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        out.requireWrite();
+#pragma omp parallel
+        {
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / h2;
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 0
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k1=0; k1 < m_NE1; ++k1) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / h2;
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 1
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 2
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k2=0; k2 < m_NE2; ++k2) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 3
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 4
+            if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+                for (index_t k1=0; k1 < m_NE1; ++k1) {
+                    for (index_t k0=0; k0 < m_NE0; ++k0) {
+                        const register double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
+                        const register double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
+                        const register double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
+                        const register double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
+                        const register double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
+                        const register double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
+                        const register double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
+                        const register double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / h0;
+                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 5
+        } // end of parallel section
+    }
+}
+
+//protected
+void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
+{
+    const dim_t numComp = arg.getDataPointSize();
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    const double h2 = m_l2/m_gNE2;
+    const index_t left = (m_offset0==0 ? 0 : 1);
+    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t front = (m_offset2==0 ? 0 : 1);
+    if (arg.getFunctionSpace().getTypeCode() == Elements) {
+        const double w_0 = h0*h1*h2/8.;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+#pragma omp for nowait
+            for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            const register double f_4 = f[INDEX2(i,4,numComp)];
+                            const register double f_5 = f[INDEX2(i,5,numComp)];
+                            const register double f_6 = f[INDEX2(i,6,numComp)];
+                            const register double f_7 = f[INDEX2(i,7,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3+f_4+f_5+f_6+f_7)*w_0;
+                        }  // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of k2 loop
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        } // end of parallel section
+    } else if (arg.getFunctionSpace().getTypeCode() == ReducedElements) {
+        const double w_0 = h0*h1*h2;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+#pragma omp for nowait
+            for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(INDEX3(k0, k1, k2, m_NE0, m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of k2 loop
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        } // end of parallel section
+    } else if (arg.getFunctionSpace().getTypeCode() == FaceElements) {
+        const double w_0 = h1*h2/4.;
+        const double w_1 = h0*h2/4.;
+        const double w_2 = h0*h1/4.;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_0;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_1;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const register double f_0 = f[INDEX2(i,0,numComp)];
+                            const register double f_1 = f[INDEX2(i,1,numComp)];
+                            const register double f_2 = f[INDEX2(i,2,numComp)];
+                            const register double f_3 = f[INDEX2(i,3,numComp)];
+                            int_local[i]+=(f_0+f_1+f_2+f_3)*w_2;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        } // end of parallel section
+
+    } else if (arg.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+        const double w_0 = h1*h2;
+        const double w_1 = h0*h2;
+        const double w_2 = h0*h1;
+#pragma omp parallel
+        {
+            vector<double> int_local(numComp, 0);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_0;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_1;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k2 = front; k2 < front+m_ownNE2; ++k2) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_1;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_2;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+            if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                    for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                        const double* f = arg.getSampleDataRO(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            int_local[i]+=f[i]*w_2;
+                        }  // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            }
+
+#pragma omp critical
+            for (index_t i=0; i<numComp; i++)
+                integrals[i]+=int_local[i];
+        } // end of parallel section
+
     }
 }
 
@@ -1918,7 +1911,6 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
-        /*** GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS TOP */
         const double c0 = .125;
 #pragma omp parallel for
         for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -1935,14 +1927,12 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
                     double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE0,m_NE1));
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i]);
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-        } /* end of k2 loop */
-        /* GENERATOR SNIP_INTERPOLATE_REDUCED_ELEMENTS BOTTOM */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of k1 loop
+        } // end of k2 loop
     } else {
         out.requireWrite();
-        /*** GENERATOR SNIP_INTERPOLATE_ELEMENTS TOP */
         const double c0 = .0094373878376559314545;
         const double c1 = .035220810900864519624;
         const double c2 = .13144585576580214704;
@@ -1969,11 +1959,10 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
                         o[INDEX2(i,numComp,5)] = f_010[i]*c0 + f_101[i]*c3 + c2*(f_001[i] + f_100[i] + f_111[i]) + c1*(f_000[i] + f_011[i] + f_110[i]);
                         o[INDEX2(i,numComp,6)] = f_011[i]*c3 + f_100[i]*c0 + c2*(f_001[i] + f_010[i] + f_111[i]) + c1*(f_000[i] + f_101[i] + f_110[i]);
                         o[INDEX2(i,numComp,7)] = f_000[i]*c0 + f_111[i]*c3 + c2*(f_011[i] + f_101[i] + f_110[i]) + c1*(f_001[i] + f_010[i] + f_100[i]);
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-        } /* end of k2 loop */
-        /* GENERATOR SNIP_INTERPOLATE_ELEMENTS BOTTOM */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of k1 loop
+        } // end of k2 loop
     }
 }
 
@@ -1987,7 +1976,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
         const double c0 = .25;
 #pragma omp parallel
         {
-            /*** GENERATOR SNIP_INTERPOLATE_REDUCED_FACES TOP */
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -1999,10 +1987,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_010[i] + f_011[i]);
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 0 */
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2014,10 +2002,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_100[i] + f_101[i] + f_110[i] + f_111[i]);
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 1 */
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2029,10 +2017,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_100[i] + f_101[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 2 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2044,10 +2032,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_010[i] + f_011[i] + f_110[i] + f_111[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 3 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 3
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -2059,10 +2047,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_010[i] + f_100[i] + f_110[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 4 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 4
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -2074,11 +2062,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX2(i,numComp,0)] = c0*(f_001[i] + f_011[i] + f_101[i] + f_111[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 5 */
-            /* GENERATOR SNIP_INTERPOLATE_REDUCED_FACES BOTTOM */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 5
         } // end of parallel section
     } else {
         out.requireWrite();
@@ -2087,7 +2074,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
         const double c2 = 0.62200846792814621559;
 #pragma omp parallel
         {
-            /*** GENERATOR SNIP_INTERPOLATE_FACES TOP */
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2102,10 +2088,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_010[i]*c2 + c1*(f_000[i] + f_011[i]);
                             o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_010[i]*c0 + c1*(f_000[i] + f_011[i]);
                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_011[i]*c2 + c1*(f_001[i] + f_010[i]);
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 0 */
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2120,10 +2106,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_101[i]*c0 + f_110[i]*c2 + c1*(f_100[i] + f_111[i]);
                             o[INDEX2(i,numComp,2)] = f_101[i]*c2 + f_110[i]*c0 + c1*(f_100[i] + f_111[i]);
                             o[INDEX2(i,numComp,3)] = f_100[i]*c0 + f_111[i]*c2 + c1*(f_101[i] + f_110[i]);
-                        } /* end of component loop i */
-                    } /* end of k1 loop */
-                } /* end of k2 loop */
-            } /* end of face 1 */
+                        } // end of component loop i
+                    } // end of k1 loop
+                } // end of k2 loop
+            } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2138,10 +2124,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_101[i]);
                             o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_101[i]);
                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_100[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 2 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k2=0; k2 < m_NE2; ++k2) {
@@ -2156,10 +2142,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_111[i]);
                             o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_111[i]);
                             o[INDEX2(i,numComp,3)] = f_010[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_110[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k2 loop */
-            } /* end of face 3 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k2 loop
+            } // end of face 3
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -2174,10 +2160,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_010[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_110[i]);
                             o[INDEX2(i,numComp,2)] = f_010[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_110[i]);
                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_100[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 4 */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 4
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -2192,11 +2178,10 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_111[i]);
                             o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_111[i]);
                             o[INDEX2(i,numComp,3)] = f_001[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_101[i]);
-                        } /* end of component loop i */
-                    } /* end of k0 loop */
-                } /* end of k1 loop */
-            } /* end of face 5 */
-            /* GENERATOR SNIP_INTERPOLATE_FACES BOTTOM */
+                        } // end of component loop i
+                    } // end of k0 loop
+                } // end of k1 loop
+            } // end of face 5
         } // end of parallel section
     }
 }
@@ -2211,104 +2196,26 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     const double h2 = m_l2/m_gNE2;
-    /*** GENERATOR SNIP_PDE_SINGLE_PRE TOP */
     const double w0 = 0.0009303791403858427308*h1*h2/h0;
     const double w1 = 0.0009303791403858427308*h2;
-    const double w10 = 0.012958509748503046158*h0*h2/h1;
-    const double w100 = 0.038141762351741127649*h0*h1;
-    const double w101 = 0.000052682092703316795705*h0*h1;
-    const double w102 = 0.0007337668937680108255*h0*h1;
-    const double w103 = 0.010220054420048834761*h0*h1;
-    const double w104 = -0.0001966122466178319053*h1*h2;
-    const double w105 = -0.0001966122466178319053*h0*h2;
-    const double w106 = -0.0007337668937680108255*h1*h2;
-    const double w107 = -0.0007337668937680108255*h0*h2;
-    const double w108 = -0.0027384553284542113967*h1*h2;
-    const double w109 = -0.0027384553284542113967*h0*h2;
-    const double w11 = -0.0034722222222222222222*h0;
-    const double w110 = -0.010220054420048834761*h1*h2;
-    const double w111 = -0.010220054420048834761*h0*h2;
-    const double w112 = -0.0007337668937680108255*h0*h1;
-    const double w113 = -0.010220054420048834761*h0*h1;
-    const double w114 = -0.038141762351741127649*h0*h2;
-    const double w115 = -0.000052682092703316795705*h0*h2;
-    const double w116 = -0.0001966122466178319053*h0*h1;
-    const double w117 = -0.0027384553284542113967*h0*h1;
-    const double w118 = 0.000052682092703316795705*h0*h2;
-    const double w119 = 0.038141762351741127649*h0*h2;
-    const double w12 = 0.0034722222222222222222*h1;
-    const double w120 = 0.000052682092703316795705*h1*h2;
-    const double w121 = 0.038141762351741127649*h1*h2;
-    const double w122 = -0.000052682092703316795705*h0*h1;
-    const double w123 = -0.038141762351741127649*h0*h1;
-    const double w124 = -0.000052682092703316795705*h1*h2;
-    const double w125 = -0.038141762351741127649*h1*h2;
-    const double w126 = 0.027777777777777777778*h1*h2;
-    const double w127 = 0.027777777777777777778*h0*h2;
-    const double w128 = 0.055555555555555555556*h0*h1;
-    const double w129 = -0.027777777777777777778*h1*h2;
-    const double w13 = 0.012958509748503046158*h0;
-    const double w130 = -0.027777777777777777778*h0*h2;
-    const double w131 = 0.013888888888888888889*h0*h1;
-    const double w132 = -0.055555555555555555556*h0*h2;
-    const double w133 = -0.027777777777777777778*h0*h1;
-    const double w134 = 0.055555555555555555556*h0*h2;
-    const double w135 = 0.027777777777777777778*h0*h1;
-    const double w136 = -0.013888888888888888889*h0*h1;
-    const double w137 = 0.055555555555555555556*h1*h2;
-    const double w138 = -0.013888888888888888889*h1*h2;
-    const double w139 = -0.013888888888888888889*h0*h2;
-    const double w14 = -0.0034722222222222222222*h0*h1/h2;
-    const double w140 = -0.055555555555555555556*h0*h1;
-    const double w141 = 0.013888888888888888889*h1*h2;
-    const double w142 = 0.013888888888888888889*h0*h2;
-    const double w143 = -0.055555555555555555556*h1*h2;
-    const double w144 = 0.000041549056553524783501*h0*h1*h2;
-    const double w145 = 0.0005787037037037037037*h0*h1*h2;
-    const double w146 = 0.0080603027952983270684*h0*h1*h2;
-    const double w147 = 0.0001550631900643071218*h0*h1*h2;
-    const double w148 = 0.002159751624750507693*h0*h1*h2;
-    const double w149 = 0.03008145955644280058*h0*h1*h2;
-    const double w15 = 0.012958509748503046158*h1*h2/h0;
-    const double w150 = 0.000011133036149792012204*h0*h1*h2;
-    const double w151 = 0.018518518518518518519*h0*h1*h2;
-    const double w152 = 0.0092592592592592592592*h0*h1*h2;
-    const double w153 = 0.0046296296296296296296*h0*h1*h2;
-    const double w154 = 0.037037037037037037037*h0*h1*h2;
-    const double w155 = -0.077751058491018276949*h1*h2;
-    const double w156 = -0.077751058491018276949*h0*h2;
-    const double w157 = -0.077751058491018276949*h0*h1;
-    const double w158 = -0.020833333333333333333*h0*h2;
-    const double w159 = -0.020833333333333333333*h0*h1;
-    const double w16 = -0.0034722222222222222222*h1;
-    const double w160 = -0.020833333333333333333*h1*h2;
-    const double w161 = -0.0055822748423150563848*h0*h1;
-    const double w162 = -0.0055822748423150563848*h0*h2;
-    const double w163 = -0.0055822748423150563848*h1*h2;
-    const double w164 = 0.077751058491018276949*h1*h2;
-    const double w165 = 0.020833333333333333333*h1*h2;
-    const double w166 = 0.0055822748423150563848*h1*h2;
-    const double w167 = 0.077751058491018276949*h0*h2;
-    const double w168 = 0.020833333333333333333*h0*h2;
-    const double w169 = 0.0055822748423150563848*h0*h2;
-    const double w17 = -0.0009303791403858427308*h0;
-    const double w170 = 0.077751058491018276949*h0*h1;
-    const double w171 = 0.020833333333333333333*h0*h1;
-    const double w172 = 0.0055822748423150563848*h0*h1;
-    const double w173 = -0.25*h1*h2;
-    const double w174 = -0.25*h0*h2;
-    const double w175 = -0.25*h0*h1;
-    const double w176 = 0.25*h1*h2;
-    const double w177 = 0.25*h0*h2;
-    const double w178 = 0.25*h0*h1;
-    const double w179 = 0.061320326520293008568*h0*h1*h2;
-    const double w18 = 0.012958509748503046158*h1;
-    const double w180 = 0.01643073197072526838*h0*h1*h2;
-    const double w181 = 0.004402601362608064953*h0*h1*h2;
-    const double w182 = 0.0011796734797069914318*h0*h1*h2;
-    const double w183 = 0.125*h0*h1*h2;
-    const double w19 = 0.0034722222222222222222*h0;
     const double w2 = -0.00024929433932114870101*h1;
+    const double w3 = 0.0009303791403858427308*h0*h2/h1;
+    const double w4 = -0.00024929433932114870101*h0;
+    const double w5 = 0.0009303791403858427308*h1;
+    const double w6 = 0.0009303791403858427308*h0;
+    const double w7 = -0.00024929433932114870101*h0*h1/h2;
+    const double w8 = 0.0034722222222222222222*h2;
+    const double w9 = -0.0009303791403858427308*h1;
+    const double w10 = 0.012958509748503046158*h0*h2/h1;
+    const double w11 = -0.0034722222222222222222*h0;
+    const double w12 = 0.0034722222222222222222*h1;
+    const double w13 = 0.012958509748503046158*h0;
+    const double w14 = -0.0034722222222222222222*h0*h1/h2;
+    const double w15 = 0.012958509748503046158*h1*h2/h0;
+    const double w16 = -0.0034722222222222222222*h1;
+    const double w17 = -0.0009303791403858427308*h0;
+    const double w18 = 0.012958509748503046158*h1;
+    const double w19 = 0.0034722222222222222222*h0;
     const double w20 = 0.012958509748503046158*h2;
     const double w21 = -0.012958509748503046158*h1;
     const double w22 = -0.012958509748503046158*h0;
@@ -2319,7 +2226,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w27 = 0.00024929433932114870101*h0;
     const double w28 = -0.04836181677178996241*h1;
     const double w29 = -0.04836181677178996241*h0;
-    const double w3 = 0.0009303791403858427308*h0*h2/h1;
     const double w30 = -0.0009303791403858427308*h1*h2/h0;
     const double w31 = -0.0009303791403858427308*h2;
     const double w32 = -0.0009303791403858427308*h0*h2/h1;
@@ -2330,7 +2236,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w37 = -0.012958509748503046158*h2;
     const double w38 = -0.012958509748503046158*h0*h2/h1;
     const double w39 = -0.04836181677178996241*h2;
-    const double w4 = -0.00024929433932114870101*h0;
     const double w40 = -0.0034722222222222222222*h0*h2/h1;
     const double w41 = 0.0009303791403858427308*h0*h1/h2;
     const double w42 = 0.04836181677178996241*h2;
@@ -2341,7 +2246,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w47 = -0.0034722222222222222222*h1*h2/h0;
     const double w48 = -0.00024929433932114870101*h1*h2/h0;
     const double w49 = -0.04836181677178996241*h1*h2/h0;
-    const double w5 = 0.0009303791403858427308*h1;
     const double w50 = 0.0034722222222222222222*h0*h2/h1;
     const double w51 = -0.0009303791403858427308*h0*h1/h2;
     const double w52 = -0.012958509748503046158*h0*h1/h2;
@@ -2352,7 +2256,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w57 = 0.04836181677178996241*h0*h1/h2;
     const double w58 = 0.00024929433932114870101*h1*h2/h0;
     const double w59 = 0.00024929433932114870101*h0*h2/h1;
-    const double w6 = 0.0009303791403858427308*h0;
     const double w60 = 0.055555555555555555556*h1*h2/h0;
     const double w61 = 0.041666666666666666667*h2;
     const double w62 = -0.083333333333333333333*h1;
@@ -2363,7 +2266,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w67 = -0.11111111111111111111*h0*h1/h2;
     const double w68 = -0.055555555555555555556*h1*h2/h0;
     const double w69 = -0.083333333333333333333*h2;
-    const double w7 = -0.00024929433932114870101*h0*h1/h2;
     const double w70 = -0.041666666666666666667*h1;
     const double w71 = -0.055555555555555555556*h0*h2/h1;
     const double w72 = -0.041666666666666666667*h0;
@@ -2374,7 +2276,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w77 = -0.11111111111111111111*h0*h2/h1;
     const double w78 = 0.055555555555555555556*h0*h1/h2;
     const double w79 = -0.11111111111111111111*h1*h2/h0;
-    const double w8 = 0.0034722222222222222222*h2;
     const double w80 = -0.027777777777777777778*h1*h2/h0;
     const double w81 = -0.041666666666666666667*h2;
     const double w82 = -0.027777777777777777778*h0*h2/h1;
@@ -2385,7 +2286,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w87 = 0.11111111111111111111*h0*h2/h1;
     const double w88 = 0.11111111111111111111*h0*h1/h2;
     const double w89 = 0.027777777777777777778*h1*h2/h0;
-    const double w9 = -0.0009303791403858427308*h1;
     const double w90 = 0.0001966122466178319053*h1*h2;
     const double w91 = 0.0001966122466178319053*h0*h2;
     const double w92 = 0.0001966122466178319053*h0*h1;
@@ -2396,7 +2296,90 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w97 = 0.0007337668937680108255*h0*h2;
     const double w98 = 0.010220054420048834761*h1*h2;
     const double w99 = 0.010220054420048834761*h0*h2;
-    /* GENERATOR SNIP_PDE_SINGLE_PRE BOTTOM */
+    const double w100 = 0.038141762351741127649*h0*h1;
+    const double w101 = 0.000052682092703316795705*h0*h1;
+    const double w102 = 0.0007337668937680108255*h0*h1;
+    const double w103 = 0.010220054420048834761*h0*h1;
+    const double w104 = -0.0001966122466178319053*h1*h2;
+    const double w105 = -0.0001966122466178319053*h0*h2;
+    const double w106 = -0.0007337668937680108255*h1*h2;
+    const double w107 = -0.0007337668937680108255*h0*h2;
+    const double w108 = -0.0027384553284542113967*h1*h2;
+    const double w109 = -0.0027384553284542113967*h0*h2;
+    const double w110 = -0.010220054420048834761*h1*h2;
+    const double w111 = -0.010220054420048834761*h0*h2;
+    const double w112 = -0.0007337668937680108255*h0*h1;
+    const double w113 = -0.010220054420048834761*h0*h1;
+    const double w114 = -0.038141762351741127649*h0*h2;
+    const double w115 = -0.000052682092703316795705*h0*h2;
+    const double w116 = -0.0001966122466178319053*h0*h1;
+    const double w117 = -0.0027384553284542113967*h0*h1;
+    const double w118 = 0.000052682092703316795705*h0*h2;
+    const double w119 = 0.038141762351741127649*h0*h2;
+    const double w120 = 0.000052682092703316795705*h1*h2;
+    const double w121 = 0.038141762351741127649*h1*h2;
+    const double w122 = -0.000052682092703316795705*h0*h1;
+    const double w123 = -0.038141762351741127649*h0*h1;
+    const double w124 = -0.000052682092703316795705*h1*h2;
+    const double w125 = -0.038141762351741127649*h1*h2;
+    const double w126 = 0.027777777777777777778*h1*h2;
+    const double w127 = 0.027777777777777777778*h0*h2;
+    const double w128 = 0.055555555555555555556*h0*h1;
+    const double w129 = -0.027777777777777777778*h1*h2;
+    const double w130 = -0.027777777777777777778*h0*h2;
+    const double w131 = 0.013888888888888888889*h0*h1;
+    const double w132 = -0.055555555555555555556*h0*h2;
+    const double w133 = -0.027777777777777777778*h0*h1;
+    const double w134 = 0.055555555555555555556*h0*h2;
+    const double w135 = 0.027777777777777777778*h0*h1;
+    const double w136 = -0.013888888888888888889*h0*h1;
+    const double w137 = 0.055555555555555555556*h1*h2;
+    const double w138 = -0.013888888888888888889*h1*h2;
+    const double w139 = -0.013888888888888888889*h0*h2;
+    const double w140 = -0.055555555555555555556*h0*h1;
+    const double w141 = 0.013888888888888888889*h1*h2;
+    const double w142 = 0.013888888888888888889*h0*h2;
+    const double w143 = -0.055555555555555555556*h1*h2;
+    const double w144 = 0.000041549056553524783501*h0*h1*h2;
+    const double w145 = 0.0005787037037037037037*h0*h1*h2;
+    const double w146 = 0.0080603027952983270684*h0*h1*h2;
+    const double w147 = 0.0001550631900643071218*h0*h1*h2;
+    const double w148 = 0.002159751624750507693*h0*h1*h2;
+    const double w149 = 0.03008145955644280058*h0*h1*h2;
+    const double w150 = 0.000011133036149792012204*h0*h1*h2;
+    const double w151 = 0.018518518518518518519*h0*h1*h2;
+    const double w152 = 0.0092592592592592592592*h0*h1*h2;
+    const double w153 = 0.0046296296296296296296*h0*h1*h2;
+    const double w154 = 0.037037037037037037037*h0*h1*h2;
+    const double w155 = -0.077751058491018276949*h1*h2;
+    const double w156 = -0.077751058491018276949*h0*h2;
+    const double w157 = -0.077751058491018276949*h0*h1;
+    const double w158 = -0.020833333333333333333*h0*h2;
+    const double w159 = -0.020833333333333333333*h0*h1;
+    const double w160 = -0.020833333333333333333*h1*h2;
+    const double w161 = -0.0055822748423150563848*h0*h1;
+    const double w162 = -0.0055822748423150563848*h0*h2;
+    const double w163 = -0.0055822748423150563848*h1*h2;
+    const double w164 = 0.077751058491018276949*h1*h2;
+    const double w165 = 0.020833333333333333333*h1*h2;
+    const double w166 = 0.0055822748423150563848*h1*h2;
+    const double w167 = 0.077751058491018276949*h0*h2;
+    const double w168 = 0.020833333333333333333*h0*h2;
+    const double w169 = 0.0055822748423150563848*h0*h2;
+    const double w170 = 0.077751058491018276949*h0*h1;
+    const double w171 = 0.020833333333333333333*h0*h1;
+    const double w172 = 0.0055822748423150563848*h0*h1;
+    const double w173 = -0.25*h1*h2;
+    const double w174 = -0.25*h0*h2;
+    const double w175 = -0.25*h0*h1;
+    const double w176 = 0.25*h1*h2;
+    const double w177 = 0.25*h0*h2;
+    const double w178 = 0.25*h0*h1;
+    const double w179 = 0.061320326520293008568*h0*h1*h2;
+    const double w180 = 0.01643073197072526838*h0*h1*h2;
+    const double w181 = 0.004402601362608064953*h0*h1*h2;
+    const double w182 = 0.0011796734797069914318*h0*h1*h2;
+    const double w183 = 0.125*h0*h1*h2;
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -2411,7 +2394,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = k0 + m_NE0*k1 + m_NE0*m_NE1*k2;
-                        /*** GENERATOR SNIP_PDE_SINGLE TOP */
                         ///////////////
                         // process A //
                         ///////////////
@@ -3326,7 +3308,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_S[INDEX2(0,5,8)]+=tmp118_1 + tmp120_1 + tmp242_1 + tmp248_1 + tmp250_1 + tmp253_1 + tmp334_1 + tmp339_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp403_1 + tmp410_1 + tmp414_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp421_1 + tmp422_1 + tmp50_1 + tmp536_1 + tmp537_1;
                                 EM_S[INDEX2(3,4,8)]+=tmp155_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp518_1 + tmp520_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp114_1 + tmp119_1 + tmp240_1 + tmp248_1 + tmp250_1 + tmp254_1 + tmp32_1 + tmp407_1 + tmp411_1 + tmp416_1 + tmp421_1 + tmp42_1 + tmp450_1 + tmp451_1 + tmp47_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp51_1 + tmp538_1 + tmp539_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double A_00 = A_p[INDEX2(0,0,3)];
                                 const register double A_01 = A_p[INDEX2(0,1,3)];
                                 const register double A_02 = A_p[INDEX2(0,2,3)];
@@ -4052,7 +4034,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp294_1 + tmp295_1 + tmp297_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
                                 EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp80_1 + tmp81_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp388_1 + tmp389_1 + tmp392_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double B_0 = B_p[0];
                                 const register double B_1 = B_p[1];
                                 const register double B_2 = B_p[2];
@@ -4733,7 +4715,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp296_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
                                 EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp78_1 + tmp81_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp396_1 + tmp397_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double C_0 = C_p[0];
                                 const register double C_1 = C_p[1];
                                 const register double C_2 = C_p[2];
@@ -5008,7 +4990,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_S[INDEX2(5,7,8)]+=tmp32_1 + tmp47_1 + tmp48_1;
                                 EM_S[INDEX2(6,7,8)]+=tmp25_1 + tmp26_1 + tmp27_1;
                                 EM_S[INDEX2(7,7,8)]+=tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double D_0 = D_p[0];
                                 const register double tmp3_1 = D_0*w154;
                                 const register double tmp0_1 = D_0*w151;
@@ -5197,7 +5179,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_F[5]+=tmp29_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp7_1;
                                 EM_F[6]+=tmp28_1 + tmp2_1 + tmp43_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp52_1 + tmp53_1;
                                 EM_F[7]+=tmp12_1 + tmp21_1 + tmp37_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double X_0 = X_p[0];
                                 const register double X_1 = X_p[1];
                                 const register double X_2 = X_p[2];
@@ -5280,7 +5262,7 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_F[5]+=tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
                                 EM_F[6]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1;
                                 EM_F[7]+=tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
-                            } else { /* constant data */
+                            } else { // constant data
                                 const register double Y_0 = Y_p[0];
                                 const register double tmp0_1 = Y_0*w183;
                                 EM_F[0]+=tmp0_1;
@@ -5293,7 +5275,6 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 EM_F[7]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDE_SINGLE BOTTOM */
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1+k0;
@@ -5307,18 +5288,14 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)]);
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)+1]);
                         if (add_EM_F) {
-                            //cout << "-- AddtoRHS -- " << endl;
                             double *F_p=rhs.getSampleDataRW(0);
                             for (index_t i=0; i<rowIndex.size(); i++) {
                                 if (rowIndex[i]<getNumDOF()) {
                                     F_p[rowIndex[i]]+=EM_F[i];
-                                    //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
                                 }
                             }
-                            //cout << "---"<<endl;
                         }
                         if (add_EM_S) {
-                            //cout << "-- AddtoSystem -- " << endl;
                             addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
                         }
                     } // end k0 loop
@@ -5338,7 +5315,6 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     const double h2 = m_l2/m_gNE2;
-    /* GENERATOR SNIP_PDE_SINGLE_REDUCED_PRE TOP */
     const double w0 = 0.0625*h1*h2/h0;
     const double w1 = 0.0625*h2;
     const double w2 = -0.0625*h1;
@@ -5365,7 +5341,6 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
     const double w23 = 0.25*h0*h2;
     const double w24 = 0.25*h0*h1;
     const double w25 = 0.125*h0*h1*h2;
-    /* GENERATOR SNIP_PDE_SINGLE_REDUCED_PRE BOTTOM */
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -5380,7 +5355,6 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = k0 + m_NE0*k1 + m_NE0*m_NE1*k2;
-                        /* GENERATOR SNIP_PDE_SINGLE_REDUCED TOP */
                         ///////////////
                         // process A //
                         ///////////////
@@ -5730,12 +5704,12 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             const register double X_0 = X_p[0];
                             const register double X_1 = X_p[1];
                             const register double X_2 = X_p[2];
+                            const register double tmp0_1 = X_2*w21;
                             const register double tmp1_1 = X_0*w19;
                             const register double tmp2_1 = X_1*w20;
                             const register double tmp3_1 = X_0*w22;
                             const register double tmp4_1 = X_1*w23;
                             const register double tmp5_1 = X_2*w24;
-                            const register double tmp0_1 = X_2*w21;
                             EM_F[0]+=tmp0_1 + tmp1_1 + tmp2_1;
                             EM_F[1]+=tmp0_1 + tmp2_1 + tmp3_1;
                             EM_F[2]+=tmp0_1 + tmp1_1 + tmp4_1;
@@ -5751,8 +5725,7 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
                             const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
-                            const register double Y_0 = Y_p[0];
-                            const register double tmp0_1 = Y_0*w25;
+                            const register double tmp0_1 = Y_p[0]*w25;
                             EM_F[0]+=tmp0_1;
                             EM_F[1]+=tmp0_1;
                             EM_F[2]+=tmp0_1;
@@ -5762,7 +5735,6 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             EM_F[6]+=tmp0_1;
                             EM_F[7]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDE_SINGLE_REDUCED BOTTOM */
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1+k0;
@@ -5776,18 +5748,14 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)]);
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)+1]);
                         if (add_EM_F) {
-                            //cout << "-- AddtoRHS -- " << endl;
                             double *F_p=rhs.getSampleDataRW(0);
                             for (index_t i=0; i<rowIndex.size(); i++) {
                                 if (rowIndex[i]<getNumDOF()) {
                                     F_p[rowIndex[i]]+=EM_F[i];
-                                    //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
                                 }
                             }
-                            //cout << "---"<<endl;
                         }
                         if (add_EM_S) {
-                            //cout << "-- AddtoSystem -- " << endl;
                             addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
                         }
                     } // end k0 loop
@@ -5815,104 +5783,26 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
         numComp=mat->logical_col_block_size;
     }
 
-    /*** GENERATOR SNIP_PDE_SYSTEM_PRE TOP */
     const double w0 = 0.0009303791403858427308*h1*h2/h0;
     const double w1 = 0.0009303791403858427308*h2;
-    const double w10 = 0.012958509748503046158*h0*h2/h1;
-    const double w100 = 0.038141762351741127649*h0*h1;
-    const double w101 = 0.000052682092703316795705*h0*h1;
-    const double w102 = 0.0007337668937680108255*h0*h1;
-    const double w103 = 0.010220054420048834761*h0*h1;
-    const double w104 = -0.0001966122466178319053*h1*h2;
-    const double w105 = -0.0001966122466178319053*h0*h2;
-    const double w106 = -0.0007337668937680108255*h1*h2;
-    const double w107 = -0.0007337668937680108255*h0*h2;
-    const double w108 = -0.0027384553284542113967*h1*h2;
-    const double w109 = -0.0027384553284542113967*h0*h2;
-    const double w11 = -0.0034722222222222222222*h0;
-    const double w110 = -0.010220054420048834761*h1*h2;
-    const double w111 = -0.010220054420048834761*h0*h2;
-    const double w112 = -0.0007337668937680108255*h0*h1;
-    const double w113 = -0.010220054420048834761*h0*h1;
-    const double w114 = -0.038141762351741127649*h0*h2;
-    const double w115 = -0.000052682092703316795705*h0*h2;
-    const double w116 = -0.0001966122466178319053*h0*h1;
-    const double w117 = -0.0027384553284542113967*h0*h1;
-    const double w118 = 0.000052682092703316795705*h0*h2;
-    const double w119 = 0.038141762351741127649*h0*h2;
-    const double w12 = 0.0034722222222222222222*h1;
-    const double w120 = 0.000052682092703316795705*h1*h2;
-    const double w121 = 0.038141762351741127649*h1*h2;
-    const double w122 = -0.000052682092703316795705*h0*h1;
-    const double w123 = -0.038141762351741127649*h0*h1;
-    const double w124 = -0.000052682092703316795705*h1*h2;
-    const double w125 = -0.038141762351741127649*h1*h2;
-    const double w126 = 0.027777777777777777778*h1*h2;
-    const double w127 = 0.027777777777777777778*h0*h2;
-    const double w128 = 0.055555555555555555556*h0*h1;
-    const double w129 = -0.027777777777777777778*h1*h2;
-    const double w13 = 0.012958509748503046158*h0;
-    const double w130 = -0.027777777777777777778*h0*h2;
-    const double w131 = 0.013888888888888888889*h0*h1;
-    const double w132 = -0.055555555555555555556*h0*h2;
-    const double w133 = -0.027777777777777777778*h0*h1;
-    const double w134 = 0.055555555555555555556*h0*h2;
-    const double w135 = 0.027777777777777777778*h0*h1;
-    const double w136 = -0.013888888888888888889*h0*h1;
-    const double w137 = 0.055555555555555555556*h1*h2;
-    const double w138 = -0.013888888888888888889*h1*h2;
-    const double w139 = -0.013888888888888888889*h0*h2;
-    const double w14 = -0.0034722222222222222222*h0*h1/h2;
-    const double w140 = -0.055555555555555555556*h0*h1;
-    const double w141 = 0.013888888888888888889*h1*h2;
-    const double w142 = 0.013888888888888888889*h0*h2;
-    const double w143 = -0.055555555555555555556*h1*h2;
-    const double w144 = 0.000041549056553524783501*h0*h1*h2;
-    const double w145 = 0.0005787037037037037037*h0*h1*h2;
-    const double w146 = 0.0080603027952983270684*h0*h1*h2;
-    const double w147 = 0.0001550631900643071218*h0*h1*h2;
-    const double w148 = 0.002159751624750507693*h0*h1*h2;
-    const double w149 = 0.03008145955644280058*h0*h1*h2;
-    const double w15 = 0.012958509748503046158*h1*h2/h0;
-    const double w150 = 0.000011133036149792012204*h0*h1*h2;
-    const double w151 = 0.018518518518518518519*h0*h1*h2;
-    const double w152 = 0.0092592592592592592592*h0*h1*h2;
-    const double w153 = 0.0046296296296296296296*h0*h1*h2;
-    const double w154 = 0.037037037037037037037*h0*h1*h2;
-    const double w155 = -0.077751058491018276949*h1*h2;
-    const double w156 = -0.077751058491018276949*h0*h2;
-    const double w157 = -0.077751058491018276949*h0*h1;
-    const double w158 = -0.020833333333333333333*h0*h2;
-    const double w159 = -0.020833333333333333333*h0*h1;
-    const double w16 = -0.0034722222222222222222*h1;
-    const double w160 = -0.020833333333333333333*h1*h2;
-    const double w161 = -0.0055822748423150563848*h0*h1;
-    const double w162 = -0.0055822748423150563848*h0*h2;
-    const double w163 = -0.0055822748423150563848*h1*h2;
-    const double w164 = 0.077751058491018276949*h1*h2;
-    const double w165 = 0.020833333333333333333*h1*h2;
-    const double w166 = 0.0055822748423150563848*h1*h2;
-    const double w167 = 0.077751058491018276949*h0*h2;
-    const double w168 = 0.020833333333333333333*h0*h2;
-    const double w169 = 0.0055822748423150563848*h0*h2;
-    const double w17 = -0.0009303791403858427308*h0;
-    const double w170 = 0.077751058491018276949*h0*h1;
-    const double w171 = 0.020833333333333333333*h0*h1;
-    const double w172 = 0.0055822748423150563848*h0*h1;
-    const double w173 = -0.25*h1*h2;
-    const double w174 = -0.25*h0*h2;
-    const double w175 = -0.25*h0*h1;
-    const double w176 = 0.25*h1*h2;
-    const double w177 = 0.25*h0*h2;
-    const double w178 = 0.25*h0*h1;
-    const double w179 = 0.061320326520293008568*h0*h1*h2;
-    const double w18 = 0.012958509748503046158*h1;
-    const double w180 = 0.01643073197072526838*h0*h1*h2;
-    const double w181 = 0.004402601362608064953*h0*h1*h2;
-    const double w182 = 0.0011796734797069914318*h0*h1*h2;
-    const double w183 = 0.125*h0*h1*h2;
-    const double w19 = 0.0034722222222222222222*h0;
     const double w2 = -0.00024929433932114870101*h1;
+    const double w3 = 0.0009303791403858427308*h0*h2/h1;
+    const double w4 = -0.00024929433932114870101*h0;
+    const double w5 = 0.0009303791403858427308*h1;
+    const double w6 = 0.0009303791403858427308*h0;
+    const double w7 = -0.00024929433932114870101*h0*h1/h2;
+    const double w8 = 0.0034722222222222222222*h2;
+    const double w9 = -0.0009303791403858427308*h1;
+    const double w10 = 0.012958509748503046158*h0*h2/h1;
+    const double w11 = -0.0034722222222222222222*h0;
+    const double w12 = 0.0034722222222222222222*h1;
+    const double w13 = 0.012958509748503046158*h0;
+    const double w14 = -0.0034722222222222222222*h0*h1/h2;
+    const double w15 = 0.012958509748503046158*h1*h2/h0;
+    const double w16 = -0.0034722222222222222222*h1;
+    const double w17 = -0.0009303791403858427308*h0;
+    const double w18 = 0.012958509748503046158*h1;
+    const double w19 = 0.0034722222222222222222*h0;
     const double w20 = 0.012958509748503046158*h2;
     const double w21 = -0.012958509748503046158*h1;
     const double w22 = -0.012958509748503046158*h0;
@@ -5923,7 +5813,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w27 = 0.00024929433932114870101*h0;
     const double w28 = -0.04836181677178996241*h1;
     const double w29 = -0.04836181677178996241*h0;
-    const double w3 = 0.0009303791403858427308*h0*h2/h1;
     const double w30 = -0.0009303791403858427308*h1*h2/h0;
     const double w31 = -0.0009303791403858427308*h2;
     const double w32 = -0.0009303791403858427308*h0*h2/h1;
@@ -5934,7 +5823,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w37 = -0.012958509748503046158*h2;
     const double w38 = -0.012958509748503046158*h0*h2/h1;
     const double w39 = -0.04836181677178996241*h2;
-    const double w4 = -0.00024929433932114870101*h0;
     const double w40 = -0.0034722222222222222222*h0*h2/h1;
     const double w41 = 0.0009303791403858427308*h0*h1/h2;
     const double w42 = 0.04836181677178996241*h2;
@@ -5945,7 +5833,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w47 = -0.0034722222222222222222*h1*h2/h0;
     const double w48 = -0.00024929433932114870101*h1*h2/h0;
     const double w49 = -0.04836181677178996241*h1*h2/h0;
-    const double w5 = 0.0009303791403858427308*h1;
     const double w50 = 0.0034722222222222222222*h0*h2/h1;
     const double w51 = -0.0009303791403858427308*h0*h1/h2;
     const double w52 = -0.012958509748503046158*h0*h1/h2;
@@ -5956,7 +5843,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w57 = 0.04836181677178996241*h0*h1/h2;
     const double w58 = 0.00024929433932114870101*h1*h2/h0;
     const double w59 = 0.00024929433932114870101*h0*h2/h1;
-    const double w6 = 0.0009303791403858427308*h0;
     const double w60 = 0.055555555555555555556*h1*h2/h0;
     const double w61 = 0.041666666666666666667*h2;
     const double w62 = -0.083333333333333333333*h1;
@@ -5967,7 +5853,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w67 = -0.11111111111111111111*h0*h1/h2;
     const double w68 = -0.055555555555555555556*h1*h2/h0;
     const double w69 = -0.083333333333333333333*h2;
-    const double w7 = -0.00024929433932114870101*h0*h1/h2;
     const double w70 = -0.041666666666666666667*h1;
     const double w71 = -0.055555555555555555556*h0*h2/h1;
     const double w72 = -0.041666666666666666667*h0;
@@ -5978,7 +5863,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w77 = -0.11111111111111111111*h0*h2/h1;
     const double w78 = 0.055555555555555555556*h0*h1/h2;
     const double w79 = -0.11111111111111111111*h1*h2/h0;
-    const double w8 = 0.0034722222222222222222*h2;
     const double w80 = -0.027777777777777777778*h1*h2/h0;
     const double w81 = -0.041666666666666666667*h2;
     const double w82 = -0.027777777777777777778*h0*h2/h1;
@@ -5989,7 +5873,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w87 = 0.11111111111111111111*h0*h2/h1;
     const double w88 = 0.11111111111111111111*h0*h1/h2;
     const double w89 = 0.027777777777777777778*h1*h2/h0;
-    const double w9 = -0.0009303791403858427308*h1;
     const double w90 = 0.0001966122466178319053*h1*h2;
     const double w91 = 0.0001966122466178319053*h0*h2;
     const double w92 = 0.0001966122466178319053*h0*h1;
@@ -6000,7 +5883,90 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
     const double w97 = 0.0007337668937680108255*h0*h2;
     const double w98 = 0.010220054420048834761*h1*h2;
     const double w99 = 0.010220054420048834761*h0*h2;
-    /* GENERATOR SNIP_PDE_SYSTEM_PRE BOTTOM */
+    const double w100 = 0.038141762351741127649*h0*h1;
+    const double w101 = 0.000052682092703316795705*h0*h1;
+    const double w102 = 0.0007337668937680108255*h0*h1;
+    const double w103 = 0.010220054420048834761*h0*h1;
+    const double w104 = -0.0001966122466178319053*h1*h2;
+    const double w105 = -0.0001966122466178319053*h0*h2;
+    const double w106 = -0.0007337668937680108255*h1*h2;
+    const double w107 = -0.0007337668937680108255*h0*h2;
+    const double w108 = -0.0027384553284542113967*h1*h2;
+    const double w109 = -0.0027384553284542113967*h0*h2;
+    const double w110 = -0.010220054420048834761*h1*h2;
+    const double w111 = -0.010220054420048834761*h0*h2;
+    const double w112 = -0.0007337668937680108255*h0*h1;
+    const double w113 = -0.010220054420048834761*h0*h1;
+    const double w114 = -0.038141762351741127649*h0*h2;
+    const double w115 = -0.000052682092703316795705*h0*h2;
+    const double w116 = -0.0001966122466178319053*h0*h1;
+    const double w117 = -0.0027384553284542113967*h0*h1;
+    const double w118 = 0.000052682092703316795705*h0*h2;
+    const double w119 = 0.038141762351741127649*h0*h2;
+    const double w120 = 0.000052682092703316795705*h1*h2;
+    const double w121 = 0.038141762351741127649*h1*h2;
+    const double w122 = -0.000052682092703316795705*h0*h1;
+    const double w123 = -0.038141762351741127649*h0*h1;
+    const double w124 = -0.000052682092703316795705*h1*h2;
+    const double w125 = -0.038141762351741127649*h1*h2;
+    const double w126 = 0.027777777777777777778*h1*h2;
+    const double w127 = 0.027777777777777777778*h0*h2;
+    const double w128 = 0.055555555555555555556*h0*h1;
+    const double w129 = -0.027777777777777777778*h1*h2;
+    const double w130 = -0.027777777777777777778*h0*h2;
+    const double w131 = 0.013888888888888888889*h0*h1;
+    const double w132 = -0.055555555555555555556*h0*h2;
+    const double w133 = -0.027777777777777777778*h0*h1;
+    const double w134 = 0.055555555555555555556*h0*h2;
+    const double w135 = 0.027777777777777777778*h0*h1;
+    const double w136 = -0.013888888888888888889*h0*h1;
+    const double w137 = 0.055555555555555555556*h1*h2;
+    const double w138 = -0.013888888888888888889*h1*h2;
+    const double w139 = -0.013888888888888888889*h0*h2;
+    const double w140 = -0.055555555555555555556*h0*h1;
+    const double w141 = 0.013888888888888888889*h1*h2;
+    const double w142 = 0.013888888888888888889*h0*h2;
+    const double w143 = -0.055555555555555555556*h1*h2;
+    const double w144 = 0.000041549056553524783501*h0*h1*h2;
+    const double w145 = 0.0005787037037037037037*h0*h1*h2;
+    const double w146 = 0.0080603027952983270684*h0*h1*h2;
+    const double w147 = 0.0001550631900643071218*h0*h1*h2;
+    const double w148 = 0.002159751624750507693*h0*h1*h2;
+    const double w149 = 0.03008145955644280058*h0*h1*h2;
+    const double w150 = 0.000011133036149792012204*h0*h1*h2;
+    const double w151 = 0.018518518518518518519*h0*h1*h2;
+    const double w152 = 0.0092592592592592592592*h0*h1*h2;
+    const double w153 = 0.0046296296296296296296*h0*h1*h2;
+    const double w154 = 0.037037037037037037037*h0*h1*h2;
+    const double w155 = -0.077751058491018276949*h1*h2;
+    const double w156 = -0.077751058491018276949*h0*h2;
+    const double w157 = -0.077751058491018276949*h0*h1;
+    const double w158 = -0.020833333333333333333*h0*h2;
+    const double w159 = -0.020833333333333333333*h0*h1;
+    const double w160 = -0.020833333333333333333*h1*h2;
+    const double w161 = -0.0055822748423150563848*h0*h1;
+    const double w162 = -0.0055822748423150563848*h0*h2;
+    const double w163 = -0.0055822748423150563848*h1*h2;
+    const double w164 = 0.077751058491018276949*h1*h2;
+    const double w165 = 0.020833333333333333333*h1*h2;
+    const double w166 = 0.0055822748423150563848*h1*h2;
+    const double w167 = 0.077751058491018276949*h0*h2;
+    const double w168 = 0.020833333333333333333*h0*h2;
+    const double w169 = 0.0055822748423150563848*h0*h2;
+    const double w170 = 0.077751058491018276949*h0*h1;
+    const double w171 = 0.020833333333333333333*h0*h1;
+    const double w172 = 0.0055822748423150563848*h0*h1;
+    const double w173 = -0.25*h1*h2;
+    const double w174 = -0.25*h0*h2;
+    const double w175 = -0.25*h0*h1;
+    const double w176 = 0.25*h1*h2;
+    const double w177 = 0.25*h0*h2;
+    const double w178 = 0.25*h0*h1;
+    const double w179 = 0.061320326520293008568*h0*h1*h2;
+    const double w180 = 0.01643073197072526838*h0*h1*h2;
+    const double w181 = 0.004402601362608064953*h0*h1*h2;
+    const double w182 = 0.0011796734797069914318*h0*h1*h2;
+    const double w183 = 0.125*h0*h1*h2;
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -6015,7 +5981,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = k0 + m_NE0*k1 + m_NE0*m_NE1*k2;
-                        /*** GENERATOR SNIP_PDE_SYSTEM TOP */
                         ///////////////
                         // process A //
                         ///////////////
@@ -6934,7 +6899,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                         EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp114_1 + tmp119_1 + tmp240_1 + tmp248_1 + tmp250_1 + tmp254_1 + tmp32_1 + tmp407_1 + tmp411_1 + tmp416_1 + tmp421_1 + tmp42_1 + tmp450_1 + tmp451_1 + tmp47_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp51_1 + tmp538_1 + tmp539_1;
                                     }
                                 }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
                                         const register double A_00 = A_p[INDEX4(k,0,m,0, numEq,3, numComp)];
@@ -7668,7 +7633,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                         EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp388_1 + tmp389_1 + tmp392_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
                                     }
                                 }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
                                         const register double B_0 = B_p[INDEX3(k,0,m, numEq, 3)];
@@ -8357,7 +8322,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                         EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp396_1 + tmp397_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
                                     }
                                 }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
                                         const register double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
@@ -8640,7 +8605,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                         EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp71_1 + tmp72_1;
                                     }
                                  }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
                                         const register double D_0 = D_p[INDEX2(k, m, numEq)];
@@ -8835,7 +8800,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                     EM_F[INDEX2(k,6,numEq)]+=tmp28_1 + tmp2_1 + tmp43_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp52_1 + tmp53_1;
                                     EM_F[INDEX2(k,7,numEq)]+=tmp12_1 + tmp21_1 + tmp37_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
                                 }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     const register double X_0 = X_p[INDEX2(k, 0, numEq)];
                                     const register double X_1 = X_p[INDEX2(k, 1, numEq)];
@@ -8922,7 +8887,7 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                     EM_F[INDEX2(k,6,numEq)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1;
                                     EM_F[INDEX2(k,7,numEq)]+=tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
                                 }
-                            } else { /* constant data */
+                            } else { // constant data
                                 for (index_t k=0; k<numEq; k++) {
                                     const register double Y_0 = Y_p[k];
                                     const register double tmp0_1 = Y_0*w183;
@@ -8937,7 +8902,6 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDE_SYSTEM BOTTOM */
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1+k0;
@@ -8951,20 +8915,16 @@ void Brick::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)]);
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)+1]);
                         if (add_EM_F) {
-                            //cout << "-- AddtoRHS -- " << endl;
                             double *F_p=rhs.getSampleDataRW(0);
                             for (index_t i=0; i<rowIndex.size(); i++) {
                                 if (rowIndex[i]<getNumDOF()) {
                                     for (index_t eq=0; eq<numEq; eq++) {
                                         F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
-                                        //cout << "F[" << INDEX2(eq,rowIndex[i],numEq) << "]=" << F_p[INDEX2(eq,rowIndex[i],numEq)] << endl;
                                     }
                                 }
                             }
-                            //cout << "---"<<endl;
                         }
                         if (add_EM_S) {
-                            //cout << "-- AddtoSystem -- " << endl;
                             addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
                         }
                     } // end k0 loop
@@ -8992,34 +8952,32 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
 
-    /* GENERATOR SNIP_PDE_SYSTEM_REDUCED_PRE TOP */
-    const double w0 = 0.0625*h1*h2/h0;
-    const double w1 = 0.0625*h2;
-    const double w10 = -0.0625*h0*h2/h1;
-    const double w11 = 0.0625*h0*h1/h2;
-    const double w12 = 0.03125*h1*h2;
-    const double w13 = 0.03125*h0*h2;
-    const double w14 = 0.03125*h0*h1;
-    const double w15 = -0.03125*h1*h2;
-    const double w16 = -0.03125*h0*h2;
-    const double w17 = -0.03125*h0*h1;
-    const double w18 = 0.015625*h0*h1*h2;
-    const double w19 = -0.25*h1*h2;
-    const double w2 = -0.0625*h1;
-    const double w20 = -0.25*h0*h2;
-    const double w21 = -0.25*h0*h1;
-    const double w22 = 0.25*h1*h2;
-    const double w23 = 0.25*h0*h2;
-    const double w24 = 0.25*h0*h1;
-    const double w25 = 0.125*h0*h1*h2;
-    const double w3 = 0.0625*h0*h2/h1;
-    const double w4 = -0.0625*h0;
-    const double w5 = 0.0625*h1;
-    const double w6 = 0.0625*h0;
-    const double w7 = -0.0625*h0*h1/h2;
-    const double w8 = -0.0625*h1*h2/h0;
-    const double w9 = -0.0625*h2;
-    /* GENERATOR SNIP_PDE_SYSTEM_REDUCED_PRE BOTTOM */
+    const double w0 = .0625*h1*h2/h0;
+    const double w1 = .0625*h2;
+    const double w2 = -.0625*h1;
+    const double w3 = .0625*h0*h2/h1;
+    const double w4 = -.0625*h0;
+    const double w5 = .0625*h1;
+    const double w6 = .0625*h0;
+    const double w7 = -.0625*h0*h1/h2;
+    const double w8 = -.0625*h1*h2/h0;
+    const double w9 = -.0625*h2;
+    const double w10 = -.0625*h0*h2/h1;
+    const double w11 = .0625*h0*h1/h2;
+    const double w12 = .03125*h1*h2;
+    const double w13 = .03125*h0*h2;
+    const double w14 = .03125*h0*h1;
+    const double w15 = -.03125*h1*h2;
+    const double w16 = -.03125*h0*h2;
+    const double w17 = -.03125*h0*h1;
+    const double w18 = .015625*h0*h1*h2;
+    const double w19 = -.25*h1*h2;
+    const double w20 = -.25*h0*h2;
+    const double w21 = -.25*h0*h1;
+    const double w22 = .25*h1*h2;
+    const double w23 = .25*h0*h2;
+    const double w24 = .25*h0*h1;
+    const double w25 = .125*h0*h1*h2;
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -9034,7 +8992,6 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = k0 + m_NE0*k1 + m_NE0*m_NE1*k2;
-                        /* GENERATOR SNIP_PDE_SYSTEM_REDUCED TOP */
                         ///////////////
                         // process A //
                         ///////////////
@@ -9436,7 +9393,6 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,7,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDE_SYSTEM_REDUCED BOTTOM */
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1+k0;
@@ -9450,20 +9406,16 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)]);
                         rowIndex.push_back(m_dofMap[firstNode+m_N0*(m_N1+1)+1]);
                         if (add_EM_F) {
-                            //cout << "-- AddtoRHS -- " << endl;
                             double *F_p=rhs.getSampleDataRW(0);
                             for (index_t i=0; i<rowIndex.size(); i++) {
                                 if (rowIndex[i]<getNumDOF()) {
                                     for (index_t eq=0; eq<numEq; eq++) {
                                         F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
-                                        //cout << "F[" << INDEX2(eq,rowIndex[i],numEq) << "]=" << F_p[INDEX2(eq,rowIndex[i],numEq)] << endl;
                                     }
                                 }
                             }
-                            //cout << "---"<<endl;
                         }
                         if (add_EM_S) {
-                            //cout << "-- AddtoSystem -- " << endl;
                             addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
                         }
                     } // end k0 loop
