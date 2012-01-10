@@ -199,13 +199,13 @@ class Test_saveCSV(unittest.TestCase):
 	self.assertTrue(os.path.exists(fname), "test file not created")
 	f=open(fname,'r')
 	line=f.readline()
-	self.assertTrue(line=="C_0, C_1, D\n")    #This tests both separator strings
+	self.assertEquals(line,"C_0, C_1, D\n")    #This tests both separator strings
 	#Now we find out how many rows it has
 	linecount=0
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.assertTrue(linecount==self.linecount1*2)
+	self.assertEquals(linecount,self.linecount1*2)
 	f.close()
 	#Now to other output
 	T2=Tensor(7,X.getFunctionSpace())
@@ -214,30 +214,32 @@ class Test_saveCSV(unittest.TestCase):
 	saveDataCSV(fname,A=T2,B=T3,C=T4)
 	f=open(fname,'r')
 	line=f.readline()
-	self.assertTrue(line=='A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
+	self.assertEquals(line, 'A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
 	line=f.readline()
 	line_expected=[7.]*4+[8.]*8+[9.]*16
 	line_got=[float(elt) for elt in line.split(',')]
-	self.assertTrue(line_got==line_expected)
+	self.assertEquals(line_got,line_expected)
 	linecount=1
 	while line != '':
 		linecount+=1
 		line=f.readline()
-	self.assertTrue(linecount==self.linecount1)
+	self.assertEquals(linecount, self.linecount1)
 	f.close()	
 	#Now to test separators and mask
 	saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
 	f=open(fname,'r')
 	line=f.readline()
-	self.assertTrue(line=='U/0|U/1|V\n')
+	self.assertEquals(line, 'U/0|U/1|V\n')
 	line=f.readline()
 	line_got=[float(elt) for elt in line.split('|')]
-	self.assertTrue(self.line_expected==line_got)
+	self.assertEquals(len(self.line_expected),len(line_got))
+	for i in range(len(self.line_expected)):
+		self.assertAlmostEquals(self.line_expected[i],line_got[i])
 	linecount=1
 	while line!='':
 		linecount+=1
 		line=f.readline()
-	self.assertTrue(linecount==self.linecount2)
+	self.assertEquals(linecount,self.linecount2)
 	
 	
 class Test_Domain(unittest.TestCase):
