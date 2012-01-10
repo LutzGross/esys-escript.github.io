@@ -2178,6 +2178,229 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
 }
 
 //protected
+void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D,
+        const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y) const
+{
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    /*** GENERATOR SNIP_PDE_SINGLE_REDUCED_PRE TOP */
+    const double w0 = -0.25*h1/h0;
+    const double w1 = 0.25;
+    const double w2 = -0.25;
+    const double w3 = 0.25*h0/h1;
+    const double w4 = -0.25*h0/h1;
+    const double w5 = 0.25*h1/h0;
+    const double w6 = -0.125*h1;
+    const double w7 = -0.125*h0;
+    const double w8 = 0.125*h1;
+    const double w9 = 0.125*h0;
+    const double w10 = 0.0625*h0*h1;
+    const double w11 = -0.5*h1;
+    const double w12 = -0.5*h0;
+    const double w13 = 0.5*h1;
+    const double w14 = 0.5*h0;
+    const double w15 = 0.25*h0*h1;
+    /* GENERATOR SNIP_PDE_SINGLE_REDUCED_PRE BOTTOM */
+
+    rhs.requireWrite();
+#pragma omp parallel
+    {
+        for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k0=0; k0<m_NE0; ++k0)  {
+                    bool add_EM_S=false;
+                    bool add_EM_F=false;
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
+                    const index_t e = k0 + m_NE0*k1;
+                    /*** GENERATOR SNIP_PDE_SINGLE_REDUCED TOP */
+                    ///////////////
+                    // process A //
+                    ///////////////
+                    if (!A.isEmpty()) {
+                        add_EM_S=true;
+                        const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                        const register double A_00 = A_p[INDEX2(0,0,2)];
+                        const register double A_01 = A_p[INDEX2(0,1,2)];
+                        const register double A_10 = A_p[INDEX2(1,0,2)];
+                        const register double A_11 = A_p[INDEX2(1,1,2)];
+                        const register double tmp0_0 = A_01 + A_10;
+                        const register double tmp2_1 = A_01*w1;
+                        const register double tmp7_1 = tmp0_0*w2;
+                        const register double tmp3_1 = A_10*w2;
+                        const register double tmp6_1 = A_00*w5;
+                        const register double tmp1_1 = A_00*w0;
+                        const register double tmp4_1 = tmp0_0*w1;
+                        const register double tmp9_1 = A_01*w2;
+                        const register double tmp5_1 = A_11*w4;
+                        const register double tmp8_1 = A_10*w1;
+                        const register double tmp0_1 = A_11*w3;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(1,2,4)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                        EM_S[INDEX2(3,2,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
+                        EM_S[INDEX2(3,0,4)]+=tmp1_1 + tmp5_1 + tmp7_1;
+                        EM_S[INDEX2(3,1,4)]+=tmp5_1 + tmp6_1 + tmp8_1 + tmp9_1;
+                        EM_S[INDEX2(2,1,4)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp5_1 + tmp6_1 + tmp8_1 + tmp9_1;
+                        EM_S[INDEX2(2,0,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
+                        EM_S[INDEX2(1,3,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp0_1 + tmp6_1 + tmp7_1;
+                        EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
+                        EM_S[INDEX2(0,3,4)]+=tmp1_1 + tmp5_1 + tmp7_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1 + tmp6_1 + tmp7_1;
+                    }
+                    ///////////////
+                    // process B //
+                    ///////////////
+                    if (!B.isEmpty()) {
+                        add_EM_S=true;
+                        const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                        const register double B_0 = B_p[0];
+                        const register double B_1 = B_p[1];
+                        const register double tmp2_1 = B_0*w8;
+                        const register double tmp0_1 = B_0*w6;
+                        const register double tmp3_1 = B_1*w9;
+                        const register double tmp1_1 = B_1*w7;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(1,2,4)]+=tmp1_1 + tmp2_1;
+                        EM_S[INDEX2(3,2,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(3,0,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(3,1,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(2,1,4)]+=tmp0_1 + tmp3_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(2,0,4)]+=tmp0_1 + tmp3_1;
+                        EM_S[INDEX2(1,3,4)]+=tmp1_1 + tmp2_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1 + tmp3_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp0_1 + tmp3_1;
+                        EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp2_1;
+                        EM_S[INDEX2(0,3,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp1_1 + tmp2_1;
+                    }
+                    ///////////////
+                    // process C //
+                    ///////////////
+                    if (!C.isEmpty()) {
+                        add_EM_S=true;
+                        const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                        const register double C_0 = C_p[0];
+                        const register double C_1 = C_p[1];
+                        const register double tmp1_1 = C_1*w7;
+                        const register double tmp0_1 = C_0*w8;
+                        const register double tmp3_1 = C_0*w6;
+                        const register double tmp2_1 = C_1*w9;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(1,2,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(3,2,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(0,0,4)]+=tmp1_1 + tmp3_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1 + tmp2_1;
+                        EM_S[INDEX2(3,0,4)]+=tmp1_1 + tmp3_1;
+                        EM_S[INDEX2(3,1,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(2,1,4)]+=tmp0_1 + tmp1_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(2,0,4)]+=tmp1_1 + tmp3_1;
+                        EM_S[INDEX2(1,3,4)]+=tmp0_1 + tmp2_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1 + tmp2_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp2_1 + tmp3_1;
+                        EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp3_1;
+                        EM_S[INDEX2(0,3,4)]+=tmp0_1 + tmp2_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1 + tmp1_1;
+                    }
+                    ///////////////
+                    // process D //
+                    ///////////////
+                    if (!D.isEmpty()) {
+                        add_EM_S=true;
+                        const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                        const register double D_0 = D_p[0];
+                        const register double tmp0_1 = D_0*w10;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                    }
+                    ///////////////
+                    // process X //
+                    ///////////////
+                    if (!X.isEmpty()) {
+                        add_EM_F=true;
+                        const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                        const register double X_0 = X_p[0];
+                        const register double X_1 = X_p[1];
+                        const register double tmp0_1 = X_0*w11;
+                        const register double tmp2_1 = X_0*w13;
+                        const register double tmp1_1 = X_1*w12;
+                        const register double tmp3_1 = X_1*w14;
+                        EM_F[0]+=tmp0_1 + tmp1_1;
+                        EM_F[1]+=tmp1_1 + tmp2_1;
+                        EM_F[2]+=tmp0_1 + tmp3_1;
+                        EM_F[3]+=tmp2_1 + tmp3_1;
+                    }
+                    ///////////////
+                    // process Y //
+                    ///////////////
+                    if (!Y.isEmpty()) {
+                        add_EM_F=true;
+                        const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                        const register double Y_0 = Y_p[0];
+                        const register double tmp0_1 = Y_0*w15;
+                        EM_F[0]+=tmp0_1;
+                        EM_F[1]+=tmp0_1;
+                        EM_F[2]+=tmp0_1;
+                        EM_F[3]+=tmp0_1;
+                    }
+                    /* GENERATOR SNIP_PDE_SINGLE_REDUCED BOTTOM */
+
+                    // add to matrix (if add_EM_S) and RHS (if add_EM_F)
+                    const index_t firstNode=m_N0*k1+k0;
+                    IndexVector rowIndex;
+                    rowIndex.push_back(m_dofMap[firstNode]);
+                    rowIndex.push_back(m_dofMap[firstNode+1]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
+                    if (add_EM_F) {
+                        //cout << "-- AddtoRHS -- " << endl;
+                        double *F_p=rhs.getSampleDataRW(0);
+                        for (index_t i=0; i<rowIndex.size(); i++) {
+                            if (rowIndex[i]<getNumDOF()) {
+                                F_p[rowIndex[i]]+=EM_F[i];
+                                //cout << "F[" << rowIndex[i] << "]=" << F_p[rowIndex[i]] << endl;
+                            }
+                        }
+                        //cout << "---"<<endl;
+                    }
+                    if (add_EM_S) {
+                        //cout << "-- AddtoSystem -- " << endl;
+                        addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
+                    }
+
+                } // end k0 loop
+            } // end k1 loop
+        } // end of colouring
+    } // end of parallel region
+}
+
+//protected
 void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
@@ -2934,6 +3157,259 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         }
                     }
                     /* GENERATOR SNIP_PDE_SYSTEM BOTTOM */
+
+                    // add to matrix (if add_EM_S) and RHS (if add_EM_F)
+                    const index_t firstNode=m_N0*k1+k0;
+                    IndexVector rowIndex;
+                    rowIndex.push_back(m_dofMap[firstNode]);
+                    rowIndex.push_back(m_dofMap[firstNode+1]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
+                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
+                    if (add_EM_F) {
+                        //cout << "-- AddtoRHS -- " << endl;
+                        double *F_p=rhs.getSampleDataRW(0);
+                        for (index_t i=0; i<rowIndex.size(); i++) {
+                            if (rowIndex[i]<getNumDOF()) {
+                                for (index_t eq=0; eq<numEq; eq++) {
+                                    F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
+                                    //cout << "F[" << INDEX2(eq,rowIndex[i],numEq) << "]=" << F_p[INDEX2(eq,rowIndex[i],numEq)] << endl;
+                                }
+                            }
+                        }
+                        //cout << "---"<<endl;
+                    }
+                    if (add_EM_S) {
+                        //cout << "-- AddtoSystem -- " << endl;
+                        addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
+                    }
+
+                } // end k0 loop
+            } // end k1 loop
+        } // end of colouring
+    } // end of parallel region
+}
+
+//protected
+void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
+        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D,
+        const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y) const
+{
+    const double h0 = m_l0/m_gNE0;
+    const double h1 = m_l1/m_gNE1;
+    dim_t numEq, numComp;
+    if (!mat)
+        numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
+    else {
+        numEq=mat->logical_row_block_size;
+        numComp=mat->logical_col_block_size;
+    }
+
+    /*** GENERATOR SNIP_PDE_SYSTEM_REDUCED_PRE TOP */
+    const double w0 = -0.25*h1/h0;
+    const double w1 = 0.25;
+    const double w2 = -0.25;
+    const double w3 = 0.25*h0/h1;
+    const double w4 = -0.25*h0/h1;
+    const double w5 = 0.25*h1/h0;
+    const double w6 = -0.125*h1;
+    const double w7 = -0.125*h0;
+    const double w8 = 0.125*h1;
+    const double w9 = 0.125*h0;
+    const double w10 = 0.0625*h0*h1;
+    const double w11 = -0.5*h1;
+    const double w12 = -0.5*h0;
+    const double w13 = 0.5*h1;
+    const double w14 = 0.5*h0;
+    const double w15 = 0.25*h0*h1;
+    /* GENERATOR SNIP_PDE_SYSTEM_REDUCED_PRE BOTTOM */
+
+    rhs.requireWrite();
+#pragma omp parallel
+    {
+        for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
+#pragma omp for
+            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k0=0; k0<m_NE0; ++k0)  {
+                    bool add_EM_S=false;
+                    bool add_EM_F=false;
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
+                    const index_t e = k0 + m_NE0*k1;
+                    /*** GENERATOR SNIP_PDE_SYSTEM_REDUCED TOP */
+                    ///////////////
+                    // process A //
+                    ///////////////
+                    if (!A.isEmpty()) {
+                        add_EM_S=true;
+                        const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const register double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
+                                const register double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
+                                const register double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
+                                const register double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
+                                const register double tmp0_0 = A_01 + A_10;
+                                const register double tmp2_1 = A_01*w1;
+                                const register double tmp7_1 = tmp0_0*w2;
+                                const register double tmp3_1 = A_10*w2;
+                                const register double tmp6_1 = A_00*w5;
+                                const register double tmp1_1 = A_00*w0;
+                                const register double tmp4_1 = tmp0_0*w1;
+                                const register double tmp9_1 = A_01*w2;
+                                const register double tmp5_1 = A_11*w4;
+                                const register double tmp8_1 = A_10*w1;
+                                const register double tmp0_1 = A_11*w3;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
+                                EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp1_1 + tmp5_1 + tmp7_1;
+                                EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp5_1 + tmp6_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp5_1 + tmp6_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
+                                EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp1_1 + tmp5_1 + tmp7_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1 + tmp6_1 + tmp7_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process B //
+                    ///////////////
+                    if (!B.isEmpty()) {
+                        add_EM_S=true;
+                        const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const register double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
+                                const register double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
+                                const register double tmp2_1 = B_0*w8;
+                                const register double tmp0_1 = B_0*w6;
+                                const register double tmp3_1 = B_1*w9;
+                                const register double tmp1_1 = B_1*w7;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp0_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process C //
+                    ///////////////
+                    if (!C.isEmpty()) {
+                        add_EM_S=true;
+                        const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const register double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
+                                const register double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
+                                const register double tmp1_1 = C_1*w7;
+                                const register double tmp0_1 = C_0*w8;
+                                const register double tmp3_1 = C_0*w6;
+                                const register double tmp2_1 = C_1*w9;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
+                                EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp0_1 + tmp2_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process D //
+                    ///////////////
+                    if (!D.isEmpty()) {
+                        add_EM_S=true;
+                        const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const register double D_0 = D_p[INDEX2(k, m, numEq)];
+                                const register double tmp0_1 = D_0*w10;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process X //
+                    ///////////////
+                    if (!X.isEmpty()) {
+                        add_EM_F=true;
+                        const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const register double X_0 = X_p[INDEX2(k, 0, numEq)];
+                            const register double X_1 = X_p[INDEX2(k, 1, numEq)];
+                            const register double tmp0_1 = X_0*w11;
+                            const register double tmp2_1 = X_0*w13;
+                            const register double tmp1_1 = X_1*w12;
+                            const register double tmp3_1 = X_1*w14;
+                            EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
+                            EM_F[INDEX2(k,1,numEq)]+=tmp1_1 + tmp2_1;
+                            EM_F[INDEX2(k,2,numEq)]+=tmp0_1 + tmp3_1;
+                            EM_F[INDEX2(k,3,numEq)]+=tmp2_1 + tmp3_1;
+                        }
+                    }
+                    ///////////////
+                    // process Y //
+                    ///////////////
+                    if (!Y.isEmpty()) {
+                        add_EM_F=true;
+                        const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const register double Y_0 = Y_p[k];
+                            const register double tmp0_1 = Y_0*w15;
+                            EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                        }
+                    }
+                    /* GENERATOR SNIP_PDE_SYSTEM_REDUCED BOTTOM */
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                     const index_t firstNode=m_N0*k1+k0;

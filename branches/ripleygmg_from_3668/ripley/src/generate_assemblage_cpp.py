@@ -180,11 +180,11 @@ def generate(DIM, filename):
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
    insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
    CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
-   insertCode("Assemble_PDE_System_%sD_reduced.c"%DIM, { "SNIP" : CODE , "SNIP_PRE" : PRECODE })
+   insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
    insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
    CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
-   insertCode("Assemble_PDE_Single_%sD_reduced.c"%DIM, { "SNIP" : CODE , "SNIP_PRE" : PRECODE })
+   insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
 
 
 
