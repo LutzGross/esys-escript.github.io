@@ -183,7 +183,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
 
               /* get an initial guess by evaluating the preconditioner */
-{
+/*{
 char *str1, *str2;
 int sum, rank, i;
 sum = numEqua;
@@ -198,9 +198,9 @@ for (i=0; i<sum; i++) {
 fprintf(stderr, "%s)\n", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
-}
+}*/
 	      Paso_SystemMatrix_solvePreconditioner(A,x,r);
-{
+/*{
 char *str1, *str2;
 int sum, rank, i;
 sum = numEqua;
@@ -215,7 +215,7 @@ for (i=0; i<sum; i++) {
 fprintf(stderr, "%s)\n", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
-}
+}*/
 
 
               totIter = 1;
@@ -276,7 +276,6 @@ TMPMEMFREE(str2);
 
                         last_norm2_of_residual=norm2_of_residual;
                         last_norm_max_of_residual=norm_max_of_residual;
-fprintf(stderr, "rank %d wild guess CP1 %d %d\n", A->mpi_info->rank, method, A->is_balanced);
 
                         /* call the solver */
                         switch (method) {
@@ -305,7 +304,6 @@ fprintf(stderr, "rank %d wild guess CP1 %d %d\n", A->mpi_info->rank, method, A->
                            errorCode = Paso_Solver_GMRES(A, r, x, &cntIter, &tol,options->truncation,options->restart, pp); 
                            break;
                         }
-fprintf(stderr, "rank %d wild guess CP2\n", A->mpi_info->rank);
 
                         totIter += cntIter;
 

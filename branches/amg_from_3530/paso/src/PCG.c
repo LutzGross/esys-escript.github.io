@@ -125,7 +125,7 @@ err_t Paso_Solver_PCG(
   v=TMPMEMALLOC(n,double);
   x2=TMPMEMALLOC(n,double);
 
-fprintf(stderr, "rank %d in PCG CP2\n", A->mpi_info->rank);
+//fprintf(stderr, "rank %d in PCG CP2\n", A->mpi_info->rank);
 /*{
 char *str1, *str2;
 int sum, rank, i;
@@ -184,7 +184,7 @@ TMPMEMFREE(str2);
     /* PGH */
     /* without this we get a use of an unititialised var below */
     tau = 0;
-fprintf(stderr, "rank %d in PCG CP3\n", A->mpi_info->rank);
+//fprintf(stderr, "rank %d in PCG CP3\n", A->mpi_info->rank);
 
     /* start of iteration */
     while (!(convergeFlag || maxIterFlag || breakFlag)) {
@@ -195,7 +195,7 @@ fprintf(stderr, "rank %d in PCG CP3\n", A->mpi_info->rank);
            /* v=prec(r)  */
            /* tau=v*r; */
            /* leading to the use of an unititialised var below */
-fprintf(stderr, "rank %d in PCG CP4 %d %d\n", A->mpi_info->rank, num_iter, maxit);
+//fprintf(stderr, "rank %d in PCG CP4 %d %d\n", A->mpi_info->rank, num_iter, maxit);
 
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
@@ -238,7 +238,7 @@ fprintf(stderr, "rank %d in PCG CP4 %d %d\n", A->mpi_info->rank, num_iter, maxit
            #endif
            tau_old=tau;
            tau=sum_1;
-fprintf(stderr, "rank %d in PCG CP5 %f %f\n", A->mpi_info->rank, tau, TOLERANCE_FOR_SCALARS);
+//fprintf(stderr, "rank %d in PCG CP5 %f %f\n", A->mpi_info->rank, tau, TOLERANCE_FOR_SCALARS);
 /*{
 char *str1, *str2;
 int sum, rank, i;
@@ -412,10 +412,10 @@ TMPMEMFREE(str2);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter > maxit;
                 breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
-fprintf(stderr, "rank %d in PCG CP6 %g %g\n", A->mpi_info->rank, norm_of_residual, tol);
+//fprintf(stderr, "rank %d in PCG CP6 %g %g\n", A->mpi_info->rank, norm_of_residual, tol);
            }
     }
-fprintf(stderr, "rank %d in PCG CP10 %d %d %d\n", A->mpi_info->rank, convergeFlag, maxIterFlag, breakFlag);
+//fprintf(stderr, "rank %d in PCG CP10 %d %d %d\n", A->mpi_info->rank, convergeFlag, maxIterFlag, breakFlag);
     /* end of iteration */
     num_iter_global=num_iter;
     norm_of_residual_global=norm_of_residual;

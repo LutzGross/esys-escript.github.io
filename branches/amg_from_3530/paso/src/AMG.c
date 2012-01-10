@@ -320,7 +320,7 @@ fprintf(stderr, "%s", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
 } 
-if (MY_DEBUG1) fprintf(stderr, "Rank %d before get Prolongation level %d\n", A_p->mpi_info->rank, level);
+if (MY_DEBUG) fprintf(stderr, "Rank %d before get Prolongation level %d\n", A_p->mpi_info->rank, level);
 /*if (level == 1){
     int i=0;
     char hostname[256];
@@ -333,7 +333,7 @@ if (MY_DEBUG1) fprintf(stderr, "Rank %d before get Prolongation level %d\n", A_p
     }
 }*/
 			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,offset_S, degree_S,S,n_C,mask_C, options->interpolation_method);
-if (MY_DEBUG1) fprintf(stderr, "after get Prolongation %d\n", out->P->mpi_info->rank);
+if (MY_DEBUG) fprintf(stderr, "after get Prolongation %d\n", out->P->mpi_info->rank);
 //Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
 //return NULL;
 
@@ -348,12 +348,6 @@ if (MY_DEBUG1) fprintf(stderr, "after get Prolongation %d\n", out->P->mpi_info->
 //			   out->R=Paso_SystemMatrix_getTranspose(out->P);
 			   out->R=Paso_Preconditioner_AMG_getRestriction(out->P);
 
-if (level == 3) {
-fprintf(stderr, "rank %d Now Prolongation Matrix ************************\n", A_p->mpi_info->rank);
-Paso_SystemMatrix_print(out->P);
-fprintf(stderr, "rank %d Now Restriction Matrix ************************\n", A_p->mpi_info->rank);
-Paso_SystemMatrix_print(out->R);
-}
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
 			/* 
@@ -419,7 +413,7 @@ TMPMEMFREE(str2);
 }
 
 //if (A_p->mpi_info->rank == 0) {
-if (MY_DEBUG1) {
+if (MY_DEBUG) {
 char *str1, *str2;
 int sum, rank, i, iPtr;
 sum = A_C->mainBlock->numRows;
@@ -578,13 +572,13 @@ if (MY_DEBUG) fprintf(stderr, "rank %d after r=b \n", A->mpi_info->rank);
 if (MY_DEBUG) fprintf(stderr, "rank %d after r=r-Ax %d %d\n", A->mpi_info->rank, A->is_balanced, Esys_getErrorType());
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
 
-if (MY_DEBUG1) {
+if (MY_DEBUG) {
   char * str1, *str2;
   int i, q;
   int sum = Paso_SystemMatrix_getTotalNumRows(A);
   int sum1 = Paso_SystemMatrix_getTotalNumRows(amg->A_C);
   str1 = TMPMEMALLOC(sum*sum*30+100, char);
-  str2 = TMPMEMALLOC(15, char);
+  str2 = TMPMEMALLOC(30, char);
   sprintf(str1, "rank %d Level %d x[%d]=(", A->mpi_info->rank, amg->level, sum);
   for (i=0; i<sum; i++) {
     sprintf(str2, "%f ", x[i]);
