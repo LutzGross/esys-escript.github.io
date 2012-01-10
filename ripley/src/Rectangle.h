@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -83,23 +83,6 @@ public:
 
     /**
        \brief
-       copies the gradient of 'in' into 'out'. The actual function space to be
-       considered for the gradient is defined by 'in'. Both arguments have to
-       be defined on this domain.
-    */
-    RIPLEY_DLL_API
-    virtual void setToGradient(escript::Data& out, const escript::Data& in) const;
-
-    /**
-       \brief
-       copies the integrals of the function defined by arg into integrals.
-       arg has to be defined on this domain.
-    */
-    RIPLEY_DLL_API
-    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
-
-    /**
-       \brief
        copies the surface normals at data points into out. The actual function
        space to be considered is defined by out. out has to be defined on this
        domain.
@@ -174,6 +157,8 @@ protected:
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
+    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const;
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
@@ -194,7 +179,6 @@ protected:
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y,
             const escript::Data& d, const escript::Data& y) const;
-
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -216,8 +200,11 @@ private:
     /// number of spatial subdivisions
     int m_NX, m_NY;
 
-    /// number of elements for this rank in each dimension
+    /// number of elements for this rank in each dimension including shared
     dim_t m_NE0, m_NE1;
+
+    /// number of own elements for this rank in each dimension
+    dim_t m_ownNE0, m_ownNE1;
 
     /// number of nodes for this rank in each dimension
     dim_t m_N0, m_N1;

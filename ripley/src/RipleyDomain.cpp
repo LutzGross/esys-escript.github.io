@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -83,11 +83,11 @@ string RipleyDomain::functionSpaceTypeAsString(int fsType) const
         case DegreesOfFreedom: return "Ripley_DegreesOfFreedom";
         case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom";
         case Nodes: return "Ripley_Nodes";
-        case ReducedNodes: return "Ripley_Reduced_Nodes";
+        case ReducedNodes: return "Ripley_ReducedNodes";
         case Elements: return "Ripley_Elements";
-        case ReducedElements: return "Ripley_Reduced_Elements";
-        case FaceElements: return "Ripley_Face_Elements";
-        case ReducedFaceElements: return "Ripley_Reduced_Face_Elements";
+        case ReducedElements: return "Ripley_ReducedElements";
+        case FaceElements: return "Ripley_FaceElements";
+        case ReducedFaceElements: return "Ripley_ReducedFaceElements";
         case Points: return "Ripley_Points";
         default:
             break;
@@ -234,15 +234,7 @@ bool RipleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) c
 bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
                                               int fsType_target) const
 {
-    if (fsType_target != Nodes &&
-            fsType_target != ReducedNodes &&
-            fsType_target != ReducedDegreesOfFreedom &&
-            fsType_target != DegreesOfFreedom &&
-            fsType_target != Elements &&
-            fsType_target != ReducedElements &&
-            fsType_target != FaceElements &&
-            fsType_target != ReducedFaceElements &&
-            fsType_target != Points) {
+    if (!isValidFunctionSpaceType(fsType_target)) {
         stringstream msg;
         msg << "probeInterpolationOnDomain(): Invalid functionspace type "
             << fsType_target << " for " << getDescription();
@@ -260,15 +252,13 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
         case Elements:
             return (fsType_target==Elements ||
                     fsType_target==ReducedElements);
-        case ReducedElements:
-            return (fsType_target==ReducedElements);
         case FaceElements:
             return (fsType_target==FaceElements ||
                     fsType_target==ReducedFaceElements);
+        case ReducedElements:
         case ReducedFaceElements:
-            return (fsType_target==ReducedFaceElements);
         case Points:
-            return (fsType_target==Points);
+            return (fsType_target==fsType_source);
 
         default: {
             stringstream msg;
@@ -368,7 +358,8 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         if (getMPISize()==1) {
                             interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), outFS==ReducedElements);
                         } else {
-                            escript::Data contIn=escript::Data(in, continuousFunction(*this));
+                            escript::Data contIn(in, (inFS==DegreesOfFreedom ?
+                                        escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
                             interpolateNodesOnElements(target, contIn, outFS==ReducedElements);
                         }
                         break;
@@ -378,8 +369,9 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         if (getMPISize()==1) {
                             interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), outFS==ReducedFaceElements);
                         } else {
-                            escript::Data contIn=escript::Data(in, continuousFunction(*this));
-                            interpolateNodesOnElements(target, contIn, outFS==ReducedFaceElements);
+                            escript::Data contIn(in, (inFS==DegreesOfFreedom ?
+                                     escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
+                            interpolateNodesOnFaces(target, contIn, outFS==ReducedFaceElements);
                         }
                         break;
 
@@ -427,10 +419,84 @@ void RipleyDomain::setToX(escript::Data& arg) const
     }
 }
 
+void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) const
+{
+    const RipleyDomain& argDomain=dynamic_cast<const RipleyDomain&>(
+            *(arg.getFunctionSpace().getDomain()));
+    if (argDomain != *this)
+        throw RipleyException("setToGradient: Illegal domain of gradient argument");
+    const RipleyDomain& gradDomain=dynamic_cast<const RipleyDomain&>(
+            *(grad.getFunctionSpace().getDomain()));
+    if (gradDomain != *this)
+        throw RipleyException("setToGradient: Illegal domain of gradient");
+
+    switch (grad.getFunctionSpace().getTypeCode()) {
+        case Elements:
+        case ReducedElements:
+        case FaceElements:
+        case ReducedFaceElements:
+            break;
+        default: {
+            stringstream msg;
+            msg << "setToGradient(): not supported for "
+                << functionSpaceTypeAsString(grad.getFunctionSpace().getTypeCode());
+            throw RipleyException(msg.str());
+        }
+    }
+
+    if (getMPISize()>1) {
+        if (arg.getFunctionSpace().getTypeCode()==DegreesOfFreedom) {
+            escript::Data contArg(arg, escript::continuousFunction(*this));
+            assembleGradient(grad, contArg);
+        } else if (arg.getFunctionSpace().getTypeCode()==ReducedDegreesOfFreedom) {
+            escript::Data contArg(arg, escript::reducedContinuousFunction(*this));
+            assembleGradient(grad, contArg);
+        } else {
+            assembleGradient(grad, *const_cast<escript::Data*>(&arg));
+        }
+    } else {
+        assembleGradient(grad, *const_cast<escript::Data*>(&arg));
+    }
+}
+
+void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
+{
+    const RipleyDomain& argDomain=dynamic_cast<const RipleyDomain&>(
+            *(arg.getFunctionSpace().getDomain()));
+    if (argDomain != *this)
+        throw RipleyException("setToIntegrals: Illegal domain of integration kernel");
+
+    switch (arg.getFunctionSpace().getTypeCode()) {
+        case Nodes:
+        case ReducedNodes:
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+            {
+                escript::Data funcArg(arg, escript::function(*this));
+                assembleIntegrate(integrals, funcArg);
+            }
+            break;
+        case Elements:
+        case ReducedElements:
+        case FaceElements:
+        case ReducedFaceElements:
+            assembleIntegrate(integrals, *const_cast<escript::Data*>(&arg));
+            break;
+        default: {
+            stringstream msg;
+            msg << "setToIntegrals(): not supported for "
+                << functionSpaceTypeAsString(arg.getFunctionSpace().getTypeCode());
+            throw RipleyException(msg.str());
+        }
+    }
+
+}
+
 bool RipleyDomain::isCellOriented(int fsType) const
 {
     switch(fsType) {
         case Nodes:
+        case ReducedNodes:
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
             return false;
@@ -461,6 +527,7 @@ bool RipleyDomain::canTag(int fsType) const
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
         case Points:
+        case ReducedNodes:
             return false;
         default:
             break;
@@ -620,10 +687,10 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     bool reduceColOrder=false;
     // is the domain right?
     const RipleyDomain& row_domain=dynamic_cast<const RipleyDomain&>(*(row_functionspace.getDomain()));
-    if (row_domain!=*this)
+    if (row_domain != *this)
         throw RipleyException("newSystemMatrix(): Domain of row function space does not match the domain of matrix generator");
     const RipleyDomain& col_domain=dynamic_cast<const RipleyDomain&>(*(column_functionspace.getDomain()));
-    if (col_domain!=*this)
+    if (col_domain != *this)
         throw RipleyException("newSystemMatrix(): Domain of column function space does not match the domain of matrix generator");
     // is the function space type right?
     if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
@@ -908,7 +975,6 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
         // down columns of array
         for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
             const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row;
-            //printf("row:%d\n", i_row);
             // only look at the matrix rows stored on this processor
             if (i_row < numMyRows) {
                 for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
@@ -929,7 +995,6 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
                             }
                         } else {
                             for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
-        //cout << "col:" << i_col-numMyCols << " colIdx:" << col_coupleBlock_index[k] << endl;
                                 if (col_coupleBlock_index[k] == i_col - numMyCols) {
                                     for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
                                         const dim_t i_Sol=ic+mat->col_block_size*l_col;
@@ -953,7 +1018,6 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
                             for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
                                  k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
                             {
-        //cout << "col:" << i_col << " rowIdx:" << row_coupleBlock_index[k] << endl;
                                 if (row_coupleBlock_index[k] == i_col) {
                                     for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
                                         const dim_t i_Sol=ic+mat->col_block_size*l_col;
@@ -1016,16 +1080,6 @@ void RipleyDomain::setToNormal(escript::Data& normal) const
 void RipleyDomain::setToSize(escript::Data& size) const
 {
     throw RipleyException("setToSize() not implemented");
-}
-
-void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) const
-{
-    throw RipleyException("setToGradient() not implemented");
-}
-
-void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
-{
-    throw RipleyException("setToIntegrals() not implemented");
 }
 
 bool RipleyDomain::ownSample(int fsType, index_t id) const
@@ -1123,6 +1177,16 @@ dim_t RipleyDomain::insertNeighbourNodes(IndexVector& index, index_t node) const
 void RipleyDomain::assembleCoordinates(escript::Data& arg) const
 {
     throw RipleyException("assembleCoordinates() not implemented");
+}
+
+void RipleyDomain::assembleGradient(escript::Data& out, escript::Data& in) const
+{
+    throw RipleyException("assembleGradient() not implemented");
+}
+
+void RipleyDomain::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
+{
+    throw RipleyException("assembleIntegrate() not implemented");
 }
 
 void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
