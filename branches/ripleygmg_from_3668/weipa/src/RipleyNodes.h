@@ -80,7 +80,7 @@ public:
     virtual const IntVec& getNodeDistribution() const { return nodeDist; }
 
     /// \brief Returns the global node index array.
-    virtual const IntVec& getGlobalNodeIndices() const { return nodeID; }
+    virtual const IntVec& getGlobalNodeIndices() const { return nodeGNI; }
 
     /// \brief Returns the coordinates of the mesh nodes.
     virtual const CoordArray& getCoords() const { return coords; }
@@ -100,6 +100,7 @@ protected:
     int numNodes;          /// number of nodes
     int globalNumNodes;    /// global number of nodes
     IntVec nodeID;         /// node IDs
+    IntVec nodeGNI;        /// node global node indices
     IntVec nodeTag;        /// node tags
     IntVec nodeDist;       /// node distribution
     std::string name;      /// the name of this node mesh

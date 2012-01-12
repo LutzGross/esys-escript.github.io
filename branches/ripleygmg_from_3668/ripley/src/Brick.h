@@ -145,6 +145,13 @@ public:
 
     /**
        \brief
+       returns the number of spatial subdivisions in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumSubdivisionsPerDim() const;
+
+    /**
+       \brief
        returns the first coordinate value and the node spacing along given
        dimension as a pair
     */

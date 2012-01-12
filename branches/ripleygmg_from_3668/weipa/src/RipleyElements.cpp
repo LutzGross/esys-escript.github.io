@@ -95,7 +95,7 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
         const int* iPtr = ripleyDomain->borrowSampleReferenceIDs(fsType);
         ID.assign(iPtr, iPtr+numElements);
 
-        //iPtr = ripleyDomain->borrowListOfTagsInUse(fsType);
+        //iPtr = ripleyDomain->borrowListOfTags(fsType);
         tag.assign(iPtr, iPtr+numElements);
 
         IntVec NN = ripleyDomain->getNumNodesPerDim();
@@ -104,6 +104,9 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
             if (fsType==ripley::Elements) {
                 int id=0;
                 for (int i=0; i<numElements; i++) {
+                    //FIXME
+                    if (!ripleyDomain->ownSample(fsType, i))
+                        owner[i]=ripleyDomain->getMPIRank()+1;
                     nodes.push_back(id);
                     nodes.push_back(id+1);
                     nodes.push_back(id+1+NN[0]);
@@ -142,6 +145,9 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
             if (fsType==ripley::Elements) {
                 int id=0;
                 for (int i=0; i<numElements; i++) {
+                    //FIXME
+                    if (!ripleyDomain->ownSample(fsType, i))
+                        owner[i]=ripleyDomain->getMPIRank()+1;
                     nodes.push_back(id+NN[0]*NN[1]);
                     nodes.push_back(id);
                     nodes.push_back(id+1);
@@ -158,7 +164,7 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* ripleyDomain,
                         id+=NN[0];
                 }
             } else if (fsType==ripley::FaceElements) {
-                return false;
+                return true; //FIXME
             }
         }
 

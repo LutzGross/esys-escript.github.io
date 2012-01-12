@@ -655,6 +655,13 @@ public:
 
     /**
        \brief
+       returns the number of spatial subdivisions in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumSubdivisionsPerDim() const;
+
+    /**
+       \brief
        returns the first coordinate value and the node spacing along given
        dimension as a pair
     */
@@ -673,6 +680,9 @@ protected:
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
+
+    /// returns the next coarser level of this domain if available
+    virtual escript::Domain_ptr getCoarseMesh() const;
 
     /// inserts the nodes that share an element with 'node' into 'index' and
     /// returns the number of these neighbours
