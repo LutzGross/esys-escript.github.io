@@ -99,7 +99,7 @@ ElementData_ptr RipleyDomain::getElementsForFunctionSpace(int fsCode) const
 
     switch (fsCode) {
         case ripley::Nodes:
-        case ripley::ReducedNodes:
+        case ripley::ReducedNodes: // FIXME: reduced
         case ripley::ReducedElements:
         case ripley::Elements:
             result = cells;

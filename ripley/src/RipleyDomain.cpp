@@ -100,8 +100,11 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
-        case ReducedNodes: //FIXME: reduced
             return pair<int,int>(1, getNumNodes());
+        case ReducedNodes: //FIXME: reduced
+            if (getCoarseMesh())
+                return getCoarseMesh()->getDataShape(Nodes);
+            break;
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom: //FIXME: reduced
             return pair<int,int>(1, getNumDOF());
@@ -312,8 +315,8 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
 
                     case Nodes:
-                    case ReducedNodes: //FIXME: reduced
                         copyData(target, *const_cast<escript::Data*>(&in));
+                    case ReducedNodes: //FIXME: reduced
                         break;
 
                     case Elements:
@@ -1144,6 +1147,11 @@ IndexVector RipleyDomain::getNodeDistribution() const
     throw RipleyException("getNodeDistribution() not implemented");
 }
 
+IndexVector RipleyDomain::getNumSubdivisionsPerDim() const
+{
+    throw RipleyException("getNumSubdivisionsPerDim() not implemented");
+}
+
 pair<double,double> RipleyDomain::getFirstCoordAndSpacing(dim_t dim) const
 {
     throw RipleyException("getFirstCoordAndSpacing() not implemented");
@@ -1167,6 +1175,11 @@ dim_t RipleyDomain::getNumNodes() const
 dim_t RipleyDomain::getNumDOF() const
 {
     throw RipleyException("getNumDOF() not implemented");
+}
+
+escript::Domain_ptr RipleyDomain::getCoarseMesh() const
+{
+    throw RipleyException("getCoarseMesh() not implemented");
 }
 
 dim_t RipleyDomain::insertNeighbourNodes(IndexVector& index, index_t node) const

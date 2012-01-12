@@ -76,6 +76,10 @@ Rectangle::Rectangle(int n0, int n1, double l0, double l1, int d0, int d1) :
 
     populateSampleIds();
     createPattern();
+
+    if (m_gNE0>2*m_NX && m_gNE1>2*m_NY && m_gNE0%2==0 && m_gNE1%2==0) {
+        m_coarseMesh.reset(new Rectangle(n0/2, n1/2, l0, l1, d0, d1));
+    }
 }
 
 Rectangle::~Rectangle()
@@ -111,7 +115,6 @@ void Rectangle::dump(const string& fileName) const
     const int NUM_SILO_FILES = 1;
     const char* blockDirFmt = "/block%04d";
     int driver=DB_HDF5;    
-    string siloPath;
     DBfile* dbfile = NULL;
 
 #ifdef ESYS_MPI
@@ -131,10 +134,9 @@ void Rectangle::dump(const string& fileName) const
                         PMPIO_DefaultClose, (void*)&driver);
         }
         if (baton) {
-            char str[64];
-            snprintf(str, 64, blockDirFmt, PMPIO_RankInGroup(baton, m_mpiInfo->rank));
-            siloPath = str;
-            dbfile = (DBfile*) PMPIO_WaitForBaton(baton, fn.c_str(), siloPath.c_str());
+            char siloPath[64];
+            snprintf(siloPath, 64, blockDirFmt, PMPIO_RankInGroup(baton, m_mpiInfo->rank));
+            dbfile = (DBfile*) PMPIO_WaitForBaton(baton, fn.c_str(), siloPath);
         }
 #endif
     } else {
@@ -146,6 +148,10 @@ void Rectangle::dump(const string& fileName) const
             dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL,
                     getDescription().c_str(), driver);
         }
+        char siloPath[64];
+        snprintf(siloPath, 64, blockDirFmt, 0);
+        DBMkDir(dbfile, siloPath);
+        DBSetDir(dbfile, siloPath);
     }
 
     if (!dbfile)
@@ -246,11 +252,17 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
-        case ReducedNodes: //FIXME: reduced
             return &m_nodeId[0];
+        case ReducedNodes:
+            if (m_coarseMesh)
+                return m_coarseMesh->borrowSampleReferenceIDs(Nodes);
+            break;
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: //FIXME: reduced
             return &m_dofId[0];
+        case ReducedDegreesOfFreedom:
+            if (m_coarseMesh)
+                return m_coarseMesh->borrowSampleReferenceIDs(DegreesOfFreedom);
+            break;
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
@@ -274,8 +286,11 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
     switch (fsType) {
         case Nodes:
-        case ReducedNodes: //FIXME: reduced
             return (m_dofMap[id] < getNumDOF());
+        case ReducedNodes:
+            if (m_coarseMesh)
+                return m_coarseMesh->ownSample(Nodes, id);
+            break;
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
             return true;
@@ -540,6 +555,14 @@ IndexVector Rectangle::getNumFacesPerBoundary() const
     //top
     if (m_mpiInfo->rank/m_NX==m_NY-1)
         ret[3]=m_NE0;
+    return ret;
+}
+
+IndexVector Rectangle::getNumSubdivisionsPerDim() const
+{
+    IndexVector ret;
+    ret.push_back(m_NX);
+    ret.push_back(m_NY);
     return ret;
 }
 
@@ -1100,8 +1123,8 @@ void Rectangle::createPattern()
     // The rest is assigned in the loop further down
     m_dofMap.assign(getNumNodes(), 0);
 #pragma omp parallel for
-    for (index_t i=bottom; i<m_N1; i++) {
-        for (index_t j=left; j<m_N0; j++) {
+    for (index_t i=bottom; i<bottom+nDOF1; i++) {
+        for (index_t j=left; j<left+nDOF0; j++) {
             m_dofMap[i*m_N0+j]=(i-bottom)*nDOF0+j-left;
         }
     }

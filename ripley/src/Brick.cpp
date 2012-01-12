@@ -684,6 +684,15 @@ IndexVector Brick::getNumFacesPerBoundary() const
     return ret;
 }
 
+IndexVector Brick::getNumSubdivisionsPerDim() const
+{
+    IndexVector ret;
+    ret.push_back(m_NX);
+    ret.push_back(m_NY);
+    ret.push_back(m_NZ);
+    return ret;
+}
+
 pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
 {
     if (dim==0)
@@ -1610,9 +1619,9 @@ void Brick::createPattern()
     // The rest is assigned in the loop further down
     m_dofMap.assign(getNumNodes(), 0);
 #pragma omp parallel for
-    for (index_t i=front; i<m_N2; i++) {
-        for (index_t j=bottom; j<m_N1; j++) {
-            for (index_t k=left; k<m_N0; k++) {
+    for (index_t i=front; i<front+nDOF2; i++) {
+        for (index_t j=bottom; j<bottom+nDOF1; j++) {
+            for (index_t k=left; k<left+nDOF0; k++) {
                 m_dofMap[i*m_N0*m_N1+j*m_N0+k]=(i-front)*nDOF0*nDOF1+(j-bottom)*nDOF0+k-left;
             }
         }

@@ -144,6 +144,13 @@ public:
 
     /**
        \brief
+       returns the number of spatial subdivisions in each dimension
+    */
+    RIPLEY_DLL_API
+    virtual IndexVector getNumSubdivisionsPerDim() const;
+
+    /**
+       \brief
        returns the first coordinate value and the node spacing along given
        dimension as a pair
     */
@@ -155,6 +162,7 @@ protected:
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    virtual escript::Domain_ptr getCoarseMesh() const { return m_coarseMesh; }
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
@@ -234,6 +242,8 @@ private:
 
     // the Paso System Matrix pattern
     Paso_SystemMatrixPattern* m_pattern;
+
+    escript::Domain_ptr m_coarseMesh;
 };
 
 } // end of namespace ripley
