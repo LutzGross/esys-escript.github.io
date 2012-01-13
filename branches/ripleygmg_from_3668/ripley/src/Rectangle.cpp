@@ -302,7 +302,7 @@ bool Rectangle::ownSample(int fsType, index_t id) const
         case ReducedFaceElements:
             {
                 // determine which face the sample belongs to before
-                // checking ownership of face element's first node
+                // checking ownership of corresponding element's first node
                 const IndexVector faces = getNumFacesPerBoundary();
                 dim_t n=0;
                 for (size_t i=0; i<faces.size(); i++) {
@@ -310,9 +310,9 @@ bool Rectangle::ownSample(int fsType, index_t id) const
                     if (id<n) {
                         index_t k;
                         if (i==1)
-                            k=m_N0-1;
+                            k=m_N0-2;
                         else if (i==3)
-                            k=m_N0*(m_N1-1);
+                            k=m_N0*(m_N1-2);
                         else
                             k=0;
                         // determine whether to move right or up
