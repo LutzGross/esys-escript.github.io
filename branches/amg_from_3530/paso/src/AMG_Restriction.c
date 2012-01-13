@@ -113,6 +113,7 @@ fprintf(stderr, "rank %d Pcouple_cols %d\n", rank, num_Pcouple_cols);
      for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
         j = couple_block->pattern->index[iptr];
 	k = send_ptr[j] + degree_set[j];
+if (MY_DEBUG && rank == 3 && k <= 5) fprintf(stderr, "offset_set k %d i %d offset %d j %d send_ptr[j] %d degree_set[j] %d\n", k, i, offset, j, send_ptr[j], degree_set[j]);
 	offset_set[k] = i + offset;   /* now we have the global id for row i,
 					which will be used as col index of R */
         memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
@@ -152,6 +153,8 @@ fprintf(stderr, "rank %d Pcouple_cols %d\n", rank, num_Pcouple_cols);
      j = recv->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
+if (MY_DEBUG && rank == 3 && recv->neighbor[p] == 4)
+fprintf(stderr, "3 Send degree_set %d to 4 (%d) offset %d p %d\n", k, degree_set[i], i, p);
 	MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
 		mpi_info->msg_tag_counter+rank, mpi_info->comm, 
                 &mpi_requests[msgs]);
@@ -174,8 +177,8 @@ fprintf(stderr, "rank %d Waitall(1)\n", rank);
      }
      sum += degree_set[p];
    }
-if (MY_DEBUG)
-fprintf(stderr, "rank %d degree_set %d\n", rank, sum);
+if (MY_DEBUG && rank == 4)
+fprintf(stderr, "rank %d degree_set %d (%d %d)\n", rank, sum, degree_set[0], degree_set[1]);
 
    /* send/receive offset_set and data_set to build the "idx" and "val"
       for R->col_coupleBlock */
@@ -184,6 +187,8 @@ fprintf(stderr, "rank %d degree_set %d\n", rank, sum);
    recv_val = TMPMEMALLOC(sum * block_size, double);
    for (p=0, offset=0; p<send->numNeighbors; p++) {
      if (degree_set[p]) {
+if (MY_DEBUG && rank == 4)
+fprintf(stderr, "4 Recv %d from %d\n", degree_set[p], send->neighbor[p]);
 	MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
 		send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
 		mpi_info->comm, &mpi_requests[msgs]);
@@ -202,11 +207,13 @@ fprintf(stderr, "rank %d degree_set %d\n", rank, sum);
      j = recv->offsetInShared[p+1];
      k = send_ptr[j] - send_ptr[i];
      if (k > 0) {
-	MPI_Issend(&(offset_set[i]), k, MPI_INT,
+if (MY_DEBUG && rank == 3 && recv->neighbor[p] == 4)
+fprintf(stderr, "3 Send %d to %d (%d %d) offset %d\n", k, recv->neighbor[p], offset_set[i], offset_set[i+1], i);
+	MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
 		recv->neighbor[p], mpi_info->msg_tag_counter+rank,
 		mpi_info->comm, &mpi_requests[msgs]);
 	msgs++;
-	MPI_Issend(&(data_set[i*block_size]), k*block_size, MPI_DOUBLE,
+	MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
 		recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
 		mpi_info->comm, &mpi_requests[msgs]);
 	msgs++;
@@ -228,6 +235,22 @@ fprintf(stderr, "rank %d degree_set %d\n", rank, sum);
    TMPMEMFREE(send_ptr);
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
+if (MY_DEBUG && rank == 4){
+char *str1, *str2;
+int sum, my_i;
+sum = 2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "recv_idx[%d] = (", sum);
+for (my_i=0; my_i<sum; my_i++) {
+  sprintf(str2, "%d ", recv_idx[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
+
 
 if (MY_DEBUG)
 fprintf(stderr, "rank %d Construct col_coupleBlock for R: %d %d \n", rank, n_C, sum);
@@ -301,6 +324,27 @@ fprintf(stderr, "rank %d Count num_Rcouple_cols %d\n", rank, num_Rcouple_cols);
    numNeighbors = send->numNeighbors;
    neighbor = send->neighbor;
    offsetInShared[0] = 0;
+if (MY_DEBUG && rank == 4){
+char *str1, *str2;
+int sum, my_i;
+sum = num_Rcouple_cols;
+str1 = TMPMEMALLOC((sum+size)*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d distribution[%d] = (", rank, size);
+for (my_i=0; my_i<size; my_i++) {
+  sprintf(str2, "%d ", dist[my_i+1]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+sprintf(str1, "rank %d recv_idx[%d] = (", rank, sum);
+for (my_i=0; my_i<sum; my_i++) {
+  sprintf(str2, "%d ", recv_idx[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
    for (i=0, p=0; i<num_Rcouple_cols; i++) {
      offset = dist[neighbor[p] + 1];
      /* cols i is received from rank neighbor[p] when it's still smaller
@@ -330,12 +374,18 @@ fprintf(stderr, "rank %d Receiver!!\n", rank);
    for (p=0; p<numNeighbors; p++) {
      j = P->col_coupler->connector->recv->offsetInShared[p];
      j_ub = P->col_coupler->connector->recv->offsetInShared[p+1];
+if (MY_DEBUG && rank ==3 && P->col_coupler->connector->recv->neighbor[p] == 4) {
+fprintf(stderr, "3sendto4 with P=%d\n", p);
+}
      for (i=0; i<n; i++) {
 	iptr = couple_pattern->ptr[i];
 	iptr_ub = couple_pattern->ptr[i+1];
 	for (; iptr<iptr_ub; iptr++) {
 	  k = couple_pattern->index[iptr];
 	  if (k >= j && k < j_ub) {
+if (MY_DEBUG && rank ==3 && P->col_coupler->connector->recv->neighbor[p] == 4) {
+fprintf(stderr, "send_idx[%d]=k%d i%d (%d, %d)\n", sum, k, i, j, j_ub);
+}
 	    shared[sum] = i;
 	    sum++;
 	    break;
