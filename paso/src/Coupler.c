@@ -211,6 +211,10 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      /* start reveiving input */
      {
         for (i=0; i< coupler->connector->recv->numNeighbors; ++i) {
+/*fprintf(stderr, "rank %d COLLECT RECV %d from %d tag %d (i%d) \n", mpi_info->rank,
+(coupler->connector->recv->offsetInShared[i+1]- coupler->connector->recv->offsetInShared[i])*block_size,
+coupler->connector->recv->neighbor[i],
+mpi_info->msg_tag_counter+coupler->connector->recv->neighbor[i], i);*/
             #ifdef ESYS_MPI
             MPI_Irecv(&(coupler->recv_buffer[coupler->connector->recv->offsetInShared[i] *  block_size]),
                       (coupler->connector->recv->offsetInShared[i+1]- coupler->connector->recv->offsetInShared[i])*block_size,
@@ -220,7 +224,6 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
                       mpi_info->comm,
                       &(coupler->mpi_requests[i]));
             #endif
-
         }
      }
      /* collect values into buffer */
@@ -237,6 +240,10 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
      {
 
         for (i=0; i< coupler->connector->send->numNeighbors; ++i) {
+/*fprintf(stderr, "rank %d COLLECT SEND %d to %d tag %d (i%d)\n", mpi_info->rank,
+(coupler->connector->send->offsetInShared[i+1]- coupler->connector->send->offsetInShared[i])*block_size,
+coupler->connector->send->neighbor[i],
+mpi_info->msg_tag_counter+mpi_info->rank, i);*/
              #ifdef ESYS_MPI
              MPI_Issend(&(coupler->send_buffer[coupler->connector->send->offsetInShared[i] *  block_size]),
                         (coupler->connector->send->offsetInShared[i+1]- coupler->connector->send->offsetInShared[i])*block_size,

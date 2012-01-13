@@ -39,7 +39,7 @@
 ***************************************************************/
 
 #define MY_DEBUG 0
-#define MY_DEBUG1 1
+#define MY_DEBUG1 0
 
 /* Extend system matrix B with extra two sparse matrixes: 
 	B_ext_main and B_ext_couple
@@ -116,7 +116,7 @@ if (MY_DEBUG1) fprintf(stderr, "CP1_1\n");
   recv = A->col_coupler->connector->recv;
   num_neighbors = send->numNeighbors;
   p = send->offsetInShared[num_neighbors];
-  len = p * num_main_cols * 2;   /*XXX used to be max_num_cols, do I mean num_main_cols?? */
+  len = p * B->col_distribution->first_component[size];
   send_buf = TMPMEMALLOC(len * block_size, double);
   send_idx = TMPMEMALLOC(len, index_t);
   send_offset = TMPMEMALLOC((p+1)*2, index_t);
@@ -178,10 +178,11 @@ if (MY_DEBUG) {
   for (p=0; p<q; p++) {
     row = recv->offsetInShared[p];
     m = recv->offsetInShared[p + 1];
-    MPI_Irecv(&(ptr_ptr[row]), 2 * (m-row), MPI_INT, recv->neighbor[p],
+    MPI_Irecv(&(ptr_ptr[2*row]), 2 * (m-row), MPI_INT, recv->neighbor[p],
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
+if(MY_DEBUG1) fprintf(stderr, "rank %d receive %d from %d tag %d (numNeighbors %d)\n", rank, 2*(m-row), recv->neighbor[p], A->mpi_info->msg_tag_counter+recv->neighbor[p], q);
   }
 
   /* now prepare the rows to be sent (the degree, the offset and the data) */
@@ -192,6 +193,7 @@ if (MY_DEBUG) {
     m_lb = B->col_distribution->first_component[neighbor];
     m_ub = B->col_distribution->first_component[neighbor + 1];
     j_ub = send->offsetInShared[p + 1];
+if (MY_DEBUG1) fprintf(stderr, "rank%d neighbor %d m_lb %d m_ub %d offset %d\n", rank, neighbor, m_lb, m_ub, offset);
     for (j=send->offsetInShared[p]; j<j_ub; j++) {
 	row = send->shared[j];
 	l_m = 0;
@@ -205,6 +207,7 @@ if (MY_DEBUG) {
 	  m = global_id[B->col_coupleBlock->pattern->index[k]];
 //	  if (m > q) break;
 	  if (m > offset) break;
+if (MY_DEBUG) fprintf(stderr, "rank%d (1) row %d m %d k %d\n", rank, row, m, B->col_coupleBlock->pattern->index[k]);
 	  if (m>= m_lb && m < m_ub) {
 	    /* data to be passed to sparse matrix B_ext_main */
 	    idx_m[l_m] = m - m_lb;
@@ -227,6 +230,7 @@ if (MY_DEBUG) fprintf(stderr, "rank%d (1) m %d m_lb %d m_ub %d\n", rank, m, m_lb
 	memcpy(&(send_c[l_c*block_size]), &(B->mainBlock->val[block_size*k]), block_size_size * (k_ub-k));
 	for (; k<k_ub; k++) {
 	  m = B->mainBlock->pattern->index[k] + offset;
+if (MY_DEBUG) fprintf(stderr, "rank%d (2) row %d m %d k %d\n", rank, row, m, B->mainBlock->pattern->index[k]);
 if (MY_DEBUG) fprintf(stderr, "rank%d (2) m %d m_lb %d m_ub %d\n", rank, m, m_lb, m_ub);
 	  idx_c[l_c] = m;
 	  l_c++;
@@ -238,7 +242,8 @@ if (MY_DEBUG) fprintf(stderr, "rank%d (2) m %d m_lb %d m_ub %d\n", rank, m, m_lb
 	k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
 	for (k=k_lb; k<k_ub; k++) {
           m = global_id[B->col_coupleBlock->pattern->index[k]];
-	  if (m>= m_lb && i < m_ub) {
+if (MY_DEBUG) fprintf(stderr, "rank%d (3) row %d m %d k %d\n", rank, row, m, B->col_coupleBlock->pattern->index[k]);
+	  if (m>= m_lb && m < m_ub) {
 	    /* data to be passed to sparse matrix B_ext_main */
 	    idx_m[l_m] = m - m_lb;
 	    memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
@@ -252,24 +257,53 @@ if (MY_DEBUG) fprintf(stderr, "rank%d (3) m %d m_lb %d m_ub %d\n", rank, m, m_lb
 	  }
 	}
 
-if (MY_DEBUG) fprintf(stderr, "rank %d p %d i %d j %d l_c %d l_m %d ub %d\n", rank, p, i, j, l_c, l_m, num_couple_cols + num_main_cols);
-	memcpy(&(send_buf[len]), &(send_m[0]), block_size_size*l_m);
-	memcpy(&(send_idx[len]), &(idx_m[0]), l_m * sizeof(index_t));
+if (MY_DEBUG && rank == 2) fprintf(stderr, "rank %d p %d i %d j %d l_c %d l_m %d ub %d\n", rank, p, i, j, l_c, l_m, num_couple_cols + num_main_cols);
+	memcpy(&(send_buf[len]), send_m, block_size_size*l_m);
+	memcpy(&(send_idx[len]), idx_m, l_m * sizeof(index_t));
         send_offset[2*i] = l_m;
 	len += l_m;
-	memcpy(&(send_buf[len]), &(send_c[0]), block_size_size*l_c);
-	memcpy(&(send_idx[len]), &(idx_c[0]), l_c * sizeof(index_t));
+	memcpy(&(send_buf[len]), send_c, block_size_size*l_c);
+	memcpy(&(send_idx[len]), idx_c, l_c * sizeof(index_t));
 	send_offset[2*i+1] = l_c;
 	len += l_c;
-	
+if (MY_DEBUG && rank == 0) {
+int sum = l_m+l_c, my_i;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d send_idx[%d] offset %d m%d c%d= (", rank, sum, len-sum, l_m, l_c);
+for (my_i=len-sum; my_i<len; my_i++){
+  sprintf(str2, "%d ", send_idx[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 	i++;
     }
+
+if (MY_DEBUG && rank == 0) {
+int my_i,sum = len;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d send_idx[%d] = (", rank, sum);
+for (my_i=0; my_i<sum; my_i++){
+  sprintf(str2, "%d ", send_idx[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 
     /* sending */
     MPI_Issend(send_offset, 2*i, MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
+if(MY_DEBUG) fprintf(stderr, "rank %d send %d to %d tag %d (numNeighbors %d)\n", rank, 2*i, send->neighbor[p], A->mpi_info->msg_tag_counter+rank, send->numNeighbors);
     send_degree[p] = len;
   }
   TMPMEMFREE(send_m);
@@ -288,6 +322,21 @@ if (MY_DEBUG) fprintf(stderr, "rank %d p %d i %d j %d l_c %d l_m %d ub %d\n", ra
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
+
+if (MY_DEBUG) {
+int sum = recv->offsetInShared[recv->numNeighbors] * 2;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d ptr_ptr[%d] = (", rank, sum);
+for (i=0; i<sum; i++){
+  sprintf(str2, "%d ", ptr_ptr[i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 
   j = 0;
   k = 0;
@@ -321,25 +370,41 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_4_2 %d %d %d\n", rank, j, k, len);
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
+if(MY_DEBUG) fprintf(stderr, "rank %d (INDEX) recv %d from %d tag %d\n", rank, i, recv->neighbor[p], A->mpi_info->msg_tag_counter+recv->neighbor[p]);
     } else {
-if (MY_DEBUG) fprintf(stderr, "rank%d k %d m %d main(%d %d) couple(%d %d)\n", rank, k, m, ptr_main[m], ptr_main[k], ptr_couple[m], ptr_couple[k]);
+if (MY_DEBUG1) fprintf(stderr, "rank%d k %d m %d main(%d %d) couple(%d %d)\n", rank, k, m, ptr_main[m], ptr_main[k], ptr_couple[m], ptr_couple[k]);
     }
     j += i;
   }
 
-if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_4_3  %d %d\n", rank, recv->numNeighbors, k_ub);
+if (MY_DEBUG) fprintf(stderr, "rank %d CP1_4_3  %d %d\n", rank, recv->numNeighbors, k_ub);
   j=0;
   k_ub = 0;
   for (p=0; p<num_neighbors; p++) {
     i = send_degree[p] - j;
     if (i > 0){
 	k_ub ++;
+if (MY_DEBUG && rank == 0 && send->neighbor[p] == 1) {
+int sum = i, my_i;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d send_idx[%d] offset %d = (", rank, sum, j);
+for (my_i=0; my_i<sum; my_i++){
+  sprintf(str2, "%d ", send_idx[j+my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
         MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
+if(MY_DEBUG1) fprintf(stderr, "rank %d (INDEX) send %d to %d tag %d\n", rank, i, send->neighbor[p], A->mpi_info->msg_tag_counter+rank);
     } else {
-if (MY_DEBUG) fprintf(stderr, "rank%d send_degree %d, p %d, j %d\n", rank, send_degree[p], p, j);
+if (MY_DEBUG1) fprintf(stderr, "rank%d send_degree %d, p %d, j %d\n", rank, send_degree[p], p, j);
     }
     j = send_degree[p];
   }
@@ -350,8 +415,24 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_4_4 %d %d\n", rank,num_neighbors, k_
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
 if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_5 %d %d %d\n", rank, len, ptr_main[len], ptr_couple[len]);
+if (MY_DEBUG && rank == 1) {
+int my_i, sum1 = recv->offsetInShared[recv->numNeighbors];
+int sum = ptr_main[sum1] + ptr_couple[sum1];
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d ptr_idx[%d] = (", rank, sum);
+for (my_i=0; my_i<sum; my_i++){
+  sprintf(str2, "%d ", ptr_idx[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 
-  #pragma omp parallel for private(i,j,k,m,p) schedule(static)
+
+//  #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
     j = ptr_main[i];
     k = ptr_main[i+1];
@@ -365,7 +446,27 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_5 %d %d %d\n", rank, len, ptr_main[l
     }
   }
   TMPMEMFREE(ptr_idx);
-if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_5_1\n", rank);
+if (MY_DEBUG1) fprintf(stderr, "rank %d CP1_5_1 %d %d\n", rank, num_main_cols, len);
+if (MY_DEBUG) {
+int sum = num_main_cols, sum1 = ptr_main[sum];
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum1*30+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d ptr_main[%d] = (", rank, sum);
+for (i=0; i<sum+1; i++){
+  sprintf(str2, "%d ", ptr_main[i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+sprintf(str1, "rank %d idx_main[%d] = (", rank, sum1);
+for (i=0; i<sum1; i++){
+  sprintf(str2, "%d ", idx_main[i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
 
   /* allocate pattern and sparsematrix for B_ext_main */
   pattern_main = Paso_Pattern_alloc(B->col_coupleBlock->pattern->type,
@@ -672,10 +773,16 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP2\n", rank);
      iptr = 0;
      if (num_Pcouple_cols || sum > 0) {
 	temp = TMPMEMALLOC(num_Pcouple_cols+sum, index_t);
-	for (; iptr<sum; iptr++) 
+	for (; iptr<sum; iptr++){ 
 	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
-	for (j=0; j<num_Pcouple_cols; j++, iptr++)
+if (MY_DEBUG && rank ==1)
+fprintf(stderr, "rank %d remote_block[%d] = %d\n", rank, iptr, temp[iptr]);
+	}
+	for (j=0; j<num_Pcouple_cols; j++, iptr++){
 	  temp[iptr] = P->global_id[j];
+if (MY_DEBUG && rank ==1)
+fprintf(stderr, "rank %d global_id[%d] = %d\n", rank, j, P->global_id[j]);
+	}
      }
      if (iptr) {
 	#ifdef USE_QSORTG
@@ -698,6 +805,21 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP2\n", rank);
 	global_id_P = TMPMEMALLOC(num_Pext_cols, index_t);
 	for (i=0; i<num_Pext_cols; i++)
 	  global_id_P[i] = temp[i];
+if (MY_DEBUG && rank == 1) {
+int my_i, sum=num_Pext_cols;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d global_id_P[%d] = (", rank, sum);
+for (my_i=0; my_i<sum; my_i++) {
+  sprintf(str2, "%d ", global_id_P[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
+
      }
      if (num_Pcouple_cols || sum > 0) 
 	TMPMEMFREE(temp);
@@ -1039,11 +1161,12 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP6_0 %d %d (%d %d)\n", rank, sum, num_Pe
      for (i=0, iptr=0; i<sum; i++) {
 	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ {
 	  temp[iptr++] = RAP_ext_idx[i];		  /* XXX */
-if (MY_DEBUG && rank ==0) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx[i]);
+if (MY_DEBUG && rank ==1) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx[i]);
 }
      }
-     for (j=0; j<num_Pext_cols; j++, iptr++)
+     for (j=0; j<num_Pext_cols; j++, iptr++){
 	temp[iptr] = global_id_P[j];
+     }
 
      if (iptr) {
 	#ifdef USE_QSORTG
@@ -1546,6 +1669,27 @@ if (MY_DEBUG){
 if (rank == 0) fprintf(stderr, "A[%d]=%f A[%d]=%f A[%d]=%f A[%d]=%f \n", RAP_main_idx[0], RAP_main_val[0], RAP_main_idx[1], RAP_main_val[1], RAP_main_idx[2], RAP_main_val[2], RAP_main_idx[3], RAP_main_val[3]);
 }
 if (MY_DEBUG1) fprintf(stderr, "rank %d CP10\n", rank);
+if (MY_DEBUG1 && rank == 1) {
+int sum = num_RAPext_cols, my_i;
+char *str1, *str2;
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
+sprintf(str1, "rank %d global_id_RAP[%d] = (", rank, sum);
+for (my_i=0; my_i<sum; my_i++){
+  sprintf(str2, "%d ", global_id_RAP[my_i]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+sprintf(str1, "rank %d distribution = (", rank);
+for (my_i=0; my_i<size; my_i++){
+  sprintf(str2, "%d ", P->pattern->input_distribution->first_component[my_i+1]);
+  strcat(str1, str2);
+}
+fprintf(stderr, "%s)\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
+
 
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
@@ -1599,7 +1743,7 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP11\n", rank);
    num_neighbors = 0;
    offsetInShared[0] = 0;
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
-if (MY_DEBUG && rank == 0) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, global_id_RAP[i], recv_len[j]);
+if (MY_DEBUG && rank == 1) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, global_id_RAP[i], recv_len[j]);
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
 	if (recv_len[j] > 0) {
@@ -1709,6 +1853,8 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_2 %d\n", rank, sum);
 	  for (p=0; p<recv->numNeighbors; p++) {
 	    if (i_c < recv->offsetInShared[p+1]) {
 	      k = recv->neighbor[p];
+if (MY_DEBUG1 && rank == 1 && k == 1)
+fprintf(stderr, "******* i_r %d i_c %d p %d ub %d numNeighbors %d\n", i_r, i_c, p, recv->offsetInShared[p+1], recv->numNeighbors);
 	      if (send_ptr[k][i_r] == 0) sum++;
 	      send_ptr[k][i_r] ++;
 	      send_idx[k][len[k]] = global_id_RAP[i_c];
@@ -1733,7 +1879,7 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_4 %d sum%d cols%d\n", rank, len[0], 
    offsetInShared[0] = 0;
 if (MY_DEBUG) fprintf(stderr, "rank %d CP14_5 %d\n", rank, size);
    for (p=0, k=0; p<size; p++) {
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_6 %d\n", rank, p);
+if (MY_DEBUG && rank == 1) fprintf(stderr, "rank %d CP14_6 %d %d %d\n", rank, p, k, num_neighbors);
      for (i=0; i<num_Pmain_cols; i++) {
 	if (send_ptr[p][i] > 0) {
 	  shared[k] = i;
@@ -1794,6 +1940,7 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbo
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
 		mpi_info->msg_tag_counter+neighbor[p],
 		mpi_info->comm, &mpi_requests[p]);
+if (MY_DEBUG) fprintf(stderr, "rank %d RECV %d from %d tag %d\n", rank, i-j, neighbor[p], mpi_info->msg_tag_counter+neighbor[p]);
    }
    send = row_connector->send;
    for (p=0; p<send->numNeighbors; p++) {
@@ -1801,12 +1948,13 @@ if (MY_DEBUG1) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbo
 		MPI_INT, send->neighbor[p],
 		mpi_info->msg_tag_counter+rank,
 		mpi_info->comm, &mpi_requests[p+num_neighbors]);
+if (MY_DEBUG) fprintf(stderr, "rank %d SEND %d TO %d tag %d\n", rank, send_len[send->neighbor[p]], send->neighbor[p], mpi_info->msg_tag_counter+rank);
    }
    MPI_Waitall(num_neighbors + send->numNeighbors,
 	mpi_requests, mpi_stati); 
    mpi_info->msg_tag_counter += size; 
    TMPMEMFREE(send_len);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
+if (MY_DEBUG1) fprintf(stderr, "rank %d CP17\n", rank);
 
    sum = 0;
    for (i=0; i<num_RAPext_rows; i++) {
@@ -1854,7 +2002,7 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
    Esys_MPIInfo_free(mpi_info);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP18\n", rank);
+if (MY_DEBUG1) fprintf(stderr, "rank %d CP18\n", rank);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
    main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
