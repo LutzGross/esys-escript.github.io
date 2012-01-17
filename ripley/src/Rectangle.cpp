@@ -76,10 +76,6 @@ Rectangle::Rectangle(int n0, int n1, double l0, double l1, int d0, int d1) :
 
     populateSampleIds();
     createPattern();
-
-    if (m_gNE0>2*m_NX && m_gNE1>2*m_NY && m_gNE0%2==0 && m_gNE1%2==0) {
-        m_coarseMesh.reset(new Rectangle(n0/2, n1/2, l0, l1, d0, d1));
-    }
 }
 
 Rectangle::~Rectangle()
@@ -252,17 +248,11 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
+        case ReducedNodes: // FIXME: reduced
             return &m_nodeId[0];
-        case ReducedNodes:
-            if (m_coarseMesh)
-                return m_coarseMesh->borrowSampleReferenceIDs(Nodes);
-            break;
         case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom: // FIXME: reduced
             return &m_dofId[0];
-        case ReducedDegreesOfFreedom:
-            if (m_coarseMesh)
-                return m_coarseMesh->borrowSampleReferenceIDs(DegreesOfFreedom);
-            break;
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
@@ -286,11 +276,8 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
     switch (fsType) {
         case Nodes:
+        case ReducedNodes: // FIXME: reduced
             return (m_dofMap[id] < getNumDOF());
-        case ReducedNodes:
-            if (m_coarseMesh)
-                return m_coarseMesh->ownSample(Nodes, id);
-            break;
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
             return true;
@@ -643,10 +630,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
             for (index_t k0=0; k0 < m_NE0; ++k0) {
-                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
                 double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
@@ -665,10 +652,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
             for (index_t k0=0; k0 < m_NE0; ++k0) {
-                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
                 double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
@@ -683,10 +670,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(1,k1+1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(1,k1+1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
@@ -699,10 +686,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
@@ -715,10 +702,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
@@ -731,10 +718,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
@@ -752,10 +739,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(1,k1+1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(1,k1+1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
@@ -766,10 +753,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
@@ -780,10 +767,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
@@ -794,10 +781,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
@@ -827,10 +814,10 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                 for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
                     const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE0));
                     for (index_t i=0; i < numComp; ++i) {
-                        const register double f0 = f[INDEX2(i,0,numComp)];
-                        const register double f1 = f[INDEX2(i,1,numComp)];
-                        const register double f2 = f[INDEX2(i,2,numComp)];
-                        const register double f3 = f[INDEX2(i,3,numComp)];
+                        const double f0 = f[INDEX2(i,0,numComp)];
+                        const double f1 = f[INDEX2(i,1,numComp)];
+                        const double f2 = f[INDEX2(i,2,numComp)];
+                        const double f3 = f[INDEX2(i,3,numComp)];
                         int_local[i]+=(f0+f1+f2+f3)*w;
                     }  /* end of component loop i */
                 } /* end of k0 loop */
@@ -870,8 +857,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        const register double f0 = f[INDEX2(i,0,numComp)];
-                        const register double f1 = f[INDEX2(i,1,numComp)];
+                        const double f0 = f[INDEX2(i,0,numComp)];
+                        const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w1;
                     }  /* end of component loop i */
                 } /* end of k1 loop */
@@ -882,8 +869,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        const register double f0 = f[INDEX2(i,0,numComp)];
-                        const register double f1 = f[INDEX2(i,1,numComp)];
+                        const double f0 = f[INDEX2(i,0,numComp)];
+                        const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w1;
                     }  /* end of component loop i */
                 } /* end of k1 loop */
@@ -894,8 +881,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                 for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        const register double f0 = f[INDEX2(i,0,numComp)];
-                        const register double f1 = f[INDEX2(i,1,numComp)];
+                        const double f0 = f[INDEX2(i,0,numComp)];
+                        const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w0;
                     }  /* end of component loop i */
                 } /* end of k0 loop */
@@ -906,8 +893,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                 for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        const register double f0 = f[INDEX2(i,0,numComp)];
-                        const register double f1 = f[INDEX2(i,1,numComp)];
+                        const double f0 = f[INDEX2(i,0,numComp)];
+                        const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w0;
                     }  /* end of component loop i */
                 } /* end of k0 loop */
@@ -1296,10 +1283,10 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
             for (index_t k0=0; k0 < m_NE0; ++k0) {
-                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
-                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                const double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
                 double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
@@ -1314,10 +1301,10 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 #pragma omp parallel for
         for (index_t k1=0; k1 < m_NE1; ++k1) {
             for (index_t k0=0; k0 < m_NE0; ++k0) {
-                const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
-                const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
-                const register double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
-                const register double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
+                const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,k1, m_N0));
+                const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0));
+                const double* f_01 = in.getSampleDataRO(INDEX2(k0,k1+1, m_N0));
+                const double* f_00 = in.getSampleDataRO(INDEX2(k0,k1, m_N0));
                 double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_00[i]*c2 + f_11[i]*c1 + c0*(f_01[i] + f_10[i]);
@@ -1343,8 +1330,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i]);
@@ -1354,8 +1341,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_10[i] + f_11[i]);
@@ -1365,8 +1352,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_10[i]);
@@ -1376,8 +1363,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_11[i]);
@@ -1394,8 +1381,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(0,k1+1, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(0,k1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = f_00[i]*c1 + f_01[i]*c0;
@@ -1406,8 +1393,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = f_10[i]*c1 + f_11[i]*c0;
@@ -1418,8 +1405,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
-                    const register double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
+                    const double* f_10 = in.getSampleDataRO(INDEX2(k0+1,0, m_N0));
+                    const double* f_00 = in.getSampleDataRO(INDEX2(k0,0, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = f_00[i]*c1 + f_10[i]*c0;
@@ -1430,8 +1417,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    const register double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
-                    const register double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
+                    const double* f_11 = in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0));
+                    const double* f_01 = in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = f_01[i]*c1 + f_11[i]*c0;
@@ -1447,8 +1434,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
 void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
-        const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& X, const escript::Data& Y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -1471,8 +1457,8 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
     const double w16 = -0.01116454968463011277*h0/h1;
     const double w17 = -0.1555021169820365539*h0/h1;
     const double w18 = -0.33333333333333333333*h1/h0;
-    const double w19 = 0.25000000000000000000;
-    const double w20 = -0.25000000000000000000;
+    const double w19 = 0.25;
+    const double w20 = -0.25;
     const double w21 = 0.16666666666666666667*h0/h1;
     const double w22 = -0.16666666666666666667*h1/h0;
     const double w23 = -0.16666666666666666667*h0/h1;
@@ -1548,100 +1534,100 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_S=true;
                         const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
                         if (A.actsExpanded()) {
-                            const register double A_00_0 = A_p[INDEX3(0,0,0,2,2)];
-                            const register double A_10_0 = A_p[INDEX3(1,0,0,2,2)];
-                            const register double A_01_0 = A_p[INDEX3(0,1,0,2,2)];
-                            const register double A_11_0 = A_p[INDEX3(1,1,0,2,2)];
-                            const register double A_00_1 = A_p[INDEX3(0,0,1,2,2)];
-                            const register double A_10_1 = A_p[INDEX3(1,0,1,2,2)];
-                            const register double A_01_1 = A_p[INDEX3(0,1,1,2,2)];
-                            const register double A_11_1 = A_p[INDEX3(1,1,1,2,2)];
-                            const register double A_00_2 = A_p[INDEX3(0,0,2,2,2)];
-                            const register double A_10_2 = A_p[INDEX3(1,0,2,2,2)];
-                            const register double A_01_2 = A_p[INDEX3(0,1,2,2,2)];
-                            const register double A_11_2 = A_p[INDEX3(1,1,2,2,2)];
-                            const register double A_00_3 = A_p[INDEX3(0,0,3,2,2)];
-                            const register double A_10_3 = A_p[INDEX3(1,0,3,2,2)];
-                            const register double A_01_3 = A_p[INDEX3(0,1,3,2,2)];
-                            const register double A_11_3 = A_p[INDEX3(1,1,3,2,2)];
-                            const register double tmp0_0 = A_01_0 + A_01_3;
-                            const register double tmp1_0 = A_00_0 + A_00_1;
-                            const register double tmp2_0 = A_11_0 + A_11_1 + A_11_2 + A_11_3;
-                            const register double tmp3_0 = A_00_2 + A_00_3;
-                            const register double tmp4_0 = A_10_1 + A_10_2;
-                            const register double tmp5_0 = A_00_0 + A_00_1 + A_00_2 + A_00_3;
-                            const register double tmp6_0 = A_01_3 + A_10_0;
-                            const register double tmp7_0 = A_01_0 + A_10_3;
-                            const register double tmp8_0 = A_01_1 + A_01_2 + A_10_1 + A_10_2;
-                            const register double tmp9_0 = A_01_0 + A_10_0;
-                            const register double tmp12_0 = A_11_0 + A_11_2;
-                            const register double tmp10_0 = A_01_3 + A_10_3;
-                            const register double tmp14_0 = A_01_0 + A_01_3 + A_10_0 + A_10_3;
-                            const register double tmp13_0 = A_01_2 + A_10_1;
-                            const register double tmp11_0 = A_11_1 + A_11_3;
-                            const register double tmp18_0 = A_01_1 + A_10_1;
-                            const register double tmp15_0 = A_01_1 + A_10_2;
-                            const register double tmp16_0 = A_10_0 + A_10_3;
-                            const register double tmp17_0 = A_01_1 + A_01_2;
-                            const register double tmp19_0 = A_01_2 + A_10_2;
-                            const register double tmp0_1 = A_10_3*w8;
-                            const register double tmp1_1 = tmp0_0*w1;
-                            const register double tmp2_1 = A_01_1*w4;
-                            const register double tmp3_1 = tmp1_0*w0;
-                            const register double tmp4_1 = A_01_2*w7;
-                            const register double tmp5_1 = tmp2_0*w3;
-                            const register double tmp6_1 = tmp3_0*w6;
-                            const register double tmp7_1 = A_10_0*w2;
-                            const register double tmp8_1 = tmp4_0*w5;
-                            const register double tmp9_1 = tmp2_0*w10;
-                            const register double tmp14_1 = A_10_0*w8;
-                            const register double tmp23_1 = tmp3_0*w14;
-                            const register double tmp35_1 = A_01_0*w8;
-                            const register double tmp54_1 = tmp13_0*w8;
-                            const register double tmp20_1 = tmp9_0*w4;
-                            const register double tmp25_1 = tmp12_0*w12;
-                            const register double tmp44_1 = tmp7_0*w7;
-                            const register double tmp26_1 = tmp10_0*w4;
-                            const register double tmp52_1 = tmp18_0*w8;
-                            const register double tmp48_1 = A_10_1*w7;
-                            const register double tmp46_1 = A_01_3*w8;
-                            const register double tmp50_1 = A_01_0*w2;
-                            const register double tmp56_1 = tmp19_0*w8;
-                            const register double tmp19_1 = A_10_3*w2;
-                            const register double tmp47_1 = A_10_2*w4;
-                            const register double tmp16_1 = tmp3_0*w0;
-                            const register double tmp18_1 = tmp1_0*w6;
-                            const register double tmp31_1 = tmp11_0*w12;
-                            const register double tmp55_1 = tmp15_0*w2;
-                            const register double tmp39_1 = A_10_2*w7;
-                            const register double tmp11_1 = tmp6_0*w7;
-                            const register double tmp40_1 = tmp11_0*w17;
-                            const register double tmp34_1 = tmp15_0*w8;
-                            const register double tmp33_1 = tmp14_0*w5;
-                            const register double tmp24_1 = tmp11_0*w13;
-                            const register double tmp43_1 = tmp17_0*w5;
-                            const register double tmp15_1 = A_01_2*w4;
-                            const register double tmp53_1 = tmp19_0*w2;
-                            const register double tmp27_1 = tmp3_0*w11;
-                            const register double tmp32_1 = tmp13_0*w2;
-                            const register double tmp10_1 = tmp5_0*w9;
-                            const register double tmp37_1 = A_10_1*w4;
-                            const register double tmp38_1 = tmp5_0*w15;
-                            const register double tmp17_1 = A_01_1*w7;
-                            const register double tmp12_1 = tmp7_0*w4;
-                            const register double tmp22_1 = tmp10_0*w7;
-                            const register double tmp57_1 = tmp18_0*w2;
-                            const register double tmp28_1 = tmp9_0*w7;
-                            const register double tmp29_1 = tmp1_0*w14;
-                            const register double tmp51_1 = tmp11_0*w16;
-                            const register double tmp42_1 = tmp12_0*w16;
-                            const register double tmp49_1 = tmp12_0*w17;
-                            const register double tmp21_1 = tmp1_0*w11;
-                            const register double tmp45_1 = tmp6_0*w4;
-                            const register double tmp13_1 = tmp8_0*w1;
-                            const register double tmp36_1 = tmp16_0*w1;
-                            const register double tmp41_1 = A_01_3*w2;
-                            const register double tmp30_1 = tmp12_0*w13;
+                            const double A_00_0 = A_p[INDEX3(0,0,0,2,2)];
+                            const double A_10_0 = A_p[INDEX3(1,0,0,2,2)];
+                            const double A_01_0 = A_p[INDEX3(0,1,0,2,2)];
+                            const double A_11_0 = A_p[INDEX3(1,1,0,2,2)];
+                            const double A_00_1 = A_p[INDEX3(0,0,1,2,2)];
+                            const double A_10_1 = A_p[INDEX3(1,0,1,2,2)];
+                            const double A_01_1 = A_p[INDEX3(0,1,1,2,2)];
+                            const double A_11_1 = A_p[INDEX3(1,1,1,2,2)];
+                            const double A_00_2 = A_p[INDEX3(0,0,2,2,2)];
+                            const double A_10_2 = A_p[INDEX3(1,0,2,2,2)];
+                            const double A_01_2 = A_p[INDEX3(0,1,2,2,2)];
+                            const double A_11_2 = A_p[INDEX3(1,1,2,2,2)];
+                            const double A_00_3 = A_p[INDEX3(0,0,3,2,2)];
+                            const double A_10_3 = A_p[INDEX3(1,0,3,2,2)];
+                            const double A_01_3 = A_p[INDEX3(0,1,3,2,2)];
+                            const double A_11_3 = A_p[INDEX3(1,1,3,2,2)];
+                            const double tmp0_0 = A_01_0 + A_01_3;
+                            const double tmp1_0 = A_00_0 + A_00_1;
+                            const double tmp2_0 = A_11_0 + A_11_1 + A_11_2 + A_11_3;
+                            const double tmp3_0 = A_00_2 + A_00_3;
+                            const double tmp4_0 = A_10_1 + A_10_2;
+                            const double tmp5_0 = A_00_0 + A_00_1 + A_00_2 + A_00_3;
+                            const double tmp6_0 = A_01_3 + A_10_0;
+                            const double tmp7_0 = A_01_0 + A_10_3;
+                            const double tmp8_0 = A_01_1 + A_01_2 + A_10_1 + A_10_2;
+                            const double tmp9_0 = A_01_0 + A_10_0;
+                            const double tmp12_0 = A_11_0 + A_11_2;
+                            const double tmp10_0 = A_01_3 + A_10_3;
+                            const double tmp14_0 = A_01_0 + A_01_3 + A_10_0 + A_10_3;
+                            const double tmp13_0 = A_01_2 + A_10_1;
+                            const double tmp11_0 = A_11_1 + A_11_3;
+                            const double tmp18_0 = A_01_1 + A_10_1;
+                            const double tmp15_0 = A_01_1 + A_10_2;
+                            const double tmp16_0 = A_10_0 + A_10_3;
+                            const double tmp17_0 = A_01_1 + A_01_2;
+                            const double tmp19_0 = A_01_2 + A_10_2;
+                            const double tmp0_1 = A_10_3*w8;
+                            const double tmp1_1 = tmp0_0*w1;
+                            const double tmp2_1 = A_01_1*w4;
+                            const double tmp3_1 = tmp1_0*w0;
+                            const double tmp4_1 = A_01_2*w7;
+                            const double tmp5_1 = tmp2_0*w3;
+                            const double tmp6_1 = tmp3_0*w6;
+                            const double tmp7_1 = A_10_0*w2;
+                            const double tmp8_1 = tmp4_0*w5;
+                            const double tmp9_1 = tmp2_0*w10;
+                            const double tmp14_1 = A_10_0*w8;
+                            const double tmp23_1 = tmp3_0*w14;
+                            const double tmp35_1 = A_01_0*w8;
+                            const double tmp54_1 = tmp13_0*w8;
+                            const double tmp20_1 = tmp9_0*w4;
+                            const double tmp25_1 = tmp12_0*w12;
+                            const double tmp44_1 = tmp7_0*w7;
+                            const double tmp26_1 = tmp10_0*w4;
+                            const double tmp52_1 = tmp18_0*w8;
+                            const double tmp48_1 = A_10_1*w7;
+                            const double tmp46_1 = A_01_3*w8;
+                            const double tmp50_1 = A_01_0*w2;
+                            const double tmp56_1 = tmp19_0*w8;
+                            const double tmp19_1 = A_10_3*w2;
+                            const double tmp47_1 = A_10_2*w4;
+                            const double tmp16_1 = tmp3_0*w0;
+                            const double tmp18_1 = tmp1_0*w6;
+                            const double tmp31_1 = tmp11_0*w12;
+                            const double tmp55_1 = tmp15_0*w2;
+                            const double tmp39_1 = A_10_2*w7;
+                            const double tmp11_1 = tmp6_0*w7;
+                            const double tmp40_1 = tmp11_0*w17;
+                            const double tmp34_1 = tmp15_0*w8;
+                            const double tmp33_1 = tmp14_0*w5;
+                            const double tmp24_1 = tmp11_0*w13;
+                            const double tmp43_1 = tmp17_0*w5;
+                            const double tmp15_1 = A_01_2*w4;
+                            const double tmp53_1 = tmp19_0*w2;
+                            const double tmp27_1 = tmp3_0*w11;
+                            const double tmp32_1 = tmp13_0*w2;
+                            const double tmp10_1 = tmp5_0*w9;
+                            const double tmp37_1 = A_10_1*w4;
+                            const double tmp38_1 = tmp5_0*w15;
+                            const double tmp17_1 = A_01_1*w7;
+                            const double tmp12_1 = tmp7_0*w4;
+                            const double tmp22_1 = tmp10_0*w7;
+                            const double tmp57_1 = tmp18_0*w2;
+                            const double tmp28_1 = tmp9_0*w7;
+                            const double tmp29_1 = tmp1_0*w14;
+                            const double tmp51_1 = tmp11_0*w16;
+                            const double tmp42_1 = tmp12_0*w16;
+                            const double tmp49_1 = tmp12_0*w17;
+                            const double tmp21_1 = tmp1_0*w11;
+                            const double tmp45_1 = tmp6_0*w4;
+                            const double tmp13_1 = tmp8_0*w1;
+                            const double tmp36_1 = tmp16_0*w1;
+                            const double tmp41_1 = A_01_3*w2;
+                            const double tmp30_1 = tmp12_0*w13;
                             EM_S[INDEX2(0,0,4)]+=tmp13_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp25_1;
                             EM_S[INDEX2(1,0,4)]+=tmp36_1 + tmp37_1 + tmp39_1 + tmp3_1 + tmp43_1 + tmp46_1 + tmp50_1 + tmp5_1 + tmp6_1;
                             EM_S[INDEX2(2,0,4)]+=tmp0_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp38_1 + tmp49_1 + tmp51_1 + tmp7_1 + tmp8_1;
@@ -1659,25 +1645,25 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                             EM_S[INDEX2(2,3,4)]+=tmp16_1 + tmp18_1 + tmp35_1 + tmp36_1 + tmp41_1 + tmp43_1 + tmp47_1 + tmp48_1 + tmp5_1;
                             EM_S[INDEX2(3,3,4)]+=tmp13_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
                         } else { // constant data
-                            const register double A_00 = A_p[INDEX2(0,0,2)];
-                            const register double A_10 = A_p[INDEX2(1,0,2)];
-                            const register double A_01 = A_p[INDEX2(0,1,2)];
-                            const register double A_11 = A_p[INDEX2(1,1,2)];
-                            const register double tmp0_0 = A_01 + A_10;
-                            const register double tmp0_1 = A_00*w18;
-                            const register double tmp1_1 = A_01*w19;
-                            const register double tmp2_1 = A_10*w20;
-                            const register double tmp3_1 = A_11*w21;
-                            const register double tmp4_1 = A_00*w22;
-                            const register double tmp5_1 = tmp0_0*w19;
-                            const register double tmp6_1 = A_11*w23;
-                            const register double tmp7_1 = A_11*w25;
-                            const register double tmp8_1 = A_00*w24;
-                            const register double tmp9_1 = tmp0_0*w20;
-                            const register double tmp10_1 = A_01*w20;
-                            const register double tmp11_1 = A_11*w27;
-                            const register double tmp12_1 = A_00*w26;
-                            const register double tmp13_1 = A_10*w19;
+                            const double A_00 = A_p[INDEX2(0,0,2)];
+                            const double A_10 = A_p[INDEX2(1,0,2)];
+                            const double A_01 = A_p[INDEX2(0,1,2)];
+                            const double A_11 = A_p[INDEX2(1,1,2)];
+                            const double tmp0_0 = A_01 + A_10;
+                            const double tmp0_1 = A_00*w18;
+                            const double tmp1_1 = A_01*w19;
+                            const double tmp2_1 = A_10*w20;
+                            const double tmp3_1 = A_11*w21;
+                            const double tmp4_1 = A_00*w22;
+                            const double tmp5_1 = tmp0_0*w19;
+                            const double tmp6_1 = A_11*w23;
+                            const double tmp7_1 = A_11*w25;
+                            const double tmp8_1 = A_00*w24;
+                            const double tmp9_1 = tmp0_0*w20;
+                            const double tmp10_1 = A_01*w20;
+                            const double tmp11_1 = A_11*w27;
+                            const double tmp12_1 = A_00*w26;
+                            const double tmp13_1 = A_10*w19;
                             EM_S[INDEX2(0,0,4)]+=tmp5_1 + tmp7_1 + tmp8_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp3_1;
                             EM_S[INDEX2(2,0,4)]+=tmp11_1 + tmp12_1 + tmp1_1 + tmp2_1;
@@ -1703,98 +1689,98 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_S=true;
                         const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
                         if (B.actsExpanded()) {
-                            const register double B_0_0 = B_p[INDEX2(0,0,2)];
-                            const register double B_1_0 = B_p[INDEX2(1,0,2)];
-                            const register double B_0_1 = B_p[INDEX2(0,1,2)];
-                            const register double B_1_1 = B_p[INDEX2(1,1,2)];
-                            const register double B_0_2 = B_p[INDEX2(0,2,2)];
-                            const register double B_1_2 = B_p[INDEX2(1,2,2)];
-                            const register double B_0_3 = B_p[INDEX2(0,3,2)];
-                            const register double B_1_3 = B_p[INDEX2(1,3,2)];
-                            const register double tmp0_0 = B_1_0 + B_1_1;
-                            const register double tmp1_0 = B_1_2 + B_1_3;
-                            const register double tmp2_0 = B_0_1 + B_0_3;
-                            const register double tmp3_0 = B_0_0 + B_0_2;
-                            const register double tmp63_1 = B_1_1*w42;
-                            const register double tmp79_1 = B_1_1*w40;
-                            const register double tmp37_1 = tmp3_0*w35;
-                            const register double tmp8_1 = tmp0_0*w32;
-                            const register double tmp71_1 = B_0_1*w34;
-                            const register double tmp19_1 = B_0_3*w31;
-                            const register double tmp15_1 = B_0_3*w34;
-                            const register double tmp9_1 = tmp3_0*w34;
-                            const register double tmp35_1 = B_1_0*w36;
-                            const register double tmp66_1 = B_0_3*w28;
-                            const register double tmp28_1 = B_1_0*w42;
-                            const register double tmp22_1 = B_1_0*w40;
-                            const register double tmp16_1 = B_1_2*w29;
-                            const register double tmp6_1 = tmp2_0*w35;
-                            const register double tmp55_1 = B_1_3*w40;
-                            const register double tmp50_1 = B_1_3*w42;
-                            const register double tmp7_1 = tmp1_0*w29;
-                            const register double tmp1_1 = tmp1_0*w32;
-                            const register double tmp57_1 = B_0_3*w30;
-                            const register double tmp18_1 = B_1_1*w32;
-                            const register double tmp53_1 = B_1_0*w41;
-                            const register double tmp61_1 = B_1_3*w36;
-                            const register double tmp27_1 = B_0_3*w38;
-                            const register double tmp64_1 = B_0_2*w30;
-                            const register double tmp76_1 = B_0_1*w38;
-                            const register double tmp39_1 = tmp2_0*w34;
-                            const register double tmp62_1 = B_0_1*w31;
-                            const register double tmp56_1 = B_0_0*w31;
-                            const register double tmp49_1 = B_1_1*w36;
-                            const register double tmp2_1 = B_0_2*w31;
-                            const register double tmp23_1 = B_0_2*w33;
-                            const register double tmp38_1 = B_1_1*w43;
-                            const register double tmp74_1 = B_1_2*w41;
-                            const register double tmp43_1 = B_1_1*w41;
-                            const register double tmp58_1 = B_0_2*w28;
-                            const register double tmp67_1 = B_0_0*w33;
-                            const register double tmp33_1 = tmp0_0*w39;
-                            const register double tmp4_1 = B_0_0*w28;
-                            const register double tmp20_1 = B_0_0*w30;
-                            const register double tmp13_1 = B_0_2*w38;
-                            const register double tmp65_1 = B_1_2*w43;
-                            const register double tmp0_1 = tmp0_0*w29;
-                            const register double tmp41_1 = tmp3_0*w33;
-                            const register double tmp73_1 = B_0_2*w37;
-                            const register double tmp69_1 = B_0_0*w38;
-                            const register double tmp48_1 = B_1_2*w39;
-                            const register double tmp59_1 = B_0_1*w33;
-                            const register double tmp17_1 = B_1_3*w41;
-                            const register double tmp5_1 = B_0_3*w33;
-                            const register double tmp3_1 = B_0_1*w30;
-                            const register double tmp21_1 = B_0_1*w28;
-                            const register double tmp42_1 = B_1_0*w29;
-                            const register double tmp54_1 = B_1_2*w32;
-                            const register double tmp60_1 = B_1_0*w39;
-                            const register double tmp32_1 = tmp1_0*w36;
-                            const register double tmp10_1 = B_0_1*w37;
-                            const register double tmp14_1 = B_0_0*w35;
-                            const register double tmp29_1 = B_0_1*w35;
-                            const register double tmp26_1 = B_1_2*w36;
-                            const register double tmp30_1 = B_1_3*w43;
-                            const register double tmp70_1 = B_0_2*w35;
-                            const register double tmp34_1 = B_1_3*w39;
-                            const register double tmp51_1 = B_1_0*w43;
-                            const register double tmp31_1 = B_0_2*w34;
-                            const register double tmp45_1 = tmp3_0*w28;
-                            const register double tmp11_1 = tmp1_0*w39;
-                            const register double tmp52_1 = B_1_1*w29;
-                            const register double tmp44_1 = B_1_3*w32;
-                            const register double tmp25_1 = B_1_1*w39;
-                            const register double tmp47_1 = tmp2_0*w33;
-                            const register double tmp72_1 = B_1_3*w29;
-                            const register double tmp40_1 = tmp2_0*w28;
-                            const register double tmp46_1 = B_1_2*w40;
-                            const register double tmp36_1 = B_1_2*w42;
-                            const register double tmp24_1 = B_0_0*w37;
-                            const register double tmp77_1 = B_0_3*w35;
-                            const register double tmp68_1 = B_0_3*w37;
-                            const register double tmp78_1 = B_0_0*w34;
-                            const register double tmp12_1 = tmp0_0*w36;
-                            const register double tmp75_1 = B_1_0*w32;
+                            const double B_0_0 = B_p[INDEX2(0,0,2)];
+                            const double B_1_0 = B_p[INDEX2(1,0,2)];
+                            const double B_0_1 = B_p[INDEX2(0,1,2)];
+                            const double B_1_1 = B_p[INDEX2(1,1,2)];
+                            const double B_0_2 = B_p[INDEX2(0,2,2)];
+                            const double B_1_2 = B_p[INDEX2(1,2,2)];
+                            const double B_0_3 = B_p[INDEX2(0,3,2)];
+                            const double B_1_3 = B_p[INDEX2(1,3,2)];
+                            const double tmp0_0 = B_1_0 + B_1_1;
+                            const double tmp1_0 = B_1_2 + B_1_3;
+                            const double tmp2_0 = B_0_1 + B_0_3;
+                            const double tmp3_0 = B_0_0 + B_0_2;
+                            const double tmp63_1 = B_1_1*w42;
+                            const double tmp79_1 = B_1_1*w40;
+                            const double tmp37_1 = tmp3_0*w35;
+                            const double tmp8_1 = tmp0_0*w32;
+                            const double tmp71_1 = B_0_1*w34;
+                            const double tmp19_1 = B_0_3*w31;
+                            const double tmp15_1 = B_0_3*w34;
+                            const double tmp9_1 = tmp3_0*w34;
+                            const double tmp35_1 = B_1_0*w36;
+                            const double tmp66_1 = B_0_3*w28;
+                            const double tmp28_1 = B_1_0*w42;
+                            const double tmp22_1 = B_1_0*w40;
+                            const double tmp16_1 = B_1_2*w29;
+                            const double tmp6_1 = tmp2_0*w35;
+                            const double tmp55_1 = B_1_3*w40;
+                            const double tmp50_1 = B_1_3*w42;
+                            const double tmp7_1 = tmp1_0*w29;
+                            const double tmp1_1 = tmp1_0*w32;
+                            const double tmp57_1 = B_0_3*w30;
+                            const double tmp18_1 = B_1_1*w32;
+                            const double tmp53_1 = B_1_0*w41;
+                            const double tmp61_1 = B_1_3*w36;
+                            const double tmp27_1 = B_0_3*w38;
+                            const double tmp64_1 = B_0_2*w30;
+                            const double tmp76_1 = B_0_1*w38;
+                            const double tmp39_1 = tmp2_0*w34;
+                            const double tmp62_1 = B_0_1*w31;
+                            const double tmp56_1 = B_0_0*w31;
+                            const double tmp49_1 = B_1_1*w36;
+                            const double tmp2_1 = B_0_2*w31;
+                            const double tmp23_1 = B_0_2*w33;
+                            const double tmp38_1 = B_1_1*w43;
+                            const double tmp74_1 = B_1_2*w41;
+                            const double tmp43_1 = B_1_1*w41;
+                            const double tmp58_1 = B_0_2*w28;
+                            const double tmp67_1 = B_0_0*w33;
+                            const double tmp33_1 = tmp0_0*w39;
+                            const double tmp4_1 = B_0_0*w28;
+                            const double tmp20_1 = B_0_0*w30;
+                            const double tmp13_1 = B_0_2*w38;
+                            const double tmp65_1 = B_1_2*w43;
+                            const double tmp0_1 = tmp0_0*w29;
+                            const double tmp41_1 = tmp3_0*w33;
+                            const double tmp73_1 = B_0_2*w37;
+                            const double tmp69_1 = B_0_0*w38;
+                            const double tmp48_1 = B_1_2*w39;
+                            const double tmp59_1 = B_0_1*w33;
+                            const double tmp17_1 = B_1_3*w41;
+                            const double tmp5_1 = B_0_3*w33;
+                            const double tmp3_1 = B_0_1*w30;
+                            const double tmp21_1 = B_0_1*w28;
+                            const double tmp42_1 = B_1_0*w29;
+                            const double tmp54_1 = B_1_2*w32;
+                            const double tmp60_1 = B_1_0*w39;
+                            const double tmp32_1 = tmp1_0*w36;
+                            const double tmp10_1 = B_0_1*w37;
+                            const double tmp14_1 = B_0_0*w35;
+                            const double tmp29_1 = B_0_1*w35;
+                            const double tmp26_1 = B_1_2*w36;
+                            const double tmp30_1 = B_1_3*w43;
+                            const double tmp70_1 = B_0_2*w35;
+                            const double tmp34_1 = B_1_3*w39;
+                            const double tmp51_1 = B_1_0*w43;
+                            const double tmp31_1 = B_0_2*w34;
+                            const double tmp45_1 = tmp3_0*w28;
+                            const double tmp11_1 = tmp1_0*w39;
+                            const double tmp52_1 = B_1_1*w29;
+                            const double tmp44_1 = B_1_3*w32;
+                            const double tmp25_1 = B_1_1*w39;
+                            const double tmp47_1 = tmp2_0*w33;
+                            const double tmp72_1 = B_1_3*w29;
+                            const double tmp40_1 = tmp2_0*w28;
+                            const double tmp46_1 = B_1_2*w40;
+                            const double tmp36_1 = B_1_2*w42;
+                            const double tmp24_1 = B_0_0*w37;
+                            const double tmp77_1 = B_0_3*w35;
+                            const double tmp68_1 = B_0_3*w37;
+                            const double tmp78_1 = B_0_0*w34;
+                            const double tmp12_1 = tmp0_0*w36;
+                            const double tmp75_1 = B_1_0*w32;
                             EM_S[INDEX2(0,0,4)]+=tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp1_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
                             EM_S[INDEX2(2,0,4)]+=tmp45_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
@@ -1812,16 +1798,16 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                             EM_S[INDEX2(2,3,4)]+=tmp11_1 + tmp12_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
                             EM_S[INDEX2(3,3,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
                         } else { // constant data
-                            const register double B_0 = B_p[0];
-                            const register double B_1 = B_p[1];
-                            const register double tmp0_1 = B_0*w44;
-                            const register double tmp1_1 = B_1*w45;
-                            const register double tmp2_1 = B_0*w46;
-                            const register double tmp3_1 = B_0*w47;
-                            const register double tmp4_1 = B_1*w48;
-                            const register double tmp5_1 = B_1*w49;
-                            const register double tmp6_1 = B_1*w50;
-                            const register double tmp7_1 = B_0*w51;
+                            const double B_0 = B_p[0];
+                            const double B_1 = B_p[1];
+                            const double tmp0_1 = B_0*w44;
+                            const double tmp1_1 = B_1*w45;
+                            const double tmp2_1 = B_0*w46;
+                            const double tmp3_1 = B_0*w47;
+                            const double tmp4_1 = B_1*w48;
+                            const double tmp5_1 = B_1*w49;
+                            const double tmp6_1 = B_1*w50;
+                            const double tmp7_1 = B_0*w51;
                             EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp5_1;
                             EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp3_1;
                             EM_S[INDEX2(2,0,4)]+=tmp6_1 + tmp7_1;
@@ -1847,98 +1833,98 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_S=true;
                         const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
                         if (C.actsExpanded()) {
-                            const register double C_0_0 = C_p[INDEX2(0,0,2)];
-                            const register double C_1_0 = C_p[INDEX2(1,0,2)];
-                            const register double C_0_1 = C_p[INDEX2(0,1,2)];
-                            const register double C_1_1 = C_p[INDEX2(1,1,2)];
-                            const register double C_0_2 = C_p[INDEX2(0,2,2)];
-                            const register double C_1_2 = C_p[INDEX2(1,2,2)];
-                            const register double C_0_3 = C_p[INDEX2(0,3,2)];
-                            const register double C_1_3 = C_p[INDEX2(1,3,2)];
-                            const register double tmp0_0 = C_1_0 + C_1_1;
-                            const register double tmp1_0 = C_1_2 + C_1_3;
-                            const register double tmp2_0 = C_0_1 + C_0_3;
-                            const register double tmp3_0 = C_0_0 + C_0_2;
-                            const register double tmp64_1 = C_0_2*w30;
-                            const register double tmp14_1 = C_0_2*w28;
-                            const register double tmp19_1 = C_0_3*w31;
-                            const register double tmp22_1 = C_1_0*w40;
-                            const register double tmp37_1 = tmp3_0*w35;
-                            const register double tmp29_1 = C_0_1*w35;
-                            const register double tmp73_1 = C_0_2*w37;
-                            const register double tmp74_1 = C_1_2*w41;
-                            const register double tmp52_1 = C_1_3*w39;
-                            const register double tmp25_1 = C_1_1*w39;
-                            const register double tmp62_1 = C_0_1*w31;
-                            const register double tmp79_1 = C_1_1*w40;
-                            const register double tmp43_1 = C_1_1*w36;
-                            const register double tmp27_1 = C_0_3*w38;
-                            const register double tmp28_1 = C_1_0*w42;
-                            const register double tmp63_1 = C_1_1*w42;
-                            const register double tmp59_1 = C_0_3*w34;
-                            const register double tmp72_1 = C_1_3*w29;
-                            const register double tmp40_1 = tmp2_0*w35;
-                            const register double tmp13_1 = C_0_3*w30;
-                            const register double tmp51_1 = C_1_2*w40;
-                            const register double tmp54_1 = C_1_2*w42;
-                            const register double tmp12_1 = C_0_0*w31;
-                            const register double tmp2_1 = tmp1_0*w32;
-                            const register double tmp68_1 = C_0_2*w31;
-                            const register double tmp75_1 = C_1_0*w32;
-                            const register double tmp49_1 = C_1_1*w41;
-                            const register double tmp4_1 = C_0_2*w35;
-                            const register double tmp66_1 = C_0_3*w28;
-                            const register double tmp56_1 = C_0_1*w37;
-                            const register double tmp5_1 = C_0_1*w34;
-                            const register double tmp38_1 = tmp2_0*w34;
-                            const register double tmp76_1 = C_0_1*w38;
-                            const register double tmp21_1 = C_0_1*w28;
-                            const register double tmp69_1 = C_0_1*w30;
-                            const register double tmp53_1 = C_1_0*w36;
-                            const register double tmp42_1 = C_1_2*w39;
-                            const register double tmp32_1 = tmp1_0*w29;
-                            const register double tmp45_1 = C_1_0*w43;
-                            const register double tmp33_1 = tmp0_0*w32;
-                            const register double tmp35_1 = C_1_0*w41;
-                            const register double tmp26_1 = C_1_2*w36;
-                            const register double tmp67_1 = C_0_0*w33;
-                            const register double tmp31_1 = C_0_2*w34;
-                            const register double tmp20_1 = C_0_0*w30;
-                            const register double tmp70_1 = C_0_0*w28;
-                            const register double tmp8_1 = tmp0_0*w39;
-                            const register double tmp30_1 = C_1_3*w43;
-                            const register double tmp0_1 = tmp0_0*w29;
-                            const register double tmp17_1 = C_1_3*w41;
-                            const register double tmp58_1 = C_0_0*w35;
-                            const register double tmp9_1 = tmp3_0*w33;
-                            const register double tmp61_1 = C_1_3*w36;
-                            const register double tmp41_1 = tmp3_0*w34;
-                            const register double tmp50_1 = C_1_3*w32;
-                            const register double tmp18_1 = C_1_1*w32;
-                            const register double tmp6_1 = tmp1_0*w36;
-                            const register double tmp3_1 = C_0_0*w38;
-                            const register double tmp34_1 = C_1_1*w29;
-                            const register double tmp77_1 = C_0_3*w35;
-                            const register double tmp65_1 = C_1_2*w43;
-                            const register double tmp71_1 = C_0_3*w33;
-                            const register double tmp55_1 = C_1_1*w43;
-                            const register double tmp46_1 = tmp3_0*w28;
-                            const register double tmp24_1 = C_0_0*w37;
-                            const register double tmp10_1 = tmp1_0*w39;
-                            const register double tmp48_1 = C_1_0*w29;
-                            const register double tmp15_1 = C_0_1*w33;
-                            const register double tmp36_1 = C_1_2*w32;
-                            const register double tmp60_1 = C_1_0*w39;
-                            const register double tmp47_1 = tmp2_0*w33;
-                            const register double tmp16_1 = C_1_2*w29;
-                            const register double tmp1_1 = C_0_3*w37;
-                            const register double tmp7_1 = tmp2_0*w28;
-                            const register double tmp39_1 = C_1_3*w40;
-                            const register double tmp44_1 = C_1_3*w42;
-                            const register double tmp57_1 = C_0_2*w38;
-                            const register double tmp78_1 = C_0_0*w34;
-                            const register double tmp11_1 = tmp0_0*w36;
-                            const register double tmp23_1 = C_0_2*w33;
+                            const double C_0_0 = C_p[INDEX2(0,0,2)];
+                            const double C_1_0 = C_p[INDEX2(1,0,2)];
+                            const double C_0_1 = C_p[INDEX2(0,1,2)];
+                            const double C_1_1 = C_p[INDEX2(1,1,2)];
+                            const double C_0_2 = C_p[INDEX2(0,2,2)];
+                            const double C_1_2 = C_p[INDEX2(1,2,2)];
+                            const double C_0_3 = C_p[INDEX2(0,3,2)];
+                            const double C_1_3 = C_p[INDEX2(1,3,2)];
+                            const double tmp0_0 = C_1_0 + C_1_1;
+                            const double tmp1_0 = C_1_2 + C_1_3;
+                            const double tmp2_0 = C_0_1 + C_0_3;
+                            const double tmp3_0 = C_0_0 + C_0_2;
+                            const double tmp64_1 = C_0_2*w30;
+                            const double tmp14_1 = C_0_2*w28;
+                            const double tmp19_1 = C_0_3*w31;
+                            const double tmp22_1 = C_1_0*w40;
+                            const double tmp37_1 = tmp3_0*w35;
+                            const double tmp29_1 = C_0_1*w35;
+                            const double tmp73_1 = C_0_2*w37;
+                            const double tmp74_1 = C_1_2*w41;
+                            const double tmp52_1 = C_1_3*w39;
+                            const double tmp25_1 = C_1_1*w39;
+                            const double tmp62_1 = C_0_1*w31;
+                            const double tmp79_1 = C_1_1*w40;
+                            const double tmp43_1 = C_1_1*w36;
+                            const double tmp27_1 = C_0_3*w38;
+                            const double tmp28_1 = C_1_0*w42;
+                            const double tmp63_1 = C_1_1*w42;
+                            const double tmp59_1 = C_0_3*w34;
+                            const double tmp72_1 = C_1_3*w29;
+                            const double tmp40_1 = tmp2_0*w35;
+                            const double tmp13_1 = C_0_3*w30;
+                            const double tmp51_1 = C_1_2*w40;
+                            const double tmp54_1 = C_1_2*w42;
+                            const double tmp12_1 = C_0_0*w31;
+                            const double tmp2_1 = tmp1_0*w32;
+                            const double tmp68_1 = C_0_2*w31;
+                            const double tmp75_1 = C_1_0*w32;
+                            const double tmp49_1 = C_1_1*w41;
+                            const double tmp4_1 = C_0_2*w35;
+                            const double tmp66_1 = C_0_3*w28;
+                            const double tmp56_1 = C_0_1*w37;
+                            const double tmp5_1 = C_0_1*w34;
+                            const double tmp38_1 = tmp2_0*w34;
+                            const double tmp76_1 = C_0_1*w38;
+                            const double tmp21_1 = C_0_1*w28;
+                            const double tmp69_1 = C_0_1*w30;
+                            const double tmp53_1 = C_1_0*w36;
+                            const double tmp42_1 = C_1_2*w39;
+                            const double tmp32_1 = tmp1_0*w29;
+                            const double tmp45_1 = C_1_0*w43;
+                            const double tmp33_1 = tmp0_0*w32;
+                            const double tmp35_1 = C_1_0*w41;
+                            const double tmp26_1 = C_1_2*w36;
+                            const double tmp67_1 = C_0_0*w33;
+                            const double tmp31_1 = C_0_2*w34;
+                            const double tmp20_1 = C_0_0*w30;
+                            const double tmp70_1 = C_0_0*w28;
+                            const double tmp8_1 = tmp0_0*w39;
+                            const double tmp30_1 = C_1_3*w43;
+                            const double tmp0_1 = tmp0_0*w29;
+                            const double tmp17_1 = C_1_3*w41;
+                            const double tmp58_1 = C_0_0*w35;
+                            const double tmp9_1 = tmp3_0*w33;
+                            const double tmp61_1 = C_1_3*w36;
+                            const double tmp41_1 = tmp3_0*w34;
+                            const double tmp50_1 = C_1_3*w32;
+                            const double tmp18_1 = C_1_1*w32;
+                            const double tmp6_1 = tmp1_0*w36;
+                            const double tmp3_1 = C_0_0*w38;
+                            const double tmp34_1 = C_1_1*w29;
+                            const double tmp77_1 = C_0_3*w35;
+                            const double tmp65_1 = C_1_2*w43;
+                            const double tmp71_1 = C_0_3*w33;
+                            const double tmp55_1 = C_1_1*w43;
+                            const double tmp46_1 = tmp3_0*w28;
+                            const double tmp24_1 = C_0_0*w37;
+                            const double tmp10_1 = tmp1_0*w39;
+                            const double tmp48_1 = C_1_0*w29;
+                            const double tmp15_1 = C_0_1*w33;
+                            const double tmp36_1 = C_1_2*w32;
+                            const double tmp60_1 = C_1_0*w39;
+                            const double tmp47_1 = tmp2_0*w33;
+                            const double tmp16_1 = C_1_2*w29;
+                            const double tmp1_1 = C_0_3*w37;
+                            const double tmp7_1 = tmp2_0*w28;
+                            const double tmp39_1 = C_1_3*w40;
+                            const double tmp44_1 = C_1_3*w42;
+                            const double tmp57_1 = C_0_2*w38;
+                            const double tmp78_1 = C_0_0*w34;
+                            const double tmp11_1 = tmp0_0*w36;
+                            const double tmp23_1 = C_0_2*w33;
                             EM_S[INDEX2(0,0,4)]+=tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp2_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
                             EM_S[INDEX2(2,0,4)]+=tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
@@ -1956,16 +1942,16 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                             EM_S[INDEX2(2,3,4)]+=tmp10_1 + tmp11_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
                             EM_S[INDEX2(3,3,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
                         } else { // constant data
-                            const register double C_0 = C_p[0];
-                            const register double C_1 = C_p[1];
-                            const register double tmp0_1 = C_0*w47;
-                            const register double tmp1_1 = C_1*w45;
-                            const register double tmp2_1 = C_1*w48;
-                            const register double tmp3_1 = C_0*w51;
-                            const register double tmp4_1 = C_0*w44;
-                            const register double tmp5_1 = C_1*w49;
-                            const register double tmp6_1 = C_1*w50;
-                            const register double tmp7_1 = C_0*w46;
+                            const double C_0 = C_p[0];
+                            const double C_1 = C_p[1];
+                            const double tmp0_1 = C_0*w47;
+                            const double tmp1_1 = C_1*w45;
+                            const double tmp2_1 = C_1*w48;
+                            const double tmp3_1 = C_0*w51;
+                            const double tmp4_1 = C_0*w44;
+                            const double tmp5_1 = C_1*w49;
+                            const double tmp6_1 = C_1*w50;
+                            const double tmp7_1 = C_0*w46;
                             EM_S[INDEX2(0,0,4)]+=tmp4_1 + tmp5_1;
                             EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp4_1;
                             EM_S[INDEX2(2,0,4)]+=tmp3_1 + tmp5_1;
@@ -1991,36 +1977,36 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_S=true;
                         const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
                         if (D.actsExpanded()) {
-                            const register double D_0 = D_p[0];
-                            const register double D_1 = D_p[1];
-                            const register double D_2 = D_p[2];
-                            const register double D_3 = D_p[3];
-                            const register double tmp0_0 = D_0 + D_1;
-                            const register double tmp1_0 = D_2 + D_3;
-                            const register double tmp2_0 = D_0 + D_1 + D_2 + D_3;
-                            const register double tmp3_0 = D_1 + D_2;
-                            const register double tmp4_0 = D_1 + D_3;
-                            const register double tmp5_0 = D_0 + D_2;
-                            const register double tmp6_0 = D_0 + D_3;
-                            const register double tmp0_1 = tmp0_0*w52;
-                            const register double tmp1_1 = tmp1_0*w53;
-                            const register double tmp2_1 = tmp2_0*w54;
-                            const register double tmp3_1 = tmp1_0*w52;
-                            const register double tmp4_1 = tmp0_0*w53;
-                            const register double tmp5_1 = tmp3_0*w54;
-                            const register double tmp6_1 = D_0*w55;
-                            const register double tmp7_1 = D_3*w56;
-                            const register double tmp8_1 = D_3*w55;
-                            const register double tmp9_1 = D_0*w56;
-                            const register double tmp10_1 = tmp4_0*w52;
-                            const register double tmp11_1 = tmp5_0*w53;
-                            const register double tmp12_1 = tmp5_0*w52;
-                            const register double tmp13_1 = tmp4_0*w53;
-                            const register double tmp14_1 = tmp6_0*w54;
-                            const register double tmp15_1 = D_2*w55;
-                            const register double tmp16_1 = D_1*w56;
-                            const register double tmp17_1 = D_1*w55;
-                            const register double tmp18_1 = D_2*w56;
+                            const double D_0 = D_p[0];
+                            const double D_1 = D_p[1];
+                            const double D_2 = D_p[2];
+                            const double D_3 = D_p[3];
+                            const double tmp0_0 = D_0 + D_1;
+                            const double tmp1_0 = D_2 + D_3;
+                            const double tmp2_0 = D_0 + D_1 + D_2 + D_3;
+                            const double tmp3_0 = D_1 + D_2;
+                            const double tmp4_0 = D_1 + D_3;
+                            const double tmp5_0 = D_0 + D_2;
+                            const double tmp6_0 = D_0 + D_3;
+                            const double tmp0_1 = tmp0_0*w52;
+                            const double tmp1_1 = tmp1_0*w53;
+                            const double tmp2_1 = tmp2_0*w54;
+                            const double tmp3_1 = tmp1_0*w52;
+                            const double tmp4_1 = tmp0_0*w53;
+                            const double tmp5_1 = tmp3_0*w54;
+                            const double tmp6_1 = D_0*w55;
+                            const double tmp7_1 = D_3*w56;
+                            const double tmp8_1 = D_3*w55;
+                            const double tmp9_1 = D_0*w56;
+                            const double tmp10_1 = tmp4_0*w52;
+                            const double tmp11_1 = tmp5_0*w53;
+                            const double tmp12_1 = tmp5_0*w52;
+                            const double tmp13_1 = tmp4_0*w53;
+                            const double tmp14_1 = tmp6_0*w54;
+                            const double tmp15_1 = D_2*w55;
+                            const double tmp16_1 = D_1*w56;
+                            const double tmp17_1 = D_1*w55;
+                            const double tmp18_1 = D_2*w56;
                             EM_S[INDEX2(0,0,4)]+=tmp5_1 + tmp6_1 + tmp7_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp1_1;
                             EM_S[INDEX2(2,0,4)]+=tmp12_1 + tmp13_1;
@@ -2038,9 +2024,9 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                             EM_S[INDEX2(2,3,4)]+=tmp3_1 + tmp4_1;
                             EM_S[INDEX2(3,3,4)]+=tmp5_1 + tmp8_1 + tmp9_1;
                         } else { // constant data
-                            const register double tmp0_1 = D_p[0]*w57;
-                            const register double tmp1_1 = D_p[0]*w58;
-                            const register double tmp2_1 = D_p[0]*w59;
+                            const double tmp0_1 = D_p[0]*w57;
+                            const double tmp1_1 = D_p[0]*w58;
+                            const double tmp2_1 = D_p[0]*w59;
                             EM_S[INDEX2(0,0,4)]+=tmp2_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1;
                             EM_S[INDEX2(2,0,4)]+=tmp0_1;
@@ -2066,43 +2052,43 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_F=true;
                         const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
                         if (X.actsExpanded()) {
-                            const register double X_0_0 = X_p[INDEX2(0,0,2)];
-                            const register double X_1_0 = X_p[INDEX2(1,0,2)];
-                            const register double X_0_1 = X_p[INDEX2(0,1,2)];
-                            const register double X_1_1 = X_p[INDEX2(1,1,2)];
-                            const register double X_0_2 = X_p[INDEX2(0,2,2)];
-                            const register double X_1_2 = X_p[INDEX2(1,2,2)];
-                            const register double X_0_3 = X_p[INDEX2(0,3,2)];
-                            const register double X_1_3 = X_p[INDEX2(1,3,2)];
-                            const register double tmp0_0 = X_0_2 + X_0_3;
-                            const register double tmp1_0 = X_1_1 + X_1_3;
-                            const register double tmp2_0 = X_1_0 + X_1_2;
-                            const register double tmp3_0 = X_0_0 + X_0_1;
-                            const register double tmp0_1 = tmp0_0*w63;
-                            const register double tmp1_1 = tmp1_0*w62;
-                            const register double tmp2_1 = tmp2_0*w61;
-                            const register double tmp3_1 = tmp3_0*w60;
-                            const register double tmp4_1 = tmp0_0*w65;
-                            const register double tmp5_1 = tmp3_0*w64;
-                            const register double tmp6_1 = tmp2_0*w62;
-                            const register double tmp7_1 = tmp1_0*w61;
-                            const register double tmp8_1 = tmp2_0*w66;
-                            const register double tmp9_1 = tmp3_0*w63;
-                            const register double tmp10_1 = tmp0_0*w60;
-                            const register double tmp11_1 = tmp1_0*w67;
-                            const register double tmp12_1 = tmp1_0*w66;
-                            const register double tmp13_1 = tmp3_0*w65;
-                            const register double tmp14_1 = tmp0_0*w64;
-                            const register double tmp15_1 = tmp2_0*w67;
+                            const double X_0_0 = X_p[INDEX2(0,0,2)];
+                            const double X_1_0 = X_p[INDEX2(1,0,2)];
+                            const double X_0_1 = X_p[INDEX2(0,1,2)];
+                            const double X_1_1 = X_p[INDEX2(1,1,2)];
+                            const double X_0_2 = X_p[INDEX2(0,2,2)];
+                            const double X_1_2 = X_p[INDEX2(1,2,2)];
+                            const double X_0_3 = X_p[INDEX2(0,3,2)];
+                            const double X_1_3 = X_p[INDEX2(1,3,2)];
+                            const double tmp0_0 = X_0_2 + X_0_3;
+                            const double tmp1_0 = X_1_1 + X_1_3;
+                            const double tmp2_0 = X_1_0 + X_1_2;
+                            const double tmp3_0 = X_0_0 + X_0_1;
+                            const double tmp0_1 = tmp0_0*w63;
+                            const double tmp1_1 = tmp1_0*w62;
+                            const double tmp2_1 = tmp2_0*w61;
+                            const double tmp3_1 = tmp3_0*w60;
+                            const double tmp4_1 = tmp0_0*w65;
+                            const double tmp5_1 = tmp3_0*w64;
+                            const double tmp6_1 = tmp2_0*w62;
+                            const double tmp7_1 = tmp1_0*w61;
+                            const double tmp8_1 = tmp2_0*w66;
+                            const double tmp9_1 = tmp3_0*w63;
+                            const double tmp10_1 = tmp0_0*w60;
+                            const double tmp11_1 = tmp1_0*w67;
+                            const double tmp12_1 = tmp1_0*w66;
+                            const double tmp13_1 = tmp3_0*w65;
+                            const double tmp14_1 = tmp0_0*w64;
+                            const double tmp15_1 = tmp2_0*w67;
                             EM_F[0]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
                             EM_F[1]+=tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
                             EM_F[2]+=tmp10_1 + tmp11_1 + tmp8_1 + tmp9_1;
                             EM_F[3]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
                         } else { // constant data
-                            const register double tmp0_1 = X_p[1]*w69;
-                            const register double tmp1_1 = X_p[0]*w68;
-                            const register double tmp2_1 = X_p[0]*w70;
-                            const register double tmp3_1 = X_p[1]*w71;
+                            const double tmp0_1 = X_p[1]*w69;
+                            const double tmp1_1 = X_p[0]*w68;
+                            const double tmp2_1 = X_p[0]*w70;
+                            const double tmp3_1 = X_p[1]*w71;
                             EM_F[0]+=tmp0_1 + tmp1_1;
                             EM_F[1]+=tmp0_1 + tmp2_1;
                             EM_F[2]+=tmp1_1 + tmp3_1;
@@ -2116,28 +2102,28 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                         add_EM_F=true;
                         const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                         if (Y.actsExpanded()) {
-                            const register double Y_0 = Y_p[0];
-                            const register double Y_1 = Y_p[1];
-                            const register double Y_2 = Y_p[2];
-                            const register double Y_3 = Y_p[3];
-                            const register double tmp0_0 = Y_1 + Y_2;
-                            const register double tmp1_0 = Y_0 + Y_3;
-                            const register double tmp0_1 = Y_0*w72;
-                            const register double tmp1_1 = tmp0_0*w73;
-                            const register double tmp2_1 = Y_3*w74;
-                            const register double tmp3_1 = Y_1*w72;
-                            const register double tmp4_1 = tmp1_0*w73;
-                            const register double tmp5_1 = Y_2*w74;
-                            const register double tmp6_1 = Y_2*w72;
-                            const register double tmp7_1 = Y_1*w74;
-                            const register double tmp8_1 = Y_3*w72;
-                            const register double tmp9_1 = Y_0*w74;
+                            const double Y_0 = Y_p[0];
+                            const double Y_1 = Y_p[1];
+                            const double Y_2 = Y_p[2];
+                            const double Y_3 = Y_p[3];
+                            const double tmp0_0 = Y_1 + Y_2;
+                            const double tmp1_0 = Y_0 + Y_3;
+                            const double tmp0_1 = Y_0*w72;
+                            const double tmp1_1 = tmp0_0*w73;
+                            const double tmp2_1 = Y_3*w74;
+                            const double tmp3_1 = Y_1*w72;
+                            const double tmp4_1 = tmp1_0*w73;
+                            const double tmp5_1 = Y_2*w74;
+                            const double tmp6_1 = Y_2*w72;
+                            const double tmp7_1 = Y_1*w74;
+                            const double tmp8_1 = Y_3*w72;
+                            const double tmp9_1 = Y_0*w74;
                             EM_F[0]+=tmp0_1 + tmp1_1 + tmp2_1;
                             EM_F[1]+=tmp3_1 + tmp4_1 + tmp5_1;
                             EM_F[2]+=tmp4_1 + tmp6_1 + tmp7_1;
                             EM_F[3]+=tmp1_1 + tmp8_1 + tmp9_1;
                         } else { // constant data
-                            const register double tmp0_1 = Y_p[0]*w75;
+                            const double tmp0_1 = Y_p[0]*w75;
                             EM_F[0]+=tmp0_1;
                             EM_F[1]+=tmp0_1;
                             EM_F[2]+=tmp0_1;
@@ -2174,8 +2160,7 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
-        const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& X, const escript::Data& Y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -2214,21 +2199,21 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!A.isEmpty()) {
                         add_EM_S=true;
                         const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
-                        const register double A_00 = A_p[INDEX2(0,0,2)];
-                        const register double A_10 = A_p[INDEX2(1,0,2)];
-                        const register double A_01 = A_p[INDEX2(0,1,2)];
-                        const register double A_11 = A_p[INDEX2(1,1,2)];
-                        const register double tmp0_0 = A_01 + A_10;
-                        const register double tmp0_1 = A_11*w3;
-                        const register double tmp1_1 = A_00*w0;
-                        const register double tmp2_1 = A_01*w1;
-                        const register double tmp3_1 = A_10*w2;
-                        const register double tmp4_1 = tmp0_0*w1;
-                        const register double tmp5_1 = A_11*w4;
-                        const register double tmp6_1 = A_00*w5;
-                        const register double tmp7_1 = tmp0_0*w2;
-                        const register double tmp8_1 = A_10*w1;
-                        const register double tmp9_1 = A_01*w2;
+                        const double A_00 = A_p[INDEX2(0,0,2)];
+                        const double A_10 = A_p[INDEX2(1,0,2)];
+                        const double A_01 = A_p[INDEX2(0,1,2)];
+                        const double A_11 = A_p[INDEX2(1,1,2)];
+                        const double tmp0_0 = A_01 + A_10;
+                        const double tmp0_1 = A_11*w3;
+                        const double tmp1_1 = A_00*w0;
+                        const double tmp2_1 = A_01*w1;
+                        const double tmp3_1 = A_10*w2;
+                        const double tmp4_1 = tmp0_0*w1;
+                        const double tmp5_1 = A_11*w4;
+                        const double tmp6_1 = A_00*w5;
+                        const double tmp7_1 = tmp0_0*w2;
+                        const double tmp8_1 = A_10*w1;
+                        const double tmp9_1 = A_01*w2;
                         EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
                         EM_S[INDEX2(1,0,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
                         EM_S[INDEX2(2,0,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
@@ -2252,10 +2237,10 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!B.isEmpty()) {
                         add_EM_S=true;
                         const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
-                        const register double tmp2_1 = B_p[0]*w8;
-                        const register double tmp0_1 = B_p[0]*w6;
-                        const register double tmp3_1 = B_p[1]*w9;
-                        const register double tmp1_1 = B_p[1]*w7;
+                        const double tmp2_1 = B_p[0]*w8;
+                        const double tmp0_1 = B_p[0]*w6;
+                        const double tmp3_1 = B_p[1]*w9;
+                        const double tmp1_1 = B_p[1]*w7;
                         EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp1_1;
                         EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp2_1;
                         EM_S[INDEX2(2,0,4)]+=tmp0_1 + tmp3_1;
@@ -2279,10 +2264,10 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!C.isEmpty()) {
                         add_EM_S=true;
                         const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
-                        const register double tmp1_1 = C_p[1]*w7;
-                        const register double tmp0_1 = C_p[0]*w8;
-                        const register double tmp3_1 = C_p[0]*w6;
-                        const register double tmp2_1 = C_p[1]*w9;
+                        const double tmp1_1 = C_p[1]*w7;
+                        const double tmp0_1 = C_p[0]*w8;
+                        const double tmp3_1 = C_p[0]*w6;
+                        const double tmp2_1 = C_p[1]*w9;
                         EM_S[INDEX2(0,0,4)]+=tmp1_1 + tmp3_1;
                         EM_S[INDEX2(1,0,4)]+=tmp1_1 + tmp3_1;
                         EM_S[INDEX2(2,0,4)]+=tmp1_1 + tmp3_1;
@@ -2306,7 +2291,7 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!D.isEmpty()) {
                         add_EM_S=true;
                         const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
-                        const register double tmp0_1 = D_p[0]*w10;
+                        const double tmp0_1 = D_p[0]*w10;
                         EM_S[INDEX2(0,0,4)]+=tmp0_1;
                         EM_S[INDEX2(1,0,4)]+=tmp0_1;
                         EM_S[INDEX2(2,0,4)]+=tmp0_1;
@@ -2330,10 +2315,10 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!X.isEmpty()) {
                         add_EM_F=true;
                         const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
-                        const register double tmp0_1 = X_p[0]*w11;
-                        const register double tmp2_1 = X_p[0]*w13;
-                        const register double tmp1_1 = X_p[1]*w12;
-                        const register double tmp3_1 = X_p[1]*w14;
+                        const double tmp0_1 = X_p[0]*w11;
+                        const double tmp2_1 = X_p[0]*w13;
+                        const double tmp1_1 = X_p[1]*w12;
+                        const double tmp3_1 = X_p[1]*w14;
                         EM_F[0]+=tmp0_1 + tmp1_1;
                         EM_F[1]+=tmp1_1 + tmp2_1;
                         EM_F[2]+=tmp0_1 + tmp3_1;
@@ -2345,7 +2330,7 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     if (!Y.isEmpty()) {
                         add_EM_F=true;
                         const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
-                        const register double tmp0_1 = Y_p[0]*w15;
+                        const double tmp0_1 = Y_p[0]*w15;
                         EM_F[0]+=tmp0_1;
                         EM_F[1]+=tmp0_1;
                         EM_F[2]+=tmp0_1;
@@ -2381,8 +2366,7 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
-        const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& X, const escript::Data& Y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -2492,100 +2476,100 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         if (A.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double A_00_0 = A_p[INDEX5(k,0,m,0,0, numEq,2,numComp,2)];
-                                    const register double A_01_0 = A_p[INDEX5(k,0,m,1,0, numEq,2,numComp,2)];
-                                    const register double A_10_0 = A_p[INDEX5(k,1,m,0,0, numEq,2,numComp,2)];
-                                    const register double A_11_0 = A_p[INDEX5(k,1,m,1,0, numEq,2,numComp,2)];
-                                    const register double A_00_1 = A_p[INDEX5(k,0,m,0,1, numEq,2,numComp,2)];
-                                    const register double A_01_1 = A_p[INDEX5(k,0,m,1,1, numEq,2,numComp,2)];
-                                    const register double A_10_1 = A_p[INDEX5(k,1,m,0,1, numEq,2,numComp,2)];
-                                    const register double A_11_1 = A_p[INDEX5(k,1,m,1,1, numEq,2,numComp,2)];
-                                    const register double A_00_2 = A_p[INDEX5(k,0,m,0,2, numEq,2,numComp,2)];
-                                    const register double A_01_2 = A_p[INDEX5(k,0,m,1,2, numEq,2,numComp,2)];
-                                    const register double A_10_2 = A_p[INDEX5(k,1,m,0,2, numEq,2,numComp,2)];
-                                    const register double A_11_2 = A_p[INDEX5(k,1,m,1,2, numEq,2,numComp,2)];
-                                    const register double A_00_3 = A_p[INDEX5(k,0,m,0,3, numEq,2,numComp,2)];
-                                    const register double A_01_3 = A_p[INDEX5(k,0,m,1,3, numEq,2,numComp,2)];
-                                    const register double A_10_3 = A_p[INDEX5(k,1,m,0,3, numEq,2,numComp,2)];
-                                    const register double A_11_3 = A_p[INDEX5(k,1,m,1,3, numEq,2,numComp,2)];
-                                    const register double tmp0_0 = A_01_0 + A_01_3;
-                                    const register double tmp1_0 = A_00_0 + A_00_1;
-                                    const register double tmp2_0 = A_11_0 + A_11_1 + A_11_2 + A_11_3;
-                                    const register double tmp3_0 = A_00_2 + A_00_3;
-                                    const register double tmp4_0 = A_10_1 + A_10_2;
-                                    const register double tmp5_0 = A_00_0 + A_00_1 + A_00_2 + A_00_3;
-                                    const register double tmp6_0 = A_01_3 + A_10_0;
-                                    const register double tmp7_0 = A_01_0 + A_10_3;
-                                    const register double tmp8_0 = A_01_1 + A_01_2 + A_10_1 + A_10_2;
-                                    const register double tmp9_0 = A_01_0 + A_10_0;
-                                    const register double tmp10_0 = A_01_3 + A_10_3;
-                                    const register double tmp11_0 = A_11_1 + A_11_3;
-                                    const register double tmp12_0 = A_11_0 + A_11_2;
-                                    const register double tmp13_0 = A_01_2 + A_10_1;
-                                    const register double tmp14_0 = A_01_0 + A_01_3 + A_10_0 + A_10_3;
-                                    const register double tmp15_0 = A_01_1 + A_10_2;
-                                    const register double tmp16_0 = A_10_0 + A_10_3;
-                                    const register double tmp17_0 = A_01_1 + A_01_2;
-                                    const register double tmp18_0 = A_01_1 + A_10_1;
-                                    const register double tmp19_0 = A_01_2 + A_10_2;
-                                    const register double tmp0_1 = A_10_3*w8;
-                                    const register double tmp1_1 = tmp0_0*w1;
-                                    const register double tmp2_1 = A_01_1*w4;
-                                    const register double tmp3_1 = tmp1_0*w0;
-                                    const register double tmp4_1 = A_01_2*w7;
-                                    const register double tmp5_1 = tmp2_0*w3;
-                                    const register double tmp6_1 = tmp3_0*w6;
-                                    const register double tmp7_1 = A_10_0*w2;
-                                    const register double tmp8_1 = tmp4_0*w5;
-                                    const register double tmp9_1 = tmp2_0*w10;
-                                    const register double tmp10_1 = tmp5_0*w9;
-                                    const register double tmp11_1 = tmp6_0*w7;
-                                    const register double tmp12_1 = tmp7_0*w4;
-                                    const register double tmp13_1 = tmp8_0*w1;
-                                    const register double tmp14_1 = A_10_0*w8;
-                                    const register double tmp15_1 = A_01_2*w4;
-                                    const register double tmp16_1 = tmp3_0*w0;
-                                    const register double tmp17_1 = A_01_1*w7;
-                                    const register double tmp18_1 = tmp1_0*w6;
-                                    const register double tmp19_1 = A_10_3*w2;
-                                    const register double tmp20_1 = tmp9_0*w4;
-                                    const register double tmp21_1 = tmp1_0*w11;
-                                    const register double tmp22_1 = tmp10_0*w7;
-                                    const register double tmp23_1 = tmp3_0*w14;
-                                    const register double tmp24_1 = tmp11_0*w13;
-                                    const register double tmp25_1 = tmp12_0*w12;
-                                    const register double tmp26_1 = tmp10_0*w4;
-                                    const register double tmp27_1 = tmp3_0*w11;
-                                    const register double tmp28_1 = tmp9_0*w7;
-                                    const register double tmp29_1 = tmp1_0*w14;
-                                    const register double tmp30_1 = tmp12_0*w13;
-                                    const register double tmp31_1 = tmp11_0*w12;
-                                    const register double tmp32_1 = tmp13_0*w2;
-                                    const register double tmp33_1 = tmp14_0*w5;
-                                    const register double tmp34_1 = tmp15_0*w8;
-                                    const register double tmp35_1 = A_01_0*w8;
-                                    const register double tmp36_1 = tmp16_0*w1;
-                                    const register double tmp37_1 = A_10_1*w4;
-                                    const register double tmp38_1 = tmp5_0*w15;
-                                    const register double tmp39_1 = A_10_2*w7;
-                                    const register double tmp40_1 = tmp11_0*w17;
-                                    const register double tmp41_1 = A_01_3*w2;
-                                    const register double tmp42_1 = tmp12_0*w16;
-                                    const register double tmp43_1 = tmp17_0*w5;
-                                    const register double tmp44_1 = tmp7_0*w7;
-                                    const register double tmp45_1 = tmp6_0*w4;
-                                    const register double tmp46_1 = A_01_3*w8;
-                                    const register double tmp47_1 = A_10_2*w4;
-                                    const register double tmp48_1 = A_10_1*w7;
-                                    const register double tmp49_1 = tmp12_0*w17;
-                                    const register double tmp50_1 = A_01_0*w2;
-                                    const register double tmp51_1 = tmp11_0*w16;
-                                    const register double tmp52_1 = tmp18_0*w8;
-                                    const register double tmp53_1 = tmp19_0*w2;
-                                    const register double tmp54_1 = tmp13_0*w8;
-                                    const register double tmp55_1 = tmp15_0*w2;
-                                    const register double tmp56_1 = tmp19_0*w8;
-                                    const register double tmp57_1 = tmp18_0*w2;
+                                    const double A_00_0 = A_p[INDEX5(k,0,m,0,0, numEq,2,numComp,2)];
+                                    const double A_01_0 = A_p[INDEX5(k,0,m,1,0, numEq,2,numComp,2)];
+                                    const double A_10_0 = A_p[INDEX5(k,1,m,0,0, numEq,2,numComp,2)];
+                                    const double A_11_0 = A_p[INDEX5(k,1,m,1,0, numEq,2,numComp,2)];
+                                    const double A_00_1 = A_p[INDEX5(k,0,m,0,1, numEq,2,numComp,2)];
+                                    const double A_01_1 = A_p[INDEX5(k,0,m,1,1, numEq,2,numComp,2)];
+                                    const double A_10_1 = A_p[INDEX5(k,1,m,0,1, numEq,2,numComp,2)];
+                                    const double A_11_1 = A_p[INDEX5(k,1,m,1,1, numEq,2,numComp,2)];
+                                    const double A_00_2 = A_p[INDEX5(k,0,m,0,2, numEq,2,numComp,2)];
+                                    const double A_01_2 = A_p[INDEX5(k,0,m,1,2, numEq,2,numComp,2)];
+                                    const double A_10_2 = A_p[INDEX5(k,1,m,0,2, numEq,2,numComp,2)];
+                                    const double A_11_2 = A_p[INDEX5(k,1,m,1,2, numEq,2,numComp,2)];
+                                    const double A_00_3 = A_p[INDEX5(k,0,m,0,3, numEq,2,numComp,2)];
+                                    const double A_01_3 = A_p[INDEX5(k,0,m,1,3, numEq,2,numComp,2)];
+                                    const double A_10_3 = A_p[INDEX5(k,1,m,0,3, numEq,2,numComp,2)];
+                                    const double A_11_3 = A_p[INDEX5(k,1,m,1,3, numEq,2,numComp,2)];
+                                    const double tmp0_0 = A_01_0 + A_01_3;
+                                    const double tmp1_0 = A_00_0 + A_00_1;
+                                    const double tmp2_0 = A_11_0 + A_11_1 + A_11_2 + A_11_3;
+                                    const double tmp3_0 = A_00_2 + A_00_3;
+                                    const double tmp4_0 = A_10_1 + A_10_2;
+                                    const double tmp5_0 = A_00_0 + A_00_1 + A_00_2 + A_00_3;
+                                    const double tmp6_0 = A_01_3 + A_10_0;
+                                    const double tmp7_0 = A_01_0 + A_10_3;
+                                    const double tmp8_0 = A_01_1 + A_01_2 + A_10_1 + A_10_2;
+                                    const double tmp9_0 = A_01_0 + A_10_0;
+                                    const double tmp10_0 = A_01_3 + A_10_3;
+                                    const double tmp11_0 = A_11_1 + A_11_3;
+                                    const double tmp12_0 = A_11_0 + A_11_2;
+                                    const double tmp13_0 = A_01_2 + A_10_1;
+                                    const double tmp14_0 = A_01_0 + A_01_3 + A_10_0 + A_10_3;
+                                    const double tmp15_0 = A_01_1 + A_10_2;
+                                    const double tmp16_0 = A_10_0 + A_10_3;
+                                    const double tmp17_0 = A_01_1 + A_01_2;
+                                    const double tmp18_0 = A_01_1 + A_10_1;
+                                    const double tmp19_0 = A_01_2 + A_10_2;
+                                    const double tmp0_1 = A_10_3*w8;
+                                    const double tmp1_1 = tmp0_0*w1;
+                                    const double tmp2_1 = A_01_1*w4;
+                                    const double tmp3_1 = tmp1_0*w0;
+                                    const double tmp4_1 = A_01_2*w7;
+                                    const double tmp5_1 = tmp2_0*w3;
+                                    const double tmp6_1 = tmp3_0*w6;
+                                    const double tmp7_1 = A_10_0*w2;
+                                    const double tmp8_1 = tmp4_0*w5;
+                                    const double tmp9_1 = tmp2_0*w10;
+                                    const double tmp10_1 = tmp5_0*w9;
+                                    const double tmp11_1 = tmp6_0*w7;
+                                    const double tmp12_1 = tmp7_0*w4;
+                                    const double tmp13_1 = tmp8_0*w1;
+                                    const double tmp14_1 = A_10_0*w8;
+                                    const double tmp15_1 = A_01_2*w4;
+                                    const double tmp16_1 = tmp3_0*w0;
+                                    const double tmp17_1 = A_01_1*w7;
+                                    const double tmp18_1 = tmp1_0*w6;
+                                    const double tmp19_1 = A_10_3*w2;
+                                    const double tmp20_1 = tmp9_0*w4;
+                                    const double tmp21_1 = tmp1_0*w11;
+                                    const double tmp22_1 = tmp10_0*w7;
+                                    const double tmp23_1 = tmp3_0*w14;
+                                    const double tmp24_1 = tmp11_0*w13;
+                                    const double tmp25_1 = tmp12_0*w12;
+                                    const double tmp26_1 = tmp10_0*w4;
+                                    const double tmp27_1 = tmp3_0*w11;
+                                    const double tmp28_1 = tmp9_0*w7;
+                                    const double tmp29_1 = tmp1_0*w14;
+                                    const double tmp30_1 = tmp12_0*w13;
+                                    const double tmp31_1 = tmp11_0*w12;
+                                    const double tmp32_1 = tmp13_0*w2;
+                                    const double tmp33_1 = tmp14_0*w5;
+                                    const double tmp34_1 = tmp15_0*w8;
+                                    const double tmp35_1 = A_01_0*w8;
+                                    const double tmp36_1 = tmp16_0*w1;
+                                    const double tmp37_1 = A_10_1*w4;
+                                    const double tmp38_1 = tmp5_0*w15;
+                                    const double tmp39_1 = A_10_2*w7;
+                                    const double tmp40_1 = tmp11_0*w17;
+                                    const double tmp41_1 = A_01_3*w2;
+                                    const double tmp42_1 = tmp12_0*w16;
+                                    const double tmp43_1 = tmp17_0*w5;
+                                    const double tmp44_1 = tmp7_0*w7;
+                                    const double tmp45_1 = tmp6_0*w4;
+                                    const double tmp46_1 = A_01_3*w8;
+                                    const double tmp47_1 = A_10_2*w4;
+                                    const double tmp48_1 = A_10_1*w7;
+                                    const double tmp49_1 = tmp12_0*w17;
+                                    const double tmp50_1 = A_01_0*w2;
+                                    const double tmp51_1 = tmp11_0*w16;
+                                    const double tmp52_1 = tmp18_0*w8;
+                                    const double tmp53_1 = tmp19_0*w2;
+                                    const double tmp54_1 = tmp13_0*w8;
+                                    const double tmp55_1 = tmp15_0*w2;
+                                    const double tmp56_1 = tmp19_0*w8;
+                                    const double tmp57_1 = tmp18_0*w2;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp13_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp25_1;
                                     EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp36_1 + tmp37_1 + tmp39_1 + tmp3_1 + tmp43_1 + tmp46_1 + tmp50_1 + tmp5_1 + tmp6_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp38_1 + tmp49_1 + tmp51_1 + tmp7_1 + tmp8_1;
@@ -2607,25 +2591,25 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
-                                    const register double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
-                                    const register double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
-                                    const register double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
-                                    const register double tmp0_0 = A_01 + A_10;
-                                    const register double tmp0_1 = A_00*w18;
-                                    const register double tmp1_1 = A_01*w19;
-                                    const register double tmp2_1 = A_10*w20;
-                                    const register double tmp3_1 = A_11*w21;
-                                    const register double tmp4_1 = A_00*w22;
-                                    const register double tmp5_1 = tmp0_0*w19;
-                                    const register double tmp6_1 = A_11*w23;
-                                    const register double tmp7_1 = A_11*w25;
-                                    const register double tmp8_1 = A_00*w24;
-                                    const register double tmp9_1 = tmp0_0*w20;
-                                    const register double tmp10_1 = A_01*w20;
-                                    const register double tmp11_1 = A_11*w27;
-                                    const register double tmp12_1 = A_00*w26;
-                                    const register double tmp13_1 = A_10*w19;
+                                    const double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
+                                    const double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
+                                    const double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
+                                    const double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
+                                    const double tmp0_0 = A_01 + A_10;
+                                    const double tmp0_1 = A_00*w18;
+                                    const double tmp1_1 = A_01*w19;
+                                    const double tmp2_1 = A_10*w20;
+                                    const double tmp3_1 = A_11*w21;
+                                    const double tmp4_1 = A_00*w22;
+                                    const double tmp5_1 = tmp0_0*w19;
+                                    const double tmp6_1 = A_11*w23;
+                                    const double tmp7_1 = A_11*w25;
+                                    const double tmp8_1 = A_00*w24;
+                                    const double tmp9_1 = tmp0_0*w20;
+                                    const double tmp10_1 = A_01*w20;
+                                    const double tmp11_1 = A_11*w27;
+                                    const double tmp12_1 = A_00*w26;
+                                    const double tmp13_1 = A_10*w19;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp5_1 + tmp7_1 + tmp8_1;
                                     EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp3_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp11_1 + tmp12_1 + tmp1_1 + tmp2_1;
@@ -2655,98 +2639,98 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         if (B.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double B_0_0 = B_p[INDEX4(k,0,m,0, numEq,2,numComp)];
-                                    const register double B_1_0 = B_p[INDEX4(k,1,m,0, numEq,2,numComp)];
-                                    const register double B_0_1 = B_p[INDEX4(k,0,m,1, numEq,2,numComp)];
-                                    const register double B_1_1 = B_p[INDEX4(k,1,m,1, numEq,2,numComp)];
-                                    const register double B_0_2 = B_p[INDEX4(k,0,m,2, numEq,2,numComp)];
-                                    const register double B_1_2 = B_p[INDEX4(k,1,m,2, numEq,2,numComp)];
-                                    const register double B_0_3 = B_p[INDEX4(k,0,m,3, numEq,2,numComp)];
-                                    const register double B_1_3 = B_p[INDEX4(k,1,m,3, numEq,2,numComp)];
-                                    const register double tmp0_0 = B_1_0 + B_1_1;
-                                    const register double tmp1_0 = B_1_2 + B_1_3;
-                                    const register double tmp2_0 = B_0_1 + B_0_3;
-                                    const register double tmp3_0 = B_0_0 + B_0_2;
-                                    const register double tmp63_1 = B_1_1*w42;
-                                    const register double tmp79_1 = B_1_1*w40;
-                                    const register double tmp37_1 = tmp3_0*w35;
-                                    const register double tmp8_1 = tmp0_0*w32;
-                                    const register double tmp71_1 = B_0_1*w34;
-                                    const register double tmp19_1 = B_0_3*w31;
-                                    const register double tmp15_1 = B_0_3*w34;
-                                    const register double tmp9_1 = tmp3_0*w34;
-                                    const register double tmp35_1 = B_1_0*w36;
-                                    const register double tmp66_1 = B_0_3*w28;
-                                    const register double tmp28_1 = B_1_0*w42;
-                                    const register double tmp22_1 = B_1_0*w40;
-                                    const register double tmp16_1 = B_1_2*w29;
-                                    const register double tmp6_1 = tmp2_0*w35;
-                                    const register double tmp55_1 = B_1_3*w40;
-                                    const register double tmp50_1 = B_1_3*w42;
-                                    const register double tmp7_1 = tmp1_0*w29;
-                                    const register double tmp1_1 = tmp1_0*w32;
-                                    const register double tmp57_1 = B_0_3*w30;
-                                    const register double tmp18_1 = B_1_1*w32;
-                                    const register double tmp53_1 = B_1_0*w41;
-                                    const register double tmp61_1 = B_1_3*w36;
-                                    const register double tmp27_1 = B_0_3*w38;
-                                    const register double tmp64_1 = B_0_2*w30;
-                                    const register double tmp76_1 = B_0_1*w38;
-                                    const register double tmp39_1 = tmp2_0*w34;
-                                    const register double tmp62_1 = B_0_1*w31;
-                                    const register double tmp56_1 = B_0_0*w31;
-                                    const register double tmp49_1 = B_1_1*w36;
-                                    const register double tmp2_1 = B_0_2*w31;
-                                    const register double tmp23_1 = B_0_2*w33;
-                                    const register double tmp38_1 = B_1_1*w43;
-                                    const register double tmp74_1 = B_1_2*w41;
-                                    const register double tmp43_1 = B_1_1*w41;
-                                    const register double tmp58_1 = B_0_2*w28;
-                                    const register double tmp67_1 = B_0_0*w33;
-                                    const register double tmp33_1 = tmp0_0*w39;
-                                    const register double tmp4_1 = B_0_0*w28;
-                                    const register double tmp20_1 = B_0_0*w30;
-                                    const register double tmp13_1 = B_0_2*w38;
-                                    const register double tmp65_1 = B_1_2*w43;
-                                    const register double tmp0_1 = tmp0_0*w29;
-                                    const register double tmp41_1 = tmp3_0*w33;
-                                    const register double tmp73_1 = B_0_2*w37;
-                                    const register double tmp69_1 = B_0_0*w38;
-                                    const register double tmp48_1 = B_1_2*w39;
-                                    const register double tmp59_1 = B_0_1*w33;
-                                    const register double tmp17_1 = B_1_3*w41;
-                                    const register double tmp5_1 = B_0_3*w33;
-                                    const register double tmp3_1 = B_0_1*w30;
-                                    const register double tmp21_1 = B_0_1*w28;
-                                    const register double tmp42_1 = B_1_0*w29;
-                                    const register double tmp54_1 = B_1_2*w32;
-                                    const register double tmp60_1 = B_1_0*w39;
-                                    const register double tmp32_1 = tmp1_0*w36;
-                                    const register double tmp10_1 = B_0_1*w37;
-                                    const register double tmp14_1 = B_0_0*w35;
-                                    const register double tmp29_1 = B_0_1*w35;
-                                    const register double tmp26_1 = B_1_2*w36;
-                                    const register double tmp30_1 = B_1_3*w43;
-                                    const register double tmp70_1 = B_0_2*w35;
-                                    const register double tmp34_1 = B_1_3*w39;
-                                    const register double tmp51_1 = B_1_0*w43;
-                                    const register double tmp31_1 = B_0_2*w34;
-                                    const register double tmp45_1 = tmp3_0*w28;
-                                    const register double tmp11_1 = tmp1_0*w39;
-                                    const register double tmp52_1 = B_1_1*w29;
-                                    const register double tmp44_1 = B_1_3*w32;
-                                    const register double tmp25_1 = B_1_1*w39;
-                                    const register double tmp47_1 = tmp2_0*w33;
-                                    const register double tmp72_1 = B_1_3*w29;
-                                    const register double tmp40_1 = tmp2_0*w28;
-                                    const register double tmp46_1 = B_1_2*w40;
-                                    const register double tmp36_1 = B_1_2*w42;
-                                    const register double tmp24_1 = B_0_0*w37;
-                                    const register double tmp77_1 = B_0_3*w35;
-                                    const register double tmp68_1 = B_0_3*w37;
-                                    const register double tmp78_1 = B_0_0*w34;
-                                    const register double tmp12_1 = tmp0_0*w36;
-                                    const register double tmp75_1 = B_1_0*w32;
+                                    const double B_0_0 = B_p[INDEX4(k,0,m,0, numEq,2,numComp)];
+                                    const double B_1_0 = B_p[INDEX4(k,1,m,0, numEq,2,numComp)];
+                                    const double B_0_1 = B_p[INDEX4(k,0,m,1, numEq,2,numComp)];
+                                    const double B_1_1 = B_p[INDEX4(k,1,m,1, numEq,2,numComp)];
+                                    const double B_0_2 = B_p[INDEX4(k,0,m,2, numEq,2,numComp)];
+                                    const double B_1_2 = B_p[INDEX4(k,1,m,2, numEq,2,numComp)];
+                                    const double B_0_3 = B_p[INDEX4(k,0,m,3, numEq,2,numComp)];
+                                    const double B_1_3 = B_p[INDEX4(k,1,m,3, numEq,2,numComp)];
+                                    const double tmp0_0 = B_1_0 + B_1_1;
+                                    const double tmp1_0 = B_1_2 + B_1_3;
+                                    const double tmp2_0 = B_0_1 + B_0_3;
+                                    const double tmp3_0 = B_0_0 + B_0_2;
+                                    const double tmp63_1 = B_1_1*w42;
+                                    const double tmp79_1 = B_1_1*w40;
+                                    const double tmp37_1 = tmp3_0*w35;
+                                    const double tmp8_1 = tmp0_0*w32;
+                                    const double tmp71_1 = B_0_1*w34;
+                                    const double tmp19_1 = B_0_3*w31;
+                                    const double tmp15_1 = B_0_3*w34;
+                                    const double tmp9_1 = tmp3_0*w34;
+                                    const double tmp35_1 = B_1_0*w36;
+                                    const double tmp66_1 = B_0_3*w28;
+                                    const double tmp28_1 = B_1_0*w42;
+                                    const double tmp22_1 = B_1_0*w40;
+                                    const double tmp16_1 = B_1_2*w29;
+                                    const double tmp6_1 = tmp2_0*w35;
+                                    const double tmp55_1 = B_1_3*w40;
+                                    const double tmp50_1 = B_1_3*w42;
+                                    const double tmp7_1 = tmp1_0*w29;
+                                    const double tmp1_1 = tmp1_0*w32;
+                                    const double tmp57_1 = B_0_3*w30;
+                                    const double tmp18_1 = B_1_1*w32;
+                                    const double tmp53_1 = B_1_0*w41;
+                                    const double tmp61_1 = B_1_3*w36;
+                                    const double tmp27_1 = B_0_3*w38;
+                                    const double tmp64_1 = B_0_2*w30;
+                                    const double tmp76_1 = B_0_1*w38;
+                                    const double tmp39_1 = tmp2_0*w34;
+                                    const double tmp62_1 = B_0_1*w31;
+                                    const double tmp56_1 = B_0_0*w31;
+                                    const double tmp49_1 = B_1_1*w36;
+                                    const double tmp2_1 = B_0_2*w31;
+                                    const double tmp23_1 = B_0_2*w33;
+                                    const double tmp38_1 = B_1_1*w43;
+                                    const double tmp74_1 = B_1_2*w41;
+                                    const double tmp43_1 = B_1_1*w41;
+                                    const double tmp58_1 = B_0_2*w28;
+                                    const double tmp67_1 = B_0_0*w33;
+                                    const double tmp33_1 = tmp0_0*w39;
+                                    const double tmp4_1 = B_0_0*w28;
+                                    const double tmp20_1 = B_0_0*w30;
+                                    const double tmp13_1 = B_0_2*w38;
+                                    const double tmp65_1 = B_1_2*w43;
+                                    const double tmp0_1 = tmp0_0*w29;
+                                    const double tmp41_1 = tmp3_0*w33;
+                                    const double tmp73_1 = B_0_2*w37;
+                                    const double tmp69_1 = B_0_0*w38;
+                                    const double tmp48_1 = B_1_2*w39;
+                                    const double tmp59_1 = B_0_1*w33;
+                                    const double tmp17_1 = B_1_3*w41;
+                                    const double tmp5_1 = B_0_3*w33;
+                                    const double tmp3_1 = B_0_1*w30;
+                                    const double tmp21_1 = B_0_1*w28;
+                                    const double tmp42_1 = B_1_0*w29;
+                                    const double tmp54_1 = B_1_2*w32;
+                                    const double tmp60_1 = B_1_0*w39;
+                                    const double tmp32_1 = tmp1_0*w36;
+                                    const double tmp10_1 = B_0_1*w37;
+                                    const double tmp14_1 = B_0_0*w35;
+                                    const double tmp29_1 = B_0_1*w35;
+                                    const double tmp26_1 = B_1_2*w36;
+                                    const double tmp30_1 = B_1_3*w43;
+                                    const double tmp70_1 = B_0_2*w35;
+                                    const double tmp34_1 = B_1_3*w39;
+                                    const double tmp51_1 = B_1_0*w43;
+                                    const double tmp31_1 = B_0_2*w34;
+                                    const double tmp45_1 = tmp3_0*w28;
+                                    const double tmp11_1 = tmp1_0*w39;
+                                    const double tmp52_1 = B_1_1*w29;
+                                    const double tmp44_1 = B_1_3*w32;
+                                    const double tmp25_1 = B_1_1*w39;
+                                    const double tmp47_1 = tmp2_0*w33;
+                                    const double tmp72_1 = B_1_3*w29;
+                                    const double tmp40_1 = tmp2_0*w28;
+                                    const double tmp46_1 = B_1_2*w40;
+                                    const double tmp36_1 = B_1_2*w42;
+                                    const double tmp24_1 = B_0_0*w37;
+                                    const double tmp77_1 = B_0_3*w35;
+                                    const double tmp68_1 = B_0_3*w37;
+                                    const double tmp78_1 = B_0_0*w34;
+                                    const double tmp12_1 = tmp0_0*w36;
+                                    const double tmp75_1 = B_1_0*w32;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
@@ -2768,16 +2752,16 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
-                                    const register double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
-                                    const register double tmp6_1 = B_1*w50;
-                                    const register double tmp1_1 = B_1*w45;
-                                    const register double tmp5_1 = B_1*w49;
-                                    const register double tmp4_1 = B_1*w48;
-                                    const register double tmp0_1 = B_0*w44;
-                                    const register double tmp2_1 = B_0*w46;
-                                    const register double tmp7_1 = B_0*w51;
-                                    const register double tmp3_1 = B_0*w47;
+                                    const double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
+                                    const double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
+                                    const double tmp6_1 = B_1*w50;
+                                    const double tmp1_1 = B_1*w45;
+                                    const double tmp5_1 = B_1*w49;
+                                    const double tmp4_1 = B_1*w48;
+                                    const double tmp0_1 = B_0*w44;
+                                    const double tmp2_1 = B_0*w46;
+                                    const double tmp7_1 = B_0*w51;
+                                    const double tmp3_1 = B_0*w47;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
@@ -2807,98 +2791,98 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         if (C.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double C_0_0 = C_p[INDEX4(k,m,0, 0, numEq,numComp,2)];
-                                    const register double C_1_0 = C_p[INDEX4(k,m,1, 0, numEq,numComp,2)];
-                                    const register double C_0_1 = C_p[INDEX4(k,m,0, 1, numEq,numComp,2)];
-                                    const register double C_1_1 = C_p[INDEX4(k,m,1, 1, numEq,numComp,2)];
-                                    const register double C_0_2 = C_p[INDEX4(k,m,0, 2, numEq,numComp,2)];
-                                    const register double C_1_2 = C_p[INDEX4(k,m,1, 2, numEq,numComp,2)];
-                                    const register double C_0_3 = C_p[INDEX4(k,m,0, 3, numEq,numComp,2)];
-                                    const register double C_1_3 = C_p[INDEX4(k,m,1, 3, numEq,numComp,2)];
-                                    const register double tmp2_0 = C_0_1 + C_0_3;
-                                    const register double tmp1_0 = C_1_2 + C_1_3;
-                                    const register double tmp3_0 = C_0_0 + C_0_2;
-                                    const register double tmp0_0 = C_1_0 + C_1_1;
-                                    const register double tmp64_1 = C_0_2*w30;
-                                    const register double tmp14_1 = C_0_2*w28;
-                                    const register double tmp19_1 = C_0_3*w31;
-                                    const register double tmp22_1 = C_1_0*w40;
-                                    const register double tmp37_1 = tmp3_0*w35;
-                                    const register double tmp29_1 = C_0_1*w35;
-                                    const register double tmp73_1 = C_0_2*w37;
-                                    const register double tmp74_1 = C_1_2*w41;
-                                    const register double tmp52_1 = C_1_3*w39;
-                                    const register double tmp25_1 = C_1_1*w39;
-                                    const register double tmp62_1 = C_0_1*w31;
-                                    const register double tmp79_1 = C_1_1*w40;
-                                    const register double tmp43_1 = C_1_1*w36;
-                                    const register double tmp27_1 = C_0_3*w38;
-                                    const register double tmp28_1 = C_1_0*w42;
-                                    const register double tmp63_1 = C_1_1*w42;
-                                    const register double tmp59_1 = C_0_3*w34;
-                                    const register double tmp72_1 = C_1_3*w29;
-                                    const register double tmp40_1 = tmp2_0*w35;
-                                    const register double tmp13_1 = C_0_3*w30;
-                                    const register double tmp51_1 = C_1_2*w40;
-                                    const register double tmp54_1 = C_1_2*w42;
-                                    const register double tmp12_1 = C_0_0*w31;
-                                    const register double tmp2_1 = tmp1_0*w32;
-                                    const register double tmp68_1 = C_0_2*w31;
-                                    const register double tmp75_1 = C_1_0*w32;
-                                    const register double tmp49_1 = C_1_1*w41;
-                                    const register double tmp4_1 = C_0_2*w35;
-                                    const register double tmp66_1 = C_0_3*w28;
-                                    const register double tmp56_1 = C_0_1*w37;
-                                    const register double tmp5_1 = C_0_1*w34;
-                                    const register double tmp38_1 = tmp2_0*w34;
-                                    const register double tmp76_1 = C_0_1*w38;
-                                    const register double tmp21_1 = C_0_1*w28;
-                                    const register double tmp69_1 = C_0_1*w30;
-                                    const register double tmp53_1 = C_1_0*w36;
-                                    const register double tmp42_1 = C_1_2*w39;
-                                    const register double tmp32_1 = tmp1_0*w29;
-                                    const register double tmp45_1 = C_1_0*w43;
-                                    const register double tmp33_1 = tmp0_0*w32;
-                                    const register double tmp35_1 = C_1_0*w41;
-                                    const register double tmp26_1 = C_1_2*w36;
-                                    const register double tmp67_1 = C_0_0*w33;
-                                    const register double tmp31_1 = C_0_2*w34;
-                                    const register double tmp20_1 = C_0_0*w30;
-                                    const register double tmp70_1 = C_0_0*w28;
-                                    const register double tmp8_1 = tmp0_0*w39;
-                                    const register double tmp30_1 = C_1_3*w43;
-                                    const register double tmp0_1 = tmp0_0*w29;
-                                    const register double tmp17_1 = C_1_3*w41;
-                                    const register double tmp58_1 = C_0_0*w35;
-                                    const register double tmp9_1 = tmp3_0*w33;
-                                    const register double tmp61_1 = C_1_3*w36;
-                                    const register double tmp41_1 = tmp3_0*w34;
-                                    const register double tmp50_1 = C_1_3*w32;
-                                    const register double tmp18_1 = C_1_1*w32;
-                                    const register double tmp6_1 = tmp1_0*w36;
-                                    const register double tmp3_1 = C_0_0*w38;
-                                    const register double tmp34_1 = C_1_1*w29;
-                                    const register double tmp77_1 = C_0_3*w35;
-                                    const register double tmp65_1 = C_1_2*w43;
-                                    const register double tmp71_1 = C_0_3*w33;
-                                    const register double tmp55_1 = C_1_1*w43;
-                                    const register double tmp46_1 = tmp3_0*w28;
-                                    const register double tmp24_1 = C_0_0*w37;
-                                    const register double tmp10_1 = tmp1_0*w39;
-                                    const register double tmp48_1 = C_1_0*w29;
-                                    const register double tmp15_1 = C_0_1*w33;
-                                    const register double tmp36_1 = C_1_2*w32;
-                                    const register double tmp60_1 = C_1_0*w39;
-                                    const register double tmp47_1 = tmp2_0*w33;
-                                    const register double tmp16_1 = C_1_2*w29;
-                                    const register double tmp1_1 = C_0_3*w37;
-                                    const register double tmp7_1 = tmp2_0*w28;
-                                    const register double tmp39_1 = C_1_3*w40;
-                                    const register double tmp44_1 = C_1_3*w42;
-                                    const register double tmp57_1 = C_0_2*w38;
-                                    const register double tmp78_1 = C_0_0*w34;
-                                    const register double tmp11_1 = tmp0_0*w36;
-                                    const register double tmp23_1 = C_0_2*w33;
+                                    const double C_0_0 = C_p[INDEX4(k,m,0, 0, numEq,numComp,2)];
+                                    const double C_1_0 = C_p[INDEX4(k,m,1, 0, numEq,numComp,2)];
+                                    const double C_0_1 = C_p[INDEX4(k,m,0, 1, numEq,numComp,2)];
+                                    const double C_1_1 = C_p[INDEX4(k,m,1, 1, numEq,numComp,2)];
+                                    const double C_0_2 = C_p[INDEX4(k,m,0, 2, numEq,numComp,2)];
+                                    const double C_1_2 = C_p[INDEX4(k,m,1, 2, numEq,numComp,2)];
+                                    const double C_0_3 = C_p[INDEX4(k,m,0, 3, numEq,numComp,2)];
+                                    const double C_1_3 = C_p[INDEX4(k,m,1, 3, numEq,numComp,2)];
+                                    const double tmp2_0 = C_0_1 + C_0_3;
+                                    const double tmp1_0 = C_1_2 + C_1_3;
+                                    const double tmp3_0 = C_0_0 + C_0_2;
+                                    const double tmp0_0 = C_1_0 + C_1_1;
+                                    const double tmp64_1 = C_0_2*w30;
+                                    const double tmp14_1 = C_0_2*w28;
+                                    const double tmp19_1 = C_0_3*w31;
+                                    const double tmp22_1 = C_1_0*w40;
+                                    const double tmp37_1 = tmp3_0*w35;
+                                    const double tmp29_1 = C_0_1*w35;
+                                    const double tmp73_1 = C_0_2*w37;
+                                    const double tmp74_1 = C_1_2*w41;
+                                    const double tmp52_1 = C_1_3*w39;
+                                    const double tmp25_1 = C_1_1*w39;
+                                    const double tmp62_1 = C_0_1*w31;
+                                    const double tmp79_1 = C_1_1*w40;
+                                    const double tmp43_1 = C_1_1*w36;
+                                    const double tmp27_1 = C_0_3*w38;
+                                    const double tmp28_1 = C_1_0*w42;
+                                    const double tmp63_1 = C_1_1*w42;
+                                    const double tmp59_1 = C_0_3*w34;
+                                    const double tmp72_1 = C_1_3*w29;
+                                    const double tmp40_1 = tmp2_0*w35;
+                                    const double tmp13_1 = C_0_3*w30;
+                                    const double tmp51_1 = C_1_2*w40;
+                                    const double tmp54_1 = C_1_2*w42;
+                                    const double tmp12_1 = C_0_0*w31;
+                                    const double tmp2_1 = tmp1_0*w32;
+                                    const double tmp68_1 = C_0_2*w31;
+                                    const double tmp75_1 = C_1_0*w32;
+                                    const double tmp49_1 = C_1_1*w41;
+                                    const double tmp4_1 = C_0_2*w35;
+                                    const double tmp66_1 = C_0_3*w28;
+                                    const double tmp56_1 = C_0_1*w37;
+                                    const double tmp5_1 = C_0_1*w34;
+                                    const double tmp38_1 = tmp2_0*w34;
+                                    const double tmp76_1 = C_0_1*w38;
+                                    const double tmp21_1 = C_0_1*w28;
+                                    const double tmp69_1 = C_0_1*w30;
+                                    const double tmp53_1 = C_1_0*w36;
+                                    const double tmp42_1 = C_1_2*w39;
+                                    const double tmp32_1 = tmp1_0*w29;
+                                    const double tmp45_1 = C_1_0*w43;
+                                    const double tmp33_1 = tmp0_0*w32;
+                                    const double tmp35_1 = C_1_0*w41;
+                                    const double tmp26_1 = C_1_2*w36;
+                                    const double tmp67_1 = C_0_0*w33;
+                                    const double tmp31_1 = C_0_2*w34;
+                                    const double tmp20_1 = C_0_0*w30;
+                                    const double tmp70_1 = C_0_0*w28;
+                                    const double tmp8_1 = tmp0_0*w39;
+                                    const double tmp30_1 = C_1_3*w43;
+                                    const double tmp0_1 = tmp0_0*w29;
+                                    const double tmp17_1 = C_1_3*w41;
+                                    const double tmp58_1 = C_0_0*w35;
+                                    const double tmp9_1 = tmp3_0*w33;
+                                    const double tmp61_1 = C_1_3*w36;
+                                    const double tmp41_1 = tmp3_0*w34;
+                                    const double tmp50_1 = C_1_3*w32;
+                                    const double tmp18_1 = C_1_1*w32;
+                                    const double tmp6_1 = tmp1_0*w36;
+                                    const double tmp3_1 = C_0_0*w38;
+                                    const double tmp34_1 = C_1_1*w29;
+                                    const double tmp77_1 = C_0_3*w35;
+                                    const double tmp65_1 = C_1_2*w43;
+                                    const double tmp71_1 = C_0_3*w33;
+                                    const double tmp55_1 = C_1_1*w43;
+                                    const double tmp46_1 = tmp3_0*w28;
+                                    const double tmp24_1 = C_0_0*w37;
+                                    const double tmp10_1 = tmp1_0*w39;
+                                    const double tmp48_1 = C_1_0*w29;
+                                    const double tmp15_1 = C_0_1*w33;
+                                    const double tmp36_1 = C_1_2*w32;
+                                    const double tmp60_1 = C_1_0*w39;
+                                    const double tmp47_1 = tmp2_0*w33;
+                                    const double tmp16_1 = C_1_2*w29;
+                                    const double tmp1_1 = C_0_3*w37;
+                                    const double tmp7_1 = tmp2_0*w28;
+                                    const double tmp39_1 = C_1_3*w40;
+                                    const double tmp44_1 = C_1_3*w42;
+                                    const double tmp57_1 = C_0_2*w38;
+                                    const double tmp78_1 = C_0_0*w34;
+                                    const double tmp11_1 = tmp0_0*w36;
+                                    const double tmp23_1 = C_0_2*w33;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
@@ -2920,16 +2904,16 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
-                                    const register double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
-                                    const register double tmp1_1 = C_1*w45;
-                                    const register double tmp3_1 = C_0*w51;
-                                    const register double tmp4_1 = C_0*w44;
-                                    const register double tmp7_1 = C_0*w46;
-                                    const register double tmp5_1 = C_1*w49;
-                                    const register double tmp2_1 = C_1*w48;
-                                    const register double tmp0_1 = C_0*w47;
-                                    const register double tmp6_1 = C_1*w50;
+                                    const double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double tmp1_1 = C_1*w45;
+                                    const double tmp3_1 = C_0*w51;
+                                    const double tmp4_1 = C_0*w44;
+                                    const double tmp7_1 = C_0*w46;
+                                    const double tmp5_1 = C_1*w49;
+                                    const double tmp2_1 = C_1*w48;
+                                    const double tmp0_1 = C_0*w47;
+                                    const double tmp6_1 = C_1*w50;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp2_1 + tmp3_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp2_1 + tmp4_1;
@@ -2959,36 +2943,36 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         if (D.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double D_0 = D_p[INDEX3(k, m, 0, numEq, numComp)];
-                                    const register double D_1 = D_p[INDEX3(k, m, 1, numEq, numComp)];
-                                    const register double D_2 = D_p[INDEX3(k, m, 2, numEq, numComp)];
-                                    const register double D_3 = D_p[INDEX3(k, m, 3, numEq, numComp)];
-                                    const register double tmp4_0 = D_1 + D_3;
-                                    const register double tmp2_0 = D_0 + D_1 + D_2 + D_3;
-                                    const register double tmp5_0 = D_0 + D_2;
-                                    const register double tmp0_0 = D_0 + D_1;
-                                    const register double tmp6_0 = D_0 + D_3;
-                                    const register double tmp1_0 = D_2 + D_3;
-                                    const register double tmp3_0 = D_1 + D_2;
-                                    const register double tmp16_1 = D_1*w56;
-                                    const register double tmp14_1 = tmp6_0*w54;
-                                    const register double tmp8_1 = D_3*w55;
-                                    const register double tmp2_1 = tmp2_0*w54;
-                                    const register double tmp12_1 = tmp5_0*w52;
-                                    const register double tmp4_1 = tmp0_0*w53;
-                                    const register double tmp3_1 = tmp1_0*w52;
-                                    const register double tmp13_1 = tmp4_0*w53;
-                                    const register double tmp10_1 = tmp4_0*w52;
-                                    const register double tmp1_1 = tmp1_0*w53;
-                                    const register double tmp7_1 = D_3*w56;
-                                    const register double tmp0_1 = tmp0_0*w52;
-                                    const register double tmp11_1 = tmp5_0*w53;
-                                    const register double tmp9_1 = D_0*w56;
-                                    const register double tmp5_1 = tmp3_0*w54;
-                                    const register double tmp18_1 = D_2*w56;
-                                    const register double tmp17_1 = D_1*w55;
-                                    const register double tmp6_1 = D_0*w55;
-                                    const register double tmp15_1 = D_2*w55;
+                                    const double D_0 = D_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double D_1 = D_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double D_2 = D_p[INDEX3(k, m, 2, numEq, numComp)];
+                                    const double D_3 = D_p[INDEX3(k, m, 3, numEq, numComp)];
+                                    const double tmp4_0 = D_1 + D_3;
+                                    const double tmp2_0 = D_0 + D_1 + D_2 + D_3;
+                                    const double tmp5_0 = D_0 + D_2;
+                                    const double tmp0_0 = D_0 + D_1;
+                                    const double tmp6_0 = D_0 + D_3;
+                                    const double tmp1_0 = D_2 + D_3;
+                                    const double tmp3_0 = D_1 + D_2;
+                                    const double tmp16_1 = D_1*w56;
+                                    const double tmp14_1 = tmp6_0*w54;
+                                    const double tmp8_1 = D_3*w55;
+                                    const double tmp2_1 = tmp2_0*w54;
+                                    const double tmp12_1 = tmp5_0*w52;
+                                    const double tmp4_1 = tmp0_0*w53;
+                                    const double tmp3_1 = tmp1_0*w52;
+                                    const double tmp13_1 = tmp4_0*w53;
+                                    const double tmp10_1 = tmp4_0*w52;
+                                    const double tmp1_1 = tmp1_0*w53;
+                                    const double tmp7_1 = D_3*w56;
+                                    const double tmp0_1 = tmp0_0*w52;
+                                    const double tmp11_1 = tmp5_0*w53;
+                                    const double tmp9_1 = D_0*w56;
+                                    const double tmp5_1 = tmp3_0*w54;
+                                    const double tmp18_1 = D_2*w56;
+                                    const double tmp17_1 = D_1*w55;
+                                    const double tmp6_1 = D_0*w55;
+                                    const double tmp15_1 = D_2*w55;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp2_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
@@ -3010,10 +2994,10 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const register double D_0 = D_p[INDEX2(k, m, numEq)];
-                                    const register double tmp2_1 = D_0*w59;
-                                    const register double tmp1_1 = D_0*w58;
-                                    const register double tmp0_1 = D_0*w57;
+                                    const double D_0 = D_p[INDEX2(k, m, numEq)];
+                                    const double tmp2_1 = D_0*w59;
+                                    const double tmp1_1 = D_0*w58;
+                                    const double tmp0_1 = D_0*w57;
                                     EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1;
                                     EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
@@ -3042,34 +3026,34 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
                         if (X.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const register double X_0_0 = X_p[INDEX3(k, 0, 0, numEq, 2)];
-                                const register double X_1_0 = X_p[INDEX3(k, 1, 0, numEq, 2)];
-                                const register double X_0_1 = X_p[INDEX3(k, 0, 1, numEq, 2)];
-                                const register double X_1_1 = X_p[INDEX3(k, 1, 1, numEq, 2)];
-                                const register double X_0_2 = X_p[INDEX3(k, 0, 2, numEq, 2)];
-                                const register double X_1_2 = X_p[INDEX3(k, 1, 2, numEq, 2)];
-                                const register double X_0_3 = X_p[INDEX3(k, 0, 3, numEq, 2)];
-                                const register double X_1_3 = X_p[INDEX3(k, 1, 3, numEq, 2)];
-                                const register double tmp1_0 = X_1_1 + X_1_3;
-                                const register double tmp3_0 = X_0_0 + X_0_1;
-                                const register double tmp2_0 = X_1_0 + X_1_2;
-                                const register double tmp0_0 = X_0_2 + X_0_3;
-                                const register double tmp8_1 = tmp2_0*w66;
-                                const register double tmp5_1 = tmp3_0*w64;
-                                const register double tmp14_1 = tmp0_0*w64;
-                                const register double tmp3_1 = tmp3_0*w60;
-                                const register double tmp9_1 = tmp3_0*w63;
-                                const register double tmp13_1 = tmp3_0*w65;
-                                const register double tmp12_1 = tmp1_0*w66;
-                                const register double tmp10_1 = tmp0_0*w60;
-                                const register double tmp2_1 = tmp2_0*w61;
-                                const register double tmp6_1 = tmp2_0*w62;
-                                const register double tmp4_1 = tmp0_0*w65;
-                                const register double tmp11_1 = tmp1_0*w67;
-                                const register double tmp1_1 = tmp1_0*w62;
-                                const register double tmp7_1 = tmp1_0*w61;
-                                const register double tmp0_1 = tmp0_0*w63;
-                                const register double tmp15_1 = tmp2_0*w67;
+                                const double X_0_0 = X_p[INDEX3(k, 0, 0, numEq, 2)];
+                                const double X_1_0 = X_p[INDEX3(k, 1, 0, numEq, 2)];
+                                const double X_0_1 = X_p[INDEX3(k, 0, 1, numEq, 2)];
+                                const double X_1_1 = X_p[INDEX3(k, 1, 1, numEq, 2)];
+                                const double X_0_2 = X_p[INDEX3(k, 0, 2, numEq, 2)];
+                                const double X_1_2 = X_p[INDEX3(k, 1, 2, numEq, 2)];
+                                const double X_0_3 = X_p[INDEX3(k, 0, 3, numEq, 2)];
+                                const double X_1_3 = X_p[INDEX3(k, 1, 3, numEq, 2)];
+                                const double tmp1_0 = X_1_1 + X_1_3;
+                                const double tmp3_0 = X_0_0 + X_0_1;
+                                const double tmp2_0 = X_1_0 + X_1_2;
+                                const double tmp0_0 = X_0_2 + X_0_3;
+                                const double tmp8_1 = tmp2_0*w66;
+                                const double tmp5_1 = tmp3_0*w64;
+                                const double tmp14_1 = tmp0_0*w64;
+                                const double tmp3_1 = tmp3_0*w60;
+                                const double tmp9_1 = tmp3_0*w63;
+                                const double tmp13_1 = tmp3_0*w65;
+                                const double tmp12_1 = tmp1_0*w66;
+                                const double tmp10_1 = tmp0_0*w60;
+                                const double tmp2_1 = tmp2_0*w61;
+                                const double tmp6_1 = tmp2_0*w62;
+                                const double tmp4_1 = tmp0_0*w65;
+                                const double tmp11_1 = tmp1_0*w67;
+                                const double tmp1_1 = tmp1_0*w62;
+                                const double tmp7_1 = tmp1_0*w61;
+                                const double tmp0_1 = tmp0_0*w63;
+                                const double tmp15_1 = tmp2_0*w67;
                                 EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1;
                                 EM_F[INDEX2(k,1,numEq)]+=tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
                                 EM_F[INDEX2(k,2,numEq)]+=tmp10_1 + tmp11_1 + tmp8_1 + tmp9_1;
@@ -3077,12 +3061,12 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                const register double X_0 = X_p[INDEX2(k, 0, numEq)];
-                                const register double X_1 = X_p[INDEX2(k, 1, numEq)];
-                                const register double tmp0_1 = X_1*w69;
-                                const register double tmp1_1 = X_0*w68;
-                                const register double tmp2_1 = X_0*w70;
-                                const register double tmp3_1 = X_1*w71;
+                                const double X_0 = X_p[INDEX2(k, 0, numEq)];
+                                const double X_1 = X_p[INDEX2(k, 1, numEq)];
+                                const double tmp0_1 = X_1*w69;
+                                const double tmp1_1 = X_0*w68;
+                                const double tmp2_1 = X_0*w70;
+                                const double tmp3_1 = X_1*w71;
                                 EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
                                 EM_F[INDEX2(k,1,numEq)]+=tmp0_1 + tmp2_1;
                                 EM_F[INDEX2(k,2,numEq)]+=tmp1_1 + tmp3_1;
@@ -3098,22 +3082,22 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                         const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                         if (Y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
-                                const register double Y_0 = Y_p[INDEX2(k, 0, numEq)];
-                                const register double Y_1 = Y_p[INDEX2(k, 1, numEq)];
-                                const register double Y_2 = Y_p[INDEX2(k, 2, numEq)];
-                                const register double Y_3 = Y_p[INDEX2(k, 3, numEq)];
-                                const register double tmp0_0 = Y_1 + Y_2;
-                                const register double tmp1_0 = Y_0 + Y_3;
-                                const register double tmp0_1 = Y_0*w72;
-                                const register double tmp1_1 = tmp0_0*w73;
-                                const register double tmp2_1 = Y_3*w74;
-                                const register double tmp3_1 = Y_1*w72;
-                                const register double tmp4_1 = tmp1_0*w73;
-                                const register double tmp5_1 = Y_2*w74;
-                                const register double tmp6_1 = Y_2*w72;
-                                const register double tmp7_1 = Y_1*w74;
-                                const register double tmp8_1 = Y_3*w72;
-                                const register double tmp9_1 = Y_0*w74;
+                                const double Y_0 = Y_p[INDEX2(k, 0, numEq)];
+                                const double Y_1 = Y_p[INDEX2(k, 1, numEq)];
+                                const double Y_2 = Y_p[INDEX2(k, 2, numEq)];
+                                const double Y_3 = Y_p[INDEX2(k, 3, numEq)];
+                                const double tmp0_0 = Y_1 + Y_2;
+                                const double tmp1_0 = Y_0 + Y_3;
+                                const double tmp0_1 = Y_0*w72;
+                                const double tmp1_1 = tmp0_0*w73;
+                                const double tmp2_1 = Y_3*w74;
+                                const double tmp3_1 = Y_1*w72;
+                                const double tmp4_1 = tmp1_0*w73;
+                                const double tmp5_1 = Y_2*w74;
+                                const double tmp6_1 = Y_2*w72;
+                                const double tmp7_1 = Y_1*w74;
+                                const double tmp8_1 = Y_3*w72;
+                                const double tmp9_1 = Y_0*w74;
                                 EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1 + tmp2_1;
                                 EM_F[INDEX2(k,1,numEq)]+=tmp3_1 + tmp4_1 + tmp5_1;
                                 EM_F[INDEX2(k,2,numEq)]+=tmp4_1 + tmp6_1 + tmp7_1;
@@ -3121,7 +3105,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                             }
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                const register double tmp0_1 = Y_p[k]*w75;
+                                const double tmp0_1 = Y_p[k]*w75;
                                 EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
                                 EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
                                 EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
@@ -3161,8 +3145,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
-        const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& X, const escript::Data& Y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -3211,21 +3194,21 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const register double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
-                                const register double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
-                                const register double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
-                                const register double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
-                                const register double tmp0_0 = A_01 + A_10;
-                                const register double tmp0_1 = A_11*w3;
-                                const register double tmp1_1 = A_00*w0;
-                                const register double tmp2_1 = A_01*w1;
-                                const register double tmp3_1 = A_10*w2;
-                                const register double tmp4_1 = tmp0_0*w1;
-                                const register double tmp5_1 = A_11*w4;
-                                const register double tmp6_1 = A_00*w5;
-                                const register double tmp7_1 = tmp0_0*w2;
-                                const register double tmp8_1 = A_10*w1;
-                                const register double tmp9_1 = A_01*w2;
+                                const double A_00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)];
+                                const double A_01 = A_p[INDEX4(k,0,m,1, numEq,2, numComp)];
+                                const double A_10 = A_p[INDEX4(k,1,m,0, numEq,2, numComp)];
+                                const double A_11 = A_p[INDEX4(k,1,m,1, numEq,2, numComp)];
+                                const double tmp0_0 = A_01 + A_10;
+                                const double tmp0_1 = A_11*w3;
+                                const double tmp1_1 = A_00*w0;
+                                const double tmp2_1 = A_01*w1;
+                                const double tmp3_1 = A_10*w2;
+                                const double tmp4_1 = tmp0_0*w1;
+                                const double tmp5_1 = A_11*w4;
+                                const double tmp6_1 = A_00*w5;
+                                const double tmp7_1 = tmp0_0*w2;
+                                const double tmp8_1 = A_10*w1;
+                                const double tmp9_1 = A_01*w2;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp4_1 + tmp6_1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp8_1 + tmp9_1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp2_1 + tmp3_1 + tmp5_1 + tmp6_1;
@@ -3253,12 +3236,12 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const register double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
-                                const register double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
-                                const register double tmp0_1 = B_0*w6;
-                                const register double tmp1_1 = B_1*w7;
-                                const register double tmp2_1 = B_0*w8;
-                                const register double tmp3_1 = B_1*w9;
+                                const double B_0 = B_p[INDEX3(k,0,m, numEq, 2)];
+                                const double B_1 = B_p[INDEX3(k,1,m, numEq, 2)];
+                                const double tmp0_1 = B_0*w6;
+                                const double tmp1_1 = B_1*w7;
+                                const double tmp2_1 = B_0*w8;
+                                const double tmp3_1 = B_1*w9;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1 + tmp3_1;
@@ -3286,12 +3269,12 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const register double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
-                                const register double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
-                                const register double tmp0_1 = C_0*w8;
-                                const register double tmp1_1 = C_1*w7;
-                                const register double tmp2_1 = C_1*w9;
-                                const register double tmp3_1 = C_0*w6;
+                                const double C_0 = C_p[INDEX3(k, m, 0, numEq, numComp)];
+                                const double C_1 = C_p[INDEX3(k, m, 1, numEq, numComp)];
+                                const double tmp0_1 = C_0*w8;
+                                const double tmp1_1 = C_1*w7;
+                                const double tmp2_1 = C_1*w9;
+                                const double tmp3_1 = C_0*w6;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
@@ -3319,7 +3302,7 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
-                                const register double tmp0_1 = D_p[INDEX2(k, m, numEq)]*w10;
+                                const double tmp0_1 = D_p[INDEX2(k, m, numEq)]*w10;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1;
@@ -3346,12 +3329,12 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         add_EM_F=true;
                         const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const register double X_0 = X_p[INDEX2(k, 0, numEq)];
-                            const register double X_1 = X_p[INDEX2(k, 1, numEq)];
-                            const register double tmp0_1 = X_0*w11;
-                            const register double tmp1_1 = X_1*w12;
-                            const register double tmp2_1 = X_0*w13;
-                            const register double tmp3_1 = X_1*w14;
+                            const double X_0 = X_p[INDEX2(k, 0, numEq)];
+                            const double X_1 = X_p[INDEX2(k, 1, numEq)];
+                            const double tmp0_1 = X_0*w11;
+                            const double tmp1_1 = X_1*w12;
+                            const double tmp2_1 = X_0*w13;
+                            const double tmp3_1 = X_1*w14;
                             EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
                             EM_F[INDEX2(k,1,numEq)]+=tmp1_1 + tmp2_1;
                             EM_F[INDEX2(k,2,numEq)]+=tmp0_1 + tmp3_1;
@@ -3365,7 +3348,7 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         add_EM_F=true;
                         const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const register double tmp0_1 = Y_p[k]*w15;
+                            const double tmp0_1 = Y_p[k]*w15;
                             EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
@@ -3398,6 +3381,30 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
             } // end k1 loop
         } // end of colouring
     } // end of parallel region
+}
+
+//protected
+void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+}
+
+//protected
+void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+}
+
+//protected
+void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+}
+
+//protected
+void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
 }
 
 

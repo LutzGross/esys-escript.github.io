@@ -681,9 +681,6 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const;
 
-    /// returns the next coarser level of this domain if available
-    virtual escript::Domain_ptr getCoarseMesh() const;
-
     /// inserts the nodes that share an element with 'node' into 'index' and
     /// returns the number of these neighbours
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
@@ -702,32 +699,52 @@ protected:
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+
+    /// assembles boundary conditions of a single PDE into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
     virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+
+    /// assembles boundary conditions of a single PDE with reduced order into
+    /// the system matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
 
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
     virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+
+    /// assembles boundary conditions of a system of PDEs into the system
+    /// matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
     virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+
+    /// assembles boundary conditions of a system of PDEs with reduced order
+    /// into the system matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
 
     /// returns the Paso system matrix pattern
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,

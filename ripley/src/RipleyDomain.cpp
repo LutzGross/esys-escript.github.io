@@ -100,11 +100,8 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
-            return pair<int,int>(1, getNumNodes());
         case ReducedNodes: //FIXME: reduced
-            if (getCoarseMesh())
-                return getCoarseMesh()->getDataShape(Nodes);
-            break;
+            return pair<int,int>(1, getNumNodes());
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom: //FIXME: reduced
             return pair<int,int>(1, getNumDOF());
@@ -764,16 +761,23 @@ void RipleyDomain::addPDEToSystem(
         throw RipleyException("addPDEToSystem(): Number of equations and number of solutions don't match");
     //TODO: more system matrix checks
 
-    if (numEq==1)
-        if (reducedOrder)
-            assemblePDESingleReduced(S, rhs, A, B, C, D, X, Y, d, y);
-        else
-            assemblePDESingle(S, rhs, A, B, C, D, X, Y, d, y);
-    else
-        if (reducedOrder)
-            assemblePDESystemReduced(S, rhs, A, B, C, D, X, Y, d, y);
-        else
-            assemblePDESystem(S, rhs, A, B, C, D, X, Y, d, y);
+    if (numEq==1) {
+        if (reducedOrder) {
+            assemblePDESingleReduced(S, rhs, A, B, C, D, X, Y);
+            assemblePDEBoundarySingleReduced(S, rhs, d, y);
+        } else {
+            assemblePDESingle(S, rhs, A, B, C, D, X, Y);
+            assemblePDEBoundarySingle(S, rhs, d, y);
+        }
+    } else {
+        if (reducedOrder) {
+            assemblePDESystemReduced(S, rhs, A, B, C, D, X, Y);
+            assemblePDEBoundarySystemReduced(S, rhs, d, y);
+        } else {
+            assemblePDESystem(S, rhs, A, B, C, D, X, Y);
+            assemblePDEBoundarySystem(S, rhs, d, y);
+        }
+    }
 }
 
 void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
@@ -790,10 +794,13 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
             return;
     }
 
-    if (rhs.getDataPointSize() == 1)
-        assemblePDESingle(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y, escript::Data(), y);
-    else
-        assemblePDESystem(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y, escript::Data(), y);
+    if (rhs.getDataPointSize() == 1) {
+        assemblePDESingle(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
+        assemblePDEBoundarySingle(NULL, rhs, escript::Data(), y);
+    } else {
+        assemblePDESystem(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
+        assemblePDEBoundarySystem(NULL, rhs, escript::Data(), y);
+    }
 }
 
 void RipleyDomain::setNewX(const escript::Data& arg)
@@ -1177,11 +1184,6 @@ dim_t RipleyDomain::getNumDOF() const
     throw RipleyException("getNumDOF() not implemented");
 }
 
-escript::Domain_ptr RipleyDomain::getCoarseMesh() const
-{
-    throw RipleyException("getCoarseMesh() not implemented");
-}
-
 dim_t RipleyDomain::insertNeighbourNodes(IndexVector& index, index_t node) const
 {
     throw RipleyException("insertNeighbourNodes() not implemented");
@@ -1204,34 +1206,56 @@ void RipleyDomain::assembleIntegrate(vector<double>& integrals, escript::Data& a
 
 void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
 {
     throw RipleyException("assemblePDESingle() not implemented");
+}
+
+void RipleyDomain::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDEBoundarySingle() not implemented");
 }
 
 void RipleyDomain::assemblePDESingleReduced(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D, const escript::Data& X,
-        const escript::Data& Y, const escript::Data& d, const escript::Data& y) const
+        const escript::Data& Y) const
 {
     throw RipleyException("assemblePDESingleReduced() not implemented");
 }
 
+void RipleyDomain::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDEBoundarySingleReduced() not implemented");
+}
+
 void RipleyDomain::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y) const
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
 {
     throw RipleyException("assemblePDESystem() not implemented");
+}
+
+void RipleyDomain::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDEBoundarySystem() not implemented");
 }
 
 void RipleyDomain::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D, const escript::Data& X,
-        const escript::Data& Y, const escript::Data& d, const escript::Data& y) const
+        const escript::Data& Y) const
 {
     throw RipleyException("assemblePDESystemReduced() not implemented");
+}
+
+void RipleyDomain::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+    throw RipleyException("assemblePDEBoundarySystemReduced() not implemented");
 }
 
 void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in, bool reduced) const
