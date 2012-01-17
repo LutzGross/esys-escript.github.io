@@ -162,7 +162,6 @@ protected:
     virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual escript::Domain_ptr getCoarseMesh() const { return m_coarseMesh; }
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
@@ -170,23 +169,31 @@ protected:
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
     virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
     virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
     virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y,
-            const escript::Data& d, const escript::Data& y) const;
+            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -242,8 +249,6 @@ private:
 
     // the Paso System Matrix pattern
     Paso_SystemMatrixPattern* m_pattern;
-
-    escript::Domain_ptr m_coarseMesh;
 };
 
 } // end of namespace ripley
