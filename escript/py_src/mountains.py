@@ -54,7 +54,7 @@ class Mountains:
     order=escript.Solution(domain).getApproximationOrder()
     if order>1:
         reduced = True
-        if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+        if ReducedSolution(domain).getApproximationOrder()>1: raise ValueError("Reduced order needs to be equal to 1.")
     else:
         reduced = False
     if eps<0:
@@ -169,7 +169,7 @@ class Mountains:
       dt_safe=self.getSafeTimeStepSize()
       n=max(int(math.ceil(dt/dt_safe)+0.5),1)
       if n>1 and not allow_substeps:
-         raise SubSteppingException,"Substepping required."
+         raise SubSteppingException("Substepping required.")
       dt/=n
  
       H=self.getTopography()
@@ -189,7 +189,7 @@ class Mountains:
          Hhalf=self.__PDE_H.getSolution()
          self.__PDE_H.setValue(X=w_tilda*Hhalf*dt, Y=w_z*dt+H-L)
          H=self.__PDE_H.getSolution()
-         print "DDD : ava = ",integrate(H)
+         print(("DDD : ava = ",integrate(H)))
          t+=dt
       self.setTopography(H)
 

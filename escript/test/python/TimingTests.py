@@ -92,10 +92,10 @@ def getStartTime():
 def calcElapsedTime(starttime):
     stoptime = time.clock()
     elapsed = stoptime - starttime
-    print "\t\t", elapsed
+    print("\t\t", elapsed)
 
 def runTest(arg,test):
-    print "\t\t", test,
+    print("\t\t", test, end=' ')
     test_name = test.rstrip()
     result = arg.__getattribute__(test_name)()
     del result
@@ -107,7 +107,7 @@ msh=bruce.Rectangle(1000,1000)
 
 for wh in [Function(msh),ContinuousFunction(msh)]:
 
-  print "\n", wh, ":"
+  print("\n", wh, ":")
 
   for ex in ["Constant", "Tagged", "Expanded"]:
 
@@ -115,9 +115,9 @@ for wh in [Function(msh),ContinuousFunction(msh)]:
 
       arg=prepareArg(a,ex,wh)
 
-      print "\n\t", ex, "Rank", arg.getRank(), "==>"
-      print "\n\t\tFunction\t\tElapsed time"
-      print "\t\t--------\t\t------------"
+      print("\n\t", ex, "Rank", arg.getRank(), "==>")
+      print("\n\t\tFunction\t\tElapsed time")
+      print("\t\t--------\t\t------------")
 
       for test in testlist:
 
