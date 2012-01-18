@@ -165,11 +165,11 @@ for n in [100000]:
            prog+=TEST_3_s
         else:
            prog+=TEST_3_v
-      print "l= %d, dim= %d, type=%s, order=%s"%(q*(o*NE+1)**dim,dim,tp,o)
+      print("l= %d, dim= %d, type=%s, order=%s"%(q*(o*NE+1)**dim,dim,tp,o))
     
       prog+=SOLVE_AND_TEST 
       # run code:
-      print >> file("__prog","w"), prog
+      print(prog, file=file("__prog","w"))
       # activate for dynamic
       # for CHUNK in [1,10,100,1000,10000, 100000]:
       #   for CHUNK_PCG in [1,10,100,1000,10000, 100000]:
@@ -183,5 +183,5 @@ for n in [100000]:
             out=file("__out","r").read()
             for i in out.split("\n"):
                if i.startswith(TEST_STR): time_per_iter+=float(i[len(TEST_STR):-3].strip())
-         print CHUNK,CHUNK_PCG,time_per_iter/REPEAT
+         print(CHUNK,CHUNK_PCG,time_per_iter/REPEAT)
 

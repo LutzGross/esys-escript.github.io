@@ -32,8 +32,8 @@ import of pyCAD sub modules
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from transformations import *
-from primitives import *
-from shapes import *
-from design import TagMap
-import gmsh
+from .transformations import *
+from .primitives import *
+from .shapes import *
+from .design import TagMap
+from . import gmsh

@@ -123,15 +123,15 @@ for d in [2,3]:
                    ( o == "2F" and r == "Yes" )  :
                  pass
                else:
-                  print "generate file ",filename
+                  print("generate file ",filename)
                   if c == "Yes":
                      NE_X=int(NE**(1./d)/2+0.5)
                      NE_Y=int(NE**(1./d)+0.5)
                   else:
                      NE_X=int(NE**(1./d)+0.5)
                      NE_Y=NE_X
-                  print filename
-                  print "generating ",NE_X, NE_Y
+                  print(filename)
+                  print("generating ",NE_X, NE_Y)
                   if o == "2":
                      o2=2
                      full=False

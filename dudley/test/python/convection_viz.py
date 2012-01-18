@@ -46,13 +46,13 @@ filList = []
 for i in range(i1, i2+1):
   filList.append("state.%d.vtu" % (i))
 
-print "Making a movie using files:  ", filList[0], "...", filList[len(filList)-1], "\n"
+print("Making a movie using files:  ", filList[0], "...", filList[len(filList)-1], "\n")
 
 # Make sure all input files exist before starting
 for filName in filList:
   # Check that the name is a valid file
   if not os.path.isfile(filName):
-    print "%s: Invalid input file '%s'\n" % (sys.argv[0], filName)
+    print("%s: Invalid input file '%s'\n" % (sys.argv[0], filName))
     sys.exit(1)
 
 # Now create the .jpg images for each input VTK file
@@ -62,10 +62,10 @@ for filName in filList:
 
   # Check that the name is a valid file
   if not os.path.isfile(filName):
-    print "%s: Input file '%s' has disappeared\n" % (sys.argv[0], filName)
+    print("%s: Input file '%s' has disappeared\n" % (sys.argv[0], filName))
     sys.exit(1)
 
-  print "Reading %s and writing %s" % (filName, imgName)
+  print("Reading %s and writing %s" % (filName, imgName))
   imgList.append(imgName)
 
   # Create a pyvisi Scene
@@ -105,5 +105,5 @@ mov = Movie()
 mov.imageList(input_directory = ".", image_list = imgList)
 mov.makeMovie("movie.mpg")
 
-print "\nCreated movie.mpg\n"
+print("\nCreated movie.mpg\n")
 

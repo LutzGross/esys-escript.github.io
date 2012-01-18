@@ -33,12 +33,12 @@ mesh generation using gmsh
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import design
+from . import design
 import tempfile
 import os
-from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
+from .primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
 from esys.escript import getMPIWorldMax, getMPIRankWorld
-from transformations import DEG
+from .transformations import DEG
 
 class Design(design.Design):
     """
@@ -117,12 +117,12 @@ class Design(design.Design):
         else:
            if not algorithm2D==None:
               if not algorithm == algorithm2D :
-                  raise ValueError,"argument algorithm (=%s) and algorithm2D (=%s) must have the same value if set."%(algorithm, algorithm2D)
+                  raise ValueError("argument algorithm (=%s) and algorithm2D (=%s) must have the same value if set."%(algorithm, algorithm2D))
            algorithm2D = algorithm
         if not algorithm2D in [ self.DELAUNAY, self.MESHADAPT, self.FRONTAL ]:
-            raise ValueError,"illegal 2D meshing algorithm %s."%algorithm2D
+            raise ValueError("illegal 2D meshing algorithm %s."%algorithm2D)
         if not algorithm3D in [ self.DELAUNAY, self.FRONTAL ]:
-            raise ValueError,"illegal 3D meshing algorithm %s."%algorithm3D
+            raise ValueError("illegal 3D meshing algorithm %s."%algorithm3D)
               
         self.__curvature_based_element_size=curvature_based_element_size
         self.__algo2D=algorithm2D
@@ -175,7 +175,7 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        from gmshrunner import runGmsh
+        from .gmshrunner import runGmsh
         import shlex
         args=shlex.split(self.getCommandString())
         args[-1]=args[-1]%self.getScriptHandler()
