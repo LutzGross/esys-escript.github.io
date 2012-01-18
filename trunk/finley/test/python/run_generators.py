@@ -257,8 +257,8 @@ class Test_Integration(unittest.TestCase):
    def __test_2DQ(self,dom,order):
        x=Function(dom).getX()
        x_bound=FunctionOnBoundary(dom).getX()
-       for i in xrange(order+1):
-         for j in xrange(order+1):
+       for i in range(order+1):
+         for j in range(order+1):
              res=integrate(x[0]**i*x[1]**j)
              ref=1./((i+1)*(j+1))
              error=abs(res-ref)/abs(ref)
@@ -280,8 +280,8 @@ class Test_Integration(unittest.TestCase):
    def __test_2DT(self,dom,order,raise_tol=1.):
        x=Function(dom).getX()
        x_bound=FunctionOnBoundary(dom).getX()
-       for i in xrange(order+1):
-         for j in xrange(order+1):
+       for i in range(order+1):
+         for j in range(order+1):
            if i+j<=order:
              res=integrate(x[0]**i*x[1]**j)
              ref=1./((i+1)*(j+1))
@@ -306,9 +306,9 @@ class Test_Integration(unittest.TestCase):
    def __test_3DQ(self,dom,order):
        x=Function(dom).getX()
        x_bound=FunctionOnBoundary(dom).getX()
-       for i in xrange(order+1):
-         for j in xrange(order+1):
-           for k in xrange(order+1):
+       for i in range(order+1):
+         for j in range(order+1):
+           for k in range(order+1):
              res=integrate(x[0]**i*x[1]**j*x[2]**k)
              ref=1./((i+1)*(j+1)*(k+1))
              error=abs(res-ref)/abs(ref)
@@ -334,9 +334,9 @@ class Test_Integration(unittest.TestCase):
    def __test_3DT(self,dom,order,raise_tol=1.):
        x=Function(dom).getX()
        x_bound=FunctionOnBoundary(dom).getX()
-       for i in xrange(order+1):
-         for j in xrange(order+1):
-           for k in xrange(order+1):
+       for i in range(order+1):
+         for j in range(order+1):
+           for k in range(order+1):
              if i+j+k<=order:
                 res=integrate(x[0]**i*x[1]**j*x[2]**k)
                 ref=1./((i+1)*(j+1)*(k+1))
@@ -799,17 +799,17 @@ if __name__ == '__main__':
    if getMPISizeWorld() == 1: 
         suite.addTest(unittest.makeSuite(Test_Generators))
    else:
-        print "Test_Generators is dropped as number of processors >1"
+        print("Test_Generators is dropped as number of processors >1")
 
    if getMPISizeWorld() == 1: 
         suite.addTest(unittest.makeSuite(Test_GMSHReader))
    else:
-        print "Test_GMSHReader is dropped as number of processors >1"
+        print("Test_GMSHReader is dropped as number of processors >1")
 
    if getMPISizeWorld() == 1: 
         suite.addTest(unittest.makeSuite(Test_Reader))
    else:
-        print "Test_Reader is dropped as number of processors >1"
+        print("Test_Reader is dropped as number of processors >1")
 
    suite.addTest(unittest.makeSuite(Test_Integration))
    s=unittest.TextTestRunner(verbosity=2).run(suite)

@@ -67,7 +67,7 @@ class Test_AMG(unittest.TestCase):
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
         g_ex=Vector(0.,Solution(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex+=(i+1)*x[i]
            g_ex[i]=(i+1)
 
@@ -96,7 +96,7 @@ class Test_AMG(unittest.TestCase):
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
         g_ex=Vector(0.,Solution(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex+=(i+1)*x[i]
            g_ex[i]=(i+1)
 
@@ -128,7 +128,7 @@ class Test_AMG(unittest.TestCase):
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
         g_ex=Vector(0.,Solution(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex+=(i+1)*x[i]
            g_ex[i]=(i+1)
 
@@ -160,7 +160,7 @@ class Test_AMG(unittest.TestCase):
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
         g_ex=Vector(0.,Solution(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex+=(i+1)*x[i]
            g_ex[i]=(i+1)
 
@@ -195,7 +195,7 @@ class Test_AMG(unittest.TestCase):
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
         g_ex=Vector(0.,Solution(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex+=(i+1)*x[i]
            g_ex[i]=(i+1)
 
@@ -226,7 +226,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(2,),Solution(self.domain))
         g_ex=Data(0.,(2,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(2,self.domain.getDim(),2,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -260,7 +260,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(3,),Solution(self.domain))
         g_ex=Data(0.,(3,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(3,self.domain.getDim(),3,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -297,7 +297,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(4,),Solution(self.domain))
         g_ex=Data(0.,(4,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(4,self.domain.getDim(),4,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -336,7 +336,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(2,),Solution(self.domain))
         g_ex=Data(0.,(2,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(2,self.domain.getDim(),2,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -371,7 +371,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(3,),Solution(self.domain))
         g_ex=Data(0.,(3,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(3,self.domain.getDim(),3,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -409,7 +409,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(4,),Solution(self.domain))
         g_ex=Data(0.,(4,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(4,self.domain.getDim(),4,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1) *x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -450,7 +450,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(2,),Solution(self.domain))
         g_ex=Data(0.,(2,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(2,self.domain.getDim(),2,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -491,7 +491,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(3,),Solution(self.domain))
         g_ex=Data(0.,(3,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(3,self.domain.getDim(),3,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -535,7 +535,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(4,),Solution(self.domain))
         g_ex=Data(0.,(4,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(4,self.domain.getDim(),4,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -584,7 +584,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(2,),Solution(self.domain))
         g_ex=Data(0.,(2,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(2,self.domain.getDim(),2,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -625,7 +625,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(3,),Solution(self.domain))
         g_ex=Data(0.,(3,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(3,self.domain.getDim(),3,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
@@ -669,7 +669,7 @@ class Test_AMG(unittest.TestCase):
         u_ex=Data(1.,(4,),Solution(self.domain))
         g_ex=Data(0.,(4,self.domain.getDim()), Solution(self.domain))
         A=Data(0.,(4,self.domain.getDim(),4,self.domain.getDim()), Function(self.domain))
-        for i in xrange(self.domain.getDim()):
+        for i in range(self.domain.getDim()):
            u_ex[0]+= 1*(i+1)*x[i]
            g_ex[0,i]=1*(i+1)
            u_ex[1]+= 2*(i+1)*x[i]
