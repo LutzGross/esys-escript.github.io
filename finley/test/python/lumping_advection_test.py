@@ -72,7 +72,7 @@ def runTaylorGalerkinIncremental(order):
    f_list=[l(u_f)]
    HRZ_list=[l(u_HRZ)]
    RS_list=[l(u_RS)]
-   print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+   print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
    
    while t< 1./Lsup(v):
        t+=dt
@@ -98,7 +98,7 @@ def runTaylorGalerkinIncremental(order):
        f_list.append(l(u_f))
        HRZ_list.append(l(u_HRZ))
        RS_list.append(l(u_RS))
-       print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1], " : ",sup(u)
+       print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1], " : ",sup(u))
      
    
    import matplotlib.pyplot as plt
@@ -147,7 +147,7 @@ def runTaylorGalerkinDirect(order):
    f_list=[l(u_f)]
    HRZ_list=[l(u_HRZ)]
    RS_list=[l(u_RS)]
-   print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1]
+   print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1])
    
    while t< 1./Lsup(v):
        t+=dt
@@ -173,7 +173,7 @@ def runTaylorGalerkinDirect(order):
        f_list.append(l(u_f))
        HRZ_list.append(l(u_HRZ))
        RS_list.append(l(u_RS))
-       print t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1], " : ",sup(u)
+       print(t_list[-1], u_list[-1], f_list[-1], HRZ_list[-1] , RS_list[-1], " : ",sup(u))
      
    
    import matplotlib.pyplot as plt
