@@ -39,10 +39,10 @@ Currently includes:
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-import escript
-import linearPDEs
+from . import escript
+from . import linearPDEs
 import numpy
-import util
+from . import util
 import math
 
 class TimeIntegrationManager:
@@ -66,11 +66,11 @@ class TimeIntegrationManager:
      Sets up the value manager where ``inital_values`` are the initial values
      and p is the order used for extrapolation.
      """
-     if kwargs.has_key("p"):
+     if "p" in kwargs:
             self.__p=kwargs["p"]
      else:
             self.__p=1
-     if kwargs.has_key("time"):
+     if "time" in kwargs:
             self.__t=kwargs["time"]
      else:
             self.__t=0.
@@ -299,10 +299,10 @@ class NoPDE:
          """
          if self.__u==None:
             if self.__D==None:
-               raise ValueError,"coefficient D is undefined"
+               raise ValueError("coefficient D is undefined")
             D=escript.Data(self.__D,self.__function_space)
             if D.getRank()>1:
-               raise ValueError,"coefficient D must have rank 0 or 1"
+               raise ValueError("coefficient D must have rank 0 or 1")
             if self.__Y==None:
                self.__u=escript.Data(0.,D.getShape(),self.__function_space)
             else:
@@ -340,7 +340,7 @@ class Locator:
        iterative=False
        if isinstance(x, list):
            if len(x)==0: 
-              raise ValueError, "At least one point must be given."
+              raise ValueError("At least one point must be given.")
            try:
              iter(x[0])
              iterative=True
@@ -452,7 +452,7 @@ def getInfLocator(arg):
     Return a Locator for a point with the inf value over all arg.
     """
     if not isinstance(arg, escript.Data):
-	raise TypeError,"getInfLocator: Unknown argument type."
+	raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.inf(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
@@ -464,7 +464,7 @@ def getSupLocator(arg):
     Return a Locator for a point with the sup value over all arg.
     """
     if not isinstance(arg, escript.Data):
-	raise TypeError,"getInfLocator: Unknown argument type."
+	raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.sup(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
@@ -563,19 +563,19 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    rhat=Msolve(r)
    d = rhat
    rhat_dot_r = bilinearform(rhat, r)
-   if rhat_dot_r<0: raise NegativeNorm,"negative norm."
+   if rhat_dot_r<0: raise NegativeNorm("negative norm.")
    norm_r0=math.sqrt(rhat_dot_r)
    atol2=atol+rtol*norm_r0
    if atol2<=0:
-      raise ValueError,"Non-positive tolarance."
+      raise ValueError("Non-positive tolarance.")
    atol2=max(atol2, 100. * util.EPSILON * norm_r0)
 
-   if verbose: print "PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)
+   if verbose: print(("PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)))
 
 
    while not math.sqrt(rhat_dot_r) <= atol2:
        iter+=1
-       if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+       if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
 
        q=Aprod(d)
        alpha = rhat_dot_r / bilinearform(d, q)
@@ -591,9 +591,9 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        d=rhat
 
        rhat_dot_r = rhat_dot_r_new
-       if rhat_dot_r<0: raise NegativeNorm,"negative norm."
-       if verbose: print "PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))
-   if verbose: print "PCG: tolerance reached after %s steps."%iter
+       if rhat_dot_r<0: raise NegativeNorm("negative norm.")
+       if verbose: print(("PCG: iteration step %s: residual norm = %e"%(iter, math.sqrt(rhat_dot_r))))
+   if verbose: print(("PCG: tolerance reached after %s steps."%iter))
    return x,r,math.sqrt(rhat_dot_r)
 
 class Defect(object):
@@ -627,7 +627,7 @@ class Defect(object):
         :note: by default ``sqrt(self.bilinearform(x,x)`` is returned.
         """
         s=self.bilinearform(x,x)
-        if s<0: raise NegativeNorm,"negative norm."
+        if s<0: raise NegativeNorm("negative norm.")
         return math.sqrt(s)
 
     def eval(self,x):
@@ -651,7 +651,7 @@ class Defect(object):
         :param inc: relative increment length
         :type inc: positive ``float``
         """
-        if inc<=0: raise ValueError,"positive increment required."
+        if inc<=0: raise ValueError("positive increment required.")
         self.__inc=inc
 
     def getDerivativeIncrementLength(self):
@@ -722,24 +722,24 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
    :rtype: same type as the initial guess
    """
    lmaxit=iter_max
-   if atol<0: raise ValueError,"atol needs to be non-negative."
-   if rtol<0: raise ValueError,"rtol needs to be non-negative."
-   if rtol+atol<=0: raise ValueError,"rtol or atol needs to be non-negative."
-   if gamma<=0 or gamma>=1: raise ValueError,"tolerance safety factor for inner iteration (gamma =%s) needs to be positive and less than 1."%gamma
-   if subtol_max<=0 or subtol_max>=1: raise ValueError,"upper bound for inner tolerance for inner iteration (subtol_max =%s) needs to be positive and less than 1."%subtol_max
+   if atol<0: raise ValueError("atol needs to be non-negative.")
+   if rtol<0: raise ValueError("rtol needs to be non-negative.")
+   if rtol+atol<=0: raise ValueError("rtol or atol needs to be non-negative.")
+   if gamma<=0 or gamma>=1: raise ValueError("tolerance safety factor for inner iteration (gamma =%s) needs to be positive and less than 1."%gamma)
+   if subtol_max<=0 or subtol_max>=1: raise ValueError("upper bound for inner tolerance for inner iteration (subtol_max =%s) needs to be positive and less than 1."%subtol_max)
 
    F=defect(x)
    fnrm=defect.norm(F)
    stop_tol=atol + rtol*fnrm
    subtol=subtol_max
-   if verbose: print "NewtonGMRES: initial residual = %e."%fnrm
-   if verbose: print "             tolerance = %e."%subtol
+   if verbose: print(("NewtonGMRES: initial residual = %e."%fnrm))
+   if verbose: print(("             tolerance = %e."%subtol))
    iter=1
    #
    # main iteration loop
    #
    while not fnrm<=stop_tol:
-            if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+            if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
             #
 	    #   adjust subtol_
 	    #
@@ -756,11 +756,11 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
             #     if  atol is reached sub_iter returns the numer of steps performed to get there
             #
             #
-            if verbose: print "             subiteration (GMRES) is called with relative tolerance %e."%subtol
+            if verbose: print(("             subiteration (GMRES) is called with relative tolerance %e."%subtol))
             try:
                xc, sub_iter=__FDGMRES(F, defect, x, subtol*fnrm, iter_max=iter_max-iter, iter_restart=sub_iter_max)
             except MaxIterReached:
-               raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+               raise MaxIterReached("maximum number of %s steps reached."%iter_max)
             if sub_iter<0:
                iter+=sub_iter_max
             else:
@@ -770,8 +770,8 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
             F=defect(x)
 	    iter+=1
             fnrmo, fnrm=fnrm, defect.norm(F)
-            if verbose: print "             step %s: residual %e."%(iter,fnrm)
-   if verbose: print "NewtonGMRES: completed after %s steps."%iter
+            if verbose: print(("             step %s: residual %e."%(iter,fnrm)))
+   if verbose: print(("NewtonGMRES: completed after %s steps."%iter))
    return x
 
 def __givapp(c,s,vin):
@@ -807,7 +807,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
    iter=0
    while rho > atol and iter<iter_restart-1:
         if iter  >= iter_max:
-            raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+            raise MaxIterReached("maximum number of %s steps reached."%iter_max)
 
         p=defect.derivative(F0,x0,v[iter], v_is_normalised=True)
         v.append(p)
@@ -928,17 +928,17 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
    iter=0
    if rtol>0:
       r_dot_r = bilinearform(r, r)
-      if r_dot_r<0: raise NegativeNorm,"negative norm."
+      if r_dot_r<0: raise NegativeNorm("negative norm.")
       atol2=atol+rtol*math.sqrt(r_dot_r)
-      if verbose: print "GMRES: norm of right hand side = %e (absolute tolerance = %e)"%(math.sqrt(r_dot_r), atol2)
+      if verbose: print(("GMRES: norm of right hand side = %e (absolute tolerance = %e)"%(math.sqrt(r_dot_r), atol2)))
    else:
       atol2=atol
-      if verbose: print "GMRES: absolute tolerance = %e"%atol2
+      if verbose: print(("GMRES: absolute tolerance = %e"%atol2))
    if atol2<=0:
-      raise ValueError,"Non-positive tolarance."
+      raise ValueError("Non-positive tolarance.")
 
    while True:
-      if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached"%iter_max
+      if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached"%iter_max)
       if restarted:
          r2 = r-Aprod(x-x2)
       else:
@@ -947,9 +947,9 @@ def GMRES(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100, iter_rest
       x,stopped=_GMRESm(r2, Aprod, x, bilinearform, atol2, iter_max=iter_max-iter, iter_restart=m, verbose=verbose,P_R=P_R)
       iter+=iter_restart
       if stopped: break
-      if verbose: print "GMRES: restart."
+      if verbose: print("GMRES: restart.")
       restarted=True
-   if verbose: print "GMRES: tolerance has been reached."
+   if verbose: print("GMRES: tolerance has been reached.")
    return x
 
 def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verbose=False, P_R=None):
@@ -962,16 +962,16 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
    v=[]
 
    r_dot_r = bilinearform(r, r)
-   if r_dot_r<0: raise NegativeNorm,"negative norm."
+   if r_dot_r<0: raise NegativeNorm("negative norm.")
    rho=math.sqrt(r_dot_r)
 
    v.append(r/rho)
    g[0]=rho
 
-   if verbose: print "GMRES: initial residual %e (absolute tolerance = %e)"%(rho,atol)
+   if verbose: print(("GMRES: initial residual %e (absolute tolerance = %e)"%(rho,atol)))
    while not (rho<=atol or iter==iter_restart):
 
-	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+	if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
 
         if P_R!=None:
             p=Aprod(P_R(v[iter]))
@@ -1018,13 +1018,13 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 # Update the residual norm
 
         rho=abs(g[iter+1])
-        if verbose: print "GMRES: iteration step %s: residual %e"%(iter,rho)
+        if verbose: print(("GMRES: iteration step %s: residual %e"%(iter,rho)))
 	iter+=1
 
 # At this point either iter > iter_max or rho < tol.
 # It's time to compute x and leave.
 
-   if verbose: print "GMRES: iteration stopped after %s step."%iter
+   if verbose: print(("GMRES: iteration stopped after %s step."%iter))
    if iter > 0 :
      y=numpy.zeros(iter,numpy.float64)
      y[iter-1] = g[iter-1] / h[iter-1,iter-1]
@@ -1108,7 +1108,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     y = Msolve(r)
     beta1 = bilinearform(y,r)
 
-    if beta1< 0: raise NegativeNorm,"negative norm."
+    if beta1< 0: raise NegativeNorm("negative norm.")
 
     #  If r = 0 exactly, stop with x
     if beta1==0: return x
@@ -1143,7 +1143,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     # --------------------------------------------------------------------
     while not rnorm<=atol+rtol*Anorm*ynorm:    #  checks ||r|| < (||A|| ||x||) * TOL
 
-	if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+	if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
         iter    = iter  +  1
 
         #-----------------------------------------------------------------
@@ -1173,7 +1173,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
         y = Msolve(r2)
         oldb   = beta                           # oldb = betak
         beta   = bilinearform(y,r2)             # beta = betak+1^2
-        if beta < 0: raise NegativeNorm,"negative norm."
+        if beta < 0: raise NegativeNorm("negative norm.")
 
         beta   = math.sqrt( beta )
         tnorm2 = tnorm2 + alfa*alfa + oldb*oldb + beta*beta
@@ -1280,14 +1280,14 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
   theta = 0.0;
   eta = 0.0;
   rho=bilinearform(r,r)
-  if rho < 0: raise NegativeNorm,"negative norm."
+  if rho < 0: raise NegativeNorm("negative norm.")
   tau = math.sqrt(rho)
   norm_r0=tau
   while tau>atol+rtol*norm_r0:
-    if iter  >= iter_max: raise MaxIterReached,"maximum number of %s steps reached."%iter_max
+    if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
 
     sigma = bilinearform(r,v)
-    if sigma == 0.0: raise IterationBreakDown,'TFQMR breakdown, sigma=0'
+    if sigma == 0.0: raise IterationBreakDown('TFQMR breakdown, sigma=0')
 
     alpha = rho / sigma
 
@@ -1315,7 +1315,7 @@ def TFQMR(r, Aprod, x, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 #
 #  Try to terminate the iteration at each pass through the loop
 #
-    if rho == 0.0: raise IterationBreakDown,'TFQMR breakdown, rho=0'
+    if rho == 0.0: raise IterationBreakDown('TFQMR breakdown, rho=0')
 
     rhon = bilinearform(r,w)
     beta = rhon / rho;
@@ -1387,7 +1387,7 @@ class ArithmeticTuple(object):
        try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of arguments don't match."
+               raise ValueError("length of arguments don't match.")
            for i in range(l): out.append(self[i]*other[i])
        except TypeError:
            for i in range(len(self)): out.append(self[i]*other)
@@ -1406,7 +1406,7 @@ class ArithmeticTuple(object):
        try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of arguments don't match."
+               raise ValueError("length of arguments don't match.")
            for i in range(l): out.append(other[i]*self[i])
        except TypeError:
            for i in range(len(self)): out.append(other*self[i])
@@ -1436,7 +1436,7 @@ class ArithmeticTuple(object):
        try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of arguments don't match."
+               raise ValueError("length of arguments don't match.")
            for i in range(l): out.append(other[i]/self[i])
        except TypeError:
            for i in range(len(self)): out.append(other/self[i])
@@ -1450,7 +1450,7 @@ class ArithmeticTuple(object):
        :type other: ``ArithmeticTuple``
        """
        if len(self) != len(other):
-           raise ValueError,"tuple lengths must match."
+           raise ValueError("tuple lengths must match.")
        for i in range(len(self)):
            self.__items[i]+=other[i]
        return self
@@ -1466,7 +1466,7 @@ class ArithmeticTuple(object):
        try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of arguments don't match."
+               raise ValueError("length of arguments don't match.")
            for i in range(l): out.append(self[i]+other[i])
        except TypeError:
            for i in range(len(self)): out.append(self[i]+other)
@@ -1483,7 +1483,7 @@ class ArithmeticTuple(object):
        try:
            l=len(other)
            if l!=len(self):
-               raise ValueError,"length of arguments don't match."
+               raise ValueError("length of arguments don't match.")
            for i in range(l): out.append(self[i]-other[i])
        except TypeError:
            for i in range(len(self)): out.append(self[i]-other)
@@ -1497,7 +1497,7 @@ class ArithmeticTuple(object):
        :type other: ``ArithmeticTuple``
        """
        if len(self) != len(other):
-           raise ValueError,"tuple length must match."
+           raise ValueError("tuple length must match.")
        for i in range(len(self)):
            self.__items[i]-=other[i]
        return self
@@ -1565,48 +1565,48 @@ class HomogeneousSaddlePointProblem(object):
          """
          if not K_p == None:
             if K_p<1:
-               raise ValueError,"K_p need to be greater or equal to 1."
+               raise ValueError("K_p need to be greater or equal to 1.")
          else:
             K_p=self.__K_p
 
          if not K_v == None:
             if K_v<1:
-               raise ValueError,"K_v need to be greater or equal to 1."
+               raise ValueError("K_v need to be greater or equal to 1.")
          else:
             K_v=self.__K_v
 
          if not rtol_max == None:
             if rtol_max<=0 or rtol_max>=1: 
-               raise ValueError,"rtol_max needs to be positive and less than 1."
+               raise ValueError("rtol_max needs to be positive and less than 1.")
          else:
             rtol_max=self.__rtol_max
 
          if not rtol_min == None:
             if rtol_min<=0 or rtol_min>=1: 
-               raise ValueError,"rtol_min needs to be positive and less than 1."
+               raise ValueError("rtol_min needs to be positive and less than 1.")
          else:
             rtol_min=self.__rtol_min
 
          if not chi_max == None:
             if chi_max<=0 or chi_max>=1: 
-               raise ValueError,"chi_max needs to be positive and less than 1."
+               raise ValueError("chi_max needs to be positive and less than 1.")
          else:
             chi_max = self.__chi_max 
 
          if not reduction_factor == None:
             if reduction_factor<=0 or reduction_factor>1:
-               raise ValueError,"reduction_factor need to be between zero and one."
+               raise ValueError("reduction_factor need to be between zero and one.")
          else:
             reduction_factor=self.__reduction_factor
 
          if not theta == None:
             if theta<=0 or theta>1:
-               raise ValueError,"theta need to be between zero and one."
+               raise ValueError("theta need to be between zero and one.")
          else:
             theta=self.__theta
 
          if rtol_min>=rtol_max:
-             raise ValueError,"rtol_max = %e needs to be greater than rtol_min = %e"%(rtol_max,rtol_min)
+             raise ValueError("rtol_max = %e needs to be greater than rtol_min = %e"%(rtol_max,rtol_min))
          self.__chi_max = chi_max
          self.__rtol_max = rtol_max
          self.__K_p = K_p
@@ -1626,7 +1626,7 @@ class HomogeneousSaddlePointProblem(object):
          :rtype: ``float``
          :note: used if PCG is applied.
          """
-         raise NotImplementedError,"no inner product for p and Bv implemented."
+         raise NotImplementedError("no inner product for p and Bv implemented.")
 
       def inner_p(self,p0,p1):
          """
@@ -1637,7 +1637,7 @@ class HomogeneousSaddlePointProblem(object):
          :return: inner product of p0 and p1
          :rtype: ``float``
          """
-         raise NotImplementedError,"no inner product for p implemented."
+         raise NotImplementedError("no inner product for p implemented.")
    
       def norm_v(self,v):
          """
@@ -1647,7 +1647,7 @@ class HomogeneousSaddlePointProblem(object):
          :return: norm of v
          :rtype: non-negative ``float``
          """
-         raise NotImplementedError,"no norm of v implemented."
+         raise NotImplementedError("no norm of v implemented.")
       def getDV(self, p, v, tol):
          """
          return a correction to the value for a given v and a given p with accuracy `tol` (overwrite) 
@@ -1657,7 +1657,7 @@ class HomogeneousSaddlePointProblem(object):
          :return: dv given as *dv= A^{-1} (f-A v-B^*p)*
          :note: Only *A* may depend on *v* and *p*
          """
-         raise NotImplementedError,"no dv calculation implemented."
+         raise NotImplementedError("no dv calculation implemented.")
 
         
       def Bv(self,v, tol):
@@ -1667,7 +1667,7 @@ class HomogeneousSaddlePointProblem(object):
         :rtype: equal to the type of p
         :note: boundary conditions on p should be zero!
         """
-        raise NotImplementedError, "no operator B implemented."
+        raise NotImplementedError("no operator B implemented.")
 
       def norm_Bv(self,Bv):
         """
@@ -1676,7 +1676,7 @@ class HomogeneousSaddlePointProblem(object):
         :rtype: equal to the type of p
         :note: boundary conditions on p should be zero!
         """
-        raise NotImplementedError, "no norm of Bv implemented."
+        raise NotImplementedError("no norm of Bv implemented.")
 
       def solve_AinvBt(self,dp, tol):
          """
@@ -1686,7 +1686,7 @@ class HomogeneousSaddlePointProblem(object):
          :return: the solution of *A dv=B^*dp* 
          :note: boundary conditions on dv should be zero! *A* is the operator used in ``getDV`` and must not be altered.
          """
-         raise NotImplementedError,"no operator A implemented."
+         raise NotImplementedError("no operator A implemented.")
 
       def solve_prec(self,Bv, tol):
          """
@@ -1695,7 +1695,7 @@ class HomogeneousSaddlePointProblem(object):
          :rtype: equal to the type of p
          :note: boundary conditions on p should be zero!
          """
-         raise NotImplementedError,"no preconditioner for Schur complement implemented."
+         raise NotImplementedError("no preconditioner for Schur complement implemented.")
       #=============================================================
       def __Aprod_PCG(self,dp):
           dv=self.solve_AinvBt(dp, self.__subtol)
@@ -1722,7 +1722,7 @@ class HomogeneousSaddlePointProblem(object):
           :rtype: ``float``
           """
           f=self.inner_p(p,p)
-          if f<0: raise ValueError,"negative pressure norm."
+          if f<0: raise ValueError("negative pressure norm.")
           return math.sqrt(f)
 	  
       def solve(self,v,p,max_iter=20, verbose=False, usePCG=True, iter_restart=20, max_correction_steps=10):
@@ -1764,7 +1764,7 @@ class HomogeneousSaddlePointProblem(object):
          chi=None
          eps=None
 
-         if self.verbose: print "HomogeneousSaddlePointProblem: start iteration: rtol= %e, atol=%e"%(rtol, atol)
+         if self.verbose: print(("HomogeneousSaddlePointProblem: start iteration: rtol= %e, atol=%e"%(rtol, atol)))
          while not converged:
 
              # get tolerance for velecity increment:
@@ -1773,14 +1773,14 @@ class HomogeneousSaddlePointProblem(object):
              else:
                 rtol_v=min(chi/K_v,self.__rtol_max)
              rtol_v=max(rtol_v, self.__rtol_min)
-             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: rtol_v= %e"%(correction_step,rtol_v)
+             if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: rtol_v= %e"%(correction_step,rtol_v)))
              # get velocity increment:
              dv1=self.getDV(p,v,rtol_v)
              v1=v+dv1
              Bv1=self.Bv(v1, rtol_v)
              norm_Bv1=self.norm_Bv(Bv1)
              norm_dv1=self.norm_v(dv1)
-             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: norm_Bv1 = %e, norm_dv1 = %e"%(correction_step, norm_Bv1, norm_dv1)
+             if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: norm_Bv1 = %e, norm_dv1 = %e"%(correction_step, norm_Bv1, norm_dv1)))
              if norm_dv1*self.__theta < norm_Bv1:
                 # get tolerance for pressure increment:
                 large_Bv1=True
@@ -1789,7 +1789,7 @@ class HomogeneousSaddlePointProblem(object):
                 else:
                    rtol_p=min(chi**2*eps/K_p/norm_Bv1, self.__rtol_max)
                 self.__subtol=max(rtol_p**2, self.__rtol_min)
-                if self.verbose: print "HomogeneousSaddlePointProblem: step %s: rtol_p= %e"%(correction_step,rtol_p)
+                if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: rtol_p= %e"%(correction_step,rtol_p)))
                 # now we solve for the pressure increment dp from B*A^{-1}B^* dp = Bv1
                 if usePCG:
                     dp,r,a_norm=PCG(ArithmeticTuple(v1,Bv1),self.__Aprod_PCG,0*p,self.__Msolve_PCG,self.__inner_PCG,atol=0, rtol=rtol_p,iter_max=max_iter, verbose=self.verbose)
@@ -1809,7 +1809,7 @@ class HomogeneousSaddlePointProblem(object):
              # update business:
              norm_dv2=self.norm_v(v2-v)
              norm_v2=self.norm_v(v2)
-             if self.verbose: print "HomogeneousSaddlePointProblem: step %s: v2 = %e, norm_dv2 = %e"%(correction_step, norm_v2, self.norm_v(v2-v))
+             if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: v2 = %e, norm_dv2 = %e"%(correction_step, norm_v2, self.norm_v(v2-v))))
              eps, eps_old = max(norm_Bv1, norm_dv2), eps
              if eps_old == None:
                   chi, chi_old = None, chi
@@ -1817,21 +1817,21 @@ class HomogeneousSaddlePointProblem(object):
                   chi, chi_old = min(eps/ eps_old, self.__chi_max), chi
              if eps != None:
                  if chi !=None:
-                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: convergence rate = %e, correction = %e"%(correction_step,chi, eps)
+                    if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: convergence rate = %e, correction = %e"%(correction_step,chi, eps)))
                  else:
-                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: correction = %e"%(correction_step, eps)
+                    if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: correction = %e"%(correction_step, eps)))
              if eps <= rtol*norm_v2+atol :
                  converged = True
              else:
                  if correction_step>=max_correction_steps:
-                      raise CorrectionFailed,"Given up after %d correction steps."%correction_step
+                      raise CorrectionFailed("Given up after %d correction steps."%correction_step)
                  if chi_old!=None:
                     K_p=max(1,self.__reduction_factor*K_p,(chi-chi_old)/chi_old**2*K_p)
                     K_v=max(1,self.__reduction_factor*K_v,(chi-chi_old)/chi_old**2*K_p)
-                    if self.verbose: print "HomogeneousSaddlePointProblem: step %s: new adjustment factor K = %e"%(correction_step,K_p)
+                    if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: new adjustment factor K = %e"%(correction_step,K_p)))
              correction_step+=1
              v,p =v2, p2
-         if self.verbose: print "HomogeneousSaddlePointProblem: tolerance reached after %s steps."%correction_step
+         if self.verbose: print(("HomogeneousSaddlePointProblem: tolerance reached after %s steps."%correction_step))
  	 return v,p
       #========================================================================
       def setTolerance(self,tolerance=1.e-4):
@@ -1842,7 +1842,7 @@ class HomogeneousSaddlePointProblem(object):
          :type tolerance: non-negative ``float``
          """
          if tolerance<0:
-             raise ValueError,"tolerance must be positive."
+             raise ValueError("tolerance must be positive.")
          self.__rtol=tolerance
 
       def getTolerance(self):
@@ -1862,7 +1862,7 @@ class HomogeneousSaddlePointProblem(object):
          :type tolerance: non-negative ``float``
          """
          if tolerance<0:
-             raise ValueError,"tolerance must be non-negative."
+             raise ValueError("tolerance must be non-negative.")
          self.__atol=tolerance
 
       def getAbsoluteTolerance(self):

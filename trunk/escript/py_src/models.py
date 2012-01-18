@@ -33,10 +33,10 @@ A variaty of physical models
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-from flows import *
-from heat import *
-from levelset import *
-from rheologies import *
-from mountains import *
-from faultsystems import *
+from .flows import *
+from .heat import *
+from .levelset import *
+from .rheologies import *
+from .mountains import *
+from .faultsystems import *
 

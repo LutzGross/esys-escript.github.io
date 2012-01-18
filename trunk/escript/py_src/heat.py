@@ -33,9 +33,9 @@ Some models for heat advection-diffusion
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 # from escript import *
-import escript
-import util
-from linearPDEs import TransportPDE
+from . import escript
+from . import util
+from .linearPDEs import TransportPDE
 
 class TemperatureCartesian(TransportPDE):
     """
@@ -72,7 +72,7 @@ class TemperatureCartesian(TransportPDE):
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         order=escript.Solution(domain).getApproximationOrder()
         if order>1:
-            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError("Reduced order needs to be equal to 1.")
             self.setReducedOrderOn()
         else:
             self.setReducedOrderOff()
@@ -145,7 +145,7 @@ class Tracer(TransportPDE):
         TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         order=escript.Solution(domain).getApproximationOrder()
         if order>1:
-            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError,"Reduced order needs to be equal to 1."
+            if escript.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError("Reduced order needs to be equal to 1.")
             self.setReducedOrderOn()
         else:
             self.setReducedOrderOff()
