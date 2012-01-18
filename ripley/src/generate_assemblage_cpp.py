@@ -177,17 +177,407 @@ def generate(DIM, filename):
    #insertCode(filename, { "SNIP_GRAD_REDUCED_FACES" : CODE})
 
    #generate PDE assemblage
-   CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
-   insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
-   CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
-   insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
-   CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
-   insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
-   CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
-   insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
+   #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
+   #insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
+   #CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
+   #insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
+   #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
+   #insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
+   #CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
+   #insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
 
+   #generate PDEBoundary assemblage
+   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
+   CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
+   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
+   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
+   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
+   CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=False)
+   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE_REDUCED", CODE))
 
+def makePDEBC(S, x, Q, W, DIM, system=True):
+   GLOBAL_TMP={}
+   GLOBAL_N=0
+   PRECODE=""
+   CODE_OUT=[]
+    
+   for n in range(len(Q)):
+	CODE="""
+///////////////
+// process A //
+///////////////
+if (!A.isEmpty()) {
+add_EM_S=true;
+const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (A.actsExpanded()) {\n"
+	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	      DATA_A=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		  for j in range(len(S)):
+		      EM[(i,j)] = 0
 
+	      for q in xrange(len(Q[n])):
+		  for di in range(DIM):
+		    for dj in range(DIM):
+			A_name="A_%d%d_%d"%(di,dj,q)
+			A=Symbol(A_name)
+			DATA_A.append(A)
+			if system:
+			    CODE2+="const register double %s = A_p[INDEX5(k,%s,m,%s,%s, numEq,%s,numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+			else:
+			    CODE2+="const register double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_A, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n}\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= """for (index_t k=0; k<numEq; k++) {
+      for (index_t m=0; m<numComp; m++) {
+      """
+	DATA_A=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+	    for j in range(len(S)):
+		EM[(i,j)] = 0
+	for di in range(DIM):
+	    for dj in range(DIM):
+		  A_name="A_%d%d"%(di,dj)
+		  A=Symbol(A_name)
+		  DATA_A.append(A)
+		  if system:
+			    CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
+		  else:
+			    CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
+		  for q in xrange(len(Q[n])):
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_A, EM, GLOBAL_TMP, system)
+	if system:  CODE+="}\n}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+	#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+	CODE+="""
+///////////////
+// process B //
+///////////////
+if (!B.isEmpty()) {
+add_EM_S=true;
+const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (B.actsExpanded()) {\n"
+	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	      DATA_B=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		  for j in range(len(S)):
+		      EM[(i,j)] = 0
+
+	      for q in xrange(len(Q[n])):
+		  for di in range(DIM):
+			A_name="B_%d_%d"%(di,q)
+			A=Symbol(A_name)
+			DATA_B.append(A)
+			if system:
+			    CODE2+="const register double %s = B_p[INDEX4(k,%s,m,%s, numEq,%s,numComp)];\n"%(A_name, di,  q, DIM)
+			else:
+			    CODE2+="const register double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * S[j]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_B, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n}\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	DATA_B=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+	    for j in range(len(S)):
+		EM[(i,j)] = 0
+	for di in range(DIM):
+		  A_name="B_%d"%(di)
+		  A=Symbol(A_name)
+		  DATA_B.append(A)
+		  if system:
+			    CODE2+="const register double %s = B_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
+		  else:
+			    CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
+		  for q in xrange(len(Q[n])):
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * S[j] ).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_B, EM, GLOBAL_TMP, system)
+	if system:  CODE+="}\n}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+	#CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+	CODE+="""
+///////////////
+// process C //
+///////////////
+if (!C.isEmpty()) {
+add_EM_S=true;
+const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (C.actsExpanded()) {\n"
+	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	      DATA_C=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		  for j in range(len(S)):
+		      EM[(i,j)] = 0
+
+	      for q in xrange(len(Q[n])):
+		  for dj in range(DIM):
+			A_name="C_%d_%d"%(dj,q)
+			A=Symbol(A_name)
+			DATA_C.append(A)
+			if system:
+			    CODE2+="const register double %s = C_p[INDEX4(k,m,%s, %s, numEq,numComp,%s)];\n"%(A_name, dj,  q, DIM)
+			else:
+			    CODE2+="const register double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[j],x[dj]) * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_C, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n}\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	DATA_C=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+	    for j in range(len(S)):
+		EM[(i,j)] = 0
+	for dj in range(DIM):
+		  A_name="C_%d"%(dj)
+		  A=Symbol(A_name)
+		  DATA_C.append(A)
+		  if system:
+			    CODE2+="const register double %s = C_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, dj)
+		  else:
+			    CODE2+="const register double %s = C_p[%s];\n"%(A_name, dj)
+		  for q in xrange(len(Q[n])):
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[j],x[dj]) * S[i] ).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_C, EM, GLOBAL_TMP, system)
+	if system: CODE+="}\n}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+	#DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+	CODE+="""
+///////////////
+// process D //
+///////////////
+if (!D.isEmpty()) {
+add_EM_S=true;
+const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (D.actsExpanded()) {\n"
+	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	      DATA_D=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		  for j in range(len(S)):
+		      EM[(i,j)] = 0
+
+	      for q in xrange(len(Q[n])):
+			A_name="D_%d"%(q,)
+			A=Symbol(A_name)
+			DATA_D.append(A)
+			if system:
+			    CODE2+="const register double %s = D_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, q)
+			else:
+			    CODE2+="const register double %s = D_p[%s];\n"%(A_name, q)
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_D, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n }\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= """for (index_t k=0; k<numEq; k++) {
+for (index_t m=0; m<numComp; m++) {
+"""
+	DATA_D=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+	    for j in range(len(S)):
+		EM[(i,j)] = 0
+	if 1:
+		  A_name="D_0"
+		  A=Symbol(A_name)
+		  DATA_D.append(A)
+		  if system:
+			    CODE2+="const register double %s = D_p[INDEX2(k, m, numEq)];\n"%(A_name,)
+		  else:
+			    CODE2+="const register double %s = D_p[0];\n"%(A_name,)
+		  for q in xrange(len(Q[n])):
+			for i in range(len(S)):
+			    for j in range(len(S)):
+				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i] ).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_D, EM, GLOBAL_TMP, system)
+	if system: CODE+="}\n}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+
+	#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	CODE+="""
+///////////////
+// process X //
+///////////////
+if (!X.isEmpty()) {
+add_EM_F=true;
+const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (X.actsExpanded()) {\n"
+	      if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
+	      DATA_X=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		      EM[i] = 0
+
+	      for q in xrange(len(Q[n])):
+		  for dj in range(DIM):
+			A_name="X_%d_%d"%(dj,q)
+			A=Symbol(A_name)
+			DATA_X.append(A)
+			if system:
+			    CODE2+="const register double %s = X_p[INDEX3(k, %s, %s, numEq, %s)];\n"%(A_name, dj,  q, DIM)
+			else:
+			    CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
+			for j in range(len(S)):
+				EM[j] = EM[j] + (A * W[n][q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= "for (index_t k=0; k<numEq; k++) {\n"
+	DATA_X=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+		EM[i] = 0
+	for dj in range(DIM):
+		  A_name="X_%d"%(dj)
+		  A=Symbol(A_name)
+		  DATA_X.append(A)
+		  if system:
+			    CODE2+="const register double %s = X_p[INDEX2(k, %s, numEq)];\n"%(A_name, dj)
+		  else:
+			    CODE2+="const register double %s = X_p[%s];\n"%(A_name, dj)
+		  for q in xrange(len(Q[n])):
+			for j in range(len(S)):
+				EM[j] = EM[j] + (A * W[n][q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP, system)
+	if system:  CODE+="}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+
+	#YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYy
+	CODE+="""
+///////////////
+// process Y //
+///////////////
+if (!Y.isEmpty()) {
+add_EM_F=true;
+const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+"""
+	if len(Q[n]) > 1:
+	      CODE+="if (Y.actsExpanded()) {\n"
+	      if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
+	      DATA_Y=[]
+	      CODE2=""
+	      EM = {}
+	      for i in range(len(S)):
+		      EM[i] = 0
+
+	      for q in xrange(len(Q[n])):
+			A_name="Y_%d"%(q,)
+			A=Symbol(A_name)
+			DATA_Y.append(A)
+			if system:
+			    CODE2+="const register double %s = Y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
+			else:
+			    CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
+			for i in range(len(S)):
+				EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	      CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP, system)
+
+	      if system: CODE+="}\n"
+	      CODE+="} else { /* constant data */\n"
+	if system:
+	    CODE+= "for (index_t k=0; k<numEq; k++) {\n"
+	DATA_Y=[]
+	CODE2=""
+	EM = {}
+	for i in range(len(S)):
+		EM[i] = 0
+	if 1:
+		  A_name="Y_0"
+		  A=Symbol(A_name)
+		  DATA_Y.append(A)
+		  if system:
+			    CODE2+="const register double %s = Y_p[k];\n"%(A_name,)
+		  else:
+			    CODE2+="const register double %s = Y_p[0];\n"%(A_name,)
+		  for q in xrange(len(Q[n])):
+			for i in range(len(S)):
+				EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
+	CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP, system)
+	if system:  CODE+="}\n"
+	if len(Q[n]) > 1: CODE+="}\n"
+	CODE+="}\n"
+	  
+        CODE_OUT.append(CODE)
+   import operator
+   for k,v in sorted(GLOBAL_TMP.iteritems(), key=operator.itemgetter(1)):
+       PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS)))
+        
+   return CODE_OUT, PRECODE
+    
+def extendDictionary(this, tag, items):
+    for i in range(len(items)):
+         this["%s_%s"%(tag,i)]=items[i]
+    return this
 
 def insertCode(fn, replacement):
     TOP_LINE_FMT="/* GENERATOR %s TOP"
@@ -496,16 +886,17 @@ def generatePDECode(DATA_A, EM, GLOBAL_TMP, system=False):
         for p in EM.keys():
             sum_em=0
             for t in EM[p]: sum_em=sum_em + t
-            if isinstance(p, int) :
-              if system:
-                 OUT+="EM_F[INDEX2(k,%s,numEq)]+=%s;\n"%(p,ccode(sum_em))
-              else:
-                 OUT+="EM_F[%s]+=%s;\n"%(p,ccode(sum_em))
-            else:
-              if system:
-                 OUT+="EM_S[INDEX4(k,m,%s,%s,numEq,numComp,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
-              else:
-                 OUT+="EM_S[INDEX2(%s,%s,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
+            if not  isinstance(sum_em, int) :
+		if isinstance(p, int) and ( not  isinstance(sum_em, int) ) :
+		  if system:
+		    OUT+="EM_F[INDEX2(k,%s,numEq)]+=%s;\n"%(p,ccode(sum_em))
+		  else:
+		    OUT+="EM_F[%s]+=%s;\n"%(p,ccode(sum_em))
+		else:
+		  if system:
+		    OUT+="EM_S[INDEX4(k,m,%s,%s,numEq,numComp,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
+		  else:
+		    OUT+="EM_S[INDEX2(%s,%s,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
 
         OUT2=""
         for p in LOCAL_TMP:
@@ -888,6 +1279,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
    return CODE, PRECODE
 
 filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
+filenames={2:"Rectangle.cpp"}
 for d in filenames.keys():
      generate(d, filenames[d])
 
