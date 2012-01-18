@@ -94,47 +94,47 @@ restart=options.restart
 #
 #  overwrite the default options:
 #
-print("<%s> Execution started."%time.asctime())
+print(("<%s> Execution started."%time.asctime()))
 if options.param !=None: 
     exec(open(options.param,'r'))
-    print("Parameters imported from file ",options.param)
+    print(("Parameters imported from file ",options.param))
 
 print("Input Parameters:")
-print("\tDimension                     DIM\t\t= %d"%DIM)
-print("\tHeight                        H\t\t\t= %s"%H)
-print("\tLength                        L\t\t\t= %s"%L)
-print("\tElements in H                 NE\t\t= %d"%NE)
-print("\tTemperature perturbation      PERT\t\t= %s"%PERT)
-print("\tInitial time step size        DT\t\t= %s"%DT)
-print("\tMinimum time step size        DT_MIN\t\t= %s"%DT_MIN)
-print("\tEnd time                      T_END\t\t= %s"%T_END)
-print("\tCreate topography             CREATE_TOPO\t= %s"%CREATE_TOPO)
-print("\tSurface density               RHO_0\t\t= %s"%RHO_0)
-print("\tGravitational constant        G\t\t\t= %s"%G)
-print("\tThermal expansion coefficient ALPHA_0\t\t= %s"%ALPHA_0)
-print("\tSurface temperature           T_0\t\t= %s"%T_0)
-print("\tBottom temperature            T_1\t\t= %s"%T_1)
-print("\tHeat capacity                 C_P\t\t= %s"%C_P)
-print("\tThermal conductivity          K\t\t\t= %s"%K)
-print("\tTaylor-Quinny coefficient     CHI\t\t= %s"%CHI)
-print("\tElastic shear modulus         MUE\t\t= %s"%MUE)
-print("\tCohesion factor               TAU_Y\t\t= %s"%TAU_Y)
-print("\tFriction factor               BETA\t\t= %s"%BETA)
-print("\tTransition stress             TAU_0\t\t= %s"%TAU_0)
-print("\tPower for power law           N\t\t\t= %s"%N)
-print("\tViscosity at surface          ETA_N0\t\t= %s"%ETA_N0)
-print("\tActivation energy             E\t\t\t= %s"%E)
-print("\tActivation volume             V\t\t\t= %s"%V)
-print("\tTemperature offset            T_OFFSET\t\t= %s"%T_OFFSET)
-print("\tGas constant                  R\t\t\t= %s"%R)
-print("\tTopography smoothing          TOPO_SMOOTH\t= %s"%TOPO_SMOOTH)
-print("\tTolerance for topography      TOPO_TOL\t\t= %s"%TOPO_TOL)
-print("\tTransport tolerance           T_TOL\t\t= %s"%T_TOL)
-print("\tFlow tolerance                FLOW_TOL\t\t= %s"%FLOW_TOL)
+print(("\tDimension                     DIM\t\t= %d"%DIM))
+print(("\tHeight                        H\t\t\t= %s"%H))
+print(("\tLength                        L\t\t\t= %s"%L))
+print(("\tElements in H                 NE\t\t= %d"%NE))
+print(("\tTemperature perturbation      PERT\t\t= %s"%PERT))
+print(("\tInitial time step size        DT\t\t= %s"%DT))
+print(("\tMinimum time step size        DT_MIN\t\t= %s"%DT_MIN))
+print(("\tEnd time                      T_END\t\t= %s"%T_END))
+print(("\tCreate topography             CREATE_TOPO\t= %s"%CREATE_TOPO))
+print(("\tSurface density               RHO_0\t\t= %s"%RHO_0))
+print(("\tGravitational constant        G\t\t\t= %s"%G))
+print(("\tThermal expansion coefficient ALPHA_0\t\t= %s"%ALPHA_0))
+print(("\tSurface temperature           T_0\t\t= %s"%T_0))
+print(("\tBottom temperature            T_1\t\t= %s"%T_1))
+print(("\tHeat capacity                 C_P\t\t= %s"%C_P))
+print(("\tThermal conductivity          K\t\t\t= %s"%K))
+print(("\tTaylor-Quinny coefficient     CHI\t\t= %s"%CHI))
+print(("\tElastic shear modulus         MUE\t\t= %s"%MUE))
+print(("\tCohesion factor               TAU_Y\t\t= %s"%TAU_Y))
+print(("\tFriction factor               BETA\t\t= %s"%BETA))
+print(("\tTransition stress             TAU_0\t\t= %s"%TAU_0))
+print(("\tPower for power law           N\t\t\t= %s"%N))
+print(("\tViscosity at surface          ETA_N0\t\t= %s"%ETA_N0))
+print(("\tActivation energy             E\t\t\t= %s"%E))
+print(("\tActivation volume             V\t\t\t= %s"%V))
+print(("\tTemperature offset            T_OFFSET\t\t= %s"%T_OFFSET))
+print(("\tGas constant                  R\t\t\t= %s"%R))
+print(("\tTopography smoothing          TOPO_SMOOTH\t= %s"%TOPO_SMOOTH))
+print(("\tTolerance for topography      TOPO_TOL\t\t= %s"%TOPO_TOL))
+print(("\tTransport tolerance           T_TOL\t\t= %s"%T_TOL))
+print(("\tFlow tolerance                FLOW_TOL\t\t= %s"%FLOW_TOL))
 #print("\tFile for diagnostics          DIAGNOSTICS_FN\t= %s"%DIAGNOSTICS_FN)
-print("\tRestart counter increment     DN_RESTART\t= %d"%DN_RESTART)
-print("\tPrefix for restart dirs       PREFIX_RESTART\t= %s"%PREFIX_RESTART)
-print("\tVerbosity                     VERBOSE\t\t= %s"%VERBOSE)
+print(("\tRestart counter increment     DN_RESTART\t= %d"%DN_RESTART))
+print(("\tPrefix for restart dirs       PREFIX_RESTART\t= %s"%PREFIX_RESTART))
+print(("\tVerbosity                     VERBOSE\t\t= %s"%VERBOSE))
 
 print("Control Parameters:")
 t_REF=RHO_0*C_P*H**2/K
@@ -157,23 +157,23 @@ if MUE == None:
 else:
     De=ETA_N0/MUE/t_REF
 ETA_BOT=exp(Ar*((1.+V_REF)/(T_OFFSET_REF+1)-1./T_OFFSET_REF))*ETA_N0
-print("\tTotal #elements               \t\t\t= %d"%(NE**DIM*int(L/H)**(DIM-1)))
-print("\tReference time                t_REF\t\t= %s"%t_REF)
-print("\tReference pressure            P_REF\t\t= %s"%P_REF)
-print("\tReference Taylor-Quinny       CHI_REF\t\t= %s"%CHI_REF)
-print("\tDissipation number            DI\t\t= %s"%Di)
-print("\tRayleigh number surface       Ra\t\t= %s"%Ra)
-print("\tDebora number surface         De\t\t= %s"%De)
-print("\tBottom viscosity              \t\t\t= %s"%ETA_BOT)
-print("\tRayleigh number bottom        \t\t\t= %s"%(RHO_0*G*H*(T_1-T_0)*ALPHA_0*t_REF/ETA_BOT))
+print(("\tTotal #elements               \t\t\t= %d"%(NE**DIM*int(L/H)**(DIM-1))))
+print(("\tReference time                t_REF\t\t= %s"%t_REF))
+print(("\tReference pressure            P_REF\t\t= %s"%P_REF))
+print(("\tReference Taylor-Quinny       CHI_REF\t\t= %s"%CHI_REF))
+print(("\tDissipation number            DI\t\t= %s"%Di))
+print(("\tRayleigh number surface       Ra\t\t= %s"%Ra))
+print(("\tDebora number surface         De\t\t= %s"%De))
+print(("\tBottom viscosity              \t\t\t= %s"%ETA_BOT))
+print(("\tRayleigh number bottom        \t\t\t= %s"%(RHO_0*G*H*(T_1-T_0)*ALPHA_0*t_REF/ETA_BOT)))
 if MUE == None:
    print("\tDebora number bottom          \t\t\t= None")
 else:
-   print("\tDebora number bottom          \t\t\t= %s"%(ETA_BOT/MUE/t_REF))
-print("\tArrhenius                     Ar\t\t= %s"%Ar)
-print("\tSurface load factor           SURFACE_LOAD\t= %s"%SURFACE_LOAD)
-print("\tScaled activation volume      V_REF\t\t= %s"%V_REF)
-print
+   print(("\tDebora number bottom          \t\t\t= %s"%(ETA_BOT/MUE/t_REF)))
+print(("\tArrhenius                     Ar\t\t= %s"%Ar))
+print(("\tSurface load factor           SURFACE_LOAD\t= %s"%SURFACE_LOAD))
+print(("\tScaled activation volume      V_REF\t\t= %s"%V_REF))
+print()
 
 # some control variables (will be overwritten in case of a restart:
 t=0          # time stamp
@@ -200,7 +200,7 @@ if dataMgr.hasData():
         topography=dataMgr.getValue('topography')
    
     #diagnostics_file=FileWriter(DIAGNOSTICS_FN,append=True)
-    print("<%s> Restart at time step %d (t=%e) completed."%(time.asctime(),n,t))
+    print(("<%s> Restart at time step %d (t=%e) completed."%(time.asctime(),n,t)))
 else:
     if DIM==2:
         dom=Rectangle(int(ceil(L*NE/H)),NE,l0=L/H,l1=1,order=-1,optimize=True)
@@ -231,7 +231,7 @@ x=dom.getX()
 #   set up heat problem:
 #
 heat=TemperatureCartesian(dom,useBackwardEuler=False)
-print("<%s> Temperature transport has been set up."%time.asctime())
+print(("<%s> Temperature transport has been set up."%time.asctime()))
 heat.getSolverOptions().setTolerance(T_TOL)
 heat.getSolverOptions().setVerbosity(VERBOSE)
 fixed_T_at=whereZero(x[DIM-1])+whereZero(H-x[DIM-1])
@@ -263,7 +263,7 @@ flow.setElasticShearModulus(MUE)
 flow.setTolerance(FLOW_TOL)
 flow.setEtaTolerance(FLOW_TOL)
 flow.setExternals(fixed_v_mask=fixed_v_mask)
-print("<%s> Flow solver has been set up."%time.asctime())
+print(("<%s> Flow solver has been set up."%time.asctime()))
 #
 #   topography setup
 #
@@ -273,13 +273,13 @@ surface_area=integrate(top_boundary_mask)
 if CREATE_TOPO:
     mts=Mountains(dom,eps=TOPO_SMOOTH)
     mts.setTopography(topography)
-    print("<%s> topography has been set up."%time.asctime())
+    print(("<%s> topography has been set up."%time.asctime()))
 
 #
 #   let the show begin:
 #
 t1 = time.time()
-print("<%s> Start time step %d (t=%s)."%(time.asctime(),n,t))
+print(("<%s> Start time step %d (t=%s)."%(time.asctime(),n,t)))
 while t<T_END:
     if CREATE_TOPO: topography_old=topography
     v_old, p_old, stress_old=v, p, stress
@@ -366,7 +366,7 @@ while t<T_END:
         dataMgr.addData(t=t,n=n,t_vis=t_vis,dt=dt,T=T,v=v,eta=flow.getCurrentEtaEff(),stress=stress,p=p)
         if CREATE_TOPO: dataMgr.addData(topography=topography)
         dataMgr.export()
-        print("<%s> Cycle %d (time %s) exported."%(time.asctime(),dataMgr.getCycle(),t))
+        print(("<%s> Cycle %d (time %s) exported."%(time.asctime(),dataMgr.getCycle(),t)))
 
-print("<%s> Calculation finalized after %s seconds."%(time.asctime(),time.time()-t1))
+print(("<%s> Calculation finalized after %s seconds."%(time.asctime(),time.time()-t1)))
 
