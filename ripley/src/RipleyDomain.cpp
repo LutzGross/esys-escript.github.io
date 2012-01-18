@@ -764,18 +764,22 @@ void RipleyDomain::addPDEToSystem(
     if (numEq==1) {
         if (reducedOrder) {
             assemblePDESingleReduced(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySingleReduced(S, rhs, d, y);
+            assemblePDEBoundarySingleReduced(S, rhs, escript::Data(),
+                    escript::Data(), escript::Data(), d, escript::Data(), y);
         } else {
             assemblePDESingle(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySingle(S, rhs, d, y);
+            assemblePDEBoundarySingle(S, rhs, escript::Data(),
+                    escript::Data(), escript::Data(), d, escript::Data(), y);
         }
     } else {
         if (reducedOrder) {
             assemblePDESystemReduced(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySystemReduced(S, rhs, d, y);
+            assemblePDEBoundarySystemReduced(S, rhs, escript::Data(),
+                    escript::Data(), escript::Data(), d, escript::Data(), y);
         } else {
             assemblePDESystem(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySystem(S, rhs, d, y);
+            assemblePDEBoundarySystem(S, rhs, escript::Data(),
+                    escript::Data(), escript::Data(), d, escript::Data(), y);
         }
     }
 }
@@ -1212,7 +1216,9 @@ void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
 }
 
 void RipleyDomain::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+        const escript::Data& c, const escript::Data& d, const escript::Data& x,
+        const escript::Data& y) const
 {
     throw RipleyException("assemblePDEBoundarySingle() not implemented");
 }
@@ -1226,7 +1232,9 @@ void RipleyDomain::assemblePDESingleReduced(Paso_SystemMatrix* mat,
 }
 
 void RipleyDomain::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+        const escript::Data& c, const escript::Data& d, const escript::Data& x,
+        const escript::Data& y) const
 {
     throw RipleyException("assemblePDEBoundarySingleReduced() not implemented");
 }
@@ -1239,7 +1247,9 @@ void RipleyDomain::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
 }
 
 void RipleyDomain::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+        const escript::Data& c, const escript::Data& d, const escript::Data& x,
+        const escript::Data& y) const
 {
     throw RipleyException("assemblePDEBoundarySystem() not implemented");
 }
@@ -1253,7 +1263,9 @@ void RipleyDomain::assemblePDESystemReduced(Paso_SystemMatrix* mat,
 }
 
 void RipleyDomain::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+        const escript::Data& c, const escript::Data& d, const escript::Data& x,
+        const escript::Data& y) const
 {
     throw RipleyException("assemblePDEBoundarySystemReduced() not implemented");
 }

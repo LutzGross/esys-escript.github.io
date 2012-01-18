@@ -704,8 +704,9 @@ protected:
     /// assembles boundary conditions of a single PDE into the system matrix
     /// 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+            escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+            const escript::Data& c, const escript::Data& d,
+            const escript::Data& x, const escript::Data& y) const;
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
@@ -717,9 +718,9 @@ protected:
     /// assembles boundary conditions of a single PDE with reduced order into
     /// the system matrix 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-
+            escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+            const escript::Data& c, const escript::Data& d,
+            const escript::Data& x, const escript::Data& y) const;
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
     virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
@@ -730,8 +731,9 @@ protected:
     /// assembles boundary conditions of a system of PDEs into the system
     /// matrix 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+            escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+            const escript::Data& c, const escript::Data& d,
+            const escript::Data& x, const escript::Data& y) const;
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
@@ -743,8 +745,9 @@ protected:
     /// assembles boundary conditions of a system of PDEs with reduced order
     /// into the system matrix 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+            escript::Data& rhs, const escript::Data& a, const escript::Data& b,
+            const escript::Data& c, const escript::Data& d,
+            const escript::Data& x, const escript::Data& y) const;
 
     /// returns the Paso system matrix pattern
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,

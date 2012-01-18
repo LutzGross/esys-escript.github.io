@@ -187,8 +187,8 @@ def generate(DIM, filename):
    #insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
 
    #generate PDEBoundary assemblage
-   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
-   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
+   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
+   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
    CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
    insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
    CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
@@ -205,14 +205,14 @@ def makePDEBC(S, x, Q, W, DIM, system=True):
    for n in range(len(Q)):
 	CODE="""
 ///////////////
-// process A //
+// process a //
 ///////////////
-if (!A.isEmpty()) {
+if (!a.isEmpty()) {
 add_EM_S=true;
-const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+const double* a_p=const_cast<escript::Data*>(&a)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (A.actsExpanded()) {\n"
+	      CODE+="if (a.actsExpanded()) {\n"
 	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
 """
@@ -226,13 +226,13 @@ for (index_t m=0; m<numComp; m++) {
 	      for q in xrange(len(Q[n])):
 		  for di in range(DIM):
 		    for dj in range(DIM):
-			A_name="A_%d%d_%d"%(di,dj,q)
+			A_name="a_%d%d_%d"%(di,dj,q)
 			A=Symbol(A_name)
 			DATA_A.append(A)
 			if system:
-			    CODE2+="const register double %s = A_p[INDEX5(k,%s,m,%s,%s, numEq,%s,numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+			    CODE2+="const double %s = a_p[INDEX5(k,%s,m,%s,%s, numEq,%s,numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
 			else:
-			    CODE2+="const register double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+			    CODE2+="const double %s = a_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
 			for i in range(len(S)):
 			    for j in range(len(S)):
 				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -242,8 +242,8 @@ for (index_t m=0; m<numComp; m++) {
 	      CODE+="} else { /* constant data */\n"
 	if system:
 	    CODE+= """for (index_t k=0; k<numEq; k++) {
-      for (index_t m=0; m<numComp; m++) {
-      """
+for (index_t m=0; m<numComp; m++) {
+"""
 	DATA_A=[]
 	CODE2=""
 	EM = {}
@@ -252,13 +252,13 @@ for (index_t m=0; m<numComp; m++) {
 		EM[(i,j)] = 0
 	for di in range(DIM):
 	    for dj in range(DIM):
-		  A_name="A_%d%d"%(di,dj)
+		  A_name="a_%d%d"%(di,dj)
 		  A=Symbol(A_name)
 		  DATA_A.append(A)
 		  if system:
-			    CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
+			    CODE2+="const double %s = a_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
 		  else:
-			    CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
+			    CODE2+="const double %s = a_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
 		  for q in xrange(len(Q[n])):
 			for i in range(len(S)):
 			    for j in range(len(S)):
@@ -270,14 +270,14 @@ for (index_t m=0; m<numComp; m++) {
 	#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 	CODE+="""
 ///////////////
-// process B //
+// process b //
 ///////////////
-if (!B.isEmpty()) {
+if (!b.isEmpty()) {
 add_EM_S=true;
-const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+const double* b_p=const_cast<escript::Data*>(&b)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (B.actsExpanded()) {\n"
+	      CODE+="if (b.actsExpanded()) {\n"
 	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
 """
@@ -290,13 +290,13 @@ for (index_t m=0; m<numComp; m++) {
 
 	      for q in xrange(len(Q[n])):
 		  for di in range(DIM):
-			A_name="B_%d_%d"%(di,q)
+			A_name="b_%d_%d"%(di,q)
 			A=Symbol(A_name)
 			DATA_B.append(A)
 			if system:
-			    CODE2+="const register double %s = B_p[INDEX4(k,%s,m,%s, numEq,%s,numComp)];\n"%(A_name, di,  q, DIM)
+			    CODE2+="const double %s = b_p[INDEX4(k,%s,m,%s, numEq,%s,numComp)];\n"%(A_name, di,  q, DIM)
 			else:
-			    CODE2+="const register double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
+			    CODE2+="const double %s = b_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
 			for i in range(len(S)):
 			    for j in range(len(S)):
 				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[i],x[di]) * S[j]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -315,13 +315,13 @@ for (index_t m=0; m<numComp; m++) {
 	    for j in range(len(S)):
 		EM[(i,j)] = 0
 	for di in range(DIM):
-		  A_name="B_%d"%(di)
+		  A_name="b_%d"%(di)
 		  A=Symbol(A_name)
 		  DATA_B.append(A)
 		  if system:
-			    CODE2+="const register double %s = B_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
+			    CODE2+="const double %s = b_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
 		  else:
-			    CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
+			    CODE2+="const double %s = b_p[%s];\n"%(A_name, di)
 		  for q in xrange(len(Q[n])):
 			for i in range(len(S)):
 			    for j in range(len(S)):
@@ -333,14 +333,14 @@ for (index_t m=0; m<numComp; m++) {
 	#CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 	CODE+="""
 ///////////////
-// process C //
+// process c //
 ///////////////
-if (!C.isEmpty()) {
+if (!c.isEmpty()) {
 add_EM_S=true;
-const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+const double* c_p=const_cast<escript::Data*>(&c)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (C.actsExpanded()) {\n"
+	      CODE+="if (c.actsExpanded()) {\n"
 	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
 """
@@ -353,13 +353,13 @@ for (index_t m=0; m<numComp; m++) {
 
 	      for q in xrange(len(Q[n])):
 		  for dj in range(DIM):
-			A_name="C_%d_%d"%(dj,q)
+			A_name="c_%d_%d"%(dj,q)
 			A=Symbol(A_name)
 			DATA_C.append(A)
 			if system:
-			    CODE2+="const register double %s = C_p[INDEX4(k,m,%s, %s, numEq,numComp,%s)];\n"%(A_name, dj,  q, DIM)
+			    CODE2+="const double %s = c_p[INDEX4(k,m,%s, %s, numEq,numComp,%s)];\n"%(A_name, dj,  q, DIM)
 			else:
-			    CODE2+="const register double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
+			    CODE2+="const double %s = c_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
 			for i in range(len(S)):
 			    for j in range(len(S)):
 				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * diff(S[j],x[dj]) * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -378,13 +378,13 @@ for (index_t m=0; m<numComp; m++) {
 	    for j in range(len(S)):
 		EM[(i,j)] = 0
 	for dj in range(DIM):
-		  A_name="C_%d"%(dj)
+		  A_name="c_%d"%(dj)
 		  A=Symbol(A_name)
 		  DATA_C.append(A)
 		  if system:
-			    CODE2+="const register double %s = C_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, dj)
+			    CODE2+="const double %s = c_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, dj)
 		  else:
-			    CODE2+="const register double %s = C_p[%s];\n"%(A_name, dj)
+			    CODE2+="const double %s = c_p[%s];\n"%(A_name, dj)
 		  for q in xrange(len(Q[n])):
 			for i in range(len(S)):
 			    for j in range(len(S)):
@@ -396,14 +396,14 @@ for (index_t m=0; m<numComp; m++) {
 	#DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
 	CODE+="""
 ///////////////
-// process D //
+// process d //
 ///////////////
-if (!D.isEmpty()) {
+if (!d.isEmpty()) {
 add_EM_S=true;
-const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (D.actsExpanded()) {\n"
+	      CODE+="if (d.actsExpanded()) {\n"
 	      if system: CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
 """
@@ -415,13 +415,13 @@ for (index_t m=0; m<numComp; m++) {
 		      EM[(i,j)] = 0
 
 	      for q in xrange(len(Q[n])):
-			A_name="D_%d"%(q,)
+			A_name="d_%d"%(q,)
 			A=Symbol(A_name)
 			DATA_D.append(A)
 			if system:
-			    CODE2+="const register double %s = D_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, q)
+			    CODE2+="const double %s = d_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, q)
 			else:
-			    CODE2+="const register double %s = D_p[%s];\n"%(A_name, q)
+			    CODE2+="const double %s = d_p[%s];\n"%(A_name, q)
 			for i in range(len(S)):
 			    for j in range(len(S)):
 				EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -440,13 +440,13 @@ for (index_t m=0; m<numComp; m++) {
 	    for j in range(len(S)):
 		EM[(i,j)] = 0
 	if 1:
-		  A_name="D_0"
+		  A_name="d_0"
 		  A=Symbol(A_name)
 		  DATA_D.append(A)
 		  if system:
-			    CODE2+="const register double %s = D_p[INDEX2(k, m, numEq)];\n"%(A_name,)
+			    CODE2+="const double %s = d_p[INDEX2(k, m, numEq)];\n"%(A_name,)
 		  else:
-			    CODE2+="const register double %s = D_p[0];\n"%(A_name,)
+			    CODE2+="const double %s = d_p[0];\n"%(A_name,)
 		  for q in xrange(len(Q[n])):
 			for i in range(len(S)):
 			    for j in range(len(S)):
@@ -459,14 +459,14 @@ for (index_t m=0; m<numComp; m++) {
 	#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	CODE+="""
 ///////////////
-// process X //
+// process x //
 ///////////////
-if (!X.isEmpty()) {
+if (!x.isEmpty()) {
 add_EM_F=true;
-const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+const double* x_p=const_cast<escript::Data*>(&x)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (X.actsExpanded()) {\n"
+	      CODE+="if (x.actsExpanded()) {\n"
 	      if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
 	      DATA_X=[]
 	      CODE2=""
@@ -476,13 +476,13 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
 
 	      for q in xrange(len(Q[n])):
 		  for dj in range(DIM):
-			A_name="X_%d_%d"%(dj,q)
+			A_name="x_%d_%d"%(dj,q)
 			A=Symbol(A_name)
 			DATA_X.append(A)
 			if system:
-			    CODE2+="const register double %s = X_p[INDEX3(k, %s, %s, numEq, %s)];\n"%(A_name, dj,  q, DIM)
+			    CODE2+="const double %s = x_p[INDEX3(k, %s, %s, numEq, %s)];\n"%(A_name, dj,  q, DIM)
 			else:
-			    CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
+			    CODE2+="const double %s = x_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
 			for j in range(len(S)):
 				EM[j] = EM[j] + (A * W[n][q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
 	      CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP, system)
@@ -497,13 +497,13 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
 	for i in range(len(S)):
 		EM[i] = 0
 	for dj in range(DIM):
-		  A_name="X_%d"%(dj)
+		  A_name="x_%d"%(dj)
 		  A=Symbol(A_name)
 		  DATA_X.append(A)
 		  if system:
-			    CODE2+="const register double %s = X_p[INDEX2(k, %s, numEq)];\n"%(A_name, dj)
+			    CODE2+="const double %s = x_p[INDEX2(k, %s, numEq)];\n"%(A_name, dj)
 		  else:
-			    CODE2+="const register double %s = X_p[%s];\n"%(A_name, dj)
+			    CODE2+="const double %s = x_p[%s];\n"%(A_name, dj)
 		  for q in xrange(len(Q[n])):
 			for j in range(len(S)):
 				EM[j] = EM[j] + (A * W[n][q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -515,14 +515,14 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
 	#YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYy
 	CODE+="""
 ///////////////
-// process Y //
+// process y //
 ///////////////
-if (!Y.isEmpty()) {
+if (!y.isEmpty()) {
 add_EM_F=true;
-const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
 """
 	if len(Q[n]) > 1:
-	      CODE+="if (Y.actsExpanded()) {\n"
+	      CODE+="if (y.actsExpanded()) {\n"
 	      if system: CODE+= "for (index_t k=0; k<numEq; k++) {\n"
 	      DATA_Y=[]
 	      CODE2=""
@@ -531,13 +531,13 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
 		      EM[i] = 0
 
 	      for q in xrange(len(Q[n])):
-			A_name="Y_%d"%(q,)
+			A_name="y_%d"%(q,)
 			A=Symbol(A_name)
 			DATA_Y.append(A)
 			if system:
-			    CODE2+="const register double %s = Y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
+			    CODE2+="const double %s = y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
 			else:
-			    CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
+			    CODE2+="const double %s = y_p[%s];\n"%(A_name, q)
 			for i in range(len(S)):
 				EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
 	      CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP, system)
@@ -552,13 +552,13 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
 	for i in range(len(S)):
 		EM[i] = 0
 	if 1:
-		  A_name="Y_0"
+		  A_name="y_0"
 		  A=Symbol(A_name)
 		  DATA_Y.append(A)
 		  if system:
-			    CODE2+="const register double %s = Y_p[k];\n"%(A_name,)
+			    CODE2+="const double %s = y_p[k];\n"%(A_name,)
 		  else:
-			    CODE2+="const register double %s = Y_p[0];\n"%(A_name,)
+			    CODE2+="const double %s = y_p[0];\n"%(A_name,)
 		  for q in xrange(len(Q[n])):
 			for i in range(len(S)):
 				EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in xrange(DIM) ] )
@@ -723,7 +723,7 @@ def createGradientCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                      k1+=",1"
                   elif  loopindex[i] == -2:
                      k1+=",m_N%s-1"%i
-            TXT+="\nconst register double* %s = in.getSampleDataRO(INDEX%s(%s, %s));"%(s.name,DIM,k1[1:],M1)
+            TXT+="\nconst double* %s = in.getSampleDataRO(INDEX%s(%s, %s));"%(s.name,DIM,k1[1:],M1)
    if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
    TXT+="\ndouble* o = out.getSampleDataRW(%s);"%IDX2
    TXT+="\nfor (index_t i=0; i < numComp; ++i) {\n"
@@ -785,7 +785,7 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                  k1+=",1"
               elif  loopindex[i] == -2:
                  k1+=",m_N%s-1"%i
-        TXT+="\nconst register double* %s = in.getSampleDataRO(INDEX%s(%s, %s));"%(s.name,DIM,k1[1:],M1)
+        TXT+="\nconst double* %s = in.getSampleDataRO(INDEX%s(%s, %s));"%(s.name,DIM,k1[1:],M1)
    if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
 #        for i in xrange(DIM):
 #             if loopindex[i]>-1: IDX2=gridoffset+"+k%s"%i
@@ -811,12 +811,12 @@ def createIntegrationCode(Q, W, gridoffset="", loopindex=(0,1,2)):
         if not GLOBAL_TMP.has_key(W[q]):
              GLOBAL_TMP[W[q]]=Symbol("w_%s"%len(GLOBAL_TMP))
         A=Symbol("f_%s"%q)
-        TXT_E+="const register double %s = in[INDEX3(i,%s,e, NCOMP,%s)];\n"%(A,q,len(W))
+        TXT_E+="const double %s = in[INDEX3(i,%s,e, NCOMP,%s)];\n"%(A,q,len(W))
         if not LOCAL_TMP_E.has_key(GLOBAL_TMP[W[q]]):
              LOCAL_TMP_E[GLOBAL_TMP[W[q]]]=0
         LOCAL_TMP_E[GLOBAL_TMP[W[q]]]=LOCAL_TMP_E[GLOBAL_TMP[W[q]]]+A
    for p in LOCAL_TMP_E.keys():
-        TXT_E+="const register double %s = %s;\n"%( p, ccode(LOCAL_TMP_E[p]))
+        TXT_E+="const double %s = %s;\n"%( p, ccode(LOCAL_TMP_E[p]))
    print TXT_E
    print GLOBAL_TMP
    return ""
@@ -900,9 +900,9 @@ def generatePDECode(DATA_A, EM, GLOBAL_TMP, system=False):
 
         OUT2=""
         for p in LOCAL_TMP:
-             OUT2+="const register double %s = %s;\n"%(LOCAL_TMP[p],ccode(p))
+             OUT2+="const double %s = %s;\n"%(LOCAL_TMP[p],ccode(p))
         for p in LOCAL2_TMP:
-             OUT2+="const register double %s = %s;\n"%(LOCAL2_TMP[p],ccode(p))
+             OUT2+="const double %s = %s;\n"%(LOCAL2_TMP[p],ccode(p))
         return OUT2+OUT
 
 def makePDE(S, x, Q, W, DIM=2, system=False):
@@ -936,9 +936,9 @@ for (index_t m=0; m<numComp; m++) {
                   A=Symbol(A_name)
                   DATA_A.append(A)
                   if system:
-                      CODE2+="const register double %s = A_p[INDEX5(k,%s,m,%s,%s, numEq,%s,numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+                      CODE2+="const double %s = A_p[INDEX5(k,%s,m,%s,%s, numEq,%s,numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
                   else:
-                      CODE2+="const register double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+                      CODE2+="const double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
                   for i in range(len(S)):
                       for j in range(len(S)):
                           EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
@@ -962,9 +962,9 @@ for (index_t m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_A.append(A)
              if system:
-                      CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
+                      CODE2+="const double %s = A_p[INDEX4(k,%s,m,%s, numEq,%s, numComp)];\n"%(A_name, di, dj, DIM)
              else:
-                      CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
+                      CODE2+="const double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
              for q in xrange(len(Q)):
                   for i in range(len(S)):
                       for j in range(len(S)):
@@ -1000,9 +1000,9 @@ for (index_t m=0; m<numComp; m++) {
                   A=Symbol(A_name)
                   DATA_B.append(A)
                   if system:
-                      CODE2+="const register double %s = B_p[INDEX4(k,%s,m,%s, numEq,%s,numComp)];\n"%(A_name, di,  q, DIM)
+                      CODE2+="const double %s = B_p[INDEX4(k,%s,m,%s, numEq,%s,numComp)];\n"%(A_name, di,  q, DIM)
                   else:
-                      CODE2+="const register double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
+                      CODE2+="const double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
                   for i in range(len(S)):
                       for j in range(len(S)):
                           EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * S[j]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
@@ -1025,9 +1025,9 @@ for (index_t m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_B.append(A)
              if system:
-                      CODE2+="const register double %s = B_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
+                      CODE2+="const double %s = B_p[INDEX3(k,%s,m, numEq, %s)];\n"%(A_name, di,  DIM)
              else:
-                      CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
+                      CODE2+="const double %s = B_p[%s];\n"%(A_name, di)
              for q in xrange(len(Q)):
                   for i in range(len(S)):
                       for j in range(len(S)):
@@ -1063,9 +1063,9 @@ for (index_t m=0; m<numComp; m++) {
                   A=Symbol(A_name)
                   DATA_C.append(A)
                   if system:
-                      CODE2+="const register double %s = C_p[INDEX4(k,m,%s, %s, numEq,numComp,%s)];\n"%(A_name, dj,  q, DIM)
+                      CODE2+="const double %s = C_p[INDEX4(k,m,%s, %s, numEq,numComp,%s)];\n"%(A_name, dj,  q, DIM)
                   else:
-                      CODE2+="const register double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
+                      CODE2+="const double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
                   for i in range(len(S)):
                       for j in range(len(S)):
                           EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[j],x[dj]) * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
@@ -1088,9 +1088,9 @@ for (index_t m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_C.append(A)
              if system:
-                      CODE2+="const register double %s = C_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, dj)
+                      CODE2+="const double %s = C_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, dj)
              else:
-                      CODE2+="const register double %s = C_p[%s];\n"%(A_name, dj)
+                      CODE2+="const double %s = C_p[%s];\n"%(A_name, dj)
              for q in xrange(len(Q)):
                   for i in range(len(S)):
                       for j in range(len(S)):
@@ -1125,9 +1125,9 @@ for (index_t m=0; m<numComp; m++) {
                   A=Symbol(A_name)
                   DATA_D.append(A)
                   if system:
-                      CODE2+="const register double %s = D_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, q)
+                      CODE2+="const double %s = D_p[INDEX3(k, m, %s, numEq, numComp)];\n"%(A_name, q)
                   else:
-                      CODE2+="const register double %s = D_p[%s];\n"%(A_name, q)
+                      CODE2+="const double %s = D_p[%s];\n"%(A_name, q)
                   for i in range(len(S)):
                       for j in range(len(S)):
                           EM[(i,j)] = EM[(i,j)] + (A * W[q] * S[j] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
@@ -1150,9 +1150,9 @@ for (index_t m=0; m<numComp; m++) {
              A=Symbol(A_name)
              DATA_D.append(A)
              if system:
-                      CODE2+="const register double %s = D_p[INDEX2(k, m, numEq)];\n"%(A_name,)
+                      CODE2+="const double %s = D_p[INDEX2(k, m, numEq)];\n"%(A_name,)
              else:
-                      CODE2+="const register double %s = D_p[0];\n"%(A_name,)
+                      CODE2+="const double %s = D_p[0];\n"%(A_name,)
              for q in xrange(len(Q)):
                   for i in range(len(S)):
                       for j in range(len(S)):
@@ -1186,9 +1186,9 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
                   A=Symbol(A_name)
                   DATA_X.append(A)
                   if system:
-                      CODE2+="const register double %s = X_p[INDEX3(k, %s, %s, numEq, %s)];\n"%(A_name, dj,  q, DIM)
+                      CODE2+="const double %s = X_p[INDEX3(k, %s, %s, numEq, %s)];\n"%(A_name, dj,  q, DIM)
                   else:
-                      CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
+                      CODE2+="const double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
                   for j in range(len(S)):
                           EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP, system)
@@ -1207,9 +1207,9 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
              A=Symbol(A_name)
              DATA_X.append(A)
              if system:
-                      CODE2+="const register double %s = X_p[INDEX2(k, %s, numEq)];\n"%(A_name, dj)
+                      CODE2+="const double %s = X_p[INDEX2(k, %s, numEq)];\n"%(A_name, dj)
              else:
-                      CODE2+="const register double %s = X_p[%s];\n"%(A_name, dj)
+                      CODE2+="const double %s = X_p[%s];\n"%(A_name, dj)
              for q in xrange(len(Q)):
                   for j in range(len(S)):
                           EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
@@ -1241,9 +1241,9 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                   A=Symbol(A_name)
                   DATA_Y.append(A)
                   if system:
-                      CODE2+="const register double %s = Y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
+                      CODE2+="const double %s = Y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
                   else:
-                      CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
+                      CODE2+="const double %s = Y_p[%s];\n"%(A_name, q)
                   for i in range(len(S)):
                           EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP, system)
@@ -1262,9 +1262,9 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
              A=Symbol(A_name)
              DATA_Y.append(A)
              if system:
-                      CODE2+="const register double %s = Y_p[k];\n"%(A_name,)
+                      CODE2+="const double %s = Y_p[k];\n"%(A_name,)
              else:
-                      CODE2+="const register double %s = Y_p[0];\n"%(A_name,)
+                      CODE2+="const double %s = Y_p[0];\n"%(A_name,)
              for q in xrange(len(Q)):
                   for i in range(len(S)):
                           EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
