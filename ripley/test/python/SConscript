@@ -21,7 +21,7 @@ local_env = env.Clone()
 # 
 testruns = ['run_utilOnRipley.py']
 testruns += ['run_escriptOnRipley.py']
-#testruns += ['run_simplesolve.py']
+testruns += ['run_simplesolve.py']
 testruns += ['run_linearPDEsOnRipley1.py']
 
 #Add Unit Test to target alias
