@@ -297,7 +297,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
         throw RipleyException("interpolateOnDomain(): Cannot interpolate reduced data to non-reduced data.");
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
-        averageData(target, *const_cast<escript::Data*>(&in));
+        if (in.actsExpanded())
+            averageData(target, *const_cast<escript::Data*>(&in));
+        else
+            copyData(target, *const_cast<escript::Data*>(&in));
     } else {
         switch (inFS) {
             case Nodes:

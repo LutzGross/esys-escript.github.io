@@ -206,6 +206,10 @@ protected:
 private:
     void populateSampleIds();
     void createPattern();
+    void addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
+           const std::vector<double>& EM_S, const std::vector<double>& EM_F,
+           bool addS, bool addF, index_t firstNode, dim_t nEq=1, dim_t nComp=1) const;
+
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1, m_gNE2;

@@ -3369,6 +3369,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     /* GENERATOR SNIP_PDEBC_SINGLE_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    rhs.requireWrite();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
@@ -3643,6 +3644,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    rhs.requireWrite();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
@@ -3828,6 +3830,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     /* GENERATOR SNIP_PDEBC_SYSTEM_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    rhs.requireWrite();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
@@ -4161,6 +4164,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    rhs.requireWrite();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {

@@ -1029,8 +1029,8 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
        PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS)))
    return CODE, PRECODE
 
-filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
-filenames={2:"Rectangle.cpp"}
+#filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
+filenames={3:"Brick.cpp"}
 for d in filenames.keys():
      generate(d, filenames[d])
 
