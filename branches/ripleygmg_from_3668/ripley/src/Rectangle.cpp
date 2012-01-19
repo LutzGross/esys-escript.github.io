@@ -488,9 +488,10 @@ void Rectangle::setToSize(escript::Data& out) const
 Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
                                                 bool reducedColOrder) const
 {
+    /* FIXME: reduced
     if (reducedRowOrder || reducedColOrder)
         throw RipleyException("getPattern() not implemented for reduced order");
-
+    */
     return m_pattern;
 }
 
@@ -1270,6 +1271,31 @@ void Rectangle::createPattern()
     Paso_Pattern_free(mainPattern);
     Paso_Pattern_free(colPattern);
     Paso_Pattern_free(rowPattern);
+}
+
+//private
+void Rectangle::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
+         const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
+         bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
+{
+    IndexVector rowIndex;
+    rowIndex.push_back(m_dofMap[firstNode]);
+    rowIndex.push_back(m_dofMap[firstNode+1]);
+    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
+    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
+    if (addF) {
+        double *F_p=F.getSampleDataRW(0);
+        for (index_t i=0; i<rowIndex.size(); i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for (index_t eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if (addS) {
+        addToSystemMatrix(S, rowIndex, nEq, rowIndex, nComp, EM_S);
+    }
 }
 
 //protected
@@ -2133,23 +2159,7 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                     const index_t firstNode=m_N0*k1+k0;
-                    IndexVector rowIndex;
-                    rowIndex.push_back(m_dofMap[firstNode]);
-                    rowIndex.push_back(m_dofMap[firstNode+1]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
-                    if (add_EM_F) {
-                        double *F_p=rhs.getSampleDataRW(0);
-                        for (index_t i=0; i<rowIndex.size(); i++) {
-                            if (rowIndex[i]<getNumDOF()) {
-                                F_p[rowIndex[i]]+=EM_F[i];
-                            }
-                        }
-                    }
-                    if (add_EM_S) {
-                        addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
-                    }
-
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring
@@ -2339,23 +2349,7 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                     const index_t firstNode=m_N0*k1+k0;
-                    IndexVector rowIndex;
-                    rowIndex.push_back(m_dofMap[firstNode]);
-                    rowIndex.push_back(m_dofMap[firstNode+1]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
-                    if (add_EM_F) {
-                        double *F_p=rhs.getSampleDataRW(0);
-                        for (index_t i=0; i<rowIndex.size(); i++) {
-                            if (rowIndex[i]<getNumDOF()) {
-                                F_p[rowIndex[i]]+=EM_F[i];
-                            }
-                        }
-                    }
-                    if (add_EM_S) {
-                        addToSystemMatrix(mat, rowIndex, 1, rowIndex, 1, EM_S);
-                    }
-
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring
@@ -3116,25 +3110,8 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                     const index_t firstNode=m_N0*k1+k0;
-                    IndexVector rowIndex;
-                    rowIndex.push_back(m_dofMap[firstNode]);
-                    rowIndex.push_back(m_dofMap[firstNode+1]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
-                    if (add_EM_F) {
-                        double *F_p=rhs.getSampleDataRW(0);
-                        for (index_t i=0; i<rowIndex.size(); i++) {
-                            if (rowIndex[i]<getNumDOF()) {
-                                for (index_t eq=0; eq<numEq; eq++) {
-                                    F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
-                                }
-                            }
-                        }
-                    }
-                    if (add_EM_S) {
-                        addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
-                    }
-
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring
@@ -3358,25 +3335,8 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                     const index_t firstNode=m_N0*k1+k0;
-                    IndexVector rowIndex;
-                    rowIndex.push_back(m_dofMap[firstNode]);
-                    rowIndex.push_back(m_dofMap[firstNode+1]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
-                    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
-                    if (add_EM_F) {
-                        double *F_p=rhs.getSampleDataRW(0);
-                        for (index_t i=0; i<rowIndex.size(); i++) {
-                            if (rowIndex[i]<getNumDOF()) {
-                                for (index_t eq=0; eq<numEq; eq++) {
-                                    F_p[INDEX2(eq,rowIndex[i],numEq)]+=EM_F[INDEX2(eq,i,numEq)];
-                                }
-                            }
-                        }
-                    }
-                    if (add_EM_S) {
-                        addToSystemMatrix(mat, rowIndex, numEq, rowIndex, numComp, EM_S);
-                    }
-
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring
@@ -3385,77 +3345,285 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
 
 //protected
 void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
-        const escript::Data& c, const escript::Data& d,
-        const escript::Data& x, const escript::Data& y) const
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     /* GENERATOR SNIP_PDEBC_SINGLE_PRE TOP */
+    const double w0 = 0.31100423396407310779*h1;
+    const double w1 = 0.022329099369260225539*h1;
+    const double w10 = 0.022329099369260225539*h0;
+    const double w11 = 0.16666666666666666667*h0;
+    const double w12 = 0.33333333333333333333*h0;
+    const double w13 = 0.39433756729740644113*h0;
+    const double w14 = 0.10566243270259355887*h0;
+    const double w15 = 0.5*h0;
+    const double w2 = 0.083333333333333333333*h1;
+    const double w3 = 0.33333333333333333333*h1;
+    const double w4 = 0.16666666666666666667*h1;
+    const double w5 = 0.39433756729740644113*h1;
+    const double w6 = 0.10566243270259355887*h1;
+    const double w7 = 0.5*h1;
+    const double w8 = 0.083333333333333333333*h0;
+    const double w9 = 0.31100423396407310779*h0;
     /* GENERATOR SNIP_PDEBC_SINGLE_PRE BOTTOM */
+    const bool add_EM_S=!d.isEmpty();
+    const bool add_EM_F=!y.isEmpty();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = k1;
                     /* GENERATOR SNIP_PDEBC_SINGLE_0 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            const double d_0 = d_p[0];
+                            const double d_1 = d_p[1];
+                            const double tmp0_0 = d_0 + d_1;
+                            const double tmp1_1 = d_1*w1;
+                            const double tmp4_1 = d_0*w1;
+                            const double tmp0_1 = d_0*w0;
+                            const double tmp3_1 = d_1*w0;
+                            const double tmp2_1 = tmp0_0*w2;
+                            EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp1_1;
+                            EM_S[INDEX2(0,2,4)]+=tmp2_1;
+                            EM_S[INDEX2(2,0,4)]+=tmp2_1;
+                            EM_S[INDEX2(2,2,4)]+=tmp3_1 + tmp4_1;
+                        } else { /* constant data */
+                            const double d_0 = d_p[0];
+                            const double tmp1_1 = d_0*w4;
+                            const double tmp0_1 = d_0*w3;
+                            EM_S[INDEX2(0,0,4)]+=tmp0_1;
+                            EM_S[INDEX2(0,2,4)]+=tmp1_1;
+                            EM_S[INDEX2(2,0,4)]+=tmp1_1;
+                            EM_S[INDEX2(2,2,4)]+=tmp0_1;
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            const double y_0 = y_p[0];
+                            const double y_1 = y_p[1];
+                            const double tmp3_1 = w5*y_1;
+                            const double tmp2_1 = w6*y_0;
+                            const double tmp0_1 = w6*y_1;
+                            const double tmp1_1 = w5*y_0;
+                            EM_F[0]+=tmp0_1 + tmp1_1;
+                            EM_F[2]+=tmp2_1 + tmp3_1;
+                        } else { /* constant data */
+                            const double y_0 = y_p[0];
+                            const double tmp0_1 = w7*y_0;
+                            EM_F[0]+=tmp0_1;
+                            EM_F[2]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_0 BOTTOM */
+                    const index_t firstNode=m_N0*k1;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
                     /* GENERATOR SNIP_PDEBC_SINGLE_1 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            const double d_0 = d_p[0];
+                            const double d_1 = d_p[1];
+                            const double tmp0_0 = d_0 + d_1;
+                            const double tmp4_1 = d_1*w1;
+                            const double tmp1_1 = d_0*w1;
+                            const double tmp3_1 = d_0*w0;
+                            const double tmp0_1 = d_1*w0;
+                            const double tmp2_1 = tmp0_0*w2;
+                            EM_S[INDEX2(3,3,4)]+=tmp0_1 + tmp1_1;
+                            EM_S[INDEX2(3,1,4)]+=tmp2_1;
+                            EM_S[INDEX2(1,3,4)]+=tmp2_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp3_1 + tmp4_1;
+                        } else { /* constant data */
+                            const double d_0 = d_p[0];
+                            const double tmp1_1 = d_0*w4;
+                            const double tmp0_1 = d_0*w3;
+                            EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,1,4)]+=tmp1_1;
+                            EM_S[INDEX2(1,3,4)]+=tmp1_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            const double y_0 = y_p[0];
+                            const double y_1 = y_p[1];
+                            const double tmp3_1 = w5*y_1;
+                            const double tmp2_1 = w6*y_0;
+                            const double tmp0_1 = w6*y_1;
+                            const double tmp1_1 = w5*y_0;
+                            EM_F[1]+=tmp0_1 + tmp1_1;
+                            EM_F[3]+=tmp2_1 + tmp3_1;
+                        } else { /* constant data */
+                            const double y_0 = y_p[0];
+                            const double tmp0_1 = w7*y_0;
+                            EM_F[1]+=tmp0_1;
+                            EM_F[3]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_1 BOTTOM */
+                    const index_t firstNode=m_N0*(k1+1)-2;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
                     /* GENERATOR SNIP_PDEBC_SINGLE_2 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            const double d_0 = d_p[0];
+                            const double d_1 = d_p[1];
+                            const double tmp0_0 = d_0 + d_1;
+                            const double tmp4_1 = d_1*w9;
+                            const double tmp2_1 = d_0*w9;
+                            const double tmp0_1 = tmp0_0*w8;
+                            const double tmp1_1 = d_1*w10;
+                            const double tmp3_1 = d_0*w10;
+                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
+                            EM_S[INDEX2(0,0,4)]+=tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp3_1 + tmp4_1;
+                        } else { /* constant data */
+                            const double d_0 = d_p[0];
+                            const double tmp0_1 = d_0*w11;
+                            const double tmp1_1 = d_0*w12;
+                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
+                            EM_S[INDEX2(0,0,4)]+=tmp1_1;
+                            EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp1_1;
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            const double y_0 = y_p[0];
+                            const double y_1 = y_p[1];
+                            const double tmp2_1 = w13*y_1;
+                            const double tmp1_1 = w14*y_1;
+                            const double tmp3_1 = w14*y_0;
+                            const double tmp0_1 = w13*y_0;
+                            EM_F[0]+=tmp0_1 + tmp1_1;
+                            EM_F[1]+=tmp2_1 + tmp3_1;
+                        } else { /* constant data */
+                            const double y_0 = y_p[0];
+                            const double tmp0_1 = w15*y_0;
+                            EM_F[0]+=tmp0_1;
+                            EM_F[1]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_2 BOTTOM */
+                    const index_t firstNode=k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     const index_t e = m_faceOffset[3]+k0;
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     /* GENERATOR SNIP_PDEBC_SINGLE_3 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            const double d_0 = d_p[0];
+                            const double d_1 = d_p[1];
+                            const double tmp0_0 = d_0 + d_1;
+                            const double tmp2_1 = d_1*w9;
+                            const double tmp4_1 = d_0*w9;
+                            const double tmp0_1 = tmp0_0*w8;
+                            const double tmp3_1 = d_1*w10;
+                            const double tmp1_1 = d_0*w10;
+                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(2,2,4)]+=tmp3_1 + tmp4_1;
+                        } else { /* constant data */
+                            const double d_0 = d_p[0];
+                            const double tmp0_1 = d_0*w11;
+                            const double tmp1_1 = d_0*w12;
+                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp1_1;
+                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(2,2,4)]+=tmp1_1;
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            const double y_0 = y_p[0];
+                            const double y_1 = y_p[1];
+                            const double tmp2_1 = w13*y_1;
+                            const double tmp1_1 = w14*y_1;
+                            const double tmp3_1 = w14*y_0;
+                            const double tmp0_1 = w13*y_0;
+                            EM_F[2]+=tmp0_1 + tmp1_1;
+                            EM_F[3]+=tmp2_1 + tmp3_1;
+                        } else { /* constant data */
+                            const double y_0 = y_p[0];
+                            const double tmp0_1 = w15*y_0;
+                            EM_F[2]+=tmp0_1;
+                            EM_F[3]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_3 BOTTOM */
+                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
     } // end of parallel section
@@ -3463,77 +3631,165 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
 //protected
 void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
-        const escript::Data& c, const escript::Data& d,
-        const escript::Data& x, const escript::Data& y) const
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE TOP */
+    const double w0 = 0.25*h1;
+    const double w1 = 0.5*h1;
+    const double w2 = 0.25*h0;
+    const double w3 = 0.5*h0;
     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE BOTTOM */
+    const bool add_EM_S=!d.isEmpty();
+    const bool add_EM_F=!y.isEmpty();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = k1;
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        const double d_0 = d_p[0];
+                        const double tmp0_1 = d_0*w0;
+                        EM_S[INDEX2(0,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp0_1;
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        const double y_0 = y_p[0];
+                        const double tmp0_1 = w1*y_0;
+                        EM_F[0]+=tmp0_1;
+                        EM_F[2]+=tmp0_1;
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 BOTTOM */
+                    const index_t firstNode=m_N0*k1;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        const double d_0 = d_p[0];
+                        const double tmp0_1 = d_0*w0;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        const double y_0 = y_p[0];
+                        const double tmp0_1 = w1*y_0;
+                        EM_F[1]+=tmp0_1;
+                        EM_F[3]+=tmp0_1;
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 BOTTOM */
+                    const index_t firstNode=m_N0*(k1+1)-2;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        const double d_0 = d_p[0];
+                        const double tmp0_1 = d_0*w2;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        const double y_0 = y_p[0];
+                        const double tmp0_1 = w3*y_0;
+                        EM_F[0]+=tmp0_1;
+                        EM_F[1]+=tmp0_1;
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 BOTTOM */
+                    const index_t firstNode=k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4, 0);
+                    vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[3]+k0;
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        const double d_0 = d_p[0];
+                        const double tmp0_1 = d_0*w2;
+                        EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,2,4)]+=tmp0_1;
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        const double y_0 = y_p[0];
+                        const double tmp0_1 = w3*y_0;
+                        EM_F[2]+=tmp0_1;
+                        EM_F[3]+=tmp0_1;
+                    }
                     /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 BOTTOM */
+                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
     } // end of parallel section
@@ -3541,9 +3797,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
 //protected
 void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
-        const escript::Data& c, const escript::Data& d,
-        const escript::Data& x, const escript::Data& y) const
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -3555,70 +3809,332 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
     /* GENERATOR SNIP_PDEBC_SYSTEM_PRE TOP */
+    const double w0 = 0.31100423396407310779*h1;
+    const double w1 = 0.022329099369260225539*h1;
+    const double w10 = 0.022329099369260225539*h0;
+    const double w11 = 0.16666666666666666667*h0;
+    const double w12 = 0.33333333333333333333*h0;
+    const double w13 = 0.39433756729740644113*h0;
+    const double w14 = 0.10566243270259355887*h0;
+    const double w15 = 0.5*h0;
+    const double w2 = 0.083333333333333333333*h1;
+    const double w3 = 0.33333333333333333333*h1;
+    const double w4 = 0.16666666666666666667*h1;
+    const double w5 = 0.39433756729740644113*h1;
+    const double w6 = 0.10566243270259355887*h1;
+    const double w7 = 0.5*h1;
+    const double w8 = 0.083333333333333333333*h0;
+    const double w9 = 0.31100423396407310779*h0;
     /* GENERATOR SNIP_PDEBC_SYSTEM_PRE BOTTOM */
+    const bool add_EM_S=!d.isEmpty();
+    const bool add_EM_F=!y.isEmpty();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_0 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double d_1 = d_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double tmp0_0 = d_0 + d_1;
+                                    const double tmp1_1 = d_1*w1;
+                                    const double tmp4_1 = d_0*w1;
+                                    const double tmp0_1 = d_0*w0;
+                                    const double tmp3_1 = d_1*w0;
+                                    const double tmp2_1 = tmp0_0*w2;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                }
+                             }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                    const double tmp1_1 = d_0*w4;
+                                    const double tmp0_1 = d_0*w3;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const double tmp3_1 = w5*y_1;
+                                const double tmp2_1 = w6*y_0;
+                                const double tmp0_1 = w6*y_1;
+                                const double tmp1_1 = w5*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp2_1 + tmp3_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[k];
+                                const double tmp0_1 = w7*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                            }
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_0 BOTTOM */
+                    const index_t firstNode=m_N0*k1;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_1 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double d_1 = d_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double tmp0_0 = d_0 + d_1;
+                                    const double tmp4_1 = d_1*w1;
+                                    const double tmp1_1 = d_0*w1;
+                                    const double tmp3_1 = d_0*w0;
+                                    const double tmp0_1 = d_1*w0;
+                                    const double tmp2_1 = tmp0_0*w2;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                }
+                             }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                    const double tmp1_1 = d_0*w4;
+                                    const double tmp0_1 = d_0*w3;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const double tmp3_1 = w5*y_1;
+                                const double tmp2_1 = w6*y_0;
+                                const double tmp0_1 = w6*y_1;
+                                const double tmp1_1 = w5*y_0;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1 + tmp1_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp2_1 + tmp3_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[k];
+                                const double tmp0_1 = w7*y_0;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                            }
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_1 BOTTOM */
+                    const index_t firstNode=m_N0*(k1+1)-2;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_2 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double d_1 = d_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double tmp0_0 = d_0 + d_1;
+                                    const double tmp4_1 = d_1*w9;
+                                    const double tmp2_1 = d_0*w9;
+                                    const double tmp0_1 = tmp0_0*w8;
+                                    const double tmp1_1 = d_1*w10;
+                                    const double tmp3_1 = d_0*w10;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                }
+                             }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                    const double tmp0_1 = d_0*w11;
+                                    const double tmp1_1 = d_0*w12;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp1_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const double tmp2_1 = w13*y_1;
+                                const double tmp1_1 = w14*y_1;
+                                const double tmp3_1 = w14*y_0;
+                                const double tmp0_1 = w13*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp2_1 + tmp3_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[k];
+                                const double tmp0_1 = w15*y_0;
+                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                            }
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_2 BOTTOM */
+                    const index_t firstNode=k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_3 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        if (d.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX3(k, m, 0, numEq, numComp)];
+                                    const double d_1 = d_p[INDEX3(k, m, 1, numEq, numComp)];
+                                    const double tmp0_0 = d_0 + d_1;
+                                    const double tmp2_1 = d_1*w9;
+                                    const double tmp4_1 = d_0*w9;
+                                    const double tmp0_1 = tmp0_0*w8;
+                                    const double tmp3_1 = d_1*w10;
+                                    const double tmp1_1 = d_0*w10;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                }
+                             }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                for (index_t m=0; m<numComp; m++) {
+                                    const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                    const double tmp0_1 = d_0*w11;
+                                    const double tmp1_1 = d_0*w12;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp1_1;
+                                }
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        if (y.actsExpanded()) {
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[INDEX2(k, 0, numEq)];
+                                const double y_1 = y_p[INDEX2(k, 1, numEq)];
+                                const double tmp2_1 = w13*y_1;
+                                const double tmp1_1 = w14*y_1;
+                                const double tmp3_1 = w14*y_0;
+                                const double tmp0_1 = w13*y_0;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1 + tmp1_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp2_1 + tmp3_1;
+                            }
+                        } else { /* constant data */
+                            for (index_t k=0; k<numEq; k++) {
+                                const double y_0 = y_p[k];
+                                const double tmp0_1 = w15*y_0;
+                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                            }
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_3 BOTTOM */
+                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
     } // end of parallel section
@@ -3626,9 +4142,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
 //protected
 void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& a, const escript::Data& b,
-        const escript::Data& c, const escript::Data& d,
-        const escript::Data& x, const escript::Data& y) const
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
@@ -3640,20 +4154,55 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE TOP */
+    const double w0 = 0.25*h1;
+    const double w1 = 0.5*h1;
+    const double w2 = 0.25*h0;
+    const double w3 = 0.5*h0;
     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE BOTTOM */
+    const bool add_EM_S=!d.isEmpty();
+    const bool add_EM_F=!y.isEmpty();
 #pragma omp parallel
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                const double tmp0_1 = d_0*w0;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const double y_0 = y_p[k];
+                            const double tmp0_1 = w1*y_0;
+                            EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 BOTTOM */
+                    const index_t firstNode=m_N0*k1;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
                 // ADD EM_F  and EM_S 
             } // end colouring
@@ -3661,49 +4210,133 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                const double tmp0_1 = d_0*w0;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const double y_0 = y_p[k];
+                            const double tmp0_1 = w1*y_0;
+                            EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 BOTTOM */
+                    const index_t firstNode=m_N0*(k1+1)-2;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                const double tmp0_1 = d_0*w2;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const double y_0 = y_p[k];
+                            const double tmp0_1 = w3*y_0;
+                            EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 BOTTOM */
+                    const index_t firstNode=k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-                bool add_EM_S=false;
-                bool add_EM_F=false;
-                vector<double> EM_S(4*4, 0);
-                vector<double> EM_F(4, 0);
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                    vector<double> EM_S(4*4*numEq*numComp, 0);
+                    vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 TOP */
+                    ///////////////
+                    // process d //
+                    ///////////////
+                    if (add_EM_S) {
+                        const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            for (index_t m=0; m<numComp; m++) {
+                                const double d_0 = d_p[INDEX2(k, m, numEq)];
+                                const double tmp0_1 = d_0*w2;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
+                            }
+                        }
+                    }
+                    ///////////////
+                    // process y //
+                    ///////////////
+                    if (add_EM_F) {
+                        const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                        for (index_t k=0; k<numEq; k++) {
+                            const double y_0 = y_p[k];
+                            const double tmp0_1 = w3*y_0;
+                            EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
+                            EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
+                        }
+                    }
                     /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 BOTTOM */
+                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
+                            firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
     } // end of parallel section
