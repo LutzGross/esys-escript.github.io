@@ -60,7 +60,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    index_t *send_ptr=NULL, *recv_ptr=NULL, *recv_idx=NULL;
    index_t *temp=NULL, *where_p=NULL;
    index_t num_Pcouple_cols, num_Rcouple_cols, numNeighbors;
-   index_t i, j, j_ub, k, p, iptr, iptr_ub;
+   index_t i, j, j_ub, k, p, iptr, iptr_ub, icb, irb;
    index_t block_size, copy_block_size, sum, offset, len, msgs;
    double  *val=NULL, *data_set=NULL, *recv_val=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
@@ -72,18 +72,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      int *mpi_requests=NULL, *mpi_stati=NULL;
    #endif
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "Into Restriction %d %d\n", mpi_info->rank, rank);
 
    /* get main_block of R from the transpose of P->mainBlock */
    main_block = Paso_SparseMatrix_getTranspose(P->mainBlock);
+if (MY_DEBUG1)
+fprintf(stderr, "Rank %d CP1\n", rank);
 
    /* prepare "ptr" for the col_coupleBlock of R, start with get info about
       the degree_set (associated with "ptr"), offset_set (associated with
       "idx" and data_set (associated with "val") to be sent to other ranks */
    couple_block = P->col_coupleBlock;
    num_Pcouple_cols = couple_block->numCols;
-   block_size = col_block_size;
+   block_size = P->block_size;
    copy_block_size = block_size * sizeof(double);
    degree_set = TMPMEMALLOC(num_Pcouple_cols, index_t);
    send_ptr = TMPMEMALLOC(num_Pcouple_cols+1, index_t);
@@ -96,8 +98,8 @@ fprintf(stderr, "Into Restriction %d %d\n", mpi_info->rank, rank);
      }
    }
 
-if (MY_DEBUG)
-fprintf(stderr, "rank %d Pcouple_cols %d\n", rank, num_Pcouple_cols);
+if (MY_DEBUG1)
+fprintf(stderr, "rank %d Pcouple_cols %d block %d col_block %d\n", rank, num_Pcouple_cols, block_size, couple_block->block_size);
    send_ptr[0] = 0;
    for (i=0; i<num_Pcouple_cols; i++) {
      send_ptr[i+1] = send_ptr[i] + degree_set[i];
@@ -108,17 +110,38 @@ fprintf(stderr, "rank %d Pcouple_cols %d\n", rank, num_Pcouple_cols);
    offset_set = TMPMEMALLOC(sum, index_t);
    data_set = TMPMEMALLOC(sum * block_size, double);
    offset = P->pattern->output_distribution->first_component[rank];
-   for (i=0; i<n; i++) {
-     iptr_ub = couple_block->pattern->ptr[i+1];
-     for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
+
+   if (P->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+     for (i=0; i<n; i++) {
+       iptr_ub = couple_block->pattern->ptr[i+1];
+       for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
+	j = couple_block->pattern->index[iptr];
+	k = send_ptr[j] + degree_set[j];
+	offset_set[k] = i + offset;   /* now we have the global id for row i,
+                                        which will be used as col index of R */
+	memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
+	degree_set[j] ++;
+       }
+     }
+   } else {
+     for (i=0; i<n; i++) {
+       iptr_ub = couple_block->pattern->ptr[i+1];
+       for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
         j = couple_block->pattern->index[iptr];
 	k = send_ptr[j] + degree_set[j];
 if (MY_DEBUG && rank == 3 && k <= 5) fprintf(stderr, "offset_set k %d i %d offset %d j %d send_ptr[j] %d degree_set[j] %d\n", k, i, offset, j, send_ptr[j], degree_set[j]);
 	offset_set[k] = i + offset;   /* now we have the global id for row i,
 					which will be used as col index of R */
-        memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
-//	data_set[k] = couple_block->val[iptr];
+//        memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
+	for (irb=0 ; irb < row_block_size; irb++) {
+	  for (icb =0 ; icb < col_block_size; icb++) {
+if (MY_DEBUG1 && iptr*block_size+irb+row_block_size*icb >= couple_block->len)
+fprintf(stderr, "rank %d ACCESS OVERFLOW %d(iptr %d block %d irb %d row %d icb%d) >= %d (%d, %d)\n", rank, iptr*block_size+irb+row_block_size*icb, iptr, block_size, irb, row_block_size, icb, couple_block->len, couple_block->pattern->len, couple_block->pattern->ptr[n]); 
+	    data_set[k*block_size+icb+col_block_size*irb] = couple_block->val[iptr*block_size+irb+row_block_size*icb];
+	  }
+	}
         degree_set[j] ++;
+       }
      }
    }
 
@@ -134,6 +157,22 @@ if (MY_DEBUG && rank == 3 && k <= 5) fprintf(stderr, "offset_set k %d i %d offse
    /* send/receive degree_set to build the "ptr" for R->col_coupleBlock */
    msgs = 0;
    send = P->col_coupler->connector->send;
+if (MY_DEBUG) {
+int my_sum = send->offsetInShared[1];
+char *str1, *str2;
+str1 = TMPMEMALLOC(my_sum*20+100, char);
+str2 = TMPMEMALLOC(20, char);
+sprintf(str1, "rank %d send->shared[%d] = \n", rank, my_sum);
+for (i=0; i<my_sum; i++) {
+  if (send->shared[i] < 0 || send->shared[i] >=n_C) {
+  sprintf(str2, "(%d %d), ",i, send->shared[i]);
+  strcat(str1, str2);
+  }
+}
+fprintf(stderr, "%s\n", str1);
+TMPMEMFREE(str1);
+TMPMEMFREE(str2);
+}
    recv = P->col_coupler->connector->recv;
    recv_ptr = TMPMEMALLOC(send->offsetInShared[send->numNeighbors], index_t);
    for (p=0; p<send->numNeighbors; p++) {
@@ -164,7 +203,7 @@ fprintf(stderr, "3 Send degree_set %d to 4 (%d) offset %d p %d\n", k, degree_set
 
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
    mpi_info->msg_tag_counter += size;
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Waitall(1)\n", rank);
 
    TMPMEMFREE(degree_set);
@@ -237,12 +276,12 @@ fprintf(stderr, "3 Send %d to %d (%d %d) offset %d\n", k, recv->neighbor[p], off
    TMPMEMFREE(mpi_stati);
 if (MY_DEBUG && rank == 4){
 char *str1, *str2;
-int sum, my_i;
-sum = 2;
-str1 = TMPMEMALLOC(sum*100+100, char);
+int my_sum, my_i;
+my_sum = 2;
+str1 = TMPMEMALLOC(my_sum*100+100, char);
 str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "recv_idx[%d] = (", sum);
-for (my_i=0; my_i<sum; my_i++) {
+sprintf(str1, "recv_idx[%d] = (", my_sum);
+for (my_i=0; my_i<my_sum; my_i++) {
   sprintf(str2, "%d ", recv_idx[my_i]);
   strcat(str1, str2);
 }
@@ -252,41 +291,46 @@ TMPMEMFREE(str2);
 }
 
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Construct col_coupleBlock for R: %d %d \n", rank, n_C, sum);
 
    /* construct "ptr", "idx" and "val" for R->col_coupleBlock */
    ptr = MEMALLOC(n_C + 1, index_t);
    idx = MEMALLOC(sum, index_t);
-   val = MEMALLOC(sum, double);
+   val = MEMALLOC(sum*block_size, double);
    ptr[0] = 0;
    for (i=0; i<n_C; i++) {
-     sum = 0;
+     icb = 0;
      for (p=0; p<send->numNeighbors; p++) {
         k = send->offsetInShared[p+1];
         for (j=send->offsetInShared[p]; j<k; j++) {
 if (MY_DEBUG)
 fprintf(stderr, "rank %d send %d, i%d len%d\n", rank, send->shared[j], i, recv_ptr[j]);
+//if (send->shared[j] < 0 || send->shared[j] >= n_C) 
+//fprintf(stderr, "rank %d shared ele out of range %d %d %d\n", rank, j, send->shared[j], n_C);
           if (send->shared[j] == i) {
-	    offset = ptr[i] + sum;
+	    offset = ptr[i] + icb;
 	    len = recv_ptr[j];
 	    memcpy(&idx[offset], &recv_idx[temp[j]], sizeof(index_t)*len);
+if (temp[j] + len > sum) 
+fprintf(stderr, "rank %d ACCESS to recv_idx overflowed i%d j%d offset%d t_j%d len %d\n", rank, i, j, offset, temp[j], len);
 	    memcpy(&val[offset*block_size], &recv_val[temp[j]*block_size], sizeof(double)*len*block_size); 
-	    sum += recv_ptr[j];
+	    icb += len;
 if (MY_DEBUG)
 fprintf(stderr, "rank %d send %d, i%d len%d\n", rank, send->shared[j], i, recv_ptr[j]);
+if (MY_DEBUG) fprintf(stderr, "rank %d offset %d len %d block %d\n", rank, offset, len, block_size);
             break;
           }
         }
      }
-     ptr[i+1] = ptr[i] + sum;
+     ptr[i+1] = ptr[i] + icb;
    }
    sum = ptr[n_C];
    TMPMEMFREE(temp);
    TMPMEMFREE(recv_ptr);
    TMPMEMFREE(recv_val);
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d col_coupleBlock non-zero: %d\n", rank, sum);
 
    /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
@@ -310,11 +354,15 @@ fprintf(stderr, "rank %d col_coupleBlock non-zero: %d\n", rank, sum);
      for (i=0; i<sum; i++) {
 	where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
 				sizeof(index_t), Paso_comparIndex);
+if (where_p == NULL)
+fprintf(stderr, "rank %d index out of range, idx[%d]=%d\n", rank, i, idx[i]);
 	idx[i] = (index_t)(where_p - recv_idx);
+if (idx[i] >= num_Rcouple_cols) 
+fprintf(stderr, "rank %d index out of range (%d %d %d)\n", rank, i, idx[i], num_Rcouple_cols);
      }
    }
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Count num_Rcouple_cols %d\n", rank, num_Rcouple_cols);
 
    /* prepare the receiver for the col_connector */
@@ -360,7 +408,7 @@ TMPMEMFREE(str2);
 		neighbor, shared, offsetInShared, 1, 0, mpi_info);
    TMPMEMFREE(recv_idx);
 
-if (MY_DEBUG)
+if (MY_DEBUG1)
 fprintf(stderr, "rank %d Receiver!!\n", rank);
 
    /* prepare the sender for the col_connector */
@@ -396,8 +444,8 @@ fprintf(stderr, "send_idx[%d]=k%d i%d (%d, %d)\n", sum, k, i, j, j_ub);
    }
    send = Paso_SharedComponents_alloc(n, numNeighbors,
                 neighbor, shared, offsetInShared, 1, 0, mpi_info);
-if (MY_DEBUG)
-fprintf(stderr, "rank %d Sender!!\n", rank);
+if (MY_DEBUG1)
+fprintf(stderr, "rank %d Sender!! %d %d\n", rank, n_C, num_Rcouple_cols);
 
    /* build the col_connector based on sender and receiver */
    col_connector = Paso_Connector_alloc(send, recv);
@@ -412,6 +460,9 @@ fprintf(stderr, "rank %d Sender!!\n", rank);
    input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    dist = P->pattern->input_distribution->first_component;
    output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+
+if (MY_DEBUG)
+fprintf(stderr, "rank %d Before alloc System Pattern for Restriction %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
 
    /* now we need to create the System Matrix 
       TO BE FIXED: at this stage, we only construction col_couple_pattern
@@ -431,6 +482,10 @@ fprintf(stderr, "rank %d Sender!!\n", rank);
    memcpy(out->col_coupleBlock->val, val,
 		out->col_coupleBlock->len * sizeof(double));
    MEMFREE(val);
+
+if (MY_DEBUG)
+fprintf(stderr, "rank %d After alloc System Pattern for Restriction\n", rank);
+
 
    /* clean up */ 
    Paso_SparseMatrix_free(main_block);

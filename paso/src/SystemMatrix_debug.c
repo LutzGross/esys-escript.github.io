@@ -91,20 +91,26 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
 
 void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
 {
-   dim_t iPtr, q, p;
+   dim_t iPtr, q, p, ib;
    const dim_t n=Paso_SystemMatrix_getNumRows(A);
    const dim_t block_size=A->block_size;
    index_t rank=A->mpi_info->rank;
    char *str1, *str2;
-   str1 = TMPMEMALLOC(n*n*20+100, char);
-   str2 = TMPMEMALLOC(20, char);
+   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
+   str2 = TMPMEMALLOC(30, char);
    
    sprintf(str1, "rank %d Main Block:\n-----------\n", rank);
    for (q=0; q< n; ++q){
       sprintf(str2, "Row %d: ",q);
       strcat(str1, str2);
       for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
-	 sprintf(str2, "(%d %f),",A->mainBlock->pattern->index[iPtr], A->mainBlock->val[iPtr*block_size]);
+	 sprintf(str2, "(%d ",A->mainBlock->pattern->index[iPtr]);
+	 strcat(str1, str2);
+	 for (ib=0; ib<block_size; ib++){
+	   sprintf(str2, "%f ", A->mainBlock->val[iPtr*block_size+ib]);
+	   strcat(str1, str2);
+	 }
+	 sprintf(str2, "),");
 	 strcat(str1, str2);
       }
       sprintf(str1, "%s\n", str1);

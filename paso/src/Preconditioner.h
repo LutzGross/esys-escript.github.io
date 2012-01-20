@@ -96,6 +96,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist);
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P);
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R);
+Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R);
 Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A);
 void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG* amg);
 /* Local AMG preconditioner */

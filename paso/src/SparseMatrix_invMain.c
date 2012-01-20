@@ -57,23 +57,26 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
 	    }
          }
       } else if (n_block==2) {
-	 #pragma omp parallel for private(i, iPtr) schedule(static)
+//	 #pragma omp parallel for private(i, iPtr) schedule(static)
          for (i = 0; i < n; i++) {
 	       iPtr= main_ptr[i];
 	       Paso_BlockOps_invM_2(&inv_diag[i*4], &A_p->val[iPtr*4], &failed);
+if (failed) fprintf (stderr, "Zero diagonal block(%d) at n=%d (out of %d)\n A(%d) = %f %f %f %f\n", n_block, i, n, i, A_p->val[iPtr*4], A_p->val[iPtr*4+1], A_p->val[iPtr*4+2], A_p->val[iPtr*4+3]);
 	}
       } else if (n_block==3) {
-          #pragma omp parallel for private(i, iPtr) schedule(static)
+//          #pragma omp parallel for private(i, iPtr) schedule(static)
           for (i = 0; i < n; i++) {
 	      iPtr= main_ptr[i];
 	      Paso_BlockOps_invM_3(&inv_diag[i*9], &A_p->val[iPtr*9], &failed);
+if (failed) fprintf (stderr, "Zero diagonal block(%d) at n=%d (out of %d)\n", n_block, i, n);
           }
       } else {    
-	 #pragma omp parallel for private(i, iPtr) schedule(static)
+//	 #pragma omp parallel for private(i, iPtr) schedule(static)
 	 for (i = 0; i < n; i++) {
 	    iPtr= main_ptr[i];
 	    Paso_BlockOps_Cpy_N(block_size, &inv_diag[i*block_size], &A_p->val[iPtr*block_size]);
 	    Paso_BlockOps_invM_N(n_block, &inv_diag[i*block_size], &pivot[i*n_block], &failed);
+if (failed) fprintf (stderr, "Zero diagonal block at n=%d (out of %d)\n", i, n);
 	 }
       }
    }

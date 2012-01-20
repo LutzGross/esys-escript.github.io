@@ -39,7 +39,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* A)
    register index_t iptr_AT,  jptr_A, *start_p, *where_p, iptr2;
    dim_t i;
    register dim_t j, ib, irb, icb;
-   
+
    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(m);
    for (i=0;i<n;++i) {
       for (iptr2=A->pattern->ptr[i];iptr2<A->pattern->ptr[i+1]; ++iptr2) {
