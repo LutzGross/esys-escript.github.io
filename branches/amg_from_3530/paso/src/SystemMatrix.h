@@ -154,6 +154,7 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A);
 
 void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
 void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
+void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
 void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
 void Paso_SystemMatrix_copyMain_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
 
