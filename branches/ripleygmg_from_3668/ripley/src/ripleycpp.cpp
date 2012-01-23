@@ -115,14 +115,6 @@ args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_conta
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`\n"
 )
-        .def("addPDEToLumpedSystem",&ripley::RipleyDomain::addPDEToLumpedSystem,
-args("mat", "D", "d"),
-"adds a PDE onto the lumped stiffness matrix\n\n"
-":param mat:\n:type mat: `Data`\n"
-":param D:\n:type D: `Data`\n"
-":param d:\n:type d: `Data`\n"
-":param useHRZ:\n:type useHRZ: bool\n"
-)
         .def("addPDEToRHS",&ripley::RipleyDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"

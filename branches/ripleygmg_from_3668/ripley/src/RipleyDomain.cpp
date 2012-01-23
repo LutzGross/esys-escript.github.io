@@ -1100,13 +1100,6 @@ bool RipleyDomain::ownSample(int fsType, index_t id) const
     throw RipleyException("ownSample() not implemented");
 }
 
-void RipleyDomain::addPDEToLumpedSystem(escript::Data& mat,
-        const escript::Data& D, const escript::Data& d,
-        const escript::Data& d_dirac, const bool useHRZ) const
-{
-    throw RipleyException("addPDEToLumpedSystem() not implemented");
-}
-
 void RipleyDomain::addPDEToTransportProblem(
         escript::AbstractTransportProblem& tp,
         escript::Data& source, const escript::Data& M,
