@@ -566,15 +566,6 @@ public:
 
     /**
        \brief
-       adds a PDE onto the lumped stiffness matrix mat
-    */
-    RIPLEY_DLL_API
-    virtual void addPDEToLumpedSystem(escript::Data& mat,
-            const escript::Data& D, const escript::Data& d,
-            const escript::Data& d_dirac, const bool useHRZ) const;
-
-    /**
-       \brief
        adds a PDE onto rhs
     */
     RIPLEY_DLL_API
