@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -11,8 +11,8 @@
 *
 *******************************************************/
 
-#ifndef __RIPLEY_ADAPTEREXCEPTION_H__
-#define __RIPLEY_ADAPTEREXCEPTION_H__
+#ifndef __RIPLEY_EXCEPTION_H__
+#define __RIPLEY_EXCEPTION_H__
 
 #include <ripley/system_dep.h>
 #include <esysUtils/EsysException.h>
@@ -91,5 +91,5 @@ private:
 
 } // end of namespace ripley
 
-#endif // __RIPLEY_ADAPTEREXCEPTION_H__
+#endif // __RIPLEY_EXCEPTION_H__
 

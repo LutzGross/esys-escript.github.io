@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -28,14 +28,78 @@ namespace ripley {
 // These wrappers are required to make the shared pointers work through the
 // Python wrapper
 
-escript::Domain_ptr _brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0, int d1, int d2)
+escript::Domain_ptr _brick(int n0, int n1, int n2, const object& l0,
+                 const object& l1, const object& l2, int d0, int d1, int d2)
 {
-    return escript::Domain_ptr(new Brick(n0, n1, n2, l0, l1, l2, d0, d1, d2));
+    double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
+    if (extract<tuple>(l0).check()) {
+        tuple x=extract<tuple>(l0);
+        if (len(x)==2) {
+            x0=extract<double>(x[0]);
+            x1=extract<double>(x[1]);
+        } else
+            throw RipleyException("Argument l0 must be a float or 2-tuple");
+    } else if (extract<double>(l0).check()) {
+        x1=extract<double>(l0);
+    } else
+        throw RipleyException("Argument l0 must be a float or 2-tuple");
+
+    if (extract<tuple>(l1).check()) {
+        tuple y=extract<tuple>(l1);
+        if (len(y)==2) {
+            y0=extract<double>(y[0]);
+            y1=extract<double>(y[1]);
+        } else
+            throw RipleyException("Argument l1 must be a float or 2-tuple");
+    } else if (extract<double>(l1).check()) {
+        y1=extract<double>(l1);
+    } else
+        throw RipleyException("Argument l1 must be a float or 2-tuple");
+
+    if (extract<tuple>(l2).check()) {
+        tuple z=extract<tuple>(l2);
+        if (len(z)==2) {
+            z0=extract<double>(z[0]);
+            z1=extract<double>(z[1]);
+        } else
+            throw RipleyException("Argument l2 must be a float or 2-tuple");
+    } else if (extract<double>(l2).check()) {
+        z1=extract<double>(l2);
+    } else
+        throw RipleyException("Argument l2 must be a float or 2-tuple");
+
+    return escript::Domain_ptr(new Brick(n0, n1, n2, x0, y0, z0, x1, y1, z1, d0, d1, d2));
 }
 
-escript::Domain_ptr _rectangle(int n0, int n1, double l0, double l1, int d0, int d1)
+escript::Domain_ptr _rectangle(int n0, int n1, const object& l0,
+                               const object& l1, int d0, int d1)
 {
-    return escript::Domain_ptr(new Rectangle(n0, n1, l0, l1, d0, d1));
+    double x0=0., x1=1., y0=0., y1=1.;
+    if (extract<tuple>(l0).check()) {
+        tuple x=extract<tuple>(l0);
+        if (len(x)==2) {
+            x0=extract<double>(x[0]);
+            x1=extract<double>(x[1]);
+        } else
+            throw RipleyException("Argument l0 must be a float or 2-tuple");
+    } else if (extract<double>(l0).check()) {
+        x1=extract<double>(l0);
+    } else
+        throw RipleyException("Argument l0 must be a float or 2-tuple");
+
+    if (extract<tuple>(l1).check()) {
+        tuple y=extract<tuple>(l1);
+        if (len(y)==2) {
+            y0=extract<double>(y[0]);
+            y1=extract<double>(y[1]);
+        } else
+            throw RipleyException("Argument l1 must be a float or 2-tuple");
+    } else if (extract<double>(l1).check()) {
+        y1=extract<double>(l1);
+    } else
+        throw RipleyException("Argument l1 must be a float or 2-tuple");
+
+    return escript::Domain_ptr(new Rectangle(n0, n1, x0, y0, x1, y1, d0, d1));
 }
 
 }
@@ -61,9 +125,9 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
 ":param n2: number of elements in direction 2\n:type n2: ``int``\n"
-":param l0: length of side 0\n:type l0: ``float``\n"
-":param l1: length of side 1\n:type l1: ``float``\n"
-":param l2: length of side 2\n:type l2: ``float``\n"
+":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+":param l2: length of side 2 or coordinate range of side 2\n:type l2: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
@@ -72,8 +136,8 @@ BOOST_PYTHON_MODULE(ripleycpp)
 "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param l0: length of side 0\n:type l0: ``float``\n"
-":param l1: length of side 1\n:type l1: ``float``\n"
+":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
+":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 

@@ -29,12 +29,15 @@ using namespace std;
 
 namespace ripley {
 
-Rectangle::Rectangle(int n0, int n1, double l0, double l1, int d0, int d1) :
+Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
+                     double y1, int d0, int d1) :
     RipleyDomain(2),
     m_gNE0(n0),
     m_gNE1(n1),
-    m_l0(l0),
-    m_l1(l1),
+    m_x0(x0),
+    m_y0(y0),
+    m_l0(x1-x0),
+    m_l1(y1-y0),
     m_NX(d0),
     m_NY(d1)
 {
@@ -93,6 +96,7 @@ bool Rectangle::operator==(const AbstractDomain& other) const
     if (o) {
         return (RipleyDomain::operator==(other) &&
                 m_gNE0==o->m_gNE0 && m_gNE1==o->m_gNE1
+                && m_x0==o->m_x0 && m_y0==o->m_y0
                 && m_l0==o->m_l0 && m_l1==o->m_l1
                 && m_NX==o->m_NX && m_NY==o->m_NY);
     }
@@ -557,9 +561,9 @@ IndexVector Rectangle::getNumSubdivisionsPerDim() const
 pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
 {
     if (dim==0) {
-        return pair<double,double>((m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
+        return pair<double,double>(m_x0+(m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
     } else if (dim==1) {
-        return pair<double,double>((m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
+        return pair<double,double>(m_y0+(m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
     }
     throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
 }
