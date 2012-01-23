@@ -30,13 +30,13 @@ public:
 
     /**
        \brief creates a rectangular mesh with n0 x n1 elements over the
-              rectangle [0,l0] x [0,l1].
+              rectangle [x0,x1] x [y0,y1].
        \param n0,n1 number of elements in each dimension
-       \param l0,l1 length of each side of rectangle
+       \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
     RIPLEY_DLL_API
-    Rectangle(int n0, int n1, double l0, double l1, int d0, int d1);
+    Rectangle(int n0, int n1, double x0, double y0, double x1, double y1, int d0, int d1);
 
     /**
        \brief
@@ -211,6 +211,9 @@ private:
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1;
+
+    /// location of domain
+    double m_x0, m_y0;
 
     /// side lengths of domain
     double m_l0, m_l1;

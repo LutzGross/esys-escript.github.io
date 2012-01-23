@@ -30,14 +30,14 @@ public:
 
     /**
        \brief creates a hexagonal mesh with n0 x n1 x n2 elements over the
-              brick [0,l0] x [0,l1] x [0,l2].
+              brick [x0,x1] x [y0,y1] x [z0,z1].
        \param n0,n1,n2 number of elements in each dimension
-       \param l0,l1,l2 length of each side of brick
+       \param x0,y0,z0,x1,y1,z1 coordinates of corner nodes of the brick
        \param d0,d1,d2 number of subdivisions in each dimension
     */
     RIPLEY_DLL_API
-    Brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0,
-          int d1, int d2);
+    Brick(int n0, int n1, int n2, double x0, double y0, double z0, double x1,
+          double y1, double z1, int d0, int d1, int d2);
 
     /**
        \brief
@@ -213,6 +213,9 @@ private:
 
     /// total number of elements in each dimension
     dim_t m_gNE0, m_gNE1, m_gNE2;
+
+    /// location of domain
+    double m_x0, m_y0, m_z0;
 
     /// side lengths of domain
     double m_l0, m_l1, m_l2;

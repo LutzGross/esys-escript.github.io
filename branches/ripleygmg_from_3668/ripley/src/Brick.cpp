@@ -29,15 +29,18 @@ using namespace std;
 
 namespace ripley {
 
-Brick::Brick(int n0, int n1, int n2, double l0, double l1, double l2, int d0,
-             int d1, int d2) :
+Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
+             double x1, double y1, double z1, int d0, int d1, int d2) :
     RipleyDomain(3),
     m_gNE0(n0),
     m_gNE1(n1),
     m_gNE2(n2),
-    m_l0(l0),
-    m_l1(l1),
-    m_l2(l2),
+    m_x0(x0),
+    m_y0(y0),
+    m_z0(z0),
+    m_l0(x1-x0),
+    m_l1(y1-y0),
+    m_l2(z1-z0),
     m_NX(d0),
     m_NY(d1),
     m_NZ(d2)
@@ -108,6 +111,7 @@ bool Brick::operator==(const AbstractDomain& other) const
     if (o) {
         return (RipleyDomain::operator==(other) &&
                 m_gNE0==o->m_gNE0 && m_gNE1==o->m_gNE1 && m_gNE2==o->m_gNE2
+                && m_x0==o->m_x0 && m_y0==o->m_y0 && m_z0==o->m_z0
                 && m_l0==o->m_l0 && m_l1==o->m_l1 && m_l2==o->m_l2
                 && m_NX==o->m_NX && m_NY==o->m_NY && m_NZ==o->m_NZ);
     }
@@ -697,11 +701,11 @@ IndexVector Brick::getNumSubdivisionsPerDim() const
 pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
 {
     if (dim==0)
-        return pair<double,double>((m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
+        return pair<double,double>(m_x0+(m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
     else if (dim==1)
-        return pair<double,double>((m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
+        return pair<double,double>(m_y0+(m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
     else if (dim==2)
-        return pair<double,double>((m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
+        return pair<double,double>(m_z0+(m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
 
     throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
 }
