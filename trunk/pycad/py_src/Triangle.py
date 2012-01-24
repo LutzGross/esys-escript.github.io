@@ -67,11 +67,12 @@ class Design(design.Design):
        if self.__scriptname:
            os.unlink(self.__scriptname)
        if name == None:
+           self.__scriptname_set=False
            self.__scriptname=tempfile.mkstemp(suffix=".poly")[1]
        else:
+           self.__scriptname_set=True
            self.__scriptname=name
            self.setMeshFileName(name)
-           self.setKeepFilesOn()
 
     def getScriptFileName(self):
        """
@@ -121,8 +122,10 @@ class Design(design.Design):
         Cleans up.
         """
         if not self.keepFiles():
-               os.unlink(self.getScriptFileName())
-               os.unlink(self.getMeshFileName())
+            if not self.__scriptname_set:
+                os.unlink(self.getScriptFileName())
+            if not self.__mshname_set:
+                os.unlink(self.getMeshFileName())
 
     def getCommandString(self):
         """
