@@ -409,12 +409,13 @@ class Design(object):
        if self.__mshname:
            os.unlink(self.__mshname)
        if name == None:
+           self.__mshname_set=False
            tmp_f_id=tempfile.mkstemp(suffix="."+self.getFileFormat())
            self.__mshname=tmp_f_id[1]
            os.close(tmp_f_id[0])
        else:
            self.__mshname=name
-           self.setKeepFilesOn()
+           self.__mshname_set=True
 
     def getMeshFileName(self):
        """

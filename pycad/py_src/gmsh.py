@@ -75,24 +75,19 @@ class Design(design.Design):
        if self.__scriptname:
            os.unlink(self.__scriptname)
        if name == None:
+           self.__scriptname_set=False
            tmp_f_id=tempfile.mkstemp(suffix=".geo")
            self.__scriptname=tmp_f_id[1]
            os.close(tmp_f_id[0])
        else:
            self.__scriptname=name
-           self.setKeepFilesOn()
+           self.__scriptname_set=True
 
     def getScriptFileName(self):
        """
        Returns the name of the gmsh script file.
        """
        return self.__scriptname
-
-    def getMeshFileName(self):
-       """
-       Returns the name of the gmsh mesh file.
-       """
-       return self.__mshname
 
     def setOptions(self,algorithm=None, optimize_quality=True, smoothing=1, curvature_based_element_size=False, algorithm2D=None, algorithm3D=None, generate_hexahedra=False):
         """
@@ -148,9 +143,11 @@ class Design(design.Design):
         """
         Cleans up.
         """
-        if not self.keepFiles() :
-            os.unlink(self.getScriptFileName())
-            os.unlink(self.getMeshFileName())
+        if not self.keepFiles():
+            if not self.__scriptname_set:
+                os.unlink(self.getScriptFileName())
+            if not self.__mshname_set:
+                os.unlink(self.getMeshFileName())
 
     def getCommandString(self):
         """
