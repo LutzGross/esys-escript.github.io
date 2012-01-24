@@ -37,7 +37,7 @@ des=Design(dim=DIM, order=2, element_size = DEPTH/NE_D, keep_files=True)
 
 if DIM ==2 :
   if (DEPTH*cos(DIP) > 0.9 * LX):
-      raise ValueError,"X edge to short (maybe DIP to large.)"
+      raise ValueError("X edge to short (maybe DIP to large.)")
 
   p0=Point(DEPTH*cos(DIP),-DEPTH)
   p1=Point(LX,-DEPTH)
@@ -54,11 +54,11 @@ if DIM ==2 :
 else: 
 
   if (DEPTH*cos(DIP) > 0.9 * LX):
-      raise ValueError,"X edge to short (maybe DIP to large.)"
+      raise ValueError("X edge to short (maybe DIP to large.)")
   if (DEPTH*cos(DIP)+LY*sin(STRIKE) > 0.9 * LX):
-      raise ValueError,"X edge to short (maybe DIP to large.)"
+      raise ValueError("X edge to short (maybe DIP to large.)")
   if (LY*sin(STRIKE) > 0.9 * LX):
-      raise ValueError,"X edge to short (maybe DIP to large.)"
+      raise ValueError("X edge to short (maybe DIP to large.)")
 
  
   p0=Point(DEPTH*cos(DIP),0.,-DEPTH)

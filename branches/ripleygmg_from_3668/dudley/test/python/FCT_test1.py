@@ -93,11 +93,11 @@ c=0
 # saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
-print "QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0)
+print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
 while t<T_END:
-    print "time step t=",t+dt	
+    print("time step t=",t+dt)	
     u=fc.solve(dt, verbose=True)
-    print "QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u)
+    print("QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u))
     if TEST_SUPG:
         #========== supg tests ================
         nn=max(ceil(dt/dt_supg),1.)
@@ -112,7 +112,7 @@ while t<T_END:
     c+=1
     t+=dt
     if TEST_SUPG: 
-       print "QUALITY SUPG: time = %s pi"%(t/pi),inf(u_supg),sup(u_supg),integrate(u_supg)
+       print("QUALITY SUPG: time = %s pi"%(t/pi),inf(u_supg),sup(u_supg),integrate(u_supg))
        # saveVTK("u2.%s.vtu"%c,u=u,u_supg=u_supg)
     else:
        # saveVTK("u.%s.vtu"%c,u=u)

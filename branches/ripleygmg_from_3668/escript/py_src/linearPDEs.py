@@ -38,8 +38,8 @@ by its advective terms.
 """
 
 import math
-import escript
-import util
+from . import escript
+from . import util
 import numpy
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
@@ -421,7 +421,7 @@ class SolverOptions(object):
         elif name == "coarse_level_sparsity": return self.__coarse_level_sparsity
         elif name == "num_coarse_unknowns": return self.__num_coarse_unknowns
         else:
-            raise ValueError,"unknown diagnostic item %s"%name
+            raise ValueError("unknown diagnostic item %s"%name)
     def hasConverged(self):
         """
         Returns ``True`` if the last solver call has been finalized successfully.
@@ -437,7 +437,7 @@ class SolverOptions(object):
         """
 	if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING, self.STANDARD_COARSENING, self.CIJP_FIXED_RANDOM_COARSENING, self.CIJP_COARSENING, self.FALGOUT_COARSENING, self.PMIS_COARSENING, self.HMIS_COARSENING,]:
-             raise ValueError,"unknown coarsening method %s"%method
+             raise ValueError("unknown coarsening method %s"%method)
         self.__coarsening=method
     
     def getCoarsening(self):
@@ -458,7 +458,7 @@ class SolverOptions(object):
 	if size==None: size=500
         size=int(size)
         if size<0:
-           raise ValueError,"minumum size of the coarsest level matrix must be non-negative."
+           raise ValueError("minumum size of the coarsest level matrix must be non-negative.")
         self.__MinCoarseMatrixSize=size
         
     def getMinCoarseMatrixSize(self):
@@ -483,7 +483,7 @@ class SolverOptions(object):
         if not preconditioner in [  SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
                                     SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU, SolverOptions.BOOMERAMG,
                                     SolverOptions.NO_PRECONDITIONER] :
-             raise ValueError,"unknown preconditioner %s"%preconditioner
+             raise ValueError("unknown preconditioner %s"%preconditioner)
         self.__preconditioner=preconditioner    
     def getPreconditioner(self):
         """
@@ -504,7 +504,7 @@ class SolverOptions(object):
         """
 	if smoother==None: smoother=28
         if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
-             raise ValueError,"unknown smoother %s"%smoother
+             raise ValueError("unknown smoother %s"%smoother)
         self.__smoother=smoother    
     def getSmoother(self):
         """
@@ -533,7 +533,7 @@ class SolverOptions(object):
                            SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING,
                            SolverOptions.ITERATIVE,
                            SolverOptions.NONLINEAR_GMRES, SolverOptions.TFQMR, SolverOptions.MINRES ]:
-             raise ValueError,"unknown solver method %s"%method
+             raise ValueError("unknown solver method %s"%method)
         self.__method=method
     def getSolverMethod(self):
         """
@@ -556,7 +556,7 @@ class SolverOptions(object):
         """
 	if package==None: package=0
         if not package in [SolverOptions.DEFAULT, SolverOptions.PASO, SolverOptions.SUPER_LU, SolverOptions.PASTIX, SolverOptions.MKL, SolverOptions.UMFPACK, SolverOptions.TRILINOS]:
-             raise ValueError,"unknown solver package %s"%package
+             raise ValueError("unknown solver package %s"%package)
         self.__package=package
     def getPackage(self):
         """
@@ -574,7 +574,7 @@ class SolverOptions(object):
         :type ordering: in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
         """
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
-             raise ValueError,"unknown reordering strategy %s"%ordering
+             raise ValueError("unknown reordering strategy %s"%ordering)
         self.__reordering=ordering
     def getReordering(self):
         """
@@ -595,7 +595,7 @@ class SolverOptions(object):
         else:
             restart=int(restart)
             if restart<1:
-                raise ValueError,"restart must be positive."
+                raise ValueError("restart must be positive.")
             self.__restart=restart
 	    
     def getRestart(self):
@@ -625,7 +625,7 @@ class SolverOptions(object):
         """
         value=float(value)
         if value<0 or value>1.:
-	   raise ValueError,"Diagonal dominance threshold must be between 0 and 1."
+	   raise ValueError("Diagonal dominance threshold must be between 0 and 1.")
 	self.__diagonal_dominance_threshold=value
         
     def getDiagonalDominanceThreshold(self):
@@ -646,7 +646,7 @@ class SolverOptions(object):
         """
         truncation=int(truncation)
         if truncation<1:
-           raise ValueError,"truncation must be positive."
+           raise ValueError("truncation must be positive.")
         self.__truncation=truncation
     def getTruncation(self):
         """
@@ -664,7 +664,7 @@ class SolverOptions(object):
         """
         iter_max=int(iter_max)
         if iter_max<1:
-           raise ValueError,"maximum number of inner iteration must be positive."
+           raise ValueError("maximum number of inner iteration must be positive.")
         self.__inner_iter_max=iter_max
     def getInnerIterMax(self):
         """
@@ -682,7 +682,7 @@ class SolverOptions(object):
         """
         iter_max=int(iter_max)
         if iter_max<1:
-           raise ValueError,"maximum number of iteration steps must be positive."
+           raise ValueError("maximum number of iteration steps must be positive.")
         self.__iter_max=iter_max
     def getIterMax(self):
         """
@@ -700,7 +700,7 @@ class SolverOptions(object):
         """
         level_max=int(level_max)
         if level_max<0:
-           raise ValueError,"maximum number of coarsening levels must be non-negative."
+           raise ValueError("maximum number of coarsening levels must be non-negative.")
         self.__level_max=level_max
     def getLevelMax(self):
         """
@@ -734,7 +734,7 @@ class SolverOptions(object):
         """
         theta=float(theta)
         if theta<0 or theta>1:
-           raise ValueError,"threshold must be non-negative and less or equal 1."
+           raise ValueError("threshold must be non-negative and less or equal 1.")
         self.__coarsening_threshold=theta
     def getCoarseningThreshold(self):
         """
@@ -752,7 +752,7 @@ class SolverOptions(object):
         """
         sweeps=int(sweeps)
         if sweeps<1:
-           raise ValueError,"number of sweeps must be positive."
+           raise ValueError("number of sweeps must be positive.")
         self.__sweeps=sweeps
     def getNumSweeps(self):
         """
@@ -770,7 +770,7 @@ class SolverOptions(object):
         """
         sweeps=int(sweeps)
         if sweeps<1:
-           raise ValueError,"number of sweeps must be positive."
+           raise ValueError("number of sweeps must be positive.")
         self.__pre_sweeps=sweeps
     def getNumPreSweeps(self):
         """
@@ -788,7 +788,7 @@ class SolverOptions(object):
         """
         sweeps=int(sweeps)
         if sweeps<1:
-           raise ValueError,"number of sweeps must be positive."
+           raise ValueError("number of sweeps must be positive.")
         self.__post_sweeps=sweeps
     def getNumPostSweeps(self):
         """
@@ -807,7 +807,7 @@ class SolverOptions(object):
         """
         rtol=float(rtol)
         if rtol<0 or rtol>1:
-           raise ValueError,"tolerance must be non-negative and less or equal 1."
+           raise ValueError("tolerance must be non-negative and less or equal 1.")
         self.__tolerance=rtol
     def getTolerance(self):
         """
@@ -825,7 +825,7 @@ class SolverOptions(object):
         """
         atol=float(atol)
         if atol<0:
-           raise ValueError,"tolerance must be non-negative."
+           raise ValueError("tolerance must be non-negative.")
         self.__absolute_tolerance=atol
     def getAbsoluteTolerance(self):
         """
@@ -844,7 +844,7 @@ class SolverOptions(object):
         """
         rtol=float(rtol)
         if rtol<=0 or rtol>1:
-            raise ValueError,"tolerance must be positive and less or equal 1."
+            raise ValueError("tolerance must be positive and less or equal 1.")
         self.__inner_tolerance=rtol
     def getInnerTolerance(self):
         """
@@ -862,7 +862,7 @@ class SolverOptions(object):
         """
         drop_tol=float(drop_tol)
         if drop_tol<=0 or drop_tol>1:
-            raise ValueError,"drop tolerance must be positive and less or equal 1."
+            raise ValueError("drop tolerance must be positive and less or equal 1.")
         self.__drop_tolerance=drop_tol
     def getDropTolerance(self):
         """
@@ -881,7 +881,7 @@ class SolverOptions(object):
         """
         storage=float(storage)
         if storage<1:
-            raise ValueError,"allowed storage increase must be greater or equal to 1."
+            raise ValueError("allowed storage increase must be greater or equal to 1.")
         self.__drop_storage=storage
     def getDropStorage(self):
     
@@ -901,7 +901,7 @@ class SolverOptions(object):
         """
         factor=float(factor)
         if factor<0: 
-            raise ValueError,"relaxation factor must be non-negative."
+            raise ValueError("relaxation factor must be non-negative.")
         self.__relaxation=factor
     def getRelaxationFactor(self):
     
@@ -1084,9 +1084,9 @@ class SolverOptions(object):
        """
        sparsity=float(sparsity)
        if sparsity<0: 
-	 raise ValueError,"sparsity must be non-negative."
+	 raise ValueError("sparsity must be non-negative.")
        if sparsity>1: 
-          raise ValueError,"sparsity must be less than 1."
+          raise ValueError("sparsity must be less than 1.")
        self.__min_sparsity=sparsity
 
     def getMinCoarseMatrixSparsity(self):
@@ -1109,7 +1109,7 @@ class SolverOptions(object):
       """
       refinements=int(refinements)
       if refinements<0:
-	 raise ValueError,"number of refinements must be non-negative."
+	 raise ValueError("number of refinements must be non-negative.")
       self.__refinements=refinements
    
     def getNumRefinements(self):
@@ -1129,7 +1129,7 @@ class SolverOptions(object):
       """
       refinements=int(refinements)
       if refinements<0:
-	 raise ValueError,"number of refinements must be non-negative."
+	 raise ValueError("number of refinements must be non-negative.")
       self.__coarse_refinements=refinements
    
     def getNumCoarseMatrixRefinements(self):
@@ -1183,7 +1183,7 @@ class SolverOptions(object):
         """
 	if method==None: method=self.DIRECT_INTERPOLATION
         if not method in [ SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING, SolverOptions.CLASSIC_INTERPOLATION, SolverOptions.DIRECT_INTERPOLATION ]:
-             raise ValueError,"unknown AMG interpolation method %s"%method
+             raise ValueError("unknown AMG interpolation method %s"%method)
         self.__amg_interpolation_method=method
 
     def getAMGInterpolation(self):
@@ -1388,12 +1388,12 @@ class PDECoef(object):
                 try:
                   newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except:
-                  raise IllegalCoefficientFunctionSpace,"Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain)
+                  raise IllegalCoefficientFunctionSpace("Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain))
        else:
            newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
        if not newValue.isEmpty():
            if not self.getShape(domain,numEquations,numSolutions)==newValue.getShape():
-               raise IllegalCoefficientValue,"Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape())
+               raise IllegalCoefficientValue("Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape()))
        self.value=newValue
 
     def isAlteringOperator(self):
@@ -1631,7 +1631,7 @@ class LinearProblem(object):
      :param text: message to be printed
      :type text: ``string``
      """
-     if self.__debug: print "%s: %s"%(str(self),text)
+     if self.__debug: print(("%s: %s"%(str(self),text)))
 
    # ==========================================================================
    # some service functions:
@@ -1646,9 +1646,9 @@ class LinearProblem(object):
 
        to introduce the coefficients *A* and *B*.
        """
-       for name, type in coeff.items():
+       for name, type in list(coeff.items()):
            if not isinstance(type,PDECoef):
-              raise ValueError,"coefficient %s has no type."%name
+              raise ValueError("coefficient %s has no type."%name)
            self.__COEFFICIENTS[name]=type
            self.__COEFFICIENTS[name].resetValue()
            self.trace("coefficient %s has been introduced."%name)
@@ -1701,7 +1701,7 @@ class LinearProblem(object):
      """
      if self.__numEquations==None:
          if self.__numSolutions==None:
-            raise UndefinedPDEError,"Number of equations is undefined. Please specify argument numEquations."
+            raise UndefinedPDEError("Number of equations is undefined. Please specify argument numEquations.")
          else:
             self.__numEquations=self.__numSolutions
      return self.__numEquations
@@ -1716,7 +1716,7 @@ class LinearProblem(object):
      """
      if self.__numSolutions==None:
         if self.__numEquations==None:
-            raise UndefinedPDEError,"Number of solution is undefined. Please specify argument numSolutions."
+            raise UndefinedPDEError("Number of solution is undefined. Please specify argument numSolutions.")
         else:
             self.__numSolutions=self.__numEquations
      return self.__numSolutions
@@ -1783,7 +1783,7 @@ class LinearProblem(object):
        elif isinstance(options, SolverOptions):
           self.__solver_options=options
        else:
-          raise ValueError,"options must be a SolverOptions object."
+          raise ValueError("options must be a SolverOptions object.")
        self.__solver_options.setSymmetry(self.__sym)
      
    def getSolverOptions(self):
@@ -1889,7 +1889,7 @@ class LinearProblem(object):
      """
      if not self.__reduce_solution_order:
          if self.__altered_coefficients:
-              raise RuntimeError,"order cannot be altered after coefficients have been defined."
+              raise RuntimeError("order cannot be altered after coefficients have been defined.")
          self.trace("Reduced order is used for solution representation.")
          self.__reduce_solution_order=True
          self.initializeSystem()
@@ -1903,7 +1903,7 @@ class LinearProblem(object):
      """
      if self.__reduce_solution_order:
          if self.__altered_coefficients:
-              raise RuntimeError,"order cannot be altered after coefficients have been defined."
+              raise RuntimeError("order cannot be altered after coefficients have been defined.")
          self.trace("Full order is used to interpolate solution.")
          self.__reduce_solution_order=False
          self.initializeSystem()
@@ -1933,7 +1933,7 @@ class LinearProblem(object):
      """
      if not self.__reduce_equation_order:
          if self.__altered_coefficients:
-              raise RuntimeError,"order cannot be altered after coefficients have been defined."
+              raise RuntimeError("order cannot be altered after coefficients have been defined.")
          self.trace("Reduced order is used for test functions.")
          self.__reduce_equation_order=True
          self.initializeSystem()
@@ -1947,7 +1947,7 @@ class LinearProblem(object):
      """
      if self.__reduce_equation_order:
          if self.__altered_coefficients:
-              raise RuntimeError,"order cannot be altered after coefficients have been defined."
+              raise RuntimeError("order cannot be altered after coefficients have been defined.")
          self.trace("Full order is used for test functions.")
          self.__reduce_equation_order=False
          self.initializeSystem()
@@ -1999,25 +1999,25 @@ class LinearProblem(object):
                      for k in range(s[2]):
                         for l in range(s[3]):
                             if util.Lsup(A[i,j,k,l]-A[k,l,i,j])>tol:
-                               if verbose: print "non-symmetric problem as %s[%d,%d,%d,%d]!=%s[%d,%d,%d,%d]"%(name,i,j,k,l,name,k,l,i,j)
+                               if verbose: print(("non-symmetric problem as %s[%d,%d,%d,%d]!=%s[%d,%d,%d,%d]"%(name,i,j,k,l,name,k,l,i,j)))
                                out=False
             else:
-                 if verbose: print "non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)
+                 if verbose: print(("non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)))
                  out=False
          elif A.getRank() == 2:
             if s[0]==s[1]:
                for j in range(s[0]):
                   for l in range(s[1]):
                      if util.Lsup(A[j,l]-A[l,j])>tol:
-                        if verbose: print "non-symmetric problem because %s[%d,%d]!=%s[%d,%d]"%(name,j,l,name,l,j)
+                        if verbose: print(("non-symmetric problem because %s[%d,%d]!=%s[%d,%d]"%(name,j,l,name,l,j)))
                         out=False
             else:
-                 if verbose: print "non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)
+                 if verbose: print(("non-symmetric problem because of inappropriate shape %s of coefficient %s."%(s,name)))
                  out=False
          elif A.getRank() == 0:
             pass
          else:
-             raise ValueError,"Cannot check rank %s of %s."%(A.getRank(),name)
+             raise ValueError("Cannot check rank %s of %s."%(A.getRank(),name))
       return out
 
    def checkReciprocalSymmetry(self,name0,name1,verbose=True):
@@ -2041,43 +2041,43 @@ class LinearProblem(object):
       verbose=verbose or self.__debug
       out=True
       if B.isEmpty() and not C.isEmpty():
-         if verbose: print "non-symmetric problem because %s is not present but %s is"%(name0,name1)
+         if verbose: print(("non-symmetric problem because %s is not present but %s is"%(name0,name1)))
          out=False
       elif not B.isEmpty() and C.isEmpty():
-         if verbose: print "non-symmetric problem because %s is not present but %s is"%(name0,name1)
+         if verbose: print(("non-symmetric problem because %s is not present but %s is"%(name0,name1)))
          out=False
       elif not B.isEmpty() and not C.isEmpty():
          sB=B.getShape()
          sC=C.getShape()
          tol=(util.Lsup(B)+util.Lsup(C))*SMALL_TOLERANCE/2.
          if len(sB) != len(sC):
-             if verbose: print "non-symmetric problem because ranks of %s (=%s) and %s (=%s) are different."%(name0,len(sB),name1,len(sC))
+             if verbose: print(("non-symmetric problem because ranks of %s (=%s) and %s (=%s) are different."%(name0,len(sB),name1,len(sC))))
              out=False
          else:
              if len(sB)==0:
                if util.Lsup(B-C)>tol:
-                  if verbose: print "non-symmetric problem because %s!=%s"%(name0,name1)
+                  if verbose: print(("non-symmetric problem because %s!=%s"%(name0,name1)))
                   out=False
              elif len(sB)==1:
                if sB[0]==sC[0]:
                   for j in range(sB[0]):
                      if util.Lsup(B[j]-C[j])>tol:
-                        if verbose: print "non-symmetric PDE because %s[%d]!=%s[%d]"%(name0,j,name1,j)
+                        if verbose: print(("non-symmetric PDE because %s[%d]!=%s[%d]"%(name0,j,name1,j)))
                         out=False
                else:
-                 if verbose: print "non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)
+                 if verbose: print(("non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)))
              elif len(sB)==3:
                if sB[0]==sC[1] and sB[1]==sC[2] and sB[2]==sC[0]:
                    for i in range(sB[0]):
                       for j in range(sB[1]):
                          for k in range(sB[2]):
                             if util.Lsup(B[i,j,k]-C[k,i,j])>tol:
-                                 if verbose: print "non-symmetric problem because %s[%d,%d,%d]!=%s[%d,%d,%d]"%(name0,i,j,k,name1,k,i,j)
+                                 if verbose: print(("non-symmetric problem because %s[%d,%d,%d]!=%s[%d,%d,%d]"%(name0,i,j,k,name1,k,i,j)))
                                  out=False
                else:
-                 if verbose: print "non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)
+                 if verbose: print(("non-symmetric problem because of inappropriate shapes %s and %s of coefficients %s and %s, respectively."%(sB,sC,name0,name1)))
              else:
-                 raise ValueError,"Cannot check rank %s of %s and %s."%(len(sB),name0,name1)
+                 raise ValueError("Cannot check rank %s of %s and %s."%(len(sB),name0,name1))
       return out
 
    def getCoefficient(self,name):
@@ -2093,7 +2093,7 @@ class LinearProblem(object):
      if self.hasCoefficient(name):
          return self.__COEFFICIENTS[name].getValue()
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
    def hasCoefficient(self,name):
      """
@@ -2105,7 +2105,7 @@ class LinearProblem(object):
               False otherwise
      :rtype: ``bool``
      """
-     return self.__COEFFICIENTS.has_key(name)
+     return name in self.__COEFFICIENTS
 
    def createCoefficient(self, name):
      """
@@ -2119,7 +2119,7 @@ class LinearProblem(object):
      if self.hasCoefficient(name):
         return escript.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
    def getFunctionSpaceForCoefficient(self,name):
      """
@@ -2135,7 +2135,7 @@ class LinearProblem(object):
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getFunctionSpace(self.getDomain())
      else:
-        raise ValueError,"unknown coefficient %s requested"%name
+        raise ValueError("unknown coefficient %s requested"%name)
 
    def getShapeOfCoefficient(self,name):
      """
@@ -2150,13 +2150,13 @@ class LinearProblem(object):
      if self.hasCoefficient(name):
         return self.__COEFFICIENTS[name].getShape(self.getDomain(),self.getNumEquations(),self.getNumSolutions())
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
    def resetAllCoefficients(self):
      """
      Resets all coefficients to their default values.
      """
-     for i in self.__COEFFICIENTS.iterkeys():
+     for i in list(self.__COEFFICIENTS.keys()):
          self.__COEFFICIENTS[i].resetValue()
 
    def alteredCoefficient(self,name):
@@ -2175,7 +2175,7 @@ class LinearProblem(object):
            if self.__COEFFICIENTS[name].isAlteringOperator(): self.invalidateOperator()
            if self.__COEFFICIENTS[name].isAlteringRightHandSide(): self.invalidateRightHandSide()
      else:
-        raise IllegalCoefficient,"illegal coefficient %s requested for general PDE."%name
+        raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
    def validSolution(self):
        """
@@ -2385,12 +2385,12 @@ class LinearProblem(object):
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
       # check if the coefficients are  legal:
-      for i in coefficients.iterkeys():
+      for i in list(coefficients.keys()):
          if not self.hasCoefficient(i):
-            raise IllegalCoefficient,"Attempt to set unknown coefficient %s"%i
+            raise IllegalCoefficient("Attempt to set unknown coefficient %s"%i)
       # if the number of unknowns or equations is still unknown we try to estimate them:
       if self.__numEquations==None or self.__numSolutions==None:
-         for i,d in coefficients.iteritems():
+         for i,d in list(coefficients.items()):
             if hasattr(d,"shape"):
                 s=d.shape
             elif hasattr(d,"getShape"):
@@ -2401,35 +2401,35 @@ class LinearProblem(object):
                 # get number of equations and number of unknowns:
                 res=self.__COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(self.getDomain(),s)
                 if res==None:
-                    raise IllegalCoefficientValue,"Illegal shape %s of coefficient %s"%(s,i)
+                    raise IllegalCoefficientValue("Illegal shape %s of coefficient %s"%(s,i))
                 else:
                     if self.__numEquations==None: self.__numEquations=res[0]
                     if self.__numSolutions==None: self.__numSolutions=res[1]
-      if self.__numEquations==None: raise UndefinedPDEError,"unidentified number of equations"
-      if self.__numSolutions==None: raise UndefinedPDEError,"unidentified number of solutions"
+      if self.__numEquations==None: raise UndefinedPDEError("unidentified number of equations")
+      if self.__numSolutions==None: raise UndefinedPDEError("unidentified number of solutions")
       # now we check the shape of the coefficient if numEquations and numSolutions are set:
-      for i,d in coefficients.iteritems():
+      for i,d in list(coefficients.items()):
         try:
            self.__COEFFICIENTS[i].setValue(self.getDomain(),
                      self.getNumEquations(),self.getNumSolutions(),
                      self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
            self.alteredCoefficient(i)
-        except IllegalCoefficientFunctionSpace,m:
+        except IllegalCoefficientFunctionSpace as m:
             # if the function space is wrong then we try the reduced version:
             i_red=i+"_reduced"
-            if (not i_red in coefficients.keys()) and i_red in self.__COEFFICIENTS.keys():
+            if (not i_red in list(coefficients.keys())) and i_red in list(self.__COEFFICIENTS.keys()):
                 try:
                     self.__COEFFICIENTS[i_red].setValue(self.getDomain(),
                                                       self.getNumEquations(),self.getNumSolutions(),
                                                       self.reduceEquationOrder(),self.reduceSolutionOrder(),d)
                     self.alteredCoefficient(i_red)
-                except IllegalCoefficientValue,m:
+                except IllegalCoefficientValue as m:
                     raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
-                except IllegalCoefficientFunctionSpace,m:
+                except IllegalCoefficientFunctionSpace as m:
                     raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
             else:
                 raise IllegalCoefficientFunctionSpace("Coefficient %s:%s"%(i,m))
-        except IllegalCoefficientValue,m:
+        except IllegalCoefficientValue as m:
            raise IllegalCoefficientValue("Coefficient %s:%s"%(i,m))
       self.__altered_coefficients=True
 
@@ -2740,7 +2740,7 @@ class LinearPDE(LinearProblem):
           mat,f=self.getSystem()
           if self.isUsingLumping():
 	     if not util.inf(abs(mat)) > 0.:
-		 raise ZeroDivisionError,"Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping)."
+		 raise ZeroDivisionError("Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping).")
              self.setSolution(f*1/mat)
           else:
              self.trace("PDE is resolved.")
@@ -2760,23 +2760,23 @@ class LinearPDE(LinearProblem):
           if self.isUsingLumping():
               if not self.isOperatorValid():
                  if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution():
-                      raise TypeError,"Lumped matrix requires same order for equations and unknowns"
+                      raise TypeError("Lumped matrix requires same order for equations and unknowns")
                  if not self.getCoefficient("A").isEmpty():
-                      raise ValueError,"coefficient A in lumped matrix may not be present."
+                      raise ValueError("coefficient A in lumped matrix may not be present.")
                  if not self.getCoefficient("B").isEmpty():
-                      raise ValueError,"coefficient B in lumped matrix may not be present."
+                      raise ValueError("coefficient B in lumped matrix may not be present.")
                  if not self.getCoefficient("C").isEmpty():
-                      raise ValueError,"coefficient C in lumped matrix may not be present."
+                      raise ValueError("coefficient C in lumped matrix may not be present.")
                  if not self.getCoefficient("d_contact").isEmpty():
-                      raise ValueError,"coefficient d_contact in lumped matrix may not be present."
+                      raise ValueError("coefficient d_contact in lumped matrix may not be present.")
                  if not self.getCoefficient("A_reduced").isEmpty():
-                      raise ValueError,"coefficient A_reduced in lumped matrix may not be present."
+                      raise ValueError("coefficient A_reduced in lumped matrix may not be present.")
                  if not self.getCoefficient("B_reduced").isEmpty():
-                      raise ValueError,"coefficient B_reduced in lumped matrix may not be present."
+                      raise ValueError("coefficient B_reduced in lumped matrix may not be present.")
                  if not self.getCoefficient("C_reduced").isEmpty():
-                      raise ValueError,"coefficient C_reduced in lumped matrix may not be present."
+                      raise ValueError("coefficient C_reduced in lumped matrix may not be present.")
                  if not self.getCoefficient("d_contact_reduced").isEmpty():
-                      raise ValueError,"coefficient d_contact_reduced in lumped matrix may not be present."
+                      raise ValueError("coefficient d_contact_reduced in lumped matrix may not be present.")
                  D=self.getCoefficient("D")
                  d=self.getCoefficient("d")
                  D_reduced=self.getCoefficient("D_reduced")
@@ -3835,7 +3835,7 @@ class TransportPDE(LinearProblem):
        :type value: large positive ``float``
        """
        if not value>0:
-         raise ValueError,"weighting factor needs to be positive."
+         raise ValueError("weighting factor needs to be positive.")
        self.__constraint_factor=value
        self.trace("Weighting factor for constraints is set to %e."%value)
 
@@ -3863,17 +3863,17 @@ class TransportPDE(LinearProblem):
        if not dt == None:
 	  option_class=self.getSolverOptions()
 	  if dt<=0:
-	      raise ValueError,"step size needs to be positive."
+	      raise ValueError("step size needs to be positive.")
 	  if u0 == None:
 	      u0=self.getCurrentSolution()
 	  else:
 	      u0=util.interpolate(u0,self.getFunctionSpaceForSolution())
 	      if self.getNumSolutions() == 1:
 		if u0.getShape()!=():
-		    raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
+		    raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
 	      else:
 		    if u0.getShape()!=(self.getNumSolutions(),):
-		      raise ValueError,"Illegal shape %s of initial solution."%(u0.getShape(),)
+		      raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
 	  self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
 	  self.validSolution()
        return self.getCurrentSolution()
@@ -3889,10 +3889,10 @@ class TransportPDE(LinearProblem):
        u2=util.interpolate(u,self.getFunctionSpaceForSolution())
        if self.getNumSolutions() == 1:
           if u2.getShape()!=():
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
+              raise ValueError("Illegal shape %s of initial solution."%(u2.getShape(),))
        else:
           if u2.getShape()!=(self.getNumSolutions(),):
-              raise ValueError,"Illegal shape %s of initial solution."%(u2.getShape(),)
+              raise ValueError("Illegal shape %s of initial solution."%(u2.getShape(),))
        self.setSolution(u2,validate=False)
 
 

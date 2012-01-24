@@ -79,7 +79,7 @@ class VTKParser():
         points = self.doc.getElementsByTagName('Points')[0]
         array = points.childNodes[0]
         nComp = int(array.getAttribute('NumberOfComponents'))
-        flatlist = map(float, array.childNodes[0].data.split())
+        flatlist = list(map(float, array.childNodes[0].data.split()))
         return [flatlist[i:i+nComp] for i in range(0,len(flatlist),nComp)]
 
     def getCellConnectivity(self):
@@ -87,7 +87,7 @@ class VTKParser():
         cells = self.doc.getElementsByTagName('Cells')[0]
         for d in cells.childNodes:
             if d.getAttribute('Name')=='connectivity':
-                conn = map(int, d.childNodes[0].data.split())
+                conn = list(map(int, d.childNodes[0].data.split()))
         return conn
 
     def getCellOffsets(self):
@@ -95,7 +95,7 @@ class VTKParser():
         cells = self.doc.getElementsByTagName('Cells')[0]
         for d in cells.childNodes:
             if d.getAttribute('Name')=='offsets':
-                offsets = map(int, d.childNodes[0].data.split())
+                offsets = list(map(int, d.childNodes[0].data.split()))
         return offsets
 
     def getCellTypes(self):
@@ -103,7 +103,7 @@ class VTKParser():
         cells = self.doc.getElementsByTagName('Cells')[0]
         for d in cells.childNodes:
             if d.getAttribute('Name')=='types':
-                types = map(int, d.childNodes[0].data.split())
+                types = list(map(int, d.childNodes[0].data.split()))
         return types
 
     def getPointData(self):
@@ -113,7 +113,7 @@ class VTKParser():
             for d in pdata[0].childNodes:
                 if d.hasChildNodes():
                     nComp = int(d.getAttribute('NumberOfComponents'))
-                    flatlist = map(float, d.childNodes[0].data.split())
+                    flatlist = list(map(float, d.childNodes[0].data.split()))
                     if nComp==1:
                         data[d.getAttribute('Name')] = flatlist
                     else:
@@ -128,7 +128,7 @@ class VTKParser():
             for d in cdata[0].childNodes:
                 if d.hasChildNodes():
                     nComp = int(d.getAttribute('NumberOfComponents'))
-                    flatlist = map(float, d.childNodes[0].data.split())
+                    flatlist = list(map(float, d.childNodes[0].data.split()))
                     if nComp==1:
                         data[d.getAttribute('Name')] = flatlist
                     else:
@@ -157,7 +157,7 @@ class Test_VTKSaver(unittest.TestCase):
     def compareDataWithMap(self, d1, d2, indexMap):
         if len(d1) != len(d2): return False
         for i in range(len(d1)):
-            if indexMap.has_key(i):
+            if i in indexMap:
                 jlist=indexMap[i]
                 if type(d1[i])==list:
                     if not max([ self.numericCompareL2(d1[i], d2[j]) for j in jlist ]):
@@ -239,7 +239,7 @@ class Test_VTKSaver(unittest.TestCase):
         pdata2=p2.getPointData()
         self.assertEquals(len(pdata1), len(pdata2))
         for name in pdata2:
-            self.assertTrue(pdata1.has_key(name), "Point variable '%s' missing"%name)
+            self.assertTrue(name in pdata1, "Point variable '%s' missing"%name)
             self.assertEquals(len(pdata1[name]), nPoints1)
             if not name.startswith('mesh_vars/'):
                 self.assertTrue(self.compareDataWithMap(
@@ -251,7 +251,7 @@ class Test_VTKSaver(unittest.TestCase):
         cdata2=p2.getCellData()
         self.assertEquals(len(cdata1), len(cdata2))
         for name in cdata2:
-            self.assertTrue(cdata1.has_key(name), "Cell variable '%s' missing"%name)
+            self.assertTrue(name in cdata1, "Cell variable '%s' missing"%name)
             self.assertEquals(len(cdata1[name]), nCells1)
             if not name.startswith('mesh_vars/'):
                 self.assertTrue(self.compareDataWithMap(

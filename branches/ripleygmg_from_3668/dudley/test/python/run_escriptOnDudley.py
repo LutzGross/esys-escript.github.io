@@ -138,7 +138,7 @@ class Test_CSVOnDudley(Test_saveCSV):
 	DiracDeltaFunctions(self.domain)]
 	for f in fss:
 		d=Data(7,f)
-		print "Testing "+str(f)+"\n"
+		print("Testing "+str(f)+"\n")
 		saveDataCSV(fname, D=d)
 
    def test_multiFS(self):

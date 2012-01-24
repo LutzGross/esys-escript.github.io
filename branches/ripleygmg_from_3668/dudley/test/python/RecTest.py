@@ -81,7 +81,7 @@ for onElements in [False,True]:
                   c+=whereZero(x[1])+whereZero(x[1]-1.)
               error=TheTest(msh,c,reduce)
               text="Rectangle order = %d%s%s, periodic0= %d, periodic1= %d: error= %f"%(order,redtext,onElmtext,i0,i1,error)
-              print "@@ ",text
+              print("@@ ",text)
               if error>max_error: 
                   max_error=error
                   max_text=text
@@ -101,9 +101,9 @@ for onElements in [False,True]:
                   c+=whereZero(x[2])+whereZero(x[2]-1.)
                 error=TheTest(msh,c,reduce)
                 text="Brick order = %d%s%s, periodic0= %d, periodic1= %d, periodic2= %d: error= %f"%(order,redtext,onElmtext,i0,i1,i2,error)
-                print "@@ ",text
+                print("@@ ",text)
                 if error>max_error: 
                     max_error=error
                     max_text=text
 
-print "@@@@ maximum error for :",max_text
+print("@@@@ maximum error for :",max_text)

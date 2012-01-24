@@ -39,7 +39,7 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
    for name in files: 
        f=name.split(".")
        if f[0].startswith("mesh_") and f[-1]=="fly":
-          print "Reading "+os.path.join(MESH_DIRECTORY,name)
+          print("Reading "+os.path.join(MESH_DIRECTORY,name))
           dom=ReadMesh(os.path.join(MESH_DIRECTORY,name),optimize=True)
           for fs_name in ["ContinuousFunction", "Solution", "Function", "FunctionOnBoundary", "FunctionOnContactZero", "FunctionOnContactOne", 
                           "ReducedContinuousFunction", "ReducedSolution", "ReducedFunction", "ReducedFunctionOnBoundary", "ReducedFunctionOnContactZero", "ReducedFunctionOnContactOne"]:
@@ -75,5 +75,5 @@ for root, dirs, files in os.walk(MESH_DIRECTORY, topdown=False):
              try:
                  saveESD(datasetName, MESH_DIRECTORY, s=s, v=v, t=t)
              except:
-                 print "Could not save ESD file "+datasetName
+                 print("Could not save ESD file "+datasetName)
 
