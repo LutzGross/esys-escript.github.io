@@ -33,12 +33,12 @@ mesh generation using gmsh
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import design
+from . import design
 import tempfile
 import os
-from primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
+from .primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet, Ellipse
 from esys.escript import getMPIWorldMax, getMPIRankWorld
-from transformations import DEG
+from .transformations import DEG
 
 class Design(design.Design):
     """
@@ -75,24 +75,19 @@ class Design(design.Design):
        if self.__scriptname:
            os.unlink(self.__scriptname)
        if name == None:
+           self.__scriptname_set=False
            tmp_f_id=tempfile.mkstemp(suffix=".geo")
            self.__scriptname=tmp_f_id[1]
            os.close(tmp_f_id[0])
        else:
            self.__scriptname=name
-           self.setKeepFilesOn()
+           self.__scriptname_set=True
 
     def getScriptFileName(self):
        """
        Returns the name of the gmsh script file.
        """
        return self.__scriptname
-
-    def getMeshFileName(self):
-       """
-       Returns the name of the gmsh mesh file.
-       """
-       return self.__mshname
 
     def setOptions(self,algorithm=None, optimize_quality=True, smoothing=1, curvature_based_element_size=False, algorithm2D=None, algorithm3D=None, generate_hexahedra=False):
         """
@@ -117,12 +112,12 @@ class Design(design.Design):
         else:
            if not algorithm2D==None:
               if not algorithm == algorithm2D :
-                  raise ValueError,"argument algorithm (=%s) and algorithm2D (=%s) must have the same value if set."%(algorithm, algorithm2D)
+                  raise ValueError("argument algorithm (=%s) and algorithm2D (=%s) must have the same value if set."%(algorithm, algorithm2D))
            algorithm2D = algorithm
         if not algorithm2D in [ self.DELAUNAY, self.MESHADAPT, self.FRONTAL ]:
-            raise ValueError,"illegal 2D meshing algorithm %s."%algorithm2D
+            raise ValueError("illegal 2D meshing algorithm %s."%algorithm2D)
         if not algorithm3D in [ self.DELAUNAY, self.FRONTAL ]:
-            raise ValueError,"illegal 3D meshing algorithm %s."%algorithm3D
+            raise ValueError("illegal 3D meshing algorithm %s."%algorithm3D)
               
         self.__curvature_based_element_size=curvature_based_element_size
         self.__algo2D=algorithm2D
@@ -148,9 +143,11 @@ class Design(design.Design):
         """
         Cleans up.
         """
-        if not self.keepFiles() :
-            os.unlink(self.getScriptFileName())
-            os.unlink(self.getMeshFileName())
+        if not self.keepFiles():
+            if not self.__scriptname_set:
+                os.unlink(self.getScriptFileName())
+            if not self.__mshname_set:
+                os.unlink(self.getMeshFileName())
 
     def getCommandString(self):
         """
@@ -175,7 +172,7 @@ class Design(design.Design):
         Returns a handle to a mesh meshing the design. In the current
         implementation a mesh file name in gmsh format is returned.
         """
-        from gmshrunner import runGmsh
+        from .gmshrunner import runGmsh
         import shlex
         args=shlex.split(self.getCommandString())
         args[-1]=args[-1]%self.getScriptHandler()

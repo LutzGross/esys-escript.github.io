@@ -199,14 +199,14 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       """
       MaterialPropertyWithDifferential.__init__(self)
       if len(x) != len(y):
-	 raise ValueError,"length of interpolation nodes and value lists need to be identical."
+	 raise ValueError("length of interpolation nodes and value lists need to be identical.")
       if len(x) < 1 :
-	 raise ValueError,"length of interpolation nodes a list needs to at least one."
+	 raise ValueError("length of interpolation nodes a list needs to at least one.")
       
       x_ref=x[0]
       for i in range(1,len(x)):
 	 if x_ref >= x[i]:
-	    raise ValueError,"interpolation nodes need to be given in increasing order."
+	    raise ValueError("interpolation nodes need to be given in increasing order.")
 	 x_ref=x[i] 	 
       self.__x = x 
       self.__y = y
@@ -223,7 +223,7 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
 	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+	    raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       out=self.__x[0]
       for i in range(1,len(X)):
 	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1]) * (x-X[i-1]) + Y[i-1]
@@ -232,7 +232,7 @@ class InterpolationTable(MaterialPropertyWithDifferential):
           
       if self.__obeyBounds:
 	    if inf(m0) < 1 :
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+	       raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       else:
 	    out = out * m0 + X[-1] * (1-m0)
       return out
@@ -245,7 +245,7 @@ class InterpolationTable(MaterialPropertyWithDifferential):
       m0=whereNegative(x-x0)
       if self.__obeyBounds:
 	 if sup(m0) > 0:
-	    raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+	    raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       out=0.
       for i in range(1,len(X)):
 	  z=(Y[i]-Y[i-1])/(X[i]-X[i-1])
@@ -254,7 +254,7 @@ class InterpolationTable(MaterialPropertyWithDifferential):
      
       if self.__obeyBounds:
 	    if inf(m0) < 1:
-	       raise ValueError,"interpolation argument out of range [%e, %e]"%(X[0],X[-1])
+	       raise ValueError("interpolation argument out of range [%e, %e]"%(X[0],X[-1]))
       else:
 	    out = out * m0
       return out   
@@ -274,7 +274,7 @@ class Well(object):
        set up well 
        """
        if not len(schedule) == len(Q):
-           raise ValueError,"length of schedule and Q must match."
+           raise ValueError("length of schedule and Q must match.")
        self.__schedule=schedule
        self.__Q = Q
        self.__phase=phase
@@ -455,7 +455,7 @@ class DualPorosity(object):
          converged=False
          while n < self.__iter_max and not converged:
             u=self.solvePDE(dt)
-            if self.verbose: print "iteration step %d:"%n
+            if self.verbose: print("iteration step %d:"%n)
             converged=True
             for i in range(len(u)):
                if isinstance(u[i], Data):
@@ -470,10 +470,10 @@ class DualPorosity(object):
 	       else:
 	           rerr=norm_e
                if norm_e>self.__rtol * norm_u + 1.e-10: converged=False
-	       if self.verbose: print "   comp %i: change = %e (value = %e)"%(i, norm_e,norm_u)
+	       if self.verbose: print("   comp %i: change = %e (value = %e)"%(i, norm_e,norm_u))
 	    n+=1
 	    self.u=u
-         print "iteration completed."
+         print("iteration completed.")
          self.t+=dt
 
 
@@ -592,46 +592,46 @@ class PorosityOneHalfModel(DualPorosity):
          S_fw=1-S_fg
 
 	 if self.verbose: 
-	      print "p_f range = ",inf(p_f),sup(p_f) 
-	      print "S_fg range = ",inf(S_fg),sup(S_fg)
-	      print "S_fw range = ",inf(S_fw),sup(S_fw)
-	      print "c_mg range = ",inf(c_mg),sup(c_mg)
-              print "BHP =",BHP
-              print "q_gas =",q_gas
-              print "q_water =",q_water
+	      print("p_f range = ",inf(p_f),sup(p_f)) 
+	      print("S_fg range = ",inf(S_fg),sup(S_fg))
+	      print("S_fw range = ",inf(S_fw),sup(S_fw))
+	      print("c_mg range = ",inf(c_mg),sup(c_mg))
+              print("BHP =",BHP)
+              print("q_gas =",q_gas)
+              print("q_water =",q_water)
 
          k_fw=self.k_w(S_fw)
-       	 if self.verbose: print "k_fw range = ",inf(k_fw),sup(k_fw) 
+       	 if self.verbose: print("k_fw range = ",inf(k_fw),sup(k_fw)) 
 
 
          k_fg=self.k_g(S_fg)
-       	 if self.verbose: print "k_fg range = ",inf(k_fg),sup(k_fg) 
+       	 if self.verbose: print("k_fg range = ",inf(k_fg),sup(k_fg)) 
 
 	 mu_fw=self.mu_w(p_f)
-       	 if self.verbose: print "mu_fw range = ",inf(mu_fw),sup(mu_fw) 
+       	 if self.verbose: print("mu_fw range = ",inf(mu_fw),sup(mu_fw)) 
 
 	 mu_fg=self.mu_g(p_f)
-       	 if self.verbose: print "mu_fg range = ",inf(mu_fg),sup(mu_fg) 
+       	 if self.verbose: print("mu_fg range = ",inf(mu_fg),sup(mu_fg)) 
          
 
 	 phi_f   =self.phi_f.getValue(p_f)
 	 dphi_fdp=self.phi_f.getValueDifferential(p_f)
-       	 if self.verbose: print "phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp)) 
+       	 if self.verbose: print("phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp))) 
 	 
 	 rho_fw 	= self.rho_w.getValue(p_f)
 	 drho_fwdp	= self.rho_w.getValueDifferential(p_f)
-      	 if self.verbose: print "rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp)) 
+      	 if self.verbose: print("rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp))) 
 
          rho_fg = self.rho_g.getValue(p_f)
          rho_g_surf = self.rho_g.rho_surf
 	 drho_fgdp	= self.rho_g.getValueDifferential(p_f)
       	 if self.verbose: 
-      	        print "rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp)) 
-      	        print "rho_fg surf = ",rho_g_surf
+      	        print("rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp))) 
+      	        print("rho_fg surf = ",rho_g_surf)
 	      
 	 L_g = self.L_g(p_f)
 	 dL_gdp = self.L_g.getValueDifferential(p_f)
-      	 if self.verbose: print "L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp)) 
+      	 if self.verbose: print("L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp))) 
 	 	 
 	 A_fw = rho_fw * k_fw/mu_fw 
 	 A_fg = rho_fg * k_fg/mu_fg
@@ -710,28 +710,28 @@ class PorosityOneHalfModel(DualPorosity):
 	 y_dirac[0] =dt * F_fp_Y
 	 y_dirac[1] =dt * F_fs_Y 
 	 
-	 print "HHH D[0,0] = ",D[0,0]
-	 print "HHH D[0,1] = ",D[0,1]
-	 print "HHH D[0,2] = ",D[0,2]
-	 print "HHH D[1,0] = ",D[1,0]
-	 print "HHH D[1,1] = ",D[1,1]
-	 print "HHH D[1,2] = ",D[1,2]
-	 print "HHH D[2,0] = ",D[2,0]
-	 print "HHH D[2,1] = ",D[2,1]
-	 print "HHH D[2,2] = ",D[2,2]
-	 print "HHH A_fw = ",A_fw
-	 print "HHH A_fg = ",A_fg
-	 print "HHH A[0,0,0,0] = ",A[0,0,0,0]
-	 print "HHH A[0,1,0,1] = ",A[0,1,0,1]
-	 print "HHH A[1,0,1,0] = ",A[1,0,1,0]
-	 print "HHH A[1,1,1,1] = ",A[1,1,1,1]
-	 print "HHH Y[0] ",Y[0]
-	 print "HHH Y[1] ",Y[1]
-	 print "HHH Y[2] ",Y[2]
-         print "HHH F_fp_Y ",F_fp_Y
-         print "HHH F_fs_Y ",F_fs_Y
-         print "HHH F_mg_Y ",F_mg_Y
-	 print "HHH H = ",H
+	 print("HHH D[0,0] = ",D[0,0])
+	 print("HHH D[0,1] = ",D[0,1])
+	 print("HHH D[0,2] = ",D[0,2])
+	 print("HHH D[1,0] = ",D[1,0])
+	 print("HHH D[1,1] = ",D[1,1])
+	 print("HHH D[1,2] = ",D[1,2])
+	 print("HHH D[2,0] = ",D[2,0])
+	 print("HHH D[2,1] = ",D[2,1])
+	 print("HHH D[2,2] = ",D[2,2])
+	 print("HHH A_fw = ",A_fw)
+	 print("HHH A_fg = ",A_fg)
+	 print("HHH A[0,0,0,0] = ",A[0,0,0,0])
+	 print("HHH A[0,1,0,1] = ",A[0,1,0,1])
+	 print("HHH A[1,0,1,0] = ",A[1,0,1,0])
+	 print("HHH A[1,1,1,1] = ",A[1,1,1,1])
+	 print("HHH Y[0] ",Y[0])
+	 print("HHH Y[1] ",Y[1])
+	 print("HHH Y[2] ",Y[2])
+         print("HHH F_fp_Y ",F_fp_Y)
+         print("HHH F_fs_Y ",F_fs_Y)
+         print("HHH F_mg_Y ",F_mg_Y)
+	 print("HHH H = ",H)
 
 	 self.__pde.setValue(A=A, D=D, X=X, Y=Y, d_dirac=d_dirac , y_dirac=y_dirac)
 	 

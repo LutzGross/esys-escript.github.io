@@ -171,7 +171,7 @@ class LevelSet:
        phi = self.__PDE.getSolution()
     else:
        phi = self.__PDE.getSolution(dt, self.__phi)
-    print "LevelSet: Advection step done"
+    print("LevelSet: Advection step done")
     return phi
 
   #==============================================================================================
@@ -201,7 +201,7 @@ class LevelSet:
       phi = self.__reinitPDE.getSolution()
       g=grad(phi)
       error = Lsup(length(g)*whereNegative(abs(phi.interpolate(g.getFunctionSpace()))-3.0*self.__h))
-      print "LevelSet:reinitialization: iteration :", iter, " error:", error
+      print(("LevelSet:reinitialization: iteration :", iter, " error:", error))
       iter +=1
     return phi
 
@@ -327,7 +327,7 @@ class LevelSet2(object):
             # self.__reinitPde.setSolverMethod(preconditioner=LinearPDE.ILU0)
          #=======================================
          self.__updateInterface()
-         print "phi range:",inf(phi), sup(phi)
+         print(("phi range:",inf(phi), sup(phi)))
 
      def setFixedRegion(self,mask,contour=0):
          q=whereNonPositive(abs(self.__phi-contour)-self.__h)*mask
@@ -364,9 +364,9 @@ class LevelSet2(object):
             self.__fc.setTolerance(tolerance)
 
      def __reinitialise(self,phi):
-         print "reintialization started:"
+         print("reintialization started:")
          s=self.__makeInterface(phi,1.)
-         print "phi range:",inf(phi), sup(phi)
+         print(("phi range:",inf(phi), sup(phi)))
          g=grad(phi)
          w=s*g/(length(g)+EPSILON)
          #=======================================================
@@ -408,7 +408,7 @@ class LevelSet2(object):
              # dtau = 0.5*inf(Function(self.__domain).getSize())
          else:
              dtau = 0.5*inf(Function(self.__domain).getSize())
-         print "step size: dt = ",dtau,inf(abs(phi.interpolate(Function(self.__domain)))/abs(s-inner(w,grad(phi))))
+         print(("step size: dt = ",dtau,inf(abs(phi.interpolate(Function(self.__domain)))/abs(s-inner(w,grad(phi))))))
          iter =0
          # self.__reinitPde.setValue(q=whereNegative(abs(phi)-2*self.__h), r=phi)
          # self.__reinitPde.setValue(r=phi)
@@ -425,10 +425,10 @@ class LevelSet2(object):
                    # self.__reinitPde.setValue(Y = phi+dtau*(s-S),X=dtau**2/2*w*(s-S))
                    phi = self.__reinitPde.getSolution()
                  change = Lsup(phi-phi_old)/self.__diam
-                 print "phi range:",inf(phi), sup(phi)
-                 print "iteration :", iter, " change:", change
+                 print(("phi range:",inf(phi), sup(phi)))
+                 print(("iteration :", iter, " change:", change))
                  iter +=1
-         print "reintialization completed."
+         print("reintialization completed.")
          return phi
 
      def createParameter(self,value_negative=-1.,value_positive=1):
@@ -490,7 +490,7 @@ class LevelSet2(object):
         c =0
         #==============================================
         TVD=integrate(length(grad_phi))
-        print "initial range ",inf(self.__phi),sup(self.__phi),"error:",Lsup(1.-len_grad_phi),"volume =",vol,TVD
+        print(("initial range ",inf(self.__phi),sup(self.__phi),"error:",Lsup(1.-len_grad_phi),"volume =",vol,TVD))
         # saveVTK("test.%s.vtu"%c,l=length(grad(self.__phi,fs))-1,s=s,phi=self.__phi)
 
         dtau=f*inf(h/abs(s))
@@ -519,7 +519,7 @@ class LevelSet2(object):
           diff=(vol-vol_old)
           r=Lsup(length(grad(self.__phi))-1.)
           TVD=integrate(length(grad(self.__phi,fs)))
-          print "iteration :", c, "range ",inf(self.__phi),sup(self.__phi),"error :",r,"volume change:",diff,TVD
+          print(("iteration :", c, "range ",inf(self.__phi),sup(self.__phi),"error :",r,"volume change:",diff,TVD))
           # saveVTK("test.%s.vtu"%(c+1),l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs))
           c += 1
         return
@@ -553,7 +553,7 @@ class LevelSet2(object):
         r=Lsup(length(grad(self.__phi))-1.)
         vol,vol_old=self.getVolumeOfNegativeDomain(),vol
         diff=(vol-vol_old)/vol
-        print "iteration :", inf(self.__phi),sup(self.__phi),r,diff
+        print(("iteration :", inf(self.__phi),sup(self.__phi),r,diff))
         # saveVTK("test.%s.vtu"%0,l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs),s2=s2)
         return
         #=============================================

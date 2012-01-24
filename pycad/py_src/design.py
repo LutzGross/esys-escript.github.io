@@ -33,7 +33,7 @@ for a mesh generator.
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from primitives import Primitive, ReversePrimitive, PropertySet, Point, Manifold1D, Manifold2D, Manifold3D
+from .primitives import Primitive, ReversePrimitive, PropertySet, Point, Manifold1D, Manifold2D, Manifold3D
 from xml.dom import minidom
 import tempfile, os
 
@@ -56,7 +56,7 @@ class TagMap(object):
       to a name.
       """
       self.__mapping={}
-      for tag, name in mapping.items():
+      for tag, name in list(mapping.items()):
           if not isinstance(tag, int):
               raise TypeError("tag needs to be an int")
           if not isinstance(name, str):
@@ -70,7 +70,7 @@ class TagMap(object):
       the mapping will be overwritten. Otherwise a new mapping <tag> -> <name>
       is set. Notice that a single name can be assigned to different tags.
       """
-      for name, tag in kwargs.items():
+      for name, tag in list(kwargs.items()):
           if not isinstance(tag, int):
              raise TypeError("tag needs to be an int")
           self.__mapping[tag]=name
@@ -81,10 +81,10 @@ class TagMap(object):
         a list of all tags is returned.
         """
         if name == None:
-           out=self.__mapping.keys()
+           out=list(self.__mapping.keys())
         else:
            out=[]
-           for tag, arg in self.__mapping.items():
+           for tag, arg in list(self.__mapping.items()):
              if arg == name: out.append(tag)
         return out
 
@@ -120,7 +120,7 @@ class TagMap(object):
         """
         out={}
         for tag in self.__mapping:
-           if kwargs.has_key(self.__mapping[tag]):
+           if self.__mapping[tag] in kwargs:
               out[tag]=kwargs[self.__mapping[tag]]
            else:
               out[tag]=default
@@ -133,15 +133,15 @@ class TagMap(object):
         which map onto name with unspecified values.
         """
         d=self.map(default=default,**kwargs)
-        for t,v in d.items():
+        for t,v in list(d.items()):
              data.setTaggedValue(t,v)
 
     def passToDomain(self,domain):
         """
         Passes the tag map to the `esys.escript.Domain` ``domain``.
         """
-        for tag, name in self.__mapping.items():
-          print "Tag",name, "is mapped to id ", tag
+        for tag, name in list(self.__mapping.items()):
+          print("Tag",name, "is mapped to id ", tag)
           domain.setTagMap(name,tag)
 
     def toDOM(self,dom):
@@ -150,7 +150,7 @@ class TagMap(object):
          """
          tm=dom.createElement("TagMap")
          dom.appendChild(tm)
-         for tag,name in self.getMapping().items():
+         for tag,name in list(self.getMapping().items()):
              item_dom=dom.createElement("map")
              tag_dom=dom.createElement("tag")
              name_dom=dom.createElement("name")
@@ -393,7 +393,7 @@ class Design(object):
 
        """
        if not format in [ self.GMSH, self.IDEAS, self.VRML, self.STL, self.NASTRAN, self.MEDIT, self.CGNS, self.PLOT3D, self.DIFFPACK] :
-           raise ValueError,"unknown file format %s."%format
+           raise ValueError("unknown file format %s."%format)
        self.__fileformat=format
            
     def getFileFormat(self):
@@ -409,12 +409,13 @@ class Design(object):
        if self.__mshname:
            os.unlink(self.__mshname)
        if name == None:
+           self.__mshname_set=False
            tmp_f_id=tempfile.mkstemp(suffix="."+self.getFileFormat())
            self.__mshname=tmp_f_id[1]
            os.close(tmp_f_id[0])
        else:
            self.__mshname=name
-           self.setKeepFilesOn()
+           self.__mshname_set=True
 
     def getMeshFileName(self):
        """

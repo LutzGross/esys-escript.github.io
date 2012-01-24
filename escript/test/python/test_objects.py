@@ -113,11 +113,11 @@ class Test_TableInterpolation(unittest.TestCase):
 		ywidth=(ymax-ymin)/(self.yn-1)
 		zwidth=(zmax-zmin)/(self.zn-1)		
 		table=[]
-		for k in xrange(self.zn):
+		for k in range(self.zn):
 		    face=[]
-		    for j in xrange(self.yn):
+		    for j in range(self.yn):
 			row=[]
-			for i in xrange(self.xn):
+			for i in range(self.xn):
 				row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
 			face.append(row)
 		    table.append(face)
@@ -148,9 +148,9 @@ class Test_TableInterpolation(unittest.TestCase):
 		xwidth=(xmax-xmin)/(self.xn-1)
 		ywidth=(ymax-ymin)/(self.yn-1)
 		table=[]
-		for j in xrange(self.yn):
+		for j in range(self.yn):
 		      row=[]
-		      for i in xrange(self.xn):
+		      for i in range(self.xn):
 	   	 	row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
 	    	      table.append(row)
 	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
@@ -175,7 +175,7 @@ class Test_TableInterpolation(unittest.TestCase):
 		xmin=inf(x)
 		xwidth=(xmax-xmin)/(self.xn-1)
 		table=[]
-		for i in xrange(self.xn):
+		for i in range(self.xn):
 	   	   table.append(v0+v1*xwidth*i)
 	    	ref=v0+v1*(x-xmin)
 		lsupref=Lsup(ref)

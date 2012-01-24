@@ -70,7 +70,7 @@ else:
     dd=[-cos(ALPHA),0.,-sin(ALPHA)]
 r=sqrt(length(x-X0)**2-inner(X0-x,S)**2)
 v=V_MAX*r*dd
-mask=MaskFromBoundaryTag(dom,"subduction")*[ 1. for i in xrange(DIM) ]
+mask=MaskFromBoundaryTag(dom,"subduction")*[ 1. for i in range(DIM) ]
 #
 #  back of the domain
 #

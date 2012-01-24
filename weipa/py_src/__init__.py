@@ -31,7 +31,7 @@ def interpolateEscriptData(domain, data):
     from esys.escript import ContinuousFunction, ReducedContinuousFunction
     from esys.escript.util import interpolate
     new_data={}
-    for n,d in data.items():
+    for n,d in list(data.items()):
         if not d.isEmpty():
             fs=d.getFunctionSpace()
             if domain is None:
@@ -55,7 +55,7 @@ def createDataset(domain=None, **data):
     dataset=EscriptDataset()
     domain,new_data=interpolateEscriptData(domain, data)
     dataset.setDomain(domain)
-    for n,d in sorted(new_data.iteritems()):
+    for n,d in sorted(new_data.items()):
         #TODO: data units are not supported here yet
         dataset.addData(d, n, "")
     return dataset
@@ -149,7 +149,7 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_mesh
         ms=metadata
     if not metadata_schema is None:
         if hasattr(metadata_schema, 'items'):
-            for i,p in metadata_schema.items():
+            for i,p in list(metadata_schema.items()):
                 ss="%s xmlns:%s=\"%s\""%(ss, i, p)
         else:
             ss=metadata_schema

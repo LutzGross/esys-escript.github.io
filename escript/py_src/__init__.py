@@ -19,9 +19,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from escript import *
-from util import *
-from datamanager import DataManager
+from .escript import *
+from .util import *
+from .datamanager import DataManager
 
 # To have this function called automatically
 def escriptLogMemoryStatusNow(prefix='memescript'):
