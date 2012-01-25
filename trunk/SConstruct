@@ -421,6 +421,13 @@ if not conf.CheckFunc('Py_Exit'):
     print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
     Exit(1)
 
+# reuse conf to check for numpy header (optional)
+if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+    conf.env['numpy_h']=True
+else:
+    conf.env['numpy_h']=False
+
 # Commit changes to environment
 env = conf.Finish()
 
@@ -669,7 +676,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
+for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit','vsl_random':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:
@@ -686,7 +693,10 @@ elif env['gmsh']=='s':
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")
-print("      vsl_random:  %s"%env['vsl_random'])
+if env['numpy_h']:
+    print("   numpy headers:  FOUND")
+else:
+    print("   numpy headers:  NOT FOUND")
      
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
