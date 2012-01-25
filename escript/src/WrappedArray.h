@@ -37,6 +37,7 @@ public:
 	double getElt(unsigned int i, unsigned int j, unsigned int k, unsigned int m) const;
 	void convertArray() const;
 private:
+	template<typename T> void convertNumpyArray(const T* array) const;
 	const boost::python::object& obj;
 	int rank;
 	escript::DataTypes::ShapeType shape;
