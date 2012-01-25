@@ -83,6 +83,8 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
 Rectangle::~Rectangle()
 {
+    Paso_SystemMatrixPattern_free(m_pattern);
+    Paso_Connector_free(m_connector);
 }
 
 string Rectangle::getDescription() const

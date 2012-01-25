@@ -710,7 +710,6 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     Paso_SystemMatrix* matrix = Paso_SystemMatrix_alloc(type, pattern,
             row_blocksize, column_blocksize, FALSE);
     paso::checkPasoError();
-    Paso_SystemMatrixPattern_free(pattern);
     escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
                 row_functionspace, column_blocksize, column_functionspace));
     return sma;

@@ -98,6 +98,8 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 
 Brick::~Brick()
 {
+    Paso_SystemMatrixPattern_free(m_pattern);
+    Paso_Connector_free(m_connector);
 }
 
 string Brick::getDescription() const
