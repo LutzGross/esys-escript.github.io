@@ -3440,7 +3440,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     }
     if (table.getRank()!=2)
     {
-	throw DataException("Table for 2D interpolation must be 3D");
+	throw DataException("Table for 2D interpolation must be 2D");
     }
     if ((Astep<=0) || (Bstep<=0))
     {
