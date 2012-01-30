@@ -6228,11 +6228,12 @@ def reorderComponents(arg,index):
 
 def showEscriptParams():
     """
-    Displays the parameters escript recognises with an explanation.
+    Displays the parameters escript recognises with an explanation and their
+    current value.
     """
     p=listEscriptParams()
-    for name,desc in p:
-	print((name+':\t'+desc))
+    for name,value,desc in p:
+	print('%s (=%s): %s'%(name, value, desc))
 
 #Lazy related things
 #These are just wrappers
