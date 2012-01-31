@@ -37,6 +37,20 @@ class Evaluator:
         for ex in expressions:
             self.addExpression(ex)
 
+    def __getstate__(self):
+        mydict=self.__dict__.copy()
+        # lambda functions cannot be pickled
+        mydict['lambdas']=[]
+        return mydict
+
+    def __setstate__(self, dict):
+        expressions=dict['expressions']
+        dict['expressions']=[]
+        self.__dict__.update(dict)
+        # regenerate lambdas
+        for ex in expressions:
+            self.addExpression(ex)
+
     def addExpression(self, expression):
         """
         Adds an expression to this evaluator.
