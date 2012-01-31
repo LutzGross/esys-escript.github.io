@@ -32,7 +32,7 @@ some basic shapes.
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from primitives import *
+from .primitives import *
 
 def Brick(start,end):
     """

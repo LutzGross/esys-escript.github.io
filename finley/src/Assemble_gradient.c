@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assemblage jacobiens: calculate the gradient of nodal data at quadrature points */
+/*    assemblage jacobians: calculate the gradient of nodal data at quadrature points */
 
 /**************************************************************/
 
@@ -107,7 +107,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes, Finley_ElementFile* elemen
       }  else if (!isExpanded(grad_data)) {
            Finley_setError(TYPE_ERROR,"Finley_Assemble_gradient: expanded Data object is expected for output data.");
       } else if (! (s_offset+numShapes <= numShapesTotal)) {
-           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: nodes per element is inconsistent with number of jacobeans.");
+           Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
       } else if (! (s_offset+numShapes <= numShapesTotal)) {
            Finley_setError(SYSTEM_ERROR,"Finley_Assemble_gradient: offset test failed.");
       }

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Paso: system matrix pattern                            */
+/*   Paso: distribution                                       */
 
 /**************************************************************/
 
@@ -78,5 +78,6 @@ double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t 
 
 PASO_DLL_API
 dim_t Paso_Distribution_numPositives(const double* x, const Paso_Distribution *in, const dim_t block );
+
 #endif
 

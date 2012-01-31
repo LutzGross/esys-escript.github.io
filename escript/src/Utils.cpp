@@ -435,10 +435,9 @@ bool append)
     } catch (...)
     {
 	error=1;
-#ifndef ESYS_MPI
-    (void) error;
-	throw;
-#endif
+	if (data[0].getDomain()->getMPISize()==1) {
+            throw;
+        }
     }
 #ifdef ESYS_MPI
     MPI_Comm com=data[0].getDomain()->getMPIComm();
@@ -453,6 +452,7 @@ bool append)
 
     // at this point os will contain the text to be written
 #ifndef ESYS_MPI
+    (void) error;
 
     std::ofstream ofs;
     if (append)

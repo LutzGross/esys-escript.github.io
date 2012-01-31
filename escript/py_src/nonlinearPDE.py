@@ -276,6 +276,7 @@ class NonlinearPDE(object):
                     I,J=shape
                     K,L=u.grad().getShape()
                     A=numpy.empty((I,J,K,L), dtype=object)
+                    ttt0=time()
                     for i in range(I):
                         for j in range(J):
                             for k in range(K):
@@ -291,8 +292,13 @@ class NonlinearPDE(object):
                                         #except KeyError:
                                         #    A[i,j,k,l]=0
 
+                    self.trace("Computing A took %f seconds."%(time()-ttt0))
+                    ttt0=time()
                     A=Symbol(A).expand() #.simplify()
+                    self.trace("Expanding A took %f seconds."%(time()-ttt0))
+                    ttt0=time()
                     B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).expand() #simplify()
+                    self.trace("Expanding B took %f seconds."%(time()-ttt0))
 
                 if name=='X_reduced':
                     self.coeffs['A_reduced']=A
@@ -329,6 +335,7 @@ class NonlinearPDE(object):
                     I,=shape
                     J,K=u.grad().getShape()
                     C=numpy.empty((I,J,K), dtype=object)
+                    ttt0=time()
                     for i in range(I):
                         for j in range(J):
                             for k in range(K):
@@ -337,8 +344,13 @@ class NonlinearPDE(object):
                                 else:
                                     tmp=dYdu[i,j].expand().coeff(dgdu[j,j,k])
                                     C[i,j,k]=0 if tmp is None else tmp
+                    self.trace("Computing C took %f seconds."%(time()-ttt0))
+                    ttt0=time()
                     C=Symbol(C).simplify()
+                    self.trace("Simplifying C took %f seconds."%(time()-ttt0))
+                    ttt0=time()
                     D=(dYdu-C.tensorProduct(dgdu.transpose(1),2)).simplify()
+                    self.trace("Simplifying D took %f seconds."%(time()-ttt0))
 
                 if name=='Y_reduced':
                     self.coeffs['C_reduced']=C

@@ -52,7 +52,7 @@ typedef struct Paso_SparseMatrix {
 
   double *val;         /* this is used for classical CSR or CSC */
 
-  index_t solver_package;  /* package controling the solver pointer */
+  index_t solver_package;  /* package controlling the solver pointer */
   void* solver_p;  /* pointer to data needed by a solver */
 
 } Paso_SparseMatrix;

@@ -21,7 +21,7 @@
 /*	p_ptr: the pointer to a vector of locations that    */
 /*	       start a row.				    */
 /*	p_idx: the pointer to the column indices for each   */
-/*	       of the rows, and is ordered by rows.	    */
+/*	       of the rows, ordered by rows.	            */
 /*	p_val: the pointer to the data corresponding 	    */
 /*	       directly to the column entries in p_idx.     */
 /************************************************************/
@@ -47,14 +47,13 @@ void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix* A, index_t** p_ptr,
       if (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
           Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(A, p_ptr, p_idx, p_val);
       } else {
-          Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported. ");
+          Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
       }
   } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
-      Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: TRILINOS is not supported. ");
+      Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: TRILINOS is not supported.");
   } else {
-      Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: CRS is not supported. ");
+      Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_mergeMainAndCouple: CRS is not supported.");
   }
-  return;
 }
 
 
@@ -120,7 +119,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   coupler= Paso_Coupler_alloc(A->col_coupler->connector, 1);
   Paso_Coupler_startCollect(coupler, rows);
 
-  /* initalization, including allocate arrays "ptr", "index" and "val" */
+  /* initialization, including allocate arrays "ptr", "index" and "val" */
   main_ptr=A->mainBlock->pattern->ptr;
   main_idx=A->mainBlock->pattern->index;
   main_val=A->mainBlock->val;
@@ -167,7 +166,6 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
 
   TMPMEMFREE(rows);
   Paso_Coupler_free(coupler);
-  return;
 }
 
 
@@ -186,7 +184,5 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix* A, inde
   index_t *couple_global=NULL;
   Paso_Coupler* coupler=A->col_coupler;
 */
-
-  return;
 }
 

@@ -675,7 +675,7 @@ inline int toSiloElementType(int type)
 //
 bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
                                  const StringVec& labels,
-                                 const StringVec& units)
+                                 const StringVec& units, bool writeMeshData)
 {
 #if USE_SILO
     if (numElements == 0)
@@ -738,36 +738,38 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
     if (ret != 0)
         return false;
 
-    // write out the element-centered variables
-    varName = name + string("_Color");
-    ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&color[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
-            NULL);
-    if (ret == 0) {
-        varName = name + string("_Id");
+    // write out the element-centered variables if enabled
+    if (writeMeshData) {
+        varName = name + string("_Color");
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&ID[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
-            NULL);
-    }
-    if (ret == 0) {
-        varName = name + string("_Owner");
-        ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&owner[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
-            NULL);
-    }
-    if (ret == 0) {
-        varName = name + string("_Tag");
-        ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
-            (float*)&tag[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
-            NULL);
+                (float*)&color[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+                NULL);
+        if (ret == 0) {
+            varName = name + string("_Id");
+            ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
+                (float*)&ID[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+                NULL);
+        }
+        if (ret == 0) {
+            varName = name + string("_Owner");
+            ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
+                (float*)&owner[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+                NULL);
+        }
+        if (ret == 0) {
+            varName = name + string("_Tag");
+            ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
+                (float*)&tag[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
+                NULL);
+        }
     }
 
     if (reducedElements) {
-        reducedElements->writeToSilo(dbfile, siloPath, labels, units);
+        reducedElements->writeToSilo(dbfile, siloPath, labels, units, writeMeshData);
     }
 
     // "Elements" is a special case
-    if (name == "Elements") {
+    if (writeMeshData && name == "Elements") {
         nodeMesh->writeToSilo(dbfile);
     }
 

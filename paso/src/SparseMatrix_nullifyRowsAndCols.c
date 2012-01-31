@@ -14,11 +14,11 @@
 
 /**************************************************************/
 
-/* Paso: SparseMatrix                                       */
+/* Paso: SparseMatrix                                         */
 
-/*  nullify rows and columns in the matrix                    */
+/*  Nullify rows and columns in the matrix                    */
 
-/*  the rows and columns are marked by positive values in     */
+/*  The rows and columns are marked by positive values in     */
 /*  mask_row and mask_col. Values on the main diagonal        */
 /*  which are marked to set to zero by both mask_row and      */
 /*  mask_col are set to main_diagonal_value                   */
@@ -56,7 +56,7 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double*
   index_t irow, iptr, icol;
   #pragma omp parallel for private(irow, iptr,icol) schedule(static)
   for (irow=0;irow< A->pattern->numOutput;irow++) {
-      /* TODO: test mask_row here amd not inside every loop */
+      /* TODO: test mask_row here and not inside every loop */
       #pragma ivdep
       for (iptr=A->pattern->ptr[irow]-index_offset;iptr<A->pattern->ptr[irow+1]-index_offset; iptr++) {
         icol=A->pattern->index[iptr]-index_offset;

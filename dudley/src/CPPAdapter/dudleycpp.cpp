@@ -19,10 +19,11 @@ extern "C" {
 #include "../Dudley.h"
 }
 
+#include <pasowrap/SystemMatrixAdapter.h>
+#include <pasowrap/TransportProblemAdapter.h>
+
 #include "MeshAdapter.h"
 #include "MeshAdapterFactory.h"
-#include "SystemMatrixAdapter.h"
-#include "TransportProblemAdapter.h"
 
 #include "DudleyAdapterException.h"
 // #include "esysUtils/EsysException.h"
@@ -284,20 +285,4 @@ args("filename" ,"arg",  "metadata", "metadata_schema"),
       .def("MPIBarrier",&dudley::MeshAdapter::MPIBarrier,"Wait until all processes have reached this point")
       .def("onMasterProcessor",&dudley::MeshAdapter::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
-  class_<dudley::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
-      ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)
-      .def("print_matrix_info",&dudley::SystemMatrixAdapter::Print_Matrix_Info,(arg("full")=false),"prints information about a system matrix")
-      .def("nullifyRowsAndCols",&dudley::SystemMatrixAdapter::nullifyRowsAndCols)
-      .def("resetValues",&dudley::SystemMatrixAdapter::resetValues, "resets the matrix entries")
-      .def("saveMM",&dudley::SystemMatrixAdapter::saveMM,args("fileName"), 
-"writes the matrix to a file using the Matrix Market file format")
-      .def("saveHB",&dudley::SystemMatrixAdapter::saveHB, args("filename"),
-"writes the matrix to a file using the Harwell-Boeing file format");
-
-  class_<dudley::TransportProblemAdapter, bases<escript::AbstractTransportProblem> >
-      ("TransportProblemAdapter","",no_init)
-      .def("getSafeTimeStepSize",&dudley::TransportProblemAdapter::getSafeTimeStepSize)
-      .def("getUnlimitedTimeStepSize",&dudley::TransportProblemAdapter::getUnlimitedTimeStepSize)
-      .def("resetTransport",&dudley::TransportProblemAdapter::resetTransport,
-"resets the transport operator typically as they have been updated");
 }

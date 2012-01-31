@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assemblage routines: copies data between elements       */
+/*    assemblage routines: averages data between elements       */
 
 /**************************************************************/
 

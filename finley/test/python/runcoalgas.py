@@ -220,7 +220,7 @@ wellspecs = {
 
 
 # print input
-print("<%s> Execution started."%time.asctime())
+print(("<%s> Execution started."%time.asctime()))
 DIM=2
 domain=Rectangle(N_X, N_Y, l0=L_X, l1=L_Y)
 
@@ -229,27 +229,27 @@ for I in wellspecs:
      domain.setTagMap(I, N)
      N+=1
      domain.addDiracPoint(wellspecs[I]["X0"][:DIM], I)
-     print("<%s> Well %s introduced to domain."%(time.asctime(), I))
+     print(("<%s> Well %s introduced to domain."%(time.asctime(), I)))
      
 
 #domain=Brick(N_X, N_Y,N_Z,l0=L_X, l1=L_Y,l2=L_Z)
 
-print("<%s> Domain has been generated."%time.asctime())
+print(("<%s> Domain has been generated."%time.asctime()))
 
-print "length x-direction = %f km"%(sup(domain.getX()[0])/U.km)
-print "cell size in x direction = %f m"%(CELL_X/U.m)
-print "length y-direction = %f km"%(sup(domain.getX()[1])/U.km)
-print "cell size in y direction = %f m"%(CELL_Y/U.m)
-print "fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy))
-print "fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy))
-print "fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy))
+print("length x-direction = %f km"%(sup(domain.getX()[0])/U.km))
+print("cell size in x direction = %f m"%(CELL_X/U.m))
+print("length y-direction = %f km"%(sup(domain.getX()[1])/U.km))
+print("cell size in y direction = %f m"%(CELL_Y/U.m))
+print("fracture permeability in x direction= %f mD"%(PERM_F_X/(U.mDarcy)))
+print("fracture permeability in y direction= %f mD"%(PERM_F_Y/(U.mDarcy)))
+print("fracture permeability in z direction= %f mD"%(PERM_F_Z/(U.mDarcy)))
 
 
 mkDir(OUTPUT_DIR)
 
 
 
-print("<%s> Mesh set up completed."%time.asctime())
+print(("<%s> Mesh set up completed."%time.asctime()))
 well_P1=VerticalPeacemanWell('P1', domain, BHP_limit=wellspecs['P1' ]["BHP"], 
 							    Q=wellspecs['P1']["Q"], 
 							    r=wellspecs['P1']["r"], 
@@ -283,7 +283,7 @@ model.setInitialState(S_fg=0,  c_mg=None, p_top=p_top, p_bottom=p_bottom)
 model.getPDEOptions().setVerbosityOn()
 model.getPDEOptions().setSolverMethod(model.getPDEOptions().DIRECT)
 model.setIterationControl(iter_max=10, rtol=1.e-4, verbose=True)
-print "<%s> Problem set up completed."%time.asctime()
+print("<%s> Problem set up completed."%time.asctime())
 t=0
 n_t = 0
 
@@ -292,14 +292,14 @@ p, S_fg, c_mg, BHP, q_gas,q_water =model.getState()
 if SAVE_VTK:
    FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%n_t)
    saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-   print "<%s> Initial state saved to file %s."%(time.asctime(),FN)
-print "EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
-print "DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+   print("<%s> Initial state saved to file %s."%(time.asctime(),FN))
+print("EEE", t/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+print("DDD", t/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
 
 
 
 for dt in DT:
-  print "<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day)
+  print("<%s>Time step %d, time = %e days started:"%(time.asctime(), n_t+1, (t+dt)/U.day))
   
   model.update(dt)
 
@@ -308,9 +308,9 @@ for dt in DT:
   if SAVE_VTK:
      FN=os.path.join(OUTPUT_DIR, "state.%d.vtu"%(n_t+1))
      saveVTK(FN,p=p, S_fg=S_fg, c_mg=c_mg)
-     print "<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN )
-  print "EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3
-  print "DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day
+     print("<%s>State %s saved to file %s."%(time.asctime(),n_t+1,FN ))
+  print("EEE", (t+dt)/U.day, well_P1.locator(p)/U.psi, well_P1.locator(S_fg),  well_P1.locator(c_mg)/U.Mscf*U.ft**3)
+  print("DDD", (t+dt)/U.day, well_P1.locator(BHP)/U.psi, well_P1.locator(q_gas)/U.Mcf*U.day,  well_P1.locator(q_water)/U.Barrel*U.day)
 
   n_t+=1
   t+=dt

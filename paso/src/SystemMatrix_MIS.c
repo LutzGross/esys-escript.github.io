@@ -12,11 +12,11 @@
 #define MISSTRING(x) ((x==MISIN)?"IN":((x==MISOUT)?"OUT":"UNKNOWN"))
 
 
-/* returns the nodes in this system matrix which connect to things outside the main block
-   the reference parameter count will be set to the number of nodes in the return value.
-   Cleanup of return value is the callers responsibility.
+/* Returns the nodes in this system matrix which connect to things outside the main block.
+   The reference parameter count will be set to the number of nodes in the return value.
+   Cleanup of return value is the caller's responsibility.
    
-   This routine assumes that the System matrix is in default format with a CSR col_coupleBlock 
+   This routine assumes that the System matrix is in default format with a CSR col_coupleBlock.
 */
 index_t* Paso_SparseMatrix_getBorderNodes(Paso_SystemMatrix* A, index_t* count) {
    const index_t MAXNEIGHBOURS=A->col_coupleBlock->len;
@@ -38,9 +38,9 @@ index_t* Paso_SparseMatrix_getBorderNodes(Paso_SystemMatrix* A, index_t* count) 
 }
 
 
-/* takes in a list of border nodes and weights and computes the MIS for all border ndoes
-   on all ranks. It does this one node at a time. Later this should use rank colouring
-   to do a number of ranks at once.
+/* Takes in a list of border nodes and weights and computes the MIS for all
+ * border nodes on all ranks. It does this one node at a time. Later this
+ * should use rank colouring to do a number of ranks at once.
 */
 void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, index_t bordercount, double* weights, index_t n) {
     index_t i=0;
@@ -52,7 +52,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
     double *remote_values=NULL;
     #endif
     
-    if (A->type!=MATRIX_FORMAT_DEFAULT) {		/* We only support CSR matricies here */
+    if (A->type!=MATRIX_FORMAT_DEFAULT) {		/* We only support CSR matrices here */
         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_CalcBorderMIS: Symmetric matrix patterns are not supported.");      
     }
     
@@ -105,7 +105,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 
 static double Paso_Pattern_mis_seed=.4142135623730951;
 
-/* Return a list of nodes which belong the a maximal independent set.
+/* Return a list of nodes which belong to a maximal independent set.
    Note: Only nodes local to this rank will be returned.
 
    Caller is responsible for cleaning up return value.
@@ -140,7 +140,7 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
 	weights[i]=0.5;
     }
    /* This loop will use a different memory access pattern to the setup
-      ie a NUMA problem. However I'm gambling that the border is small and
+      i.e. a NUMA problem. However I'm gambling that the border is small and
       that the memory won't be relocated.
    */
     #pragma omp parallel for schedule(static) private(i)
@@ -181,7 +181,7 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
 		}
 	}
 
-        /* Go through and mark all the neighbours of nodes definitly in */
+        /* Go through and mark all the neighbours of nodes definitely in */
 	#pragma omp parallel for schedule(static) private(i)
 	for (i=0;i<n;++i) {
 		if (weights[i]==MISIN) {
@@ -220,3 +220,4 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     *set=mis;
     return missize;
 }
+

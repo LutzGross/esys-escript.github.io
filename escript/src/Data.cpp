@@ -3428,7 +3428,6 @@ Data::interpolateFromTable1D(const WrappedArray& table, double Amin, double Aste
 	return res;
 }
 
-		
 Data
 Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Astep,
                        double undef, Data& B, double Bmin, double Bstep, bool check_boundaries)
@@ -3445,14 +3444,15 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     }
     if ((Astep<=0) || (Bstep<=0))
     {
-	throw DataException("Astep and Bstep must be postive");
+	throw DataException("All step components must be strictly positive.");
     }
     if (getFunctionSpace()!=B.getFunctionSpace())
     {
 	Data n=B.interpolate(getFunctionSpace());
 	return interpolateFromTable2D(table, Amin, Astep, undef, 
-		n , Bmin, Bstep, check_boundaries);
+		n , Bmin, Bstep, check_boundaries);      
     }
+
     if (!isExpanded())
     {
 	expand();
@@ -3481,8 +3481,9 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
     }
     if (!error)
     {
-	int twx=ts[0]-1;	// table width x
-	int twy=ts[1]-1;	// table width y
+	int twx=ts[1]-1;	// table width x
+	int twy=ts[0]-1;	// table width y
+
 	bool haserror=false;
 	int l=0;
 	#pragma omp parallel for private(l) shared(res,rdat, adat, bdat) schedule(static) 
@@ -3498,11 +3499,11 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		int y=static_cast<int>(((b-Bmin)/Bstep));
                 if (check_boundaries)
 		{
-			    if ( (a<Amin) || (b<Bmin) || (x<0) || (y<0) )
+			    if ( (a<Amin) || (b<Bmin) || (x<0) || (y<0))
 			    {
 				lerror=1;
 			    }
-			    else if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy) )
+			    else if ( (a>Amin+Astep*twx) || (b>Bmin+Bstep*twy))
 			    {
 				lerror=4;
 			    }
@@ -3511,76 +3512,46 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		{
                     if (x<0) x=0;
                     if (y<0) y=0;
+
                     if (x>twx) x=twx;
 		    if (y>twy) y=twy;
 		    try
 		    {
-           		if (x == twx )
-		   	{
-                     	    if (y == twy )
-			    {
-				double sw=table.getElt(x,y);
-				if ((sw>undef))
-				{
-					lerror=2;
-				}
-				else
-				{
-					(*rdat)[l]=sw;
-				}
-                     	    } 
-			    else
-			    {
-				double sw=table.getElt(x,y);
-				double nw=table.getElt(x,y+1);
-				if ((sw>undef) || (nw>undef))
-				{
-					lerror=2;
-				}
-				else
-				{
-					double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
-					(*rdat)[l]=((1-lb)*sw + (1+lb)*nw )/2.;
-				}
-                            }
-                    	}
-		    	else	// x != twx
-		    	{
-				if (y == twy )
-				{
-				    double sw=table.getElt(x,y);
-				    double se=table.getElt(x+1,y);
-				    if ((sw>undef) || (se>undef) )
-				    {
-					lerror=2;
-				    }
-				    else
-				    {
-					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-					(*rdat)[l]=((1-la)*sw + (1+la)*se )/2;
-				    }
-				}
-				else
-				{
-			    	    double sw=table.getElt(x,y);
-		            	    double nw=table.getElt(x,y+1);
-				    double se=table.getElt(x+1,y);
-				    double ne=table.getElt(x+1,y+1);
-				    if ((sw>undef) || (nw>undef) || (se>undef) || (ne>undef))
-				    {
-					lerror=2;
-		            	    }
-			    	    else
-			    	    {
-					// map x*Astep <= a << (x+1)*Astep to [-1,1] 
-					// same with b
-					double la = 2.0*(a-Amin-(x*Astep))/Astep-1;
-					double lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
-					(*rdat)[l]=((1-la)*(1-lb)*sw + (1-la)*(1+lb)*nw +
-					    (1+la)*(1-lb)*se + (1+la)*(1+lb)*ne)/4;
-			    	    }
-				}  //else  (y != twy)
-		     	}	// else x != twx
+			int nx=x+1;
+			int ny=y+1;
+
+			double la=0;	/* map position of a between x and nx to [-1,1] */
+			double lb=0;
+			double weight=4;
+
+			// now we work out which terms we should be considering
+			bool usex=(x!=twx);
+			bool usey=(y!=twy);
+
+			la = 2.0*(a-Amin-(x*Astep))/Astep-1;
+			lb = 2.0*(b-Bmin-(y*Bstep))/Bstep-1;
+
+
+			
+			double sw=table.getElt(y,x);
+			double nw=usey?table.getElt(ny,x):0;	// 0 because if !usey ny does not actually exist
+			double se=usex?table.getElt(y,nx):0;
+			double ne=(usex&&usey)?table.getElt(ny,nx):0;
+
+// cout << a << "," << b << " -> " << x << "," << y << "   " <<  sw <<  "," << 
+// nw <<  "," <<  se <<  "," <<  ne <<  "\n";			
+
+			double ans=(1-la)*(1-lb)*sw +
+				   (1-la)*(1+lb)*nw +
+				   (1+la)*(1-lb)*se +
+				   (1+la)*(1+lb)*ne;
+			ans/=weight;
+			(*rdat)[l]=ans;
+			// this code does not check to see if any of the points used in the interpolation are undef
+			if (ans>undef)
+			{
+			    lerror=2;
+			}
 		    }
 		    catch (DataException d)
 		    {
@@ -3591,7 +3562,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
 		{
 			#pragma omp critical	// Doco says there is a flush associated with critical
 			{
-			    haserror=true;	// We only care that one error is recorded. We don't care which 
+// 			    haserror=true;	// We only care that one error is recorded. We don't care which 
 			    error=lerror;	// one
 			}		
 		}
@@ -3616,6 +3587,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, double Amin, double Aste
      }
      return res;
 }
+
 
 Data
 Data::interpolateFromTable3D(const WrappedArray& table, double Amin, double Astep,
@@ -4203,17 +4175,17 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 
 	// now we copy the tags from the mask - if the mask does not have it then it doesn't appear
   	const DataTagged::DataMapType& maskLookup=mdat->getTagLookup();
-  	DataTagged::DataMapType::const_iterator i;
+  	DataTagged::DataMapType::const_iterator it;
   	DataTagged::DataMapType::const_iterator thisLookupEnd=maskLookup.end();
-	for (i=maskLookup.begin();i!=thisLookupEnd;i++)
+	for (it=maskLookup.begin();it!=thisLookupEnd;it++)
 	{
-	    if (mdat->getDataByTagRO(i->first,0)>0)
+	    if (mdat->getDataByTagRO(it->first,0)>0)
 	    {
-		rdat->addTaggedValue(i->first,trueval.getDataPointShape(), tdat->getVectorRO(), tdat->getOffsetForTag(i->first));
+		rdat->addTaggedValue(it->first,trueval.getDataPointShape(), tdat->getVectorRO(), tdat->getOffsetForTag(it->first));
 	    }
 	    else
 	    {
-		rdat->addTaggedValue(i->first,falseval.getDataPointShape(), fdat->getVectorRO(), fdat->getOffsetForTag(i->first));
+		rdat->addTaggedValue(it->first,falseval.getDataPointShape(), fdat->getVectorRO(), fdat->getOffsetForTag(it->first));
 	    }
 	}
 

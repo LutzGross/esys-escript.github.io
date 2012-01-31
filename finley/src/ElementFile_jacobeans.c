@@ -128,7 +128,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                       Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 1D supports one sided elements only.");
                   }
              } else {
-                  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 1D domain has to be 0 or 1.");
+                  Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimension in a 1D domain has to be 0 or 1.");
              }
           /*========================== dim = 2 ============================================== */
           } else if (out->numDim==2) {
@@ -164,7 +164,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                           Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 2D supports one or two sided elements only.");
                       }
                   } else {
-                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 1 in a 2D domain has to be 1 or 2.");
+                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimension 1 in a 2D domain has to be 1 or 2.");
                   }
              } else if (refElement->numLocalDim==2) {
                   if (out->numSides==1) {
@@ -177,7 +177,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                   }
 
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be  1 or 2.");
+               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimension in a 2D domain has to be 1 or 2.");
              }
           /*========================== dim = 3 ============================================== */
           } else if (out->numDim==3) {
@@ -213,7 +213,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                           Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D supports one or two sided elements only.");
                       }
                   } else {
-                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimenion 2 in a 3D domain has to be 3 or 2.");
+                    Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: element dimension for local dimension 2 in a 3D domain has to be 2 or 3.");
                   }
              } else if (refElement->numLocalDim==3) {
                   if (out->numSides==1) {
@@ -225,7 +225,7 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
                       Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: 3D volume supports one sided elements only..");
                   }
              } else {
-               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
+               Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: local dimension in a 3D domain has to be 2 or 3.");
              }
           } else {
             Finley_setError(SYSTEM_ERROR,"Finley_ElementFile_borrowJacobeans: spatial dimension has to be 1, 2 or 3.");

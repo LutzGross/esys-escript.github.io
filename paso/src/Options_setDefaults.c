@@ -65,6 +65,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->cycle_type=1;
   options->usePanel=TRUE;
   options->interpolation_method=PASO_DIRECT_INTERPOLATION;
+  options->ode_solver=PASO_CRANK_NICOLSON;
   
 
   /* diagnostic values */
@@ -83,15 +84,16 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->coarse_level_sparsity=-1.;
   options->num_coarse_unknowns=-1;
 }
+
 void Paso_Options_showDiagnostics(const Paso_Options* options) {
-	printf("Paso diagonsitics:\n");
+	printf("Paso diagnostics:\n");
 	printf("\tnum_iter = %d\n",options->num_iter);
 	printf("\tnum_level = %d\n",options->num_level);
 	printf("\tnum_inner_iter = %d\n",options->num_inner_iter);
 	printf("\ttime = %e\n",options->time);
 	printf("\tset_up_time = %e\n",options->set_up_time);
 	printf("\tcoarsening_selection_time = %e\n",options->coarsening_selection_time);
-	printf("\tscoarsening_matrix_time = %e\n",options->coarsening_matrix_time);
+	printf("\tcoarsening_matrix_time = %e\n",options->coarsening_matrix_time);
 	printf("\tnet_time = %e\n",options->net_time);
 	printf("\tresidual_norm = %e\n",options->residual_norm);
 	printf("\tconverged = %d\n",options->converged);
@@ -186,6 +188,12 @@ const char* Paso_Options_name(const index_t key){
 	  return "PMIS_COARSENING";
        case PASO_HMIS_COARSENING:
 	  return "HMIS_COARSENING";
+       case PASO_CRANK_NICOLSON:
+	  return "PASO_CRANK_NICOLSON";
+       case PASO_LINEAR_CRANK_NICOLSON:
+	 return "PASO_CRANK_NICOLSON";
+       case PASO_BACKWARD_EULER:
+	 return "PASO_BACKWARD_EULER";
        default:
 	  return "<unknown>";
     }
@@ -221,5 +229,6 @@ void Paso_Options_show(const Paso_Options* options ) {
 	printf("\trefinements = %d\n",options->refinements);
 	printf("\tcoarse_matrix_refinements = %d\n",options->coarse_matrix_refinements);
 	printf("\tcycle_type = %d\n",options->cycle_type);
-	
+	printf("\tode_solver = %d\n",options->ode_solver);
 }
+

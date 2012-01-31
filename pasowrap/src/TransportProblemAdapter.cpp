@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace dudley {
+namespace paso {
 
 struct null_deleter
 {
@@ -25,13 +25,14 @@ struct null_deleter
   }
 };
 
-
+PASOWRAP_DLL_API
 TransportProblemAdapter::TransportProblemAdapter()
 {
-   throw DudleyAdapterException("Error - Illegal to generate default TransportProblemAdapter.");
+   throw PasoException("Error - Illegal to generate default TransportProblemAdapter.");
 }
 
 
+PASOWRAP_DLL_API
 TransportProblemAdapter::TransportProblemAdapter(Paso_TransportProblem* transport_problem,
                                                  const bool useBackwardEuler,
                                                  const int block_size,
@@ -41,6 +42,7 @@ AbstractTransportProblem(useBackwardEuler, block_size, functionspace)
     m_transport_problem.reset(transport_problem,null_deleter());
 }
 
+PASOWRAP_DLL_API
 TransportProblemAdapter::~TransportProblemAdapter()
 { 
     if (m_transport_problem.unique()) {
@@ -49,12 +51,13 @@ TransportProblemAdapter::~TransportProblemAdapter()
     }
 }
 
+PASOWRAP_DLL_API
 Paso_TransportProblem* TransportProblemAdapter::getPaso_TransportProblem() const 
 {
    return m_transport_problem.get();
 }
 
-
+PASOWRAP_DLL_API
 void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u0, escript::Data& source, const double dt, boost::python::object& options) const
 {
     Paso_TransportProblem* transp=getPaso_TransportProblem();
@@ -62,15 +65,15 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u
     SystemMatrixAdapter::escriptToPasoOptions(&paso_options,options);
     options.attr("resetDiagnostics")();
     if ( out.getDataPointSize()  != getBlockSize()) {
-     throw DudleyAdapterException("solve : block size of solution does not match block size of transport problems.");
+     throw PasoException("solve : block size of solution does not match block size of transport problems.");
     } else if ( source.getDataPointSize() != getBlockSize()) {
-     throw DudleyAdapterException("solve : block size of source term does not match block size of transport problems.");
+     throw PasoException("solve : block size of source term does not match block size of transport problems.");
     } else if ( out.getFunctionSpace()  != getFunctionSpace()) {
-     throw DudleyAdapterException("solve : function spaces of solution and of transport problem don't match.");
+     throw PasoException("solve : function spaces of solution and of transport problem don't match.");
     } else if (source.getFunctionSpace() != getFunctionSpace()) {
-     throw DudleyAdapterException("solve : function spaces of source term and of transport problem don't match.");
+     throw PasoException("solve : function spaces of source term and of transport problem don't match.");
     } else if (dt<=0.) {
-     throw DudleyAdapterException("solve : time increment dt needs to be positive.");
+     throw PasoException("solve : time increment dt needs to be positive.");
     }
     out.expand();
     source.expand();
@@ -84,26 +87,29 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u
     checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void TransportProblemAdapter::resetTransport() const
 {
    Paso_TransportProblem* transp = getPaso_TransportProblem();
    Paso_TransportProblem_reset(transp);
    checkPasoError();
 }
+
+PASOWRAP_DLL_API
 void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const
 {
     if ( q.getDataPointSize()  != getBlockSize()) {
-     throw DudleyAdapterException("copyConstraint : block size does not match the number of components of constraint mask.");
+     throw PasoException("copyConstraint : block size does not match the number of components of constraint mask.");
     } else if ( q.getFunctionSpace()  != getFunctionSpace()) {
-     throw DudleyAdapterException("copyConstraint : function spaces of transport problem and constraint mask don't match.");
+     throw PasoException("copyConstraint : function spaces of transport problem and constraint mask don't match.");
     } else if ( r.getDataPointSize()  != getBlockSize()) {
-     throw DudleyAdapterException("copyConstraint : block size does not match the number of components of constraint values.");
+     throw PasoException("copyConstraint : block size does not match the number of components of constraint values.");
     } else if ( r.getFunctionSpace()  != getFunctionSpace()) {
-     throw DudleyAdapterException("copyConstraint : function spaces of transport problem and constraint values don't match.");
+     throw PasoException("copyConstraint : function spaces of transport problem and constraint values don't match.");
     } else if ( source.getDataPointSize()  != getBlockSize()) {
-     throw DudleyAdapterException("copyConstraint : block size does not match the number of components of source.");
+     throw PasoException("copyConstraint : block size does not match the number of components of source.");
     } else if ( source.getFunctionSpace()  != getFunctionSpace()) {
-     throw DudleyAdapterException("copyConstraint : function spaces of transport problem and source don't match.");
+     throw PasoException("copyConstraint : function spaces of transport problem and source don't match.");
     }
     Paso_TransportProblem* transp=getPaso_TransportProblem();
 
@@ -144,6 +150,7 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
    }
 }
 
+PASOWRAP_DLL_API
 double TransportProblemAdapter::getSafeTimeStepSize() const
 {
     Paso_TransportProblem* transp=getPaso_TransportProblem();
@@ -152,11 +159,26 @@ double TransportProblemAdapter::getSafeTimeStepSize() const
     return dt;
 }
 
+PASOWRAP_DLL_API
 double TransportProblemAdapter::getUnlimitedTimeStepSize() const
 {
     return LARGE_POSITIVE_FLOAT;
 }
 
+PASOWRAP_DLL_API
+int TransportProblemAdapter::getTransportTypeId(const int solver,
+        const int preconditioner, const int package, const bool symmetry,
+        Esys_MPIInfo* mpiInfo)
+{
+    int out=Paso_TransportProblem_getTypeId(
+            SystemMatrixAdapter::mapOptionToPaso(solver),
+            SystemMatrixAdapter::mapOptionToPaso(preconditioner),
+            SystemMatrixAdapter::mapOptionToPaso(package),
+            symmetry?1:0, mpiInfo);
+    checkPasoError();
+    return out;
+}
 
 
 }  // end of namespace
+

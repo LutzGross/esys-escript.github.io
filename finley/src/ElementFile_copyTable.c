@@ -12,14 +12,12 @@
 *******************************************************/
 
 
-/**************************************************************/
-
-/*   Finley: ElementFile                                                      */
-
-/* copies element file in into element file out starting from offset          */
-/* the elements offset to in->numElements+offset-1 in out will be overwritten */
-                                                                                                                                                   
-/**************************************************************/
+/***************************************************************/
+/*   Finley: ElementFile                                       */
+/*   copies element file 'in' into element file 'out' starting */
+/*   from 'offset'. The elements offset to                     */
+/*   in->numElements+offset-1 in out will be overwritten       */
+/***************************************************************/
 
 #include "ElementFile.h"
 

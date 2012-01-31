@@ -182,8 +182,8 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
               Node[2][k]=i2start*l2/ne2 + (i2+1)*l2/ne2
       # elif n1double==0:
       # elif n2double==0:
-      print "fstart = ",[i0start*l0/ne0, i1start*l1/ne1                  , i2start*l2/ne2]
-      print "fend = ", [i0start*l0/ne0 , i1start*l1/ne1 + n1double*l1/ne1, i2start*l2/ne2 + n2double*l2/ne2]
+      print("fstart = ",[i0start*l0/ne0, i1start*l1/ne1                  , i2start*l2/ne2])
+      print("fend = ", [i0start*l0/ne0 , i1start*l1/ne1 + n1double*l1/ne1, i2start*l2/ne2 + n2double*l2/ne2])
 
    # write nodes to file
    for i in range(numNodes):
@@ -204,7 +204,7 @@ def faultL(l0,l1, l2,ne0, ne1, ne2,contact=False,xstart=zeros(3),xend=zeros(3)):
 
    #print 'Interior elements'
 
-   print "M0,M1,M2",M0,M1,M2
+   print("M0,M1,M2",M0,M1,M2)
 
    for i2 in range(ne2):
       for i1 in range (ne1):

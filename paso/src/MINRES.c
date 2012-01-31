@@ -41,7 +41,7 @@
 *  =========
 *
 *  R      (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess x
+*          On entry, residual of initial guess x
 *
 *  X       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess.
@@ -209,3 +209,4 @@ err_t Paso_Solver_MINRES(
    /*     End of MINRES */
    return status;
 }
+

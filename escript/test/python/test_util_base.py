@@ -56,7 +56,7 @@ class Test_util_base(unittest.TestCase):
    def __checkContent(self,fn,ref_cont):
         cont=open(fn,'r').readlines()
         self.assertTrue(len(cont)==len(ref_cont),"wrong number of records")
-        for i in xrange(len(cont)):
+        for i in range(len(cont)):
            self.assertTrue(cont[i].strip()==ref_cont[i],"wrong records %s"%i)
    def test_FileWriter_W(self):
         fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_w.txt")

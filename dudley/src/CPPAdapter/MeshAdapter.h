@@ -20,16 +20,14 @@ extern "C" {
 #include "dudley/Mesh.h"
 #include "dudley/Dudley.h"
 #include "dudley/Assemble.h"
-#include "paso/SystemMatrix.h"
-#include "paso/Transport.h"
 #include "esysUtils/Esys_MPI.h"
 }
 
 #include "DudleyError.h"
 #include "DudleyAdapterException.h"
 
-#include "SystemMatrixAdapter.h"
-#include "TransportProblemAdapter.h"
+#include <pasowrap/SystemMatrixAdapter.h>
+#include <pasowrap/TransportProblemAdapter.h>
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"

@@ -61,8 +61,8 @@ void Finley_convertPasoError(void) {
   /* nothing has to be done here */
 }
 
-/* checks that there is no error accross all processes in a communicator */
-/* NOTE : does not make guarentee consistency of error string on each process */
+/* checks that there is no error across all processes in a communicator */
+/* NOTE : does not guarantee consistency of error string on each process */
 bool_t Finley_MPI_noError( Esys_MPIInfo *mpi_info )
 {
     return Esys_MPIInfo_noError( mpi_info );

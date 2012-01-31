@@ -29,11 +29,10 @@
 
 /**************************************************************
 
-    returns the submatrix of A where rows are gathered by index row_list 
+    Returns the submatrix of A where rows are gathered by index row_list 
     and columns are selected by non-negative values of new_col_index.
-    if new_col_index[i]>-1 new_col_index[i] gives the column of i in 
-    the returned submatrix 
-
+    If new_col_index[i]>-1 new_col_index[i] gives the column of i in 
+    the returned submatrix.
 */
 
 
@@ -45,7 +44,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getSubmatrix(Paso_SparseMatrix* A,int n_row
       int type=A->type;
       Esys_resetError();
       if (A->type & MATRIX_FORMAT_CSC) {
-          Esys_setError(TYPE_ERROR,"gathering submatrices supports CSR matrix format only.");
+          Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_getSubmatrix: gathering submatrices supports CSR matrix format only.");
       } else {
          sub_pattern=Paso_Pattern_getSubpattern(A->pattern,n_row_sub,n_col_sub,row_list,new_col_index);
          if (Esys_noError()) {
@@ -95,7 +94,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR, "Paso_SparseMatrix_getBlock: Requested and actual block sizes do not match.");
             }
       }
       else if (blocksize==2) {
@@ -116,7 +115,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR,"Paso_SparseMatrix_getBlock: Requested and actual block sizes do not match.");
             }
       }
       else if (blocksize==3) {
@@ -145,9 +144,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_getBlock(Paso_SparseMatrix* A, int blockid)
                   }
             }
             else {
-                  Esys_setError(VALUE_ERROR,"Requested and actual block sizes do not match.");
+                  Esys_setError(VALUE_ERROR,"Paso_SparseMatrix_getBlock: Requested and actual block sizes do not match.");
             }
       }
             
-         return  out;
+         return out;
 }

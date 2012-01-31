@@ -235,5 +235,10 @@ class L2(sympy.Function):
     """
     pass
 
+class abs(sympy.Function):
+    """Returns the absolute value of the argument
+    """
+    pass
+
 #
 # vim: expandtab shiftwidth=4:

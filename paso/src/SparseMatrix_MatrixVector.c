@@ -27,7 +27,7 @@
 #include <omp.h>
 #endif
 
-/* CSC format with offset 0*/
+/* CSC format with offset 0 */
 void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
                                                  const Paso_SparseMatrix* A,
                                                  const double* in,
@@ -98,7 +98,7 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
   return;
 }
 
-/* CSC format with offset 1*/
+/* CSC format with offset 1 */
 void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
                                                  const Paso_SparseMatrix* A,
                                                  const double* in,
@@ -168,7 +168,7 @@ void  Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
   }
   return;
 }
-/* CSR format with offset 1*/
+/* CSR format with offset 1 */
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
     const Paso_SparseMatrix* A,
     const double* in,
@@ -251,7 +251,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
   }
   return;
 }
-/* CSR format with offset 0*/
+/* CSR format with offset 0 */
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
                                                  const Paso_SparseMatrix* A,
                                                  const double* in,
@@ -316,7 +316,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
         #endif
    }
 }
-/* CSR format with offset 0*/
+/* CSR format with offset 0 */
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
                                                         const dim_t nRows,
                                                         const dim_t row_block_size,
@@ -419,7 +419,7 @@ void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
     }
     return;
 }
-/* CSR format with offset 0*/
+/* CSR format with offset 0 */
 void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
 						       const Paso_SparseMatrix* A,
 						       const double* in,

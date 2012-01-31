@@ -32,10 +32,10 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import escript
-import util
-from linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
-from pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
+from . import escript
+from . import util
+from .linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
+from .pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
 
 class DarcyFlow(object):
    """
@@ -55,7 +55,7 @@ class DarcyFlow(object):
    SIMPLE="EVAL"
    POST="POST"
    SMOOTH="SMOOTH"
-   def __init__(self, domain, useReduced=False, solver="EVAL", verbose=False, w=1.):
+   def __init__(self, domain, useReduced=False, solver="POST", verbose=False, w=1.):
       """
       initializes the Darcy flux problem
       :param domain: domain of the problem
@@ -71,7 +71,7 @@ class DarcyFlow(object):
       
       """
       if not solver in [DarcyFlow.EVAL, DarcyFlow.POST,  DarcyFlow.SMOOTH ] :
-          raise ValueError,"unknown solver %d."%solver
+          raise ValueError("unknown solver %d."%solver)
 
       self.domain=domain
       self.solver=solver
@@ -86,12 +86,12 @@ class DarcyFlow(object):
 
       if self.solver  == self.EVAL:
          self.__pde_v=None
-	 if self.verbose: print "DarcyFlow: simple solver is used."
+	 if self.verbose: print("DarcyFlow: simple solver is used.")
 
       elif self.solver  == self.POST:
 	 if util.inf(w)<0.:
-	    raise ValueError,"Weighting factor must be non-negative." 
-	 if self.verbose: print "DarcyFlow: global postprocessing of flux is used."
+	    raise ValueError("Weighting factor must be non-negative.") 
+	 if self.verbose: print("DarcyFlow: global postprocessing of flux is used.")
          self.__pde_v=LinearPDESystem(domain)
          self.__pde_v.setSymmetryOn()
          if self.useReduced: self.__pde_v.setReducedOrderOn()
@@ -102,13 +102,14 @@ class DarcyFlow(object):
          self.__pde_v=LinearPDESystem(domain)
          self.__pde_v.setSymmetryOn()
          if self.useReduced: self.__pde_v.setReducedOrderOn()
-	 if self.verbose: print "DarcyFlow: flux smoothing is used."
+	 if self.verbose: print("DarcyFlow: flux smoothing is used.")
 	 self.w=0
 
       self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
       self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
       self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
       self.location_of_fixed_flux = escript.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+      self.perm_scale=1.
      
         
    def setValue(self,f=None, g=None, location_of_fixed_pressure=None, location_of_fixed_flux=None, permeability=None):
@@ -143,6 +144,9 @@ class DarcyFlow(object):
       if permeability!=None:
 	
 	 perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
+         self.perm_scale=util.Lsup(util.length(perm))
+	 if self.verbose: print(("DarcyFlow: permeability scaling factor = %e."%self.perm_scale))
+         perm=perm*(1./self.perm_scale)
          
 	 if perm.getRank()==0:
 
@@ -154,7 +158,7 @@ class DarcyFlow(object):
 	 elif perm.getRank()==2:
 	    perm_inv=util.inverse(perm)
 	 else:
-	    raise ValueError,"illegal rank of permeability."
+	    raise ValueError("illegal rank of permeability.")
          
 	 self.__permeability=perm
 	 self.__permeability_inv=perm_inv
@@ -175,14 +179,14 @@ class DarcyFlow(object):
 	if g.isEmpty():
 	      g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	else:
-	    if not g.getShape()==(self.domain.getDim(),): raise ValueError,"illegal shape of g"
-	self.__g=g
+	    if not g.getShape()==(self.domain.getDim(),): raise ValueError("illegal shape of g")
+	self.__g=g 
       if f !=None:
 	 f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	 if f.isEmpty():	   
 	      f=Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
 	 else:
-	     if f.getRank()>0: raise ValueError,"illegal rank of f."
+	     if f.getRank()>0: raise ValueError("illegal rank of f.")
 	 self.__f=f
 
    def getSolverOptionsFlux(self):
@@ -233,9 +237,9 @@ class DarcyFlow(object):
       :rtype: ``tuple`` of `escript.Data`.
 
       """
-      self.__pde_p.setValue(X=self.__g , 
-                            Y=self.__f, 
-                            y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux), 
+      self.__pde_p.setValue(X=self.__g * 1./self.perm_scale, 
+                            Y=self.__f * 1./self.perm_scale,
+                            y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux * 1./self.perm_scale ), 
                             r=p0)
       p=self.__pde_p.getSolution()
       u = self.getFlux(p, u0)
@@ -254,16 +258,16 @@ class DarcyFlow(object):
         :return: flux
         :rtype: `escript.Data`
         """
-        u_eval=self.__g-util.tensor_mult(self.__permeability,util.grad(p))
         if self.solver  == self.EVAL:
-           u = self.__g-util.tensor_mult(self.__permeability,util.grad(p))
+           u = self.__g-self.perm_scale * util.tensor_mult(self.__permeability,util.grad(p))
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
-            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g)-util.grad(p))
+            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g * 1./self.perm_scale)-util.grad(p))
             if u0 == None:
 	       self.__pde_v.setValue(r=escript.Data())
 	    else:
-	       self.__pde_v.setValue(r=u0)
-            u= self.__pde_v.getSolution()
+               if not isinstance(u0, escript.Data) : u0 = escript.Vector(u0, escript.Solution(self.domain))
+	       self.__pde_v.setValue(r=1./self.perm_scale * u0)
+            u= self.__pde_v.getSolution() * self.perm_scale
 	return u
 	  
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):

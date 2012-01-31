@@ -52,11 +52,11 @@ Finley_ShapeFunctionInfo Finley_ShapeFunction_InfoList[]={
 
 /******************************************************************************************************************************
    
-    creates an evaluation of the ShapeFunction on the given quadrature scheme. 
+    Creates an evaluation of the ShapeFunction on the given quadrature scheme. 
     if the spatial dimension of the scheme and the shape functions don't match
     
-    if QuadNodes==Null or QuadWeights==Null the shape functions method is used to generate a quadrature scheme with numQuasNodes
-    nodes. otherwise its assumed that a quadraure scheme is given on these array and copy is created within the structure.
+    if QuadNodes==Null or QuadWeights==Null the shape functions method is used to generate a quadrature scheme with numQuadNodes
+    nodes. Otherwise it is assumed that a quadrature scheme is given on this array and a copy is created within the structure.
 
 */
 Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights) {
@@ -159,7 +159,7 @@ Finley_ShapeFunctionInfo* Finley_ShapeFunction_getInfo(Finley_ShapeFunctionTypeI
        ptr++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR,"Finley_ShapeFunctionInfo_getInfo: canot find requested shape function");
+        Finley_setError(VALUE_ERROR,"Finley_ShapeFunctionInfo_getInfo: cannot find requested shape function");
     }
     return out;
 }

@@ -42,7 +42,8 @@ bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
            {
 	               out = out || out2;
 	   }
-	   /*  this how this should look like but gcc 4.4 seems to have a problem with this:
+	   /*  this is how this should look like but gcc 4.4 seems to have
+            *  a problem with this:
                #pragma omp parallel for private(i) schedule(static) reduction(||:out)
                for (i=0;i<N;i++) out = out || (array[i]==value);
 	   */
@@ -71,7 +72,7 @@ dim_t Paso_Util_numPositives(const dim_t N, const double *x) {
    return out;
 }
 
-/* returnsthe maximum value in array */
+/* returns the maximum value in array */
 index_t Paso_Util_iMax(const dim_t N,const index_t* array) {
    index_t out=INDEX_T_MIN;
    register index_t out2;
@@ -94,7 +95,7 @@ index_t Paso_Util_iMax(const dim_t N,const index_t* array) {
 
 /**************************************************************/
 
-/* calculates the cummultative sum in array and returns the total sum */
+/* calculates the cumulative sum in array and returns the total sum */
 
 /**************************************************************/
 index_t Paso_Util_cumsum(dim_t N,index_t* array) {
@@ -265,7 +266,7 @@ index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
    return out;
 }
 
-/* return the index  to the largest entry in lambda takes is maximum */
+/* return the index to the largest entry in lambda */
 index_t Paso_Util_arg_max(dim_t n, dim_t* lambda) {
    dim_t i;
    index_t max=-1;
@@ -332,8 +333,8 @@ void Paso_zeroes(const dim_t n, double* x)
 }
 
 /*
- * performs an update of the form x=a*x+b*y  where y and x are long vectors.
- * if b=0, y is not used.
+ * Performs an update of the form x=a*x+b*y  where y and x are long vectors.
+ * If b=0, y is not used.
  */
 void Paso_Update(const dim_t n, const double a, double* x, const double b, const double* y) 
 {
@@ -384,9 +385,9 @@ void Paso_Copy(const dim_t n, double* out, const double* in) {
     Paso_LinearCombination(n,out, 1.,in,0., in);
 }
 /*
- * performs an update of the form z=a*x+b*y  where y and x are long vectors.
- * if a=0, x is not used.
- * if b=0, y is not used.
+ * Performs an update of the form z=a*x+b*y  where y and x are long vectors.
+ * If a=0, x is not used.
+ * If b=0, y is not used.
  */
 void Paso_LinearCombination(const dim_t n, double*z, const double a,const double* x, const double b, const double* y)
 {
@@ -521,8 +522,8 @@ double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 
 }
 /*  
- *  Apply a sequence of n-1 Givens rotations (c,s) to v of length n which assumed to be small.
- *
+ *  Applies a sequence of n-1 Givens rotations (c,s) to v of length n which is
+ *  assumed to be small.
  */
 void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* s)
 {
@@ -548,3 +549,4 @@ bool_t Paso_fileExists( const char* filename )
         return FALSE;
     }
 }
+

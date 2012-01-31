@@ -129,8 +129,8 @@ def solveODE(u0, a, b, dt):
          norm_du = Lsup(du)
          norm_u = Lsup(u)
          n+=1
-         if n>ODE_ITER_MAX: raise ValueError,"ODE iteration failed."
-    print "\tODE iteration completed after %d steps."%(n,)
+         if n>ODE_ITER_MAX: raise ValueError("ODE iteration failed.")
+    print("\tODE iteration completed after %d steps."%(n,))
     return u
 
 #======================
@@ -201,7 +201,7 @@ diagnose.write("t, -e22, e11, s00-s22, mu_eff, lame_eff, xi, gamma, alpha, alpha
 
 while t<T_END:
 
-    print "start time step %d"%(n+1,)
+    print("start time step %d"%(n+1,))
 
     eps_e_old = eps_e
     sigma_old = sigma 
@@ -211,7 +211,7 @@ while t<T_END:
     norm_ddu=norm_du
     while norm_ddu > TOL_DU * norm_du or iter == 0 :
 
-        print "\t start iteration step %d:"%iter
+        print("\t start iteration step %d:"%iter)
         eps_e = eps_e_old + deps-(dt/2)*i_eta*deviatoric(sigma)
        
         I1=trace(eps_e)
@@ -228,9 +228,9 @@ while t<T_END:
         i_eta = clip(2*C_V*alpha_dot,minval=0.)
 
         if inf(alpha) < -EPSILON*10:
-            raise ValueError,"alpha<0"
+            raise ValueError("alpha<0")
         if sup(alpha)  > 1:
-            raise ValueError,"alpha > 1"
+            raise ValueError("alpha > 1")
         # step size for the next time step:
 
         gamma=alpha*GAMMA_M
@@ -240,14 +240,14 @@ while t<T_END:
         lame_eff=lame-gamma*i_xi
         mu_eff=mu-gamma*xi/2.
 
-        print "\talpha = [ %e, %e]"%(inf(alpha),sup(alpha))
-        print "\tmu_eff = [ %e, %e]"%(inf(mu_eff),sup(mu_eff))
-        print "\tlame_eff = [ %e, %e]"%(inf(lame_eff),sup(lame_eff))
-        print "\txi = [ %e, %e]"%(inf(xi),sup(xi))
-        print "\tgamma = [ %e, %e]"%(inf(gamma),sup(gamma))
+        print("\talpha = [ %e, %e]"%(inf(alpha),sup(alpha)))
+        print("\tmu_eff = [ %e, %e]"%(inf(mu_eff),sup(mu_eff)))
+        print("\tlame_eff = [ %e, %e]"%(inf(lame_eff),sup(lame_eff)))
+        print("\txi = [ %e, %e]"%(inf(xi),sup(xi)))
+        print("\tgamma = [ %e, %e]"%(inf(gamma),sup(gamma)))
 
         if inf(mu_eff) < 0:
-            raise ValueError,"mu_eff<0"
+            raise ValueError("mu_eff<0")
 
         sigma = 2*mu_eff*eps_e+lame_eff*trace(eps_e)*k3 
 
@@ -264,24 +264,24 @@ while t<T_END:
         du+=ddu
         norm_ddu=Lsup(ddu)
         norm_du=Lsup(du)
-        print "\t displacement change update = %e of %e"%(norm_ddu, norm_du)
+        print("\t displacement change update = %e of %e"%(norm_ddu, norm_du))
         iter+=1
-    print "deps =", inf(deps),sup(deps)
+    print("deps =", inf(deps),sup(deps))
     u+=du
     n+=1
     t+=dt
     #=========== this is a test for triaxial test ===========================
-    print "\tYYY t = ", t
+    print("\tYYY t = ", t)
     a =(SIGMA_N-lame_eff*VMAX*t)/(lame_eff+mu_eff)/2
     #=========== this is a test for triaxial test ===========================
-    print "\tYYY a = ", meanValue(a)
-    print "\tYYY eps00 = ",meanValue( eps_e[0,0])
-    print "\tYYY eps11 = ",meanValue( eps_e[1,1])
-    print "\tYYY eps22 = num/exact", meanValue(eps_e[2,2]), VMAX*t
-    print "\tYYY eps_kk = num/exact", meanValue(trace(eps_e)), meanValue(VMAX*t+2*a)
-    print "\tYYY sigma11 = num/exact", meanValue(sigma[1,1]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*a)
-    print "\tYYY sigma22 = num/exact", meanValue(sigma[2,2]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t)
-    print "\tYYY linear Elastic equivalent num/exact=",meanValue(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/meanValue(eps_e[2,2]-eps_e_old[2,2]), meanValue(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff))
+    print("\tYYY a = ", meanValue(a))
+    print("\tYYY eps00 = ",meanValue( eps_e[0,0]))
+    print("\tYYY eps11 = ",meanValue( eps_e[1,1]))
+    print("\tYYY eps22 = num/exact", meanValue(eps_e[2,2]), VMAX*t)
+    print("\tYYY eps_kk = num/exact", meanValue(trace(eps_e)), meanValue(VMAX*t+2*a))
+    print("\tYYY sigma11 = num/exact", meanValue(sigma[1,1]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*a))
+    print("\tYYY sigma22 = num/exact", meanValue(sigma[2,2]), meanValue(lame_eff*(VMAX*t+2*a)+2*mu_eff*VMAX*t))
+    print("\tYYY linear Elastic equivalent num/exact=",meanValue(sigma[2,2]-sigma[0,0]-(sigma_old[2,2]-sigma_old[0,0]))/meanValue(eps_e[2,2]-eps_e_old[2,2]), meanValue(mu_eff*(3*lame_eff+2*mu_eff)/(lame_eff+mu_eff)))
     diagnose.write(("%e,"*10+"\n")%(t, meanValue(-eps_e[2,2]), 
                                       meanValue(eps_e[1,1]),
                                       meanValue(sigma[0,0]-sigma[2,2]), 
@@ -291,13 +291,13 @@ while t<T_END:
                                       meanValue(gamma),
                                       meanValue(alpha),
                                       meanValue(alpha_dot)))
-    print "time step %s (t=%s) completed."%(n,t)
+    print("time step %s (t=%s) completed."%(n,t))
     #
     #  .... visualization
     #
     if t>=t_vis or n>n_vis:
       saveVTK(os.path.join(VIS_DIR,"state.%d.vtu"%counter_vis),u=u, dalpha=alpha, I1=trace(eps_e), I2=length(eps_e)**2, xi=safeDiv(trace(eps_e),length(eps_e)))
-      print "visualization file %d for time step %e generated."%(counter_vis,t)
+      print("visualization file %d for time step %e generated."%(counter_vis,t))
       counter_vis+=1
       t_vis+=DT_VIS
       n_vis+=DN_VIS
@@ -307,7 +307,7 @@ while t<T_END:
     ss=sup(length(deps))
     if ss>0:
        dt_new=DEPS_MAX/ss*dt
-       print "\ttime step size to control strain increment %s."%(dt_new,)
+       print("\ttime step size to control strain increment %s."%(dt_new,))
     else:
        dt_new=dt
     if dt_old != None:
@@ -317,12 +317,12 @@ while t<T_END:
           if norm_alpha > 0: fac*=1./norm_alpha
           if fac>0:
              error=fac*0.5*dt**2
-             print "\testimated local error for time step size %e is %e"%(dt,error)
+             print("\testimated local error for time step size %e is %e"%(dt,error))
              dt_new=min(dt_new,sqrt(ODE_TOL*2/fac) )
           else:
              dt_new=DT_MAX
 
     dt_new=min(max(dt_new,dt/5),dt*5,DT_MAX) # aviod rapit changes
-    print "\tINFO: new time step size %e"%dt_new
+    print("\tINFO: new time step size %e"%dt_new)
     dt, dt_old=dt_new, dt
     # dom.setX(dom.getX()+du)

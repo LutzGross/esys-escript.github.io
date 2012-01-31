@@ -97,7 +97,7 @@ dudley_assemble_flags = '-funroll-loops'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-#mpi = 'OPENMPI'
+mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/usr/lib/openmpi'
@@ -129,7 +129,7 @@ netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
-parmetis = True
+#parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
 #parmetis_prefix = '/usr/local'
@@ -220,7 +220,7 @@ lapack_libs = ['lapack_atlas']
 
 # Build dynamic libraries only
 #DEFAULT: False
-#build_shared = True
+build_shared = True
 
 
 ### ADVANCED OPTIONS ###

@@ -23,8 +23,8 @@
 
 /**************************************************************/
 
-/*  allocates the node table within an node file to hold numNodes of nodes. The LinearTo mapping, if it exists, */
-/*  is frees. use Finley_Mesh_setLinearMesh to create a new one. */
+/*  allocates the node table within a node file to hold numNodes of nodes. The LinearTo mapping, if it exists, */
+/*  is freed. Use Finley_Mesh_setLinearMesh to create a new one. */
 
 void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes) 
 {
@@ -46,7 +46,7 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
   degreesOfFreedomId2=MEMALLOC(numNodes,index_t);
   reducedDegreesOfFreedomId2=MEMALLOC(numNodes,index_t);
   
-  /*  if fine, freeate the old table and replace by new: */
+  /*  if fine, free the old table and replace by new: */
   if (Finley_checkPtr(Id2) || Finley_checkPtr(Coordinates2) || Finley_checkPtr(Tag2) 
              || Finley_checkPtr(globalDegreesOfFreedom2) 
              || Finley_checkPtr(globalReducedDOFIndex2)
@@ -95,7 +95,7 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
   return;
 }
 
-/*  frees the node table within an node file: */
+/*  frees the node table within a node file: */
 
 void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
   if (in!=NULL) {

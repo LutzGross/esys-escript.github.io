@@ -46,7 +46,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    faceNodes=faceRefElement->Type->faceNodes;
    
    if (NNFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_glueFaces:glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+     sprintf(error_msg,"Finley_Mesh_glueFaces: glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
      Finley_setError(TYPE_ERROR,error_msg);
      return;
    }
@@ -65,7 +65,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
       if (Finley_noError()) {
          for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=0;
          for(n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=n;
-         /* remove mark imatching face elements to be removed */
+         /* mark matching face elements to be removed */
          for(e=0;e<numPairs;e++) {
              elem_mask[elem0[e]]=1;
              elem_mask[elem1[e]]=1;
@@ -108,12 +108,12 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          }
          if (Finley_noError()) 
          {
-            /* get the new nodes :*/
+            /* get the new nodes */
             Finley_NodeFile_gather(new_node_list,self->Nodes,newNodeFile);
-            /* they are the new nodes*/
+            /* they are the new nodes */
             Finley_NodeFile_free(self->Nodes);
             self->Nodes=newNodeFile;
-            /* get the face elements which are still in use:*/
+            /* get the face elements which are still in use */
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
             /* they are the new face elements */
             Finley_ElementFile_free(self->FaceElements);

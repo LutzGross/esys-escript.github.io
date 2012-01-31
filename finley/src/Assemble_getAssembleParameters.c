@@ -141,7 +141,7 @@ void Finley_Assemble_getAssembleParameters(Finley_NodeFile* nodes,Finley_Element
      Finley_setError(TYPE_ERROR,"Finley_Assemble_getAssembleParameters: number of quadrature points for row is not correct.");
   }
   if (numQuadSub  * numSub != parm->row_jac->numQuadTotal) {
-     Finley_setError(TYPE_ERROR,"Finley_Assemble_getAssembleParameters:   number of quadrature points for column is not correct.");
+     Finley_setError(TYPE_ERROR,"Finley_Assemble_getAssembleParameters: number of quadrature points for column is not correct.");
   }
   if (numQuadSub != parm->row_jac->BasisFunctions->numQuadNodes) {
      Finley_setError(TYPE_ERROR,"Finley_Assemble_getAssembleParameters: Incorrect number of quadrature points for row.");

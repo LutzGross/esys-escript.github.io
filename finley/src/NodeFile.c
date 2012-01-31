@@ -13,11 +13,11 @@
 
 
 /**************************************************************/
-/*                                                             */
-/*   Finley: Mesh : NodeFile */
-/*                                                             */
-/*   allocates and freeates node files                      */
-/*                                                             */
+/*                                                            */
+/*   Finley: Mesh : NodeFile                                  */
+/*                                                            */
+/*   allocates and frees node files                           */
+/*                                                            */
 /**************************************************************/
 
 #include "NodeFile.h"
@@ -25,7 +25,7 @@
 /**************************************************************/
 
 /*   allocates a node file to hold nodes */
-/*   use Finley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
+/*   use Finley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
 
 Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo *MPIInfo)
 {

@@ -49,7 +49,7 @@ class FaultSystem:
     :type dim: ``int`` of value 2 or 3
     """
     if not (dim == 2 or dim == 3):
-       raise ValueError,"only dimension2 2 and 3 are supported."
+       raise ValueError("only dimension2 2 and 3 are supported.")
     self.__dim=dim
     self.__top={}
     self.__ls={}
@@ -86,7 +86,7 @@ class FaultSystem:
      returns a list of the tags used by the fault system
      :rtype: ``list``
      """
-     return self.__top.keys()
+     return list(self.__top.keys())
   def getDim(self):
      """
      returns the spatial dimension
@@ -354,27 +354,27 @@ class FaultSystem:
          tag=self.NOTAG
      else:
          if self.NOTAG in self.getTags():
-              raise ValueError,'Attempt to add a fault with no tag to a set of existing faults'
+              raise ValueError('Attempt to add a fault with no tag to a set of existing faults')
      if not isinstance(strikes, list): strikes=[strikes, ]
      n_segs=len(strikes)
-     if not isinstance(ls, list): ls=[ ls for i in xrange(n_segs) ]
+     if not isinstance(ls, list): ls=[ ls for i in range(n_segs) ]
      if not n_segs==len(ls):
-         raise ValueError,"number of strike direction and length must match."
+         raise ValueError("number of strike direction and length must match.")
      if len(V0)>2:
-          if abs(V0[2])>0: raise Value,"start point needs to be surface (3rd component ==0)"
+          if abs(V0[2])>0: raise Value("start point needs to be surface (3rd component ==0)")
      if self.getDim()==2 and not  (dips==None and depths == None) :
-           raise ValueError,'Spatial dimension two does not support dip and depth for faults.'
+           raise ValueError('Spatial dimension two does not support dip and depth for faults.')
      if not dips == None:
-        if not isinstance(dips, list): dips=[dips for i in xrange(n_segs) ]
+        if not isinstance(dips, list): dips=[dips for i in range(n_segs) ]
         if n_segs != len(dips):
-           raise ValueError,'length of dips must be one less then the length of top.'
+           raise ValueError('length of dips must be one less then the length of top.')
      if not depths == None:
-        if not isinstance(depths, list): depths=[depths for i in xrange(n_segs+1) ]
+        if not isinstance(depths, list): depths=[depths for i in range(n_segs+1) ]
         if n_segs+1 != len(depths):
-           raise ValueError,'length of depths must be one less then the length of top.'
+           raise ValueError('length of depths must be one less then the length of top.')
      if w0_offsets != None:
        if len(w0_offsets) != n_segs+1:
-          raise ValueError,'expected length of w0_offsets is %s'%(n_segs)
+          raise ValueError('expected length of w0_offsets is %s'%(n_segs))
      self.__center=None
      self.__orientation = None
      #
@@ -382,12 +382,12 @@ class FaultSystem:
      #
      if self.getDim() == 2:
         for l in ls:
-            if l<=0: raise ValueError,"length must be positive"
+            if l<=0: raise ValueError("length must be positive")
      else:
         for l in ls:
-            if l<0: raise ValueError,"length must be non-negative"
-        for i in xrange(n_segs+1):
-           if depths[i]<0: raise ValueError,"negative depth."
+            if l<0: raise ValueError("length must be non-negative")
+        for i in range(n_segs+1):
+           if depths[i]<0: raise ValueError("negative depth.")
      # 
      #   translate start point to numarray
      #
@@ -398,7 +398,7 @@ class FaultSystem:
      strike_vectors=[]
      top_polyline=[V0]   
      total_length=0
-     for i in xrange(n_segs):
+     for i in range(n_segs):
          v=numpy.zeros((self.getDim(),))
          v[0]=cos(strikes[i])
          v[1]=sin(strikes[i])
@@ -410,7 +410,7 @@ class FaultSystem:
      #
      if self.getDim()==3:
         normals=[]
-        for i in xrange(n_segs):
+        for i in range(n_segs):
            normals.append(numpy.array([sin(dips[i])*strike_vectors[i][1],-sin(dips[i])*strike_vectors[i][0], cos(dips[i])]) )
   
         d=numpy.cross(strike_vectors[0],normals[0])
@@ -419,7 +419,7 @@ class FaultSystem:
         else:
              f=1
         depth_vectors=[f*depths[0]*d/numpy.linalg.norm(d) ]
-        for i in xrange(1,n_segs):
+        for i in range(1,n_segs):
             d=-numpy.cross(normals[i-1],normals[i])
             d_l=numpy.linalg.norm(d)
             if d_l<=0:
@@ -428,7 +428,7 @@ class FaultSystem:
             else:
                  for L in [ strike_vectors[i], strike_vectors[i-1]]:
                     if numpy.linalg.norm(numpy.cross(L,d)) <= self.MIN_DEPTH_ANGLE * numpy.linalg.norm(L) * d_l:
-                         raise ValueError,"%s-th depth vector %s too flat."%(i, d)
+                         raise ValueError("%s-th depth vector %s too flat."%(i, d))
             if d[2]>0:
                 f=-1
             else:
@@ -440,13 +440,13 @@ class FaultSystem:
         else:
              f=1
         depth_vectors.append(f*depths[n_segs]*d/numpy.linalg.norm(d))
-        bottom_polyline=[ top_polyline[i]+depth_vectors[i] for i in xrange(n_segs+1) ]
+        bottom_polyline=[ top_polyline[i]+depth_vectors[i] for i in range(n_segs+1) ]
      #
      #   calculate offsets if required:
      #
      if w0_offsets==None:
         w0_offsets=[0.] 
-        for  i in xrange(n_segs):
+        for  i in range(n_segs):
             if self.getDim()==3:
                w0_offsets.append(w0_offsets[-1]+(float(numpy.linalg.norm(bottom_polyline[i+1]-bottom_polyline[i]))+ls[i])/2.)
             else:
@@ -570,7 +570,7 @@ class FaultSystem:
         #
         p=x[0]*0 + outsider
         top=self.getTopPolyline(tag)
-        for i in xrange(1,len(top)):
+        for i in range(1,len(top)):
            d=top[i]-top[i-1]
            h=x-top[i-1]
            h_l=length(h)
@@ -585,7 +585,7 @@ class FaultSystem:
         top=self.getTopPolyline(tag)
         bottom=self.getBottomPolyline(tag)
         n=self.getSegmentNormals(tag)
-        for i in xrange(len(top)-1):
+        for i in range(len(top)-1):
             h=x-top[i]
             R=top[i+1]-top[i]
             r=bottom[i+1]-bottom[i]
@@ -622,7 +622,7 @@ class FaultSystem:
     if self.getDim()==2:
         mat=numpy.array([[0., 1.], [-1., 0.] ])
         s=self.getTopPolyline(tag)
-        for i in xrange(1,len(s)):
+        for i in range(1,len(s)):
            q=(s[i]-s[i-1])
            h=x-s[i-1]
            q_l=length(q)
@@ -644,7 +644,7 @@ class FaultSystem:
         ns=self.getSegmentNormals(tag)
         top=self.getTopPolyline(tag)
         bottom=self.getBottomPolyline(tag)
-        for i in xrange(len(top)-1):
+        for i in range(len(top)-1):
             h=x-top[i]
             R=top[i+1]-top[i]
             r=bottom[i+1]-bottom[i]

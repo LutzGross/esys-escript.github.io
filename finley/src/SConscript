@@ -107,8 +107,6 @@ sources = """
     CPPAdapter/FinleyError.cpp
     CPPAdapter/MeshAdapter.cpp
     CPPAdapter/MeshAdapterFactory.cpp
-    CPPAdapter/SystemMatrixAdapter.cpp
-    CPPAdapter/TransportProblemAdapter.cpp
 """.split()
 
 headers = """
@@ -134,12 +132,11 @@ cppadapter_headers = """
     CPPAdapter/FinleyError.h
     CPPAdapter/MeshAdapter.h
     CPPAdapter/MeshAdapterFactory.h
-    CPPAdapter/SystemMatrixAdapter.h
-    CPPAdapter/TransportProblemAdapter.h
     CPPAdapter/system_dep.h
 """.split()
 
-local_env.Append(LIBS = ['escript', 'esysUtils', 'paso'])
+local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
+
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
 
@@ -159,7 +156,11 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_finley_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['finley', 'escript', 'esysUtils', 'paso'])
+if not env['build_shared']:
+    py_wrapper_local_env.Prepend(LIBS = ['finley', 'pasowrap', 'escript', 'esysUtils'])
+else:
+    py_wrapper_local_env.Prepend(LIBS = ['finley', 'pasowrap', 'escript', 'paso', 'esysUtils'])
+
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'CPPAdapter/finleycpp.cpp')
 env.Alias('build_finleycpp_lib', py_wrapper_lib)
