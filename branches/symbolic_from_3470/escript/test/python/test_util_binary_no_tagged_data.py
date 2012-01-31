@@ -3965,6 +3965,9 @@ class Test_util_binary_no_tagged_data(Test_util_base):
       arg1=numpy.array(0.770887964108)
       res=minimum(arg0,arg1)
       ref=numpy.array(0.389872782207)
+      self.assertTrue(isinstance(res,numpy.ndarray),"wrong type of result.")
+      self.assertEqual(res.shape,(),"wrong shape of result.")
+      self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_minimum_array_rank1_array_rank0(self):
       arg0=numpy.array([0.62053337242222106, 0.9378071268909014])

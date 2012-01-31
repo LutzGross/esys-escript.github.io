@@ -20,16 +20,14 @@ extern "C" {
 #include "finley/Mesh.h"
 #include "finley/Finley.h"
 #include "finley/Assemble.h"
-#include "paso/SystemMatrix.h"
-#include "paso/Transport.h"
 #include "esysUtils/Esys_MPI.h"
 }
 
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
-#include "SystemMatrixAdapter.h"
-#include "TransportProblemAdapter.h"
+#include <pasowrap/SystemMatrixAdapter.h>
+#include <pasowrap/TransportProblemAdapter.h>
 #include "escript/AbstractContinuousDomain.h"
 #include "escript/FunctionSpace.h"
 #include "escript/FunctionSpaceFactory.h"

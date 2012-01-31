@@ -85,6 +85,7 @@ void EscriptDatasetTestCase::testAll()
             "<MyValue>4711</MyValue>");
     dataset->setMeshLabels("x-axis", "y-axis", "z-axis");
     dataset->setMeshUnits("km", "cm", "mm");
+    dataset->setSaveMeshData(true);
 
 #if USE_SILO
     cout << "\tTest saveSilo." << endl;

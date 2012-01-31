@@ -51,7 +51,8 @@ public:
     /// \brief Writes the domain to a Silo file.
     virtual bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo,
                              const StringVec& labels,
-                             const StringVec& units) = 0;
+                             const StringVec& units,
+                             bool writeMeshData) = 0;
 
     /// \brief Reorders elements so that 'ghost' elements (i.e. those that
     ///        do not belong to ownIndex) appear last.

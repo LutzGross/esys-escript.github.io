@@ -57,7 +57,7 @@ typedef enum {
 
 /**************************************************************/
 
-/*  this struct holds the definition of the shape functions on element: */
+/*  this struct holds the definition of the shape functions on an element: */
 
 typedef void (Finley_ShapeFunction_Evaluation) (dim_t,double*,double*,double*);
 
@@ -65,7 +65,7 @@ typedef struct Finley_ShapeFunctionInfo {
  
   Finley_ShapeFunctionTypeId TypeId;                        /* the id */
   char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
-  dim_t numDim;                              /* spacial dimension */
+  dim_t numDim;                              /* spatial dimension */
   dim_t numShapes;                           /* number of shape functions */
   dim_t numOrder;                            /* order of the shape functions */
   dim_t numVertices;                         /* number of vertices of the element */

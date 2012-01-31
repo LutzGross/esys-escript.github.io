@@ -18,7 +18,7 @@
 
 /*   scatters the NodeFile in into NodeFile out using index[0:in->numNodes-1].  */
 /*   index has to be between 0 and out->numNodes-1. */
-/*   coloring is choosen for the worst case */
+/*   coloring is chosen for the worst case */
 
 /**************************************************************/
 

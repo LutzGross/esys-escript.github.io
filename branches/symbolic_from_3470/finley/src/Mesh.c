@@ -22,7 +22,7 @@
 /**************************************************************/
 
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
-/*   the most appropriate order is selected indepently. */
+/*   the most appropriate order is selected independently. */
 
 Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info) 
 {
@@ -85,7 +85,7 @@ Finley_Mesh* Finley_Mesh_reference(Finley_Mesh* in) {
      return in;
 }
 
-/*   freeates a mesh: */
+/*   frees a mesh: */
 
 void Finley_Mesh_free(Finley_Mesh* in) {
   if (in!=NULL) {

@@ -126,6 +126,9 @@ public:
                                  const std::string metadata)
         { mdSchema=schema; mdString=metadata; }
 
+    /// \brief Enables/Disables saving of mesh-related data
+    void setSaveMeshData(bool flag) { wantsMeshVars=flag; }
+
     /// \brief Saves the dataset in the Silo file format.
     bool saveSilo(const std::string fileName, bool useMultiMesh=true);
 
@@ -168,7 +171,7 @@ private:
     double time;
     std::string mdSchema, mdString;
     StringVec meshLabels, meshUnits;
-    bool externalDomain;
+    bool externalDomain, wantsMeshVars;
     DomainChunks domainChunks;
     VarVector variables, meshVariables;
     int mpiRank, mpiSize;

@@ -82,7 +82,7 @@ class Test_DXFiles(Test_VisualizationInterface):
      try: 
         saveDX(os.path.join(FINLEY_WORKDIR_PATH,"hex_2D_order2_2Cells_Scalar.dx"),data=x[0],data_b=x_b[0])
         self.fail("non-matching data not detected.")
-     except StandardError:
+     except Exception:
         pass
   def test_hex_2D_order2_BoundaryPoint_Scalar_dx(self):
      dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"hex_2D_order2.msh"),optimize=False)
@@ -91,7 +91,7 @@ class Test_DXFiles(Test_VisualizationInterface):
      try: 
         saveDX(os.path.join(FINLEY_WORKDIR_PATH,"hex_2D_order2_BoundaryPoint_Scalar.dx"),data=x[0],data_b=x_b[0])
         self.fail("non-matching data not detected.")
-     except StandardError:
+     except Exception:
         pass
   def test_hex_2D_order2_Cells_AllData_dx(self):
      reference="hex_2D_o1_cell_all.dx"
@@ -629,6 +629,6 @@ if __name__ == '__main__':
        suite.addTest(unittest.makeSuite(Test_DXFiles))
        pass
    else:
-       print "Test_DXFiles is dropped as number of processors >1"
+       print("Test_DXFiles is dropped as number of processors >1")
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

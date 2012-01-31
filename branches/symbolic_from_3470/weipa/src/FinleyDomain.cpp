@@ -402,14 +402,15 @@ void FinleyDomain::removeGhostZones(int ownIndex)
 //
 //
 bool FinleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
-                               const StringVec& labels, const StringVec& units)
+                               const StringVec& labels, const StringVec& units,
+                               bool writeMeshData)
 {
 #if USE_SILO
     // Write nodes, elements and mesh variables
     if (!initialized ||
-            !cells->writeToSilo(dbfile, pathInSilo, labels, units) ||
-            !faces->writeToSilo(dbfile, pathInSilo, labels, units) ||
-            !contacts->writeToSilo(dbfile, pathInSilo, labels, units))
+            !cells->writeToSilo(dbfile, pathInSilo, labels, units, writeMeshData) ||
+            !faces->writeToSilo(dbfile, pathInSilo, labels, units, writeMeshData) ||
+            !contacts->writeToSilo(dbfile, pathInSilo, labels, units, writeMeshData))
         return false;
 
     siloPath = pathInSilo;

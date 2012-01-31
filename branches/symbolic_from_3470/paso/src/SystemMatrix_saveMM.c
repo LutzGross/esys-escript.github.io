@@ -28,9 +28,9 @@
 
 void Paso_SystemMatrix_saveMM(Paso_SystemMatrix * A_p, char * fileName_p) {
    if (A_p->mpi_info->size > 1) {
-      Esys_setError(IO_ERROR, "Paso_SystemMatrix_saveMM: support single processor only");
+      Esys_setError(IO_ERROR, "Paso_SystemMatrix_saveMM: Only single processor supported.");
    } else {
        Paso_SparseMatrix_saveMM(A_p->mainBlock,fileName_p);
    }
-   return;
 }
+

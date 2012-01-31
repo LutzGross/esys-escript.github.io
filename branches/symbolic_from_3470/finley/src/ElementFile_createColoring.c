@@ -13,11 +13,12 @@
 
 
 /**************************************************************/
-/*                                                                                                         */
-/*   Finley: ElementFile                                                                                   */
-/*                                                                                                         */
-/*   This routine tries to reduce the number of colors used to color elements in the Finley_ElementFile in */
-/*                                                                                                         */
+/*                                                            */
+/*   Finley: ElementFile                                      */
+/*                                                            */
+/*   This routine tries to reduce the number of colors used   */
+/*   to color elements in the Finley_ElementFile in           */
+/*                                                            */
 /**************************************************************/
 
 #include "ElementFile.h"
@@ -49,10 +50,10 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
             #pragma omp parallel for private(n) schedule(static)
             for (n=0;n<len;n++) maskDOF[n]=-1;
             numUncoloredElements=0;
-            /* OMP ?*/
+            /* TODO: OMP ?*/
             for (e=0;e<in->numElements;e++) {
                   if (in->Color[e]<0) {
-                     /* find out if element e is independend from the elements already colored: */
+                     /* find out if element e is independent from the elements already colored: */
                      independent=TRUE;
                      for (i=0;i<NN;i++) {
 #ifdef BOUNDS_CHECK
@@ -64,7 +65,7 @@ if ((degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) >= len || (degreeOfFreed
                              break;
                         }
 		     }
-                     /* if e is independend a new color is assigned and the nodes are marked as being used */
+                     /* if e is independent a new color is assigned and the nodes are marked as being used */
                      if (independent) {
                            for (i=0;i<NN;i++) maskDOF[degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id]=1;
                            in->Color[e]=in->maxColor+1;

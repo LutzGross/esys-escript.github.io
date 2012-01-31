@@ -37,7 +37,7 @@ import esys.dudley as dudley
 TOL=1.e-8
 
 def runTest(dom, n=1, a=0, b=0):
-   print "================== TEST : n= %s a=%s b=%s ================"%(n,a,b)
+   print("================== TEST : n= %s a=%s b=%s ================"%(n,a,b))
    DIM=dom.getDim()
    normal=dom.getNormal()
    mypde=LinearPDE(dom, numEquations=n, numSolutions=n)
@@ -80,8 +80,8 @@ def runTest(dom, n=1, a=0, b=0):
    mypde.setSymmetryOn()
    u=mypde.getSolution()
    error=Lsup(u-u_ref)/Lsup(u_ref)
-   print "error = ",error
-   if error > 10*TOL: print "XXXXXXXXXX Error to large ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+   print("error = ",error)
+   if error > 10*TOL: print("XXXXXXXXXX Error to large ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
 domain=dudley.Rectangle(10,20,1,l0=1.,l1=1.0)
 # or Brick or ReadMesh

@@ -51,7 +51,11 @@ if local_env['visit']:
     local_env.Append(CPPDEFINES = ['USE_VISIT'])
     local_env.AppendUnique(LIBS = ['simV2'])
 
-local_env.Append(LIBS = ['finley', 'dudley','escript', 'esysUtils'])
+if not env['build_shared']:
+    local_env.Prepend(LIBS = ['finley', 'dudley', 'escript'])
+else:
+    local_env.Prepend(LIBS = ['finley', 'dudley', 'escript', 'esysUtils'])
+
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])
@@ -73,7 +77,11 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_weipa_lib', lib_inst)
 
 ### Python wrapper ###
-py_wrapper_local_env.Append(LIBS = ['weipa', 'dudley','finley', 'escript', 'esysUtils'])
+if not env['build_shared']:
+    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'finley', 'dudley', 'escript'])
+else:
+    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'finley', 'dudley', 'escript', 'esysUtils'])
+
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
 env.Alias('build_weipacpp_lib', py_wrapper_lib)
@@ -101,7 +109,7 @@ plugin_sources = """
     FinleyNodes.cpp
 """.split()
 
-visitplugin_env.Append(LIBS = ['esysUtils' ])
+visitplugin_env.Prepend(LIBS = ['esysUtils'])
 visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
 visitplugin_env['OBJPREFIX']='reader_'
 

@@ -15,21 +15,22 @@
 
 using namespace std;
 
-namespace dudley {
+namespace paso {
 
 struct null_deleter
 {
    void operator()(void const *ptr) const
       {
-      }
+      }   
 };
 
-
+PASOWRAP_DLL_API
 SystemMatrixAdapter::SystemMatrixAdapter()
 {
-   throw DudleyAdapterException("Error - Illegal to generate default SystemMatrixAdapter.");
+   throw PasoException("Error - Illegal to generate default SystemMatrixAdapter.");
 }
 
+PASOWRAP_DLL_API
 SystemMatrixAdapter::SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
                                          const int row_blocksize,
                                          const escript::FunctionSpace& row_functionspace,
@@ -40,6 +41,7 @@ AbstractSystemMatrix(row_blocksize,row_functionspace,column_blocksize,column_fun
    m_system_matrix.reset(system_matrix,null_deleter());
 }
 
+PASOWRAP_DLL_API
 SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
    if (m_system_matrix.unique()) {
@@ -48,23 +50,25 @@ SystemMatrixAdapter::~SystemMatrixAdapter()
    }
 }
 
+PASOWRAP_DLL_API
 Paso_SystemMatrix* SystemMatrixAdapter::getPaso_SystemMatrix() const 
 {
    return m_system_matrix.get();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const 
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
 
    if ( x.getDataPointSize()  != getColumnBlockSize()) {
-      throw DudleyAdapterException("matrix vector product : column block size does not match the number of components in input.");
+      throw PasoException("matrix vector product : column block size does not match the number of components in input.");
    } else if (y.getDataPointSize() != getRowBlockSize()) {
-      throw DudleyAdapterException("matrix vector product : row block size does not match the number of components in output.");
+      throw PasoException("matrix vector product : row block size does not match the number of components in output.");
    } else if ( x.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw DudleyAdapterException("matrix vector product : column function space and function space of input don't match.");
+      throw PasoException("matrix vector product : column function space and function space of input don't match.");
    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
-      throw DudleyAdapterException("matrix vector product : row function space and function space of output don't match.");
+      throw PasoException("matrix vector product : row function space and function space of output don't match.");
    }
    x.expand();
    y.expand();
@@ -76,6 +80,7 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
 
    switch (option) {
@@ -175,11 +180,23 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
-           throw DudleyAdapterException(temp.str());
+           throw PasoException(temp.str());
     }
 }
 
-void dudley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
+PASOWRAP_DLL_API
+int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
+        const int package, const bool symmetry, Esys_MPIInfo* mpiInfo)
+{
+    int out=Paso_SystemMatrix_getSystemMatrixTypeId(mapOptionToPaso(solver),
+            mapOptionToPaso(preconditioner), mapOptionToPaso(package),
+            symmetry?1:0, mpiInfo);
+    checkPasoError();
+    return out;
+}
+
+PASOWRAP_DLL_API
+void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 {
    Paso_SystemMatrix* mat=m_system_matrix.get();
    int first_row_index  = mat->row_distribution->first_component[mat->mpi_info->rank];
@@ -217,6 +234,7 @@ void dudley::SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
 {
    Paso_SystemMatrix* mat=getPaso_SystemMatrix();
@@ -224,13 +242,13 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    options.attr("resetDiagnostics")();
    escriptToPasoOptions(&paso_options,options);
    if ( out.getDataPointSize()  != getColumnBlockSize()) {
-      throw DudleyAdapterException("solve : column block size does not match the number of components of solution.");
+      throw PasoException("solve : column block size does not match the number of components of solution.");
    } else if ( in.getDataPointSize() != getRowBlockSize()) {
-      throw DudleyAdapterException("solve : row block size does not match the number of components of  right hand side.");
+      throw PasoException("solve : row block size does not match the number of components of  right hand side.");
    } else if ( out.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw DudleyAdapterException("solve : column function space and function space of solution don't match.");
+      throw PasoException("solve : column function space and function space of solution don't match.");
    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
-      throw DudleyAdapterException("solve : row function space and function space of right hand side don't match.");
+      throw PasoException("solve : row function space and function space of right hand side don't match.");
    }
    out.expand();
    in.expand();
@@ -241,17 +259,18 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data& col_q, const double mdv) const
 {
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
    if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
-      throw DudleyAdapterException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
+      throw PasoException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
    } else if ( row_q.getDataPointSize() != getRowBlockSize()) {
-      throw DudleyAdapterException("nullifyRowsAndCols : row block size does not match the number of components of row mask.");
+      throw PasoException("nullifyRowsAndCols : row block size does not match the number of components of row mask.");
    } else if ( col_q.getFunctionSpace()  != getColumnFunctionSpace()) {
-      throw DudleyAdapterException("nullifyRowsAndCols : column function space and function space of column mask don't match.");
+      throw PasoException("nullifyRowsAndCols : column function space and function space of column mask don't match.");
    } else if (row_q.getFunctionSpace() != getRowFunctionSpace()) {
-      throw DudleyAdapterException("nullifyRowsAndCols : row function space and function space of row mask don't match.");
+      throw PasoException("nullifyRowsAndCols : row function space and function space of row mask don't match.");
    }
    row_q.expand();
    col_q.expand();
@@ -263,11 +282,12 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
    {
-      throw DudleyAdapterException("Null file name!");
+      throw PasoException("Null file name!");
    }
 
    char *fName = TMPMEMALLOC(fileName.size()+1,char);
@@ -280,11 +300,12 @@ void SystemMatrixAdapter::saveMM(const std::string& fileName) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 {
    if( fileName.size() == 0 )
    {
-      throw DudleyAdapterException("Null file name!");
+      throw PasoException("Null file name!");
    }
 
    char *fName = TMPMEMALLOC(fileName.size()+1,char);
@@ -297,6 +318,7 @@ void SystemMatrixAdapter::saveHB(const std::string& fileName) const
 
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::resetValues() const
 {
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
@@ -305,6 +327,7 @@ void SystemMatrixAdapter::resetValues() const
    checkPasoError();
 }
 
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options) 
 {
 #define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)paso_options->__val__)
@@ -321,6 +344,8 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
    SET("num_coarse_unknowns",num_coarse_unknowns,int);
 #undef SET
 }
+
+PASOWRAP_DLL_API
 void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
 {
 #define EXTRACT(__key__,__val__,__type__) paso_options->__val__=boost::python::extract<__type__>(options.attr(__key__)())

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: SparseMatrix is saved to Harwell-Boeing format     */
+/* Paso: SparseMatrix saving to Harwell-Boeing format         */
 
 /**************************************************************/
 

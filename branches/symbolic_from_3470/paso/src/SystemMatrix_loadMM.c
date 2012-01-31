@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: Matrix Market format is loaded to a SystemMatrix   */
+/* Paso: Matrix Market format is loaded to a SystemMatrix     */
 
 /**************************************************************/
 
@@ -82,7 +82,7 @@ void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
 
 		while( l < r )
 		{
-			/* This all section is for checking lval<pivot, where
+			/* This whole section is for checking lval<pivot, where
 			 pivot=N*row[begin]+col[begin] and lval=N*row[l]+col[l]. */
 			if (row[l]<row[begin])
 			 {
@@ -138,14 +138,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
         Esys_resetError();
         if (mpi_info->size >1) {
-		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: support single processor only");
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: supports single processor only");
 		return NULL;
         }
 	/* open the file */
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot read file for reading.");
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Cannot open file for reading.");
                 Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
@@ -185,7 +185,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
-		Esys_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory" );
+		Esys_setError(MEMORY_ERROR, "Paso_SystemMatrix_loadMM_toCSR: Could not allocate memory.");
 
                 Esys_MPIInfo_free(mpi_info);
 		fclose( fileHandle_p );
@@ -275,7 +275,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	MM_typecode matrixCode;
         Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
         if (mpi_info->size >1) {
-		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: support single processor only");
+		Esys_setError(IO_ERROR, "Paso_SystemMatrix_loadMM_toCSC: supports single processor only");
 		return NULL;
         }
 
@@ -285,7 +285,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading");
+		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: File could not be opened for reading.");
                 Esys_MPIInfo_free(mpi_info);
 		return NULL;
 	}
@@ -293,7 +293,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	/* process banner */
 	if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
 	{
-		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner");
+		Esys_setError(IO_ERROR,"Paso_SystemMatrix_loadMM_toCSC: Error processing MM banner.");
 		fclose( fileHandle_p );
                 Esys_MPIInfo_free(mpi_info);
 		return NULL;
@@ -394,7 +394,7 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
 	fileHandle_p = fopen( fileName_p, "r" );
 	if( fileHandle_p == NULL )
 	{
-		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot read file for reading.");
+		Esys_setError(IO_ERROR, "Paso_RHS_loadMM_toCSR: Cannot open file for reading.");
 	}
 
 	/* process banner */
@@ -436,3 +436,4 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size)
 	}
 
 }
+

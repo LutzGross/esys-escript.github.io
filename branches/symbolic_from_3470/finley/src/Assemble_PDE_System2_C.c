@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assembles the system of numEq PDEs into the stiffness matrix S right hand side F  */
+/*    assembles the system of numEq PDEs into the stiffness matrix S and right hand side F  */
 
 /*      D_{k,m} u_m  and Y_k */
 

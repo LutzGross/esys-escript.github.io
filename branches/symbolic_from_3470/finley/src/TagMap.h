@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Finley: simple link list to privide clear names for a tag keys */
+/* Finley: simple linked list to provide clear names for tag keys */
 
 /**************************************************************/
 

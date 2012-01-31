@@ -94,7 +94,7 @@ def getDirection(dim, d="x"):
      elif d=="xyz" and dim>2:
          return (k[1]+k[2]+k[0])/sqrt(3.)
      else:
-         raise ValueError,"Cannot identify direction %s"%d
+         raise ValueError("Cannot identify direction %s"%d)
 
 def QUALITY(u_h,u_ref):
      u_h_e=interpolate(u_h,u_ref.getFunctionSpace())
@@ -129,15 +129,15 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     v = (v_c+v_d)
     E=b/a 
     if VERBOSITY: 
-           print "="*100
-           print "XX Start test dim  = %d , h=%e, b=%e, c=%e, d=%e, c_dir=%s, d_dir=%s, a=%e, s=%e"%(dim, h,b,c,d,c_dir, d_dir, a, s)
-           print "="*100
-           print "initial width s = ",s
-           print "diffusion = ",E
-           print "total velocity = ",v
-           print "tend = ", tend
-           print "tolerance = ",TOL
-           print "number of elements over s =",s/h
+           print("="*100)
+           print("XX Start test dim  = %d , h=%e, b=%e, c=%e, d=%e, c_dir=%s, d_dir=%s, a=%e, s=%e"%(dim, h,b,c,d,c_dir, d_dir, a, s))
+           print("="*100)
+           print("initial width s = ",s)
+           print("diffusion = ",E)
+           print("total velocity = ",v)
+           print("tend = ", tend)
+           print("tolerance = ",TOL)
+           print("number of elements over s =",s/h)
     b0=sqrt(- log(TAU) * 4*(s**2+E*tend))
     b1=sqrt(- log(TAU)) * 2*s 
     X0_0=max(b1,-v[0]*tend + b0)
@@ -147,23 +147,23 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     NE_0=max(int(l_0/h+0.5),1)
     NE_1=max(int(l_1/h+0.5),1)
     if dim == 2:
-        if VERBOSITY: print "%d x %d grid over %e  x %e with element size %e."%(NE_0,NE_1,l_0,l_1,h)
+        if VERBOSITY: print("%d x %d grid over %e  x %e with element size %e."%(NE_0,NE_1,l_0,l_1,h))
         if NE_0*NE_1 > NE_MAX:
-	   raise ValueError,"too many elements %s."%(NE_0*NE_1,)
+	   raise ValueError("too many elements %s."%(NE_0*NE_1,))
         dom=Rectangle(n0=NE_0,n1=NE_1,l0=l_0,l1=l_1)
         x0=[X0_0, X0_1]
     else:
        X0_2=max(b1,-v[2]*tend + b0)
        l_2=X0_2+max(v[2]*tend + b0 , b1)
        NE_2=max(int(l_2/h+0.5),1)
-       if VERBOSITY: print "%d x %d x %d grid over %e  x %e x %e with element size %e."%(NE_0,NE_1,NE_2,l_0,l_1,l_2,h)
+       if VERBOSITY: print("%d x %d x %d grid over %e  x %e x %e with element size %e."%(NE_0,NE_1,NE_2,l_0,l_1,l_2,h))
        if NE_0*NE_1*NE_2 > NE_MAX:
-	  raise ValueError,"too many elements %s."%(NE_0*NE_1*NE_2,)
+	  raise ValueError("too many elements %s."%(NE_0*NE_1*NE_2,))
        dom=Brick(n0=NE_0,n1=NE_1, ne2=NE_2, l0=l_0,l1=l_1, l2=l_2)
        x0=[X0_0, X0_1, X0_2]
     if VERBOSITY: 
-        print "initial location = ",x0
-    print "XX", interpolate(uRef(dom,0.,E,s,v,x0), FunctionOnBoundary(dom))
+        print("initial location = ",x0)
+    print("XX", interpolate(uRef(dom,0.,E,s,v,x0), FunctionOnBoundary(dom)))
      
     fc_BE=TransportPDE(dom,numEquations=1,useBackwardEuler=True)
     fc_BE.setValue(M=a, A=-b*kronecker(dom), B=-v_d*a, C=-v_c*a)
@@ -172,7 +172,7 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     #
     fc_BE.getSolverOptions().setPreconditioner(fc_BE.getSolverOptions().GAUSS_SEIDEL)
     fc_BE.getSolverOptions().setNumSweeps(5)  
-    if VERBOSITY: print "Backward Euler Transport created"
+    if VERBOSITY: print("Backward Euler Transport created")
 
     fc_CN=TransportPDE(dom,numEquations=1,useBackwardEuler=False)
     fc_CN.setValue(M=a, A=-b*kronecker(dom), B=-v_d*a, C=-v_c*a)
@@ -181,9 +181,9 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
    
     #fc_CN.getSolverOptions().setPreconditioner(fc_CN.getSolverOptions().GAUSS_SEIDEL) 
     fc_CN.getSolverOptions().setNumSweeps(2)  
-    if VERBOSITY: print "Crank Nicolson Transport created"
+    if VERBOSITY: print("Crank Nicolson Transport created")
     dt_CN=fc_CN.getSafeTimeStepSize()
-    if VERBOSITY: print "time step size by Crank Nicolson=",dt_CN
+    if VERBOSITY: print("time step size by Crank Nicolson=",dt_CN)
 
     U0=uRef(dom,0,E,s,v,x0)
     U0_e=uRef(dom,0,E,s,v,x0,True)
@@ -191,27 +191,27 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     fc_BE.setInitialSolution(U0)
     initial_error_L2=sqrt(integrate((U0-U0_e)**2))
     if VERBOSITY:
-      print "initial Lsup = ",Lsup(U0), Lsup(U0_e)
-      print "initial integral = ",integrate(U0_e)
-      print "initial error = ",initial_error_L2
-      print "used time step size =",dt 
+      print("initial Lsup = ",Lsup(U0), Lsup(U0_e))
+      print("initial integral = ",integrate(U0_e))
+      print("initial error = ",initial_error_L2)
+      print("used time step size =",dt) 
       
     if not CN:
        n=int(ceil(tend/dt))
        if VERBOSITY: 
-          print "Solve Backward Euler:"
-          print "substeps : ",n
+          print("Solve Backward Euler:")
+          print("substeps : ",n)
        t0=clock()
        for i in range(n): u=fc_BE.getSolution(dt)
        t0=clock()-t0
     else:
-       if VERBOSITY: print "Solve Crank Nicolson:"
+       if VERBOSITY: print("Solve Crank Nicolson:")
        dt=dt_CN
        t0=clock()
        u=fc_CN.getSolution(tend)
        t0=clock()-t0
     out=QUALITY(u,uRef(dom,tend,E,s,v,x0,True))
-    print "XX", interpolate(uRef(dom,tend,E,s,v,x0), FunctionOnBoundary(dom))
+    print("XX", interpolate(uRef(dom,tend,E,s,v,x0), FunctionOnBoundary(dom)))
     out['time']=t0
     out['tend']=tend
     out['dt']=dt
@@ -236,7 +236,7 @@ if False:
     h=0.1/4*1.2/1.25
     dt=6.250000e-10
 
-    print XXX(DIM,dt,dt,s=s,h=h,b=a*b,c=a*c,d=0,c_dir="x", d_dir="x", CN=True)
+    print(XXX(DIM,dt,dt,s=s,h=h,b=a*b,c=a*c,d=0,c_dir="x", d_dir="x", CN=True))
     1/0
 
 for tst in test_set:
@@ -262,15 +262,15 @@ for tst in test_set:
         h=h0/f_h
         result=XXX(DIM,tend,tend,s=s,h=h,b=a*b,c=a*c,d=0,c_dir="x", d_dir="x", CN=True)
         out+=", %e"%result[tab_name]
-        print "XX",result
+        print("XX",result)
         dt_s.insert(0,result['dt'])
         for i in range(len(f_test)-len(dt_s)): out+=", "
         for dt in dt_s:
             result=XXX(DIM,tend,dt,s=s,h=h,b=a*b,c=a*c,d=0,c_dir="x", d_dir="x", CN=False)
-            print "XX",result
+            print("XX",result)
             out+=", %e"%result[tab_name]
         out+="\n"
      header="h\dt , "
      for dt in dt_s: header+=", %e"%dt
      out=header+"\n"+out
-     print out
+     print(out)

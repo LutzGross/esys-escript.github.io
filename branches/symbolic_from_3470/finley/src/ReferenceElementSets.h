@@ -14,7 +14,7 @@
 
 /***************************************************************************************************************
 
-    Finley: Reference elements set managing the reference elements for the full and reduced intergation order
+    Finley: Reference element sets manage the reference elements for the full and reduced integration order
 
 **************************************************************************************************************/
 

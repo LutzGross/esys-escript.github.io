@@ -40,11 +40,6 @@ namespace finley {
   */
   FINLEY_DLL_API
   void checkFinleyError();
-  /**
-     \brief
-     Convert a C paso  error into a C++ exception.
-  */
-  FINLEY_DLL_API
-  void checkPasoError();
+
 } // end of namespace
 #endif

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: returns the package to be used                   */
+/* Paso: returns the package to be used                       */
 
 /**************************************************************/
 
@@ -43,7 +43,7 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
               #endif
             #endif
          #endif
-         if (( (out == PASO_MKL) || (out==PASO_UMFPACK) || (out == PASO_PASTIX) ) && (mpi_info->size>1) ) {  /* these packages require CSC  which is not supported with MPI */
+         if (( (out == PASO_MKL) || (out==PASO_UMFPACK) || (out == PASO_PASTIX) ) && (mpi_info->size>1) ) {  /* these packages require CSC which is not supported with MPI */
               out= PASO_PASO;
          }
       } else {
@@ -60,7 +60,8 @@ index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry,
   } else if (package==PASO_TRILINOS) {
       out=PASO_TRILINOS;
   } else {
-      Esys_setError(VALUE_ERROR,"Unidentified package.");
+      Esys_setError(VALUE_ERROR,"Paso_Options_getPackage: Unidentified package.");
   }
   return out;
 }
+

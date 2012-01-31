@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: Mesh tagmaps: provides access to the mesh tagmap */
+/*   Finley: Mesh tagmaps: provides access to the mesh tag map */
 
 /**************************************************************/
 

@@ -14,13 +14,15 @@
 
 /**************************************************************/
 
-/*   Paso: pattern: a simple algorithm to create a new labeling                              */
-/*   of input/output with a minimum bandwidth. The algorithm                                 */
-/*   starts from a vertex with a minumum number of naigbours (connections in the pattern).   */
-/*   From this root it searches recursively the naighbours. In the last level                */
-/*   a new root is picked (again the vertex with the minumum number of naigbours) and the    */
-/*   process is repeated. The algorithm is repeated until the maximum number of vertices     */
-/*   in a level cannot be reduced.                                                           */
+/*   Paso: pattern: a simple algorithm to create a new labeling */
+/*   of input/output with a minimum bandwidth. The algorithm    */
+/*   starts from a vertex with a minimum number of neighbours   */
+/*   (connections in the pattern). From this root it searches   */
+/*   recursively the neighbours. In the last level a new root   */
+/*   is picked (again the vertex with the minimum number of     */
+/*   neighbours) and the process is repeated. The algorithm is  */
+/*   repeated until the maximum number of vertices in a level   */
+/*   cannot be reduced.                                         */
 
 /**************************************************************/
 
@@ -33,7 +35,7 @@
 #include "Pattern.h"
 #include "Common.h"
 
-/*   calculate initial badwdisth for a given labeling */
+/*   calculate initial bandwidth for a given labeling */
 dim_t Paso_Pattern_getBandwidth(Paso_Pattern* pattern, index_t* label) {
       register index_t k;
       index_t iptr;
@@ -83,7 +85,7 @@ int Paso_comparDegreeAndIdx(const void *arg1,const void *arg2){
 /*  root - on input the starting point of the tree. */
 /*  AssignedLevel- array of length pattern->numOutput indicating the level assigned to vertex */
 /*  VerticesInTree - on output contains the vertices used in tree  (array of length pattern->numOutput) */
-/*  numLevels-  on output the number of level used. */
+/*  numLevels-  on output the number of levels used. */
 /*  firstVertexInLevel - on output firstVertexInLevel[i] points to the first vertex of level i in VerticesInTree. */
 /*                       firstVertexInLevel[i+1]-firstVertexInLevel[i] is the number of vertices in level i. */
 /*                         (array of length pattern->numOutput+1) */
@@ -199,7 +201,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
                  numVerticesInTree=firstVertexInLevel[numLevels];
                  for (i=0;i<firstVertexInLevel[numLevels];++i) {
 #ifdef BOUNDS_CHECK
-		       if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
+		       if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
 #endif
                        oldLabel[numLabledVertices+i]=VerticesInTree[i];
                  }
@@ -207,12 +209,12 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
              /* now the vertices in the current tree */
              for (i=0;i<numVerticesInTree;++i) {
 #ifdef BOUNDS_CHECK
-		 if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
+		 if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
 #endif
                  oldToNew[oldLabel[numLabledVertices+i]]=numLabledVertices+i;
              }
              numLabledVertices+=numVerticesInTree;
-             /* new search for a vertex which is not labled yet */
+             /* new search for a vertex which is not labeled yet */
              root=-1;
              for (i=0;i<N;++i) {
                  if (oldToNew[degAndIdx[i].idx] < 0) {
@@ -236,3 +238,4 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
       TMPMEMFREE(firstVertexInLevel);
    }
 }
+

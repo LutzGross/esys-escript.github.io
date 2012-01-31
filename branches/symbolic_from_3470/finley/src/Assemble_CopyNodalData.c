@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*    assemblage routines: copies data between different types nodal representation   */
+/*    assemblage routines: copies data between different types of nodal representations   */
 
 /**************************************************************/
 

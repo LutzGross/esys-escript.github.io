@@ -37,13 +37,13 @@ def  writeInFormat(fs,format,filetype):
         x=length(fs.getX())
         # generate scalar data:
         filename="%s/scalar.%s.%s"%(work_dir,filetype,format)
-        print "file ",filename," is generated"
+        print("file ",filename," is generated")
         try:
            eval("x.save%s(\"%s\")"%(format.upper(),filename))
-        except StandardError, msg:
-           print "%% failed because of ",msg
+        except Exception as msg:
+           print("%% failed because of ",msg)
         # generate vector data:
-        print "file ",filename," is generated"
+        print("file ",filename," is generated")
         filename="%s/vector.%s.%s"%(work_dir,filetype,format)
         if d==2:
            m=[1.,2.]
@@ -51,19 +51,19 @@ def  writeInFormat(fs,format,filetype):
            m=[1.,2.,3.]
         try:
            eval("(x*m).save%s(\"%s\")"%(format.upper(),filename))
-        except StandardError, msg:
-           print "%% failed because of ",msg
+        except Exception as msg:
+           print("%% failed because of ",msg)
         # generate tensor data:
         filename="%s/tensor.%s.%s"%(work_dir,filetype,format)
-        print "file ",filename," is generated"
+        print("file ",filename," is generated")
         if d==2:
            m=[[11.,12.],[21.,22.]]
         else:
            m=[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]]
         try:
            eval("(x*m).save%s(\"%s\")"%(format.upper(),filename))
-        except StandardError, msg:
-           print "%% failed because of ",msg
+        except Exception as msg:
+           print("%% failed because of ",msg)
 
 for format in ["vtk","dx"]:
    for d in [2,3]:

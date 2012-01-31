@@ -329,7 +329,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
      Finley_Mesh_addTagMap(out,"left", 1);
      Finley_Mesh_addTagMap(out,"right", 2);
    }
-   /* prepare mesh for further calculatuions:*/
+   /* prepare mesh for further calculations:*/
    if (Finley_noError()) {
          Finley_Mesh_resolveNodeIds(out);
    }

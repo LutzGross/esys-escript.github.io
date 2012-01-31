@@ -42,7 +42,8 @@ public:
     virtual bool initFromEscript(const escript::AbstractDomain* domain);
     virtual bool initFromFile(const std::string& filename);
     virtual bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo,
-                             const StringVec& labels, const StringVec& units);
+                             const StringVec& labels, const StringVec& units,
+                             bool writeMeshData);
     virtual void reorderGhostZones(int ownIndex);
     virtual void removeGhostZones(int ownIndex);
     virtual StringVec getMeshNames() const;

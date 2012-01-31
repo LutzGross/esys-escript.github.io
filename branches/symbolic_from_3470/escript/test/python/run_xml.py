@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -22,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 import unittest
 from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,ESySXMLParser,DataSource
 import math
-from cStringIO import StringIO
+from io import StringIO
 from xml.dom import minidom
 import numpy
 import sys
@@ -44,7 +45,7 @@ class XMLDocumentTestCase(unittest.TestCase):
         s.run() 
         output = StringIO()
         s.writeXML(output)
-        output.reset()
+        output.seek(0)
         outputList = output.readlines()
         self.xmlList = outputList
 
@@ -81,7 +82,7 @@ class SimulationTestCase(unittest.TestCase):
         self.s.run() 
         output = StringIO()
         self.s.writeXML(output)
-        output.reset()
+        output.seek(0)
         self.xml = output.read()
 
     def testSimulation(self):
@@ -94,7 +95,7 @@ class SimulationTestCase(unittest.TestCase):
         assert isinstance(newSim, Simulation)
         newout = StringIO()
         newSim.writeXML(newout)
-        newout.reset()
+        newout.seek(0)
         xml = newout.read()
         assert '<Simulation' in xml, "Missing a Simulation! It should be in this!"
 
@@ -131,7 +132,7 @@ class LinkTestCase(unittest.TestCase):
     def testLinkXML(self):
         s = StringIO()
         self.o2.writeXML(s)
-        s.reset()
+        s.seek(0)
         xmlout = s.read()
         assert '<Link' in xmlout
 
@@ -151,7 +152,7 @@ class ParamaterSetTestCase(unittest.TestCase):
     def testParameterSetXMLCreation(self):
         s = StringIO()
         self.p.writeXML(s)
-        s.reset()
+        s.seek(0)
         xmlout = s.read()
         assert ("gamma1" in xmlout)
         assert ("gamma2" in xmlout)
@@ -164,7 +165,7 @@ class ParamaterSetTestCase(unittest.TestCase):
     def testParameterSetFromXML(self):
         s = StringIO()
         self.p.writeXML(s)
-        s.reset()
+        s.seek(0)
         xmlout = s.read()
         esysxml=ESySXMLParser(xmlout)
         doc = self._class(self.p)
@@ -192,7 +193,7 @@ class ParamaterSetTestCase(unittest.TestCase):
     def _dom(self, input):
         s = StringIO()
         input.writeXML(s)
-        s.reset()
+        s.seek(0)
         xmlout = s.read()
         doc = minidom.parseString(xmlout)
         return doc
@@ -200,7 +201,7 @@ class ParamaterSetTestCase(unittest.TestCase):
     def _class(self, input):
         s = StringIO()
         input.writeXML(s)
-        s.reset()
+        s.seek(0)
         xmlout = s.read()
         esysxml=ESySXMLParser(xmlout)
         doc =esysxml.parse()[0]
@@ -284,7 +285,7 @@ class ModeltoDomTestCase(unittest.TestCase):
         # returns a modelframe class, generated from the xml
         s = StringIO()
         self.o1.writeXML(s)
-        s.reset()
+        s.seek(0)
         self.xmlout = s.read()
         esysxml=ESySXMLParser(xmlout)
         doc =esysxml.parse()[0]
@@ -294,7 +295,7 @@ class ModeltoDomTestCase(unittest.TestCase):
         # returns a minidom dom element, generated from the xml
         s = StringIO()
         self.o1.writeXML(s)
-        s.reset()
+        s.seek(0)
         self.xmlout = s.read()
         doc = minidom.parseString(self.xmlout)
         return doc

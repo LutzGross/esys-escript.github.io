@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -37,7 +38,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import math
 import numpy
-import escript
+from . import escript
 import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
@@ -120,7 +121,7 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
 	firstdim=dat[0]
     #So now we know firstdim is a scalar
     if (dim==1 and datdim>1) or (dim>1 and datdim!=dim):
-	print dim, datdim
+	print((dim, datdim))
 	raise ValueError("The dimension of dat must be equal to the length of start.")
     if dim==3:
 	d1=dat[1]
@@ -128,7 +129,8 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
 	return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
     if dim==2:
 	d1=dat[1]
-	return d1.interpolateTable(tab, start[0], step[0], firstdim, start[1], step[1], undef, check_boundaries)
+	return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
+#	return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
     else:
 	return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
@@ -169,20 +171,20 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     """
     # find a function space:
     fs = None
-    for n,d in data.items():
+    for n,d in list(data.items()):
 	if isinstance(d, Data): fs=d.getFunctionSpace()
     if fs == None:
-	raise ValueError, "saveDataCSV: there must be at least one Data object in the argument list."
+	raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
     
     new_data={}
-    for n,d in data.items():
+    for n,d in list(data.items()):
 	if isinstance(d, Data):
      	    new_data[n]=d
         else:
             try:
                new_data[n]=Data(d,fs)
             except:
-	       raise ValueError, "saveDataCSV: unknown non-data argument type for %s"%(str(n))
+	       raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     _saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
@@ -225,7 +227,7 @@ def saveDX(filename,domain=None,**data):
            data on the interior cannot be mixed.
     """
     new_data={}
-    for n,d in data.items():
+    for n,d in list(data.items()):
           if not d.isEmpty():
             fs=d.getFunctionSpace()
             domain2=fs.getDomain()
@@ -239,7 +241,7 @@ def saveDX(filename,domain=None,**data):
                new_data[n]=d
             if domain==None: domain=domain2
     if domain==None:
-        raise ValueError,"saveDX: no domain detected."
+        raise ValueError("saveDX: no domain detected.")
     domain.saveDX(filename,new_data)
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
@@ -295,7 +297,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
            file is updated in each iteration.
     """
     new_data = {}
-    for n,d in data.items():
+    for n,d in list(data.items()):
           if not d.isEmpty(): 
             fs = d.getFunctionSpace() 
             domain2 = fs.getDomain()
@@ -307,7 +309,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
                new_data[n]=d
             if domain==None: domain=domain2
     if domain==None:
-        raise ValueError, "saveESD: no domain detected."
+        raise ValueError("saveESD: no domain detected.")
 
     if domain.onMasterProcessor() and not os.path.isdir(dataDir):
         os.mkdir(dataDir)
@@ -337,7 +339,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
         outputString += "N=%d\n" % domain.getMPISize()
 
     # now add the variables
-    for varName, d in new_data.items():
+    for varName, d in list(new_data.items()):
         varFile = datasetName+"_"+varName+".%04d"
         d.dump(os.path.join(dataDir, (varFile + ".nc") % fileNumber))
         if domain.onMasterProcessor():
@@ -383,7 +385,7 @@ def identity(shape=()):
              for i1 in range(shape[1]):
                 out[i0,i1,i0,i1]=1.
       else:
-          raise ValueError,"identity: length of shape is restricted to 2."
+          raise ValueError("identity: length of shape is restricted to 2.")
    else:
       out=1.
    return out
@@ -478,7 +480,7 @@ def Lsup(arg):
     elif isinstance(arg,int):
         return abs(float(arg))
     else:
-        raise TypeError,"Lsup: Unknown argument type."
+        raise TypeError("Lsup: Unknown argument type.")
 
 def sup(arg):
     """
@@ -499,7 +501,7 @@ def sup(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-        raise TypeError,"sup: Unknown argument type."
+        raise TypeError("sup: Unknown argument type.")
 
 def inf(arg):
     """
@@ -520,7 +522,7 @@ def inf(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-      raise TypeError,"inf: Unknown argument type."
+      raise TypeError("inf: Unknown argument type.")
 
 
 #=========================================================================
@@ -549,7 +551,7 @@ def getRank(arg):
     elif isinstance(arg,Symbol):
         return arg.getRank()
     else:
-      raise TypeError,"getRank: Unknown argument type."
+      raise TypeError("getRank: Unknown argument type.")
 
 def getShape(arg):
     """
@@ -576,7 +578,7 @@ def getShape(arg):
     elif isinstance(arg,Symbol):
         return arg.getShape()
     else:
-      raise TypeError,"getShape: Cannot identify shape"
+      raise TypeError("getShape: Cannot identify shape")
 
 def pokeDim(arg):
     """
@@ -609,15 +611,15 @@ def commonShape(arg0, arg1):
     sh1=getShape(arg1)
     if len(sh0)<len(sh1):
        if not sh0==sh1[:len(sh0)]:
-             raise ValueError,"argument 0 cannot be extended to the shape of argument 1"
+             raise ValueError("argument 0 cannot be extended to the shape of argument 1")
        return sh1
     elif len(sh0)>len(sh1):
        if not sh1==sh0[:len(sh1)]:
-             raise ValueError,"argument 1 cannot be extended to the shape of argument 0"
+             raise ValueError("argument 1 cannot be extended to the shape of argument 0")
        return sh0
     else:
        if not sh0==sh1:
-             raise ValueError,"argument 1 and argument 0 have not the same shape."
+             raise ValueError("argument 1 and argument 0 have not the same shape.")
        return sh0
 
 def commonDim(*args):
@@ -638,7 +640,7 @@ def commonDim(*args):
        d=pokeDim(a)
        if not out==None:
           if not (d==None or out==d):
-             raise ValueError,"dimension of arguments don't match"
+             raise ValueError("dimension of arguments don't match")
        else:
           out=d
     return out
@@ -689,7 +691,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,escript.Data):
        if isinstance(arg1,numpy.ndarray):
           arg1=escript.Data(arg1,arg0.getFunctionSpace())
@@ -702,7 +704,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,Symbol):
        if isinstance(arg1,numpy.ndarray):
           pass
@@ -715,7 +717,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,float):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(arg0,dtype=numpy.float64)
@@ -730,7 +732,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,int):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
@@ -745,9 +747,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,Symbol):
           pass
        else:
-          raise TypeError,"function: Unknown type of second argument."
+          raise TypeError("function: Unknown type of second argument.")
     else:
-      raise TypeError,"function: Unknown type of first argument."
+      raise TypeError("function: Unknown type of first argument.")
 
     return arg0,arg1
 
@@ -794,7 +796,7 @@ def log10(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.log10)
    else:
-      raise TypeError,"log10: Unknown argument type."
+      raise TypeError("log10: Unknown argument type.")
 
 def wherePositive(arg):
    """
@@ -825,7 +827,7 @@ def wherePositive(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.wherePositive)
    else:
-      raise TypeError,"wherePositive: Unknown argument type."
+      raise TypeError("wherePositive: Unknown argument type.")
 
 def whereNegative(arg):
    """
@@ -856,7 +858,7 @@ def whereNegative(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.whereNegative)
    else:
-      raise TypeError,"whereNegative: Unknown argument type."
+      raise TypeError("whereNegative: Unknown argument type.")
 
 def whereNonNegative(arg):
    """
@@ -887,7 +889,7 @@ def whereNonNegative(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.whereNonNegative)
    else:
-      raise TypeError,"whereNonNegative: Unknown argument type."
+      raise TypeError("whereNonNegative: Unknown argument type.")
 
 def whereNonPositive(arg):
    """
@@ -918,7 +920,7 @@ def whereNonPositive(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.whereNonPositive)
    else:
-      raise TypeError,"whereNonPositive: Unknown argument type."
+      raise TypeError("whereNonPositive: Unknown argument type.")
 
 def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    """
@@ -937,7 +939,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    :raise TypeError: if the type of the argument is not expected
    """
    if tol == None and not isinstance(arg, Symbol):
-      if rtol<0: raise ValueError,"rtol must be non-negative."
+      if rtol<0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
       out=numpy.less_equal(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -958,7 +960,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.whereZero)
    else:
-      raise TypeError,"whereZero: Unknown argument type."
+      raise TypeError("whereZero: Unknown argument type.")
 
 def whereNonZero(arg,tol=0.):
    """
@@ -975,7 +977,7 @@ def whereNonZero(arg,tol=0.):
    :raise TypeError: if the type of the argument is not expected
    """
    if tol == None:
-      if rtol<=0: raise ValueError,"rtol must be non-negative."
+      if rtol<=0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
       out=numpy.greater(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
@@ -996,7 +998,22 @@ def whereNonZero(arg,tol=0.):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.whereNonZero)
    else:
-      raise TypeError,"whereNonZero: Unknown argument type."
+      raise TypeError("whereNonZero: Unknown argument type.")
+
+def Abs(arg):
+   """
+   Returns the absolute value of argument ``arg``.
+
+   :param arg: argument
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
+           on the type of ``arg``
+   :raise TypeError: if the type of the argument is not expected
+   """
+   if isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.abs)
+   else:
+      return abs(arg)
 
 def erf(arg):
    """
@@ -1013,7 +1030,7 @@ def erf(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.erf)
    else:
-      raise TypeError,"erf: Unknown argument type."
+      raise TypeError("erf: Unknown argument type.")
 
 def sin(arg):
    """
@@ -1036,7 +1053,7 @@ def sin(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.sin)
    else:
-      raise TypeError,"sin: Unknown argument type."
+      raise TypeError("sin: Unknown argument type.")
 
 def cos(arg):
    """
@@ -1059,7 +1076,7 @@ def cos(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.cos)
    else:
-      raise TypeError,"cos: Unknown argument type."
+      raise TypeError("cos: Unknown argument type.")
 
 def tan(arg):
    """
@@ -1082,7 +1099,7 @@ def tan(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.tan)
    else:
-      raise TypeError,"tan: Unknown argument type."
+      raise TypeError("tan: Unknown argument type.")
 
 def asin(arg):
    """
@@ -1105,7 +1122,7 @@ def asin(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.asin)
    else:
-      raise TypeError,"asin: Unknown argument type."
+      raise TypeError("asin: Unknown argument type.")
 
 def acos(arg):
    """
@@ -1128,7 +1145,7 @@ def acos(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.acos)
    else:
-      raise TypeError,"acos: Unknown argument type."
+      raise TypeError("acos: Unknown argument type.")
 
 def atan(arg):
    """
@@ -1151,7 +1168,7 @@ def atan(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.atan)
    else:
-      raise TypeError,"atan: Unknown argument type."
+      raise TypeError("atan: Unknown argument type.")
 
 def sinh(arg):
    """
@@ -1174,7 +1191,7 @@ def sinh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.sinh)
    else:
-      raise TypeError,"sinh: Unknown argument type."
+      raise TypeError("sinh: Unknown argument type.")
 
 def cosh(arg):
    """
@@ -1197,7 +1214,7 @@ def cosh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.cosh)
    else:
-      raise TypeError,"cosh: Unknown argument type."
+      raise TypeError("cosh: Unknown argument type.")
 
 def tanh(arg):
    """
@@ -1220,7 +1237,7 @@ def tanh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.tanh)
    else:
-      raise TypeError,"tanh: Unknown argument type."
+      raise TypeError("tanh: Unknown argument type.")
 
 def asinh(arg):
    """
@@ -1243,7 +1260,7 @@ def asinh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.asinh)
    else:
-      raise TypeError,"asinh: Unknown argument type."
+      raise TypeError("asinh: Unknown argument type.")
 
 def acosh(arg):
    """
@@ -1266,7 +1283,7 @@ def acosh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.acosh)
    else:
-      raise TypeError,"acosh: Unknown argument type."
+      raise TypeError("acosh: Unknown argument type.")
 
 def atanh(arg):
    """
@@ -1289,7 +1306,7 @@ def atanh(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.atanh)
    else:
-      raise TypeError,"atanh: Unknown argument type."
+      raise TypeError("atanh: Unknown argument type.")
 
 def exp(arg):
    """
@@ -1312,7 +1329,7 @@ def exp(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.exp)
    else:
-      raise TypeError,"exp: Unknown argument type."
+      raise TypeError("exp: Unknown argument type.")
 
 def sqrt(arg):
    """
@@ -1335,7 +1352,7 @@ def sqrt(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.sqrt)
    else:
-      raise TypeError,"sqrt: Unknown argument type."
+      raise TypeError("sqrt: Unknown argument type.")
 
 def log(arg):
    """
@@ -1358,7 +1375,7 @@ def log(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.log)
    else:
-      raise TypeError,"log: Unknown argument type."
+      raise TypeError("log: Unknown argument type.")
 
 def sign(arg):
    """
@@ -1391,7 +1408,7 @@ def sign(arg):
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.sign)
    else:
-      raise TypeError,"sign: Unknown argument type."
+      raise TypeError("sign: Unknown argument type.")
 
 def minval(arg):
    """
@@ -1416,7 +1433,7 @@ def minval(arg):
    elif isinstance(arg,Symbol):
       return symfn.minval(arg)
    else:
-      raise TypeError,"minval: Unknown argument type."
+      raise TypeError("minval: Unknown argument type.")
 
 def maxval(arg):
    """
@@ -1441,7 +1458,7 @@ def maxval(arg):
    elif isinstance(arg,Symbol):
       return symfn.maxval(arg)
    else:
-      raise TypeError,"maxval: Unknown argument type."
+      raise TypeError("maxval: Unknown argument type.")
 
 def length(arg):
    """
@@ -1472,15 +1489,15 @@ def trace(arg,axis_offset=0):
    if isinstance(arg,numpy.ndarray):
       sh=arg.shape
       if len(sh)<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>len(sh)-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(len(sh)-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(len(sh)-2))
       s1=1
       for i in range(axis_offset): s1*=sh[i]
       s2=1
       for i in range(axis_offset+2,len(sh)): s2*=sh[i]
       if not sh[axis_offset] == sh[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       arg_reshaped=numpy.reshape(arg,(s1,sh[axis_offset],sh[axis_offset],s2))
       out=numpy.zeros([s1,s2],numpy.float64)
       for i1 in range(s1):
@@ -1490,21 +1507,21 @@ def trace(arg,axis_offset=0):
       return out
    elif isinstance(arg,escript.Data):
       if arg.getRank()<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(arg.getRank()-2))
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg._trace(axis_offset)
    elif isinstance(arg,Symbol):
       if arg.getRank()<2:
-        raise ValueError,"rank of argument must be greater than 1"
+        raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
-        raise ValueError,"axis_offset must be between 0 and %d"%(arg.getRank()-2)
+        raise ValueError("axis_offset must be between 0 and %d"%(arg.getRank()-2))
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
-        raise ValueError,"dimensions of component %d and %d must match."%(axis_offset,axis_offset+1)
+        raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg.trace(axis_offset)
    elif isinstance(arg,float):
       raise TypeError,"illegal argument type float."
@@ -1532,20 +1549,20 @@ def transpose(arg,axis_offset=None):
    """
    if isinstance(arg,numpy.ndarray):
       if axis_offset==None: axis_offset=int(arg.ndim/2)
-      return numpy.transpose(arg,axes=range(axis_offset,arg.ndim)+range(0,axis_offset))
+      return numpy.transpose(arg,axes=list(range(axis_offset,arg.ndim))+list(range(0,axis_offset)))
    elif isinstance(arg,escript.Data):
       r=arg.getRank()
       if axis_offset==None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
-        raise ValueError,"axis_offset must be between 0 and %s"%r
+        raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg._transpose(axis_offset)
    elif isinstance(arg,float):
       if not ( axis_offset==0 or axis_offset==None):
-        raise ValueError,"axis_offset must be 0 for float argument"
+        raise ValueError("axis_offset must be 0 for float argument")
       return arg
    elif isinstance(arg,int):
       if not ( axis_offset==0 or axis_offset==None):
-        raise ValueError,"axis_offset must be 0 for int argument"
+        raise ValueError("axis_offset must be 0 for int argument")
       return float(arg)
    elif isinstance(arg,Symbol):
       r=arg.getRank()
@@ -1554,7 +1571,7 @@ def transpose(arg,axis_offset=None):
         raise ValueError,"axis_offset must be between 0 and %s"%r
       return arg.transpose(axis_offset)
    else:
-      raise TypeError,"Unknown argument type."
+      raise TypeError("Unknown argument type.")
 
 def swap_axes(arg,axis0=0,axis1=1):
    """
@@ -1581,11 +1598,11 @@ def swap_axes(arg,axis0=0,axis1=1):
    elif isinstance(arg,Symbol):
       return arg.swap_axes(axis0,axis1)
    elif isinstance(arg,float):
-      raise TypeError,"float argument is not supported."
+      raise TypeError("float argument is not supported.")
    elif isinstance(arg,int):
-      raise TypeError,"int argument is not supported."
+      raise TypeError("int argument is not supported.")
    else:
-      raise TypeError,"Unknown argument type."
+      raise TypeError("Unknown argument type.")
 
 def symmetric(arg):
     """
@@ -1600,40 +1617,40 @@ def symmetric(arg):
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       elif arg.ndim==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
       return (arg+transpose(arg))/2
     elif isinstance(arg,escript.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._symmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._symmetric()
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
     elif isinstance(arg, Symbol):
         if arg.getRank()==2:
             if arg.getShape()[0]!=arg.getShape()[1]:
-                raise ValueError,"symmetric: argument must be square."
+                raise ValueError("symmetric: argument must be square.")
         elif arg.getRank()==4:
             if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
-                raise ValueError,"symmetric: argument must be square."
+                raise ValueError("symmetric: argument must be square.")
         else:
-            raise ValueError,"symmetric: rank 2 or 4 is required."
+            raise ValueError("symmetric: rank 2 or 4 is required.")
         return (arg+transpose(arg))/2
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
       return float(arg)
     else:
-      raise TypeError,"symmetric: Unknown argument type."
+      raise TypeError("symmetric: Unknown argument type.")
 
 def nonsymmetric(arg):
     """
@@ -1648,40 +1665,40 @@ def nonsymmetric(arg):
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
         if not (arg.shape[0]==arg.shape[1]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       elif arg.ndim==4:
         if not (arg.shape[0]==arg.shape[2] and arg.shape[1]==arg.shape[3]):
-           raise ValueError,"nonsymmetric: argument must be square."
+           raise ValueError("nonsymmetric: argument must be square.")
       else:
-        raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+        raise ValueError("nonsymmetric: rank 2 or 4 is required.")
       return (arg-transpose(arg))/2
     elif isinstance(arg,escript.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._nonsymmetric()
       elif arg.getRank()==4:
         if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError,"argument must be square."
+           raise ValueError("argument must be square.")
         return arg._nonsymmetric()
       else:
-        raise ValueError,"rank 2 or 4 is required."
+        raise ValueError("rank 2 or 4 is required.")
     elif isinstance(arg, Symbol):
         if arg.getRank()==2:
             if arg.getShape()[0]!=arg.getShape()[1]:
-                raise ValueError,"nonsymmetric: argument must be square."
+                raise ValueError("nonsymmetric: argument must be square.")
         elif arg.getRank()==4:
             if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
-                raise ValueError,"nonsymmetric: argument must be square."
+                raise ValueError("nonsymmetric: argument must be square.")
         else:
-            raise ValueError,"nonsymmetric: rank 2 or 4 is required."
+            raise ValueError("nonsymmetric: rank 2 or 4 is required.")
         return (arg-transpose(arg))/2
     elif isinstance(arg,float):
         return arg
     elif isinstance(arg,int):
         return float(arg)
     else:
-        raise TypeError,"nonsymmetric: Unknown argument type."
+        raise TypeError("nonsymmetric: Unknown argument type.")
 
 def inverse(arg):
     """
@@ -1707,7 +1724,7 @@ def inverse(arg):
     elif isinstance(arg,Symbol):
       return arg.inverse()
     else:
-      raise TypeError,"inverse: Unknown argument type."
+      raise TypeError("inverse: Unknown argument type.")
 
 def escript_inverse(arg): # this should be escript._inverse and use LAPACK
       "arg is a Data object!"
@@ -1789,7 +1806,7 @@ def eigenvalues(arg):
     elif isinstance(arg,Symbol):
       return symfn.eigenvalues(arg)
     else:
-      raise TypeError,"eigenvalues: Unknown argument type."
+      raise TypeError("eigenvalues: Unknown argument type.")
 
 def eigenvalues_and_eigenvectors(arg):
     """
@@ -1807,7 +1824,7 @@ def eigenvalues_and_eigenvectors(arg):
     :note: The dimension is restricted to 3.
     """
     if isinstance(arg,numpy.ndarray):
-      raise TypeError,"eigenvalues_and_eigenvectors does not support numpy.ndarray arguments"
+      raise TypeError("eigenvalues_and_eigenvectors does not support numpy.ndarray arguments")
     elif isinstance(arg,escript.Data):
       return arg._eigenvalues_and_eigenvectors()
     elif isinstance(arg,float):
@@ -1817,7 +1834,7 @@ def eigenvalues_and_eigenvectors(arg):
     elif isinstance(arg,Symbol):
       return symfn.eigenvalues_and_eigenvectors(arg)
     else:
-      raise TypeError,"eigenvalues: Unknown argument type."
+      raise TypeError("eigenvalues: Unknown argument type.")
 
 def mult(arg0,arg1):
        """
@@ -1951,7 +1968,7 @@ def clip(arg,minval=None,maxval=None):
         return arg.applyfunc(clip_item)
     if not minval==None and not maxval==None:
        if minval>maxval:
-          raise ValueError,"minval = %s must be less than maxval %s"%(minval,maxval)
+          raise ValueError("minval = %s must be less than maxval %s"%(minval,maxval))
     if minval == None:
         tmp=arg
     else:
@@ -1983,7 +2000,7 @@ def inner(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not sh0==sh1:
-        raise ValueError,"inner: shape of arguments does not match"
+        raise ValueError("inner: shape of arguments does not match")
     return generalTensorProduct(arg0,arg1,axis_offset=len(sh0))
 
 def outer(arg0,arg1):
@@ -2036,9 +2053,9 @@ def matrix_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTensorProduct(arg0,arg1,axis_offset=1)
 
 def tensormult(arg0,arg1):
@@ -2090,7 +2107,7 @@ def tensor_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
-       raise ValueError,"tensor_mult: first argument must have rank 2 or 4"
+       raise ValueError("tensor_mult: first argument must have rank 2 or 4")
 
 def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
@@ -2128,7 +2145,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
-          raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        arg0_c=arg0.copy()
        arg1_c=arg1.copy()
        sh0,sh1=arg0.shape,arg1.shape
@@ -2182,9 +2199,9 @@ def transposed_matrix_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTransposedTensorProduct(arg0,arg1,axis_offset=1)
 
 def transposed_tensor_mult(arg0,arg1):
@@ -2233,7 +2250,7 @@ def transposed_tensor_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTransposedTensorProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"first argument must have rank 2 or 4"
+        raise ValueError("first argument must have rank 2 or 4")
 
 def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     """
@@ -2275,7 +2292,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
-           raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        arg0_c=arg0.copy()
        arg1_c=arg1.copy()
        sh0,sh1=arg0.shape,arg1.shape
@@ -2325,9 +2342,9 @@ def matrix_transposed_mult(arg0,arg1):
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if not len(sh0)==2 :
-        raise ValueError,"first argument must have rank 2"
+        raise ValueError("first argument must have rank 2")
     if not len(sh1)==2 and not len(sh1)==1:
-        raise ValueError,"second argument must have rank 1 or 2"
+        raise ValueError("second argument must have rank 1 or 2")
     return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
 
 def tensor_transposed_mult(arg0,arg1):
@@ -2369,7 +2386,7 @@ def tensor_transposed_mult(arg0,arg1):
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
        return generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
     else:
-        raise ValueError,"first argument must have rank 2 or 4"
+        raise ValueError("first argument must have rank 2 or 4")
 
 def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     """
@@ -2412,7 +2429,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
-          raise ValueError,"dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset)
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        arg0_c=arg0.copy()
        arg1_c=arg1.copy()
        sh0,sh1=arg0.shape,arg1.shape
@@ -2477,7 +2494,7 @@ def grad(arg,where=None):
        else:
           return arg._grad(where)
     else:
-       raise TypeError,"grad: Unknown argument type."
+       raise TypeError("grad: Unknown argument type.")
 
 def grad_n(arg, n, where=None):
     return grad(arg, where)[n]
@@ -2551,9 +2568,9 @@ def div(arg,where=None):
     if isinstance(arg,escript.Data):
         dim=arg.getDomain().getDim()
         if not arg.getShape()==(dim,):
-            raise ValueError,"div: expected shape is (%s,)"%dim
+            raise ValueError("div: expected shape is (%s,)"%dim)
     elif not isinstance(arg, Symbol):
-        raise TypeError,"div: argument type not supported"
+        raise TypeError("div: argument type not supported")
     return trace(grad(arg,where))
 
 def jump(arg,domain=None):
@@ -2648,7 +2665,7 @@ def meanValue(arg):
        fs=escript.ReducedFunction(d)
     a=vol(fs)
     if a == 0:
-        raise ValueError,"FunctionSpace %s with zero volume."%str(fs)
+        raise ValueError("FunctionSpace %s with zero volume."%str(fs))
     return integrate(arg,fs)/a
  
 def diameter(domain):
@@ -2674,7 +2691,7 @@ def boundingBox(domain):
     """
     x=domain.getX()
     out=[]
-    for i in xrange(domain.getDim()):
+    for i in range(domain.getDim()):
        x_i=x[i]
        out.append((inf(x_i),sup(x_i)))
     return out
@@ -2709,7 +2726,7 @@ def mkDir(*pathname):
        else:
           try:
               os.makedirs(p)
-          except Exception, e:
+          except Exception as e:
               errno=1
               p_fail=p
     
@@ -2717,22 +2734,22 @@ def mkDir(*pathname):
     if errno>0:
 	 if errno==2:
             if p_fail == None:
-	       raise IOError,"Unable to create directory."
+	       raise IOError("Unable to create directory.")
             else:
-	       raise IOError,"Unable to create directory %s. It already exists and is not a directory."%p_fail
+	       raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
          elif e==None:
             if p_fail == None:
-	       raise IOError,"Unable to create directory."
+	       raise IOError("Unable to create directory.")
             else:
-	       raise IOError,"Unable to create directory %s."%p_fail
+	       raise IOError("Unable to create directory %s."%p_fail)
          else:
             if hasattr(e,"message"):
-               raise IOError,e.message
+               raise IOError(e.message)
             else:
                if p_fail == None:
-	          raise IOError,"Unable to create directory."
+	          raise IOError("Unable to create directory.")
                else:
-	          raise IOError,"Unable to create directory %s."%p_fail
+	          raise IOError("Unable to create directory %s."%p_fail)
 
 class FileWriter(object):
     """
@@ -2774,12 +2791,12 @@ class FileWriter(object):
                   fn2=fn+".%s"%getMPIRankWorld()
                   try:
                      self.__file=open(fn2,self.mode)
-                  except Exception, e:
+                  except Exception as e:
                      errno=1
          else:
               try:
                   self.__file=open(fn,self.mode)
-              except Exception, e:
+              except Exception as e:
                   errno=1
          self.__handelerror(errno,e,"opening")
 
@@ -2787,7 +2804,7 @@ class FileWriter(object):
          errno=getMPIWorldMax(errno)
          if errno>0:
             if e==None:
-               raise IOError,"Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation)
+               raise IOError("Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation))
             else:
                raise IOError(str(e))
          
@@ -2800,7 +2817,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.close()
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"closing")
         self.closed=True
@@ -2814,7 +2831,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.flush()
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"flushing")
 
@@ -2830,7 +2847,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.write(txt)
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"writing")
 
@@ -2847,7 +2864,7 @@ class FileWriter(object):
         try:
            if not self.__file == None:
                self.__file.writelines(txts)
-        except Exception, e:
+        except Exception as e:
            errno=1
         self.__handelerror(errno,e,"writing strings")
 
@@ -2860,11 +2877,12 @@ def reorderComponents(arg,index):
 
 def showEscriptParams():
     """
-    Displays the parameters escript recognises with an explanation.
+    Displays the parameters escript recognises with an explanation and their
+    current value.
     """
     p=listEscriptParams()
-    for name,desc in p:
-	print name+':\t'+desc
+    for name,value,desc in p:
+	print('%s (=%s): %s'%(name, value, desc))
 
 #Lazy related things
 #These are just wrappers
@@ -2873,7 +2891,7 @@ def resolve(arg):
    Returns the value of arg resolved.
    """
    if not isinstance(arg,Data):
-	raise TypeError, "Can only resolve Data."
+	raise TypeError("Can only resolve Data.")
    if arg.isLazy():
 	arg.resolve()
    return arg
@@ -2883,7 +2901,7 @@ def delay(arg):
    Returns a lazy version of arg
    """
    if not isinstance(arg,Data):
-	raise TypeError, "Can only delay Data."
+	raise TypeError("Can only delay Data.")
    return arg.delay()
 
 def positive(arg):
@@ -2913,7 +2931,7 @@ def condEval(f, tval, fval):
     Wrapper to allow non-data objects to be used.
     """
     if not isinstance(tval,Data) and not isinstance(fval,Data):
-	raise TypeError, "At least one of the alternatives must be a Data object."
+	raise TypeError("At least one of the alternatives must be a Data object.")
     if isinstance(tval,Data) and isinstance(fval, Data):
 	return _condEval(f,tval,fval)
     if not isinstance(fval, Data):

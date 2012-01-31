@@ -377,6 +377,7 @@ Currently the \UMFPACK interface does not support any reordering.
 \end{table}
 
 \begin{table}
+\begin{center}
 {\scriptsize
 \begin{tabular}{l||c|c|c|c|c|c|c}
 \member{NO_PRECONDITIONER}&
@@ -415,6 +416,7 @@ status:& $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$
 \caption{Preconditioners available for \finley and the \PASO package and the
 relevant options in \class{SolverOptions}.
 \label{TAB FINLEY SOLVER OPTIONS 2}}
+\end{center}
 \end{table}
 
 \section{Functions}
@@ -429,8 +431,9 @@ By default the labeling of mesh nodes and element distribution is optimized.
 Set \var{optimize=False} to switch off relabeling and redistribution.
 \end{funcdesc}
 
-\begin{funcdesc}{ReadGmsh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
-creates a \Domain object from the FEM mesh defined in file \var{fileName}.
+\begin{funcdesc}{ReadGmsh}{fileName, numDim, \optional{, \optional{integrationOrder=-1}, optimize=True\optional{, useMacroElements=False}}}
+creates a \Domain object from the FEM mesh defined in file \var{fileName} for
+a domain of dimension \var{numDim}.
 The file must be in the \gmshextern file format.
 If \var{integrationOrder} is positive, a numerical integration scheme is chosen
 which is accurate on each element up to a polynomial of degree

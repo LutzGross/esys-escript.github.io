@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: header file for generates rectangular meshes for 1D,2D,3D. */
+/*   Finley: header file for generating rectangular meshes in 1D,2D,3D. */
 
 /**************************************************************/
 

@@ -47,7 +47,7 @@ Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id)
        ptr++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR,"Finley_QuadInfo_getInfo: canot find requested quadrature scheme.");
+        Finley_setError(VALUE_ERROR,"Finley_QuadInfo_getInfo: cannot find requested quadrature scheme.");
     }
     return out;
 }
@@ -55,7 +55,7 @@ Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id)
 /**************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the tri  */
-/*   as a queezed scheme on a quad [0,1]^2 */
+/*   as a squeezed scheme on a quad [0,1]^2 */
 
 void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeights) {
   int i;
@@ -369,7 +369,7 @@ void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeig
 /**************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the tet */
-/*   as a queezed scheme on a hex [0,1]^3 */
+/*   as a squeezed scheme on a hex [0,1]^3 */
 
 void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeights) {
   int i;
@@ -1262,7 +1262,7 @@ void Finley_Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWei
         break;
 
       default:
-        Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesLine: Negative intergration order.");
+        Finley_setError(VALUE_ERROR,"Finley_Quad_getNodesLine: Negative integration order.");
         break;
   }
 }
@@ -1270,8 +1270,8 @@ void Finley_Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWei
 
 /**************************************************************/
 
-/*    The following functions Finley_Quad_getNumNodes* return the nmber of quadrature points needed to */
-/*    achieve a certain accuracy. Notice that for Tet and Tri the the order is increased */
+/*    The following functions Finley_Quad_getNumNodes* return the number of quadrature points needed to */
+/*    achieve a certain accuracy. Notice that for Tet and Tri the order is increased */
 /*    to consider the accuracy reduction through the construction process.  */
 
 
@@ -1282,7 +1282,7 @@ int Finley_Quad_getNumNodesPoint(int order) {
 int Finley_Quad_getNumNodesLine(int order) {
   char error_msg[LenErrorMsg_MAX];
   if (order <0 ) {
-    Finley_setError(VALUE_ERROR,"Finley_Quad_getNumNodesLine: Negative intergration order.");
+    Finley_setError(VALUE_ERROR,"Finley_Quad_getNumNodesLine: Negative integration order.");
     return -1;
   } else { 
     if (order > 2*MAX_numQuadNodesLine-1) {
@@ -1389,7 +1389,7 @@ dim_t Finley_Quad_MacroLine(dim_t numSubElements, int numQuadNodes, double* quad
 	const double f=1./((double)numSubElements);
 	
 	if (new_len < numSubElements*numQuadNodes) {
-		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroLine: array for new qurature scheme is too small");
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroLine: array for new quadrature scheme is too small");
 	}
 	for (q=0; q<numQuadNodes; ++q) {
 			
@@ -1417,7 +1417,7 @@ dim_t Finley_Quad_MacroTri(dim_t numSubElements, int numQuadNodes, double* quadN
 	register double x0, x1, w, df0, df1;
 	
     if (new_len < numSubElements*numQuadNodes) {
-		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTri: array for new qurature scheme is too small");
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTri: array for new quadrature scheme is too small");
 		return -1;
 	}
 	if (numSubElements==1) {
@@ -1498,7 +1498,7 @@ dim_t Finley_Quad_MacroRec(dim_t numSubElements, int numQuadNodes, double* quadN
 	register double x0, x1, w, df0, df1;
 	
     if (new_len < numSubElements*numQuadNodes) {
-		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroRec: array for new qurature scheme is too small");
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroRec: array for new quadrature scheme is too small");
 		return -1;
 	}
 	if (numSubElements==1) {
@@ -1578,7 +1578,7 @@ dim_t Finley_Quad_MacroTet(dim_t numSubElements, int numQuadNodes, double* quadN
 	register double x0, x1, x2, w, df0, df1, df2;
 	
     if (new_len < numSubElements*numQuadNodes) {
-		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTet: array for new qurature scheme is too small");
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroTet: array for new quadrature scheme is too small");
 		return -1;
 	}
 	if (numSubElements==1) {
@@ -1708,7 +1708,7 @@ dim_t Finley_Quad_MacroHex(dim_t numSubElements, int numQuadNodes, double* quadN
 	register double x0, x1, x2, w, df0, df1, df2;
 	
     if (new_len < numSubElements*numQuadNodes) {
-		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroHex: array for new qurature scheme is too small");
+		Finley_setError(MEMORY_ERROR,"Finley_Quad_MacroHex: array for new quadrature scheme is too small");
 		return -1;
 	}
 	if (numSubElements==1) {

@@ -214,7 +214,7 @@ class Unit(object):
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of physical units requires 0 absolute values"
+              raise ValueError("Division of physical units requires 0 absolute values")
           if  isinstance(other, (_ProdUnit, _DivUnit)):
               # X/(c*d) or X/(c/d) requires brackets:
               return _DivUnit(self.getName()+"/("+other.getName()+")",self.getLongName()+"/("+other.getLongName()+")",0 , self(1.)/other(1.))
@@ -232,7 +232,7 @@ class Unit(object):
        """
        if isinstance(other, Unit):
           if abs(self(0.))+abs(other(0.))>0:
-              raise ValueError,"Division of physical units requires 0 absolute values"
+              raise ValueError("Division of physical units requires 0 absolute values")
           if  isinstance(self, (_ProdUnit, _DivUnit)):
               # X/(a*b) or X/(a/b) requires brackets:
               return _DivUnit(other.getName()+"/("+self.getName()+")",other.getLongName()+"/("+self.getLongName()+")",0 , other(1.)/self(1.))
@@ -250,7 +250,7 @@ class Unit(object):
        """
        if isinstance(other, float) or isinstance(other, int):
           if abs(self(0.))>0:
-              raise ValueError,"Power of physical unit requires 0 absolute values"
+              raise ValueError("Power of physical unit requires 0 absolute values")
           if  isinstance(self, (_ProdUnit, _DivUnit, _PowUnit)):
               return _PowUnit("("+self.getName()+")^%s"%other, "("+self.getLongName()+")^%s"%other, 0., self(1.)**other)
           else:
@@ -297,19 +297,19 @@ km=Kilo*m
 cm=Centi*m
 mm=Milli*m
 liter=(Deci*m)**3
-ft=Unit("ft", "feet", 0., 0.3048)
-Barrel=Unit("bbl","barrel", 0.,0.1589872891252)
-Mscf=Unit("MSCF", "thousand standard cubic feet", 0., 28.31685)
+ft=Unit("ft", "feet", 0., 0.3048 * m)
+Barrel=Unit("bbl","barrel", 0., 0.158987294928 * m**3)
+Mscf=Unit("MSCF", "thousand standard cubic feet", 0., 28.31685 * m**3)
 Mcf=1000. * ft**3
 #
 #  time
 #
 sec=Unit("sec","second",0.,1.)
 minute=Unit("min","minute",0.,60.)
-hour=Unit("h","hour",0.,60.*60.)
+hour=Unit("h","hour",0.,60.* minute)
 h=hour
-day=Unit("d","day",0.,60.*60.*24.)
-yr=Unit("yr","year",0.,60.*60.*24.*365.2425)
+day=Unit("d","day",0., 24. * h)
+yr=Unit("yr","year",0.,365.2425 * day)
 year=yr
 Myr=Mega*yr
 Gyr=Giga*yr
@@ -318,7 +318,7 @@ Gyr=Giga*yr
 #
 kg=Unit("kg","kg",0.,1.)
 gram=Milli*kg
-lb=Unit("lb","pound",0.,0.45359237)
+lb=Unit("lb","pound",0.,0.45359237 * kg)
 ton=Kilo*kg
 #
 #   electric current
@@ -338,8 +338,8 @@ Hz=one/sec
 N = Unit("N","Newton",0.,1.)
 Pa = Unit("Pa","Pascal",0.,1.)
 bar=100*Kilo*Pa
-atm= Unit("atm","atmosphere",0.,101325.024)
-psi= Unit("psi","Psi",0.,6894.75728034)
+atm= Unit("atm","atmosphere",0.,101325.024 * Pa)
+psi= Unit("psi","Psi",0.,6894.75728034 * Pa)
 J = Unit("J","Joule",0.,1.)
 W= Unit("W","Watt",0.,1.)
 C=Unit("C","Coulomb",0.,1.)

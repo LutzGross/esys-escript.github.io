@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Finley: ElementFile: this will redistribute the Elements including overlap by */
+/*   Finley: ElementFile: this will redistribute the Elements including overlap by rank */
 
 /**************************************************************/
 
@@ -51,7 +51,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
             Finley_checkPtr(mpi_stati);
          #endif
 
-        /* count the number elements that have to be send to each processor (send_count) 
+        /* count the number of elements that have to be sent to each processor (send_count) 
            and define a new element owner as the processor with the largest number of DOFs and the smallest id */
         send_count=TMPMEMALLOC(size,dim_t);
         recv_count=TMPMEMALLOC(size,dim_t);
@@ -115,7 +115,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
                    Finley_checkPtr(Nodes_buffer) || Finley_checkPtr(send_offset) || Finley_checkPtr(recv_offset) || 
                    Finley_checkPtr(proc_mask) )) {
 
-              /* callculate the offsets for the processor buffers */
+              /* calculate the offsets for the processor buffers */
               recv_offset[0]=0;
               for (p=0;p<size-1;++p) recv_offset[p+1]=recv_offset[p]+recv_count[p];
               send_offset[0]=0;
@@ -166,7 +166,7 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
                     #endif
                  }
               }
-              /* now the buffers can be send away */
+              /* now the buffers can be sent away */
               for (p=0;p<size;++p) {
                  if (send_count[p]>0) {
                    #ifdef ESYS_MPI

@@ -14,12 +14,12 @@
 
 /**************************************************************/
 
-/* Paso: interface to the direct solvers                    */
+/* Paso: interface to the direct solvers                      */
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003 */
-/* Author: Lutz Gross, l.gross@uq.edu.au */
+/* Copyrights by ACcESS Australia 2003                        */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 
@@ -103,7 +103,7 @@ void Paso_solve(Paso_SystemMatrix* A,
   if (options->accept_failed_convergence) {
          if (Esys_getErrorType() == DIVERGED) {
              Esys_resetError();
-             if (options->verbose) printf("PASO: failed convergence error has been canceled requested.\n");
+             if (options->verbose) printf("PASO: failed convergence error has been canceled as requested.\n");
          } 
   }
   Performance_close(&pp,options->verbose);
@@ -111,7 +111,7 @@ void Paso_solve(Paso_SystemMatrix* A,
   return;
 }
 
-/*  free memory possibly resereved for a recall */
+/*  free memory possibly reserved for a recall */
 
 void Paso_solve_free(Paso_SystemMatrix* in) { 
 

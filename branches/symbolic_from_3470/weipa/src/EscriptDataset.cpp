@@ -52,6 +52,7 @@ EscriptDataset::EscriptDataset() :
     cycle(0),
     time(0.),
     externalDomain(false),
+    wantsMeshVars(false),
     mpiRank(0),
     mpiSize(1)
 {
@@ -65,6 +66,7 @@ EscriptDataset::EscriptDataset(MPI_Comm comm) :
     cycle(0),
     time(0.),
     externalDomain(false),
+    wantsMeshVars(false),
     mpiComm(comm)
 {
     MPI_Comm_rank(mpiComm, &mpiRank);
@@ -319,7 +321,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
         // write block of the mesh if we don't use an external domain
         if (!externalDomain) {
             if (! (*domIt)->writeToSilo(
-                        dbfile, siloPath, meshLabels, meshUnits)) {
+                        dbfile, siloPath, meshLabels, meshUnits, wantsMeshVars)) {
                 cerr << "Error writing block " << idx
                     << " of mesh to Silo file!" << endl;
                 break;
@@ -347,9 +349,11 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
             for (it = meshNames.begin(); it != meshNames.end(); it++)
                 putSiloMultiMesh(dbfile, *it);
 
-            DBMkdir(dbfile, MESH_VARS);
-            for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++)
-                putSiloMultiVar(dbfile, *viIt, true);
+            if (wantsMeshVars) {
+                DBMkdir(dbfile, MESH_VARS);
+                for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++)
+                    putSiloMultiVar(dbfile, *viIt, true);
+            }
 
             for (viIt = variables.begin(); viIt != variables.end(); viIt++) {
                 if (!viIt->valid) continue;
@@ -521,16 +525,18 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
         }
     }
 
-    // add mesh variables
-    for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++) {
-        DataVar_ptr var = viIt->dataChunks[0];
-        if (meshName == var->getMeshName()) {
-            VarInfo vi = *viIt;
-            vi.varName = string(MESH_VARS)+vi.varName;
-            if (var->isNodeCentered()) {
-                nodalVars.push_back(vi);
-            } else {
-                cellVars.push_back(vi);
+    if (wantsMeshVars) {
+        // add mesh variables if requested
+        for (viIt = meshVariables.begin(); viIt != meshVariables.end(); viIt++) {
+            DataVar_ptr var = viIt->dataChunks[0];
+            if (meshName == var->getMeshName()) {
+                VarInfo vi = *viIt;
+                vi.varName = string(MESH_VARS)+vi.varName;
+                if (var->isNodeCentered()) {
+                    nodalVars.push_back(vi);
+                } else {
+                    cellVars.push_back(vi);
+                }
             }
         }
     }

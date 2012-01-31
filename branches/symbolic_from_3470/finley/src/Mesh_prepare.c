@@ -45,17 +45,17 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 
         /* now the mesh is re-distributed according to the mpiRankOfDOF vector */
         /* this will redistribute the Nodes and Elements including overlap and will create an element coloring 
-           but will not create any mappings (see later in this function)                                   */
+           but will not create any mappings (see later in this function) */
         if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,distribution);
      }
 
-     /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
+     /* at this stage we are able to start an optimization of the DOF distribution using ParMetis */
      /* on return distribution is altered and new DOF ids have been assigned */
      if (Finley_noError() && optimize && in->MPIInfo->size>1) {
          Finley_Mesh_optimizeDOFDistribution(in,distribution); 
          if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,distribution); 
      }
-     /* the local labeling of the degrees of free is optimized */
+     /* the local labeling of the degrees of freedom is optimized */
      if (Finley_noError() && optimize) {
        Finley_Mesh_optimizeDOFLabeling(in,distribution); 
      }

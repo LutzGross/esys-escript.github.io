@@ -95,7 +95,7 @@ dom.setX(2*dom.getX()-1)
 x=dom.getX()
 u0=1/(4.*pi*E*T0)**(DIM/2.)*exp(-length(dom.getX()-getCenter(T0))**2/(4.*E*T0)) 
 
-print "QUALITY ",QUALITY(T0,u0)
+print("QUALITY ",QUALITY(T0,u0))
 
 x=Function(dom).getX()
 if DIM == 2:
@@ -119,7 +119,7 @@ saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 t=T0
 while t<T_END:
-    print "time step t=",t+dt	
+    print("time step t=",t+dt)	
     u=fc.solve(dt)	
     if TEST_SUPG:
         #========== supg tests ================
@@ -134,9 +134,9 @@ while t<T_END:
             nnn+=1
     c+=1
     t+=dt
-    print "QUALITY FCT: time = %s pi"%(t/pi),QUALITY(t,u),
+    print("QUALITY FCT: time = %s pi"%(t/pi),QUALITY(t,u), end=' ')
     if TEST_SUPG: 
-       print "QUALITY SUPG: ",QUALITY(t,u_supg)
+       print("QUALITY SUPG: ",QUALITY(t,u_supg))
        # saveVTK("u.%s.vtu"%c,u=u,u_supg=u_supg)
     else:
        # saveVTK("u.%s.vtu"%c,u=u)

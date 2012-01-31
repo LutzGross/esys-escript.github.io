@@ -47,7 +47,7 @@ if not os.path.isfile(options_file):
 ############################### Build options ################################
 
 default_prefix='/usr'
-mpi_flavours=('none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
+mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 lapack_flavours=('none', 'clapack', 'mkl')
 
 vars = Variables(options_file, ARGUMENTS)
@@ -125,6 +125,7 @@ vars.AddVariables(
   ('build_shared', 'Build dynamic libraries only', False),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
+  ('SVN_VERSION', 'Do not use from options file', -2),
 )
 
 ##################### Create environment and help text #######################
@@ -283,13 +284,20 @@ env.Append(CCFLAGS = env['cc_flags'])
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
 
-# Get the global Subversion revision number for the getVersion() method
-try:
+
+global_revision=ARGUMENTS.get('SVN_VERSION', None)
+if global_revision:
+    global_revision = re.sub(':.*', '', global_revision)
+    global_revision = re.sub('[^0-9]', '', global_revision)
+    if global_revision == '': global_revision='-2'
+else:
+  # Get the global Subversion revision number for the getVersion() method
+  try:
     global_revision = os.popen('svnversion -n .').read()
     global_revision = re.sub(':.*', '', global_revision)
     global_revision = re.sub('[^0-9]', '', global_revision)
     if global_revision == '': global_revision='-2'
-except:
+  except:
     global_revision = '-1'
 env['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
@@ -412,6 +420,13 @@ if not conf.CheckCHeader('Python.h'):
 if not conf.CheckFunc('Py_Exit'):
     print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
     Exit(1)
+
+# reuse conf to check for numpy header (optional)
+if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+    conf.env['numpy_h']=True
+else:
+    conf.env['numpy_h']=False
 
 # Commit changes to environment
 env = conf.Finish()
@@ -557,6 +572,9 @@ if env['visit']:
 
 ######## MPI (optional)
 
+if env['mpi']=='no':
+    env['mpi']='none'
+
 env['usempi'] = env['mpi']!='none'
 mpi_inc_path=''
 mpi_lib_path=''
@@ -658,7 +676,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
+for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit','vsl_random':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:
@@ -675,7 +693,10 @@ elif env['gmsh']=='s':
     print("            gmsh:  FOUND")
 else:
     print("            gmsh:  NOT FOUND")
-print("      vsl_random:  %s"%env['vsl_random'])
+if env['numpy_h']:
+    print("   numpy headers:  FOUND")
+else:
+    print("   numpy headers:  NOT FOUND")
      
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
@@ -710,6 +731,7 @@ env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', dup
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
+env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
@@ -781,6 +803,10 @@ env.Alias('install_paso', ['build_paso', 'install_paso_lib'])
 env.Alias('build_escript', ['install_escript_headers', 'build_escript_lib', 'build_escriptcpp_lib'])
 env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_escriptcpp_lib', 'install_escript_py'])
 
+env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
+env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
+
+
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
 
@@ -798,6 +824,7 @@ build_all_list = []
 build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
+build_all_list += ['build_pasowrap']
 build_all_list += ['build_dudley']
 build_all_list += ['build_finley']
 build_all_list += ['build_weipa']
@@ -811,6 +838,7 @@ install_all_list += ['target_init']
 install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
 install_all_list += ['install_escript']
+install_all_list += ['install_pasowrap']
 install_all_list += ['install_dudley']
 install_all_list += ['install_finley']
 install_all_list += ['install_weipa']

@@ -1,3 +1,4 @@
+
 /*******************************************************
 *
 * Copyright (c) 2010 by University of Queensland
@@ -18,11 +19,11 @@
 
 #include "SystemMatrix.h"
 
-/* returns the number of local nodes in the MIS.
-   the second param will store a pointer to a list of the nodes in the MIS.
-   Deallocating the value sent back in the second param is callers responsibility
+/* Returns the number of local nodes in the MIS.
+   The second param will store a pointer to a list of the nodes in the MIS.
+   Deallocating the value sent back in the second param is caller's responsibility.
    
-   sets paso error on failure
+   Sets paso error on failure.
 */
 index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix*, index_t**);
 
