@@ -272,6 +272,9 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
 
 err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, Paso_Options* options, Paso_Performance *pp) 
 {
+   const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
+   const double critical_rate=0.95;   /* expected value of convergence rate */
+
    double *b = fct_solver->b;
    double *z = fct_solver->z;
    double *du = fct_solver->du;
@@ -279,10 +282,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
    Paso_TransportProblem* fctp = fct_solver->transportproblem;
    Paso_FCT_FluxLimiter* flux_limiter = fct_solver->flux_limiter;
    dim_t i;
-   const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
-   const double critical_rate=0.95;   /* expected value of convergence rate */
-
-   double norm_u_tilde, ATOL, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, rate;
+   double norm_u_tilde, ATOL, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, rate=1.;
    err_t errorCode=SOLVER_NO_ERROR;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    const double atol=options->absolute_tolerance;  
