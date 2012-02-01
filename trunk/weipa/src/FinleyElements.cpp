@@ -17,7 +17,7 @@
 #ifndef VISIT_PLUGIN
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
-#else
+#elif not defined(ABS)
 #define ABS(X) ((X)>0?(X):-(X))
 #endif
 
