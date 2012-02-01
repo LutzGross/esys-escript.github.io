@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2011 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -540,8 +540,6 @@ bool RipleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
                 nodeMesh->getNumNodes(), numElements, varName.c_str(),
                 /*"facelist"*/NULL, DB_FLOAT, optList);
 
-        //ret = DBPutQuadmesh(dbfile, siloMeshName, NULL, &coordbase[0],
-        //&NperDim[0], nodeMesh->getNumDims(), DB_FLOAT, DB_COLLINEAR, optList);
         if (optList)
             DBFreeOptlist(optList);
     }
@@ -555,24 +553,12 @@ bool RipleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
         ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
                 (float*)&ID[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
                 NULL);
-        //ret = DBPutQuadvar1(dbfile, varName.c_str(), siloMeshName,
-        //    (float*)&ID[0], &NperDim[0], nodeMesh->getNumDims(), NULL, 0,
-        //    DB_INT, DB_ZONECENT, NULL);
         if (ret == 0) {
             varName = name + string("_Owner");
             ret = DBPutUcdvar1(dbfile, varName.c_str(), siloMeshName,
                 (float*)&owner[0], numElements, NULL, 0, DB_INT, DB_ZONECENT,
                 NULL);
-            //ret = DBPutQuadvar1(dbfile, varName.c_str(), siloMeshName,
-            //    (float*)&owner[0], &NperDim[0], nodeMesh->getNumDims(), NULL,
-            //    0, DB_INT, DB_ZONECENT, NULL);
         }
-        //if (ret == 0) {
-        //    varName = name + string("_Tag");
-        //    ret = DBPutQuadvar1(dbfile, varName.c_str(), siloMeshName,
-        //        (float*)&tag[0], dims, nodeMesh->getNumDims(), NULL, 0,
-        //        DB_INT, DB_ZONECENT, NULL);
-        //}
     }
 
     // "Elements" is a special case

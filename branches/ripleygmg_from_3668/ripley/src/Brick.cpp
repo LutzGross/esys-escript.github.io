@@ -13,7 +13,7 @@
 
 #include <ripley/Brick.h>
 extern "C" {
-#include "paso/SystemMatrix.h"
+#include <paso/SystemMatrix.h>
 }
 
 #if USE_SILO
@@ -262,7 +262,7 @@ void Brick::dump(const string& fileName) const
     }
 
 #else // USE_SILO
-    throw RipleyException("dump(): no Silo support");
+    throw RipleyException("dump: no Silo support");
 #endif
 }
 
@@ -286,8 +286,7 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
     }
 
     stringstream msg;
-    msg << "borrowSampleReferenceIDs() not implemented for function space type "
-        << fsType;
+    msg << "borrowSampleReferenceIDs: invalid function space type "<<fsType;
     throw RipleyException(msg.str());
 }
 
@@ -341,8 +340,7 @@ bool Brick::ownSample(int fsType, index_t id) const
     }
 
     stringstream msg;
-    msg << "ownSample() not implemented for "
-        << functionSpaceTypeAsString(fsType);
+    msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
 
@@ -515,8 +513,8 @@ void Brick::setToNormal(escript::Data& out) const
 
     } else {
         stringstream msg;
-        msg << "setToNormal() not implemented for "
-            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        msg << "setToNormal: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
     }
 }
@@ -614,8 +612,8 @@ void Brick::setToSize(escript::Data& out) const
 
     } else {
         stringstream msg;
-        msg << "setToSize() not implemented for "
-            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        msg << "setToSize: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
     }
 }
@@ -709,7 +707,7 @@ pair<double,double> Brick::getFirstCoordAndSpacing(dim_t dim) const
     else if (dim==2)
         return pair<double,double>(m_z0+(m_l2*m_offset2)/m_gNE2, m_l2/m_gNE2);
 
-    throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
+    throw RipleyException("getFirstCoordAndSpacing: invalid argument");
 }
 
 //protected
@@ -1532,7 +1530,8 @@ void Brick::populateSampleIds()
     // globally
 
     // build node distribution vector first.
-    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
+    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
+    // constant for all ranks in this implementation
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
     const dim_t numDOF=getNumDOF();
     for (dim_t k=1; k<m_mpiInfo->size; k++) {
@@ -3288,70 +3287,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp380_1 = tmp195_0*w23;
                                 const double tmp456_1 = tmp218_0*w27;
                                 const double tmp288_1 = tmp154_0*w29;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp100_1 + tmp101_1 + tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp59_1 + tmp63_1 + tmp67_1 + tmp74_1 + tmp75_1 + tmp80_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1 + tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp120_1 + tmp121_1 + tmp35_1 + tmp38_1 + tmp41_1 + tmp42_1 + tmp47_1 + tmp50_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp122_1 + tmp123_1 + tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp132_1 + tmp152_1 + tmp153_1 + tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp74_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1 + tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp31_1 + tmp34_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp41_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp49_1 + tmp50_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp104_1 + tmp158_1 + tmp16_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1 + tmp186_1 + tmp187_1 + tmp188_1 + tmp19_1 + tmp24_1 + tmp28_1 + tmp2_1 + tmp59_1 + tmp86_1 + tmp88_1 + tmp8_1 + tmp91_1 + tmp92_1 + tmp99_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp132_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp159_1 + tmp161_1 + tmp189_1 + tmp18_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp13_1 + tmp158_1 + tmp182_1 + tmp184_1 + tmp185_1 + tmp186_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1 + tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp4_1 + tmp56_1 + tmp58_1 + tmp59_1 + tmp62_1 + tmp64_1 + tmp72_1 + tmp79_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp12_1 + tmp139_1 + tmp13_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp20_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp55_1 + tmp62_1 + tmp64_1 + tmp72_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp153_1 + tmp155_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp18_1 + tmp222_1 + tmp223_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp74_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp107_1 + tmp109_1 + tmp110_1 + tmp115_1 + tmp116_1 + tmp117_1 + tmp166_1 + tmp169_1 + tmp227_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp41_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp112_1 + tmp113_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp35_1 + tmp46_1 + tmp49_1 + tmp50_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp104_1 + tmp105_1 + tmp124_1 + tmp130_1 + tmp138_1 + tmp139_1 + tmp148_1 + tmp150_1 + tmp151_1 + tmp175_1 + tmp181_1 + tmp18_1 + tmp195_1 + tmp204_1 + tmp20_1 + tmp216_1 + tmp218_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp80_1 + tmp85_1 + tmp91_1 + tmp92_1 + tmp99_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp107_1 + tmp108_1 + tmp110_1 + tmp114_1 + tmp115_1 + tmp117_1 + tmp119_1 + tmp121_1 + tmp229_1 + tmp231_1 + tmp233_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp264_1 + tmp265_1 + tmp266_1 + tmp267_1 + tmp268_1 + tmp41_1 + tmp42_1 + tmp47_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp122_1 + tmp125_1 + tmp131_1 + tmp134_1 + tmp142_1 + tmp146_1 + tmp16_1 + tmp174_1 + tmp182_1 + tmp187_1 + tmp224_1 + tmp22_1 + tmp24_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1 + tmp280_1 + tmp281_1 + tmp28_1 + tmp6_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp249_1 + tmp255_1 + tmp264_1 + tmp268_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1 + tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1 + tmp300_1 + tmp301_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp102_1 + tmp11_1 + tmp193_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1 + tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp52_1 + tmp54_1 + tmp57_1 + tmp68_1 + tmp70_1 + tmp76_1 + tmp94_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp101_1 + tmp125_1 + tmp134_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp221_1 + tmp224_1 + tmp270_1 + tmp271_1 + tmp274_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp281_1 + tmp310_1 + tmp322_1 + tmp323_1 + tmp324_1 + tmp325_1 + tmp326_1 + tmp67_1 + tmp82_1 + tmp87_1 + tmp90_1 + tmp97_1 + tmp98_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp162_1 + tmp170_1 + tmp284_1 + tmp287_1 + tmp290_1 + tmp292_1 + tmp293_1 + tmp298_1 + tmp327_1 + tmp328_1 + tmp329_1 + tmp330_1 + tmp331_1 + tmp332_1 + tmp333_1 + tmp334_1 + tmp335_1 + tmp336_1 + tmp337_1 + tmp338_1 + tmp339_1 + tmp340_1 + tmp341_1 + tmp342_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp112_1 + tmp113_1 + tmp241_1 + tmp242_1 + tmp246_1 + tmp247_1 + tmp252_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1 + tmp35_1 + tmp46_1 + tmp49_1 + tmp50_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp127_1 + tmp128_1 + tmp130_1 + tmp138_1 + tmp13_1 + tmp145_1 + tmp148_1 + tmp14_1 + tmp151_1 + tmp158_1 + tmp15_1 + tmp184_1 + tmp194_1 + tmp195_1 + tmp201_1 + tmp202_1 + tmp204_1 + tmp205_1 + tmp21_1 + tmp25_1 + tmp319_1 + tmp325_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp4_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp229_1 + tmp231_1 + tmp233_1 + tmp238_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp252_1 + tmp254_1 + tmp345_1 + tmp353_1 + tmp361_1 + tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp109_1 + tmp116_1 + tmp283_1 + tmp287_1 + tmp295_1 + tmp338_1 + tmp340_1 + tmp345_1 + tmp353_1 + tmp366_1 + tmp367_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp162_1 + tmp170_1 + tmp282_1 + tmp292_1 + tmp301_1 + tmp345_1 + tmp353_1 + tmp369_1 + tmp381_1 + tmp382_1 + tmp383_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1 + tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp101_1 + tmp10_1 + tmp11_1 + tmp14_1 + tmp15_1 + tmp193_1 + tmp21_1 + tmp25_1 + tmp310_1 + tmp312_1 + tmp317_1 + tmp319_1 + tmp322_1 + tmp324_1 + tmp355_1 + tmp360_1 + tmp397_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1 + tmp402_1 + tmp66_1 + tmp77_1 + tmp82_1 + tmp84_1 + tmp87_1 + tmp95_1 + tmp97_1 + tmp9_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp108_1 + tmp121_1 + tmp245_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp387_1 + tmp388_1 + tmp403_1 + tmp404_1 + tmp405_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp40_1 + tmp410_1 + tmp411_1 + tmp412_1 + tmp42_1 + tmp47_1 + tmp48_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp229_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp242_1 + tmp248_1 + tmp250_1 + tmp362_1 + tmp403_1 + tmp410_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp421_1 + tmp422_1 + tmp423_1 + tmp424_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp109_1 + tmp116_1 + tmp284_1 + tmp294_1 + tmp300_1 + tmp334_1 + tmp339_1 + tmp375_1 + tmp384_1 + tmp387_1 + tmp388_1 + tmp425_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1 + tmp434_1 + tmp435_1 + tmp436_1 + tmp437_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp229_1 + tmp231_1 + tmp233_1 + tmp238_1 + tmp241_1 + tmp242_1 + tmp246_1 + tmp247_1 + tmp249_1 + tmp252_1 + tmp255_1 + tmp343_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp363_1 + tmp364_1 + tmp438_1 + tmp439_1 + tmp440_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp132_1 + tmp137_1 + tmp16_1 + tmp177_1 + tmp178_1 + tmp17_1 + tmp185_1 + tmp24_1 + tmp278_1 + tmp27_1 + tmp281_1 + tmp28_1 + tmp308_1 + tmp312_1 + tmp314_1 + tmp3_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp52_1 + tmp53_1 + tmp57_1 + tmp60_1 + tmp63_1 + tmp70_1 + tmp76_1 + tmp8_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp264_1 + tmp268_1 + tmp292_1 + tmp327_1 + tmp342_1 + tmp369_1 + tmp377_1 + tmp379_1 + tmp384_1 + tmp389_1 + tmp390_1 + tmp394_1 + tmp415_1 + tmp424_1 + tmp427_1 + tmp434_1 + tmp447_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1 + tmp452_1 + tmp453_1 + tmp454_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp249_1 + tmp255_1 + tmp284_1 + tmp335_1 + tmp33_1 + tmp341_1 + tmp366_1 + tmp375_1 + tmp378_1 + tmp381_1 + tmp384_1 + tmp392_1 + tmp431_1 + tmp433_1 + tmp435_1 + tmp44_1 + tmp450_1 + tmp451_1 + tmp455_1 + tmp456_1 + tmp457_1 + tmp458_1 + tmp459_1 + tmp460_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp229_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp242_1 + tmp334_1 + tmp339_1 + tmp347_1 + tmp349_1 + tmp414_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp422_1 + tmp440_1 + tmp461_1 + tmp462_1 + tmp463_1 + tmp464_1 + tmp465_1 + tmp466_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp108_1 + tmp121_1 + tmp297_1 + tmp299_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp40_1 + tmp42_1 + tmp461_1 + tmp466_1 + tmp467_1 + tmp468_1 + tmp469_1 + tmp47_1 + tmp48_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp101_1 + tmp125_1 + tmp126_1 + tmp129_1 + tmp132_1 + tmp134_1 + tmp137_1 + tmp140_1 + tmp144_1 + tmp147_1 + tmp149_1 + tmp17_1 + tmp185_1 + tmp198_1 + tmp199_1 + tmp200_1 + tmp203_1 + tmp206_1 + tmp208_1 + tmp312_1 + tmp398_1 + tmp400_1 + tmp470_1 + tmp471_1 + tmp63_1 + tmp82_1 + tmp83_1 + tmp87_1 + tmp89_1 + tmp97_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp11_1 + tmp175_1 + tmp17_1 + tmp181_1 + tmp18_1 + tmp195_1 + tmp200_1 + tmp203_1 + tmp204_1 + tmp206_1 + tmp208_1 + tmp20_1 + tmp22_1 + tmp256_1 + tmp257_1 + tmp262_1 + tmp263_1 + tmp26_1 + tmp305_1 + tmp306_1 + tmp309_1 + tmp311_1 + tmp315_1 + tmp318_1 + tmp470_1 + tmp471_1 + tmp472_1 + tmp473_1 + tmp474_1 + tmp475_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp287_1 + tmp297_1 + tmp299_1 + tmp328_1 + tmp336_1 + tmp33_1 + tmp369_1 + tmp372_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp385_1 + tmp391_1 + tmp415_1 + tmp424_1 + tmp425_1 + tmp436_1 + tmp44_1 + tmp476_1 + tmp477_1 + tmp478_1 + tmp479_1 + tmp480_1 + tmp481_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp118_1 + tmp120_1 + tmp242_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp414_1 + tmp415_1 + tmp417_1 + tmp418_1 + tmp422_1 + tmp424_1 + tmp461_1 + tmp464_1 + tmp465_1 + tmp466_1 + tmp482_1 + tmp483_1 + tmp50_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp163_1 + tmp166_1 + tmp169_1 + tmp172_1 + tmp234_1 + tmp236_1 + tmp240_1 + tmp248_1 + tmp250_1 + tmp254_1 + tmp338_1 + tmp340_1 + tmp407_1 + tmp416_1 + tmp421_1 + tmp484_1 + tmp485_1 + tmp486_1 + tmp487_1 + tmp488_1 + tmp489_1 + tmp490_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp122_1 + tmp131_1 + tmp135_1 + tmp141_1 + tmp142_1 + tmp143_1 + tmp146_1 + tmp186_1 + tmp193_1 + tmp197_1 + tmp209_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp269_1 + tmp272_1 + tmp275_1 + tmp317_1 + tmp397_1 + tmp399_1 + tmp401_1 + tmp402_1 + tmp62_1 + tmp64_1 + tmp66_1 + tmp72_1 + tmp77_1 + tmp79_1 + tmp84_1 + tmp95_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp132_1 + tmp136_1 + tmp137_1 + tmp139_1 + tmp141_1 + tmp145_1 + tmp210_1 + tmp213_1 + tmp217_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp278_1 + tmp281_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp491_1 + tmp492_1 + tmp493_1 + tmp494_1 + tmp495_1 + tmp496_1 + tmp497_1 + tmp498_1 + tmp499_1 + tmp500_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp107_1 + tmp110_1 + tmp112_1 + tmp113_1 + tmp115_1 + tmp117_1 + tmp118_1 + tmp120_1 + tmp166_1 + tmp167_1 + tmp169_1 + tmp228_1 + tmp234_1 + tmp236_1 + tmp239_1 + tmp264_1 + tmp268_1 + tmp35_1 + tmp41_1 + tmp501_1 + tmp502_1 + tmp50_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp163_1 + tmp166_1 + tmp169_1 + tmp172_1 + tmp234_1 + tmp236_1 + tmp343_1 + tmp347_1 + tmp349_1 + tmp351_1 + tmp407_1 + tmp450_1 + tmp451_1 + tmp464_1 + tmp465_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp503_1 + tmp504_1 + tmp505_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp140_1 + tmp147_1 + tmp182_1 + tmp196_1 + tmp200_1 + tmp203_1 + tmp206_1 + tmp207_1 + tmp208_1 + tmp224_1 + tmp22_1 + tmp275_1 + tmp277_1 + tmp279_1 + tmp441_1 + tmp444_1 + tmp473_1 + tmp474_1 + tmp491_1 + tmp495_1 + tmp498_1 + tmp500_1 + tmp506_1 + tmp507_1 + tmp508_1 + tmp509_1 + tmp510_1 + tmp511_1 + tmp512_1 + tmp513_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp162_1 + tmp170_1 + tmp229_1 + tmp238_1 + tmp266_1 + tmp31_1 + tmp32_1 + tmp34_1 + tmp363_1 + tmp364_1 + tmp40_1 + tmp419_1 + tmp41_1 + tmp420_1 + tmp42_1 + tmp43_1 + tmp45_1 + tmp47_1 + tmp48_1 + tmp514_1 + tmp515_1 + tmp51_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp228_1 + tmp239_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp387_1 + tmp388_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp461_1 + tmp466_1 + tmp504_1 + tmp516_1 + tmp517_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp130_1 + tmp138_1 + tmp140_1 + tmp147_1 + tmp148_1 + tmp151_1 + tmp218_1 + tmp224_1 + tmp258_1 + tmp259_1 + tmp277_1 + tmp302_1 + tmp307_1 + tmp310_1 + tmp325_1 + tmp354_1 + tmp359_1 + tmp441_1 + tmp444_1 + tmp507_1 + tmp508_1 + tmp511_1 + tmp512_1 + tmp52_1 + tmp57_1 + tmp61_1 + tmp67_1 + tmp70_1 + tmp71_1 + tmp76_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp102_1 + tmp11_1 + tmp193_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1 + tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp52_1 + tmp54_1 + tmp57_1 + tmp68_1 + tmp70_1 + tmp76_1 + tmp94_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp120_1 + tmp121_1 + tmp35_1 + tmp38_1 + tmp41_1 + tmp42_1 + tmp47_1 + tmp50_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp104_1 + tmp105_1 + tmp124_1 + tmp130_1 + tmp138_1 + tmp139_1 + tmp148_1 + tmp150_1 + tmp151_1 + tmp175_1 + tmp181_1 + tmp18_1 + tmp195_1 + tmp204_1 + tmp20_1 + tmp216_1 + tmp218_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp80_1 + tmp85_1 + tmp91_1 + tmp92_1 + tmp99_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp229_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp242_1 + tmp334_1 + tmp339_1 + tmp347_1 + tmp349_1 + tmp414_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp422_1 + tmp440_1 + tmp461_1 + tmp462_1 + tmp463_1 + tmp464_1 + tmp465_1 + tmp466_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp163_1 + tmp166_1 + tmp169_1 + tmp172_1 + tmp234_1 + tmp236_1 + tmp240_1 + tmp248_1 + tmp250_1 + tmp254_1 + tmp338_1 + tmp340_1 + tmp407_1 + tmp416_1 + tmp421_1 + tmp484_1 + tmp485_1 + tmp486_1 + tmp487_1 + tmp488_1 + tmp489_1 + tmp490_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp132_1 + tmp155_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp518_1 + tmp519_1 + tmp520_1 + tmp521_1 + tmp522_1 + tmp523_1 + tmp74_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp100_1 + tmp102_1 + tmp103_1 + tmp122_1 + tmp123_1 + tmp131_1 + tmp133_1 + tmp136_1 + tmp142_1 + tmp146_1 + tmp26_1 + tmp273_1 + tmp279_1 + tmp280_1 + tmp309_1 + tmp311_1 + tmp315_1 + tmp318_1 + tmp358_1 + tmp472_1 + tmp475_1 + tmp524_1 + tmp525_1 + tmp74_1 + tmp75_1 + tmp84_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp155_1 + tmp159_1 + tmp161_1 + tmp189_1 + tmp18_1 + tmp190_1 + tmp224_1 + tmp519_1 + tmp523_1 + tmp526_1 + tmp527_1 + tmp74_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp132_1 + tmp155_1 + tmp159_1 + tmp161_1 + tmp18_1 + tmp193_1 + tmp222_1 + tmp223_1 + tmp521_1 + tmp522_1 + tmp528_1 + tmp529_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp130_1 + tmp138_1 + tmp140_1 + tmp147_1 + tmp148_1 + tmp151_1 + tmp218_1 + tmp224_1 + tmp258_1 + tmp259_1 + tmp277_1 + tmp302_1 + tmp307_1 + tmp310_1 + tmp325_1 + tmp354_1 + tmp359_1 + tmp441_1 + tmp444_1 + tmp507_1 + tmp508_1 + tmp511_1 + tmp512_1 + tmp52_1 + tmp57_1 + tmp61_1 + tmp67_1 + tmp70_1 + tmp71_1 + tmp76_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp109_1 + tmp116_1 + tmp284_1 + tmp294_1 + tmp300_1 + tmp334_1 + tmp339_1 + tmp375_1 + tmp384_1 + tmp387_1 + tmp388_1 + tmp425_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1 + tmp434_1 + tmp435_1 + tmp436_1 + tmp437_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp107_1 + tmp110_1 + tmp112_1 + tmp113_1 + tmp115_1 + tmp117_1 + tmp118_1 + tmp120_1 + tmp166_1 + tmp167_1 + tmp169_1 + tmp228_1 + tmp234_1 + tmp236_1 + tmp239_1 + tmp264_1 + tmp268_1 + tmp35_1 + tmp41_1 + tmp501_1 + tmp502_1 + tmp50_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp136_1 + tmp14_1 + tmp15_1 + tmp21_1 + tmp25_1 + tmp26_1 + tmp279_1 + tmp29_1 + tmp356_1 + tmp357_1 + tmp358_1 + tmp491_1 + tmp492_1 + tmp495_1 + tmp496_1 + tmp498_1 + tmp500_1 + tmp510_1 + tmp513_1 + tmp54_1 + tmp5_1 + tmp65_1 + tmp66_1 + tmp68_1 + tmp69_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp77_1 + tmp78_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp229_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp242_1 + tmp248_1 + tmp250_1 + tmp362_1 + tmp403_1 + tmp410_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp421_1 + tmp422_1 + tmp423_1 + tmp424_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp13_1 + tmp158_1 + tmp182_1 + tmp184_1 + tmp185_1 + tmp186_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1 + tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp4_1 + tmp56_1 + tmp58_1 + tmp59_1 + tmp62_1 + tmp64_1 + tmp72_1 + tmp79_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp132_1 + tmp155_1 + tmp159_1 + tmp161_1 + tmp18_1 + tmp193_1 + tmp222_1 + tmp223_1 + tmp521_1 + tmp522_1 + tmp528_1 + tmp529_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp108_1 + tmp121_1 + tmp297_1 + tmp299_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp40_1 + tmp42_1 + tmp461_1 + tmp466_1 + tmp467_1 + tmp468_1 + tmp469_1 + tmp47_1 + tmp48_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp102_1 + tmp104_1 + tmp141_1 + tmp176_1 + tmp186_1 + tmp188_1 + tmp193_1 + tmp216_1 + tmp260_1 + tmp261_1 + tmp275_1 + tmp304_1 + tmp313_1 + tmp316_1 + tmp317_1 + tmp320_1 + tmp491_1 + tmp495_1 + tmp497_1 + tmp498_1 + tmp499_1 + tmp500_1 + tmp506_1 + tmp509_1 + tmp54_1 + tmp68_1 + tmp91_1 + tmp92_1 + tmp94_1 + tmp99_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp163_1 + tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp172_1 + tmp229_1 + tmp232_1 + tmp238_1 + tmp31_1 + tmp33_1 + tmp34_1 + tmp363_1 + tmp364_1 + tmp419_1 + tmp41_1 + tmp420_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp530_1 + tmp531_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp114_1 + tmp119_1 + tmp32_1 + tmp338_1 + tmp340_1 + tmp343_1 + tmp347_1 + tmp349_1 + tmp351_1 + tmp407_1 + tmp42_1 + tmp464_1 + tmp465_1 + tmp469_1 + tmp47_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp51_1 + tmp532_1 + tmp533_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp107_1 + tmp108_1 + tmp110_1 + tmp114_1 + tmp115_1 + tmp117_1 + tmp119_1 + tmp121_1 + tmp229_1 + tmp231_1 + tmp233_1 + tmp235_1 + tmp237_1 + tmp238_1 + tmp264_1 + tmp265_1 + tmp266_1 + tmp267_1 + tmp268_1 + tmp41_1 + tmp42_1 + tmp47_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp109_1 + tmp116_1 + tmp283_1 + tmp287_1 + tmp295_1 + tmp338_1 + tmp340_1 + tmp345_1 + tmp353_1 + tmp366_1 + tmp367_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp132_1 + tmp137_1 + tmp16_1 + tmp177_1 + tmp178_1 + tmp17_1 + tmp185_1 + tmp24_1 + tmp278_1 + tmp27_1 + tmp281_1 + tmp28_1 + tmp308_1 + tmp312_1 + tmp314_1 + tmp3_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp52_1 + tmp53_1 + tmp57_1 + tmp60_1 + tmp63_1 + tmp70_1 + tmp76_1 + tmp8_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp163_1 + tmp166_1 + tmp169_1 + tmp172_1 + tmp234_1 + tmp236_1 + tmp343_1 + tmp347_1 + tmp349_1 + tmp351_1 + tmp407_1 + tmp450_1 + tmp451_1 + tmp464_1 + tmp465_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp503_1 + tmp504_1 + tmp505_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp155_1 + tmp159_1 + tmp161_1 + tmp189_1 + tmp18_1 + tmp190_1 + tmp224_1 + tmp519_1 + tmp523_1 + tmp526_1 + tmp527_1 + tmp74_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp145_1 + tmp158_1 + tmp173_1 + tmp175_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp183_1 + tmp184_1 + tmp19_1 + tmp213_1 + tmp217_1 + tmp219_1 + tmp221_1 + tmp2_1 + tmp303_1 + tmp309_1 + tmp311_1 + tmp315_1 + tmp318_1 + tmp319_1 + tmp321_1 + tmp323_1 + tmp325_1 + tmp326_1 + tmp358_1 + tmp493_1 + tmp494_1 + tmp524_1 + tmp525_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp112_1 + tmp113_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp35_1 + tmp46_1 + tmp49_1 + tmp50_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp107_1 + tmp109_1 + tmp110_1 + tmp115_1 + tmp116_1 + tmp117_1 + tmp166_1 + tmp169_1 + tmp227_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp41_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp132_1 + tmp136_1 + tmp137_1 + tmp139_1 + tmp141_1 + tmp145_1 + tmp210_1 + tmp213_1 + tmp217_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp278_1 + tmp281_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp491_1 + tmp492_1 + tmp493_1 + tmp494_1 + tmp495_1 + tmp496_1 + tmp497_1 + tmp498_1 + tmp499_1 + tmp500_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp249_1 + tmp255_1 + tmp264_1 + tmp268_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1 + tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1 + tmp300_1 + tmp301_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp152_1 + tmp154_1 + tmp155_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp193_1 + tmp224_1 + tmp526_1 + tmp527_1 + tmp528_1 + tmp529_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp228_1 + tmp239_1 + tmp245_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp297_1 + tmp299_1 + tmp403_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp410_1 + tmp489_1 + tmp534_1 + tmp535_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp118_1 + tmp120_1 + tmp242_1 + tmp248_1 + tmp250_1 + tmp253_1 + tmp334_1 + tmp339_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp403_1 + tmp410_1 + tmp414_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp421_1 + tmp422_1 + tmp50_1 + tmp536_1 + tmp537_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp155_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp518_1 + tmp520_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp108_1 + tmp121_1 + tmp245_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp387_1 + tmp388_1 + tmp403_1 + tmp404_1 + tmp405_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp40_1 + tmp410_1 + tmp411_1 + tmp412_1 + tmp42_1 + tmp47_1 + tmp48_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp112_1 + tmp113_1 + tmp241_1 + tmp242_1 + tmp246_1 + tmp247_1 + tmp252_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1 + tmp35_1 + tmp46_1 + tmp49_1 + tmp50_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp11_1 + tmp175_1 + tmp17_1 + tmp181_1 + tmp18_1 + tmp195_1 + tmp200_1 + tmp203_1 + tmp204_1 + tmp206_1 + tmp208_1 + tmp20_1 + tmp22_1 + tmp256_1 + tmp257_1 + tmp262_1 + tmp263_1 + tmp26_1 + tmp305_1 + tmp306_1 + tmp309_1 + tmp311_1 + tmp315_1 + tmp318_1 + tmp470_1 + tmp471_1 + tmp472_1 + tmp473_1 + tmp474_1 + tmp475_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp118_1 + tmp120_1 + tmp242_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp414_1 + tmp415_1 + tmp417_1 + tmp418_1 + tmp422_1 + tmp424_1 + tmp461_1 + tmp464_1 + tmp465_1 + tmp466_1 + tmp482_1 + tmp483_1 + tmp50_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp114_1 + tmp119_1 + tmp240_1 + tmp248_1 + tmp250_1 + tmp254_1 + tmp32_1 + tmp407_1 + tmp411_1 + tmp416_1 + tmp421_1 + tmp42_1 + tmp450_1 + tmp451_1 + tmp47_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp51_1 + tmp538_1 + tmp539_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp155_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp518_1 + tmp520_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp162_1 + tmp170_1 + tmp284_1 + tmp287_1 + tmp290_1 + tmp292_1 + tmp293_1 + tmp298_1 + tmp327_1 + tmp328_1 + tmp329_1 + tmp330_1 + tmp331_1 + tmp332_1 + tmp333_1 + tmp334_1 + tmp335_1 + tmp336_1 + tmp337_1 + tmp338_1 + tmp339_1 + tmp340_1 + tmp341_1 + tmp342_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp122_1 + tmp123_1 + tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp100_1 + tmp101_1 + tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp59_1 + tmp63_1 + tmp67_1 + tmp74_1 + tmp75_1 + tmp80_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1 + tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp163_1 + tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp172_1 + tmp229_1 + tmp232_1 + tmp238_1 + tmp31_1 + tmp33_1 + tmp34_1 + tmp363_1 + tmp364_1 + tmp419_1 + tmp41_1 + tmp420_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp530_1 + tmp531_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp118_1 + tmp120_1 + tmp242_1 + tmp248_1 + tmp250_1 + tmp253_1 + tmp334_1 + tmp339_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp403_1 + tmp410_1 + tmp414_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp421_1 + tmp422_1 + tmp50_1 + tmp536_1 + tmp537_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp127_1 + tmp128_1 + tmp130_1 + tmp138_1 + tmp13_1 + tmp145_1 + tmp148_1 + tmp14_1 + tmp151_1 + tmp158_1 + tmp15_1 + tmp184_1 + tmp194_1 + tmp195_1 + tmp201_1 + tmp202_1 + tmp204_1 + tmp205_1 + tmp21_1 + tmp25_1 + tmp319_1 + tmp325_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp4_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp153_1 + tmp155_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp18_1 + tmp222_1 + tmp223_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp74_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp228_1 + tmp239_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp387_1 + tmp388_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp461_1 + tmp466_1 + tmp504_1 + tmp516_1 + tmp517_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp101_1 + tmp125_1 + tmp126_1 + tmp129_1 + tmp132_1 + tmp134_1 + tmp137_1 + tmp140_1 + tmp144_1 + tmp147_1 + tmp149_1 + tmp17_1 + tmp185_1 + tmp198_1 + tmp199_1 + tmp200_1 + tmp203_1 + tmp206_1 + tmp208_1 + tmp312_1 + tmp398_1 + tmp400_1 + tmp470_1 + tmp471_1 + tmp63_1 + tmp82_1 + tmp83_1 + tmp87_1 + tmp89_1 + tmp97_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp287_1 + tmp297_1 + tmp299_1 + tmp328_1 + tmp336_1 + tmp33_1 + tmp369_1 + tmp372_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp385_1 + tmp391_1 + tmp415_1 + tmp424_1 + tmp425_1 + tmp436_1 + tmp44_1 + tmp476_1 + tmp477_1 + tmp478_1 + tmp479_1 + tmp480_1 + tmp481_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp162_1 + tmp170_1 + tmp229_1 + tmp238_1 + tmp266_1 + tmp31_1 + tmp32_1 + tmp34_1 + tmp363_1 + tmp364_1 + tmp40_1 + tmp419_1 + tmp41_1 + tmp420_1 + tmp42_1 + tmp43_1 + tmp45_1 + tmp47_1 + tmp48_1 + tmp514_1 + tmp515_1 + tmp51_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp122_1 + tmp131_1 + tmp135_1 + tmp141_1 + tmp142_1 + tmp143_1 + tmp146_1 + tmp186_1 + tmp193_1 + tmp197_1 + tmp209_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp269_1 + tmp272_1 + tmp275_1 + tmp317_1 + tmp397_1 + tmp399_1 + tmp401_1 + tmp402_1 + tmp62_1 + tmp64_1 + tmp66_1 + tmp72_1 + tmp77_1 + tmp79_1 + tmp84_1 + tmp95_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp114_1 + tmp119_1 + tmp32_1 + tmp338_1 + tmp340_1 + tmp343_1 + tmp347_1 + tmp349_1 + tmp351_1 + tmp407_1 + tmp42_1 + tmp464_1 + tmp465_1 + tmp469_1 + tmp47_1 + tmp484_1 + tmp485_1 + tmp487_1 + tmp490_1 + tmp51_1 + tmp532_1 + tmp533_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp132_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp159_1 + tmp161_1 + tmp189_1 + tmp18_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp104_1 + tmp158_1 + tmp16_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1 + tmp186_1 + tmp187_1 + tmp188_1 + tmp19_1 + tmp24_1 + tmp28_1 + tmp2_1 + tmp59_1 + tmp86_1 + tmp88_1 + tmp8_1 + tmp91_1 + tmp92_1 + tmp99_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp229_1 + tmp231_1 + tmp233_1 + tmp238_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp252_1 + tmp254_1 + tmp345_1 + tmp353_1 + tmp361_1 + tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp100_1 + tmp102_1 + tmp103_1 + tmp122_1 + tmp123_1 + tmp131_1 + tmp133_1 + tmp136_1 + tmp142_1 + tmp146_1 + tmp26_1 + tmp273_1 + tmp279_1 + tmp280_1 + tmp309_1 + tmp311_1 + tmp315_1 + tmp318_1 + tmp358_1 + tmp472_1 + tmp475_1 + tmp524_1 + tmp525_1 + tmp74_1 + tmp75_1 + tmp84_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1 + tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp31_1 + tmp34_1 + tmp35_1 + tmp37_1 + tmp39_1 + tmp41_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp49_1 + tmp50_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp249_1 + tmp255_1 + tmp284_1 + tmp335_1 + tmp33_1 + tmp341_1 + tmp366_1 + tmp375_1 + tmp378_1 + tmp381_1 + tmp384_1 + tmp392_1 + tmp431_1 + tmp433_1 + tmp435_1 + tmp44_1 + tmp450_1 + tmp451_1 + tmp455_1 + tmp456_1 + tmp457_1 + tmp458_1 + tmp459_1 + tmp460_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp101_1 + tmp125_1 + tmp134_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp221_1 + tmp224_1 + tmp270_1 + tmp271_1 + tmp274_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp281_1 + tmp310_1 + tmp322_1 + tmp323_1 + tmp324_1 + tmp325_1 + tmp326_1 + tmp67_1 + tmp82_1 + tmp87_1 + tmp90_1 + tmp97_1 + tmp98_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp132_1 + tmp152_1 + tmp153_1 + tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp74_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp165_1 + tmp166_1 + tmp169_1 + tmp171_1 + tmp228_1 + tmp239_1 + tmp245_1 + tmp248_1 + tmp250_1 + tmp251_1 + tmp297_1 + tmp299_1 + tmp403_1 + tmp404_1 + tmp405_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp410_1 + tmp489_1 + tmp534_1 + tmp535_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp229_1 + tmp231_1 + tmp233_1 + tmp238_1 + tmp241_1 + tmp242_1 + tmp246_1 + tmp247_1 + tmp249_1 + tmp252_1 + tmp255_1 + tmp343_1 + tmp346_1 + tmp347_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp363_1 + tmp364_1 + tmp438_1 + tmp439_1 + tmp440_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp12_1 + tmp139_1 + tmp13_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp20_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp55_1 + tmp62_1 + tmp64_1 + tmp72_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp101_1 + tmp10_1 + tmp11_1 + tmp14_1 + tmp15_1 + tmp193_1 + tmp21_1 + tmp25_1 + tmp310_1 + tmp312_1 + tmp317_1 + tmp319_1 + tmp322_1 + tmp324_1 + tmp355_1 + tmp360_1 + tmp397_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1 + tmp402_1 + tmp66_1 + tmp77_1 + tmp82_1 + tmp84_1 + tmp87_1 + tmp95_1 + tmp97_1 + tmp9_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp122_1 + tmp125_1 + tmp131_1 + tmp134_1 + tmp142_1 + tmp146_1 + tmp16_1 + tmp174_1 + tmp182_1 + tmp187_1 + tmp224_1 + tmp22_1 + tmp24_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1 + tmp280_1 + tmp281_1 + tmp28_1 + tmp6_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp162_1 + tmp170_1 + tmp282_1 + tmp292_1 + tmp301_1 + tmp345_1 + tmp353_1 + tmp369_1 + tmp381_1 + tmp382_1 + tmp383_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1 + tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1;
                             } else { // constant data
                                 const double A_00 = A_p[INDEX2(0,0,3)];
                                 const double A_01 = A_p[INDEX2(0,1,3)];
@@ -3419,70 +3418,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp20_1 = A_12*w66;
                                 const double tmp1_1 = A_12*w64;
                                 const double tmp24_1 = A_20*w62;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp21_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp6_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp16_1 + tmp27_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp11_1 + tmp14_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp30_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp27_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp36_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp30_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp23_1 + tmp24_1 + tmp2_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp16_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp37_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp11_1 + tmp13_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp38_1 + tmp39_1 + tmp8_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp11_1 + tmp14_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp9_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp23_1 + tmp24_1 + tmp2_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp15_1 + tmp35_1 + tmp38_1 + tmp39_1 + tmp8_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp21_1 + tmp25_1 + tmp26_1 + tmp28_1 + tmp37_1 + tmp3_1 + tmp4_1 + tmp6_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp35_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp0_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp22_1 + tmp36_1 + tmp5_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp26_1 + tmp37_1 + tmp6_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp35_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp11_1 + tmp14_1 + tmp42_1 + tmp44_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp9_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp0_1 + tmp1_1 + tmp23_1 + tmp24_1 + tmp30_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp44_1 + tmp51_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp13_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp35_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1 + tmp52_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp0_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp22_1 + tmp36_1 + tmp5_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp10_1 + tmp12_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp52_1 + tmp53_1 + tmp8_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp44_1 + tmp51_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp13_1 + tmp43_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp52_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp49_1 + tmp50_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp26_1 + tmp27_1 + tmp3_1 + tmp4_1 + tmp6_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp35_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1 + tmp52_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp13_1 + tmp43_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp52_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp49_1 + tmp50_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp10_1 + tmp12_1 + tmp42_1 + tmp45_1 + tmp49_1 + tmp50_1 + tmp53_1 + tmp8_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp26_1 + tmp27_1 + tmp3_1 + tmp4_1 + tmp6_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp13_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp11_1 + tmp14_1 + tmp42_1 + tmp44_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp9_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp33_1 + tmp34_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp45_1 + tmp53_1 + tmp8_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp0_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp36_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp21_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp6_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp11_1 + tmp14_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp33_1 + tmp34_1 + tmp42_1 + tmp49_1 + tmp50_1 + tmp52_1 + tmp53_1 + tmp8_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp21_1 + tmp25_1 + tmp26_1 + tmp28_1 + tmp37_1 + tmp3_1 + tmp4_1 + tmp6_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp15_1 + tmp35_1 + tmp38_1 + tmp39_1 + tmp8_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp33_1 + tmp34_1 + tmp42_1 + tmp49_1 + tmp50_1 + tmp52_1 + tmp53_1 + tmp8_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp26_1 + tmp37_1 + tmp6_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp0_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp22_1 + tmp36_1 + tmp5_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp23_1 + tmp24_1 + tmp2_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp49_1 + tmp50_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp33_1 + tmp34_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp45_1 + tmp53_1 + tmp8_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp16_1 + tmp27_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp16_1 + tmp18_1 + tmp1_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp5_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp16_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp37_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp27_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp36_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp26_1 + tmp37_1 + tmp6_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp13_1 + tmp43_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp52_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp11_1 + tmp14_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp8_1 + tmp9_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp0_1 + tmp16_1 + tmp18_1 + tmp1_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp5_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp44_1 + tmp51_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp30_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp27_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp36_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp10_1 + tmp12_1 + tmp42_1 + tmp45_1 + tmp49_1 + tmp50_1 + tmp53_1 + tmp8_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp0_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp36_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp11_1 + tmp13_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp38_1 + tmp39_1 + tmp8_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp10_1 + tmp12_1 + tmp42_1 + tmp45_1 + tmp49_1 + tmp50_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp15_1 + tmp35_1 + tmp38_1 + tmp39_1 + tmp8_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp13_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp26_1 + tmp27_1 + tmp3_1 + tmp4_1 + tmp6_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp33_1 + tmp34_1 + tmp42_1 + tmp49_1 + tmp50_1 + tmp52_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp16_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp37_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp23_1 + tmp24_1 + tmp30_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp11_1 + tmp14_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp9_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp11_1 + tmp13_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp38_1 + tmp39_1 + tmp8_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp21_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp6_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp35_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp36_1 + tmp37_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp33_1 + tmp34_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp45_1 + tmp53_1 + tmp8_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp11_1 + tmp14_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp9_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp36_1 + tmp37_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp10_1 + tmp12_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp52_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp11_1 + tmp14_1 + tmp42_1 + tmp44_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp9_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp11_1 + tmp14_1 + tmp42_1 + tmp44_1 + tmp49_1 + tmp50_1 + tmp51_1 + tmp9_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp10_1 + tmp12_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp52_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp36_1 + tmp37_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp35_1 + tmp43_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp21_1 + tmp23_1 + tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp6_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp11_1 + tmp13_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp38_1 + tmp39_1 + tmp8_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp11_1 + tmp14_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp9_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp0_1 + tmp1_1 + tmp23_1 + tmp24_1 + tmp30_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp16_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp37_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp33_1 + tmp34_1 + tmp42_1 + tmp49_1 + tmp50_1 + tmp52_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp26_1 + tmp27_1 + tmp3_1 + tmp4_1 + tmp6_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp13_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp15_1 + tmp35_1 + tmp38_1 + tmp39_1 + tmp8_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp0_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp36_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp10_1 + tmp12_1 + tmp42_1 + tmp45_1 + tmp49_1 + tmp50_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp27_1 + tmp29_1 + tmp2_1 + tmp31_1 + tmp32_1 + tmp36_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp30_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp44_1 + tmp51_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp16_1 + tmp18_1 + tmp1_1 + tmp21_1 + tmp25_1 + tmp28_1 + tmp5_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp11_1 + tmp14_1 + tmp15_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp13_1 + tmp43_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp52_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp24_1 + tmp26_1 + tmp37_1 + tmp6_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp16_1 + tmp27_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp33_1 + tmp34_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp45_1 + tmp53_1 + tmp8_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp11_1 + tmp38_1 + tmp39_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp49_1 + tmp50_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp17_1 + tmp20_1 + tmp23_1 + tmp24_1 + tmp2_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp0_1 + tmp18_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp22_1 + tmp36_1 + tmp5_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp21_1 + tmp25_1 + tmp26_1 + tmp28_1 + tmp37_1 + tmp3_1 + tmp4_1 + tmp6_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp35_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1 + tmp52_1;
                             }
                         }
                         ///////////////
@@ -4014,70 +4013,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp240_1 = B_1_0*w99;
                                 const double tmp160_1 = B_0_1*w104;
                                 const double tmp377_1 = B_2_5*w100;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp100_1 + tmp101_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp10_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp11_1 + tmp120_1 + tmp121_1 + tmp12_1 + tmp1_1 + tmp4_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp122_1 + tmp123_1 + tmp76_1 + tmp77_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp55_1 + tmp58_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp13_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1 + tmp152_1 + tmp153_1 + tmp6_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp52_1 + tmp53_1 + tmp55_1 + tmp56_1 + tmp58_1 + tmp60_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp157_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp162_1 + tmp164_1 + tmp166_1 + tmp167_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp222_1 + tmp223_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp134_1 + tmp135_1 + tmp136_1 + tmp138_1 + tmp140_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp102_1 + tmp103_1 + tmp106_1 + tmp107_1 + tmp110_1 + tmp113_1 + tmp114_1 + tmp115_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp86_1 + tmp96_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp132_1 + tmp133_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp206_1 + tmp207_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp215_1 + tmp222_1 + tmp247_1 + tmp250_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp264_1 + tmp265_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp211_1 + tmp212_1 + tmp244_1 + tmp246_1 + tmp252_1 + tmp254_1 + tmp300_1 + tmp301_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp138_1 + tmp140_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp322_1 + tmp323_1 + tmp62_1 + tmp64_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp175_1 + tmp178_1 + tmp324_1 + tmp325_1 + tmp326_1 + tmp327_1 + tmp328_1 + tmp329_1 + tmp330_1 + tmp331_1 + tmp332_1 + tmp333_1 + tmp334_1 + tmp335_1 + tmp336_1 + tmp337_1 + tmp338_1 + tmp339_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp179_1 + tmp184_1 + tmp325_1 + tmp326_1 + tmp340_1 + tmp341_1 + tmp342_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp298_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp286_1 + tmp289_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1 + tmp366_1 + tmp367_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp71_1 + tmp72_1 + tmp75_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp119_1 + tmp120_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp146_1 + tmp147_1 + tmp149_1 + tmp151_1 + tmp152_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp168_1 + tmp170_1 + tmp330_1 + tmp335_1 + tmp345_1 + tmp352_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1 + tmp381_1 + tmp382_1 + tmp383_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp294_1 + tmp295_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp397_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp195_1 + tmp198_1 + tmp266_1 + tmp268_1 + tmp269_1 + tmp271_1 + tmp274_1 + tmp275_1 + tmp278_1 + tmp279_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp313_1 + tmp314_1 + tmp315_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp323_1 + tmp362_1 + tmp363_1 + tmp402_1 + tmp403_1 + tmp404_1 + tmp405_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp54_1 + tmp55_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp61_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp393_1 + tmp397_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp200_1 + tmp202_1 + tmp410_1 + tmp411_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp421_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp19_1 + tmp20_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp280_1 + tmp281_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp154_1 + tmp155_1 + tmp411_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp416_1 + tmp417_1 + tmp419_1 + tmp421_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp13_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1 + tmp152_1 + tmp153_1 + tmp6_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp298_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp397_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp27_1 + tmp28_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp436_1 + tmp437_1 + tmp438_1 + tmp439_1 + tmp43_1 + tmp44_1 + tmp50_1 + tmp51_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp100_1 + tmp101_1 + tmp434_1 + tmp435_1 + tmp78_1 + tmp79_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp154_1 + tmp155_1 + tmp411_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp416_1 + tmp417_1 + tmp419_1 + tmp421_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp211_1 + tmp212_1 + tmp244_1 + tmp246_1 + tmp252_1 + tmp254_1 + tmp300_1 + tmp301_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp54_1 + tmp55_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp61_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp24_1 + tmp26_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp34_1 + tmp35_1 + tmp440_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp46_1 + tmp48_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp286_1 + tmp289_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp191_1 + tmp192_1 + tmp194_1 + tmp197_1 + tmp272_1 + tmp273_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp447_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp19_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp388_1 + tmp389_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp52_1 + tmp53_1 + tmp55_1 + tmp56_1 + tmp58_1 + tmp60_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp206_1 + tmp207_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp322_1 + tmp323_1 + tmp62_1 + tmp64_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp393_1 + tmp397_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp100_1 + tmp101_1 + tmp434_1 + tmp435_1 + tmp78_1 + tmp79_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp109_1 + tmp112_1 + tmp452_1 + tmp453_1 + tmp454_1 + tmp455_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp91_1 + tmp94_1 + tmp95_1 + tmp97_1 + tmp99_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp55_1 + tmp58_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp313_1 + tmp314_1 + tmp315_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp323_1 + tmp362_1 + tmp363_1 + tmp402_1 + tmp403_1 + tmp404_1 + tmp405_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp280_1 + tmp281_1 + tmp284_1 + tmp285_1 + tmp287_1 + tmp288_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp294_1 + tmp295_1 + tmp297_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp134_1 + tmp135_1 + tmp136_1 + tmp138_1 + tmp140_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp119_1 + tmp120_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp146_1 + tmp147_1 + tmp149_1 + tmp151_1 + tmp152_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp294_1 + tmp295_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp388_1 + tmp389_1 + tmp392_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp222_1 + tmp223_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp19_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp294_1 + tmp295_1 + tmp297_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp102_1 + tmp103_1 + tmp106_1 + tmp107_1 + tmp110_1 + tmp113_1 + tmp114_1 + tmp115_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp86_1 + tmp96_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp122_1 + tmp123_1 + tmp76_1 + tmp77_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp280_1 + tmp281_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1 + tmp366_1 + tmp367_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp71_1 + tmp72_1 + tmp75_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp168_1 + tmp170_1 + tmp330_1 + tmp335_1 + tmp345_1 + tmp352_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1 + tmp381_1 + tmp382_1 + tmp383_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp19_1 + tmp20_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp195_1 + tmp198_1 + tmp266_1 + tmp268_1 + tmp269_1 + tmp271_1 + tmp274_1 + tmp275_1 + tmp278_1 + tmp279_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp388_1 + tmp389_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp100_1 + tmp101_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp132_1 + tmp133_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp27_1 + tmp28_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp436_1 + tmp437_1 + tmp438_1 + tmp439_1 + tmp43_1 + tmp44_1 + tmp50_1 + tmp51_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp22_1 + tmp23_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp179_1 + tmp184_1 + tmp325_1 + tmp326_1 + tmp340_1 + tmp341_1 + tmp342_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp157_1 + tmp158_1 + tmp159_1 + tmp161_1 + tmp162_1 + tmp164_1 + tmp166_1 + tmp167_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp280_1 + tmp281_1 + tmp284_1 + tmp285_1 + tmp287_1 + tmp288_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp138_1 + tmp140_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp10_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp11_1 + tmp120_1 + tmp121_1 + tmp12_1 + tmp1_1 + tmp4_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp215_1 + tmp222_1 + tmp247_1 + tmp250_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp264_1 + tmp265_1;
                             } else { // constant data
                                 const double B_0 = B_p[0];
                                 const double B_1 = B_p[1];
@@ -4100,70 +4099,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp0_1 = B_2*w128;
                                 const double tmp16_1 = B_1*w142;
                                 const double tmp11_1 = B_0*w137;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp3_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp11_1 + tmp4_1 + tmp8_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp10_1 + tmp12_1 + tmp13_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp2_1 + tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp14_1 + tmp1_1 + tmp3_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp10_1 + tmp13_1 + tmp15_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp2_1 + tmp4_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp14_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp10_1 + tmp12_1 + tmp16_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp3_1 + tmp4_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp16_1 + tmp2_1 + tmp8_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp3_1 + tmp4_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp2_1 + tmp4_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp1_1 + tmp8_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp11_1 + tmp14_1 + tmp9_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp3_1 + tmp7_1 + tmp9_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp11_1 + tmp1_1 + tmp8_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp0_1 + tmp17_1 + tmp6_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp16_1 + tmp3_1 + tmp8_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp14_1 + tmp2_1 + tmp4_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp16_1 + tmp2_1 + tmp7_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp14_1 + tmp17_1 + tmp9_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp11_1 + tmp9_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp2_1 + tmp6_1 + tmp8_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp15_1 + tmp4_1 + tmp8_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp13_1 + tmp3_1 + tmp8_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp14_1 + tmp6_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp16_1 + tmp3_1 + tmp7_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp11_1 + tmp1_1 + tmp7_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp14_1 + tmp17_1 + tmp6_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp17_1 + tmp9_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp13_1 + tmp2_1 + tmp8_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp15_1 + tmp1_1 + tmp8_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp17_1 + tmp4_1 + tmp8_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp14_1 + tmp3_1 + tmp4_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp0_1 + tmp11_1 + tmp6_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp13_1 + tmp2_1 + tmp7_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp12_1 + tmp1_1 + tmp8_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp1_1 + tmp7_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp10_1 + tmp1_1 + tmp3_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp12_1 + tmp4_1 + tmp8_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp11_1 + tmp4_1 + tmp7_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp1_1 + tmp3_1 + tmp5_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp15_1 + tmp1_1 + tmp7_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp3_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp3_1 + tmp4_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp13_1 + tmp2_1 + tmp8_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp12_1 + tmp1_1 + tmp8_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp15_1 + tmp16_1 + tmp5_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp3_1 + tmp6_1 + tmp8_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp13_1 + tmp15_1 + tmp5_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp12_1 + tmp16_1 + tmp5_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp14_1 + tmp6_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp10_1 + tmp1_1 + tmp3_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp2_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp13_1 + tmp3_1 + tmp8_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp2_1 + tmp4_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp12_1 + tmp16_1 + tmp5_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp15_1 + tmp1_1 + tmp8_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp3_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp1_1 + tmp2_1 + tmp5_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp12_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp2_1 + tmp4_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp14_1 + tmp17_1 + tmp9_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp11_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp12_1 + tmp4_1 + tmp8_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp13_1 + tmp15_1 + tmp5_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp3_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp16_1 + tmp2_1 + tmp8_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp3_1 + tmp4_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp11_1 + tmp14_1 + tmp9_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp12_1 + tmp13_1 + tmp5_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp15_1 + tmp4_1 + tmp7_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp13_1 + tmp3_1 + tmp7_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp10_1 + tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp15_1 + tmp4_1 + tmp8_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp16_1 + tmp3_1 + tmp8_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp14_1 + tmp3_1 + tmp4_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp13_1 + tmp2_1 + tmp7_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp12_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp10_1 + tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp0_1 + tmp17_1 + tmp6_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp11_1 + tmp4_1 + tmp8_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp3_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp1_1 + tmp2_1 + tmp5_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp13_1 + tmp3_1 + tmp7_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp14_1 + tmp2_1 + tmp4_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp10_1 + tmp12_1 + tmp16_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp15_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp17_1 + tmp4_1 + tmp8_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp0_1 + tmp11_1 + tmp6_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp1_1 + tmp3_1 + tmp5_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp12_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp10_1 + tmp13_1 + tmp15_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp14_1 + tmp1_1 + tmp3_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp16_1 + tmp2_1 + tmp7_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp3_1 + tmp6_1 + tmp8_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp2_1 + tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp17_1 + tmp9_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp11_1 + tmp1_1 + tmp8_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp10_1 + tmp12_1 + tmp13_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp15_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp16_1 + tmp3_1 + tmp7_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp14_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp2_1 + tmp6_1 + tmp8_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp1_1 + tmp8_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp11_1 + tmp9_1;
                             }
                         }
                         ///////////////
@@ -4695,70 +4694,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp410_1 = C_0_7*w104;
                                 const double tmp268_1 = tmp21_0*w103;
                                 const double tmp305_1 = C_2_1*w123;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp16_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp22_1 + tmp23_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp100_1 + tmp101_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp10_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp120_1 + tmp121_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp3_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp122_1 + tmp123_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp81_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp58_1 + tmp59_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1 + tmp152_1 + tmp153_1 + tmp6_1 + tmp9_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp126_1 + tmp128_1 + tmp129_1 + tmp131_1 + tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp58_1 + tmp59_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp162_1 + tmp163_1 + tmp166_1 + tmp167_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp222_1 + tmp223_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp132_1 + tmp136_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp102_1 + tmp103_1 + tmp105_1 + tmp106_1 + tmp110_1 + tmp112_1 + tmp113_1 + tmp115_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp92_1 + tmp98_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp133_1 + tmp134_1 + tmp135_1 + tmp137_1 + tmp139_1 + tmp141_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp206_1 + tmp207_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp215_1 + tmp222_1 + tmp247_1 + tmp250_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp264_1 + tmp265_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp211_1 + tmp212_1 + tmp244_1 + tmp246_1 + tmp252_1 + tmp254_1 + tmp300_1 + tmp301_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp139_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp322_1 + tmp323_1 + tmp62_1 + tmp63_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp175_1 + tmp178_1 + tmp324_1 + tmp325_1 + tmp326_1 + tmp327_1 + tmp328_1 + tmp329_1 + tmp330_1 + tmp331_1 + tmp332_1 + tmp333_1 + tmp334_1 + tmp335_1 + tmp336_1 + tmp337_1 + tmp338_1 + tmp339_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp179_1 + tmp184_1 + tmp325_1 + tmp326_1 + tmp340_1 + tmp341_1 + tmp342_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp297_1 + tmp298_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp280_1 + tmp281_1 + tmp283_1 + tmp284_1 + tmp286_1 + tmp288_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1 + tmp366_1 + tmp367_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp70_1 + tmp72_1 + tmp74_1 + tmp75_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp119_1 + tmp121_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp146_1 + tmp147_1 + tmp150_1 + tmp151_1 + tmp153_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp168_1 + tmp170_1 + tmp330_1 + tmp335_1 + tmp345_1 + tmp352_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1 + tmp381_1 + tmp382_1 + tmp383_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp292_1 + tmp293_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp397_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp190_1 + tmp191_1 + tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp271_1 + tmp272_1 + tmp276_1 + tmp279_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp312_1 + tmp314_1 + tmp315_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp321_1 + tmp322_1 + tmp362_1 + tmp364_1 + tmp402_1 + tmp403_1 + tmp404_1 + tmp405_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp124_1 + tmp125_1 + tmp127_1 + tmp130_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp388_1 + tmp389_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp200_1 + tmp201_1 + tmp410_1 + tmp411_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp417_1 + tmp418_1 + tmp419_1 + tmp420_1 + tmp421_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp14_1 + tmp15_1 + tmp17_1 + tmp18_1 + tmp21_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp280_1 + tmp281_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp154_1 + tmp156_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp418_1 + tmp419_1 + tmp421_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp190_1 + tmp191_1 + tmp192_1 + tmp193_1 + tmp194_1 + tmp195_1 + tmp196_1 + tmp197_1 + tmp198_1 + tmp199_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp142_1 + tmp143_1 + tmp144_1 + tmp145_1 + tmp146_1 + tmp147_1 + tmp148_1 + tmp149_1 + tmp150_1 + tmp151_1 + tmp152_1 + tmp153_1 + tmp6_1 + tmp9_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp297_1 + tmp298_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp396_1 + tmp397_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp32_1 + tmp36_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp42_1 + tmp436_1 + tmp437_1 + tmp438_1 + tmp439_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp100_1 + tmp101_1 + tmp434_1 + tmp435_1 + tmp79_1 + tmp80_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp154_1 + tmp156_1 + tmp412_1 + tmp413_1 + tmp414_1 + tmp415_1 + tmp416_1 + tmp418_1 + tmp419_1 + tmp421_1 + tmp430_1 + tmp431_1 + tmp432_1 + tmp433_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp211_1 + tmp212_1 + tmp244_1 + tmp246_1 + tmp252_1 + tmp254_1 + tmp300_1 + tmp301_1 + tmp302_1 + tmp303_1 + tmp304_1 + tmp305_1 + tmp306_1 + tmp307_1 + tmp308_1 + tmp309_1 + tmp310_1 + tmp311_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp124_1 + tmp125_1 + tmp127_1 + tmp130_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1 + tmp60_1 + tmp61_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp24_1 + tmp25_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp31_1 + tmp34_1 + tmp35_1 + tmp43_1 + tmp440_1 + tmp441_1 + tmp442_1 + tmp443_1 + tmp44_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp294_1 + tmp295_1 + tmp296_1 + tmp297_1 + tmp298_1 + tmp299_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp102_1 + tmp103_1 + tmp104_1 + tmp105_1 + tmp106_1 + tmp107_1 + tmp108_1 + tmp109_1 + tmp110_1 + tmp111_1 + tmp112_1 + tmp113_1 + tmp114_1 + tmp115_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp122_1 + tmp123_1 + tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp280_1 + tmp281_1 + tmp283_1 + tmp284_1 + tmp286_1 + tmp288_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp186_1 + tmp187_1 + tmp188_1 + tmp189_1 + tmp192_1 + tmp194_1 + tmp195_1 + tmp197_1 + tmp274_1 + tmp277_1 + tmp444_1 + tmp445_1 + tmp446_1 + tmp447_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp17_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp388_1 + tmp389_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp126_1 + tmp128_1 + tmp129_1 + tmp131_1 + tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1 + tmp58_1 + tmp59_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp206_1 + tmp207_1 + tmp236_1 + tmp237_1 + tmp238_1 + tmp239_1 + tmp240_1 + tmp241_1 + tmp242_1 + tmp243_1 + tmp244_1 + tmp245_1 + tmp246_1 + tmp247_1 + tmp248_1 + tmp249_1 + tmp250_1 + tmp251_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp312_1 + tmp313_1 + tmp314_1 + tmp315_1 + tmp316_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp320_1 + tmp321_1 + tmp322_1 + tmp323_1 + tmp62_1 + tmp63_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp388_1 + tmp389_1 + tmp392_1 + tmp393_1 + tmp394_1 + tmp395_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp100_1 + tmp101_1 + tmp434_1 + tmp435_1 + tmp79_1 + tmp80_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp109_1 + tmp111_1 + tmp452_1 + tmp453_1 + tmp454_1 + tmp455_1 + tmp86_1 + tmp87_1 + tmp88_1 + tmp90_1 + tmp93_1 + tmp94_1 + tmp96_1 + tmp97_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp132_1 + tmp133_1 + tmp134_1 + tmp135_1 + tmp136_1 + tmp137_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp124_1 + tmp125_1 + tmp126_1 + tmp127_1 + tmp128_1 + tmp129_1 + tmp130_1 + tmp131_1 + tmp58_1 + tmp59_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1 + tmp32_1 + tmp33_1 + tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp312_1 + tmp314_1 + tmp315_1 + tmp317_1 + tmp318_1 + tmp319_1 + tmp321_1 + tmp322_1 + tmp362_1 + tmp364_1 + tmp402_1 + tmp403_1 + tmp404_1 + tmp405_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp168_1 + tmp169_1 + tmp170_1 + tmp171_1 + tmp172_1 + tmp173_1 + tmp174_1 + tmp175_1 + tmp176_1 + tmp177_1 + tmp178_1 + tmp179_1 + tmp180_1 + tmp181_1 + tmp182_1 + tmp183_1 + tmp184_1 + tmp185_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp434_1 + tmp435_1 + tmp76_1 + tmp77_1 + tmp79_1 + tmp80_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp285_1 + tmp287_1 + tmp289_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp296_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp78_1 + tmp81_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp283_1 + tmp284_1 + tmp285_1 + tmp286_1 + tmp287_1 + tmp288_1 + tmp289_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp132_1 + tmp136_1 + tmp138_1 + tmp139_1 + tmp140_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp119_1 + tmp121_1 + tmp142_1 + tmp143_1 + tmp144_1 + tmp146_1 + tmp147_1 + tmp150_1 + tmp151_1 + tmp153_1 + tmp368_1 + tmp369_1 + tmp370_1 + tmp371_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp292_1 + tmp293_1 + tmp354_1 + tmp355_1 + tmp356_1 + tmp357_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp388_1 + tmp389_1 + tmp390_1 + tmp391_1 + tmp396_1 + tmp397_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp100_1 + tmp101_1 + tmp122_1 + tmp123_1 + tmp78_1 + tmp81_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp206_1 + tmp207_1 + tmp208_1 + tmp209_1 + tmp210_1 + tmp211_1 + tmp212_1 + tmp213_1 + tmp214_1 + tmp215_1 + tmp216_1 + tmp217_1 + tmp218_1 + tmp219_1 + tmp220_1 + tmp221_1 + tmp222_1 + tmp223_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1 + tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp38_1 + tmp39_1 + tmp40_1 + tmp41_1 + tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp17_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp290_1 + tmp291_1 + tmp292_1 + tmp293_1 + tmp296_1 + tmp299_1 + tmp384_1 + tmp385_1 + tmp386_1 + tmp387_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp102_1 + tmp103_1 + tmp105_1 + tmp106_1 + tmp110_1 + tmp112_1 + tmp113_1 + tmp115_1 + tmp228_1 + tmp229_1 + tmp230_1 + tmp231_1 + tmp92_1 + tmp98_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp122_1 + tmp123_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp81_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp280_1 + tmp281_1 + tmp358_1 + tmp359_1 + tmp360_1 + tmp361_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp362_1 + tmp363_1 + tmp364_1 + tmp365_1 + tmp366_1 + tmp367_1 + tmp65_1 + tmp66_1 + tmp67_1 + tmp68_1 + tmp70_1 + tmp72_1 + tmp74_1 + tmp75_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp168_1 + tmp170_1 + tmp330_1 + tmp335_1 + tmp345_1 + tmp352_1 + tmp372_1 + tmp373_1 + tmp374_1 + tmp375_1 + tmp376_1 + tmp377_1 + tmp378_1 + tmp379_1 + tmp380_1 + tmp381_1 + tmp382_1 + tmp383_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp14_1 + tmp15_1 + tmp17_1 + tmp18_1 + tmp21_1 + tmp23_1 + tmp422_1 + tmp423_1 + tmp424_1 + tmp425_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp190_1 + tmp191_1 + tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp271_1 + tmp272_1 + tmp276_1 + tmp279_1 + tmp398_1 + tmp399_1 + tmp400_1 + tmp401_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp388_1 + tmp389_1 + tmp406_1 + tmp407_1 + tmp408_1 + tmp409_1 + tmp448_1 + tmp449_1 + tmp450_1 + tmp451_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp100_1 + tmp101_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp86_1 + tmp87_1 + tmp88_1 + tmp89_1 + tmp90_1 + tmp91_1 + tmp92_1 + tmp93_1 + tmp94_1 + tmp95_1 + tmp96_1 + tmp97_1 + tmp98_1 + tmp99_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp133_1 + tmp134_1 + tmp135_1 + tmp137_1 + tmp139_1 + tmp141_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp32_1 + tmp36_1 + tmp38_1 + tmp39_1 + tmp40_1 + tmp42_1 + tmp436_1 + tmp437_1 + tmp438_1 + tmp439_1 + tmp46_1 + tmp47_1 + tmp48_1 + tmp51_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp16_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp22_1 + tmp23_1 + tmp82_1 + tmp83_1 + tmp84_1 + tmp85_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp179_1 + tmp184_1 + tmp325_1 + tmp326_1 + tmp340_1 + tmp341_1 + tmp342_1 + tmp343_1 + tmp344_1 + tmp345_1 + tmp346_1 + tmp347_1 + tmp348_1 + tmp349_1 + tmp350_1 + tmp351_1 + tmp352_1 + tmp353_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp162_1 + tmp163_1 + tmp166_1 + tmp167_1 + tmp200_1 + tmp201_1 + tmp202_1 + tmp203_1 + tmp204_1 + tmp205_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1 + tmp80_1 + tmp81_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp280_1 + tmp281_1 + tmp282_1 + tmp285_1 + tmp287_1 + tmp289_1 + tmp426_1 + tmp427_1 + tmp428_1 + tmp429_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp139_1 + tmp141_1 + tmp224_1 + tmp225_1 + tmp226_1 + tmp227_1 + tmp232_1 + tmp233_1 + tmp234_1 + tmp235_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp10_1 + tmp116_1 + tmp117_1 + tmp118_1 + tmp119_1 + tmp120_1 + tmp121_1 + tmp12_1 + tmp13_1 + tmp1_1 + tmp3_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp14_1 + tmp15_1 + tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp266_1 + tmp267_1 + tmp268_1 + tmp269_1 + tmp270_1 + tmp271_1 + tmp272_1 + tmp273_1 + tmp274_1 + tmp275_1 + tmp276_1 + tmp277_1 + tmp278_1 + tmp279_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp154_1 + tmp155_1 + tmp156_1 + tmp157_1 + tmp158_1 + tmp159_1 + tmp160_1 + tmp161_1 + tmp162_1 + tmp163_1 + tmp164_1 + tmp165_1 + tmp166_1 + tmp167_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp215_1 + tmp222_1 + tmp247_1 + tmp250_1 + tmp252_1 + tmp253_1 + tmp254_1 + tmp255_1 + tmp256_1 + tmp257_1 + tmp258_1 + tmp259_1 + tmp260_1 + tmp261_1 + tmp262_1 + tmp263_1 + tmp264_1 + tmp265_1;
                             } else { // constant data
                                 const double C_0 = C_p[0];
                                 const double C_1 = C_p[1];
@@ -4781,70 +4780,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp6_1 = C_2*w135;
                                 const double tmp10_1 = C_2*w136;
                                 const double tmp9_1 = C_1*w130;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp7_1 + tmp9_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp11_1 + tmp6_1 + tmp9_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp12_1 + tmp13_1 + tmp3_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp1_1 + tmp3_1 + tmp7_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp14_1 + tmp1_1 + tmp7_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp12_1 + tmp15_1 + tmp3_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp2_1 + tmp9_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp14_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp13_1 + tmp16_1 + tmp3_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp12_1 + tmp4_1 + tmp7_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp7_1 + tmp9_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp1_1 + tmp7_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp1_1 + tmp6_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp17_1 + tmp5_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp4_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp11_1 + tmp1_1 + tmp6_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp11_1 + tmp14_1 + tmp8_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp12_1 + tmp2_1 + tmp4_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp14_1 + tmp2_1 + tmp9_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp12_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp11_1 + tmp5_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp14_1 + tmp17_1 + tmp5_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp2_1 + tmp5_1 + tmp6_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp13_1 + tmp1_1 + tmp4_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp16_1 + tmp2_1 + tmp4_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp0_1 + tmp17_1 + tmp8_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp12_1 + tmp2_1 + tmp6_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp11_1 + tmp1_1 + tmp4_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp0_1 + tmp11_1 + tmp8_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp11_1 + tmp14_1 + tmp5_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp16_1 + tmp4_1 + tmp7_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp13_1 + tmp4_1 + tmp9_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp17_1 + tmp6_1 + tmp9_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp14_1 + tmp7_1 + tmp9_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp14_1 + tmp17_1 + tmp8_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp16_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp15_1 + tmp4_1 + tmp9_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp6_1 + tmp8_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp1_1 + tmp4_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp10_1 + tmp2_1 + tmp9_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp15_1 + tmp1_1 + tmp4_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp11_1 + tmp4_1 + tmp9_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp2_1 + tmp3_1 + tmp9_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp13_1 + tmp6_1 + tmp9_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp4_1 + tmp9_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp4_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp16_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp15_1 + tmp4_1 + tmp9_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp10_1 + tmp15_1 + tmp16_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp5_1 + tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp10_1 + tmp12_1 + tmp15_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp10_1 + tmp13_1 + tmp16_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp4_1 + tmp9_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp0_1 + tmp17_1 + tmp8_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp10_1 + tmp2_1 + tmp9_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp2_1 + tmp4_1 + tmp8_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp16_1 + tmp2_1 + tmp4_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1 + tmp2_1 + tmp9_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp10_1 + tmp13_1 + tmp16_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp13_1 + tmp4_1 + tmp9_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp4_1 + tmp5_1 + tmp7_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp3_1 + tmp7_1 + tmp9_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp15_1 + tmp1_1 + tmp6_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp10_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp11_1 + tmp5_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp11_1 + tmp1_1 + tmp4_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp15_1 + tmp1_1 + tmp4_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp10_1 + tmp12_1 + tmp15_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp12_1 + tmp4_1 + tmp7_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp1_1 + tmp4_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp17_1 + tmp5_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp10_1 + tmp12_1 + tmp13_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp13_1 + tmp1_1 + tmp6_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp16_1 + tmp2_1 + tmp6_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp15_1 + tmp16_1 + tmp3_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp13_1 + tmp1_1 + tmp4_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp12_1 + tmp2_1 + tmp4_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp14_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp16_1 + tmp6_1 + tmp7_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp15_1 + tmp6_1 + tmp9_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp15_1 + tmp16_1 + tmp3_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp11_1 + tmp14_1 + tmp8_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp11_1 + tmp6_1 + tmp9_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp3_1 + tmp7_1 + tmp9_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp16_1 + tmp2_1 + tmp6_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp14_1 + tmp2_1 + tmp9_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp13_1 + tmp16_1 + tmp3_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp13_1 + tmp6_1 + tmp9_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp17_1 + tmp6_1 + tmp9_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp14_1 + tmp17_1 + tmp8_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp2_1 + tmp3_1 + tmp9_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp6_1 + tmp8_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp15_1 + tmp1_1 + tmp6_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp12_1 + tmp15_1 + tmp3_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp14_1 + tmp1_1 + tmp7_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp12_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp5_1 + tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp1_1 + tmp3_1 + tmp7_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp11_1 + tmp14_1 + tmp5_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp11_1 + tmp1_1 + tmp6_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp12_1 + tmp13_1 + tmp3_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp13_1 + tmp1_1 + tmp6_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp12_1 + tmp2_1 + tmp6_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp14_1 + tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp2_1 + tmp5_1 + tmp6_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp1_1 + tmp6_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp14_1 + tmp17_1 + tmp5_1;
                             }
                         }
                         ///////////////
@@ -5040,70 +5039,70 @@ void Brick::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
                                 const double tmp0_1 = D_0*w151;
                                 const double tmp2_1 = D_0*w153;
                                 const double tmp1_1 = D_0*w152;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(0,7,8)]+=tmp2_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp1_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(1,6,8)]+=tmp2_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,5,8)]+=tmp2_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp1_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp1_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp1_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp3_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp3_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,6,8)]+=tmp1_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp3_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp3_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp1_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp3_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp3_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp3_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(7,1,8)]+=tmp1_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp3_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(6,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp1_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp1_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,5,8)]+=tmp1_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp1_1;
-                                EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,0,8)]+=tmp1_1;
                                 EM_S[INDEX2(7,0,8)]+=tmp2_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,2,8)]+=tmp2_1;
-                                EM_S[INDEX2(6,1,8)]+=tmp2_1;
+                                EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp3_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp1_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,1,8)]+=tmp2_1;
+                                EM_S[INDEX2(7,1,8)]+=tmp1_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp0_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp1_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp3_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,2,8)]+=tmp2_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp1_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp3_1;
                                 EM_S[INDEX2(4,3,8)]+=tmp2_1;
-                                EM_S[INDEX2(1,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(0,5,8)]+=tmp1_1;
-                                EM_S[INDEX2(3,4,8)]+=tmp2_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp1_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp1_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(3,4,8)]+=tmp2_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp3_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(0,5,8)]+=tmp1_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,5,8)]+=tmp2_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp3_1;
+                                EM_S[INDEX2(6,5,8)]+=tmp1_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp1_1;
+                                EM_S[INDEX2(1,6,8)]+=tmp2_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,6,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp3_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,7,8)]+=tmp2_1;
+                                EM_S[INDEX2(1,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp3_1;
                             }
                         }
                         ///////////////
@@ -5387,13 +5386,13 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             add_EM_S=true;
                             const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
                             const double A_00 = A_p[INDEX2(0,0,3)];
-                            const double A_01 = A_p[INDEX2(0,1,3)];
-                            const double A_02 = A_p[INDEX2(0,2,3)];
                             const double A_10 = A_p[INDEX2(1,0,3)];
-                            const double A_11 = A_p[INDEX2(1,1,3)];
-                            const double A_12 = A_p[INDEX2(1,2,3)];
                             const double A_20 = A_p[INDEX2(2,0,3)];
+                            const double A_01 = A_p[INDEX2(0,1,3)];
+                            const double A_11 = A_p[INDEX2(1,1,3)];
                             const double A_21 = A_p[INDEX2(2,1,3)];
+                            const double A_02 = A_p[INDEX2(0,2,3)];
+                            const double A_12 = A_p[INDEX2(1,2,3)];
                             const double A_22 = A_p[INDEX2(2,2,3)];
                             const double tmp0_0 = A_01 + A_10;
                             const double tmp1_0 = A_02 + A_20;
@@ -5422,70 +5421,70 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             const double tmp16_1 = A_10*w9;
                             const double tmp11_1 = tmp0_0*w9;
                             const double tmp17_1 = A_10*w1;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp10_1 + tmp11_1 + tmp15_1 + tmp18_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp20_1 + tmp23_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp11_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp22_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp23_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
                             EM_S[INDEX2(0,0,8)]+=tmp0_1 + tmp22_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp10_1 + tmp13_1 + tmp14_1 + tmp17_1 + tmp20_1 + tmp22_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
                             EM_S[INDEX2(1,0,8)]+=tmp17_1 + tmp20_1 + tmp23_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
+                            EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,0,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
+                            EM_S[INDEX2(6,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
                             EM_S[INDEX2(7,0,8)]+=tmp10_1 + tmp11_1 + tmp15_1 + tmp18_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp10_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp20_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(0,1,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
                             EM_S[INDEX2(3,1,8)]+=tmp10_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp20_1 + tmp2_1 + tmp5_1 + tmp9_1;
+                            EM_S[INDEX2(4,1,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(7,1,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
                             EM_S[INDEX2(0,2,8)]+=tmp10_1 + tmp13_1 + tmp14_1 + tmp17_1 + tmp20_1 + tmp22_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(4,2,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
                             EM_S[INDEX2(6,2,8)]+=tmp11_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(7,2,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
+                            EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
                             EM_S[INDEX2(4,3,8)]+=tmp10_1 + tmp11_1 + tmp22_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp10_1 + tmp11_1 + tmp22_1 + tmp23_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(5,3,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp23_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(6,3,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
+                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(1,4,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
                             EM_S[INDEX2(2,4,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp23_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(3,4,8)]+=tmp10_1 + tmp11_1 + tmp22_1 + tmp23_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
+                            EM_S[INDEX2(7,4,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(0,5,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp11_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(3,5,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(4,5,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(5,5,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(7,5,8)]+=tmp10_1 + tmp13_1 + tmp14_1 + tmp17_1 + tmp20_1 + tmp22_1 + tmp2_1 + tmp9_1;
+                            EM_S[INDEX2(0,6,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(2,6,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
+                            EM_S[INDEX2(3,6,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
+                            EM_S[INDEX2(4,6,8)]+=tmp10_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp20_1 + tmp2_1 + tmp5_1 + tmp9_1;
+                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(0,7,8)]+=tmp10_1 + tmp11_1 + tmp15_1 + tmp18_1 + tmp3_1 + tmp8_1;
+                            EM_S[INDEX2(1,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(2,7,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(4,7,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp20_1 + tmp23_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp22_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
                         }
                         ///////////////
                         // process B //
@@ -5502,70 +5501,70 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             const double tmp5_1 = B_2*w17;
                             const double tmp1_1 = B_2*w14;
                             const double tmp0_1 = B_1*w13;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
                             EM_S[INDEX2(0,0,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
                             EM_S[INDEX2(1,0,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,0,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,0,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
                             EM_S[INDEX2(7,0,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(0,1,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
                             EM_S[INDEX2(3,1,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,1,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
                             EM_S[INDEX2(0,2,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,2,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,2,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,2,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
                             EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,3,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
                             EM_S[INDEX2(4,3,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(5,3,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,4,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
                             EM_S[INDEX2(2,4,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,4,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,5,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,5,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,5,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,5,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,5,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,6,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,6,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,6,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,6,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,7,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,7,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
+                            EM_S[INDEX2(4,7,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
                         }
                         ///////////////
                         // process C //
@@ -5582,70 +5581,70 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                             const double tmp1_1 = C_2*w17;
                             const double tmp3_1 = C_2*w14;
                             const double tmp0_1 = C_1*w13;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
                             EM_S[INDEX2(0,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
                             EM_S[INDEX2(1,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(6,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
                             EM_S[INDEX2(7,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(0,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(2,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
                             EM_S[INDEX2(3,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(6,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
+                            EM_S[INDEX2(7,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
                             EM_S[INDEX2(0,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(4,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
                             EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
+                            EM_S[INDEX2(0,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
                             EM_S[INDEX2(4,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(5,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(1,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
                             EM_S[INDEX2(2,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(3,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(7,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            EM_S[INDEX2(0,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(2,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(3,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(4,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(5,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(6,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(0,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
+                            EM_S[INDEX2(0,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(1,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(4,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
                         }
                         ///////////////
                         // process D //
@@ -5653,72 +5652,71 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!D.isEmpty()) {
                             add_EM_S=true;
                             const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
-                            const double D_0 = D_p[0];
-                            const double tmp0_1 = D_0*w18;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                            const double tmp0_1 = D_p[0]*w18;
                             EM_S[INDEX2(0,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp0_1;
                             EM_S[INDEX2(1,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,0,8)]+=tmp0_1;
                             EM_S[INDEX2(7,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,1,8)]+=tmp0_1;
                             EM_S[INDEX2(3,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,1,8)]+=tmp0_1;
                             EM_S[INDEX2(0,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,2,8)]+=tmp0_1;
                             EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
                             EM_S[INDEX2(4,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,4,8)]+=tmp0_1;
                             EM_S[INDEX2(2,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process X //
@@ -9397,7 +9395,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     const double h2 = m_l2/m_gNE2;
-    /* GENERATOR SNIP_PDEBC_SINGLE_PRE TOP */
     const double w0 = 0.0018607582807716854616*h1*h2;
     const double w1 = 0.025917019497006092316*h1*h2;
     const double w2 = 0.0069444444444444444444*h1*h2;
@@ -9434,7 +9431,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     const double w33 = 0.041666666666666666667*h0*h1;
     const double w34 = 0.01116454968463011277*h0*h1;
     const double w35 = 0.25*h0*h1;
-    /* GENERATOR SNIP_PDEBC_SINGLE_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -9448,7 +9444,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_0 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -9485,42 +9480,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp10_1 = tmp4_0*w2;
                                 const double tmp11_1 = d_2*w3;
                                 const double tmp0_1 = tmp0_0*w0;
-                                EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp10_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp13_1 + tmp14_1 + tmp15_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp15_1 + tmp16_1 + tmp17_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp4_1 + tmp5_1;
                                 EM_S[INDEX2(6,0,8)]+=tmp18_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp18_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp1_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp18_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp18_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp4_1 + tmp5_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp18_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp10_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp18_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp15_1 + tmp16_1 + tmp17_1;
                             } else { /* constant data */
                                 const double tmp0_1 = d_p[0]*w5;
                                 const double tmp2_1 = d_p[0]*w7;
                                 const double tmp1_1 = d_p[0]*w6;
-                                EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp1_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp1_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
                                 EM_S[INDEX2(6,0,8)]+=tmp2_1;
-                                EM_S[INDEX2(4,2,8)]+=tmp2_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp0_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp0_1;
-                                EM_S[INDEX2(0,6,8)]+=tmp2_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,2,8)]+=tmp2_1;
                                 EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
                                 EM_S[INDEX2(2,4,8)]+=tmp2_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,6,8)]+=tmp2_1;
+                                EM_S[INDEX2(2,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp1_1;
                             }
                         }
                         ///////////////
@@ -9557,7 +9552,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[6]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_0 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -9574,7 +9568,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[1]+INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_1 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -9611,42 +9604,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp8_1 = tmp4_0*w2;
                                 const double tmp6_1 = d_2*w3;
                                 const double tmp0_1 = tmp0_0*w0;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp10_1 + tmp11_1 + tmp9_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp12_1 + tmp13_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp14_1;
                                 EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(3,1,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp4_1 + tmp5_1;
                                 EM_S[INDEX2(7,1,8)]+=tmp14_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp14_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp14_1;
                                 EM_S[INDEX2(5,5,8)]+=tmp17_1 + tmp18_1 + tmp8_1;
                                 EM_S[INDEX2(7,5,8)]+=tmp12_1 + tmp13_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp14_1;
-                                EM_S[INDEX2(3,1,8)]+=tmp2_1 + tmp3_1;
                                 EM_S[INDEX2(1,7,8)]+=tmp14_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp12_1 + tmp13_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp10_1 + tmp11_1 + tmp9_1;
                             } else { /* constant data */
                                 const double tmp0_1 = d_p[0]*w5;
                                 const double tmp2_1 = d_p[0]*w7;
                                 const double tmp1_1 = d_p[0]*w6;
-                                EM_S[INDEX2(7,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,3,8)]+=tmp2_1;
                                 EM_S[INDEX2(1,1,8)]+=tmp1_1;
+                                EM_S[INDEX2(3,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
                                 EM_S[INDEX2(7,1,8)]+=tmp2_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,3,8)]+=tmp2_1;
+                                EM_S[INDEX2(7,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,5,8)]+=tmp2_1;
                                 EM_S[INDEX2(5,5,8)]+=tmp1_1;
                                 EM_S[INDEX2(7,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,5,8)]+=tmp2_1;
-                                EM_S[INDEX2(3,1,8)]+=tmp0_1;
                                 EM_S[INDEX2(1,7,8)]+=tmp2_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp1_1;
                             }
                         }
                         ///////////////
@@ -9683,7 +9676,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[7]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_1 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(k1+1)-2;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -9700,7 +9692,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[2]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_2 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -9737,42 +9728,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp6_1 = d_2*w16;
                                 const double tmp9_1 = tmp5_0*w14;
                                 const double tmp4_1 = tmp3_0*w13;
-                                EM_S[INDEX2(5,4,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp9_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp10_1 + tmp11_1 + tmp7_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp12_1 + tmp13_1 + tmp14_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp9_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp13_1 + tmp15_1 + tmp16_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp9_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp17_1 + tmp18_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp9_1;
                                 EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp18_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp10_1 + tmp11_1 + tmp7_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp9_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp4_1 + tmp5_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp9_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp6_1 + tmp7_1 + tmp8_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp0_1 + tmp1_1;
                                 EM_S[INDEX2(0,5,8)]+=tmp9_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp13_1 + tmp15_1 + tmp16_1;
                             } else { /* constant data */
                                 const double tmp0_1 = d_p[0]*w17;
                                 const double tmp2_1 = d_p[0]*w19;
                                 const double tmp1_1 = d_p[0]*w18;
-                                EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,1,8)]+=tmp2_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp1_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(5,0,8)]+=tmp2_1;
-                                EM_S[INDEX2(4,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
-                                EM_S[INDEX2(5,5,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,4,8)]+=tmp2_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,0,8)]+=tmp2_1;
                                 EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,1,8)]+=tmp2_1;
+                                EM_S[INDEX2(5,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,4,8)]+=tmp2_1;
+                                EM_S[INDEX2(4,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp0_1;
                                 EM_S[INDEX2(0,5,8)]+=tmp2_1;
+                                EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,5,8)]+=tmp1_1;
                             }
                         }
                         ///////////////
@@ -9809,7 +9800,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[5]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_2 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -9826,7 +9816,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[3]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_3 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -9863,42 +9852,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp17_1 = d_2*w16;
                                 const double tmp8_1 = tmp5_0*w14;
                                 const double tmp5_1 = tmp3_0*w13;
+                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(6,2,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp4_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp7_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp4_1;
                                 EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1;
                                 EM_S[INDEX2(2,6,8)]+=tmp2_1 + tmp3_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp4_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp5_1 + tmp6_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp7_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp5_1 + tmp6_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp4_1;
                                 EM_S[INDEX2(3,6,8)]+=tmp4_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp11_1 + tmp13_1 + tmp14_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp4_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp15_1 + tmp16_1;
                                 EM_S[INDEX2(6,6,8)]+=tmp17_1 + tmp18_1 + tmp8_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp15_1 + tmp16_1;
-                                EM_S[INDEX2(6,2,8)]+=tmp2_1 + tmp3_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp5_1 + tmp6_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp4_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp5_1 + tmp6_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp11_1 + tmp13_1 + tmp14_1;
                             } else { /* constant data */
                                 const double tmp0_1 = d_p[0]*w17;
                                 const double tmp1_1 = d_p[0]*w19;
                                 const double tmp2_1 = d_p[0]*w18;
+                                EM_S[INDEX2(2,2,8)]+=tmp2_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp2_1;
+                                EM_S[INDEX2(6,3,8)]+=tmp1_1;
                                 EM_S[INDEX2(7,3,8)]+=tmp0_1;
                                 EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(7,2,8)]+=tmp1_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp2_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,3,8)]+=tmp1_1;
                                 EM_S[INDEX2(3,6,8)]+=tmp1_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp2_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp2_1;
-                                EM_S[INDEX2(2,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
                                 EM_S[INDEX2(6,6,8)]+=tmp2_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp2_1;
                             }
                         }
                         ///////////////
@@ -9935,7 +9924,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[7]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_3 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(m_N1-2)+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -9952,7 +9940,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[4]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_4 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -9989,42 +9976,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp3_1 = d_3*w28;
                                 const double tmp10_1 = tmp4_0*w26;
                                 const double tmp1_1 = tmp1_0*w24;
-                                EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp1_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp2_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp2_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp2_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp6_1 + tmp7_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp13_1 + tmp14_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp15_1 + tmp16_1 + tmp5_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp13_1 + tmp14_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp2_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp17_1 + tmp18_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp2_1;
                                 EM_S[INDEX2(0,1,8)]+=tmp17_1 + tmp18_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp10_1 + tmp11_1 + tmp12_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp2_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp0_1 + tmp1_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp6_1 + tmp7_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp2_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp10_1 + tmp8_1 + tmp9_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp13_1 + tmp14_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp2_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp1_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp13_1 + tmp14_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
                             } else { /* constant data */
                                 const double tmp2_1 = d_p[0]*w31;
                                 const double tmp1_1 = d_p[0]*w30;
                                 const double tmp0_1 = d_p[0]*w29;
-                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(3,0,8)]+=tmp1_1;
-                                EM_S[INDEX2(0,3,8)]+=tmp1_1;
-                                EM_S[INDEX2(1,2,8)]+=tmp1_1;
-                                EM_S[INDEX2(3,3,8)]+=tmp2_1;
-                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,2,8)]+=tmp2_1;
-                                EM_S[INDEX2(1,1,8)]+=tmp2_1;
-                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
                                 EM_S[INDEX2(0,0,8)]+=tmp2_1;
-                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                                EM_S[INDEX2(2,1,8)]+=tmp1_1;
                                 EM_S[INDEX2(1,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,0,8)]+=tmp1_1;
                                 EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,1,8)]+=tmp2_1;
+                                EM_S[INDEX2(2,1,8)]+=tmp1_1;
                                 EM_S[INDEX2(3,1,8)]+=tmp0_1;
                                 EM_S[INDEX2(0,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(1,2,8)]+=tmp1_1;
+                                EM_S[INDEX2(2,2,8)]+=tmp2_1;
+                                EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                                EM_S[INDEX2(0,3,8)]+=tmp1_1;
+                                EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                                EM_S[INDEX2(3,3,8)]+=tmp2_1;
                             }
                         }
                         ///////////////
@@ -10061,7 +10048,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[3]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_4 BOTTOM */
                         const index_t firstNode=m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10078,7 +10064,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[5]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_5 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10115,42 +10100,42 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 const double tmp5_1 = tmp4_0*w25;
                                 const double tmp8_1 = d_3*w27;
                                 const double tmp13_1 = tmp1_0*w24;
-                                EM_S[INDEX2(4,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp3_1 + tmp4_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp5_1 + tmp6_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp5_1 + tmp6_1;
                                 EM_S[INDEX2(4,4,8)]+=tmp7_1 + tmp8_1 + tmp9_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp10_1 + tmp11_1 + tmp9_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp12_1 + tmp13_1;
-                                EM_S[INDEX2(6,6,8)]+=tmp14_1 + tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp3_1 + tmp4_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp1_1 + tmp2_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp0_1;
                                 EM_S[INDEX2(4,5,8)]+=tmp3_1 + tmp4_1;
                                 EM_S[INDEX2(5,5,8)]+=tmp16_1 + tmp17_1 + tmp18_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp12_1 + tmp13_1;
                                 EM_S[INDEX2(6,5,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp12_1 + tmp13_1;
                                 EM_S[INDEX2(4,6,8)]+=tmp1_1 + tmp2_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp0_1;
+                                EM_S[INDEX2(6,6,8)]+=tmp14_1 + tmp15_1 + tmp16_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp5_1 + tmp6_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp12_1 + tmp13_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp5_1 + tmp6_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp10_1 + tmp11_1 + tmp9_1;
                             } else { /* constant data */
                                 const double tmp2_1 = d_p[0]*w31;
                                 const double tmp0_1 = d_p[0]*w30;
                                 const double tmp1_1 = d_p[0]*w29;
-                                EM_S[INDEX2(4,7,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(5,4,8)]+=tmp1_1;
-                                EM_S[INDEX2(5,6,8)]+=tmp0_1;
-                                EM_S[INDEX2(6,7,8)]+=tmp1_1;
-                                EM_S[INDEX2(7,6,8)]+=tmp1_1;
                                 EM_S[INDEX2(4,4,8)]+=tmp2_1;
-                                EM_S[INDEX2(7,7,8)]+=tmp2_1;
-                                EM_S[INDEX2(5,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,4,8)]+=tmp1_1;
+                                EM_S[INDEX2(7,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(4,6,8)]+=tmp1_1;
+                                EM_S[INDEX2(5,6,8)]+=tmp0_1;
                                 EM_S[INDEX2(6,6,8)]+=tmp2_1;
+                                EM_S[INDEX2(7,6,8)]+=tmp1_1;
                                 EM_S[INDEX2(4,5,8)]+=tmp1_1;
                                 EM_S[INDEX2(5,5,8)]+=tmp2_1;
-                                EM_S[INDEX2(7,5,8)]+=tmp1_1;
                                 EM_S[INDEX2(6,5,8)]+=tmp0_1;
-                                EM_S[INDEX2(4,6,8)]+=tmp1_1;
-                                EM_S[INDEX2(7,4,8)]+=tmp0_1;
+                                EM_S[INDEX2(7,5,8)]+=tmp1_1;
+                                EM_S[INDEX2(4,7,8)]+=tmp0_1;
+                                EM_S[INDEX2(5,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(6,7,8)]+=tmp1_1;
+                                EM_S[INDEX2(7,7,8)]+=tmp2_1;
                             }
                         }
                         ///////////////
@@ -10187,7 +10172,6 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                                 EM_F[7]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_5 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*(m_N2-2)+m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10205,14 +10189,12 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
     const double h2 = m_l2/m_gNE2;
-    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE TOP */
     const double w0 = 0.0625*h1*h2;
     const double w1 = 0.25*h1*h2;
     const double w2 = 0.0625*h0*h2;
     const double w3 = 0.25*h0*h2;
     const double w4 = 0.0625*h0*h1;
     const double w5 = 0.25*h0*h1;
-    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -10226,7 +10208,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10234,22 +10215,22 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w0;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
                             EM_S[INDEX2(0,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
                             EM_S[INDEX2(6,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp0_1;
                             EM_S[INDEX2(0,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,2,8)]+=tmp0_1;
                             EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
                             EM_S[INDEX2(2,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
@@ -10263,7 +10244,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             EM_F[4]+=tmp0_1;
                             EM_F[6]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10280,7 +10260,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[1]+INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10288,22 +10267,22 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w0;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp0_1;
                             EM_S[INDEX2(1,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
                             EM_S[INDEX2(7,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,5,8)]+=tmp0_1;
                             EM_S[INDEX2(5,5,8)]+=tmp0_1;
                             EM_S[INDEX2(7,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,1,8)]+=tmp0_1;
                             EM_S[INDEX2(1,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
@@ -10317,7 +10296,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             EM_F[5]+=tmp0_1;
                             EM_F[7]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(k1+1)-2;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10334,7 +10312,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[2]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10342,36 +10319,34 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w2;
-                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
                             EM_S[INDEX2(0,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp0_1;
                             EM_S[INDEX2(1,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,0,8)]+=tmp0_1;
                             EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
                             EM_S[INDEX2(0,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,5,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
                         ///////////////
                         if (add_EM_F) {
                             const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
-                            const double y_0 = y_p[0];
-                            const double tmp0_1 = w3*y_0;
+                            const double tmp0_1 = w3*y_p[0];
                             EM_F[0]+=tmp0_1;
                             EM_F[1]+=tmp0_1;
                             EM_F[4]+=tmp0_1;
                             EM_F[5]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10388,7 +10363,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[3]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10396,22 +10370,22 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w2;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,3,8)]+=tmp0_1;
                             EM_S[INDEX2(7,3,8)]+=tmp0_1;
                             EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1;
                             EM_S[INDEX2(3,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
                             EM_S[INDEX2(6,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
@@ -10425,7 +10399,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             EM_F[6]+=tmp0_1;
                             EM_F[7]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(m_N1-2)+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10442,7 +10415,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[4]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_4 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10450,22 +10422,22 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w4;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
                             EM_S[INDEX2(0,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1;
                             EM_S[INDEX2(1,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,0,8)]+=tmp0_1;
                             EM_S[INDEX2(0,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,1,8)]+=tmp0_1;
                             EM_S[INDEX2(3,1,8)]+=tmp0_1;
                             EM_S[INDEX2(0,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
@@ -10479,7 +10451,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             EM_F[2]+=tmp0_1;
                             EM_F[3]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_4 BOTTOM */
                         const index_t firstNode=m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10496,7 +10467,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
                         const index_t e = m_faceOffset[5]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_5 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10504,22 +10474,22 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w4;
-                            EM_S[INDEX2(4,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
                             EM_S[INDEX2(4,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,4,8)]+=tmp0_1;
                             EM_S[INDEX2(4,5,8)]+=tmp0_1;
                             EM_S[INDEX2(5,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp0_1;
                             EM_S[INDEX2(6,5,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,5,8)]+=tmp0_1;
                             EM_S[INDEX2(4,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
+                            EM_S[INDEX2(4,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
                         }
                         ///////////////
                         // process y //
@@ -10533,7 +10503,6 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                             EM_F[6]+=tmp0_1;
                             EM_F[7]+=tmp0_1;
                         }
-                        /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_5 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*(m_N2-2)+m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode);
@@ -10558,7 +10527,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    /* GENERATOR SNIP_PDEBC_SYSTEM_PRE TOP */
     const double w0 = 0.0018607582807716854616*h1*h2;
     const double w1 = 0.025917019497006092316*h1*h2;
     const double w10 = 0.01116454968463011277*h1*h2;
@@ -10595,7 +10563,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     const double w7 = 0.027777777777777777778*h1*h2;
     const double w8 = 0.1555021169820365539*h1*h2;
     const double w9 = 0.041666666666666666667*h1*h2;
-    /* GENERATOR SNIP_PDEBC_SYSTEM_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -10609,7 +10576,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_0 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10732,7 +10698,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_0 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -10749,7 +10714,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[1]+INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_1 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -10872,7 +10836,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_1 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(k1+1)-2;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -10889,7 +10852,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[2]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_2 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11012,7 +10974,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_2 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11029,7 +10990,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[3]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_3 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11152,7 +11112,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_3 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(m_N1-2)+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11169,7 +11128,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[4]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_4 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11292,7 +11250,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_4 BOTTOM */
                         const index_t firstNode=m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11309,7 +11266,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[5]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_5 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11432,7 +11388,6 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                 }
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_5 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*(m_N2-2)+m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11457,14 +11412,12 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE TOP */
     const double w0 = 0.0625*h1*h2;
     const double w1 = 0.25*h1*h2;
     const double w2 = 0.0625*h0*h2;
     const double w3 = 0.25*h0*h2;
     const double w4 = 0.0625*h0*h1;
     const double w5 = 0.25*h0*h1;
-    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -11478,7 +11431,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11521,7 +11473,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,6,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*k1;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11538,7 +11489,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[1]+INDEX2(k1,k2,m_NE1);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11581,7 +11531,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,7,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(k1+1)-2;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11598,7 +11547,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[2]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11641,7 +11589,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,5,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11658,7 +11605,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[3]+INDEX2(k0,k2,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11701,7 +11647,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,7,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*k2+m_N0*(m_N1-2)+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11718,7 +11663,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[4]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_4 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11761,7 +11705,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_4 BOTTOM */
                         const index_t firstNode=m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);
@@ -11778,7 +11721,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
                         const index_t e = m_faceOffset[5]+INDEX2(k0,k1,m_NE0);
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_5 TOP */
                         ///////////////
                         // process d //
                         ///////////////
@@ -11821,7 +11763,6 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 EM_F[INDEX2(k,7,numEq)]+=tmp0_1;
                             }
                         }
-                        /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_5 BOTTOM */
                         const index_t firstNode=m_N0*m_N1*(m_N2-2)+m_N0*k1+k0;
                         addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
                                 add_EM_F, firstNode, numEq, numComp);

@@ -14,6 +14,9 @@
 #include <boost/python/tuple.hpp>
 #include "WrappedArray.h"
 #include "DataException.h"
+#if HAVE_NUMPY_H
+#include <numpy/ndarrayobject.h>
+#endif
 
 #include <iostream>
 
@@ -107,6 +110,100 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	checkFeatures(obj_in);
 	getObjShape(obj,shape);
 	rank=shape.size();
+
+#if HAVE_NUMPY_H
+	// if obj is a numpy array it is much faster to copy the array through the
+	// __array_struct__ interface instead of extracting single values from the
+	// components via getElt(). For this to work we check below that
+	// (1) this is a valid PyArrayInterface instance
+	// (2) the data is stored as a contiguous C array
+	// (3) the data type is suitable (correct type and byte size)
+	try
+	{
+		object o = (extract<object>(obj.attr("__array_struct__")));
+		if (PyCObject_Check(o.ptr()))
+		{
+			PyObject* cobj=(PyObject*)o.ptr();
+			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
+			if (arr->two==2 && arr->flags&NPY_IN_ARRAY)
+			{
+				if (arr->typekind == 'f' && arr->itemsize==sizeof(double))
+			   	{
+					convertNumpyArray<double>((const double*)arr->data);
+				}
+				else if (arr->typekind == 'f' && arr->itemsize==sizeof(float))
+			   	{
+					convertNumpyArray<float>((const float*)arr->data);
+				}
+				else if (arr->typekind == 'i' && arr->itemsize==sizeof(int))
+			   	{
+					convertNumpyArray<int>((const int*)arr->data);
+				}
+			}
+		}
+	} catch (...)
+	{
+		PyErr_Clear();
+	}
+#endif
+}
+
+template<typename T>
+void WrappedArray::convertNumpyArray(const T* array) const
+{
+	// this method is only called by the constructor above which does the
+	// necessary checks and initialisations
+	int size=DataTypes::noValues(shape);
+	dat=new double[size];
+	switch (rank)
+	{
+		case 1:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				dat[i]=array[i];
+			}
+		break;
+		case 2:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					dat[DataTypes::getRelIndex(shape,i,j)]=array[j+i*shape[1]];
+				}
+			}
+		break;
+		case 3:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					for (int k=0;k<shape[2];k++)
+					{
+						dat[DataTypes::getRelIndex(shape,i,j,k)]=array[k+j*shape[2]+i*shape[1]*shape[2]];
+					}
+				}
+			}
+		break;
+		case 4:
+#pragma omp parallel for
+			for (int i=0;i<shape[0];i++)
+			{
+				for (int j=0;j<shape[1];j++)
+				{
+					for (int k=0;k<shape[2];k++)
+					{
+						for (int m=0;m<shape[3];m++)
+						{
+							dat[DataTypes::getRelIndex(shape,i,j,k,m)]=array[m+k*shape[3]+j*shape[2]*shape[3]+i*shape[1]*shape[2]*shape[3]];
+						}
+					}
+				}
+			}
+		break;
+	}
 }
 
 void WrappedArray::convertArray() const

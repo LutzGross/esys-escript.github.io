@@ -75,10 +75,10 @@ class Test_TableInterpolation(unittest.TestCase):
 	d175=Data(1.75)
 	d225=Data(2.25)
 	for arr in ars:
-	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d2, 0, 1, 100)+2)<self.RES_TOL)
-	    self.assertTrue(Lsup(d1.interpolateTable(arL,0, 1, d35, 0, 1, 100)+3.5)<self.RES_TOL)
-	    self.assertTrue(Lsup(d35.interpolateTable(arL,0,1, d2, 0, 1, 100)-3.5)<self.RES_TOL)
-	    self.assertTrue(Lsup(d175.interpolateTable(arL,0,1,d225,0,1, 100)-0)<self.RES_TOL)
+	    self.assertTrue(Lsup(d2.interpolateTable(arL,0, 1, d1, 0, 1, 100)+2)<self.RES_TOL)
+	    self.assertTrue(Lsup(d35.interpolateTable(arL,0, 1, d1, 0, 1, 100)+3.5)<self.RES_TOL)
+	    self.assertTrue(Lsup(d2.interpolateTable(arL,0,1, d35, 0, 1, 100)-3.5)<self.RES_TOL)
+	    self.assertTrue(Lsup(d225.interpolateTable(arL,0,1,d175,0,1, 100)-0)<self.RES_TOL)
 	       # Point out of bounds
 	    self.assertRaises(RuntimeError, d1.interpolateTable,arL,0, 1, d4, 0, 0.5, 100, check_boundaries=True )
 	    self.assertRaises(RuntimeError, d4.interpolateTable, arL,0, 0.5, d1, 0, 1, 100, check_boundaries=True  )
@@ -156,7 +156,7 @@ class Test_TableInterpolation(unittest.TestCase):
 	    	ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
 		lsupref=Lsup(ref)
 		if lsupref!=0 and xwidth>0:		#This will happen in cases where there are no samples on this rank
-	    	    res=y.interpolateTable(table,ymin,ywidth,x, xmin, xwidth,500)
+	    	    res=x.interpolateTable(table,xmin,xwidth,y, ymin, ywidth,500)
 	    	    self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
 		    #Now we try for the new interface
 		    res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
