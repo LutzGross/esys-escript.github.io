@@ -34,10 +34,9 @@ TransportProblemAdapter::TransportProblemAdapter()
 
 PASOWRAP_DLL_API
 TransportProblemAdapter::TransportProblemAdapter(Paso_TransportProblem* transport_problem,
-                                                 const bool useBackwardEuler,
                                                  const int block_size,
                                                  const escript::FunctionSpace& functionspace):
-AbstractTransportProblem(useBackwardEuler, block_size, functionspace)
+AbstractTransportProblem(block_size, functionspace)
 {
     m_transport_problem.reset(transport_problem,null_deleter());
 }
@@ -82,8 +81,9 @@ void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u
     double* out_dp=out.getSampleDataRW(0);
     double* u0_dp=u0.getSampleDataRW(0);
     double* source_dp=source.getSampleDataRW(0);
-    Paso_TransportProblem_solve(transp,out_dp,dt,u0_dp,source_dp,&paso_options);
     SystemMatrixAdapter::pasoToEscriptOptions(&paso_options,options);
+    Paso_TransportProblem_solve(transp,out_dp,dt,u0_dp,source_dp,&paso_options);
+
     checkPasoError();
 }
 

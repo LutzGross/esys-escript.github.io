@@ -1109,7 +1109,7 @@ void RipleyDomain::addPDEToTransportProblem(
     throw RipleyException("addPDEToTransportProblem() not implemented");
 }
 
-escript::ATP_ptr RipleyDomain::newTransportProblem(const bool useBackwardEuler,
+escript::ATP_ptr RipleyDomain::newTransportProblem(
         const int blocksize, const escript::FunctionSpace& functionspace,
         const int type) const
 {

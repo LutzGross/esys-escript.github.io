@@ -129,14 +129,14 @@ void Brick::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    const int NUM_SILO_FILES = 1;
-    const char* blockDirFmt = "/block%04d";
     int driver=DB_HDF5;    
     string siloPath;
     DBfile* dbfile = NULL;
 
 #ifdef ESYS_MPI
     PMPIO_baton_t* baton = NULL;
+    const int NUM_SILO_FILES = 1;
+    const char* blockDirFmt = "/block%04d";
 #endif
 
     if (m_mpiInfo->size > 1) {

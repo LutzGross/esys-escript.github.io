@@ -60,8 +60,7 @@ class AbstractTransportProblem {
   AbstractTransportProblem();
 
   ESCRIPT_DLL_API
-  AbstractTransportProblem(const bool useBackwardEuler,
-                           const int blocksize,
+  AbstractTransportProblem(const int blocksize,
                            const FunctionSpace& functionspace);
 
   /**
@@ -152,7 +151,6 @@ class AbstractTransportProblem {
 
   int m_empty;
   int m_blocksize;
-  bool m_useBackwardEuler;
   FunctionSpace m_functionspace;
 
 };

@@ -60,7 +60,6 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
   */
   PASOWRAP_DLL_API
   TransportProblemAdapter(Paso_TransportProblem* transport_problem,
-                          const bool useBackwardEuler,
                           const int block_size,
                           const escript::FunctionSpace& functionspace);
 

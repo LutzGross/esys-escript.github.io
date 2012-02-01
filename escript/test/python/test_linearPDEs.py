@@ -2643,12 +2643,10 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
 
 class Test_TransportPDE(Test_linearPDEs):
     N=4
-    def test_init_useBackwardEuler(self):
-        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=True)
-        self.assertTrue(mypde.useBackwardEuler()==True,'backward Euler should be used')
-    def test_init_donntUseBackwardEuler(self):
-        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=False)
-        self.assertTrue(mypde.useBackwardEuler()==False,'backward Euler should not be used')
+
+    def test_init_Init(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+
     def test_setCoefficient_WithWrongName(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficient)

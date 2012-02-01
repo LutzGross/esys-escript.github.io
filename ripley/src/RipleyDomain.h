@@ -603,7 +603,7 @@ public:
       creates a transport problem
     */
     RIPLEY_DLL_API
-    virtual escript::ATP_ptr newTransportProblem(const bool useBackwardEuler,
+    virtual escript::ATP_ptr newTransportProblem(
             const int blocksize, const escript::FunctionSpace& functionspace,
             const int type) const;
 

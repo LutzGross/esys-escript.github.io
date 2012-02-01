@@ -176,7 +176,12 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
 	 return PASO_PMIS_COARSENING;
        case ESCRIPT_HMIS_COARSENING:
 	 return PASO_HMIS_COARSENING;
-
+       case  ESCRIPT_LINEAR_CRANK_NICOLSON:
+	 return PASO_LINEAR_CRANK_NICOLSON;
+       case  ESCRIPT_CRANK_NICOLSON:
+	 return PASO_CRANK_NICOLSON;
+       case  ESCRIPT_BACKWARD_EULER:	 
+	 return PASO_BACKWARD_EULER;
        default:
            stringstream temp;
            temp << "Error - Cannot map option value "<< option << " onto Paso";
@@ -385,7 +390,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
    EXTRACT("usePanel",usePanel, bool_t);
    EXTRACT("getAMGInterpolation", interpolation_method, index_t);
    EXTRACT("getDiagonalDominanceThreshold", diagonal_dominance_threshold, double);
-
+   EXTRACT("getODESolver", ode_solver, dim_t);
 #undef EXTRACT
 #undef EXTRACT_OPTION
 }

@@ -69,7 +69,7 @@ escript_opts_version = 201
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = ''
+#ld_extra = '-L/usr/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -77,15 +77,15 @@ escript_opts_version = 201
 
 # Whether to build a debug version
 # DEFAULT: False
-#debug = True
+debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
-#verbose = True
+verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-openmp = True 
+#openmp = True 
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -98,7 +98,7 @@ openmp = True
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-#mpi = 'OPENMPI'
+# mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/usr/lib/openmpi'
@@ -113,10 +113,10 @@ boost_prefix = '/usr'
 boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-#cppunit_prefix = '/usr/local'
+cppunit_prefix = '/usr'
 
 # CppUnit library/libraries to link against
-#cppunit_libs = ['cppunit']
+cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
@@ -170,7 +170,7 @@ umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
-umfpack_libs = ['umfpack']
+ufpack_libs = ['umfpack']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
@@ -195,22 +195,23 @@ lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-#silo = True
+silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-#silo_prefix = '/usr/local'
+silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-#silo_libs = ['siloh5', 'hdf5']
+silo_libs = ['silo']
+# silo_libs = ['hdf5', 'silo']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-#visit = True
+visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-#visit_prefix = '/opt/visit/2.1.0/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit2_3_2.linux-x86_64/2.3.2/linux-x86_64/libsim/V2'
 
-# Sim2 library/libraries to link against
+# sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
 # Whether to enable the deprecated PyVisi interface (requires the VTK python

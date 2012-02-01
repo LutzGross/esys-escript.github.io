@@ -35,10 +35,11 @@
 
 
     
-err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, const double dt, const double* source, Paso_Options* options, Paso_Performance *pp)
+err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, double* u_old,  const double* source, Paso_Options* options, Paso_Performance *pp)
 {
      const double EXP_LIM_MIN =PASO_RT_EXP_LIM_MIN;
      const double EXP_LIM_MAX =PASO_RT_EXP_LIM_MAX;
+     const double dt = support->dt;
      index_t fail=0;
      register double d_ii, m_i, x_i, e_i, u_i, F_i;
      dim_t i;
@@ -54,7 +55,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
 	} else  {
 	    F_i=source[i];
 	    e_i=exp(x_i);
-	    u_i=e_i*u[i];
+	    u_i=e_i*u_old[i];
 	    if ( abs(x_i) > EXP_LIM_MIN) {
 		u_i+=F_i/d_ii*(e_i-1.);
 	    } else {
@@ -148,6 +149,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    }
    return dt_max;
 }
-void Paso_ReactiveSolver_initialize(const double dt, Paso_TransportProblem* fctp, Paso_Options* options)
+void Paso_ReactiveSolver_initialize(const double dt, Paso_ReactiveSolver* rsolver, Paso_Options* options)
 {
+    rsolver->dt=dt;
 }

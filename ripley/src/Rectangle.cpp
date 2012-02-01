@@ -114,13 +114,13 @@ void Rectangle::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    const int NUM_SILO_FILES = 1;
-    const char* blockDirFmt = "/block%04d";
     int driver=DB_HDF5;    
     DBfile* dbfile = NULL;
+    const char* blockDirFmt = "/block%04d";
 
 #ifdef ESYS_MPI
     PMPIO_baton_t* baton = NULL;
+    const int NUM_SILO_FILES = 1;
 #endif
 
     if (m_mpiInfo->size > 1) {
