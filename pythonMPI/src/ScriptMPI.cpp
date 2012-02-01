@@ -46,9 +46,9 @@ int main( int argc, char **argv ) {
            exit(EXIT_FAILURE);
          }
       #else
-         //if ( freopen( "/dev/null", "w+", stdout ) == NULL ) {
-         //  exit(EXIT_FAILURE);
-         //}
+         if ( freopen( "/dev/null", "w+", stdout ) == NULL ) {
+           exit(EXIT_FAILURE);
+         }
       #endif
     }
     /*

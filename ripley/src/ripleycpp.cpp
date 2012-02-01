@@ -68,9 +68,10 @@ escript::Domain_ptr _brick(int n0, int n1, int n2, const object& l0,
     } else
         throw RipleyException("Argument l2 must be a float or 2-tuple");
 
-    return escript::Domain_ptr(new Brick(n0, n1, n2, x0, y0, z0, x1, y1, z1, d0, d1, d2));
+    return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2));
 }
 
+const int _q[]={0x61686969,0x746c4144,0x79616e43};
 escript::Domain_ptr _rectangle(int n0, int n1, const object& l0,
                                const object& l1, int d0, int d1)
 {
@@ -99,14 +100,15 @@ escript::Domain_ptr _rectangle(int n0, int n1, const object& l0,
     } else
         throw RipleyException("Argument l1 must be a float or 2-tuple");
 
-    return escript::Domain_ptr(new Rectangle(n0, n1, x0, y0, x1, y1, d0, d1));
+    return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1));
 }
+std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
 }
 
 /**
     \page ripley Ripley
-    Ripley is the python module name that contains the interfaces
+    ripleycpp is the python module name that contains the interfaces
     to the C++ wrapper to ripley.
 */
 
@@ -140,7 +142,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
-
+    def("_theculprit_", ripley::_who),
     def("LoadMesh", ripley::RipleyDomain::loadMesh, (arg("filename")),
            "Loads a ripley domain from a dump file" ":rtype: `Domain`");
 
@@ -177,7 +179,7 @@ args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_conta
 ":param Y:\n:type Y: `Data`\n"
 ":param d:\n:type d: `Data`\n"
 ":param d_contact:\n:type d_contact: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
 )
         .def("addPDEToRHS",&ripley::RipleyDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
@@ -202,7 +204,7 @@ args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", 
 ":param d:\n:type d: `Data`\n"
 ":param y:\n:type y: `Data`\n"
 ":param d_contact:\n:type d_contact: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
 )
         .def("newOperator",&ripley::RipleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
@@ -211,7 +213,7 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
 ":param column_blocksize:\n:type column_blocksize: ``int``\n"
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
-":param type:\n:type type: ``int``\n"
+":param type:\n:type type: ``int``"
 )
         .def("newTransportProblem",&ripley::RipleyDomain::newTransportProblem,
 args("theta", "blocksize", "functionspace", "type"),
@@ -219,7 +221,7 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param theta:\n:type theta: ``float``\n"
 ":param blocksize:\n:type blocksize: ``int``\n"
 ":param functionspace:\n:type functionspace: `FunctionSpace`\n"
-":param type:\n:type type: ``int``\n"
+":param type:\n:type type: ``int``"
 )
         .def("getSystemMatrixTypeId",&ripley::RipleyDomain::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
@@ -228,7 +230,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param solver:\n:type solver: ``int``\n"
 ":param preconditioner:\n:type preconditioner: ``int``\n"
 ":param package:\n:type package: ``int``\n"
-":param symmetry:\n:type symmetry: ``int``\n"
+":param symmetry:\n:type symmetry: ``int``"
 )
         .def("getTransportTypeId",&ripley::RipleyDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
@@ -237,10 +239,8 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param solver:\n:type solver: ``int``\n"
 ":param preconditioner:\n:type preconditioner: ``int``\n"
 ":param package:\n:type package: ``int``\n"
-":param symmetry:\n:type symmetry: ``int``\n"
+":param symmetry:\n:type symmetry: ``int``"
 )
-//      .def("setX",&ripley::RipleyDomain::setNewX,
-//args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
         .def("getX",&ripley::RipleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
         .def("getNormal",&ripley::RipleyDomain::getNormal,
@@ -262,8 +262,6 @@ args("solver", "preconditioner", "package", "symmetry"),
         .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
-
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
-
 }
 

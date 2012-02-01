@@ -212,7 +212,7 @@ public:
         if (m_tagMap.find(name) != m_tagMap.end()) {
             return m_tagMap.find(name)->second;
         } else {
-            throw RipleyException("getTag(): Invalid tag name");
+            throw RipleyException("getTag: invalid tag name");
         }
     }
 

@@ -120,7 +120,7 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
     }
 
     stringstream msg;
-    msg << "getDataShape(): Unsupported function space type " << fsType
+    msg << "getDataShape: Invalid function space type " << fsType
         << " for " << getDescription();
     throw RipleyException(msg.str());
 }
@@ -236,7 +236,7 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
 {
     if (!isValidFunctionSpaceType(fsType_target)) {
         stringstream msg;
-        msg << "probeInterpolationOnDomain(): Invalid functionspace type "
+        msg << "probeInterpolationOnDomain: Invalid function space type "
             << fsType_target << " for " << getDescription();
         throw RipleyException(msg.str());
     }
@@ -262,7 +262,7 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
 
         default: {
             stringstream msg;
-            msg << "probeInterpolationOnDomain(): Invalid functionspace type "
+            msg << "probeInterpolationOnDomain: Invalid function space type "
                 << fsType_source << " for " << getDescription();
             throw RipleyException(msg.str());
         }
@@ -294,7 +294,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     // not allowed: reduced->non-reduced
     } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
             && (outFS==Nodes || outFS==DegreesOfFreedom)) {
-        throw RipleyException("interpolateOnDomain(): Cannot interpolate reduced data to non-reduced data.");
+        throw RipleyException("interpolateOnDomain: Cannot interpolate reduced data to non-reduced data.");
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
         if (in.actsExpanded())
@@ -441,7 +441,7 @@ void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
             break;
         default: {
             stringstream msg;
-            msg << "setToGradient(): not supported for "
+            msg << "setToGradient: not supported for "
                 << functionSpaceTypeAsString(grad.getFunctionSpace().getTypeCode());
             throw RipleyException(msg.str());
         }
@@ -467,7 +467,7 @@ void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data
     const RipleyDomain& argDomain=dynamic_cast<const RipleyDomain&>(
             *(arg.getFunctionSpace().getDomain()));
     if (argDomain != *this)
-        throw RipleyException("setToIntegrals: Illegal domain of integration kernel");
+        throw RipleyException("setToIntegrals: illegal domain of integration kernel");
 
     switch (arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
@@ -487,7 +487,7 @@ void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data
             break;
         default: {
             stringstream msg;
-            msg << "setToIntegrals(): not supported for "
+            msg << "setToIntegrals: not supported for "
                 << functionSpaceTypeAsString(arg.getFunctionSpace().getTypeCode());
             throw RipleyException(msg.str());
         }
@@ -513,7 +513,7 @@ bool RipleyDomain::isCellOriented(int fsType) const
             break;
     }
     stringstream msg;
-    msg << "isCellOriented(): Illegal function space type " << fsType
+    msg << "isCellOriented: invalid function space type " << fsType
         << " on " << getDescription();
     throw RipleyException(msg.str());
 }
@@ -536,7 +536,7 @@ bool RipleyDomain::canTag(int fsType) const
             break;
     }
     stringstream msg;
-    msg << "canTag(): Illegal function space type " << fsType << " on "
+    msg << "canTag: invalid function space type " << fsType << " on "
         << getDescription();
     throw RipleyException(msg.str());
 }
@@ -563,8 +563,7 @@ void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Da
             break;
         default: {
             stringstream msg;
-            msg << "setTags(): not implemented for "
-                << functionSpaceTypeAsString(fsType);
+            msg << "setTags: invalid function space type " << fsType;
             throw RipleyException(msg.str());
         }
     }
@@ -601,8 +600,7 @@ int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
             break;
         default: {
             stringstream msg;
-            msg << "getTagFromSampleNo(): not implemented for "
-                << functionSpaceTypeAsString(fsType);
+            msg << "getTagFromSampleNo: invalid function space type " << fsType;
             throw RipleyException(msg.str());
         }
     }
@@ -622,8 +620,8 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
             return m_faceTagsInUse.size();
         default: {
             stringstream msg;
-            msg << "getNumberOfTagsInUse(): not implemented for "
-                << functionSpaceTypeAsString(fsType);
+            msg << "getNumberOfTagsInUse: invalid function space type "
+                << fsType;
             throw RipleyException(msg.str());
         }
     }
@@ -642,8 +640,8 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
             return &m_faceTagsInUse[0];
         default: {
             stringstream msg;
-            msg << "borrowListOfTagsInUse(): not implemented for "
-                << functionSpaceTypeAsString(fsType);
+            msg << "borrowListOfTagsInUse: invalid function space type "
+                << fsType;
             throw RipleyException(msg.str());
         }
     }
@@ -691,19 +689,19 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     // is the domain right?
     const RipleyDomain& row_domain=dynamic_cast<const RipleyDomain&>(*(row_functionspace.getDomain()));
     if (row_domain != *this)
-        throw RipleyException("newSystemMatrix(): Domain of row function space does not match the domain of matrix generator");
+        throw RipleyException("newSystemMatrix: domain of row function space does not match the domain of matrix generator");
     const RipleyDomain& col_domain=dynamic_cast<const RipleyDomain&>(*(column_functionspace.getDomain()));
     if (col_domain != *this)
-        throw RipleyException("newSystemMatrix(): Domain of column function space does not match the domain of matrix generator");
+        throw RipleyException("newSystemMatrix: domain of column function space does not match the domain of matrix generator");
     // is the function space type right?
     if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceRowOrder=true;
     else if (row_functionspace.getTypeCode()!=DegreesOfFreedom)
-        throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix rows");
+        throw RipleyException("newSystemMatrix: illegal function space type for system matrix rows");
     if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
         reduceColOrder=true;
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
-        throw RipleyException("newSystemMatrix(): Illegal function space type for system matrix columns");
+        throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
 
     // generate matrix
     Paso_SystemMatrixPattern* pattern=getPattern(reduceRowOrder, reduceColOrder);
@@ -724,14 +722,14 @@ void RipleyDomain::addPDEToSystem(
         const escript::Data& d_dirac,const escript::Data& y_dirac) const
 {
     if (!d_contact.isEmpty() || !y_contact.isEmpty())
-        throw RipleyException("addPDEToSystem(): Ripley does not support contact elements");
+        throw RipleyException("addPDEToSystem: Ripley does not support contact elements");
 
     paso::SystemMatrixAdapter* sma=dynamic_cast<paso::SystemMatrixAdapter*>(&mat);
     if (!sma)
-        throw RipleyException("addPDEToSystem(): Ripley only accepts Paso system matrices");
+        throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
 
     if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw RipleyException("addPDEToSystem(): Right hand side coefficients are provided but no right hand side vector given");
+        throw RipleyException("addPDEToSystem: right hand side coefficients are provided but no right hand side vector given");
 
     int fsType=UNKNOWN;
     fsType=(A.isEmpty() ? fsType : A.getFunctionSpace().getTypeCode());
@@ -754,13 +752,13 @@ void RipleyDomain::addPDEToSystem(
     Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
 
     if (!rhs.isEmpty() && rhs.getDataPointSize() != S->logical_row_block_size)
-        throw RipleyException("addPDEToSystem(): Matrix row block size and number of components of right hand side don't match");
+        throw RipleyException("addPDEToSystem: matrix row block size and number of components of right hand side don't match");
 
     const int numEq=S->logical_row_block_size;
     const int numComp=S->logical_col_block_size;
 
     if (numEq != numComp)
-        throw RipleyException("addPDEToSystem(): Number of equations and number of solutions don't match");
+        throw RipleyException("addPDEToSystem: number of equations and number of solutions don't match");
     //TODO: more system matrix checks
 
     if (numEq==1) {
@@ -787,11 +785,11 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
     if (!y_contact.isEmpty())
-        throw RipleyException("addPDEToRHS(): Ripley does not support contact elements");
+        throw RipleyException("addPDEToRHS: Ripley does not support contact elements");
 
     if (rhs.isEmpty()) {
         if (!X.isEmpty() || !Y.isEmpty())
-            throw RipleyException("addPDEToRHS(): Right hand side coefficients are provided but no right hand side vector given");
+            throw RipleyException("addPDEToRHS: right hand side coefficients are provided but no right hand side vector given");
         else
             return;
     }
@@ -807,7 +805,7 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
 
 void RipleyDomain::setNewX(const escript::Data& arg)
 {
-    throw RipleyException("setNewX(): Operation not supported");
+    throw RipleyException("setNewX(): operation not supported");
 }
 
 //protected

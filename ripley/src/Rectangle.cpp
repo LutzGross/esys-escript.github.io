@@ -13,7 +13,7 @@
 
 #include <ripley/Rectangle.h>
 extern "C" {
-#include "paso/SystemMatrix.h"
+#include <paso/SystemMatrix.h>
 }
 
 #if USE_SILO
@@ -246,7 +246,7 @@ void Rectangle::dump(const string& fileName) const
     }
 
 #else // USE_SILO
-    throw RipleyException("dump(): no Silo support");
+    throw RipleyException("dump: no Silo support");
 #endif
 }
 
@@ -270,8 +270,7 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
     }
 
     stringstream msg;
-    msg << "borrowSampleReferenceIDs() not implemented for function space type "
-        << functionSpaceTypeAsString(fsType);
+    msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
 
@@ -320,8 +319,7 @@ bool Rectangle::ownSample(int fsType, index_t id) const
     }
 
     stringstream msg;
-    msg << "ownSample() not implemented for "
-        << functionSpaceTypeAsString(fsType);
+    msg << "ownSample: invalid function space type " << fsType;
     throw RipleyException(msg.str());
 }
 
@@ -422,8 +420,8 @@ void Rectangle::setToNormal(escript::Data& out) const
 
     } else {
         stringstream msg;
-        msg << "setToNormal() not implemented for "
-            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        msg << "setToNormal: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
     }
 }
@@ -485,8 +483,8 @@ void Rectangle::setToSize(escript::Data& out) const
 
     } else {
         stringstream msg;
-        msg << "setToSize() not implemented for "
-            << functionSpaceTypeAsString(out.getFunctionSpace().getTypeCode());
+        msg << "setToSize: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
         throw RipleyException(msg.str());
     }
 }
@@ -567,7 +565,7 @@ pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
     } else if (dim==1) {
         return pair<double,double>(m_y0+(m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
     }
-    throw RipleyException("getFirstCoordAndSpacing(): invalid argument");
+    throw RipleyException("getFirstCoordAndSpacing: invalid argument");
 }
 
 //protected
@@ -2731,22 +2729,22 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                                     const double tmp78_1 = B_0_0*w34;
                                     const double tmp12_1 = tmp0_0*w36;
                                     const double tmp75_1 = B_1_0*w32;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp16_1 + tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp22_1 + tmp23_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp6_1 + tmp9_1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp40_1 + tmp41_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp45_1 + tmp47_1 + tmp48_1 + tmp49_1 + tmp50_1 + tmp51_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp6_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp32_1 + tmp33_1 + tmp40_1 + tmp41_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp34_1 + tmp35_1 + tmp36_1 + tmp37_1 + tmp38_1 + tmp39_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp42_1 + tmp43_1 + tmp44_1 + tmp45_1 + tmp46_1 + tmp47_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp10_1 + tmp11_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp40_1 + tmp41_1 + tmp7_1 + tmp8_1;
                                     EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp37_1 + tmp39_1 + tmp52_1 + tmp53_1 + tmp54_1 + tmp55_1;
                                     EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp11_1 + tmp12_1 + tmp56_1 + tmp57_1 + tmp58_1 + tmp59_1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp60_1 + tmp61_1 + tmp62_1 + tmp63_1 + tmp64_1 + tmp65_1 + tmp66_1 + tmp67_1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1 + tmp68_1 + tmp69_1 + tmp70_1 + tmp71_1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp40_1 + tmp41_1 + tmp7_1 + tmp8_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp72_1 + tmp73_1 + tmp74_1 + tmp75_1 + tmp76_1 + tmp77_1 + tmp78_1 + tmp79_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp24_1 + tmp25_1 + tmp26_1 + tmp27_1 + tmp28_1 + tmp29_1 + tmp30_1 + tmp31_1;
                                 }
                             }
                         } else { // constant data
@@ -2762,22 +2760,22 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                                     const double tmp2_1 = B_0*w46;
                                     const double tmp7_1 = B_0*w51;
                                     const double tmp3_1 = B_0*w47;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp3_1 + tmp6_1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1 + tmp6_1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp4_1 + tmp7_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp5_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp6_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,4)]+=tmp2_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,4)]+=tmp4_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp5_1 + tmp7_1;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1 + tmp6_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp1_1 + tmp7_1;
                                     EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp2_1 + tmp5_1;
                                     EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1 + tmp6_1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp1_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,4)]+=tmp1_1 + tmp7_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp3_1 + tmp6_1;
                                 }
                             }
                         }
@@ -3355,7 +3353,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
-    /* GENERATOR SNIP_PDEBC_SINGLE_PRE TOP */
     const double w0 = 0.31100423396407310779*h1;
     const double w1 = 0.022329099369260225539*h1;
     const double w10 = 0.022329099369260225539*h0;
@@ -3372,7 +3369,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     const double w7 = 0.5*h1;
     const double w8 = 0.083333333333333333333*h0;
     const double w9 = 0.31100423396407310779*h0;
-    /* GENERATOR SNIP_PDEBC_SINGLE_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -3385,7 +3381,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = k1;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_0 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3401,16 +3396,16 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             const double tmp3_1 = d_1*w0;
                             const double tmp2_1 = tmp0_0*w2;
                             EM_S[INDEX2(0,0,4)]+=tmp0_1 + tmp1_1;
-                            EM_S[INDEX2(0,2,4)]+=tmp2_1;
                             EM_S[INDEX2(2,0,4)]+=tmp2_1;
+                            EM_S[INDEX2(0,2,4)]+=tmp2_1;
                             EM_S[INDEX2(2,2,4)]+=tmp3_1 + tmp4_1;
                         } else { /* constant data */
                             const double d_0 = d_p[0];
                             const double tmp1_1 = d_0*w4;
                             const double tmp0_1 = d_0*w3;
                             EM_S[INDEX2(0,0,4)]+=tmp0_1;
-                            EM_S[INDEX2(0,2,4)]+=tmp1_1;
                             EM_S[INDEX2(2,0,4)]+=tmp1_1;
+                            EM_S[INDEX2(0,2,4)]+=tmp1_1;
                             EM_S[INDEX2(2,2,4)]+=tmp0_1;
                         }
                     }
@@ -3435,7 +3430,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[2]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_0 BOTTOM */
                     const index_t firstNode=m_N0*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3449,7 +3443,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_1 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3464,18 +3457,18 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             const double tmp3_1 = d_0*w0;
                             const double tmp0_1 = d_1*w0;
                             const double tmp2_1 = tmp0_0*w2;
-                            EM_S[INDEX2(3,3,4)]+=tmp0_1 + tmp1_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp3_1 + tmp4_1;
                             EM_S[INDEX2(3,1,4)]+=tmp2_1;
                             EM_S[INDEX2(1,3,4)]+=tmp2_1;
-                            EM_S[INDEX2(1,1,4)]+=tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp0_1 + tmp1_1;
                         } else { /* constant data */
                             const double d_0 = d_p[0];
                             const double tmp1_1 = d_0*w4;
                             const double tmp0_1 = d_0*w3;
-                            EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(1,1,4)]+=tmp0_1;
                             EM_S[INDEX2(3,1,4)]+=tmp1_1;
                             EM_S[INDEX2(1,3,4)]+=tmp1_1;
-                            EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp0_1;
                         }
                     }
                     ///////////////
@@ -3499,7 +3492,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[3]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_1 BOTTOM */
                     const index_t firstNode=m_N0*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3513,7 +3505,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_2 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3528,17 +3519,17 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             const double tmp0_1 = tmp0_0*w8;
                             const double tmp1_1 = d_1*w10;
                             const double tmp3_1 = d_0*w10;
-                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
                             EM_S[INDEX2(0,0,4)]+=tmp1_1 + tmp2_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
                             EM_S[INDEX2(1,1,4)]+=tmp3_1 + tmp4_1;
                         } else { /* constant data */
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w11;
                             const double tmp1_1 = d_0*w12;
-                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
                             EM_S[INDEX2(0,0,4)]+=tmp1_1;
                             EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                            EM_S[INDEX2(0,1,4)]+=tmp0_1;
                             EM_S[INDEX2(1,1,4)]+=tmp1_1;
                         }
                     }
@@ -3563,7 +3554,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[1]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_2 BOTTOM */
                     const index_t firstNode=k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3577,7 +3567,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                     const index_t e = m_faceOffset[3]+k0;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
-                    /* GENERATOR SNIP_PDEBC_SINGLE_3 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3592,18 +3581,18 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             const double tmp0_1 = tmp0_0*w8;
                             const double tmp3_1 = d_1*w10;
                             const double tmp1_1 = d_0*w10;
-                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,4)]+=tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
                             EM_S[INDEX2(2,2,4)]+=tmp3_1 + tmp4_1;
+                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp1_1 + tmp2_1;
                         } else { /* constant data */
                             const double d_0 = d_p[0];
                             const double tmp0_1 = d_0*w11;
                             const double tmp1_1 = d_0*w12;
-                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,4)]+=tmp1_1;
-                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
                             EM_S[INDEX2(2,2,4)]+=tmp1_1;
+                            EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                            EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                            EM_S[INDEX2(3,3,4)]+=tmp1_1;
                         }
                     }
                     ///////////////
@@ -3627,7 +3616,6 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[3]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_3 BOTTOM */
                     const index_t firstNode=m_N0*(m_N1-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3642,12 +3630,10 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 {
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
-    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE TOP */
     const double w0 = 0.25*h1;
     const double w1 = 0.5*h1;
     const double w2 = 0.25*h0;
     const double w3 = 0.5*h0;
-    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -3660,7 +3646,6 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = k1;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3669,8 +3654,8 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         const double d_0 = d_p[0];
                         const double tmp0_1 = d_0*w0;
                         EM_S[INDEX2(0,0,4)]+=tmp0_1;
-                        EM_S[INDEX2(0,2,4)]+=tmp0_1;
                         EM_S[INDEX2(2,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,2,4)]+=tmp0_1;
                         EM_S[INDEX2(2,2,4)]+=tmp0_1;
                     }
                     ///////////////
@@ -3678,12 +3663,10 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     ///////////////
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
-                        const double y_0 = y_p[0];
-                        const double tmp0_1 = w1*y_0;
+                        const double tmp0_1 = w1*y_p[0];
                         EM_F[0]+=tmp0_1;
                         EM_F[2]+=tmp0_1;
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_0 BOTTOM */
                     const index_t firstNode=m_N0*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3697,7 +3680,6 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3705,22 +3687,20 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
                         const double d_0 = d_p[0];
                         const double tmp0_1 = d_0*w0;
-                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(1,1,4)]+=tmp0_1;
                         EM_S[INDEX2(3,1,4)]+=tmp0_1;
                         EM_S[INDEX2(1,3,4)]+=tmp0_1;
-                        EM_S[INDEX2(1,1,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
-                        const double y_0 = y_p[0];
-                        const double tmp0_1 = w1*y_0;
+                        const double tmp0_1 = w1*y_p[0];
                         EM_F[1]+=tmp0_1;
                         EM_F[3]+=tmp0_1;
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_1 BOTTOM */
                     const index_t firstNode=m_N0*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3734,17 +3714,15 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 TOP */
                     ///////////////
                     // process d //
                     ///////////////
                     if (add_EM_S) {
                         const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
-                        const double d_0 = d_p[0];
-                        const double tmp0_1 = d_0*w2;
-                        EM_S[INDEX2(0,1,4)]+=tmp0_1;
+                        const double tmp0_1 = d_p[0]*w2;
                         EM_S[INDEX2(0,0,4)]+=tmp0_1;
                         EM_S[INDEX2(1,0,4)]+=tmp0_1;
+                        EM_S[INDEX2(0,1,4)]+=tmp0_1;
                         EM_S[INDEX2(1,1,4)]+=tmp0_1;
                     }
                     ///////////////
@@ -3752,12 +3730,10 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     ///////////////
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
-                        const double y_0 = y_p[0];
-                        const double tmp0_1 = w3*y_0;
+                        const double tmp0_1 = w3*y_p[0];
                         EM_F[0]+=tmp0_1;
                         EM_F[1]+=tmp0_1;
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_2 BOTTOM */
                     const index_t firstNode=k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3771,30 +3747,26 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[3]+k0;
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 TOP */
                     ///////////////
                     // process d //
                     ///////////////
                     if (add_EM_S) {
                         const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
-                        const double d_0 = d_p[0];
-                        const double tmp0_1 = d_0*w2;
-                        EM_S[INDEX2(3,2,4)]+=tmp0_1;
-                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
-                        EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                        const double tmp0_1 = d_p[0]*w2;
                         EM_S[INDEX2(2,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,2,4)]+=tmp0_1;
+                        EM_S[INDEX2(2,3,4)]+=tmp0_1;
+                        EM_S[INDEX2(3,3,4)]+=tmp0_1;
                     }
                     ///////////////
                     // process y //
                     ///////////////
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
-                        const double y_0 = y_p[0];
-                        const double tmp0_1 = w3*y_0;
+                        const double tmp0_1 = w3*y_p[0];
                         EM_F[2]+=tmp0_1;
                         EM_F[3]+=tmp0_1;
                     }
-                    /* GENERATOR SNIP_PDEBC_SINGLE_REDUCED_3 BOTTOM */
                     const index_t firstNode=m_N0*(m_N1-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
@@ -3816,7 +3788,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    /* GENERATOR SNIP_PDEBC_SYSTEM_PRE TOP */
     const double w0 = 0.31100423396407310779*h1;
     const double w1 = 0.022329099369260225539*h1;
     const double w10 = 0.022329099369260225539*h0;
@@ -3833,7 +3804,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     const double w7 = 0.5*h1;
     const double w8 = 0.083333333333333333333*h0;
     const double w9 = 0.31100423396407310779*h0;
-    /* GENERATOR SNIP_PDEBC_SYSTEM_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -3846,7 +3816,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_0 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3858,14 +3827,14 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double d_0 = d_p[INDEX3(k, m, 0, numEq, numComp)];
                                     const double d_1 = d_p[INDEX3(k, m, 1, numEq, numComp)];
                                     const double tmp0_0 = d_0 + d_1;
-                                    const double tmp1_1 = d_1*w1;
-                                    const double tmp4_1 = d_0*w1;
                                     const double tmp0_1 = d_0*w0;
-                                    const double tmp3_1 = d_1*w0;
+                                    const double tmp1_1 = d_1*w1;
                                     const double tmp2_1 = tmp0_0*w2;
+                                    const double tmp3_1 = d_1*w0;
+                                    const double tmp4_1 = d_0*w1;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp2_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp2_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp2_1;
                                     EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
                                 }
                              }
@@ -3873,11 +3842,11 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
-                                    const double tmp1_1 = d_0*w4;
                                     const double tmp0_1 = d_0*w3;
+                                    const double tmp1_1 = d_0*w4;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp1_1;
                                     EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp1_1;
                                     EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
                                 }
                             }
@@ -3908,7 +3877,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_0 BOTTOM */
                     const index_t firstNode=m_N0*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -3923,7 +3891,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_1 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -3940,10 +3907,10 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double tmp3_1 = d_0*w0;
                                     const double tmp0_1 = d_1*w0;
                                     const double tmp2_1 = tmp0_0*w2;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
                                     EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp2_1;
                                     EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp2_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1 + tmp1_1;
                                 }
                              }
                         } else { /* constant data */
@@ -3952,10 +3919,10 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
                                     const double tmp1_1 = d_0*w4;
                                     const double tmp0_1 = d_0*w3;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp1_1;
                                     EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp1_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
                                 }
                             }
                         }
@@ -3985,7 +3952,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_1 BOTTOM */
                     const index_t firstNode=m_N0*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -4000,7 +3966,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_2 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4017,9 +3982,9 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double tmp0_1 = tmp0_0*w8;
                                     const double tmp1_1 = d_1*w10;
                                     const double tmp3_1 = d_0*w10;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
                                     EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
                                 }
                              }
@@ -4029,9 +3994,9 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
                                     const double tmp0_1 = d_0*w11;
                                     const double tmp1_1 = d_0*w12;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp1_1;
                                     EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp1_1;
                                 }
                             }
@@ -4062,7 +4027,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_2 BOTTOM */
                     const index_t firstNode=k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -4077,7 +4041,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_3 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4094,10 +4057,10 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double tmp0_1 = tmp0_0*w8;
                                     const double tmp3_1 = d_1*w10;
                                     const double tmp1_1 = d_0*w10;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp3_1 + tmp4_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1 + tmp2_1;
                                 }
                              }
                         } else { /* constant data */
@@ -4106,10 +4069,10 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                                     const double d_0 = d_p[INDEX2(k, m, numEq)];
                                     const double tmp0_1 = d_0*w11;
                                     const double tmp1_1 = d_0*w12;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
                                     EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp1_1;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp1_1;
                                 }
                             }
                         }
@@ -4139,7 +4102,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_3 BOTTOM */
                     const index_t firstNode=m_N0*(m_N1-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -4162,12 +4124,10 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE TOP */
     const double w0 = 0.25*h1;
     const double w1 = 0.5*h1;
     const double w2 = 0.25*h0;
     const double w3 = 0.5*h0;
-    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_PRE BOTTOM */
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -4180,7 +4140,6 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4191,8 +4150,8 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                                 const double d_0 = d_p[INDEX2(k, m, numEq)];
                                 const double tmp0_1 = d_0*w0;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
-                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,2,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,2,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
                             }
                         }
@@ -4203,18 +4162,15 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const double y_0 = y_p[k];
-                            const double tmp0_1 = w1*y_0;
+                            const double tmp0_1 = w1*y_p[k];
                             EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_0 BOTTOM */
                     const index_t firstNode=m_N0*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
-                // ADD EM_F  and EM_S 
             } // end colouring
         }
 
@@ -4225,7 +4181,6 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4235,10 +4190,10 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             for (index_t m=0; m<numComp; m++) {
                                 const double d_0 = d_p[INDEX2(k, m, numEq)];
                                 const double tmp0_1 = d_0*w0;
-                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,3,1,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,1,3,numEq,numComp,4)]+=tmp0_1;
-                                EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
                             }
                         }
                     }
@@ -4248,13 +4203,11 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const double y_0 = y_p[k];
-                            const double tmp0_1 = w1*y_0;
+                            const double tmp0_1 = w1*y_p[k];
                             EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_1 BOTTOM */
                     const index_t firstNode=m_N0*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -4269,7 +4222,6 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4279,9 +4231,9 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             for (index_t m=0; m<numComp; m++) {
                                 const double d_0 = d_p[INDEX2(k, m, numEq)];
                                 const double tmp0_1 = d_0*w2;
-                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,0,0,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,1,0,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,0,1,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,1,1,numEq,numComp,4)]+=tmp0_1;
                             }
                         }
@@ -4292,13 +4244,11 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const double y_0 = y_p[k];
-                            const double tmp0_1 = w3*y_0;
+                            const double tmp0_1 = w3*y_p[k];
                             EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_2 BOTTOM */
                     const index_t firstNode=k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
@@ -4313,7 +4263,6 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 TOP */
                     ///////////////
                     // process d //
                     ///////////////
@@ -4323,10 +4272,10 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             for (index_t m=0; m<numComp; m++) {
                                 const double d_0 = d_p[INDEX2(k, m, numEq)];
                                 const double tmp0_1 = d_0*w2;
-                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
-                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
-                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
                                 EM_S[INDEX4(k,m,2,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,2,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,2,3,numEq,numComp,4)]+=tmp0_1;
+                                EM_S[INDEX4(k,m,3,3,numEq,numComp,4)]+=tmp0_1;
                             }
                         }
                     }
@@ -4336,13 +4285,11 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                     if (add_EM_F) {
                         const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
                         for (index_t k=0; k<numEq; k++) {
-                            const double y_0 = y_p[k];
-                            const double tmp0_1 = w3*y_0;
+                            const double tmp0_1 = w3*y_p[k];
                             EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
                             EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
                         }
                     }
-                    /* GENERATOR SNIP_PDEBC_SYSTEM_REDUCED_3 BOTTOM */
                     const index_t firstNode=m_N0*(m_N1-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);

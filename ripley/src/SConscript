@@ -19,34 +19,23 @@ py_wrapper_local_env = env.Clone()
 local_unroll_env = env.Clone()
 
 
-# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+# Remove the shared library prefix on all platforms - we don't want 'lib'
+# mucking with our python modules
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
     Brick.cpp
     Rectangle.cpp
-    RipleyException.cpp
     RipleyDomain.cpp
-""".split()
-unroll_sources= """
-    Assemble_Gradient_2D.c
-    Assemble_Gradient_3D.c
-    Assemble_PDE_Single_2D.c
-    Assemble_PDE_Single_2D_reduced.c
-    Assemble_PDE_Single_3D.c
-    Assemble_PDE_Single_3D_reduced.c
-    Assemble_PDE_System_2D.c
-    Assemble_PDE_System_2D_reduced.c
-    Assemble_PDE_System_3D.c
-    Assemble_PDE_System_3D_reduced.c
+    RipleyException.cpp
 """.split()
 
 headers = """
     Brick.h
     Rectangle.h
     Ripley.h
-    RipleyException.h
     RipleyDomain.h
+    RipleyException.h
     system_dep.h
 """.split()
 
@@ -60,9 +49,7 @@ if IS_WINDOWS:
 
 module_name = 'ripley'
 
-un = [] #[ local_unroll_env.SharedObject(x) for x in unroll_sources]
-
-lib = local_env.SharedLibrary(module_name, sources+un)
+lib = local_env.SharedLibrary(module_name, sources)
 env.Alias('build_ripley_lib', lib)
 
 include_path = Dir('ripley', local_env['incinstall'])

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -127,7 +128,8 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
 	return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
     if dim==2:
 	d1=dat[1]
-	return d1.interpolateTable(tab, start[0], step[0], firstdim, start[1], step[1], undef, check_boundaries)
+	return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
+#	return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
     else:
 	return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
@@ -6226,11 +6228,12 @@ def reorderComponents(arg,index):
 
 def showEscriptParams():
     """
-    Displays the parameters escript recognises with an explanation.
+    Displays the parameters escript recognises with an explanation and their
+    current value.
     """
     p=listEscriptParams()
-    for name,desc in p:
-	print((name+':\t'+desc))
+    for name,value,desc in p:
+	print('%s (=%s): %s'%(name, value, desc))
 
 #Lazy related things
 #These are just wrappers
