@@ -167,7 +167,7 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
         print("initial location = ",x0)
     print("XX", interpolate(uRef(dom,0.,E,s,v,x0), FunctionOnBoundary(dom)))
      
-    fc_BE=TransportPDE(dom,numEquations=1,useBackwardEuler=True)
+    fc_BE=TransportPDE(dom,numEquations=1)
     fc_BE.setValue(M=a, A=-b*kronecker(dom), B=-v_d*a, C=-v_c*a)
     fc_BE.getSolverOptions().setVerbosity(VERBOSITY)
     fc_BE.getSolverOptions().setTolerance(TOL)
@@ -176,7 +176,7 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     fc_BE.getSolverOptions().setNumSweeps(5)  
     if VERBOSITY: print("Backward Euler Transport created")
 
-    fc_CN=TransportPDE(dom,numEquations=1,useBackwardEuler=False)
+    fc_CN=TransportPDE(dom,numEquations=1)
     fc_CN.setValue(M=a, A=-b*kronecker(dom), B=-v_d*a, C=-v_c*a)
     fc_CN.getSolverOptions().setVerbosity(VERBOSITY)
     fc_CN.getSolverOptions().setTolerance(TOL)

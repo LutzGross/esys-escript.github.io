@@ -39,7 +39,6 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
            Esys_MPIInfo_free(in->mpi_info);
-           Paso_Coupler_free(in->u_coupler);
            MEMFREE(in->constraint_weights);
            MEMFREE(in->reactive_matrix);
            MEMFREE(in->main_diagonal_mass_matrix);
@@ -57,40 +56,24 @@ Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem*
      return in;
 }    
 
-Paso_SystemMatrix* Paso_TransportProblem_borrowTransportMatrix(Paso_TransportProblem* in) {
-   return in->transport_matrix;
-}
-Paso_SystemMatrix* Paso_TransportProblem_borrowMassMatrix(Paso_TransportProblem* in) {
-   return in->mass_matrix;
-}
-
-double* Paso_TransportProblem_borrowLumpedMassMatrix(Paso_TransportProblem* in) {
-    return in->lumped_mass_matrix;
-}
-
-dim_t Paso_TransportProblem_getTotalNumRows(Paso_TransportProblem* in) {
-    return Paso_SystemMatrix_getTotalNumRows(in->transport_matrix);
-}
-
-Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso_SystemMatrixPattern *pattern, int block_size) 
+Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pattern, const int block_size) 
 {
      Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
      Paso_TransportProblem* out=NULL;
      dim_t n,i;
-
+     
      out=MEMALLOC(1,Paso_TransportProblem);
      if (Esys_checkPtr(out)) return NULL;
-     out->reference_counter=0;
-     out->useBackwardEuler=useBackwardEuler;
-     out->dt_max=LARGE_POSITIVE_FLOAT;
-     out->dt_failed=LARGE_POSITIVE_FLOAT;
+     out->reference_counter=0; 
+     out->dt_max_R=LARGE_POSITIVE_FLOAT;
+     out->dt_max_T=LARGE_POSITIVE_FLOAT;
+     
+          
+
 /****************** REVISE ****************************/
      out->constraint_factor=sqrt(LARGE_POSITIVE_FLOAT);
-     if (out->useBackwardEuler) {
-            out->dt_factor=DT_FACTOR_MAX;
-     } else {
-            out->dt_factor=2.;
-     }
+
+     out->dt_factor=2.;
 /*****************************************************/
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
@@ -106,12 +89,12 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso
 
      if (Esys_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         out->constraint_weights=MEMALLOC(n,double);
-         out->lumped_mass_matrix=MEMALLOC(n,double);
-         out->reactive_matrix=MEMALLOC(n,double);;
-         out->main_diagonal_mass_matrix=MEMALLOC(n,double);	 
-         out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double);
-         out->u_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(out),block_size);
+         out->constraint_weights=MEMALLOC(n,double); /* ? */
+         out->lumped_mass_matrix=MEMALLOC(n,double);  /* ? */
+         out->reactive_matrix=MEMALLOC(n,double); /* ? */
+         out->main_diagonal_mass_matrix=MEMALLOC(n,double); /* ? */	 
+         out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double); /* ? */
+
 
          if ( ! (Esys_checkPtr(out->constraint_weights) || 
 	         Esys_checkPtr(out->reactive_matrix) || Esys_checkPtr(out->main_diagonal_mass_matrix) || 
@@ -141,15 +124,6 @@ void Paso_TransportProblem_reset(Paso_TransportProblem* in)
     in->valid_matrices=FALSE;
 }
 
-dim_t Paso_TransportProblem_getBlockSize(const Paso_TransportProblem* in)
-{
-   return in->transport_matrix->row_block_size;
-}
-
-Paso_Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in)
-{
-   return in->transport_matrix->pattern->col_connector;
-}
 
 index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info) 
 {

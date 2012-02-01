@@ -230,7 +230,7 @@ x=dom.getX()
 #
 #   set up heat problem:
 #
-heat=TemperatureCartesian(dom,useBackwardEuler=False)
+heat=TemperatureCartesian(dom)
 print(("<%s> Temperature transport has been set up."%time.asctime()))
 heat.getSolverOptions().setTolerance(T_TOL)
 heat.getSolverOptions().setVerbosity(VERBOSE)

@@ -243,13 +243,12 @@ class Test_Darcy(unittest.TestCase):
         p=p_ref*mp
         u=u_ref*mv
         df=DarcyFlow(self.dom, verbose=VERBOSE, solver=self.SOLVER)
+        #df.getSolverOptionsPressure().setVerbosityOn()
         df.setValue(g=f,
                       location_of_fixed_pressure=mp,
                       location_of_fixed_flux=mv,
                       permeability=Scalar(k,Function(self.dom)))
         v,p=df.solve(u,p)
-
-
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
 
@@ -357,8 +356,6 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Darcy3D_SMOOTH))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_POST))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_EVAL))
-
-
    #suite.addTest(Test_Darcy2D_SMOOTH("testConstF_FreeBottom_largeK"))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)

@@ -288,7 +288,6 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   ESCRIPT_DLL_API
   virtual ATP_ptr newTransportProblem(
-                      const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const;
