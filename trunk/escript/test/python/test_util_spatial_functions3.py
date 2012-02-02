@@ -21693,3 +21693,1294 @@ class Test_Util_SpatialFunctions(Test_Util_SpatialFunctions_noGradOnBoundary):
       self.assertEqual(res.getShape(),(),"wrong shape of result.")
       self.assertEqual(sub.getFunctionSpace(),w_ref,"wrong function space of result.")
       self.assertTrue(Lsup(sub-ref)<=self.RES_TOL*Lsup(ref),"wrong result")
+
+
+   def test_grad_onFunctionOnBoundary_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = 5.325699e-03
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.13328403643902254, 0.5180789608364019, 0.8473725228751088] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.17471334053708842, 0.7234268336897315], [0.2919940087255526, 0.5287096643695982], [0.3600144177470853, 0.35466127794259317], [0.06483217063319047, 0.5949901915322034]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.9213100479981251, 0.12253171725837597, 0.41994324535779426, 0.6230497578536783], [0.1001149950416077, 0.8502477745680308, 0.5471058713009459, 0.8520717833220935]], [[0.5605303053115659, 0.49756584705484774, 0.7280422312943363, 0.08916113667035397], [0.649327630049585, 0.8114318117377761, 0.8911899718596958, 0.056764605912336674]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 3.915707e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.06377171484537192, 0.966040756184193, 0.5464099064244966] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.37242745827480905, 0.16608261172807715], [0.43907681880296734, 0.7977345148667832], [0.2937376350868136, 0.03224768113034626], [0.3876880508278723, 0.5411522936006017]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.9088607246376975, 0.6860485775980993, 0.1370063406124229, 0.21288135010167197], [0.3469162081847519, 0.8262827813281785, 0.45611765063606224, 0.979888975901961]], [[0.29193594226471176, 0.5566897857838056, 0.16435159604887106, 0.7680255608180384], [0.1620674264045665, 0.059896127276754196, 0.9077249650000538, 0.697086176083336]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 1.928511e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.6533280686124567, 0.9316016729816435, 0.2860543625783294] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.290868619614702, 0.7162558637433156], [0.028740680920193884, 0.6687416379809296], [0.04643092735506238, 0.8662211685746547], [0.029984509764989564, 0.6473352108879699]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.023591427336316473, 0.27411924872867377, 0.18959184507685145, 0.7516856839689471], [0.3833584126891021, 0.2600919607462666, 0.7915351284354711, 0.6099430108957569]], [[0.5557805213238012, 0.2672054314856013, 0.26092389049502895, 0.8815476687888248], [0.4159112668969126, 0.6305965624321637, 0.0378813260655978, 0.010936714360735955]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = 3.225850e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([0.11113933659770825, 0.2652307611386975, 0.9768302434415] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[0.43895483447843786, 0.3705453998519529], [0.7856811089849307, 0.2893400116026289], [0.6494291474582917, 0.3216748663311576], [0.9734234162840023, 0.12129760399119671]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[[0.5423618140986598, 0.8878156583097585, 0.25231512194709027, 0.06379277224136626], [0.2244003241340048, 0.5523724730635384, 0.6635290044481768, 0.9598137336965046]], [[0.06612978226427024, 0.8879137312571469, 0.1151104415793851, 0.00742273174452468], [0.8812027196335972, 0.870396411327305, 0.6752530851574361, 0.05171713668191147]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = 2.570651e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.31557680732533466, 0.7066169398998586, 0.9211177636658148] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.20002823296573136, 0.6620894695331346], [0.8522485364166127, 0.2213598049260288], [0.6773798712937313, 0.15804162040124936], [0.9035793861521892, 0.2772446707143794]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.626859285544357, 0.978181779065287, 0.411852849330247, 0.6371983938795727], [0.7064981455837864, 0.439494462027905, 0.7176349285510094, 0.6344938189469543]], [[0.6489954852227914, 0.9053722153820701, 0.7270914774110729, 0.06455024993536962], [0.03551831997286925, 0.6924121288324315, 0.13608030614353783, 0.14219036290318632]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 1.663927e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.22280627106323836, 0.17674510475567107, 0.020739142341216654] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.9281463106171305, 0.0861785507659526], [0.20481360627679546, 0.61474028972928], [0.4346142500904996, 0.6826125749128275], [0.9676483959735505, 0.004030408958624165]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.17409515413758514, 0.06443606167564908, 0.12142659712375536, 0.9325006274502955], [0.27623132535403216, 0.6696906599028458, 0.06494885848683274, 0.8161638075291826]], [[0.18605405395934893, 0.8273852528797611, 0.8196768796468152, 0.2817640409991363], [0.06993111167302168, 0.612771747737222, 0.8418321336640362, 0.7132065633379493]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 2.544264e-02
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.1905449698257855, 0.44353572143192566, 0.31837399209945927] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.7069981287341179, 0.22391519172519325], [0.5935596941135006, 0.773732962337458], [0.3579287667186175, 0.30704382627669646], [0.6145669245227324, 0.31153548410609844]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.355188219921715, 0.6014282473114086, 0.5941643626488761, 0.5878689700538938], [0.29074522133426794, 0.21622897569223032, 0.5366123306387235, 0.6446336306577326]], [[0.7117204152650095, 0.31111017017222453, 0.36711556833588066, 0.3604234227121649], [0.7270995644363838, 0.3588969002172844, 0.9813760466336967, 0.5834196954785033]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = 1.988179e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([0.6478656215035142, 0.6600302427812709, 0.09360460856735675] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[0.20052243915182166, 0.2862854360122983], [0.7537797857942006, 0.7701986775776483], [0.5762752929646884, 0.09943478024026742], [0.41014920545731726, 0.2432727398882053]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnBoundary_fromConstant_onReducedContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnBoundary
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnBoundary(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[[0.9389141351043594, 0.8147125185453394, 0.4863265324626874, 0.2914068570775302], [0.42700589160123725, 0.183768854368919, 0.9484492907302342, 0.37701332047751923]], [[0.1569594611550882, 0.1341537338578087, 0.35362215752966164, 0.04872017112907634], [0.6421837556116794, 0.20442915782723126, 0.5736624923251025, 0.44637140938161535]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = 9.029388e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.907548586087531, 0.707317124485586, 0.8995803949864449] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.2999902729340933, 0.044588138347334105], [0.5849117114829943, 0.9992874981172579], [0.8341634631871544, 0.10545135301119335], [0.358648729878584, 0.5582992029507422]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.836403736156003, 0.29786838780382785, 0.30738923417000974, 0.6835833744789601], [0.44732249531502544, 0.8010845703821015, 0.6735902741269875, 0.6950264940140927]], [[0.11444353237638027, 0.04906250268219181, 0.5777221032528653, 0.458967712710838], [0.5498101526171087, 0.7310917893467106, 0.8461044440889665, 0.1517882061417145]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 7.957408e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.0013522567015791243, 0.8341989782079291, 0.7788990041622172] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.3433433211730025, 0.8483801077181371], [0.01879976321157739, 0.9886595759120674], [0.4793613768457512, 0.034789632355608946], [0.6013518368182185, 0.9099251278789463]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.004268096134998456, 0.6228740101326737, 0.8792699746660345, 0.024175300967381075], [0.17360804600587165, 0.4438147477535489, 0.8303413665858226, 0.3373827734760221]], [[0.8212269016903279, 0.7790662460292276, 0.5246688109670851, 0.4296496240473877], [0.4318635056975825, 0.6591761894263933, 0.868305431080897, 0.8745372396233271]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 6.930144e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.43039014192498826, 0.3282259009434936, 0.5300279421680291] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.0467302291835493, 0.21756782592678447], [0.5649636423784632, 0.634196025489312], [0.12626039189865346, 0.2816191388234631], [0.5633558912300907, 0.41492854425122283]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.5322400314181076, 0.22866870266286987, 0.413896078912124, 0.2646726496735461], [0.5526230061530046, 0.7466862381236534, 0.8074259698321433, 0.7014038277054564]], [[0.9414081637252353, 0.05636422862206092, 0.6871399482281239, 0.2887350017776229], [0.39404123118079826, 0.8104641817835231, 0.7373779531988631, 0.49946399301720656]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = 7.707884e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([0.5232292363917099, 0.8931293188553918, 0.5812188088398242] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[0.26687908233641555, 0.4251828593279853], [0.2826514251456448, 0.5901807274550085], [0.8789901409693618, 0.2942788629122738], [0.8027763572249443, 0.5296242351380728]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactZero_fromConstant_onReducedContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactZero(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[[0.47045049288803176, 0.6207450777194974, 0.5624386764704142, 0.14973184755069158], [0.6211128943488801, 0.5237252846377405, 0.12649240479070234, 0.9336566953931132]], [[0.1500355466712322, 0.4462868541421865, 0.2807053569848985, 0.8096831766130468], [0.8279613670328214, 0.10776444652559936, 0.3768428303007917, 0.5525635903908854]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = 9.449773e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.19521101121951812, 0.28714141197255205, 0.34625007788269224] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.11401362766025736, 0.7018197235840259], [0.006532810128159983, 0.737541882731158], [0.6843257628080699, 0.9886981954348636], [0.33802726145856266, 0.7781846374447284]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.8833833762040265, 0.9728842360655732, 0.3542657059733225, 0.505950349413704], [0.040119678091724564, 0.08040257685829655, 0.27203091307749216, 0.2732437060954299]], [[0.17170951925014444, 0.7555888718823888, 0.9181699371777938, 0.0533750242261255], [0.5666509111370258, 0.40097984437465484, 0.46445997770413183, 0.7794312685709942]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 4.408085e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.034933512516942655, 0.9800178002215272, 0.36426619967479745] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.181262789680669, 0.3486511342822154], [0.7906209928751575, 0.8310253226954649], [0.9755804626005933, 0.004856247591845997], [0.8350685565096081, 0.6521163395567604]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.7624877352377937, 0.29455697397539016, 0.35597530806671485, 0.1769771752868431], [0.8278501171334879, 0.6612879867586324, 0.2108226358029297, 0.6565168256101444]], [[0.073903841131432, 0.40319958073796325, 0.44982934816931064, 0.16213847221780098], [0.53112512717715, 0.9889543030220338, 0.827289845278779, 0.8958058319625968]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 3.547293e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.5336376939404084, 0.12070081134673638, 0.7301505047048527] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.4384318821977905, 0.19742948498016177], [0.000868854537104502, 0.30641409989780166], [0.8978945954452449, 0.6961902987809375], [0.8738974106674391, 0.6593713103392849]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.4647091925810939, 0.5886421334207723, 0.9828869971579512, 0.5246499201155416], [0.356258805505017, 0.4642405842691707, 0.30224518620208296, 0.18095574745237797]], [[0.31537604994487456, 0.4151507737829214, 0.9172446637657757, 0.02564131369125655], [0.4589562348907429, 0.156731449959858, 0.7075700764658797, 0.011739475607361993]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = 4.633141e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([0.3465183165757971, 0.28586755536866093, 0.05015182702075227] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[0.6526532625537063, 0.7701098960911085], [0.4499339798186688, 0.7206838063007455], [0.02473512734449168, 0.7026595718891236], [0.8737679013583777, 0.8323673434504008]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onReducedFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on ReducedFunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = ReducedFunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[[0.34548655206650203, 0.18866358590977605, 0.7881296922547287, 0.5333995307603652], [0.5656650311923244, 0.447609070673588, 0.7098356484325665, 0.8530883432967371]], [[0.7388333050567967, 0.23926364943752398, 0.13273395500670215, 0.7405506857776485], [0.9048447936731181, 0.5466702038766015, 0.5166781959953796, 0.7707732173924752]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = 8.331514e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.960953822224517, 0.45782323441793726, 0.6234723050577922] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.9242847282549886, 0.4353970256009895], [0.3596598029557798, 0.18072819289469744], [0.12103014692584535, 0.30223820949059066], [0.3746576203324995, 0.9440547503471269]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.1133672646781918, 0.47673129863326724, 0.13009035306580008, 0.7434898533554899], [0.3153636496490576, 0.09592374842943141, 0.18277231428374585, 0.9220575412366814]], [[0.29337276622857067, 0.7386496151277152, 0.5749881917541155, 0.473446487738974], [0.5369842798857408, 0.27927761877573376, 0.37933856466614724, 0.47627921748832935]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 9.981430e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.4910439815888492, 0.6484854794550088, 0.47493020075964065] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.8279210875223708, 0.2338380667906539], [0.4315567111758656, 0.3852814141988875], [0.4012781631925967, 0.8905175994912358], [0.9496152369641803, 0.08909287805428256]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.481210129538855, 0.0723440492180496, 0.4567948984438164, 0.826495921948382], [0.11006036373991257, 0.7373575076348994, 0.9416880096622194, 0.32686072281352907]], [[0.7182587257539528, 0.26224493030090035, 0.9591798675504234, 0.9763653717687493], [0.18820099519437516, 0.6182720985697959, 0.9391823958161781, 0.09042308985011616]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 5.312874e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.6479174153745072, 0.7561314707056226, 0.9442415088857188] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.9950426856851823, 0.42876376065618327], [0.32879582533962826, 0.6010940221721649], [0.7062683300945141, 0.7636144582012837], [0.011317421171781361, 0.49653823818308407]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactZero_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactZero
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactZero(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.9104360760245774, 0.7086942730558727, 0.4382452050895169, 0.09268609254772164], [0.9466986099511558, 0.4025000415915436, 0.24214152764634334, 0.48541323585758]], [[0.6324255289447923, 0.10894062583819653, 0.6272657066951097, 0.9486334024540664], [0.9544294908748299, 0.16115781291479903, 0.5422070091150973, 0.5628477736603812]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = 8.380454e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([0.31445073912851196, 0.5668367672347497, 0.8000695114763042] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[0.10555226400339657, 0.8383175203256023], [0.9031323610028994, 0.3306202527274066], [0.5424693719793899, 0.08148727380386034], [0.9037394782691902, 0.8887054812423583]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = Solution(self.domain)
+      val = numpy.array([[[0.17143955494105834, 0.9594782779369886, 0.9553663667076671, 0.9020290010115394], [0.4487613712309403, 0.3139150890431325, 0.8896073355353095, 0.12567668642329166]], [[0.5783462159222819, 0.5959007963742765, 0.06716227591886281, 0.10038749802185687], [0.9067139704521134, 0.7705652417204064, 0.4172450480292257, 0.6869999982188596]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedSolution_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = 1.465850e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedSolution_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([0.9781472496184622, 0.34877213123446604, 0.2874082424916701] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedSolution_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[0.07230934823267299, 0.6610812687098071], [0.8033284017291904, 0.1472855502096575], [0.6917385472190036, 0.5036435396175376], [0.3964648016752985, 0.16711710933459878]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedSolution_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedSolution(self.domain)
+      val = numpy.array([[[0.26363909916652295, 0.3049876598173691, 0.7448532875524292, 0.07641933863496264], [0.3932484137127511, 0.19445926695599747, 0.34136542682105786, 0.18951397004968829]], [[0.04719926005945296, 0.4432679085087615, 0.45059952841276385, 0.4983004656292932], [0.4173414468938297, 0.861814775959532, 0.4178270464042314, 0.3608703337621374]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = 3.797274e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([0.804333583754331, 0.07117284292376358, 0.2659813115866344] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[0.015901753253646733, 0.9749998355010222], [0.7750637065487529, 0.9665168468802372], [0.6956132796891801, 0.9098699253363709], [0.2842107882721583, 0.878769256462077]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ContinuousFunction(self.domain)
+      val = numpy.array([[[0.6813045153981402, 0.8695411370765636, 0.1601397385237573, 0.944713648774908], [0.04480763634580254, 0.44951462026678646, 0.5242822705763874, 0.6687236299387497]], [[0.37056536329284284, 0.0515672412245316, 0.2021199953443663, 0.40011474496973276], [0.9074436025303534, 0.012254573846022576, 0.46017514695539585, 0.5521387566363697]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank0(self):
+      """
+      test gradient of constant rank 0 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = 3.727099e-01
+      arg = Data(val,(),w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),()+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank1(self):
+      """
+      test gradient of constant rank 1 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([0.031068422686192365, 0.13548924746922697, 0.8882464304650891] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(3,)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank2(self):
+      """
+      test gradient of constant rank 2 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[0.6714863064397392, 0.42463336467014945], [0.20028775482321604, 0.6291533593059164], [0.7055358672164853, 0.6513587696416855], [0.028483862355425438, 0.024048093640512302]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(4, 2)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+   def test_grad_onFunctionOnContactOne_fromConstant_onReducedContinuousFunction_rank3(self):
+      """
+      test gradient of constant rank 3 Data on FunctionOnContactOne
+      """
+      DIM = self.domain.getDim()
+      w_ref = FunctionOnContactOne(self.domain)
+      w_arg = ReducedContinuousFunction(self.domain)
+      val = numpy.array([[[0.814666306523813, 0.5849826990998531, 0.3338406933569058, 0.5276257782517414], [0.11292857096801256, 0.699944560000377, 0.36021518360446525, 0.9987353809416907]], [[0.5726211101583571, 0.6381734253875894, 0.0004888301733868561, 0.20683242396858892], [0.3134077439738643, 0.6974727370337456, 0.8993008211890828, 0.796389910384546]]] ,numpy.float_)
+      arg = Data(val,w_arg)
+      res=grad(arg,where=w_ref)
+      self.assertTrue(isinstance(res,Data),"wrong type of result.")
+      self.assertEqual(res.getFunctionSpace(),w_ref,"wrong functionspace of result.")
+      self.assertEqual(res.getShape(),(2, 2, 4)+(DIM,),"wrong shape of result.")
+      self.assertTrue(Lsup(res)<=self.RES_TOL,"wrong result")
+
