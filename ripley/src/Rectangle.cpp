@@ -3376,7 +3376,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3438,7 +3438,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3500,7 +3500,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3562,7 +3562,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     const index_t e = m_faceOffset[3]+k0;
                     vector<double> EM_S(4*4, 0);
@@ -3641,7 +3641,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3675,7 +3675,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3709,7 +3709,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3742,7 +3742,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3811,7 +3811,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -3886,7 +3886,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -3961,7 +3961,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -4036,7 +4036,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -4135,7 +4135,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -4176,7 +4176,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -4217,7 +4217,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
@@ -4258,7 +4258,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);

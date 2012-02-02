@@ -9438,7 +9438,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
@@ -9562,7 +9562,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
@@ -9686,7 +9686,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -9810,7 +9810,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -9934,7 +9934,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10058,7 +10058,7 @@ void Brick::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10202,7 +10202,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
@@ -10254,7 +10254,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
@@ -10306,7 +10306,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10357,7 +10357,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10409,7 +10409,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10461,7 +10461,7 @@ void Brick::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
@@ -10570,7 +10570,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -10708,7 +10708,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -10846,7 +10846,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -10984,7 +10984,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11122,7 +11122,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11260,7 +11260,7 @@ void Brick::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11425,7 +11425,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
     {
         if (m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11483,7 +11483,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k1=0; k1<m_NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11541,7 +11541,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11599,7 +11599,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k2=k2_0; k2<m_NE2; k2+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11657,7 +11657,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
@@ -11715,7 +11715,7 @@ void Brick::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
 
         if (m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-#pragma omp for nowait
+#pragma omp for
                 for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
                     for (index_t k0=0; k0<m_NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
