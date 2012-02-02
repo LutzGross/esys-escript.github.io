@@ -115,8 +115,8 @@ double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	       index_t fail_loc=0;
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
-                  const register double l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
-                  const register double m_i=fctp->lumped_mass_matrix[i];
+                  const double l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
+                  const double m_i=fctp->lumped_mass_matrix[i];
 		  if ( (m_i > 0) ) {
 		      if (l_ii<0) dt_max_loc=MIN(dt_max_loc,m_i/(-l_ii));
 		  } else {
@@ -171,8 +171,8 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
     fct_solver->dt = dt;
     #pragma omp parallel for private(i)
     for (i = 0; i < n; ++i) {
-           const register double m=fctp->lumped_mass_matrix[i];
-	   const register double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
+           const double m=fctp->lumped_mass_matrix[i];
+	   const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
            fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m * omega - l_ii;
     }
     
@@ -450,16 +450,16 @@ void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
   for (i = 0; i < n; ++i) {
-      const register double u_i     = u[i];
-      const register double u_old_i = u_old[i];
+      const double u_i     = u[i];
+      const double u_old_i = u_old[i];
 
       #pragma ivdep
       for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-	const register index_t j      = pattern->mainPattern->index[iptr_ij];
-	const register double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-	const register double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-	const register double u_old_j = u_old[j];
-	const register double u_j     = u[j];
+	const index_t j      = pattern->mainPattern->index[iptr_ij];
+	const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
+	const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
+	const double u_old_j = u_old[j];
+	const double u_j     = u[j];
 	
 	/* (m_{ij} - dt (1-theta) d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt theta d_{ij}) (u[j]-u[i]) */
 	flux_matrix->mainBlock->val[iptr_ij]=(m_ij+dt_half*d_ij)*(u_old_j-u_old_i) - (m_ij-dt_half*d_ij)*(u_j-u_i);
@@ -467,11 +467,11 @@ void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
       }
       #pragma ivdep
       for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-	const register index_t j      = pattern->col_couplePattern->index[iptr_ij];
-	const register double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
-	const register double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
-        const register double u_old_j = remote_u_old[j];
-	const register double u_j     = remote_u[j];
+	const index_t j      = pattern->col_couplePattern->index[iptr_ij];
+	const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
+	const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
+        const double u_old_j = remote_u_old[j];
+	const double u_j     = remote_u[j];
 	flux_matrix->col_coupleBlock->val[iptr_ij]=(m_ij+dt_half*d_ij)*(u_old_j-u_old_i)- (m_ij-dt_half*d_ij)*(u_j-u_i);
       }
   }
@@ -495,26 +495,26 @@ void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
   for (i = 0; i < n; ++i) {
-      const register double u_i     = u[i];
-      const register double u_old_i = u_old[i];
+      const double u_i     = u[i];
+      const double u_old_i = u_old[i];
       #pragma ivdep
       for (iptr_ij=pattern->mainPattern->ptr[i]; iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
 
-	const register index_t j      = pattern->mainPattern->index[iptr_ij];
-	const register double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-	const register double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-	const register double u_old_j = u_old[j];
-	const register double u_j     = u[j];
+	const index_t j      = pattern->mainPattern->index[iptr_ij];
+	const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
+	const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
+	const double u_old_j = u_old[j];
+	const double u_j     = u[j];
 	
 	flux_matrix->mainBlock->val[iptr_ij]=m_ij*(u_old_j-u_old_i)- (m_ij-dt*d_ij)*(u_j-u_i);
       }
       #pragma ivdep
       for (iptr_ij=pattern->col_couplePattern->ptr[i]; iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-	const register index_t j      = pattern->col_couplePattern->index[iptr_ij];
-	const register double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
-	const register double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
-        const register double u_old_j = remote_u_old[j];
-	const register double u_j     = remote_u[j];
+	const index_t j      = pattern->col_couplePattern->index[iptr_ij];
+	const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
+	const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
+        const double u_old_j = remote_u_old[j];
+	const double u_j     = remote_u[j];
 	
 	flux_matrix->col_coupleBlock->val[iptr_ij]=m_ij*(u_old_j-u_old_i)- (m_ij-dt*d_ij)*(u_j-u_i);
       }
@@ -549,18 +549,18 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
   for (i = 0; i < n; ++i) {
-      const register double u_tilde_i = u_tilde[i];
-      const register double u_old_i   = u_old[i];
-      const register double du_i      = u_old_i - u_tilde_i;
+      const double u_tilde_i = u_tilde[i];
+      const double u_old_i   = u_old[i];
+      const double du_i      = u_old_i - u_tilde_i;
       #pragma ivdep
       for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
 	
-	  const register index_t j      = pattern->mainPattern->index[iptr_ij];
-	  const register double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-	  const register double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-          const register double u_tilde_j = u_tilde[j];
-	  const register double u_old_j = u_old[j];
-	  const register double du_j    = u_old_j - u_tilde_j;
+	  const index_t j      = pattern->mainPattern->index[iptr_ij];
+	  const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
+	  const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
+          const double u_tilde_j = u_tilde[j];
+	  const double u_old_j = u_old[j];
+	  const double du_j    = u_old_j - u_tilde_j;
 	  
 	  flux_matrix->mainBlock->val[iptr_ij]=2 * m_ij * ( du_i - du_j ) + dt * d_ij * ( u_tilde_j - u_tilde_i);
 
@@ -568,12 +568,12 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
       #pragma ivdep
       for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
 	
-	const register index_t j      = pattern->col_couplePattern->index[iptr_ij];
-	const register double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
-	const register double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];/* this is in fact -d_ij */
-        const register double u_tilde_j = remote_u_tilde[j];
-	const register double u_old_j = remote_u_old[j];
-	const register double du_j    = u_old_j - u_tilde_j;	
+	const index_t j      = pattern->col_couplePattern->index[iptr_ij];
+	const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
+	const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];/* this is in fact -d_ij */
+        const double u_tilde_j = remote_u_tilde[j];
+	const double u_old_j = remote_u_old[j];
+	const double du_j    = u_old_j - u_tilde_j;	
 
 	flux_matrix->col_coupleBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) + dt * d_ij *  ( u_tilde_j - u_tilde_i); 
 	
@@ -622,21 +622,21 @@ void Paso_FCT_setLowOrderOperator(Paso_TransportProblem * fc) {
 /* printf("sum[%d] = %e -> ", i, sum); */
           /* look at a[i,j] */
           for (iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-              const register index_t j    = pattern->mainPattern->index[iptr_ij];
-              const register double rtmp1 = fc->transport_matrix->mainBlock->val[iptr_ij];
+              const index_t j    = pattern->mainPattern->index[iptr_ij];
+              const double rtmp1 = fc->transport_matrix->mainBlock->val[iptr_ij];
 	      if (j!=i) {
                  /* find entry a[j,i] */
                  #pragma ivdep
                  for (iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
 		   
                     if ( pattern->mainPattern->index[iptr_ji] == i) {
-		        const register double rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
+		        const double rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
 /*
 printf("a[%d,%d]=%e\n",i,j,rtmp1);
 printf("a[%d,%d]=%e\n",j,i,rtmp2);
 */
 
-                        const register double d_ij=-MIN3(0.,rtmp1,rtmp2);
+                        const double d_ij=-MIN3(0.,rtmp1,rtmp2);
                         fc->iteration_matrix->mainBlock->val[iptr_ij]=-(rtmp1+d_ij);
 /* printf("l[%d,%d]=%e\n",i,j,fc->iteration_matrix->mainBlock->val[iptr_ij]); */
                         sum-=d_ij;
@@ -646,14 +646,14 @@ printf("a[%d,%d]=%e\n",j,i,rtmp2);
              }
           }
           for (iptr_ij=pattern->col_couplePattern->ptr[i];iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-              const register index_t    j = pattern->col_couplePattern->index[iptr_ij];
-              const register double  rtmp1 = fc->transport_matrix->col_coupleBlock->val[iptr_ij];
+              const index_t    j = pattern->col_couplePattern->index[iptr_ij];
+              const double  rtmp1 = fc->transport_matrix->col_coupleBlock->val[iptr_ij];
 	      /* find entry a[j,i] */
               #pragma ivdep
               for (iptr_ji=pattern->row_couplePattern->ptr[j]; iptr_ji<pattern->row_couplePattern->ptr[j+1]; ++iptr_ji) {
                     if (pattern->row_couplePattern->index[iptr_ji]==i) {
-                        const register double rtmp2=fc->transport_matrix->row_coupleBlock->val[iptr_ji];
-                        const register double d_ij=-MIN3(0.,rtmp1,rtmp2);
+                        const double rtmp2=fc->transport_matrix->row_coupleBlock->val[iptr_ji];
+                        const double d_ij=-MIN3(0.,rtmp1,rtmp2);
                         fc->iteration_matrix->col_coupleBlock->val[iptr_ij]=-(rtmp1+d_ij);
                         fc->iteration_matrix->row_coupleBlock->val[iptr_ji]=-(rtmp2+d_ij);
                         sum-=d_ij;
@@ -683,7 +683,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
   const Paso_SystemMatrixPattern *pattern = L->pattern;
   const double *u=Paso_Coupler_borrowLocalData(u_coupler);
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
-  register index_t iptr_ij;
+  index_t iptr_ij;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(L);
 
   #pragma omp parallel for private(i) schedule(static)
@@ -693,19 +693,19 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
   if (ABS(a)>0) {
       #pragma omp parallel for schedule(static) private(i, iptr_ij) 
       for (i = 0; i < n; ++i) {
-          register double sum=0;
-          const register double u_i=u[i];
+          double sum=0;
+          const double u_i=u[i];
           #pragma ivdep
   	  for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
                const index_t j=pattern->mainPattern->index[iptr_ij];
-               const register double l_ij=L->mainBlock->val[iptr_ij];
+               const double l_ij=L->mainBlock->val[iptr_ij];
                sum+=l_ij*(u[j]-u_i);
 	       
           }
           #pragma ivdep
   	  for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
                const index_t j=pattern->col_couplePattern->index[iptr_ij];
-               const register double l_ij=L->col_coupleBlock->val[iptr_ij];
+               const double l_ij=L->col_coupleBlock->val[iptr_ij];
                sum+=l_ij*(remote_u[j]-u_i);
           }
           out[i]+=a*sum;

@@ -92,7 +92,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
   {
     #pragma omp for schedule(static) 
     for (i = 0; i < n; ++i) {
-           const register double m=lumped_mass_matrix[i];
+           const double m=lumped_mass_matrix[i];
            flux_limiter->u_tilde[i]=Mu_tilda[i]/m;
     }        
     
@@ -111,12 +111,12 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
     
      #pragma omp  for schedule(static)
      for (i = 0; i < n; ++i) {
-        register double u_min_i=LARGE_POSITIVE_FLOAT;
-        register double u_max_i=-LARGE_POSITIVE_FLOAT;
+        double u_min_i=LARGE_POSITIVE_FLOAT;
+        double u_max_i=-LARGE_POSITIVE_FLOAT;
         #pragma ivdep
         for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-             const register index_t j=pattern->mainPattern->index[iptr_ij];
-             const register double u_j=flux_limiter->u_tilde[j];
+             const index_t j=pattern->mainPattern->index[iptr_ij];
+             const double u_j=flux_limiter->u_tilde[j];
              u_min_i=MIN(u_min_i,u_j);
              u_max_i=MAX(u_max_i,u_j);
         }
@@ -132,13 +132,13 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
      /* now we look at the couple matrix and set the final value for QP, QN */
      #pragma omp  for schedule(static)
      for (i = 0; i < n; ++i) {
-        const register double u_i = flux_limiter->u_tilde[i];
-        register double u_min_i = flux_limiter->MQ[2*i];
-        register double u_max_i = flux_limiter->MQ[2*i+1];
+        const double u_i = flux_limiter->u_tilde[i];
+        double u_min_i = flux_limiter->MQ[2*i];
+        double u_max_i = flux_limiter->MQ[2*i+1];
         #pragma ivdep
         for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-             const register index_t j  = pattern->col_couplePattern->index[iptr_ij];
-             const register double u_j = remote_u_tilde[j];
+             const index_t j  = pattern->col_couplePattern->index[iptr_ij];
+             const double u_j = remote_u_tilde[j];
              u_min_i=MIN(u_min_i,u_j);
              u_max_i=MAX(u_max_i,u_j);
          }
@@ -163,7 +163,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
   const double* remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
   Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
   /* const double *lumped_mass_matrix = flux_limiter->borrowed_lumped_mass_matrix; */
-  register index_t iptr_ij;
+  index_t iptr_ij;
   dim_t i;
  
   #pragma omp parallel private(i, iptr_ij)
@@ -171,19 +171,19 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
        #pragma omp for schedule(static)   
        for (i = 0; i < n; ++i) {
     
-          const register double u_tilde_i=u_tilde[i];
-          register double P_P_i=0.;
-          register double P_N_i=0.;
-	  const register double MQ_min=flux_limiter->MQ[2*i];
-	  const register double MQ_max=flux_limiter->MQ[2*i+1]; 
-	  register double R_N_i =1;
-	  register double R_P_i =1;
+          const double u_tilde_i=u_tilde[i];
+          double P_P_i=0.;
+          double P_N_i=0.;
+	  const double MQ_min=flux_limiter->MQ[2*i];
+	  const double MQ_max=flux_limiter->MQ[2*i+1]; 
+	  double R_N_i =1;
+	  double R_P_i =1;
           #pragma ivdep
           for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-             const register index_t j=pattern->mainPattern->index[iptr_ij];
+             const index_t j=pattern->mainPattern->index[iptr_ij];
 	     if (i != j ) {
-                    const register double f_ij=adf->mainBlock->val[iptr_ij];
-	            const register double u_tilde_j=u_tilde[j];
+                    const double f_ij=adf->mainBlock->val[iptr_ij];
+	            const double u_tilde_j=u_tilde[j];
 	            /* pre-limiter */
                     if (f_ij * (u_tilde_j-u_tilde_i) >= 0) {
     	               adf->mainBlock->val[iptr_ij]=0;
@@ -200,9 +200,9 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
 	  /* now the couple matrix: */
 	  #pragma ivdep
 	  for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-             const register index_t j=pattern->col_couplePattern->index[iptr_ij];
-             const register double f_ij=adf->col_coupleBlock->val[iptr_ij];
-	     const register double u_tilde_j=remote_u_tilde[j];
+             const index_t j=pattern->col_couplePattern->index[iptr_ij];
+             const double f_ij=adf->col_coupleBlock->val[iptr_ij];
+	     const double u_tilde_j=remote_u_tilde[j];
 	      /* pre-limiter */
               if (f_ij * (u_tilde_j-u_tilde_i) >= 0) {
     	           adf->col_coupleBlock->val[iptr_ij]=0;
@@ -236,34 +236,34 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_l
   const Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
   double *R = flux_limiter->R;
   double *remote_R=NULL;
-  register dim_t i;
-  register index_t iptr_ij;
+  dim_t i;
+  index_t iptr_ij;
 
   remote_R=Paso_Coupler_finishCollect(flux_limiter->R_coupler);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
   for (i = 0; i < n; ++i) {
     
-     const register double R_N_i=R[2*i];
-     const register double R_P_i=R[2*i+1];
-     register double f_i=b[i];
+     const double R_N_i=R[2*i];
+     const double R_P_i=R[2*i+1];
+     double f_i=b[i];
      
      #pragma ivdep
      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-         const register index_t j    = pattern->mainPattern->index[iptr_ij];
-         const register double  f_ij = adf->mainBlock->val[iptr_ij];
-	 const register double  R_P_j = R[2*j+1];
-	 const register double  R_N_j = R[2*j];
-         const register double  rtmp=((f_ij >=0 ) ? MIN(R_P_i,R_N_j) : MIN(R_N_i,R_P_j) ) ;
+         const index_t j    = pattern->mainPattern->index[iptr_ij];
+         const double  f_ij = adf->mainBlock->val[iptr_ij];
+	 const double  R_P_j = R[2*j+1];
+	 const double  R_N_j = R[2*j];
+         const double  rtmp=((f_ij >=0 ) ? MIN(R_P_i,R_N_j) : MIN(R_N_i,R_P_j) ) ;
 	 f_i+=f_ij*rtmp;
      }
      #pragma ivdep
      for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-          const register index_t j    = pattern->col_couplePattern->index[iptr_ij];
-          const register double  f_ij = adf->col_coupleBlock->val[iptr_ij];
-	  const register double  R_P_j =  remote_R[2*j+1];
-	  const register double  R_N_j =  remote_R[2*j];
-          const register double rtmp=(f_ij >=0 ) ? MIN(R_P_i, R_N_j) : MIN(R_N_i, R_P_j) ;
+          const index_t j    = pattern->col_couplePattern->index[iptr_ij];
+          const double  f_ij = adf->col_coupleBlock->val[iptr_ij];
+	  const double  R_P_j =  remote_R[2*j+1];
+	  const double  R_N_j =  remote_R[2*j];
+          const double rtmp=(f_ij >=0 ) ? MIN(R_P_i, R_N_j) : MIN(R_N_i, R_P_j) ;
           f_i+=f_ij*rtmp;
      }
      b[i]=f_i;
