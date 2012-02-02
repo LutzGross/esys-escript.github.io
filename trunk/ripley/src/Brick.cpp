@@ -759,7 +759,7 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
     const dim_t numComp = in.getDataPointSize();
     const double h0 = m_l0/m_gNE0;
     const double h1 = m_l1/m_gNE1;
-    const double h2 = m_l1/m_gNE2;
+    const double h2 = m_l2/m_gNE2;
     const double C0 = .044658198738520451079;
     const double C1 = .16666666666666666667;
     const double C2 = .21132486540518711775;
