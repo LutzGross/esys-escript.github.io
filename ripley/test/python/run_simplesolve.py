@@ -34,27 +34,16 @@ Test suite for the linearPDE  and pdetools test on ripley
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import unittest, sys
-
 from esys.escript import *
 from esys.ripley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
 SOLVER_VERBOSE=False 
-# setNumberOfThreads(2)
 
 try:
      RIPLEY_TEST_DATA=os.environ['RIPLEY_TEST_DATA']
 except KeyError:
      RIPLEY_TEST_DATA='.'
-
-# number of elements in the spatial directions
-NE0=8
-NE1=10
-NE2=12
-
-NE0=12
-NE1=12
-NE2=8
 
 SOLVER_TOL=1.e-8
 REL_TOL=1.e-6
@@ -62,11 +51,28 @@ REL_TOL=1.e-6
 FAC_DIAG=1.
 FAC_OFFDIAG=-0.4
 
+# number of elements in the spatial directions
+NE0=12
+NE1=12
+NE2=8
+mpiSize=getMPISizeWorld()
+for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+    NX=x
+    NY=mpiSize/x
+    if NX*NY == mpiSize:
+        break
+
+for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+    NXb=x[0]
+    NYb=x[1]
+    NZb=mpiSize/(x[0]*x[1])
+    if NXb*NYb*NZb == mpiSize:
+        break
 
 class SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         # Tell about how many MPI CPUs and OpenMP threads
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))
@@ -95,7 +101,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))
@@ -124,7 +130,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -162,36 +168,9 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
-     def test_solve(self):
-        domain=Rectangle(NE0,NE1,2,l0=1.,l1=1)
-        x=Solution(domain).getX()
-        # --- set exact solution ----
-        u_ex=1.+2.*x[0]+3.*x[1]+4.*x[0]**2+5.*x[1]*x[0]+6.*x[1]**2
-        # --- set exact gradient -----------
-        g_ex=Data(0.,(2,),Solution(domain))
-        g_ex[0]=2.+8.*x[0]+5.*x[1]
-        g_ex[1]=3.+5.*x[0]+12.*x[1]
-        # -------- test gradient --------------------------------
-        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
-        # -------- set-up PDE ----------------------------------- 
-        pde=LinearPDE(domain,numEquations=1)
-        mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask)
-        pde.setValue(A=kronecker(2),y=inner(g_ex,domain.getNormal()),Y=-20.)
-        # -------- get the solution ---------------------------
-        pde.getSolverOptions().setTolerance(SOLVER_TOL)
-        pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
-        pde.getSolverOptions().setPackage(SolverOptions.PASO)
-        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
-        u=pde.getSolution()
-        # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)
-        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[2]
         # --- set exact gradient -----------
@@ -218,7 +197,7 @@ class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -267,7 +246,7 @@ class SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
 
 class SimpleSolve_Rectangle_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))
@@ -297,7 +276,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
 
 class SimpleSolve_Rectangle_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -337,7 +316,7 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[2]
         # --- set exact gradient -----------
@@ -365,7 +344,7 @@ class SimpleSolve_Brick_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         
 class SimpleSolve_Brick_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -414,7 +393,7 @@ class SimpleSolve_Brick_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         
 class SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(0,Solution(domain))
@@ -445,7 +424,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
 
 class SimpleSolve_Rectangle_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Rectangle(NE0,NE1)
+        domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
@@ -485,7 +464,7 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 class SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         u_ex=1.+2.*x[0]+3.*x[1]+4.*x[2]
         # --- set exact gradient -----------
@@ -513,7 +492,7 @@ class SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         
 class SimpleSolve_Brick_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
-        domain=Brick(NE0,NE1,NE2)
+        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
         # --- set exact solution ----
         u_ex=Vector(0,Solution(domain))
