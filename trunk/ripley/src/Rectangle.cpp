@@ -649,9 +649,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     o[INDEX3(i,1,2,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
                     o[INDEX3(i,0,3,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
                     o[INDEX3(i,1,3,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
-                } /* end of component loop i */
-            } /* end of k0 loop */
-        } /* end of k1 loop */
+                } // end of component loop i
+            } // end of k0 loop
+        } // end of k1 loop
     } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
         out.requireWrite();
 #pragma omp parallel for
@@ -665,9 +665,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
                     o[INDEX3(i,1,0,numComp,2)] = cy2*(f_00[i] + f_10[i]) + cy5*(f_01[i] + f_11[i]);
-                } /* end of component loop i */
-            } /* end of k0 loop */
-        } /* end of k1 loop */
+                } // end of component loop i
+            } // end of k0 loop
+        } // end of k1 loop
+
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 #pragma omp parallel
@@ -685,9 +686,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                         o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
                         o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
                         o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
-                    } /* end of component loop i */
-                } /* end of k1 loop */
-            } /* end of face 0 */
+                    } // end of component loop i
+                } // end of k1 loop
+            } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -701,9 +702,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                         o[INDEX3(i,1,0,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
                         o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
                         o[INDEX3(i,1,1,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
-                    } /* end of component loop i */
-                } /* end of k1 loop */
-            } /* end of face 1 */
+                    } // end of component loop i
+                } // end of k1 loop
+            } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
@@ -717,9 +718,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                         o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
                         o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
                         o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of face 2 */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
@@ -733,10 +734,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                         o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
                         o[INDEX3(i,0,1,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
                         o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of face 3 */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of face 3
         } // end of parallel section
+
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
 #pragma omp parallel
@@ -752,9 +754,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
                         o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
-                    } /* end of component loop i */
-                } /* end of k1 loop */
-            } /* end of face 0 */
+                    } // end of component loop i
+                } // end of k1 loop
+            } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
                 for (index_t k1=0; k1 < m_NE1; ++k1) {
@@ -766,9 +768,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
                         o[INDEX3(i,1,0,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
-                    } /* end of component loop i */
-                } /* end of k1 loop */
-            } /* end of face 1 */
+                    } // end of component loop i
+                } // end of k1 loop
+            } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
@@ -780,9 +782,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
                         o[INDEX3(i,1,0,numComp,2)] = cy2*(f_00[i] + f_10[i]) + cy5*(f_01[i] + f_11[i]);
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of face 2 */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
                 for (index_t k0=0; k0 < m_NE0; ++k0) {
@@ -794,9 +796,9 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
                         o[INDEX3(i,1,0,numComp,2)] = cy5*(f_01[i] + f_11[i]) + cy2*(f_00[i] + f_10[i]);
-                    } /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of face 3 */
+                    } // end of component loop i
+                } // end of k0 loop
+            } // end of face 3
         } // end of parallel section
     }
 }
@@ -809,11 +811,12 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
     const double h1 = m_l1/m_gNE1;
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
-    if (arg.getFunctionSpace().getTypeCode() == Elements) {
-        const double w = h0*h1/4.;
+    const int fs=arg.getFunctionSpace().getTypeCode();
+    if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
+            const double w = h0*h1/4.;
 #pragma omp for nowait
             for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
                 for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
@@ -824,15 +827,15 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                         const double f2 = f[INDEX2(i,2,numComp)];
                         const double f3 = f[INDEX2(i,3,numComp)];
                         int_local[i]+=(f0+f1+f2+f3)*w;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-
+                    }  // end of component loop i
+                } // end of k0 loop
+            } // end of k1 loop
 #pragma omp critical
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedElements) {
+
+    } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
         const double w = h0*h1;
 #pragma omp parallel
         {
@@ -843,20 +846,20 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                     const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE0));
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*w;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
-            } /* end of k1 loop */
-
+                    }
+                }
+            }
 #pragma omp critical
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == FaceElements) {
-        const double w0 = h0/2.;
-        const double w1 = h1/2.;
+
+    } else if (fs == FaceElements && arg.actsExpanded()) {
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
+            const double w0 = h0/2.;
+            const double w1 = h1/2.;
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
                 for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
@@ -865,8 +868,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                         const double f0 = f[INDEX2(i,0,numComp)];
                         const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w1;
-                    }  /* end of component loop i */
-                } /* end of k1 loop */
+                    }  // end of component loop i
+                } // end of k1 loop
             }
 
             if (m_faceOffset[1] > -1) {
@@ -877,8 +880,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                         const double f0 = f[INDEX2(i,0,numComp)];
                         const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w1;
-                    }  /* end of component loop i */
-                } /* end of k1 loop */
+                    }  // end of component loop i
+                } // end of k1 loop
             }
 
             if (m_faceOffset[2] > -1) {
@@ -889,8 +892,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                         const double f0 = f[INDEX2(i,0,numComp)];
                         const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w0;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
+                    }  // end of component loop i
+                } // end of k0 loop
             }
 
             if (m_faceOffset[3] > -1) {
@@ -901,15 +904,15 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                         const double f0 = f[INDEX2(i,0,numComp)];
                         const double f1 = f[INDEX2(i,1,numComp)];
                         int_local[i]+=(f0+f1)*w0;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
+                    }  // end of component loop i
+                } // end of k0 loop
             }
-
 #pragma omp critical
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+
+    } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
@@ -919,8 +922,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                     const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*h1;
-                    }  /* end of component loop i */
-                } /* end of k1 loop */
+                    }
+                }
             }
 
             if (m_faceOffset[1] > -1) {
@@ -929,8 +932,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                     const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*h1;
-                    }  /* end of component loop i */
-                } /* end of k1 loop */
+                    }
+                }
             }
 
             if (m_faceOffset[2] > -1) {
@@ -939,8 +942,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                     const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*h0;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
+                    }
+                }
             }
 
             if (m_faceOffset[3] > -1) {
@@ -949,15 +952,15 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
                     const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*h0;
-                    }  /* end of component loop i */
-                } /* end of k0 loop */
+                    }
+                }
             }
 
 #pragma omp critical
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    }
+    } // function space selector
 }
 
 //protected

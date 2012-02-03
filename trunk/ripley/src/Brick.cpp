@@ -1199,7 +1199,8 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
     const index_t left = (m_offset0==0 ? 0 : 1);
     const index_t bottom = (m_offset1==0 ? 0 : 1);
     const index_t front = (m_offset2==0 ? 0 : 1);
-    if (arg.getFunctionSpace().getTypeCode() == Elements) {
+    const int fs = arg.getFunctionSpace().getTypeCode();
+    if (fs == Elements && arg.actsExpanded()) {
         const double w_0 = h0*h1*h2/8.;
 #pragma omp parallel
         {
@@ -1228,7 +1229,8 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedElements) {
+
+    } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
         const double w_0 = h0*h1*h2;
 #pragma omp parallel
         {
@@ -1249,7 +1251,8 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-    } else if (arg.getFunctionSpace().getTypeCode() == FaceElements) {
+
+    } else if (fs == FaceElements && arg.actsExpanded()) {
         const double w_0 = h1*h2/4.;
         const double w_1 = h0*h2/4.;
         const double w_2 = h0*h1/4.;
@@ -1357,7 +1360,7 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
                 integrals[i]+=int_local[i];
         } // end of parallel section
 
-    } else if (arg.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
+    } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
         const double w_0 = h1*h2;
         const double w_1 = h0*h2;
         const double w_2 = h0*h1;
@@ -1440,8 +1443,7 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
             for (index_t i=0; i<numComp; i++)
                 integrals[i]+=int_local[i];
         } // end of parallel section
-
-    }
+    } // function space selector
 }
 
 //protected
