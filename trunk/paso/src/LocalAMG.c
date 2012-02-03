@@ -550,7 +550,7 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
       }
 
       /* lambda[i] = |undecided k in ST[i]| + 2 * |F-unknown in ST[i]| */
-      #pragma omp parallel for private(i, j, itmp) schedule(static)
+      #pragma omp parallel for private(i, j, p, itmp) schedule(static)
       for (i=0;i<n;++i) {
 	 if (split_marker[i]==PASO_AMG_UNDECIDED) {
 	    itmp=lambda[i];
