@@ -32,7 +32,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 
     double *local_X = NULL, *element_size_array;
     dim_t e, n0, n1, q, i, NVertices, NN, NS, numQuad, numDim;
-    double d, diff, min_diff;
+    double d, diff, max_diff;
     Dudley_resetError();
 
     if (nodes == NULL || elements == NULL)
@@ -84,14 +84,14 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 	    if (!Dudley_checkPtr(local_X))
 	    {
 		/* open the element loop */
-#pragma omp for private(e,min_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
+#pragma omp for private(e,max_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
 		for (e = 0; e < elements->numElements; e++)
 		{
 		    /* gather local coordinates of nodes into local_X(numDim,NN): */
 		    Dudley_Util_Gather_double(NS, &(elements->Nodes[INDEX2(0, e, NN)]), numDim, nodes->Coordinates,
 					      local_X);
 		    /* calculate minimal differences */
-		    min_diff = -1;
+		    max_diff = 0;
 		    for (n0 = 0; n0 < NVertices; n0++)
 		    {
 			for (n1 = n0 + 1; n1 < NVertices; n1++)
@@ -102,21 +102,16 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 				d = local_X[INDEX2(i, n0, numDim)] - local_X[INDEX2(i, n1, numDim)];
 				diff += d * d;
 			    }
-			    if (min_diff < 0)
-			    {
-				min_diff = diff;
-			    }
-			    else
-			    {
-				min_diff = MIN(min_diff, diff);
-			    }
+
+    			    max_diff = MAX(max_diff, diff);
+			    
 			}
 		    }
-		    min_diff = sqrt(MAX(min_diff, 0));
-		    /* set all values to min_diff */
+		    max_diff = sqrt(max_diff);
+		    /* set all values to max_diff */
 		    element_size_array = getSampleDataRW(element_size, e);
 		    for (q = 0; q < numQuad; q++)
-			element_size_array[q] = min_diff;
+			element_size_array[q] = max_diff;
 		}
 	    }
 	    THREAD_MEMFREE(local_X);
