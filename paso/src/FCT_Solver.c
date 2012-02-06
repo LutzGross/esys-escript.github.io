@@ -186,7 +186,7 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
 /* options2.preconditioner = PASO_GS; */
     }
     options2.use_local_preconditioner = FALSE;
-    options2.sweeps=1;
+    options2.sweeps=-1;
     
     Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
     Paso_SystemMatrix_setPreconditioner(fctp->iteration_matrix, &options2);
@@ -226,7 +226,6 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
     Paso_SystemMatrix * iteration_matrix = fct_solver->transportproblem->iteration_matrix;
     err_t errorCode = SOLVER_NO_ERROR;
   
-   
     Paso_Coupler_startCollect(fct_solver->u_old_coupler,u_old);
     Paso_Coupler_finishCollect(fct_solver->u_old_coupler);
     
@@ -235,28 +234,34 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
         * low order transport matrix l. Therefore a=-dt*0.5 is used. */
 	  
     Paso_FCT_Solver_setMuPaLu(b, fct_solver->transportproblem->lumped_mass_matrix, 
-			     fct_solver->u_old_coupler, -dt*0.5, iteration_matrix);
-    
+			     fct_solver->u_old_coupler, -dt*0.5, iteration_matrix); 
     /* solve for u_tilde : u_tilda = m^{-1} * b   */ 
     Paso_FCT_FluxLimiter_setU_tilda(fct_solver->flux_limiter, b);
     /* u_tilda_connector is completed */
-   
+    
     /* calculate anti-diffusive fluxes for u_tilda */
     Paso_FCT_setAntiDiffusionFlux_linearCN(fct_solver->flux_limiter->antidiffusive_fluxes, 
 					   fct_solver->transportproblem, dt, 
 					   fct_solver->flux_limiter->u_tilde_coupler, 
 					   fct_solver->u_old_coupler);
-  
+
+
    /* b_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
    Paso_FCT_FluxLimiter_addLimitedFluxes_Start(fct_solver->flux_limiter);
    Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(fct_solver->flux_limiter, b); 
    
    
-   /* solve (m-dt/2*L) u = b */   
+   /* solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1 */
+   
    /* initial guess is u<- -u + 2*u_tilde */
    Paso_Update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
+   Paso_Scale(n, b,fct_solver->omega ); 
    sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
-   
+
+   if (options->verbose) {
+       const double norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
+       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL,sweep_max); 
+   }
    errorCode = Paso_Preconditioner_Smoother_solve_byTolerance( iteration_matrix,  ((Paso_Preconditioner*) (iteration_matrix->solver_p))->gs, 
 						   u, b, RTOL, &sweep_max, TRUE);
    if (errorCode == PRECONDITIONER_NO_ERROR) {
@@ -551,7 +556,7 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
   for (i = 0; i < n; ++i) {
       const double u_tilde_i = u_tilde[i];
       const double u_old_i   = u_old[i];
-      const double du_i      = u_old_i - u_tilde_i;
+      const double du_i      = u_tilde_i - u_old_i;
       #pragma ivdep
       for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
 	
@@ -560,10 +565,9 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
 	  const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
           const double u_tilde_j = u_tilde[j];
 	  const double u_old_j = u_old[j];
-	  const double du_j    = u_old_j - u_tilde_j;
+	  const double du_j    = u_tilde_j - u_old_j;
 	  
-	  flux_matrix->mainBlock->val[iptr_ij]=2 * m_ij * ( du_i - du_j ) + dt * d_ij * ( u_tilde_j - u_tilde_i);
-
+	  flux_matrix->mainBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) - dt * d_ij * ( u_tilde_i - u_tilde_j);
       }
       #pragma ivdep
       for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
@@ -573,9 +577,9 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
 	const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];/* this is in fact -d_ij */
         const double u_tilde_j = remote_u_tilde[j];
 	const double u_old_j = remote_u_old[j];
-	const double du_j    = u_old_j - u_tilde_j;	
+	const double du_j    = u_tilde_j - u_old_j;	
 
-	flux_matrix->col_coupleBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) + dt * d_ij *  ( u_tilde_j - u_tilde_i); 
+	flux_matrix->col_coupleBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) - dt * d_ij *  ( u_tilde_i - u_tilde_j); 
 	
       }
   }

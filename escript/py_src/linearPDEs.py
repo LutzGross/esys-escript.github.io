@@ -1214,7 +1214,7 @@ class SolverOptions(object):
         :param method: key of the ODE solver method to be used.
         :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
         """
-	if method==None: method=self.CRANK_NICOLSON
+	if method==None: method=self.LINEAR_CRANK_NICOLSON
         if not method in [ SolverOptions.CRANK_NICOLSON, SolverOptions.BACKWARD_EULER, SolverOptions.LINEAR_CRANK_NICOLSON ]:
              raise ValueError("unknown ODE solver method %s"%method)
         self.__ode_solver=method

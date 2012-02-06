@@ -51,7 +51,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
    Paso_FCT_Solver *fctsolver=NULL;
       
 
-   dim_t i_substeps, n_substeps, num_failures=0;
+   dim_t i_substeps=0, n_substeps=1, num_failures=0;
    double *u_save=NULL, *u2=NULL;
    double  dt2,t=0, dt3;
    err_t errorCode=SOLVER_NO_ERROR;
@@ -111,16 +111,18 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	while( (dt-t)>dt*sqrt(EPSILON) && Esys_noError()) {
 
 	    n_substeps=ceil((dt-t)/dt2);
-	    dt3=(dt-t)/n_substeps;
-	    if (options->verbose) printf("Paso_TransportProblem_solve: number of substeps = %d with dt = %e.\n",n_substeps,dt3);
-            i_substeps=0;
-	    /* initialize the iteration matrix */
-	    Paso_FCT_Solver_initialize(dt3, fctsolver, options, &pp);
-            Paso_ReactiveSolver_initialize(dt3/2, rsolver, options);
-	    errorCode = SOLVER_NO_ERROR;
+	    if ( n_substeps <= 0) {
+	       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: time stepping break down.");
+	    } else { 
+	      dt3=(dt-t)/n_substeps;
+	      if (options->verbose) printf("Paso_TransportProblem_solve: number of substeps = %d with dt = %e.\n",n_substeps,dt3);
+	      	      /* initialize the iteration matrix */
+	      Paso_FCT_Solver_initialize(dt3, fctsolver, options, &pp);
+	      Paso_ReactiveSolver_initialize(dt3/2, rsolver, options);
+	      errorCode = SOLVER_NO_ERROR;
 
-	    /* start iteration */
-	    for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
+	      /* start iteration */
+	      for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
 	        if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
    	        Paso_Copy(n,u_save, u); /* create copy for restart in case of failure */
 		/* updates u */
@@ -142,9 +144,9 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 		    t+=dt3;
 		    Paso_Copy(n,u, u2);
 		}
-	    }
-	    if (errorCode == SOLVER_NO_ERROR) {
-	    } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
+	      }
+	      if (errorCode == SOLVER_NO_ERROR) {
+	      } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
                     /* if num_failures_max failures in a row: give up */
                     if (num_failures >= num_failures_max) {
                        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: No convergence after time step reductions.");
@@ -155,19 +157,20 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                        num_failures++;
 		       Paso_Copy(n,u, u_save); /* reset initial value */
                     }
-             } else if (errorCode == SOLVER_INPUT_ERROR) {
+	      } else if (errorCode == SOLVER_INPUT_ERROR) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
-	     } else if (errorCode == SOLVER_MEMORY_ERROR) {
+	      } else if (errorCode == SOLVER_MEMORY_ERROR) {
 	        Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allocation failed.");
-	     } else if (errorCode == SOLVER_BREAKDOWN) {
+	      } else if (errorCode == SOLVER_BREAKDOWN) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
-	     } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+	      } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
-	     } else {
+	      } else {
 	        Esys_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
-	     }
+	      }
+	    }
 	}
-     }
+     } /* end of time loop */ 
     /* 
      *  clean-up:
      *

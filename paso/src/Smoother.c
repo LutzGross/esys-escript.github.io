@@ -158,15 +158,15 @@ err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Pas
    while (1) {
 	 Paso_Copy(n, b_new, b);
          Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
-	 norm_r=Paso_lsup(n,b,A_p->mpi_info);
+	 norm_r=Paso_lsup(n,b_new,A_p->mpi_info);
 	 if (norm_r <= rtol * norm_b ) break;
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);	 
 	 Paso_AXPY(n, x, 1., b_new); 
-	 s++;
-	 if (s > max_sweeps) {
+	 if (s >= max_sweeps) {
 	      errorCode = PRECONDITIONER_MAXITER_REACHED;
 	      break;
 	 }
+	 s++;
    }
    *sweeps=s;
    return errorCode;
