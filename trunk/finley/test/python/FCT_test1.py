@@ -43,8 +43,8 @@ __url__="https://launchpad.net/escript-finley"
 #
 from esys.escript import *
 from esys.escript.linearPDEs import TransportPDE
-#from esys.finley import Rectangle, Brick
-from esys.ripley import Rectangle, Brick
+from esys.finley import Rectangle, Brick
+#from esys.ripley import Rectangle, Brick
 from esys.weipa import saveVTK
 from math import pi, ceil
 NE=128
@@ -59,41 +59,62 @@ dt=1e-3*10*10
 E=1.e-3
 
 
-if DIM==2:
-  dom=Rectangle(NE,NE)
-else:
-  dom=Brick(NE,NE,NE)
+dom=Rectangle(NE,NE)
 u0=dom.getX()[0]
 # saveVTK("u.%s.vtu"%0,u=u0)
 # print "XX"*80
-#dom.setX(2*dom.getX()-1)
 
 # set initial value 
+#dom.setX(2*dom.getX()-1)
+#x=dom.getX()
+#r=sqrt(x[0]**2+(x[1]-1./3.)**2)
+#u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
+
+#x=Function(dom).getX()
+#if DIM == 2:
+#   V=OMEGA0*(x[0]*[0,-1]+x[1]*[1,0])
+#else:
+#   V=OMEGA0*(x[0]*[0,cos(ALPHA),0]+x[1]*[-cos(ALPHA),0,sin(ALPHA)]+x[2]*[0.,-sin(ALPHA),0.])
+
 x=dom.getX()
-r=sqrt(x[0]**2+(x[1]-1./3.)**2)
-u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
+
+R0=0.15
+#cylinder:
+X0=0.5
+Y0=0.75
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=whereNegative(r-1)*wherePositive(wherePositive(abs(x[0]-X0)-0.025)+wherePositive(x[1]-0.85))
+# cone:
+X0=0.5
+Y0=0.25
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=u0+wherePositive(1-r)*(1-r)
+#hump
+X0=0.25
+Y0=0.5
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=u0+1./4.*(1+cos(pi*clip(r,maxval=1)))
 
 x=Function(dom).getX()
-if DIM == 2:
-   V=OMEGA0*(x[0]*[0,-1]+x[1]*[1,0])
-else:
-   V=OMEGA0*(x[0]*[0,cos(ALPHA),0]+x[1]*[-cos(ALPHA),0,sin(ALPHA)]+x[2]*[0.,-sin(ALPHA),0.])
+V=OMEGA0*((0.5-x[0])*[0,1]+(0.5-x[1])*[-1,0])
 #===================
 fc=TransportPDE(dom,numEquations=1)
 fc.getSolverOptions().setVerbosityOn()
+fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
 x=Function(dom).getX()
 fc.setValue(M=1,C=V)
 
 c=0
 saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
-dt=fc.getSafeTimeStepSize() * 20.
+dt=fc.getSafeTimeStepSize() 
+#dt=1.e-3
 print "dt = ",dt
 t=T0
 print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
+#T_END=200*dt
 while t<T_END:
    
     print("time step t=",t+dt)	
