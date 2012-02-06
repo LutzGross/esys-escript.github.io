@@ -528,7 +528,7 @@ void Brick::setToSize(escript::Data& out) const
         const double xSize=getFirstCoordAndSpacing(0).second;
         const double ySize=getFirstCoordAndSpacing(1).second;
         const double zSize=getFirstCoordAndSpacing(2).second;
-        const double size=min(min(xSize,ySize),zSize);
+        const double size=sqrt(xSize*xSize+ySize*ySize+zSize*zSize);
 #pragma omp parallel for
         for (index_t k = 0; k < getNumElements(); ++k) {
             double* o = out.getSampleDataRW(k);
