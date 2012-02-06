@@ -434,7 +434,7 @@ void Rectangle::setToSize(escript::Data& out) const
         const dim_t numQuad=out.getNumDataPointsPerSample();
         const double hSize=getFirstCoordAndSpacing(0).second;
         const double vSize=getFirstCoordAndSpacing(1).second;
-        const double size=min(hSize,vSize);
+        const double size=sqrt(hSize*hSize+vSize*vSize);
 #pragma omp parallel for
         for (index_t k = 0; k < getNumElements(); ++k) {
             double* o = out.getSampleDataRW(k);
