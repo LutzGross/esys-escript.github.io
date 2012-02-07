@@ -2,7 +2,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -12,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -265,8 +265,11 @@ class NonlinearPDE(object):
                     A=numpy.empty(shape+dgdu.getShape(), dtype=object)
                     for i in numpy.ndindex(shape):
                         for j in numpy.ndindex(dgdu.getShape()):
-                            tmp=dXdu[i].expand().coeff(dgdu[j])
-                            A[i,j]=0 if tmp is None else tmp
+                            y=dXdu[i]
+                            x=dgdu[j]
+                            A[i,j]=(y-y.subs(x,0)).subs(x,1)
+                            #tmp=dXdu[i].expand().coeff(dgdu[j])
+                            #A[i,j]=0 if tmp is None else tmp
                     A=Symbol(A).simplify()
                     B=(dXdu-util.matrix_mult(A,dgdu)).simplify()
                 else:  #u.getRank()==1
@@ -284,8 +287,15 @@ class NonlinearPDE(object):
                                     if dgdu[k,k,l]==0:
                                         A[i,j,k,l]=0
                                     else:
-                                        tmp=dXdu[i,j,k].expand().coeff(dgdu[k,k,l])
-                                        A[i,j,k,l]=0 if tmp is None else tmp
+                                        # expand() and coeff() are very slow so
+                                        # we use this identity instead:
+                                        # Let y=... + a*x + ...
+                                        # a==(y-y.subs(x,0)).subs(x,1)
+                                        y=dXdu[i,j,k]
+                                        x=dgdu[k,k,l]
+                                        A[i,j,k,l]=(y-y.subs(x,0)).subs(x,1)
+                                        #tmp=dXdu[i,j,k].expand().coeff(dgdu[k,k,l])
+                                        #A[i,j,k,l]=0 if tmp is None else tmp
                                         #tmp=sympy.collect(dXdu[i,j,k].expand(), dgdu[k,k,l], evaluate=False, exact=True)
                                         #try:
                                         #    A[i,j,k,l]=tmp[dgdu[k,k,l]]
@@ -297,7 +307,10 @@ class NonlinearPDE(object):
                     A=Symbol(A).expand() #.simplify()
                     self.trace("Expanding A took %f seconds."%(time()-ttt0))
                     ttt0=time()
-                    B=(dXdu-A.tensorProduct(dgdu.transpose(1),2)).expand() #simplify()
+                    B=dXdu-Symbol(A).tensorProduct(dgdu.transpose(1),2)
+                    self.trace("Computing B took %f seconds."%(time()-ttt0))
+                    ttt0=time()
+                    B=B.expand() #simplify()
                     self.trace("Expanding B took %f seconds."%(time()-ttt0))
 
                 if name=='X_reduced':
@@ -349,7 +362,10 @@ class NonlinearPDE(object):
                     C=Symbol(C).simplify()
                     self.trace("Simplifying C took %f seconds."%(time()-ttt0))
                     ttt0=time()
-                    D=(dYdu-C.tensorProduct(dgdu.transpose(1),2)).simplify()
+                    D=dYdu-C.tensorProduct(dgdu.transpose(1),2)
+                    self.trace("Computing D took %f seconds."%(time()-ttt0))
+                    ttt0=time()
+                    D=D.simplify()
                     self.trace("Simplifying D took %f seconds."%(time()-ttt0))
 
                 if name=='Y_reduced':
