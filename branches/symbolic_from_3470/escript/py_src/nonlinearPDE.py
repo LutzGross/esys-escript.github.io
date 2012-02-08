@@ -281,7 +281,7 @@ class NonlinearPDE(object):
         if self.coeffs.has_key(name):
 	     return self.coeffs[name]
 	else:
-	     return IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+	     raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
         
     def setValue(self,**coefficients):
@@ -310,7 +310,7 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-	        IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape ) )
+	        raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape ) )
             rank=len(shape)
             if name=="X" or name=="X_reduced":
                 # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
