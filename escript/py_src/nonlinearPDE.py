@@ -63,9 +63,9 @@ class NonlinearPDE(object):
     Constraints for the solution prescribe the value of the solution at certain
     locations in the domain. They have the form
 
-    *u=r* where *q>0*
+    *u=u0* where *q>0*
 
-    *r* and *q* are each scalar where *q* is the characteristic function
+    *u0* and *q* are each scalar where *q* is the characteristic function
     defining where the constraint is applied. The constraints override any
     other condition set by the PDE or the boundary condition.
 
@@ -80,7 +80,7 @@ class NonlinearPDE(object):
 
         u = Symbol('u', dim=dom.getDim())
         p = NonlinearPDE(dom, u)
-        p.setValue(X=grad(u), Y=1.)
+        p.setValue(X=grad(u), Y=5*u)
         v = p.getSolution(u=0.)
     """
 
@@ -94,9 +94,11 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: if True debug information is printed
         """
+        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "q" ]
         self.coeffs={}
         self._u=u
         self._debug=debug
+        self.dim = domain.getDim()
         if u.getRank()==0:
             numEquations=1
         else:
@@ -112,7 +114,16 @@ class NonlinearPDE(object):
         :rtype: ``str``
         """
         return "<NonlinearPDE %d>"%id(self)
+        
+    def getSolutionSymbol(self):
+        """
+        Returns the symbol of the PDE solution
 
+        :return: returns the symbol of the PDE solution
+        :rtype: `Symbol`
+        """
+        return self._u
+      
     def trace(self, text):
         """
         Prints the text message if debug mode is switched on.
@@ -192,10 +203,61 @@ class NonlinearPDE(object):
 
         self.trace("Final error after %d iterations: %g"%(n,util.Lsup(u_new)))
         return u_new
-
-    def getCoefficient(self, name):
+        
+    def getNumSolutions(self):
         """
-        Returns the value of the coefficient ``name``.
+        Returns the number of the solution components
+        :rtype: ``int``
+        """
+        s=self._u.getShape()
+        if len(s) > 0:
+          return s[0]
+        else:
+          return 1
+     
+    def getShapeOfCoefficient(self,name):
+        """
+        Returns the shape of the coefficient ``name``.
+
+        :param name: name of the coefficient enquired
+        :type name: ``string``
+        :return: the shape of the coefficient ``name``
+        :rtype: ``tuple`` of ``int``
+        :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+        """
+        numSol=self.getNumSolutions()
+        dim = self.dim
+        if name=="X" or name=="X_reduced":
+           if numSol > 1: 
+              return (numSol,dim)         
+           else:
+	      return (dim,)
+        elif name=="q" :
+           if numSol > 1: 
+              return (numSol,)         
+           else:
+	      return ()
+        elif name=="Y" or name=="Y_reduced":
+           if numSol > 1:
+              return (numSol,)         
+           else:
+              return ()
+        elif name=="y" or name=="y_reduced":
+            if numSol > 1: 
+               return (numSol,)         
+            else:
+	       return ()	 
+        elif name=="y_contact" or name=="y_contact_reduced":
+            if numSol > 1: 
+               return (numSol,)         
+            else:
+	       return ()	 
+        else:
+            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name) 
+
+    def createCoefficient(self, name):
+        """
+        create a new coefficient ``name`` as Symbol
 
         :param name: name of the coefficient requested
         :type name: ``string``
@@ -203,23 +265,25 @@ class NonlinearPDE(object):
         :rtype: `Symbol`
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """
-        if self.hasCoefficient(name):
-            return self.coeffs[name]
-        raise IllegalCoefficient("Illegal coefficient %s requested."%name)
-
-    def hasCoefficient(self, name):
+        s=self.getShapeOfCoefficient(name)
+        return Symbol(name, s)
+        
+    def getCoefficient(self, name):
         """
-        Returns True if ``name`` is the name of a coefficient.
+        Returns the value of the coefficient ``name`` as Symbol
 
-        :param name: name of the coefficient enquired
+        :param name: name of the coefficient requested
         :type name: ``string``
-        :return: True if ``name`` is the name of a coefficient of the PDE,
-                 False otherwise
-        :rtype: ``bool``
-
+        :return: the value of the coefficient
+        :rtype: `Symbol`
+        :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """
-        return self.coeffs.has_key(name)
+        if self.coeffs.has_key(name):
+	     return self.coeffs[name]
+	else:
+	     return IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
+        
     def setValue(self,**coefficients):
         """
         Sets new values to one or more coefficients.
@@ -234,9 +298,6 @@ class NonlinearPDE(object):
         :keyword y_contact: value for coefficient ``y_contact``
         :type y_contact: `Symbol` or any type that can be cast to a `Data`
                          object
-        :keyword r: values prescribed to the solution at the locations of
-                    constraints
-        :type r: `Symbol` or any type that can be cast to a `Data` object
         :keyword q: mask for location of constraints
         :type q: `Symbol` or any type that can be cast to a `Data` object
 
@@ -244,9 +305,12 @@ class NonlinearPDE(object):
         :raise IllegalCoefficientValue: if a supplied coefficient value has an
                                         invalid shape
         """
+
         u=self._u
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
+            if not shape == self.getShapeOfCoefficient(name):
+	        IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape ) )
             rank=len(shape)
             if name=="X" or name=="X_reduced":
                 # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
@@ -405,10 +469,6 @@ class NonlinearPDE(object):
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("q must have rank %d"%u.getRank())
                 self.coeffs['q']=val
-            elif name=="r":
-                if rank != u.getRank():
-                    raise IllegalCoefficientValue("r must have rank %d"%u.getRank())
-                self.coeffs['r']=val
             else:
                 raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
