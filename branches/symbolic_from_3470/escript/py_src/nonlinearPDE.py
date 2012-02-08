@@ -263,15 +263,23 @@ class NonlinearPDE(object):
                     dXdu=X.diff(u)
                     dgdu=u.grad().diff(u)
                     A=numpy.empty(shape+dgdu.getShape(), dtype=object)
+                    B=numpy.empty(shape, dtype=object)
+                    ttt0=time()
                     for i in numpy.ndindex(shape):
                         for j in numpy.ndindex(dgdu.getShape()):
                             y=dXdu[i]
                             x=dgdu[j]
-                            A[i,j]=(y-y.subs(x,0)).subs(x,1)
-                            #tmp=dXdu[i].expand().coeff(dgdu[j])
-                            #A[i,j]=0 if tmp is None else tmp
-                    A=Symbol(A).simplify()
-                    B=(dXdu-util.matrix_mult(A,dgdu)).simplify()
+                            # expand() and coeff() are very expensive so
+                            # we set the unwanted factors to zero to extract
+                            # the one we need
+                            for jj in numpy.ndindex(dgdu.getShape()):
+                                if j==jj: continue
+                                y=y.subs(dgdu[jj], 0)
+                            B[i]=y.subs(x,0) # terms in u and constants
+                            A[i,j]=y.subs(x,1)-B[i]
+                    A=Symbol(A)
+                    B=Symbol(B)
+                    self.trace("Computing A, B took %f seconds."%(time()-ttt0))
                 else:  #u.getRank()==1
                     X=self._removeFsFromGrad(val)
                     dXdu=X.diff(u)
@@ -279,39 +287,24 @@ class NonlinearPDE(object):
                     I,J=shape
                     K,L=u.grad().getShape()
                     A=numpy.empty((I,J,K,L), dtype=object)
+                    B=numpy.empty((I,J,K), dtype=object)
                     ttt0=time()
-                    for i in range(I):
-                        for j in range(J):
-                            for k in range(K):
-                                for l in range(L):
-                                    if dgdu[k,k,l]==0:
-                                        A[i,j,k,l]=0
-                                    else:
-                                        # expand() and coeff() are very slow so
-                                        # we use this identity instead:
-                                        # Let y=... + a*x + ...
-                                        # a==(y-y.subs(x,0)).subs(x,1)
-                                        y=dXdu[i,j,k]
-                                        x=dgdu[k,k,l]
-                                        A[i,j,k,l]=(y-y.subs(x,0)).subs(x,1)
-                                        #tmp=dXdu[i,j,k].expand().coeff(dgdu[k,k,l])
-                                        #A[i,j,k,l]=0 if tmp is None else tmp
-                                        #tmp=sympy.collect(dXdu[i,j,k].expand(), dgdu[k,k,l], evaluate=False, exact=True)
-                                        #try:
-                                        #    A[i,j,k,l]=tmp[dgdu[k,k,l]]
-                                        #except KeyError:
-                                        #    A[i,j,k,l]=0
+                    for i,j,k,l in numpy.ndindex(I,J,K,L):
+                        if dgdu[k,k,l]==0:
+                            A[i,j,k,l]=0
+                            B[i,j,k]=0
+                        else:
+                            y=dXdu[i,j,k]
+                            x=dgdu[k,k,l]
+                            for kk,ll in numpy.ndindex(K,L):
+                                if k==kk and l==ll: continue
+                                y=y.subs(dgdu[kk,kk,ll], 0)
+                            B[i,j,k]=y.subs(x,0) # terms in u and constants
+                            A[i,j,k,l]=y.subs(x,1)-B[i,j,k]
 
-                    self.trace("Computing A took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    A=Symbol(A).expand() #.simplify()
-                    self.trace("Expanding A took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    B=dXdu-Symbol(A).tensorProduct(dgdu.transpose(1),2)
-                    self.trace("Computing B took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    B=B.expand() #simplify()
-                    self.trace("Expanding B took %f seconds."%(time()-ttt0))
+                    A=Symbol(A)
+                    B=Symbol(B)
+                    self.trace("Computing A, B took %f seconds."%(time()-ttt0))
 
                 if name=='X_reduced':
                     self.coeffs['A_reduced']=A
@@ -336,11 +329,17 @@ class NonlinearPDE(object):
                     dgdu=u.grad().diff(u)
                     C=numpy.empty(dgdu.getShape(), dtype=object)
                     for j in numpy.ndindex(dgdu.getShape()):
-                        tmp=dYdu.expand().coeff(dgdu[j])
-                        #tmp=dYdu.collect(dgdu[j])
-                        C[j]=0 if tmp is None else tmp
-                    C=Symbol(C).simplify()
-                    D=(dYdu-util.inner(C,dgdu)).simplify()
+                        y=dYdu
+                        x=dgdu[j]
+                        # expand() and coeff() are very expensive so
+                        # we set the unwanted factors to zero to extract
+                        # the one we need
+                        for jj in numpy.ndindex(dgdu.getShape()):
+                            if j==jj: continue
+                            y=y.subs(dgdu[jj], 0)
+                        D=y.subs(x,0) # terms in u and constants
+                        C[j]=y.subs(x,1)-D
+                    C=Symbol(C)
                 else:  #u.getRank()==1
                     Y=self._removeFsFromGrad(val)
                     dYdu=Y.diff(u)
@@ -348,25 +347,23 @@ class NonlinearPDE(object):
                     I,=shape
                     J,K=u.grad().getShape()
                     C=numpy.empty((I,J,K), dtype=object)
+                    D=numpy.empty((I,J), dtype=object)
                     ttt0=time()
-                    for i in range(I):
-                        for j in range(J):
-                            for k in range(K):
-                                if dgdu[j,j,k]==0:
-                                    C[i,j,k]=0
-                                else:
-                                    tmp=dYdu[i,j].expand().coeff(dgdu[j,j,k])
-                                    C[i,j,k]=0 if tmp is None else tmp
-                    self.trace("Computing C took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    C=Symbol(C).simplify()
-                    self.trace("Simplifying C took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    D=dYdu-C.tensorProduct(dgdu.transpose(1),2)
-                    self.trace("Computing D took %f seconds."%(time()-ttt0))
-                    ttt0=time()
-                    D=D.simplify()
-                    self.trace("Simplifying D took %f seconds."%(time()-ttt0))
+                    for i,j,k in numpy.ndindex(I,J,K):
+                        if dgdu[j,j,k]==0:
+                            C[i,j,k]=0
+                            D[i,j]=0
+                        else:
+                            y=dYdu[i,j]
+                            x=dgdu[j,j,k]
+                            for jj,kk in numpy.ndindex(J,K):
+                                if j==jj and k==kk: continue
+                                y=y.subs(dgdu[jj,jj,kk], 0)
+                            D[i,j]=y.subs(x,0) # terms in u and constants
+                            C[i,j,k]=y.subs(x,1)-D[i,j]
+                    C=Symbol(C)
+                    D=Symbol(D)
+                    self.trace("Computing C, D took %f seconds."%(time()-ttt0))
 
                 if name=='Y_reduced':
                     self.coeffs['C_reduced']=C
