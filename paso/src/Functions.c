@@ -16,7 +16,6 @@
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
-#include "FCTSolver.h"
 /*
  * numerical calculation of the directional derivative J0w if F at x0 in the direction w. f0 is the value of F at x0.
  * setoff is workspace
@@ -91,9 +90,6 @@ err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso
           case LINEAR_SYSTEM:
                return Paso_Function_LinearSystem_call(F, value, arg,pp);
 	       break;
-	  case FCT:
-	       return Paso_FCTSolver_Function_call(F, value, arg, pp);
-	       break;
           default:
                return SYSTEM_ERROR;
       }
@@ -112,9 +108,6 @@ void Paso_Function_free(Paso_Function * F) {
           case LINEAR_SYSTEM:
                Paso_Function_LinearSystem_free(F);
                break;
-	  case FCT:
-		Paso_FCTSolver_Function_free(F);
-		break;
           default:
                MEMFREE(F);
       }

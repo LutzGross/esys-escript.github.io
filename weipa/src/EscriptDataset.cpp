@@ -17,11 +17,13 @@
 #include <weipa/FileWriter.h>
 #include <weipa/FinleyDomain.h>
 #include <weipa/NodeData.h>
+#include <weipa/RipleyDomain.h>
 
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
+#include <ripley/RipleyDomain.h>
 #endif
 
 #include <cstring>
@@ -106,6 +108,16 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         if (dynamic_cast<const finley::MeshAdapter*>(domain)
                 || dynamic_cast<const dudley::MeshAdapter*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                domainChunks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
+        } else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
+            DomainChunk_ptr dom(new RipleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
                     dom->reorderGhostZones(mpiRank);

@@ -25,7 +25,7 @@ AbstractTransportProblem::AbstractTransportProblem() {
     m_empty=1;
 }
 
-AbstractTransportProblem::AbstractTransportProblem(const bool useBackwardEuler, const int blocksize,
+AbstractTransportProblem::AbstractTransportProblem(const int blocksize,
                                                    const FunctionSpace& functionspace)
 :m_functionspace(functionspace)
 {
@@ -35,7 +35,6 @@ AbstractTransportProblem::AbstractTransportProblem(const bool useBackwardEuler, 
    m_empty=0;
    m_blocksize=blocksize;
 //    m_functionspace=functionspace;
-   m_useBackwardEuler=useBackwardEuler;
 }
 
 AbstractTransportProblem::~AbstractTransportProblem() {

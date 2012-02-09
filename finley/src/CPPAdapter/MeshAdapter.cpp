@@ -1665,7 +1665,6 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 // creates a TransportProblemAdapter
 //
 ATP_ptr MeshAdapter::newTransportProblem(
-                                                         const bool useBackwardEuler,
                                                          const int blocksize,
                                                          const escript::FunctionSpace& functionspace,
                                                          const int type) const
@@ -1688,12 +1687,12 @@ ATP_ptr MeshAdapter::newTransportProblem(
    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(getFinley_Mesh(),reduceOrder,reduceOrder);
    checkFinleyError();
    Paso_TransportProblem* transportProblem;
-   transportProblem=Paso_TransportProblem_alloc(useBackwardEuler,fsystemMatrixPattern,blocksize);
+   transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern,blocksize);
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   TransportProblemAdapter* tpa=new TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   TransportProblemAdapter* tpa=new TransportProblemAdapter(transportProblem,blocksize,functionspace);
    return ATP_ptr(tpa);
-//   return TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+//   return TransportProblemAdapter(transportProblem, blocksize,functionspace);
 }
 
 //

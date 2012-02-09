@@ -176,7 +176,6 @@ ASM_ptr AbstractContinuousDomain::newSystemMatrix(
 }
 
 ATP_ptr AbstractContinuousDomain::newTransportProblem(
-                      const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const
