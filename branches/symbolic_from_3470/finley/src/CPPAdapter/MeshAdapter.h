@@ -639,7 +639,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   escript::ATP_ptr newTransportProblem(
-                      const bool useBackwardEuler,
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
                       const int type) const;

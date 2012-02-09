@@ -1439,7 +1439,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u1=mypde.getSolution()
         error1=Lsup(u1-u1_ref)/Lsup(u1_ref)
         self.assertTrue(mypde.getDomainStatus() == mypde.getSystemStatus(), "status of first pde does not match domain status.")
-        self.domain.setX(x*5)
+        try:
+            self.domain.setX(x*5)
+        except:
+            # setX not supported
+            return
         self.assertTrue(mypde.getDomainStatus() != mypde.getSystemStatus(), "status of first pde matches updated domain status.")
         x2=self.domain.getX()
         u2_ref=x2[0]*(5.-x2[0])
@@ -2639,12 +2643,10 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
 
 class Test_TransportPDE(Test_linearPDEs):
     N=4
-    def test_init_useBackwardEuler(self):
-        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=True)
-        self.assertTrue(mypde.useBackwardEuler()==True,'backward Euler should be used')
-    def test_init_donntUseBackwardEuler(self):
-        mypde=TransportPDE(self.domain,debug=self.DEBUG, useBackwardEuler=False)
-        self.assertTrue(mypde.useBackwardEuler()==False,'backward Euler should not be used')
+
+    def test_init_Init(self):
+        mypde=TransportPDE(self.domain,debug=self.DEBUG)
+
     def test_setCoefficient_WithWrongName(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficient)

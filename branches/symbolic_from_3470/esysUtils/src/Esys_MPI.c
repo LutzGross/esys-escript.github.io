@@ -56,8 +56,9 @@ Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
 /* free memory for an mpi_comm */
 void Esys_MPIInfo_free( Esys_MPIInfo *in )
 {
-  if( in && !(--in->reference_counter) )
-    MEMFREE( in );
+  if( in!=NULL) {
+    if (!(--in->reference_counter) ) MEMFREE( in );
+  }
 }
 
 Esys_MPIInfo *Esys_MPIInfo_getReference( Esys_MPIInfo* in )

@@ -24,23 +24,20 @@
 
 typedef struct Paso_TransportProblem {
 
-    bool_t useBackwardEuler;
-
     bool_t valid_matrices;
-    double dt_max;       /* safe time step size */
-    double dt_failed;
+    double dt_max_R;       /* safe time step size for reactive  part */
+    double dt_max_T;       /* safe time step size for transport  part */
+
 
     /****************** REVISE ****************************/
-    double dt_factor;  
-
+    double dt_factor; 
     double constraint_factor;  
     double* constraint_weights;
 /*****************************************************/
 
     Paso_SystemMatrix * transport_matrix;
     Paso_SystemMatrix * mass_matrix;
-    
-    Paso_Coupler* u_coupler;
+ 
     Paso_SystemMatrix * iteration_matrix;
     double* main_diagonal_low_order_transport_matrix;
     double* lumped_mass_matrix;
@@ -58,7 +55,7 @@ PASO_DLL_API
 Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem* in);
 
 PASO_DLL_API
-Paso_TransportProblem* Paso_TransportProblem_alloc(bool_t useBackwardEuler, Paso_SystemMatrixPattern *pattern, int block_size);
+Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pattern, int block_size);
 
 PASO_DLL_API
 dim_t Paso_TransportProblem_getBlockSize(const Paso_TransportProblem* in);
@@ -101,6 +98,14 @@ PASO_DLL_API
 void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q, const double factor);
 
 #define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) Paso_SparseMatrix_borrowMainDiagonalPointer((_fct_)->mass_matrix->mainBlock)
-#define Paso_Transport_getTheta(_fct_) ( ( (_fct_)->useBackwardEuler ) ? 1. : 0.5 )
+#define Paso_TransportProblem_getBlockSize(__in__) (__in__)->transport_matrix->row_block_size
+#define Paso_TransportProblem_borrowConnector(__in__) (__in__)->transport_matrix->pattern->col_connector
+#define Paso_TransportProblem_borrowTransportMatrix(__in__) (__in__)->transport_matrix
+#define Paso_TransportProblem_borrowMassMatrix(__in__) (__in__)->mass_matrix
+#define Paso_TransportProblem_borrowLumpedMassMatrix(__in__) (__in__)->lumped_mass_matrix
+#define Paso_TransportProblem_getTotalNumRows(__in__) Paso_SystemMatrix_getTotalNumRows((__in__)->transport_matrix)
+
+
+
 
 #endif /* #ifndef INC_PASOTRANSPORT */

@@ -47,15 +47,15 @@ escript_opts_version = 201
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '-sox' # embed compiler info in binaries
+cc_extra = '-sox'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-sox' # embed compiler info in binaries
+cxx_extra = '-sox -I/sw/libs/numpy/x86_64/gcc-4.3.2/numpy-1.6.1/lib/python2.6/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel' # fix warning about feupdate in icc v10
+ld_extra = '-shared-intel -L/sw/libs/hdf/x86_64/gcc-4.3.2/hdf5-1.8.4-p1-intelmpi/lib' # fix warning about feupdate in icc v10
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -225,7 +225,7 @@ build_shared = True
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/cc/x86_64/10.1.025'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composerxe-2011.3.174'})]
 
 #iknowwhatimdoing = False
 

@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -26,6 +26,8 @@ extra functions that can be used in symbolic expressions
 import sympy
 from sympy.functions import *
 from sympy import S
+
+__author__="Cihan Altinay"
 
 class wherePositive(sympy.Function):
     """Returns:
@@ -203,7 +205,16 @@ class eigenvalues_and_eigenvectors(sympy.Function):
 class minval(sympy.Function):
     """Returns the minimum value over all components of the argument
     """
-    pass
+    @classmethod
+    def _should_evalf(cls, arg):
+        """
+        Decide if the function should automatically evalf().
+
+        By default (in this implementation), this happens if (and only if) the
+        ARG is a floating point number.
+        This function is used by __new__.
+        """
+        return -1
 
 class maxval(sympy.Function):
     """Returns the maximum value over all components of the argument

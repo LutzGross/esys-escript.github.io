@@ -23,11 +23,12 @@
     
 typedef struct Paso_ReactiveSolver {
   double A;
+  double dt;
 } Paso_ReactiveSolver;
 
 
 PASO_DLL_API
-err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, const double dt, const double* source, Paso_Options* options, Paso_Performance *pp);
+err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, double* u_old,  const double* source, Paso_Options* options, Paso_Performance *pp);
 
 PASO_DLL_API
 Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp);
@@ -39,6 +40,6 @@ PASO_DLL_API
 double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
 
 PASO_DLL_API
-void Paso_ReactiveSolver_initialize(const double dt, Paso_TransportProblem* fctp, Paso_Options* options);
+void Paso_ReactiveSolver_initialize(const double dt, Paso_ReactiveSolver* rsolver, Paso_Options* options);
 
 #endif /* #ifndef INC_PASOREACTIVE */

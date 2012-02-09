@@ -183,7 +183,7 @@ Paso_Coupler* Paso_Coupler_getReference(Paso_Coupler* in) {
 
 void Paso_Coupler_free(Paso_Coupler* in) {
   if (in!=NULL) {
-     in->reference_counter--;
+     (in->reference_counter)--;
      if (in->reference_counter<=0) {
         Paso_Connector_free(in->connector);
         MEMFREE(in->send_buffer);

@@ -1470,7 +1470,6 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 // creates a TransportProblemAdapter
 //
 ATP_ptr MeshAdapter::newTransportProblem(
-                                                         const bool useBackwardEuler,
                                                          const int blocksize,
                                                          const escript::FunctionSpace& functionspace,
                                                          const int type) const
@@ -1493,10 +1492,10 @@ ATP_ptr MeshAdapter::newTransportProblem(
    Paso_SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder);
    checkDudleyError();
    Paso_TransportProblem* transportProblem;
-   transportProblem=Paso_TransportProblem_alloc(useBackwardEuler,fsystemMatrixPattern,blocksize);
+   transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern,blocksize);
    checkPasoError();
    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,useBackwardEuler,blocksize,functionspace);
+   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,blocksize,functionspace);
    return ATP_ptr(atp);
 }
 

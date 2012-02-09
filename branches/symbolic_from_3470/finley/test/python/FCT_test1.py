@@ -42,12 +42,13 @@ __url__="https://launchpad.net/escript-finley"
 #
 #
 from esys.escript import *
-from esys.escript.linearPDEs import LinearSinglePDE, TransportPDE
+from esys.escript.linearPDEs import TransportPDE
 from esys.finley import Rectangle, Brick
+#from esys.ripley import Rectangle, Brick
 from esys.weipa import saveVTK
 from math import pi, ceil
 NE=128
-NE=4
+#NE=4
 DIM=2
 THETA=0.5
 OMEGA0=1.
@@ -56,66 +57,69 @@ T0=0
 T_END=2.*pi
 dt=1e-3*10*10
 E=1.e-3
-TEST_SUPG=False or True
 
 
-if DIM==2:
-  dom=Rectangle(NE,NE)
-else:
-  dom=Brick(NE,NE,NE)
+dom=Rectangle(NE,NE)
 u0=dom.getX()[0]
 # saveVTK("u.%s.vtu"%0,u=u0)
 # print "XX"*80
-dom.setX(2*dom.getX()-1)
 
 # set initial value 
+#dom.setX(2*dom.getX()-1)
+#x=dom.getX()
+#r=sqrt(x[0]**2+(x[1]-1./3.)**2)
+#u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
+
+#x=Function(dom).getX()
+#if DIM == 2:
+#   V=OMEGA0*(x[0]*[0,-1]+x[1]*[1,0])
+#else:
+#   V=OMEGA0*(x[0]*[0,cos(ALPHA),0]+x[1]*[-cos(ALPHA),0,sin(ALPHA)]+x[2]*[0.,-sin(ALPHA),0.])
+
 x=dom.getX()
-r=sqrt(x[0]**2+(x[1]-1./3.)**2)
-# u0=whereNegative(r-1./3.)*wherePositive(wherePositive(abs(x[0])-0.05)+wherePositive(x[1]-0.5))
+
+R0=0.15
+#cylinder:
+X0=0.5
+Y0=0.75
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=whereNegative(r-1)*wherePositive(wherePositive(abs(x[0]-X0)-0.025)+wherePositive(x[1]-0.85))
+# cone:
+X0=0.5
+Y0=0.25
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=u0+wherePositive(1-r)*(1-r)
+#hump
+X0=0.25
+Y0=0.5
+r=sqrt((x[0]-X0)**2+(x[1]-Y0)**2)/R0
+u0=u0+1./4.*(1+cos(pi*clip(r,maxval=1)))
 
 x=Function(dom).getX()
-if DIM == 2:
-   V=OMEGA0*(x[0]*[0,-1]+x[1]*[1,0])
-else:
-   V=OMEGA0*(x[0]*[0,cos(ALPHA),0]+x[1]*[-cos(ALPHA),0,sin(ALPHA)]+x[2]*[0.,-sin(ALPHA),0.])
+V=OMEGA0*((0.5-x[0])*[0,1]+(0.5-x[1])*[-1,0])
 #===================
-fc=TransportPDE(dom,num_equations=1,theta=THETA)
+fc=TransportPDE(dom,numEquations=1)
+fc.getSolverOptions().setVerbosityOn()
+fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
+fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
+fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
 x=Function(dom).getX()
-fc.setValue(M=Scalar(1.,Function(dom)),C=V)
-#==============
-if TEST_SUPG:
-   supg=LinearSinglePDE(dom)
-   supg.setValue(D=1.)
-   supg.setSolverMethod(supg.LUMPING)
-   dt_supg=inf(dom.getSize()/length(V))
-   u_supg=u0*1.
+fc.setValue(M=1,C=V)
 
 c=0
-# saveVTK("u.%s.vtu"%c,u=u0)
+saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
+dt=fc.getSafeTimeStepSize() 
+#dt=1.e-3
+print "dt = ",dt
 t=T0
 print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
+#T_END=200*dt
 while t<T_END:
+   
     print("time step t=",t+dt)	
-    u=fc.solve(dt, verbose=True)
+    u=fc.getSolution(dt)
     print("QUALITY FCT: time = %s pi"%(t+dt/pi),inf(u),sup(u),integrate(u))
-    if TEST_SUPG:
-        #========== supg tests ================
-        nn=max(ceil(dt/dt_supg),1.)
-        dt2=dt/nn
-        nnn=0
-        while nnn<nn :
-            supg.setValue(Y=u_supg+dt2/2*inner(V,grad(u_supg)))
-            u2=supg.getSolution()
-            supg.setValue(Y=u_supg+dt2*inner(V,grad(u2)))
-            u_supg=supg.getSolution()
-            nnn+=1
+    saveVTK("u.%s.vtu"%(c+1,),u=u)
     c+=1
     t+=dt
-    if TEST_SUPG: 
-       print("QUALITY SUPG: time = %s pi"%(t/pi),inf(u_supg),sup(u_supg),integrate(u_supg))
-       # saveVTK("u2.%s.vtu"%c,u=u,u_supg=u_supg)
-    else:
-       # saveVTK("u.%s.vtu"%c,u=u)
-       pass
-    # if c == 20: 1/0

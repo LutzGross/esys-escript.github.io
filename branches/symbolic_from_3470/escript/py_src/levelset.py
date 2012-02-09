@@ -300,7 +300,7 @@ class LevelSet2(object):
          #==================================================
          self.__FC=True
          if self.__FC:
-            self.__fc=TransportPDE(self.__domain,num_equations=1,useBackwardEuler=False)
+            self.__fc=TransportPDE(self.__domain,num_equations=1)
             # self.__fc.setReducedOrderOn()
             self.__fc.setValue(M=Scalar(1.,Function(self.__domain)))
             self.__fc.setInitialSolution(phi+self.__diam)
@@ -314,7 +314,7 @@ class LevelSet2(object):
          #=======================================
          self.__reinitFC=False
          if self.__reinitFC:
-            self.__reinitfc=TransportPDE(self.__domain,num_equations=1,useBackwardEuler=True)
+            self.__reinitfc=TransportPDE(self.__domain,num_equations=1)
             self.__reinitfc.setValue(M=Scalar(1.,Function(self.__domain)))
             self.__reinitfc.setTolerance(1.e-5)
          else:

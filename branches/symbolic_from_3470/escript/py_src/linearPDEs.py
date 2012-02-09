@@ -109,6 +109,9 @@ class SolverOptions(object):
     :cvar PASO_FALGOUT_COARSENING: BoomerAMG parallel coarsening method falgout
     :cvar PASO_PMIS_COARSENING: BoomerAMG parallel coarsening method PMIS
     :cvar PASO_HMIS_COARSENING: BoomerAMG parallel coarsening method HMIS
+    :cvar BACKWARD_EULER: backward Euler scheme
+    :cvar CRANK_NICOLSON: Crank-Nicolson scheme
+    :cvar LINEAR_CRANK_NICOLSON: linerized Crank-Nicolson scheme
 
     """
     DEFAULT= 0
@@ -160,6 +163,9 @@ class SolverOptions(object):
     FALGOUT_COARSENING=63
     PMIS_COARSENING=64
     HMIS_COARSENING=65
+    LINEAR_CRANK_NICOLSON=66
+    CRANK_NICOLSON=67
+    BACKWARD_EULER=68
  
     def __init__(self):
         self.setLevelMax()
@@ -197,6 +203,7 @@ class SolverOptions(object):
         self.setDiagonalDominanceThreshold()
         self.setAMGInterpolation()
 	self.setCycleType()
+	self.setODESolver()
         
 
     def __str__(self):
@@ -260,6 +267,7 @@ class SolverOptions(object):
                 out+="\nStorage increase = %e"%self.getDropStorage()
             if self.getPreconditioner() == self.RILU:
                 out+="\nRelaxation factor = %e"%self.getRelaxationFactor()
+            out+="\nODE solver = %s"%self.getName(self.getODESolver())
         return out
         
     def getName(self,key):
@@ -315,7 +323,12 @@ class SolverOptions(object):
 	if key == self.FALGOUT_COARSENING: return "FALGOUT_COARSENING"
 	if key == self.PMIS_COARSENING: return "PMIS_COARSENING"
 	if key == self.HMIS_COARSENING: return "HMIS_COARSENING"
-        
+	if key == self.LINEAR_CRANK_NICOLSON: return "LINEAR_CRANK_NICOLSON"
+        if key == self.CRANK_NICOLSON: return "CRANK_NICOLSON"
+        if key == self.BACKWARD_EULER: return "BACKWARD_EULER"
+
+	
+     
     def resetDiagnostics(self,all=False):
         """
         resets the diagnostics
@@ -1193,9 +1206,31 @@ class SolverOptions(object):
         :rtype: in the list `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
         """
         return self.__amg_interpolation_method
+    
+    def setODESolver(self, method=None):
+        """
+        Set the solver method for ODEs . 
 
+        :param method: key of the ODE solver method to be used.
+        :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
+        """
+	if method==None: method=self.LINEAR_CRANK_NICOLSON
+        if not method in [ SolverOptions.CRANK_NICOLSON, SolverOptions.BACKWARD_EULER, SolverOptions.LINEAR_CRANK_NICOLSON ]:
+             raise ValueError("unknown ODE solver method %s"%method)
+        self.__ode_solver=method
 
+    def getODESolver(self, method=None):
+        """
+         Returns key of the solver method for ODEs . 
+
+        :param method: key of the ODE solver method to be used.
+        :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
+        """
+        return self.__ode_solver
+        
+        
 class IllegalCoefficient(ValueError):
+  
    """
    Exception that is raised if an illegal coefficient of the general or
    particular PDE is requested.
@@ -3588,7 +3623,7 @@ class TransportPDE(LinearProblem):
            u = p.solve(dt)
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None, useBackwardEuler=False, debug=False):
+   def __init__(self,domain,numEquations=None,numSolutions=None, useBackwardEuler=None, debug=False):
      """
      Initializes a transport problem.
 
@@ -3600,13 +3635,7 @@ class TransportPDE(LinearProblem):
                           of solution components is extracted from the
                           coefficients.
      :param debug: if True debug information is printed
-     :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicolson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicolson scheme provides a higher accuracy but requires to limit the time step size to be stable.
-     :type useBackwardEuler: ``bool``
      """
-     if useBackwardEuler:
-         self.__useBackwardEuler=True
-     else:
-         self.__useBackwardEuler=False
      super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
 
      self.setConstraintWeightingFactor()
@@ -3642,6 +3671,10 @@ class TransportPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
+     if not useBackwardEuler == None:
+        import warnings
+        warnings.warn("Argument useBackwardEuler has expired and will be removed in a later release. Please use SolverOptions.setODESolver() instead.", PendingDeprecationWarning, stacklevel=2)
+        if useBackwardEuler: self.getSolverOptions().setODESolver(SolverOptions.BACKWARD_EULER)
 
    def __str__(self):
      """
@@ -3651,14 +3684,6 @@ class TransportPDE(LinearProblem):
      :rtype: ``str``
      """
      return "<TransportPDE %d>"%id(self)
-
-   def useBackwardEuler(self):
-      """
-      Returns true if backward Euler is used. Otherwise false is returned.
-      :rtype: bool
-      """
-      return self.__useBackwardEuler
-
 
    def checkSymmetry(self,verbose=True):
       """
@@ -3788,7 +3813,6 @@ class TransportPDE(LinearProblem):
        optype=self.getRequiredOperatorType()
        self.trace("New Transport problem pf type %s is allocated."%optype)
        return self.getDomain().newTransportProblem( \
-                               self.useBackwardEuler(),
                                self.getNumEquations(), \
                                self.getFunctionSpaceForSolution(), \
                                optype)
@@ -3975,14 +3999,13 @@ class TransportPDE(LinearProblem):
      """
      super(TransportPDE,self).setDebugOff()
      
-def SingleTransportPDE(domain,useBackwardEuler=False, debug=False):
+def SingleTransportPDE(domain, debug=False):
    """
    Defines a single transport problem
 
    :param domain: domain of the PDE
    :type domain: `Domain`
    :param debug: if True debug information is printed
-   :param useBackwardEuler: if set the backward Euler scheme is used. Otherwise the Crank-Nicolson scheme is applied. Note that backward Euler scheme will return a safe time step size which is practically infinity as the scheme is unconditional unstable. The Crank-Nicolson scheme provides a higher accuracy but requires to limit the time step size to be stable.
    :rtype: `TransportPDE`
    """
-   return TransportPDE(domain,numEquations=1,numSolutions=1, useBackwardEuler=useBackwardEuler, debug=debug)
+   return TransportPDE(domain,numEquations=1,numSolutions=1, debug=debug)

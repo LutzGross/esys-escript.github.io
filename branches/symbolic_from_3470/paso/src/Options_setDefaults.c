@@ -65,7 +65,7 @@ void Paso_Options_setDefaults(Paso_Options* options) {
   options->cycle_type=1;
   options->usePanel=TRUE;
   options->interpolation_method=PASO_DIRECT_INTERPOLATION;
-  options->ode_solver=PASO_CRANK_NICOLSON;
+  options->ode_solver=PASO_LINEAR_CRANK_NICOLSON;
   
 
   /* diagnostic values */
