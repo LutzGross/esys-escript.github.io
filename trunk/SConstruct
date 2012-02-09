@@ -209,7 +209,7 @@ if cc_name == 'icc':
     cc_optim    = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -ip"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags   = "-openmp -openmp_report0"
-    omp_ldflags = "-openmp -openmp_report0 -lguide -lpthread"
+    omp_ldflags = "-openmp -openmp_report0 -lpthread"
     fatalwarning = "-Werror"
 elif cc_name[:3] == 'gcc':
     # GNU C on any system
