@@ -37,7 +37,7 @@
 */
 
 #define MY_DEBUG 0
-#define MY_DEBUG1 1
+#define MY_DEBUG1 0
  
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 { 
@@ -330,8 +330,9 @@ if (MY_DEBUG) fprintf(stderr, "rank %d offset %d len %d block %d\n", rank, offse
    TMPMEMFREE(recv_ptr);
    TMPMEMFREE(recv_val);
 
-if (MY_DEBUG1)
+if (MY_DEBUG1){
 fprintf(stderr, "rank %d col_coupleBlock non-zero: %d\n", rank, sum);
+}
 
    /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
       and convert the global id in "idx" into local id */
@@ -371,8 +372,8 @@ fprintf(stderr, "rank %d Count num_Rcouple_cols %d\n", rank, num_Rcouple_cols);
    shared = TMPMEMALLOC(num_Rcouple_cols, index_t);
    numNeighbors = send->numNeighbors;
    neighbor = send->neighbor;
-   offsetInShared[0] = 0;
-if (MY_DEBUG && rank == 4){
+   memset(offsetInShared, 0, sizeof(index_t) * (size+1));
+if (MY_DEBUG && rank == 0){
 char *str1, *str2;
 int sum, my_i;
 sum = num_Rcouple_cols;
@@ -393,23 +394,29 @@ fprintf(stderr, "%s)\n", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
 }
+if (MY_DEBUG1) fprintf(stderr, "rank %d CXXP1\n", rank);
+   if (num_Rcouple_cols > 0) offset = dist[neighbor[0] + 1];
    for (i=0, p=0; i<num_Rcouple_cols; i++) {
-     offset = dist[neighbor[p] + 1];
      /* cols i is received from rank neighbor[p] when it's still smaller
 	than "offset", otherwise, it is received from rank neighbor[p+1] */
-     if (recv_idx[i] >= offset) { 
+     while (recv_idx[i] >= offset) { 
 	p++;
 	offsetInShared[p] = i;
+	offset = dist[neighbor[p] + 1];
      }
      shared[i] = i + n;  /* n is the number of cols in R->mainBlock */
    }
-   offsetInShared[numNeighbors] = num_Rcouple_cols;
+if (MY_DEBUG1) fprintf(stderr, "rank %d CXXP2\n", rank);
+   for (i=p; i<numNeighbors; i++) {
+     offsetInShared[i+1] = num_Rcouple_cols;
+   }
+//   offsetInShared[numNeighbors] = num_Rcouple_cols;
    recv = Paso_SharedComponents_alloc(n, numNeighbors,
 		neighbor, shared, offsetInShared, 1, 0, mpi_info);
    TMPMEMFREE(recv_idx);
 
 if (MY_DEBUG1)
-fprintf(stderr, "rank %d Receiver!!\n", rank);
+fprintf(stderr, "rank %d Receiver!! %d\n", rank, numNeighbors);
 
    /* prepare the sender for the col_connector */
    TMPMEMFREE(shared);
@@ -418,7 +425,7 @@ fprintf(stderr, "rank %d Receiver!!\n", rank);
    shared = TMPMEMALLOC(n * numNeighbors, index_t);
    couple_pattern = P->col_coupleBlock->pattern;
    sum=0;
-   offsetInShared[0] = 0;
+   memset(offsetInShared, 0, sizeof(index_t) * (size+1));
    for (p=0; p<numNeighbors; p++) {
      j = P->col_coupler->connector->recv->offsetInShared[p];
      j_ub = P->col_coupler->connector->recv->offsetInShared[p+1];
@@ -431,8 +438,8 @@ fprintf(stderr, "3sendto4 with P=%d\n", p);
 	for (; iptr<iptr_ub; iptr++) {
 	  k = couple_pattern->index[iptr];
 	  if (k >= j && k < j_ub) {
-if (MY_DEBUG && rank ==3 && P->col_coupler->connector->recv->neighbor[p] == 4) {
-fprintf(stderr, "send_idx[%d]=k%d i%d (%d, %d)\n", sum, k, i, j, j_ub);
+if (MY_DEBUG && rank ==3 && p == 1 && P->col_coupler->connector->recv->neighbor[p] == 2) {
+fprintf(stderr, "3 send to 1: [%d]=k%d i%d n %d (%d, %d)\n", sum, k, i, n, j, j_ub);
 }
 	    shared[sum] = i;
 	    sum++;

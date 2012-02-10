@@ -127,9 +127,11 @@ void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditio
    } else {
       if (! x_is_initial) {
 	 Paso_Copy(n, x, b);
+
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
 	 nsweeps--;
       }
+//if (A_p->mpi_info->rank == 0) fprintf(stderr, "x[0]=%g\n", x[0]);
       while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
 
@@ -193,19 +195,21 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    register index_t iptr_ik, mm;
    register double rtmp;
    int failed = 0;
-   
+
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
-   /* forward substitution */
-   
+   /* forward sweep */
+
    if (n_block==1) {
       x[0]*=diag[0];
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
-	 /* x_i=x_i-a_ik*x_k  (with k<i) */
+//	 mm=A_p->pattern->ptr[i+1];
+	 /* x_i=x_i-a_ik*x_k (with k<i) - a_ik*x_k (with k>i) */
 	 rtmp=x[i];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik]; 
-	    rtmp-=A_p->val[iptr_ik]*x[k];
+	    if (k != i)
+	      rtmp-=A_p->val[iptr_ik]*x[k];
 	 }
 	 x[i]=rtmp*diag[i];
       }
@@ -213,9 +217,11 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
       Paso_BlockOps_MViP_2(&diag[0], &x[0]);
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
+//	 mm=A_p->pattern->ptr[i+1];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];                          
-	    Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
+	    if (k != i)
+	      Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	 }
 	 Paso_BlockOps_MViP_2(&diag[4*i], &x[2*i]);
       }
@@ -223,10 +229,11 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
       Paso_BlockOps_MViP_3(&diag[0], &x[0]);
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
-	 /* x_i=x_i-a_ik*x_k */
+//	 mm=A_p->pattern->ptr[i+1];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];
-	    Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+	    if (k != i)
+	      Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
 	 }
 	 Paso_BlockOps_MViP_3(&diag[9*i], &x[3*i]); 
       }
@@ -234,23 +241,27 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
       Paso_BlockOps_solve_N(n_block, &x[0], &diag[0], &pivot[0], &failed);
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
-	 /* x_i=x_i-a_ik*x_k */
+//	 mm=A_p->pattern->ptr[i+1];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];
-	    Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+	    if (k != i)
+	      Paso_BlockOps_SMV_N(n_block, &x[n_block*i], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
 	 }
 	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed);
       }
    }
-   /* backward substitution */
-   
+//fprintf(stderr, "f x[0]=%g\n", x[0]);
+
+   /* backward sweeps */
    if (n_block==1) {
       for (i = n-2; i > -1; --i) {	       
+	    rtmp=x[i];
 	    mm=ptr_main[i];
-	    rtmp=x[i]*A_p->val[mm];
 	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+//	    for (iptr_ik=A_p->pattern->ptr[i]; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik];
-	       rtmp-=A_p->val[iptr_ik]*x[k];
+	       if (k != i)
+	         rtmp-=A_p->val[iptr_ik]*x[k];
 	    }
 	    x[i]=diag[i]*rtmp;
       }
@@ -258,10 +269,12 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    } else if (n_block==2) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
-	    Paso_BlockOps_MViP_2(&A_p->val[4*mm], &x[2*i]);
-	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+            for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+//	    for (iptr_ik=A_p->pattern->ptr[i]; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+
 	       k=A_p->pattern->index[iptr_ik]; 
-	       Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
+	       if (k != i)
+	         Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
 	    }
 	    Paso_BlockOps_MViP_2(&diag[i*4], &x[2*i]);
 	    
@@ -269,27 +282,29 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    } else if (n_block==3) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
-	    Paso_BlockOps_MViP_3(&A_p->val[9*mm], &x[3*i]);
-	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+            for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+//	    for (iptr_ik=A_p->pattern->ptr[i]; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik];    
-	       Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
+	       if (k != i)
+	         Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
 	    }
 	    Paso_BlockOps_MViP_3(&diag[i*9], &x[3*i]);
       }
-      
    } else {
       double *y=TMPMEMALLOC(n_block, double);
       for (i = n-2; i > -1; --i) {
 	 mm=ptr_main[i];
-	 Paso_BlockOps_MV_N(n_block, &y[0], &A_p->val[block_len*mm], &x[n_block*i]);
-	 for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+         for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
+//	 for (iptr_ik=A_p->pattern->ptr[i]; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];    
-	    Paso_BlockOps_SMV_N(n_block, &y[0], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
+	    if (k != i)
+	      Paso_BlockOps_SMV_N(n_block, &y[0], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
 	 }
 	 Paso_BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);
 	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[i*block_len], &pivot[i*n_block], &failed);
       }   
       TMPMEMFREE(y);
+//fprintf(stderr, "b x[0]=%g\n", x[0]);
    }
    
    if (failed > 0) {

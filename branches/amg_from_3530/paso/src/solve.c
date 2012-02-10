@@ -40,6 +40,13 @@ void Paso_solve(Paso_SystemMatrix* A,
   Paso_Performance pp;
   index_t package;
   Esys_resetError();
+
+
+if (0){
+  if (A->mpi_info->size == 1) fprintf(stderr, "A[1408,1408] (offset 32820)=%.31f\n", A->mainBlock->val[32820*A->block_size]);
+  if (A->mpi_info->rank == 1) fprintf(stderr, "A[179, 179] (offset 3056)=%.31f\n", A->mainBlock->val[3056*A->block_size]);
+}
+
   if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)
                 || A->col_block_size!=A->row_block_size) {
        Esys_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");

@@ -56,7 +56,7 @@ fprintf(stderr, "option %d boomer %d\n", options->preconditioner, PASO_BOOMERAMG
 	  prec->boomeramg = Paso_Preconditioner_BoomerAMG_alloc(A,options);
 	} else {
           prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
-          prec->is_local=FALSE;
+//          prec->is_local=FALSE;
 /*          prec->is_local=TRUE; 
 */        
           if (prec->is_local) {

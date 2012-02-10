@@ -55,7 +55,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    double blocktimer_precond, blocktimer_start = blocktimer_time();
    double *x0=NULL;
 
- 
      Esys_resetError();
      tolerance=options->tolerance;
      if (tolerance < 100.* EPSILON) {
@@ -95,14 +94,16 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      Esys_checkPtr(r);
      Esys_checkPtr(x0);
      Paso_SystemMatrix_balance(A);
+
      options->num_level=0;
      options->num_inner_iter=0;
      
      /* ========================= */
      if (Esys_noError()) {
 	Performance_startMonitor(pp,PERFORMANCE_ALL);
-	
+
 	Paso_SystemMatrix_applyBalance(A, r, b, TRUE);
+
          /* get the norm of the right hand side */
         norm2_of_b=0.;
         norm_max_of_b=0.;
@@ -183,31 +184,34 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
 
               /* get an initial guess by evaluating the preconditioner */
-{
+/*{
 char *str1, *str2;
-int sum, rank, i;
+int sum, rank, i, ib;
 sum = numEqua;
-if (sum > 20) sum = 20;
-str1 = TMPMEMALLOC(30*sum+100, char);
-str2 = TMPMEMALLOC(30, char);
+str1 = TMPMEMALLOC(100*sum+100, char);
+str2 = TMPMEMALLOC(100, char);
 rank = A->mpi_info->rank;
-sprintf(str1, "rank %d r[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%f ", r[i]);
-  strcat(str1, str2);
+if (rank == 0) {
+  sprintf(str1, "intial r[%d] = (", sum);
+  if (sum > 2452) ib = 2452;
+  else ib = sum;
+  for (i=2430; i<ib; i++) {
+    sprintf(str2, "%g ", r[i]);
+    strcat(str1, str2);
+  }
+  fprintf(stderr, "%s)\n", str1);
 }
-fprintf(stderr, "%s)\n", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
-}
+}*/
 	      Paso_SystemMatrix_solvePreconditioner(A,x,r);
-{
+/*{
 char *str1, *str2;
 int sum, rank, i;
 sum = numEqua;
 if (sum > 20) sum = 20;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
+str1 = TMPMEMALLOC(sum*100+100, char);
+str2 = TMPMEMALLOC(100, char);
 rank = A->mpi_info->rank;
 sprintf(str1, "rank %d x[%d] = (", rank, sum);
 for (i=0; i<sum; i++) {
@@ -217,7 +221,7 @@ for (i=0; i<sum; i++) {
 fprintf(stderr, "%s)\n", str1);
 TMPMEMFREE(str1);
 TMPMEMFREE(str2);
-}
+}*/
 
 
               totIter = 1;
