@@ -100,7 +100,7 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
              if(A->col_coupleBlock->pattern->ptr!=NULL) {
 		Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector);  
              }
-             
+
              /* set balancing vector */
              #pragma omp parallel
              {

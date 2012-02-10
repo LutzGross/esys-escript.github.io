@@ -122,7 +122,10 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
 	 sprintf(str2, "Row %d: ", q);
 	 strcat(str1, str2);
 	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-	    sprintf(str2, "(%d %f),",A->col_coupleBlock->pattern->index[iPtr], A->col_coupleBlock->val[iPtr*block_size]);
+	    if (A->global_id) 
+	      sprintf(str2, "(%d %f),",A->global_id[A->col_coupleBlock->pattern->index[iPtr]], A->col_coupleBlock->val[iPtr*block_size]);
+	    else 
+	      sprintf(str2, "(%d %f),",A->col_coupleBlock->pattern->index[iPtr], A->col_coupleBlock->val[iPtr*block_size]);
 	    strcat(str1, str2);
 	 }
 	 sprintf(str1, "%s\n", str1);

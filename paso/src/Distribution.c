@@ -108,6 +108,7 @@ dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
    the distribution but the global length yet :*/
 
 static double Paso_Distribution_random_seed=.4142135623730951;
+//static double Paso_Distribution_random_seed=0.9500958652206464;
 
 double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t block )
 {
@@ -120,13 +121,14 @@ double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t 
    const dim_t my_n = n_1-n_0;
    
    out=MEMALLOC(my_n , double);
+fprintf(stderr, "rank %d random_seed %.16lf\n", in->mpi_info->rank, Paso_Distribution_random_seed);
 
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<my_n ;++i) {
       out[i]=fmod( Paso_Distribution_random_seed*(n_0+i+1) ,1.);
    }
    
-   Paso_Distribution_random_seed=fmod( Paso_Distribution_random_seed * (n+1), 1.);
+   Paso_Distribution_random_seed=fmod( Paso_Distribution_random_seed * (n+1.7), 1.);
    
    return out;
 }

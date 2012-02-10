@@ -498,7 +498,7 @@ if (MY_DEBUG1) fprintf(stderr, "before filling data\n");
    }  
 
 if (MY_DEBUG) fprintf(stderr, "after filling data rank%d r-shared%d s-shared%d\n", rank, out->col_coupler->connector->recv->offsetInShared[1], out->col_coupler->connector->send->offsetInShared[1]);
-if (MY_DEBUG1) fprintf(stderr, "rank %d Error %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
+if (MY_DEBUG) fprintf(stderr, "rank %d Error %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
 
 if (MY_DEBUG) {
      index_t rank, col, p, ptr, range;
@@ -809,11 +809,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
 	    /* now we deal with the col_coupleBlock */
 	    range = A->col_coupleBlock->pattern->ptr[i + 1];
             for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
-               j=A->col_coupleBlock->pattern->index[iPtr];
-               if(j==i) {
-                  for (ib =0; ib<row_block_size; ++ib)
-                    A_ii[ib]=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
-               } else {
+                  j=A->col_coupleBlock->pattern->index[iPtr];
                   for (ib =0; ib<row_block_size; ++ib) {
                      A_ij=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
                      if(A_ij< 0)  {
@@ -835,6 +831,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
                               for (ib =0; ib<row_block_size; ++ib) {
                                  A_ij=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
                                  couple_block->val[row_block_size*offset+ib]=A_ij; /* will be modified later */
+
                                  if (A_ij< 0)  {
                                      sum_strong_neg[ib]+=A_ij;
                                  } else {
@@ -843,10 +840,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
                               }
                      }
                   }
-
-               }
             }
-
 
 	    for (ib =0; ib<row_block_size; ++ib) {
 	       if(sum_strong_neg[ib]<0) { 
@@ -1005,9 +999,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 	                            const double A_jm=A->mainBlock->val[iPtr_j];
 	                            const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
+	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-  		                         const index_t offset_m = main_pattern->ptr[j]+ (index_t)(where_p_m-start_p_main_j);
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
@@ -1025,9 +1019,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                     const double A_jm=A->col_coupleBlock->val[iPtr_j];
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_j,degree_p_couple_j, sizeof(index_t), Paso_comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-                                         const index_t offset_m = couple_pattern->ptr[j]+ (index_t)(where_p_m-start_p_couple_j);
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
@@ -1092,9 +1086,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                     const double A_jm=A->row_coupleBlock->val[iPtr_j];
                                     const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-                                         const index_t offset_m = main_pattern->ptr[j]+ (index_t)(where_p_m-start_p_main_j);
+                                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
@@ -1112,9 +1106,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                     const double A_jm=A->remote_coupleBlock->val[iPtr_j];
                                     const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_j, degree_p_couple_j, sizeof(index_t), Paso_comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i, degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-                                         const index_t offset_m = couple_pattern->ptr[j]+ (index_t)(where_p_m-start_p_couple_j);
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
@@ -1194,7 +1188,7 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    len = MAX(A->remote_coupleBlock->numCols, len);
    ll = len + my_n;
    main_len = main_pattern->len;
-if (MY_DEBUG1){
+if (MY_DEBUG){
   fprintf(stderr, "rank %d P_main %dX%d P_col_couple %dX%d\n", rank, P->mainBlock->numRows, P->mainBlock->numCols, P->col_coupleBlock->numRows, P->col_coupleBlock->numCols);
 fprintf(stderr, "rank %d A_main %dX%d A_col_couple %dX%d\n", rank, A->mainBlock->numRows, A->mainBlock->numCols, A->col_coupleBlock->numRows, A->col_coupleBlock->numCols);
 /*char *str1, *str2;
@@ -1217,14 +1211,18 @@ TMPMEMFREE(str2);*/
         D_s=TMPMEMALLOC(row_block*ll,double);
         D_s_offset=TMPMEMALLOC(row_block*ll,index_t);
 
-   	#pragma omp for private(i) schedule(static)
+//   	#pragma omp for private(i) schedule(static)
         for (i=0;i<my_n;++i) {
+//if (MY_DEBUG1 && rank == 1 && (i==((i+1)/50*50-1)))
+//fprintf(stderr, "processing i=%d\n", i);
             if (counter_C[i]>=0) {
 	        const index_t offset = main_pattern->ptr[i];
 	        for (ib =0; ib<row_block; ++ib) main_block->val[row_block*offset+ib]=1.;  /* i is a C row */
             } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
 		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
 	       const index_t *start_s = &(S[offset_S[i]]);
+if (MY_DEBUG1 && rank == 1 && i==763)
+fprintf(stderr, "processing i=%d, main u%d l%d couple u%d l%d \n", i, main_pattern->ptr[i + 1], main_pattern->ptr[i], couple_pattern->ptr[i + 1], couple_pattern->ptr[i]);
 	       start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
 	       start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
                degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
@@ -1233,7 +1231,9 @@ TMPMEMFREE(str2);*/
                                                                       which are not in C (=no interpolation nodes) */
               const double *A_ii = &(A->mainBlock->val[ptr_main_A[i]*A_block]);
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
-              
+
+if (MY_DEBUG && rank == 1 && i==763)
+fprintf(stderr, "CP1\n");
 
 	      /* first, check the mainBlock */
 	      range = A->mainBlock->pattern->ptr[i + 1];
@@ -1272,9 +1272,9 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
 	                            const double* A_jm=&(A->mainBlock->val[iPtr_j*A_block]);
 	                            const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
+	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-  		                         const index_t offset_m = main_pattern->ptr[j]+ (index_t)(where_p_m-start_p_main_j);
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
                                               if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
@@ -1294,9 +1294,9 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
                                     const double* A_jm=&(A->col_coupleBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_j,degree_p_couple_j, sizeof(index_t), Paso_comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-                                         const index_t offset_m = couple_pattern->ptr[j]+ (index_t)(where_p_m-start_p_couple_j);
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {
                                               if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
@@ -1332,10 +1332,11 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
                  }
               }  
 
-
 	      if (A->mpi_info->size > 1) {
 	      /* now, deal with the coupleBlock */
 	      range = A->col_coupleBlock->pattern->ptr[i + 1];
+if (MY_DEBUG && rank == 1 && i==763)
+fprintf(stderr, "CP2 %d %d\n", range, A->col_coupleBlock->pattern->ptr[i]);
 	      for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
 	         const index_t j=A->col_coupleBlock->pattern->index[iPtr];
 	         const double* A_ij=&(A->col_coupleBlock->val[iPtr*A_block]);
@@ -1344,6 +1345,8 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
                     /* is (i,j) a strong connection ?*/
 		    index_t t=j+my_n;
 	            const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
+if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
+fprintf(stderr, "CP21 %d\n", counter_C[t]);
 	            if (where_s == NULL) { /* weak connections are accummulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i stronly connect with j */
@@ -1371,13 +1374,28 @@ fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[
 
 			       /* first, the row_coupleBlock part */
 			       range_j = A->row_coupleBlock->pattern->ptr[j + 1];
+if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
+fprintf(stderr, "CP22 %d %d\n", range_j, A->row_coupleBlock->pattern->ptr[j]);
+
 	                       for (iPtr_j=A->row_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
-	                            const double* A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
-	                            const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
+//	                            const double* A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
+//	                            const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
+//	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
+				    index_t m, *where_p_m;
+				    double *A_jm;
+				    A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
+				    m=A->row_coupleBlock->pattern->index[iPtr_j];
+if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
+fprintf(stderr, "iPtr_j %d m %d degree %d\n", iPtr_j, m, degree_p_main_i);
+
+				    where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
+if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
+fprintf(stderr, "iPtr_j %d\n", iPtr_j);
+
+
                                     if (! (where_p_m==NULL)) {
-  		                         const index_t offset_m = main_pattern->ptr[j]+ (index_t)(where_p_m-start_p_main_j);
+  		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
                                               if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
@@ -1390,16 +1408,19 @@ fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[
                                     }
                                }
 
+if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
+fprintf(stderr, "CP23\n");
+
 			       /* then the remote_coupleBlock part */
-			       if (degree_p_couple_j) {
+			       if (degree_p_couple_i) {
 				 range_j = A->remote_coupleBlock->pattern->ptr[j + 1];
 				 for (iPtr_j=A->remote_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
                                     const double* A_jm=&(A->remote_coupleBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_j,degree_p_couple_j, sizeof(index_t), Paso_comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
-                                         const index_t offset_m = couple_pattern->ptr[j]+ (index_t)(where_p_m-start_p_couple_j);
+                                         const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {
                                               if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
@@ -1412,6 +1433,9 @@ fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[
                                     } 
 				 }
                                }
+
+//if (MY_DEBUG1 && rank == 1 && i==763 && iPtr == 18076)
+//fprintf(stderr, "CP24\n");
 
                                for (ib=0; ib<row_block; ib++) { 
                                    double s=0;
@@ -1434,6 +1458,9 @@ fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[
                  }
 	      }
 	      }
+
+if (MY_DEBUG && rank == 1 && i==763)
+fprintf(stderr, "CP3\n");
 
 	      /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) { 
