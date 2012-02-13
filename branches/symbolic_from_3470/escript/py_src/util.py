@@ -1920,7 +1920,10 @@ def minimum(*args):
     out=None
     for a in args:
        if out==None:
-          out=a*1.
+          if isinstance(a, numpy.ndarray):
+              out=a.copy()
+          else:
+              out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
              if out.getRank()==0 and a.getRank()>0:

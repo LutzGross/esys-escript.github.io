@@ -50,6 +50,10 @@ class Symbol(object):
     the `NonlinearPDE` class.
     """
 
+    # these are for compatibility with sympy.Symbol. lambdify checks these.
+    is_Add=False
+    is_Float=False
+
     def __init__(self, *args, **kwargs):
         """
         Initialises a new `Symbol` object in one of three ways::
@@ -148,6 +152,9 @@ class Symbol(object):
     def __getitem__(self, key):
         return self._arr[key]
 
+    def __iter__(self):
+        return self._arr.__iter__
+
     def __setitem__(self, key, value):
         if isinstance(value, Symbol):
             if value.getRank()==0:
@@ -240,6 +247,10 @@ class Symbol(object):
         return s
 
     def _sympystr_(self, printer):
+        # compatibility with sympy 1.6
+        return self._sympystr(printer)
+
+    def _sympystr(self, printer):
         return self.lambdarepr()
 
     def lambdarepr(self):

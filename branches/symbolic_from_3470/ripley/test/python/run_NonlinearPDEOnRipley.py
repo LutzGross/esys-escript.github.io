@@ -1,6 +1,7 @@
+
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -10,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -19,21 +20,20 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-checks the mesh generators against the reference meshes in test_meshes and test the finley integration schemes.
 """
 
 import sys
 import os
 import unittest
 from esys.escript import *
-#from esys.ripley  import Rectangle,Brick
-from esys.finley  import Rectangle,Brick
+from esys.ripley import Rectangle,Brick
 from esys.escript.linearPDEs import IllegalCoefficient, IllegalCoefficient
 
 # from xx import Test_NonlinearPDE
 DEBUG=False
 
-NE=10 # number of element in each spatial direction 
+NE=10 # number of elements in each spatial direction
+
 class Test_NonlinearPDE(unittest.TestCase):
    def test_NonLinearPDE_Unknown1_X_Component_0_0(self):
        DIM = self.domain.getDim()
@@ -66,7 +66,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        self.assertEqual(X, f, "wrong coefficient X.")
        A=pde.getCoefficient("A")
        B=pde.getCoefficient("B")
-       A_ref=u*kronecker(DIM)
+       A_ref=u*numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref=g
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A.")
@@ -101,7 +101,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        self.assertEqual(X, f, "wrong coefficient X_reduced.")
        A=pde.getCoefficient("A_reduced")
        B=pde.getCoefficient("B_reduced")
-       A_ref=u*kronecker(DIM)
+       A_ref=u*numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref=g
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B_reduced.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A_reduced.")
@@ -340,7 +340,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B=pde.getCoefficient("B")
        A_ref=Symbol('A_ref', (2,DIM,2,DIM), dim=DIM)
        B_ref=Symbol('B_ref', (2,DIM,2), dim=DIM)
-       A_ref[0,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[0,:]*u[1]
@@ -385,7 +385,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref=Symbol('B_ref', (2,DIM,2), dim=DIM)
        A_ref[0,:,0,:] = 0
        B_ref[0,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[0,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[1,:,0,:]=0
        B_ref[1,:, 0]=0
@@ -430,7 +430,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 0]=0
        A_ref[0,:,1,:]=0
        B_ref[0,:, 1]=0
-       A_ref[1,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[0,:]*u[1]
@@ -475,7 +475,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 1]=0
        A_ref[1,:,0,:] = 0
        B_ref[1,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[1,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,1]=2*grad(u)[1,:]*u[1]
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A.")
@@ -512,7 +512,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B=pde.getCoefficient("B_reduced")
        A_ref=Symbol('A_ref', (2,DIM,2,DIM), dim=DIM)
        B_ref=Symbol('B_ref', (2,DIM,2), dim=DIM)
-       A_ref[0,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[0,:]*u[1]
@@ -557,7 +557,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref=Symbol('B_ref', (2,DIM,2), dim=DIM)
        A_ref[0,:,0,:] = 0
        B_ref[0,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[0,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[1,:,0,:]=0
        B_ref[1,:, 0]=0
@@ -602,7 +602,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 0]=0
        A_ref[0,:,1,:]=0
        B_ref[0,:, 1]=0
-       A_ref[1,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[0,:]*u[1]
@@ -647,7 +647,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 1]=0
        A_ref[1,:,0,:] = 0
        B_ref[1,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[1,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,1]=2*grad(u)[1,:]*u[1]
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B_reduced.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A_reduced.")
@@ -1152,7 +1152,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B=pde.getCoefficient("B")
        A_ref=Symbol('A_ref', (5,DIM,5,DIM), dim=DIM)
        B_ref=Symbol('B_ref', (5,DIM,5), dim=DIM)
-       A_ref[0,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[0,:]*u[1]
@@ -1239,7 +1239,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref=Symbol('B_ref', (5,DIM,5), dim=DIM)
        A_ref[0,:,0,:] = 0
        B_ref[0,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[0,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[0,:,2,:] = 0
        B_ref[0,:,2]=2*grad(u)[1,:]*u[2]
@@ -1326,7 +1326,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[0,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[0,:,3,:] = 0
        B_ref[0,:,3]=2*grad(u)[2,:]*u[3]
@@ -1413,7 +1413,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[0,:,2,:] = 0
        B_ref[0,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[0,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[0,:,4,:] = 0
        B_ref[0,:,4]=2*grad(u)[3,:]*u[4]
@@ -1500,7 +1500,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[0,:,3,:] = 0
        B_ref[0,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[0,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[1,:,0,:]=0
        B_ref[1,:, 0]=0
@@ -1587,7 +1587,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 3]=0
        A_ref[0,:,4,:]=0
        B_ref[0,:, 4]=0
-       A_ref[1,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[0,:]*u[1]
@@ -1674,7 +1674,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 4]=0
        A_ref[1,:,0,:] = 0
        B_ref[1,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[1,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[1,:,2,:] = 0
        B_ref[1,:,2]=2*grad(u)[1,:]*u[2]
@@ -1761,7 +1761,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[1,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[1,:,3,:] = 0
        B_ref[1,:,3]=2*grad(u)[2,:]*u[3]
@@ -1848,7 +1848,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[1,:,2,:] = 0
        B_ref[1,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[1,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[1,:,4,:] = 0
        B_ref[1,:,4]=2*grad(u)[3,:]*u[4]
@@ -1935,7 +1935,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[1,:,3,:] = 0
        B_ref[1,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[1,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[2,:,0,:]=0
        B_ref[2,:, 0]=0
@@ -2022,7 +2022,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:, 3]=0
        A_ref[1,:,4,:]=0
        B_ref[1,:, 4]=0
-       A_ref[2,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[2,:,1,:] = 0
        B_ref[2,:,1]=2*grad(u)[0,:]*u[1]
@@ -2109,7 +2109,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:, 4]=0
        A_ref[2,:,0,:] = 0
        B_ref[2,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[2,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[2,:,2,:] = 0
        B_ref[2,:,2]=2*grad(u)[1,:]*u[2]
@@ -2196,7 +2196,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[2,:,1,:] = 0
        B_ref[2,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[2,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[2,:,3,:] = 0
        B_ref[2,:,3]=2*grad(u)[2,:]*u[3]
@@ -2283,7 +2283,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[2,:,2,:] = 0
        B_ref[2,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[2,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[2,:,4,:] = 0
        B_ref[2,:,4]=2*grad(u)[3,:]*u[4]
@@ -2370,7 +2370,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[2,:,3,:] = 0
        B_ref[2,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[2,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[3,:,0,:]=0
        B_ref[3,:, 0]=0
@@ -2457,7 +2457,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:, 3]=0
        A_ref[2,:,4,:]=0
        B_ref[2,:, 4]=0
-       A_ref[3,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[3,:,1,:] = 0
        B_ref[3,:,1]=2*grad(u)[0,:]*u[1]
@@ -2544,7 +2544,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:, 4]=0
        A_ref[3,:,0,:] = 0
        B_ref[3,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[3,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[3,:,2,:] = 0
        B_ref[3,:,2]=2*grad(u)[1,:]*u[2]
@@ -2631,7 +2631,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[3,:,1,:] = 0
        B_ref[3,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[3,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[3,:,3,:] = 0
        B_ref[3,:,3]=2*grad(u)[2,:]*u[3]
@@ -2718,7 +2718,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[3,:,2,:] = 0
        B_ref[3,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[3,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[3,:,4,:] = 0
        B_ref[3,:,4]=2*grad(u)[3,:]*u[4]
@@ -2805,7 +2805,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[3,:,3,:] = 0
        B_ref[3,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[3,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[4,:,0,:]=0
        B_ref[4,:, 0]=0
@@ -2892,7 +2892,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:, 3]=0
        A_ref[3,:,4,:]=0
        B_ref[3,:, 4]=0
-       A_ref[4,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[4,:,1,:] = 0
        B_ref[4,:,1]=2*grad(u)[0,:]*u[1]
@@ -2979,7 +2979,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:, 4]=0
        A_ref[4,:,0,:] = 0
        B_ref[4,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[4,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[4,:,2,:] = 0
        B_ref[4,:,2]=2*grad(u)[1,:]*u[2]
@@ -3066,7 +3066,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[4,:,1,:] = 0
        B_ref[4,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[4,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[4,:,3,:] = 0
        B_ref[4,:,3]=2*grad(u)[2,:]*u[3]
@@ -3153,7 +3153,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[4,:,2,:] = 0
        B_ref[4,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[4,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[4,:,4,:] = 0
        B_ref[4,:,4]=2*grad(u)[3,:]*u[4]
@@ -3240,7 +3240,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[4,:,3,:] = 0
        B_ref[4,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[4,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,4]=2*grad(u)[4,:]*u[4]
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A.")
@@ -3277,7 +3277,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B=pde.getCoefficient("B_reduced")
        A_ref=Symbol('A_ref', (5,DIM,5,DIM), dim=DIM)
        B_ref=Symbol('B_ref', (5,DIM,5), dim=DIM)
-       A_ref[0,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[0,:]*u[1]
@@ -3364,7 +3364,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref=Symbol('B_ref', (5,DIM,5), dim=DIM)
        A_ref[0,:,0,:] = 0
        B_ref[0,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[0,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[0,:,2,:] = 0
        B_ref[0,:,2]=2*grad(u)[1,:]*u[2]
@@ -3451,7 +3451,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[0,:,1,:] = 0
        B_ref[0,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[0,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[0,:,3,:] = 0
        B_ref[0,:,3]=2*grad(u)[2,:]*u[3]
@@ -3538,7 +3538,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[0,:,2,:] = 0
        B_ref[0,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[0,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[0,:,4,:] = 0
        B_ref[0,:,4]=2*grad(u)[3,:]*u[4]
@@ -3625,7 +3625,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[0,:,3,:] = 0
        B_ref[0,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[0,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[0,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[0,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[1,:,0,:]=0
        B_ref[1,:, 0]=0
@@ -3712,7 +3712,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 3]=0
        A_ref[0,:,4,:]=0
        B_ref[0,:, 4]=0
-       A_ref[1,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[0,:]*u[1]
@@ -3799,7 +3799,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[0,:, 4]=0
        A_ref[1,:,0,:] = 0
        B_ref[1,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[1,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[1,:,2,:] = 0
        B_ref[1,:,2]=2*grad(u)[1,:]*u[2]
@@ -3886,7 +3886,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[1,:,1,:] = 0
        B_ref[1,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[1,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[1,:,3,:] = 0
        B_ref[1,:,3]=2*grad(u)[2,:]*u[3]
@@ -3973,7 +3973,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[1,:,2,:] = 0
        B_ref[1,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[1,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[1,:,4,:] = 0
        B_ref[1,:,4]=2*grad(u)[3,:]*u[4]
@@ -4060,7 +4060,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[1,:,3,:] = 0
        B_ref[1,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[1,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[1,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[1,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[2,:,0,:]=0
        B_ref[2,:, 0]=0
@@ -4147,7 +4147,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:, 3]=0
        A_ref[1,:,4,:]=0
        B_ref[1,:, 4]=0
-       A_ref[2,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[2,:,1,:] = 0
        B_ref[2,:,1]=2*grad(u)[0,:]*u[1]
@@ -4234,7 +4234,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[1,:, 4]=0
        A_ref[2,:,0,:] = 0
        B_ref[2,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[2,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[2,:,2,:] = 0
        B_ref[2,:,2]=2*grad(u)[1,:]*u[2]
@@ -4321,7 +4321,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[2,:,1,:] = 0
        B_ref[2,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[2,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[2,:,3,:] = 0
        B_ref[2,:,3]=2*grad(u)[2,:]*u[3]
@@ -4408,7 +4408,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[2,:,2,:] = 0
        B_ref[2,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[2,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[2,:,4,:] = 0
        B_ref[2,:,4]=2*grad(u)[3,:]*u[4]
@@ -4495,7 +4495,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[2,:,3,:] = 0
        B_ref[2,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[2,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[2,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[2,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[3,:,0,:]=0
        B_ref[3,:, 0]=0
@@ -4582,7 +4582,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:, 3]=0
        A_ref[2,:,4,:]=0
        B_ref[2,:, 4]=0
-       A_ref[3,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[3,:,1,:] = 0
        B_ref[3,:,1]=2*grad(u)[0,:]*u[1]
@@ -4669,7 +4669,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[2,:, 4]=0
        A_ref[3,:,0,:] = 0
        B_ref[3,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[3,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[3,:,2,:] = 0
        B_ref[3,:,2]=2*grad(u)[1,:]*u[2]
@@ -4756,7 +4756,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[3,:,1,:] = 0
        B_ref[3,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[3,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[3,:,3,:] = 0
        B_ref[3,:,3]=2*grad(u)[2,:]*u[3]
@@ -4843,7 +4843,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[3,:,2,:] = 0
        B_ref[3,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[3,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[3,:,4,:] = 0
        B_ref[3,:,4]=2*grad(u)[3,:]*u[4]
@@ -4930,7 +4930,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[3,:,3,:] = 0
        B_ref[3,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[3,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[3,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[3,:,4]=2*grad(u)[4,:]*u[4]
        A_ref[4,:,0,:]=0
        B_ref[4,:, 0]=0
@@ -5017,7 +5017,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:, 3]=0
        A_ref[3,:,4,:]=0
        B_ref[3,:, 4]=0
-       A_ref[4,:,0,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,0,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,0]=2*grad(u)[0,:]*u[0]
        A_ref[4,:,1,:] = 0
        B_ref[4,:,1]=2*grad(u)[0,:]*u[1]
@@ -5104,7 +5104,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[3,:, 4]=0
        A_ref[4,:,0,:] = 0
        B_ref[4,:,0]=2*grad(u)[1,:]*u[0]
-       A_ref[4,:,1,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,1,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,1]=2*grad(u)[1,:]*u[1]
        A_ref[4,:,2,:] = 0
        B_ref[4,:,2]=2*grad(u)[1,:]*u[2]
@@ -5191,7 +5191,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,0]=2*grad(u)[2,:]*u[0]
        A_ref[4,:,1,:] = 0
        B_ref[4,:,1]=2*grad(u)[2,:]*u[1]
-       A_ref[4,:,2,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,2,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,2]=2*grad(u)[2,:]*u[2]
        A_ref[4,:,3,:] = 0
        B_ref[4,:,3]=2*grad(u)[2,:]*u[3]
@@ -5278,7 +5278,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,1]=2*grad(u)[3,:]*u[1]
        A_ref[4,:,2,:] = 0
        B_ref[4,:,2]=2*grad(u)[3,:]*u[2]
-       A_ref[4,:,3,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,3,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,3]=2*grad(u)[3,:]*u[3]
        A_ref[4,:,4,:] = 0
        B_ref[4,:,4]=2*grad(u)[3,:]*u[4]
@@ -5365,7 +5365,7 @@ class Test_NonlinearPDE(unittest.TestCase):
        B_ref[4,:,2]=2*grad(u)[4,:]*u[2]
        A_ref[4,:,3,:] = 0
        B_ref[4,:,3]=2*grad(u)[4,:]*u[3]
-       A_ref[4,:,4,:] = length(u)**2 *kronecker(DIM)
+       A_ref[4,:,4,:] = length(u)**2 *numpy.array(kronecker(DIM), dtype=numpy.int32)
        B_ref[4,:,4]=2*grad(u)[4,:]*u[4]
        self.assertEqual(B_ref.simplify(), B.simplify(), "wrong coefficient B_reduced.")
        self.assertEqual(A_ref.simplify(), A.simplify(), "wrong coefficient A_reduced.")
@@ -7382,13 +7382,12 @@ class Test_NonlinearPDE(unittest.TestCase):
 
 
 class Test_NonlinearPDEOnRipley2D(Test_NonlinearPDE):
-
    def setUp(self):
         self.domain = Rectangle(NE,NE)
    def tearDown(self):
         del self.domain
-class Test_NonlinearPDEOnRipley3D(Test_NonlinearPDE):
 
+class Test_NonlinearPDEOnRipley3D(Test_NonlinearPDE):
    def setUp(self):
         self.domain = Brick(NE,NE,NE)
    def tearDown(self):
@@ -7396,11 +7395,7 @@ class Test_NonlinearPDEOnRipley3D(Test_NonlinearPDE):
         
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-   if True :
-      suite.addTest(unittest.makeSuite(Test_NonlinearPDEOnRipley2D))
-      suite.addTest(unittest.makeSuite(Test_NonlinearPDEOnRipley3D))
-   else:
-      pass
-
+   suite.addTest(unittest.makeSuite(Test_NonlinearPDEOnRipley2D))
+   suite.addTest(unittest.makeSuite(Test_NonlinearPDEOnRipley3D))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)        

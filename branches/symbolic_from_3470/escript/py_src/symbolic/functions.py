@@ -205,16 +205,7 @@ class eigenvalues_and_eigenvectors(sympy.Function):
 class minval(sympy.Function):
     """Returns the minimum value over all components of the argument
     """
-    @classmethod
-    def _should_evalf(cls, arg):
-        """
-        Decide if the function should automatically evalf().
-
-        By default (in this implementation), this happens if (and only if) the
-        ARG is a floating point number.
-        This function is used by __new__.
-        """
-        return -1
+    pass
 
 class maxval(sympy.Function):
     """Returns the maximum value over all components of the argument
