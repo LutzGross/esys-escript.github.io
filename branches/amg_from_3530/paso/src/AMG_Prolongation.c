@@ -129,7 +129,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    couple_p = MEMALLOC(my_n+1, index_t);
    if (!(Esys_checkPtr(main_p) || Esys_checkPtr(couple_p))) {
      /* count the number of entries per row in the Prolongation matrix :*/
-     /* #pragma omp parallel for private(i,k,iptr,j,p) schedule(static) */
+     #pragma omp parallel for private(i,l,k,iptr,j,p) schedule(static)
      for (i=0; i<my_n; i++) {
 	l = 0;
 	if (counter_C[i]>=0) {
@@ -168,7 +168,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      couple_p[my_n] = p;
      couple_idx = MEMALLOC(p, index_t);
      if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
-//	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
+	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
 	for (i=0; i<my_n; i++) {
 	  if (counter_C[i]>=0) {
 	    main_idx[main_p[i]]=counter_C[i];  /* i is a C unknown */
@@ -385,7 +385,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
    register index_t iPtr, j, offset; 
    index_t *where_p, *start_p;
    
-//   #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
+   #pragma omp parallel for private(i,offset,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp) schedule(static)
    for (i=0; i<my_n; i++) {
       if (counter_C[i]>=0) {
 	    offset = main_pattern->ptr[i];
@@ -529,7 +529,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
    register index_t iPtr, j, offset, ib; 
    index_t *where_p, *start_p;
    
-//   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
+   #pragma omp parallel private(i,offset,ib,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp)
    {
       sum_all_neg=TMPMEMALLOC(row_block_size, double); /* sum of all negative values in row i of A */
       sum_all_pos=TMPMEMALLOC(row_block_size, double); /* sum of all positive values in row i of A */
@@ -539,7 +539,7 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
       beta=TMPMEMALLOC(row_block_size, double);
       A_ii=TMPMEMALLOC(row_block_size, double);
       
-//      #pragma omp for schedule(static)
+      #pragma omp for schedule(static)
       for (i=0;i<my_n;++i) {
 	 if (counter_C[i]>=0) { /* i is a C row */
 	    offset = main_pattern->ptr[i];
@@ -734,26 +734,28 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
    ll = len + my_n;
    main_len = main_pattern->len;
 
-//   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
+   #pragma omp parallel private(D_s,D_s_offset,i,start_p_main_i,start_p_couple_i,degree_p_main_i,degree_p_couple_i,range,iPtr,q,range_j,iPtr_j,len_D_s)
    {
         D_s=TMPMEMALLOC(ll,double);
         D_s_offset=TMPMEMALLOC(ll,index_t);
 
-   	#pragma omp for private(i) schedule(static)
+	#pragma omp for schedule(static)
         for (i=0;i<my_n;++i) {
             if (counter_C[i]>=0) {
 	        main_block->val[main_pattern->ptr[i]]=1.;  /* i is a C row */
             } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
 		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
-	       const index_t *start_s = &(S[offset_S[i]]);
-	       start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
-	       start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
-	       degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
-	       degree_p_couple_i = couple_pattern->ptr[i+1] - couple_pattern->ptr[i];
-              /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
-                                                                      which are not in C (=no interpolation nodes) */
+	      /* this loop sums up the weak connections in a and creates
+		 a list of the strong connected columns which are not in
+		 C (=no interpolation nodes) */
+	      const index_t *start_s = &(S[offset_S[i]]);
               const double A_ii = A->mainBlock->val[ptr_main_A[i]];
               double a=A_ii;
+
+	      start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
+              start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
+              degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
+              degree_p_couple_i = couple_pattern->ptr[i+1] - couple_pattern->ptr[i];
 
 	      /* first, check the mainBlock */
 	      range = A->mainBlock->pattern->ptr[i + 1];
@@ -967,27 +969,28 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    len = MAX(A->remote_coupleBlock->numCols, len);
    ll = len + my_n;
    main_len = main_pattern->len;
-//   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
+   #pragma omp parallel private(D_s,D_s_offset,i,ib,start_p_main_i,start_p_couple_i,degree_p_main_i,degree_p_couple_i,range,iPtr,q,range_j,iPtr_j,len_D_s)
    {
         double *a=TMPMEMALLOC(row_block, double);
         D_s=TMPMEMALLOC(row_block*ll,double);
         D_s_offset=TMPMEMALLOC(row_block*ll,index_t);
 
-//   	#pragma omp for private(i) schedule(static)
+   	#pragma omp for private(i) schedule(static)
         for (i=0;i<my_n;++i) {
             if (counter_C[i]>=0) {
 	        const index_t offset = main_pattern->ptr[i];
 	        for (ib =0; ib<row_block; ++ib) main_block->val[row_block*offset+ib]=1.;  /* i is a C row */
             } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
 		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
-	       const index_t *start_s = &(S[offset_S[i]]);
-	       start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
-	       start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
-               degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
-	       degree_p_couple_i = couple_pattern->ptr[i+1] - couple_pattern->ptr[i];
-              /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
-                                                                      which are not in C (=no interpolation nodes) */
-              const double *A_ii = &(A->mainBlock->val[ptr_main_A[i]*A_block]);
+	      /* this loop sums up the weak connections in a and creates
+		 a list of the strong connected columns which are not in
+		 C (=no interpolation nodes) */
+	      const index_t *start_s = &(S[offset_S[i]]);
+	      const double *A_ii = &(A->mainBlock->val[ptr_main_A[i]*A_block]);
+	      start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
+	      start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
+              degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
+	      degree_p_couple_i = couple_pattern->ptr[i+1] - couple_pattern->ptr[i];
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
 
 	      /* first, check the mainBlock */

@@ -427,7 +427,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
    threshold_p = TMPMEMALLOC(2*my_n, double);
    
-//   #pragma omp parallel for private(i,iptr) schedule(static)
+   #pragma omp parallel for private(i,iptr) schedule(static)
    for (i=0;i<my_n;++i) {        
 	 
 	 register double max_offdiagonal = 0.;
@@ -438,7 +438,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
          
 	 /* collect information for row i: */
-//	 #pragma ivdep
+	 #pragma ivdep
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
 	    register double fnorm=ABS(A->mainBlock->val[iptr]);
@@ -451,7 +451,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
 	 }
 
-//	 #pragma ivdep
+	 #pragma ivdep
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
 
@@ -465,7 +465,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
             threshold_p[2*i+1]=threshold;
 	    if (tau*main_row < sum_row) { /* no diagonal domainance */
                threshold_p[2*i]=1;
-//	       #pragma ivdep
+	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->mainBlock->pattern->index[iptr];
 	          if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
@@ -502,13 +502,13 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
           Paso_Coupler_finishCollect(threshold_coupler);
           remote_threshold=threshold_coupler->recv_buffer;
 
-//          #pragma omp parallel for private(i,iptr) schedule(static)
+          #pragma omp parallel for private(i,iptr) schedule(static)
           for (i=0; i<overlap_n; i++) {
 	      const double threshold = remote_threshold[2*i+1];
 	      register dim_t kdeg=0;
               register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
               if (remote_threshold[2*i]>0) {
-//	         #pragma ivdep
+		#pragma ivdep
 		for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->row_coupleBlock->pattern->index[iptr];
 	          if(ABS(A->row_coupleBlock->val[iptr])>threshold) {
@@ -517,7 +517,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	          }
 		}
 
-//		 #pragma ivdep
+		#pragma ivdep
 		for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; iptr++) {
 		  register index_t j=A->remote_coupleBlock->pattern->index[iptr];
 		  if(ABS(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
@@ -556,19 +556,19 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    
    threshold_p = TMPMEMALLOC(2*my_n, double);
 
-//   #pragma omp parallel private(i,iptr, bi)
+   #pragma omp parallel private(i,iptr,bi)
    {
    
       dim_t max_deg=0;
       double *rtmp=NULL;
 
-//      #pragma omp for schedule(static)
+      #pragma omp for schedule(static)
       for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
 				     +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
       
       rtmp=TMPMEMALLOC(max_deg, double);
       
-//      #pragma omp for schedule(static) 
+      #pragma omp for schedule(static) 
       for (i=0;i<my_n;++i) {        
 	 register double max_offdiagonal = 0.;
 	 register double sum_row=0;
@@ -581,7 +581,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
 	    register double fnorm=0;
-//	    #pragma ivdep
+	    #pragma ivdep
 	    for(bi=0;bi<block_size;++bi) {
    	        register double  rtmp2= A->mainBlock->val[iptr*block_size+bi];
 	       fnorm+=rtmp2*rtmp2;
@@ -601,7 +601,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
          rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=0;
-//	    #pragma ivdep
+	    #pragma ivdep
 	    for(bi=0;bi<block_size;++bi) {
 	       register double rtmp2 = A->col_coupleBlock->val[iptr*block_size+bi];
 	       fnorm+=rtmp2*rtmp2;
@@ -622,7 +622,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    threshold_p[2*i+1]=threshold;
 	    if (tau*main_row < sum_row) { /* no diagonal domainance */
 	       threshold_p[2*i]=1;
-//	       #pragma ivdep
+	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 		  register index_t j=A->mainBlock->pattern->index[iptr];
 		  if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
@@ -631,7 +631,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 		  }
 	       }
 	       rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
-//	       #pragma ivdep
+	       #pragma ivdep
 	       for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 		  register index_t j=A->col_coupleBlock->pattern->index[iptr];
 		  if( rtmp[iptr+rtmp_offset] >threshold) {
@@ -661,18 +661,18 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
       Paso_Coupler_finishCollect(threshold_coupler);
       remote_threshold=threshold_coupler->recv_buffer;
       
-//      #pragma omp parallel for private(i,iptr) schedule(static)
+      #pragma omp parallel for private(i,iptr) schedule(static)
       for (i=0; i<overlap_n; i++) {
 	 
 	 const double threshold2 = remote_threshold[2*i+1]*remote_threshold[2*i+1];
 	 register dim_t kdeg=0;
 	 register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
 	 if (remote_threshold[2*i]>0) {
-//	    #pragma ivdep
+	    #pragma ivdep
 	    for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	       register index_t j=A->row_coupleBlock->pattern->index[iptr];
 	       register double fnorm2=0;
-//	       #pragma ivdepremote_threshold[2*i]
+	       #pragma ivdepremote_threshold[2*i]
 	       for(bi=0;bi<block_size;++bi) {
 		  register double rtmp2 = A->row_coupleBlock->val[iptr*block_size+bi];
 		  fnorm2+=rtmp2*rtmp2;
@@ -684,11 +684,11 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	       }
 	    }
 
-//	    #pragma ivdep
+	    #pragma ivdep
             for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; ++iptr) {
                register index_t j=A->remote_coupleBlock->pattern->index[iptr];
                register double fnorm2=0;
-//               #pragma ivdepremote_threshold[2*i]
+               #pragma ivdepremote_threshold[2*i]
                for(bi=0;bi<block_size;++bi) {
                   register double rtmp2 = A->remote_coupleBlock->val[iptr*block_size+bi];
                   fnorm2+=rtmp2*rtmp2;
@@ -757,7 +757,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   random = Paso_Distribution_createRandomVector(col_dist,1);
   ST_flag=TMPMEMALLOC(offset_ST[n-1]+ degree_ST[n-1], index_t);
 
-//  #pragma omp parallel for private(i)
+  #pragma omp parallel for private(i)
   for (i=0; i< my_n; ++i) {
       w[i]=degree_ST[i]+random[i];
       if (degree_ST[i] < 1) {
@@ -783,7 +783,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 
       /* calculate the maximum value of naigbours following active strong connections:
 	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) conenction is still active  */       
-//      #pragma omp parallel for private(i, iptr)
+      #pragma omp parallel for private(i, iptr)
       for (i=0; i<my_n; ++i) {
 	 if (Status[i]>0) { /* status is still undefined */
 
@@ -841,7 +841,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	 */
 	 /* w is updated  for local rows only */
 	 {
-//	    #pragma omp parallel for private(i, jptr)
+	    #pragma omp parallel for private(i, jptr)
 	    for (i=0; i< my_n; ++i) {
 
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
@@ -853,7 +853,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	       }
 	       
 	    } 
-//	    #pragma omp parallel for private(i, jptr)
+	    #pragma omp parallel for private(i, jptr)
 	    for (i=my_n; i< n; ++i) {
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 		  const index_t j = ST[offset_ST[i]+jptr];
@@ -887,7 +887,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	 }
 
 	 /* adjust status */
-//	 #pragma omp parallel for private(i)
+	 #pragma omp parallel for private(i)
 	 for (i=0; i< my_n; ++i) {
 	    if ( Status[i] == 0. ) {
 	       Status[i] = -10;   /* this is now a C point */
@@ -910,7 +910,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 
   /* map to output :*/
   Paso_Coupler_fillOverlap(n, Status, w_coupler);
-//  #pragma omp parallel for private(i)
+  #pragma omp parallel for private(i)
   for (i=0; i< n; ++i) {
 	 if (Status[i] > -50.) {
 	    split_marker[i]=PASO_AMG_IN_C;
@@ -950,6 +950,7 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
   if (size == 1) {
     n = A->mainBlock->numRows;
     ptr = TMPMEMALLOC(n, index_t); 
+    #pragma omp parallel for private(i)
     for (i=0; i<n; i++) ptr[i] = i;
     out = Paso_SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
     TMPMEMFREE(ptr);
@@ -1114,6 +1115,7 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
   counts = TMPMEMALLOC(size, index_t);
   offset = TMPMEMALLOC(size, index_t);
 
+  #pragma omp parallel for private(i,p)
   for (i=0; i<size; i++) {
     p = dist[i];
     counts[i] = (dist[i+1] - p)*n_block;

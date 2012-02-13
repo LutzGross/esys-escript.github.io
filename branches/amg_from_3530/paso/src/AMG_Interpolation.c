@@ -38,9 +38,6 @@
 
 ***************************************************************/
 
-#define MY_DEBUG 0
-#define MY_DEBUG1 1
-
 /* Extend system matrix B with extra two sparse matrixes: 
 	B_ext_main and B_ext_couple
    The combination of this two sparse matrixes represents  
@@ -321,7 +318,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
 
-//  #pragma omp parallel for private(i,j,k,m,p) schedule(static)
+  #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
     j = ptr_main[i];
     k = ptr_main[i+1];
@@ -637,7 +634,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      iptr = 0;
      if (num_Pcouple_cols || sum > 0) {
 	temp = TMPMEMALLOC(num_Pcouple_cols+sum, index_t);
-	for (; iptr<sum; iptr++){ 
+	#pragma omp parallel for lastprivate(iptr) schedule(static)
+	for (iptr=0; iptr<sum; iptr++){ 
 	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
 	}
 	for (j=0; j<num_Pcouple_cols; j++, iptr++){
@@ -662,11 +660,13 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      /* resize the pattern of P_ext_couple */
      if(num_Pext_cols){
 	global_id_P = TMPMEMALLOC(num_Pext_cols, index_t);
+	#pragma omp parallel for private(i) schedule(static)
 	for (i=0; i<num_Pext_cols; i++)
 	  global_id_P[i] = temp[i];
      }
      if (num_Pcouple_cols || sum > 0) 
 	TMPMEMFREE(temp);
+     #pragma omp parallel for private(i, where_p) schedule(static)
      for (i=0; i<sum; i++) {
 	where_p = (index_t *)bsearch(
 			&(P->remote_coupleBlock->pattern->index[i]),
@@ -1083,12 +1083,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    /* resize the pattern of P_ext_couple */
    if(num_RAPext_cols){
      global_id_RAP = TMPMEMALLOC(num_RAPext_cols, index_t);
+     #pragma omp parallel for private(i) schedule(static)
      for (i=0; i<num_RAPext_cols; i++)
 	global_id_RAP[i] = temp[i];
    }
    if (num_Pext_cols || sum > 0)
      TMPMEMFREE(temp);
    j1_ub = offset + num_Pmain_cols;
+   #pragma omp parallel for private(i, where_p) schedule(static)
    for (i=0; i<sum; i++) {
      if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub){
 	where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
@@ -1570,6 +1572,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      if (i > row_marker) {
 	offset = i - row_marker;
 	temp = TMPMEMALLOC(offset, index_t);
+	#pragma omp parallel for schedule(static) private(iptr)
 	for (iptr=0; iptr<offset; iptr++)
 	  temp[iptr] = RAP_main_idx[row_marker+iptr];
 	if (offset > 0) {
@@ -1580,11 +1583,13 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	  #endif
 	}
 	temp_val = TMPMEMALLOC(offset * block_size, double);
+	#pragma omp parallel for schedule(static) private(iptr,k)
 	for (iptr=0; iptr<offset; iptr++){
 	  k = P_marker[temp[iptr]];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
 	  P_marker[temp[iptr]] = iptr + row_marker;
 	}
+	#pragma omp parallel for schedule(static) private(iptr)
 	for (iptr=0; iptr<offset; iptr++){
 	  RAP_main_idx[row_marker+iptr] = temp[iptr];
 	  memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
@@ -1595,6 +1600,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      if (j > row_marker_ext) {
         offset = j - row_marker_ext;
         temp = TMPMEMALLOC(offset, index_t);
+	#pragma omp parallel for schedule(static) private(iptr)
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
@@ -1605,11 +1611,13 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
           #endif
         }
         temp_val = TMPMEMALLOC(offset * block_size, double);
+	#pragma omp parallel for schedule(static) private(iptr, k)
         for (iptr=0; iptr<offset; iptr++){
           k = P_marker[temp[iptr] + num_Pmain_cols];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
           P_marker[temp[iptr] + num_Pmain_cols] = iptr + row_marker_ext;
         }
+	#pragma omp parallel for schedule(static) private(iptr)
         for (iptr=0; iptr<offset; iptr++){
           RAP_couple_idx[row_marker_ext+iptr] = temp[iptr];
 	  memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
@@ -1654,6 +1662,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	  temp[k] = global_id_RAP[i];
 	  k++;
 	}
+     #pragma omp parallel for schedule(static) private(i, i1)
      for (i=0; i<j; i++) {
 	i1 = RAP_couple_idx[i];
 	RAP_couple_idx[i] = P_marker[i1];
@@ -1743,6 +1752,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
    send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
 			neighbor, shared, offsetInShared, 1, 0, mpi_info);
@@ -1763,6 +1773,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    len = TMPMEMALLOC(size, dim_t);
    send_ptr = TMPMEMALLOC(size, index_t*);
    send_idx = TMPMEMALLOC(size, index_t*);
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<size; i++) {
      send_ptr[i] = TMPMEMALLOC(num_Pmain_cols, index_t);
      send_idx[i] = TMPMEMALLOC(sum, index_t);
@@ -1839,6 +1850,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    TMPMEMFREE(recv_len);
    shared = TMPMEMALLOC(j, index_t);
    k = offsetInShared[num_neighbors];
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols; 
    }
@@ -1901,10 +1913,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    offset = input_dist->first_component[rank];
    k = row_couple_ptr[num_RAPext_rows];
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<k; i++) {
      row_couple_idx[i] -= offset;
    }
-
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<size; i++) {
      TMPMEMFREE(send_ptr[i]);
      TMPMEMFREE(send_idx[i]);
