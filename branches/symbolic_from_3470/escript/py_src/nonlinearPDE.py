@@ -151,10 +151,9 @@ class NonlinearPDE(object):
         if not subs.has_key(u_sym):
             raise KeyError("Initial value for '%s' missing."%u_sym)
 
-        ui=subs[u_sym]
+        ui=subs.pop(u_sym)
         if isinstance(ui,float) or isinstance(ui,int):
             ui=Data(ui, self.lpde.getFunctionSpaceForSolution())
-            subs[u_sym]=ui
 
         coeffs={}
         # separate symbolic expressions from other coefficients
@@ -165,45 +164,43 @@ class NonlinearPDE(object):
             else:
                 coeffs[n]=e
 
-        # evaluate symbolic expressions
+        coeffnames=expressions.keys()
+        # substitute all symbols except 'u' which is done in newton()
         ev=Evaluator(*expressions.values())
         ev.subs(**subs)
+
+        # perform Newton iterations until error is small enough or
+        # maximum number of iterations reached
+        n=0
+        while True:
+            n=n+1
+            delta_u=self._newton(ev, ui, coeffnames, coeffs)
+            ui=ui-delta_u
+            self.trace("Error after %d iteration(s): %g"%(n,util.Lsup(delta_u)))
+            self.trace("RHS after %d iteration(s): %g"%(n,util.Lsup(self.lpde.getRightHandSide())))
+            if util.Lsup(delta_u)<self.lpde.getSolverOptions().getTolerance() \
+                or n>=self.lpde.getSolverOptions().getIterMax():
+                    break
+
+        self.trace("Final error after %d iterations: %g"%(n,util.Lsup(delta_u)))
+        return ui
+
+    def _newton(self, ev, u, names, coeffs):
+        u_sym=self._u.atoms().pop().name
+        ev.subs(**{u_sym:u})
         self.trace("Starting expression evaluation.")
         ttt0=time()
         res=ev.evaluate()
         ttt1=time()
-        self.trace("Expressions evaluated. Took %f seconds."%(ttt1-ttt0))
-        names=expressions.keys()
+        self.trace("Expressions evaluated in %f seconds."%(ttt1-ttt0))
         for i in range(len(names)):
             coeffs[names[i]]=res[i]
+            self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
 
-        # solve linear PDE
         self.lpde.setValue(**coeffs)
-        u_new=self.lpde.getSolution()
-        self.trace("Initial error: %g"%(util.Lsup(u_new)))
-        self.trace("Initial RHS: %g"%(util.Lsup(self.lpde.getRightHandSide())))
-        n=1
-        # perform Newton iterations until error is small enough or
-        # maximum number of iterations reached
-        while util.Lsup(u_new)>self.lpde.getSolverOptions().getTolerance() and \
-                n<self.lpde.getSolverOptions().getIterMax():
-            delta_u=u_new
-            ev.subs(**{u_sym:ui-u_new})
-            res=ev.evaluate()
-            for i in range(len(names)):
-                coeffs[names[i]]=res[i]
-                self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        delta_u=self.lpde.getSolution()
+        return delta_u
 
-            self.lpde.setValue(**coeffs)
-            u_new=self.lpde.getSolution()
-            ui=ui-delta_u
-            n=n+1
-            self.trace("Error after %d iterations: %g"%(n,util.Lsup(u_new)))
-            self.trace("RHS after %d iterations: %g"%(n,util.Lsup(self.lpde.getRightHandSide())))
-
-        self.trace("Final error after %d iterations: %g"%(n,util.Lsup(u_new)))
-        return u_new
-        
     def getNumSolutions(self):
         """
         Returns the number of the solution components
