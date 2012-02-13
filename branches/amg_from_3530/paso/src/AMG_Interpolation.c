@@ -86,8 +86,6 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     return;
   }
 
-if (MY_DEBUG) fprintf(stderr, "CP1_1\n");
-
   /* sending/receiving unknown's global ID */
   num_main_cols = B->mainBlock->numCols;
   cols = TMPMEMALLOC(num_main_cols, double);
@@ -142,8 +140,6 @@ if (MY_DEBUG) fprintf(stderr, "CP1_1\n");
   /* distribute the number of cols in current col_coupleBlock to all ranks */
   MPI_Allgatherv(&num_couple_cols, 1, MPI_INT, recv_buf, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm);
 
-if (MY_DEBUG) fprintf(stderr, "CP1_2\n");
-
   /* distribute global_ids of cols to be considered to all ranks*/
   len = 0;
   max_num_cols = 0;
@@ -158,19 +154,6 @@ if (MY_DEBUG) fprintf(stderr, "CP1_2\n");
   cols_array = TMPMEMALLOC(len, index_t);
   MPI_Allgatherv(global_id, num_couple_cols, MPI_INT, cols_array, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm);
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_3\n", rank);
-if (MY_DEBUG) {
-    int i=0;
-    char hostname[256];
-    gethostname(hostname, sizeof(hostname));
-    fprintf(stderr, "rank %d PID %d on %s ready for attach\n", A->mpi_info->rank, getpid(), hostname);
-    if (rank == 1) {
-      fflush(stdout);
-      while (0 == i)
-        sleep(5);
-    }
-}
-
   /* first, prepare the ptr_ptr to be received */
   q = recv->numNeighbors;
   len = recv->offsetInShared[q];
@@ -182,33 +165,8 @@ if (MY_DEBUG) {
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
-if(MY_DEBUG) fprintf(stderr, "rank %d receive %d from %d tag %d (numNeighbors %d)\n", rank, 2*(m-row), recv->neighbor[p], A->mpi_info->msg_tag_counter+recv->neighbor[p], q);
   }
 
-if (MY_DEBUG && rank == 1){
-//Paso_SystemMatrix_print(B);
-char *str1, *str2;
-int sum, rank, i, iPtr, ib, block_size;
-sum = B->col_coupleBlock->numCols*2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "B-col-coupleB: %d rows\n-----------\n", sum);
-for (i=23; i<24; i++) {
-  sprintf(str2, "Row %d: ",i);
-  strcat(str1, str2);
-  for (iPtr =B->col_coupleBlock->pattern->ptr[i]; iPtr<B->col_coupleBlock->pattern->ptr[i+1]; ++iPtr) {
-    sprintf(str1, "%s (%d %d %f %f", str1, B->global_id[B->col_coupleBlock->pattern->index[iPtr]], iPtr, B->col_coupleBlock->val[iPtr*2], B->col_coupleBlock->val[iPtr*2+1]);
-    for (ib = 0; ib<block_size; ib++) {
-//      sprintf(str1, "%s %f", str1, B->col_coupleBlock->val[iPtr*block_size+ib]);
-    }
-    sprintf(str1, "%s) ", str1);
-  }
-  sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
   /* now prepare the rows to be sent (the degree, the offset and the data) */
   len = 0;
   i0 = 0;
@@ -218,7 +176,6 @@ TMPMEMFREE(str2);
     m_lb = B->col_distribution->first_component[neighbor];
     m_ub = B->col_distribution->first_component[neighbor + 1];
     j_ub = send->offsetInShared[p + 1];
-if (MY_DEBUG1 && rank == 1 && p == 0) fprintf(stderr, "rank%d neighbor %d m_lb %d m_ub %d offset %d\n", rank, neighbor, m_lb, m_ub, offset);
     for (j=send->offsetInShared[p]; j<j_ub; j++) {
 	row = send->shared[j];
 	l_m = 0;
@@ -227,23 +184,17 @@ if (MY_DEBUG1 && rank == 1 && p == 0) fprintf(stderr, "rank%d neighbor %d m_lb %
 	k_lb = B->col_coupleBlock->pattern->ptr[row];
 
 	/* check part of col_coupleBlock for data to be passed @row */ 
-//	q = B->mainBlock->pattern->index[B->mainBlock->pattern->ptr[row]] + offset;
 	for (k=k_lb; k<k_ub; k++) {
 	  m = global_id[B->col_coupleBlock->pattern->index[k]];
-//	  if (m > q) break;
 	  if (m > offset) break;
-if (MY_DEBUG) fprintf(stderr, "rank%d (1) row %d m %d k %d\n", rank, row, m, B->col_coupleBlock->pattern->index[k]);
 	  if (m>= m_lb && m < m_ub) {
 	    /* data to be passed to sparse matrix B_ext_main */
 	    idx_m[l_m] = m - m_lb;
 	    memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-if (MY_DEBUG && rank == 1 && p == 0 && j == 23)
-fprintf(stderr, "[1] l_m %d idx %d val %f %f k%d row%d\n", l_m, m - m_lb, B->col_coupleBlock->val[block_size*k], send_m[l_m*block_size+1], k, row);
 	    l_m++;
 	  } else { 
 	    /* data to be passed to sparse matrix B_ext_couple */
 	    idx_c[l_c] = m;
-if (MY_DEBUG) fprintf(stderr, "rank%d (1) m %d m_lb %d m_ub %d\n", rank, m, m_lb, m_ub);
 	    memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
 	    l_c++;
 	  } 
@@ -257,8 +208,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d (1) m %d m_lb %d m_ub %d\n", rank, m, m_lb
 	memcpy(&(send_c[l_c*block_size]), &(B->mainBlock->val[block_size*k]), block_size_size * (k_ub-k));
 	for (; k<k_ub; k++) {
 	  m = B->mainBlock->pattern->index[k] + offset;
-if (MY_DEBUG) fprintf(stderr, "rank%d (2) row %d m %d k %d\n", rank, row, m, B->mainBlock->pattern->index[k]);
-if (MY_DEBUG) fprintf(stderr, "rank%d (2) m %d m_lb %d m_ub %d\n", rank, m, m_lb, m_ub);
 	  idx_c[l_c] = m;
 	  l_c++;
 	}
@@ -269,24 +218,19 @@ if (MY_DEBUG) fprintf(stderr, "rank%d (2) m %d m_lb %d m_ub %d\n", rank, m, m_lb
 	k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
 	for (k=k_lb; k<k_ub; k++) {
           m = global_id[B->col_coupleBlock->pattern->index[k]];
-if (MY_DEBUG) fprintf(stderr, "rank%d (3) row %d m %d k %d\n", rank, row, m, B->col_coupleBlock->pattern->index[k]);
 	  if (m>= m_lb && m < m_ub) {
 	    /* data to be passed to sparse matrix B_ext_main */
 	    idx_m[l_m] = m - m_lb;
 	    memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-if (MY_DEBUG && rank == 1 && p == 0 && j == 23)
-fprintf(stderr, "l_m %d idx %d val %f\n", l_m, m - m_lb, B->col_coupleBlock->val[block_size*k]);
 	    l_m++;
 	  } else {
 	    /* data to be passed to sparse matrix B_ext_couple */
 	    idx_c[l_c] = m;
-if (MY_DEBUG) fprintf(stderr, "rank%d (3) m %d m_lb %d m_ub %d\n", rank, m, m_lb, m_ub);
 	    memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
 	    l_c++;
 	  }
 	}
 
-if (MY_DEBUG && rank == 2) fprintf(stderr, "rank %d p %d i %d j %d l_c %d l_m %d ub %d\n", rank, p, i, j, l_c, l_m, num_couple_cols + num_main_cols);
 	memcpy(&(send_buf[len*block_size]), send_m, block_size_size*l_m);
 	memcpy(&(send_idx[len]), idx_m, l_m * sizeof(index_t));
         send_offset[2*i] = l_m;
@@ -295,44 +239,14 @@ if (MY_DEBUG && rank == 2) fprintf(stderr, "rank %d p %d i %d j %d l_c %d l_m %d
 	memcpy(&(send_idx[len]), idx_c, l_c * sizeof(index_t));
 	send_offset[2*i+1] = l_c;
 	len += l_c;
-if (MY_DEBUG && rank == 0) {
-int sum = l_m+l_c, my_i;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d send_idx[%d] offset %d m%d c%d= (", rank, sum, len-sum, l_m, l_c);
-for (my_i=len-sum; my_i<len; my_i++){
-  sprintf(str2, "%d ", send_idx[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 	i++;
     }
-
-if (MY_DEBUG && rank == 1) {
-int my_i,sum = len;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d send_idx[%d] = (", rank, sum);
-for (my_i=0; my_i<sum; my_i++){
-  sprintf(str2, "%d ", send_idx[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
     /* sending */
     MPI_Issend(&(send_offset[2*i0]), 2*(i-i0), MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
-if(MY_DEBUG) fprintf(stderr, "rank %d send %d to %d tag %d (offset %d numNeighbors %d)\n", rank, 2*(i-i0), send->neighbor[p], A->mpi_info->msg_tag_counter+rank, i0, send->numNeighbors);
     send_degree[p] = len;
     i0 = i;
   }
@@ -353,21 +267,6 @@ if(MY_DEBUG) fprintf(stderr, "rank %d send %d to %d tag %d (offset %d numNeighbo
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
 
-if (MY_DEBUG) {
-int sum = recv->offsetInShared[recv->numNeighbors] * 2;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d ptr_ptr[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", ptr_ptr[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
   j = 0;
   k = 0;
   ptr_main[0] = 0;
@@ -385,7 +284,6 @@ TMPMEMFREE(str2);
   idx_couple = MEMALLOC(k, index_t);
   ptr_idx = TMPMEMALLOC(j+k, index_t);
   ptr_val = TMPMEMALLOC((j+k) * block_size, double);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_4_2 %d %d %d\n", rank, j, k, len);
 
   /* send/receive index array */
   j=0;
@@ -400,66 +298,28 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP1_4_2 %d %d %d\n", rank, j, k, len);
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
-if(MY_DEBUG) fprintf(stderr, "rank %d (INDEX) recv %d from %d tag %d (%d %d %d %d %d %d)\n", rank, i, recv->neighbor[p], A->mpi_info->msg_tag_counter+recv->neighbor[p], m, k, ptr_main[m], ptr_main[k], ptr_couple[m], ptr_couple[k]);
-    } else {
-if (MY_DEBUG) fprintf(stderr, "rank%d k %d m %d main(%d %d) couple(%d %d)\n", rank, k, m, ptr_main[m], ptr_main[k], ptr_couple[m], ptr_couple[k]);
     }
     j += i;
   }
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_4_3  %d %d\n", rank, recv->numNeighbors, k_ub);
   j=0;
   k_ub = 0;
   for (p=0; p<num_neighbors; p++) {
     i = send_degree[p] - j;
     if (i > 0){
 	k_ub ++;
-if (MY_DEBUG && rank == 0 && send->neighbor[p] == 1) {
-int sum = i, my_i;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d send_idx[%d] offset %d = (", rank, sum, j);
-for (my_i=0; my_i<sum; my_i++){
-  sprintf(str2, "%d ", send_idx[j+my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
         MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
-if(MY_DEBUG) fprintf(stderr, "rank %d (INDEX) send %d to %d tag %d\n", rank, i, send->neighbor[p], A->mpi_info->msg_tag_counter+rank);
-    } else {
-if (MY_DEBUG) fprintf(stderr, "rank%d send_degree %d, p %d, j %d\n", rank, send_degree[p], p, j);
     }
     j = send_degree[p];
   }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_4_4 %d %d\n", rank,num_neighbors, k_ub);
 
   MPI_Waitall(A->col_coupler->connector->send->numNeighbors+A->col_coupler->connector->recv->numNeighbors,
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_5 %d %d %d\n", rank, len, ptr_main[len], ptr_couple[len]);
-if (MY_DEBUG && rank == 3) {
-int my_i, sum1 = recv->offsetInShared[recv->numNeighbors];
-int sum = ptr_main[sum1] + ptr_couple[sum1];
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d ptr_idx[%d] = (", rank, sum);
-for (my_i=0; my_i<500; my_i++){
-  sprintf(str2, "%d ", ptr_idx[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
 //  #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
@@ -475,27 +335,6 @@ TMPMEMFREE(str2);
     }
   }
   TMPMEMFREE(ptr_idx);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_5_1 %d %d %d\n", rank, num_main_cols, len, B->mainBlock->numRows);
-if (MY_DEBUG && rank == 3) {
-int sum = len, sum1 = ptr_main[sum];
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum1*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d ptr_main[%d] = (", rank, sum);
-for (i=0; i<sum+1; i++){
-  sprintf(str2, "%d ", ptr_main[i]);
-  strcat(str1, str2);
-}
-//fprintf(stderr, "%s)\n", str1);
-sprintf(str1, "rank %d idx_main[%d] = (", rank, sum1);
-for (i=500; i<700; i++){
-  sprintf(str2, "%d-%d ", i, idx_main[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
   /* allocate pattern and sparsematrix for B_ext_main */
   pattern_main = Paso_Pattern_alloc(B->col_coupleBlock->pattern->type,
@@ -504,7 +343,6 @@ TMPMEMFREE(str2);
 		pattern_main, B->row_block_size, B->col_block_size,
 		FALSE);
   Paso_Pattern_free(pattern_main);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_5_2\n", rank);
 
   /* allocate pattern and sparsematrix for B_ext_couple */
   pattern_couple = Paso_Pattern_alloc(B->col_coupleBlock->pattern->type,
@@ -514,8 +352,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP1_5_2\n", rank);
                 pattern_couple, B->row_block_size, B->col_block_size,
                 FALSE);
   Paso_Pattern_free(pattern_couple);
-
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1_6\n", rank);
 
   /* send/receive value array */
   j=0;
@@ -547,7 +383,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP1_6\n", rank);
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   A->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "CP1_7\n");
 
   #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
@@ -556,12 +391,10 @@ if (MY_DEBUG) fprintf(stderr, "CP1_7\n");
     m = ptr_couple[i];
     for (p=j; p<k; p++) {
 	memcpy(&(B->row_coupleBlock->val[p*block_size]), &(ptr_val[(m+p)*block_size]), block_size_size);
-//	B->row_coupleBlock->val[p*block_size] = ptr_val[(m+p)*block_size];
     }
     j = ptr_couple[i+1];
     for (p=m; p<j; p++) {
 	memcpy(&(B->remote_coupleBlock->val[p*block_size]), &(ptr_val[(k+p)*block_size]), block_size_size);
-//	B->remote_coupleBlock->val[p*block_size] = ptr_val[(k+p)*block_size];
     }
   }
   TMPMEMFREE(ptr_val);
@@ -613,7 +446,6 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
   #pragma omp for schedule(static) private(i)
   for (i=0; i<send_rows; i++) 
     send_degree[i] = ptr[i+1] - ptr[i];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5_1 srows %d rrows %d\n", rank, send_rows, recv_rows);
 
   /* First, send/receive the degree */
   for (p=0; p<recv_neighbors; p++) { /* Receiving */
@@ -636,14 +468,12 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP5_1 srows %d rrows %d\n", rank, send_ro
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   P->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5_3 %d %d\n", rank, recv_neighbors, send_neighbors);
 
   TMPMEMFREE(send_degree);
   m = Paso_Util_cumsum(recv_rows, recv_ptr);
   recv_ptr[recv_rows] = m;
   recv_idx = MEMALLOC(m, index_t); 
   recv_val = MEMALLOC(m * block_size, double);
-if (MY_DEBUG) fprintf(stderr, "rank %d receive size %d\n", rank, m);
 
   /* Next, send/receive the index array */
   j = 0;
@@ -652,13 +482,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d receive size %d\n", rank, m);
     n = recv->offsetInShared[p+1];
     i = recv_ptr[n] - recv_ptr[m]; 
     if (i > 0) {
-if (MY_DEBUG) fprintf(stderr, "rank %d recv message size %d from %d (%d, %d, %d, %d, %d) \n", rank, i, recv->neighbor[p], p, m, n, recv_ptr[n], recv_ptr[m]);
       MPI_Irecv(&(recv_idx[j]), i, MPI_INT, recv->neighbor[p],
 		P->mpi_info->msg_tag_counter + recv->neighbor[p],
 		P->mpi_info->comm,
 		&(P->col_coupler->mpi_requests[p]));
-    } else 
-if (MY_DEBUG) fprintf(stderr, "rank %d WARNING empty recv message %d %d %d %d %d %d\n", rank, recv_neighbors, p, m, n, recv_ptr[n], recv_ptr[m]);
+    } 
     j += i;
   }
 
@@ -668,20 +496,17 @@ if (MY_DEBUG) fprintf(stderr, "rank %d WARNING empty recv message %d %d %d %d %d
     n = send->offsetInShared[p+1];
     i = ptr[n] - ptr[m];
     if (i >0) {
-if (MY_DEBUG) fprintf(stderr, "rank %d send message size %d to %d (%d, %d, %d, %d, %d) \n", rank, i, send->neighbor[p], p, m, n, ptr[n], ptr[m]);
 	MPI_Issend(&(idx[j]), i, MPI_INT, send->neighbor[p],
 		P->mpi_info->msg_tag_counter + rank,
 		P->mpi_info->comm,
 		&(P->col_coupler->mpi_requests[p+recv_neighbors]));
 	j += i;
-    } else 
-if (MY_DEBUG) fprintf(stderr, "rank %d WARNING empty send message %d %d %d %d %d %d\n", rank, send_neighbors, p, m, n, ptr[n], ptr[m]);
+    } 
   }
   MPI_Waitall(send_neighbors+recv_neighbors, 
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   P->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5_5\n", rank);
 
   /* Last, send/receive the data array */
   j = 0;
@@ -714,13 +539,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP5_5\n", rank);
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   P->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5_7\n", rank);
 
   /* Clean up and return with recevied ptr, index and data arrays */
   MEMFREE(ptr);
   MEMFREE(idx);
   MEMFREE(val);
-if (MY_DEBUG) fprintf(stderr, "rank %d len %d\n", rank, recv_ptr[recv_rows]);
   *p_ptr = recv_ptr;
   *p_idx = recv_idx;
   *p_val = recv_val;
@@ -770,7 +593,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      int *mpi_requests=NULL, *mpi_stati=NULL;
    #endif
 
-//   if (size == 1) return NULL;
 //   if (!(P->type & MATRIX_FORMAT_DIAGONAL_BLOCK)) 
 //     return Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(A, P, R);
 
@@ -780,8 +602,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
    if (size > 1) 
      R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
-
-if (MY_DEBUG) fprintf(stderr, "rank %d CP1\n", rank);
 
    /* generate P_ext, i.e. portion of P that is tored on neighbor procs
       and needed locally for triple matrix product RAP 
@@ -793,7 +613,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP1\n", rank);
       P_ext is represented by two sparse matrixes P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP2\n", rank);
 
    /* count the number of cols in P_ext_couple, resize the pattern of 
       sparse matrix P_ext_couple with new compressed order, and then
@@ -820,13 +639,9 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP2\n", rank);
 	temp = TMPMEMALLOC(num_Pcouple_cols+sum, index_t);
 	for (; iptr<sum; iptr++){ 
 	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
-if (MY_DEBUG && rank ==1)
-fprintf(stderr, "rank %d remote_block[%d] = %d\n", rank, iptr, temp[iptr]);
 	}
 	for (j=0; j<num_Pcouple_cols; j++, iptr++){
 	  temp[iptr] = P->global_id[j];
-if (MY_DEBUG && rank ==1)
-fprintf(stderr, "rank %d global_id[%d] = %d\n", rank, j, P->global_id[j]);
 	}
      }
      if (iptr) {
@@ -844,27 +659,11 @@ fprintf(stderr, "rank %d global_id[%d] = %d\n", rank, j, P->global_id[j]);
 	  }
 	}
      }
-if (MY_DEBUG) fprintf(stderr, "rank%d CP2_1\n", rank);
      /* resize the pattern of P_ext_couple */
      if(num_Pext_cols){
 	global_id_P = TMPMEMALLOC(num_Pext_cols, index_t);
 	for (i=0; i<num_Pext_cols; i++)
 	  global_id_P[i] = temp[i];
-if (MY_DEBUG && rank == 1) {
-int my_i, sum=num_Pext_cols;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d global_id_P[%d] = (", rank, sum);
-for (my_i=0; my_i<sum; my_i++) {
-  sprintf(str2, "%d ", global_id_P[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
      }
      if (num_Pcouple_cols || sum > 0) 
 	TMPMEMFREE(temp);
@@ -889,14 +688,6 @@ TMPMEMFREE(str2);
      }
    }
 
-if (MY_DEBUG) fprintf(stderr, "CP3\n");
-if (MY_DEBUG && rank == 0) {
-fprintf(stderr, "Rank %d Now Prolongation Matrix ************************\n", rank);
-Paso_SystemMatrix_print(P);
-fprintf(stderr, "Rank %d Now Restriction Matrix ************************\n", rank);
-Paso_SystemMatrix_print(R);
-}
-
    /* alloc and initialize the makers */
    sum = num_Pext_cols + num_Pmain_cols;
    P_marker = TMPMEMALLOC(sum, index_t);
@@ -906,20 +697,16 @@ Paso_SystemMatrix_print(R);
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_1 %d\n", rank, num_Pcouple_cols);
    /* Now, count the size of RAP_ext. Start with rows in R_couple */
    sum = 0;
    for (i_r=0; i_r<num_Pcouple_cols; i_r++){
      row_marker = sum;
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_2 %d (%d %d)\n", rank, i_r, R_couple->pattern->ptr[i_r], j1_ub);
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
 	i1 = R_couple->pattern->index[j1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_3 %d %d\n", rank, j1, i1);
 	/* then, loop over elements in row i1 of A->col_coupleBlock */
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_4 %d %d %d\n", rank, j1, i1, j2_ub);
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
 
@@ -977,7 +764,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP3_4 %d %d %d\n", rank, j1, i1, j2_ub);
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stderr, "rank %d access to P_marker excceeded( %d-%d out of %d+%d) 5\n", rank, i_c, P->col_coupleBlock->pattern->index[j3], num_Pext_cols, num_Pmain_cols);
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
 		  sum++;
@@ -987,7 +773,6 @@ if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stde
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4 num_Pcouple_cols %d sum %d\n", rank, num_Pcouple_cols, sum);
 
    /* Now we have the number of non-zero elements in RAP_ext, allocate
       PAP_ext_ptr, RAP_ext_idx and RAP_ext_val */
@@ -1003,12 +788,10 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4 num_Pcouple_cols %d sum %d\n", rank, 
    for (i=0; i<sum; i++) P_marker[i] = -1;
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4_1 sum %d\n", rank, sum);
    sum = 0;
    RAP_ext_ptr[0] = 0;
    for (i_r=0; i_r<num_Pcouple_cols; i_r++){
      row_marker = sum;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
@@ -1019,7 +802,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  //RA_val = R_val * A->col_coupleBlock->val[j2];
 	  temp_val = &(A->col_coupleBlock->val[j2*block_size]);
 	  for (irb=0; irb<row_block_size; irb++) 
             for (icb=0; icb<col_block_size; icb++) 
@@ -1042,7 +824,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-//		RAP_val = RA_val * P->row_coupleBlock->val[j3];
 		temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1059,23 +840,14 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 		   the total number of elements in RAP_ext */
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum*block_size] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = i_c + offset; 
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "1-ext[%d (%d,%d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum*block_size]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c] * block_size] += RAP_val;
 		  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
 		  for (ib=0; ib<block_size; ib++) {
 		    temp_val[ib] += RAP_val[ib];
 		  }
-		  
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "1-ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 
@@ -1083,7 +855,6 @@ if (rank == 1) fprintf(stderr, "1-ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1097,23 +868,14 @@ if (rank == 1) fprintf(stderr, "1-ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "ext[%d (%d,%d)]=%f (R%f, A(%d %d)%f, P%f)\n", sum, i_r, i_c, RAP_ext_val[sum], *R_val, i1, i2, A->col_coupleBlock->val[j2], P->remote_coupleBlock->val[j3]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 
@@ -1123,7 +885,6 @@ if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1135,20 +896,14 @@ if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1160,15 +915,10 @@ if (rank == 1) fprintf(stderr, "Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	  }
 	}
@@ -1178,7 +928,6 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 	j2_ub = A->mainBlock->pattern->ptr[i1+1];
 	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->mainBlock->pattern->index[j2];
-	  //RA_val = R_val * A->mainBlock->val[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
 	  for (irb=0; irb<row_block_size; irb++)
 	    for (icb=0; icb<col_block_size; icb++)
@@ -1195,7 +944,6 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1209,30 +957,19 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = i_c + offset;
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main 1-ext[%d (%d, %d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d) 1\n", rank, i_c, num_Pext_cols + num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++) 
                   for (icb=0; icb<col_block_size; icb++) 
@@ -1246,30 +983,20 @@ if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stde
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
                   RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main ext[%d (%d, %d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 	  } else {
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1281,20 +1008,14 @@ if (rank == 1) fprintf(stderr, "Main ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1306,15 +1027,10 @@ if (rank == 1) fprintf(stderr, "Main Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RA
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	  }
 	}
@@ -1323,21 +1039,6 @@ if (rank == 1) fprintf(stderr, "Main Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_
    }
    TMPMEMFREE(P_marker);
    TMPMEMFREE(Pcouple_to_Pext);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5 num_Pcouple_cols %d sum %d\n", rank, num_Pcouple_cols, sum);
-
-if (MY_DEBUG) {
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d RAP_ext_idx[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%d ", RAP_ext_idx[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
@@ -1347,20 +1048,16 @@ TMPMEMFREE(str2);
       RAP[r,c] entries in the neighboring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
 		&RAP_ext_val, global_id_P, block_size);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6\n", rank);
 
    num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
    sum = RAP_ext_ptr[num_RAPext_rows];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6_0 %d %d (%d %d)\n", rank, sum, num_Pext_cols, num_RAPext_rows, num_Pcouple_cols);
    num_RAPext_cols = 0;
    if (num_Pext_cols || sum > 0) {
      temp = TMPMEMALLOC(num_Pext_cols+sum, index_t);
      j1_ub = offset + num_Pmain_cols;
      for (i=0, iptr=0; i<sum; i++) {
-	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ {
+	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
 	  temp[iptr++] = RAP_ext_idx[i];		  /* XXX */
-if (MY_DEBUG && rank ==1) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx[i]);
-}
      }
      for (j=0; j<num_Pext_cols; j++, iptr++){
 	temp[iptr] = global_id_P[j];
@@ -1380,24 +1077,8 @@ if (MY_DEBUG && rank ==1) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx
 	    temp[num_RAPext_cols++] = i;
 	  }
 	}
-
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t my_sum=iptr, i;
-str1 = TMPMEMALLOC(my_sum*20+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d temp[%d] = (", rank, my_sum);
-for (i=0; i<my_sum; i++){
-  sprintf(str2, "%d ", temp[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6_1 %d %d\n", rank, iptr, num_RAPext_cols);
 
    /* resize the pattern of P_ext_couple */
    if(num_RAPext_cols){
@@ -1405,20 +1086,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP6_1 %d %d\n", rank, iptr, num_RAPext_co
      for (i=0; i<num_RAPext_cols; i++)
 	global_id_RAP[i] = temp[i];
    }
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t my_sum=num_RAPext_cols, i;
-str1 = TMPMEMALLOC(my_sum*20+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d global_id_RAP[%d] = (", rank, my_sum);
-for (i=0; i<my_sum; i++){
-  sprintf(str2, "%d ", global_id_RAP[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
    if (num_Pext_cols || sum > 0)
      TMPMEMFREE(temp);
    j1_ub = offset + num_Pmain_cols;
@@ -1430,7 +1097,6 @@ TMPMEMFREE(str2);
      } else 
 	RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP7 %d\n", rank, num_Pext_cols);
 
    /* build the mapping */
    if (num_Pcouple_cols) {
@@ -1465,7 +1131,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP7 %d\n", rank, num_Pext_cols);
    for (i=0; i<sum; i++) P_marker[i] = -1;
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP8 %d\n", rank, num_Pmain_cols);
 
    /* Now, count the size of RAP. Start with rows in R_main */
    num_neighbors = P->col_coupler->connector->send->numNeighbors;
@@ -1568,7 +1233,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP8 %d\n", rank, num_Pmain_cols);
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c <0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d) 2\n", rank, i_c, sum);
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
 		  j++;
@@ -1578,7 +1242,6 @@ if (MY_DEBUG && (i_c <0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_mar
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP9 main_size%d couple_size%d\n", rank, i, j);
 
    /* Now we have the number of non-zero elements in RAP_main and RAP_couple.
       Allocate RAP_main_ptr, RAP_main_idx and RAP_main_val for RAP_main, 
@@ -1624,37 +1287,24 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP9 main_size%d couple_size%d\n", rank, i
 	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
 	      i_c = RAP_ext_idx[k];
 	      if (i_c < num_Pmain_cols) {
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: ext %f\n", RAP_ext_val[k*block_size]);
-}
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
-		  //RAP_main_val[i] = RAP_ext_val[k];
 		  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-if (MY_DEBUG){
-if (rank == 0 && i == 2) fprintf(stderr, "ext %f\n", RAP_ext_val[k*block_size]);
-}
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_ext_val[k];
 		  t1_val = &(RAP_ext_val[k*block_size]);
 		  t2_val = &(RAP_main_val[P_marker[i_c]*block_size]);
 		  for (ib=0; ib<block_size; ib++)
 		    t2_val[ib] += t1_val[ib];
-if (MY_DEBUG){ 
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP_ext_val[k]);
-}  
 		}
 	      } else {
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_ext_val[k];
 		  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_ext_val[k];
 		  t1_val = &(RAP_ext_val[k*block_size]);
 		  t2_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
 		  for (ib=0; ib<block_size; ib++)
@@ -1677,7 +1327,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  //RA_val = R_val * A->col_coupleBlock->val[j2];
           temp_val = &(A->col_coupleBlock->val[j2*block_size]);
 	  for (irb=0; irb<row_block_size; irb++)
 	    for (icb=0; icb<col_block_size; icb++)
@@ -1701,7 +1350,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1717,28 +1365,16 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 		/* check whether entry RAP[i_r,i_c] has been created. 
 		   If not yet created, create the entry and increase 
 		   the total number of elements in RAP_ext */
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP %.20f R %f %f A %f P %f %f [%d %d]\n", RAP_val[0], R_val[0], R_val[1], A->col_coupleBlock->val[j2*block_size], temp_val[0], temp_val[1], i2, j3);
-}
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
-		  //RAP_main_val[i] = RAP_val;
 		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-if (MY_DEBUG){ 
-if (rank == 0 && i == 2) fprintf(stderr, "R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-}  
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1 , *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-} 
 		}
 	    }
 
@@ -1746,7 +1382,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1760,12 +1395,10 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_val;
 		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
@@ -1779,7 +1412,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1791,23 +1423,14 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
                   }
                 }
 
-		//RAP_main_val[P_marker[i_c]] += RAP_val;
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[2] %.20f\n", RAP_val[0]);
-}
                 temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-} 
 	    }
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1819,7 +1442,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
                   }
                 }
 
-		//RAP_couple_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
@@ -1833,7 +1455,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
 	j2_ub = A->mainBlock->pattern->ptr[i1+1];
 	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->mainBlock->pattern->index[j2];
-	  //RA_val = R_val * A->mainBlock->val[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
 	  for (irb=0; irb<row_block_size; irb++)
 	    for (icb=0; icb<col_block_size; icb++)
@@ -1850,7 +1471,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1861,29 +1481,16 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
-
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[3] %.20f R %f %f A %f P %f %f\n [%d %d]", RAP_val[0], R_val[0], R_val[1], A->mainBlock->val[j2*block_size], temp_val[0], temp_val[1], i2, j3);
-}
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
-		  //RAP_main_val[i] = RAP_val;
 		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-if (MY_DEBUG){
-if (rank == 0 && i == 2) fprintf(stderr, "Main R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-} 
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){   
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main row_marker R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-}
 		}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
@@ -1892,8 +1499,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main row_marker R[%d %d] %
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d--%d,%d) 3\n", rank, i_c, sum, num_RAPext_cols, num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1907,12 +1512,10 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
 
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_val;
 		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
@@ -1924,7 +1527,6 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1936,24 +1538,14 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
                   }
                 }
 
-		//RAP_main_val[P_marker[i_c]] += RAP_val;
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[4] %f\n", RAP_val[0]);
-}
                 temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main Visited R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d -- %d,%d) 4\n", rank, i_c, sum, num_RAPext_cols, num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
 		for (irb=0; irb<row_block_size; irb++)
 		  for (icb=0; icb<col_block_size; icb++)
@@ -1965,7 +1557,6 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
                   }
                 }
 
-		//RAP_couple_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
@@ -1991,13 +1582,11 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
 	temp_val = TMPMEMALLOC(offset * block_size, double);
 	for (iptr=0; iptr<offset; iptr++){
 	  k = P_marker[temp[iptr]];
-	  //temp_val[iptr] = RAP_main_val[k];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
 	  P_marker[temp[iptr]] = iptr + row_marker;
 	}
 	for (iptr=0; iptr<offset; iptr++){
 	  RAP_main_idx[row_marker+iptr] = temp[iptr];
-	  //RAP_main_val[row_marker+iptr] = temp_val[iptr];
 	  memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
 	}
 	TMPMEMFREE(temp);
@@ -2017,16 +1606,12 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
         }
         temp_val = TMPMEMALLOC(offset * block_size, double);
         for (iptr=0; iptr<offset; iptr++){
-if (MY_DEBUG && temp[iptr] >= num_RAPext_cols) 
-fprintf(stderr, "rank%d index %d exceed %d\n", rank, temp[iptr], num_RAPext_cols);
           k = P_marker[temp[iptr] + num_Pmain_cols];
-          //temp_val[iptr] = RAP_couple_val[k];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
           P_marker[temp[iptr] + num_Pmain_cols] = iptr + row_marker_ext;
         }
         for (iptr=0; iptr<offset; iptr++){
           RAP_couple_idx[row_marker_ext+iptr] = temp[iptr];
-          //RAP_couple_val[row_marker_ext+iptr] = temp_val[iptr];
 	  memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
         }
         TMPMEMFREE(temp);
@@ -2045,39 +1630,12 @@ fprintf(stderr, "rank%d index %d exceed %d\n", rank, temp[iptr], num_RAPext_cols
    Paso_SparseMatrix_free(R_main);
    Paso_SparseMatrix_free(R_couple);
 
-if (MY_DEBUG){
-if (rank == 0) fprintf(stderr, "A[%d]=%f A[%d]=%f A[%d]=%f A[%d]=%f \n", RAP_main_idx[0], RAP_main_val[0], RAP_main_idx[1], RAP_main_val[1], RAP_main_idx[2], RAP_main_val[2], RAP_main_idx[3], RAP_main_val[3]);
-}
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10\n", rank);
-if (MY_DEBUG && rank == 1) {
-int sum = num_RAPext_cols, my_i;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d global_id_RAP[%d] = (", rank, sum);
-for (my_i=0; my_i<sum; my_i++){
-  sprintf(str2, "%d ", global_id_RAP[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-sprintf(str1, "rank %d distribution = (", rank);
-for (my_i=0; my_i<size; my_i++){
-  sprintf(str2, "%d ", P->pattern->input_distribution->first_component[my_i+1]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<num_RAPext_cols; i++) P_marker[i] = 1;
    /* num of non-empty columns is stored in "k" */
    k = 0;  
    j = RAP_couple_ptr[num_Pmain_cols];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10_1 %d %d %d\n", rank, num_RAPext_cols, num_Pmain_cols, j);
    for (i=0; i<j; i++) {
      i1 = RAP_couple_idx[i];
      if (P_marker[i1]) {
@@ -2086,7 +1644,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP10_1 %d %d %d\n", rank, num_RAPext_cols
      }
    }
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10_2 %d\n", rank, k);
    /* empty columns is found */
    if (k < num_RAPext_cols) {
      temp = TMPMEMALLOC(k, index_t);
@@ -2106,7 +1663,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP10_2 %d\n", rank, k);
      global_id_RAP = temp;
    }
    TMPMEMFREE(P_marker);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP11\n", rank);
 
    /******************************************************/
    /* Start to create the coasre level System Matrix A_c */
@@ -2123,7 +1679,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP11\n", rank);
    num_neighbors = 0;
    offsetInShared[0] = 0;
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
-if (MY_DEBUG && rank == 1) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, global_id_RAP[i], recv_len[j]);
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
 	if (recv_len[j] > 0) {
@@ -2147,7 +1702,6 @@ if (MY_DEBUG && rank == 1) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, globa
 			neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP12 %d %d\n", rank, num_neighbors, num_RAPext_cols);
 
    #ifdef ESYS_MPI
      mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
@@ -2186,7 +1740,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP12 %d %d\n", rank, num_neighbors, num_R
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
 		mpi_requests, mpi_stati); 
    mpi_info->msg_tag_counter += size; 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP13\n", rank);
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -2198,13 +1751,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP13\n", rank);
    TMPMEMFREE(shared);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14\n", rank);
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
    input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_1\n", rank);
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */
@@ -2218,7 +1769,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_1\n", rank);
      memset(send_ptr[i], 0, sizeof(index_t) * num_Pmain_cols);
    }
    memset(len, 0, sizeof(dim_t) * size);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_2 %d\n", rank, sum);
    recv = col_connector->recv;
    sum=0;
    for (i_r=0; i_r<num_Pmain_cols; i_r++) {
@@ -2233,8 +1783,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_2 %d\n", rank, sum);
 	  for (p=0; p<recv->numNeighbors; p++) {
 	    if (i_c < recv->offsetInShared[p+1]) {
 	      k = recv->neighbor[p];
-if (MY_DEBUG && rank == 1 && k == 1)
-fprintf(stderr, "******* i_r %d i_c %d p %d ub %d numNeighbors %d\n", i_r, i_c, p, recv->offsetInShared[p+1], recv->numNeighbors);
 	      if (send_ptr[k][i_r] == 0) sum++;
 	      send_ptr[k][i_r] ++;
 	      send_idx[k][len[k]] = global_id_RAP[i_c];
@@ -2245,21 +1793,17 @@ fprintf(stderr, "******* i_r %d i_c %d p %d ub %d numNeighbors %d\n", i_r, i_c, 
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_3 %d\n", rank, send_ptr[1][0]);
    if (global_id_RAP) {
      TMPMEMFREE(global_id_RAP);
      global_id_RAP = NULL;
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_4 %d sum%d cols%d\n", rank, len[0], sum, num_RAPext_cols);
 
    /* now allocate the sender */
    shared = TMPMEMALLOC(sum, index_t);
    memset(send_len, 0, sizeof(dim_t) * size);
    num_neighbors=0;
    offsetInShared[0] = 0;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_5 %d\n", rank, size);
    for (p=0, k=0; p<size; p++) {
-if (MY_DEBUG && rank == 1) fprintf(stderr, "rank %d CP14_6 %d %d %d\n", rank, p, k, num_neighbors);
      for (i=0; i<num_Pmain_cols; i++) {
 	if (send_ptr[p][i] > 0) {
 	  shared[k] = i;
@@ -2274,14 +1818,12 @@ if (MY_DEBUG && rank == 1) fprintf(stderr, "rank %d CP14_6 %d %d %d\n", rank, p,
 	offsetInShared[num_neighbors] = k;
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_8 %d %d %d %d %d\n", rank, k, send_len[0], send_len[1], offsetInShared[1], k);
    send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
    /* send/recv number of rows will be sent from current proc 
       recover info for the receiver of row_connector from the sender */
    MPI_Alltoall(send_len, 1, MPI_INT, recv_len, 1, MPI_INT, mpi_info->comm);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15 %d %d\n", rank, recv_len[0], recv_len[1]);
    num_neighbors = 0;
    offsetInShared[0] = 0;
    j = 0;
@@ -2293,7 +1835,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP15 %d %d\n", rank, recv_len[0], recv_le
 	offsetInShared[num_neighbors] = j;
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_1\n", rank);
    TMPMEMFREE(shared);
    TMPMEMFREE(recv_len);
    shared = TMPMEMALLOC(j, index_t);
@@ -2301,15 +1842,12 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP15_1\n", rank);
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols; 
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_2\n", rank);
    recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_3\n", rank);
    row_connector = Paso_Connector_alloc(send, recv);
    TMPMEMFREE(shared);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbors, send->numNeighbors);
 
    /* send/recv pattern->ptr for rowCoupleBlock */
    num_RAPext_rows = offsetInShared[num_neighbors]; 
@@ -2320,7 +1858,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbor
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
 		mpi_info->msg_tag_counter+neighbor[p],
 		mpi_info->comm, &mpi_requests[p]);
-if (MY_DEBUG) fprintf(stderr, "rank %d RECV %d from %d tag %d\n", rank, i-j, neighbor[p], mpi_info->msg_tag_counter+neighbor[p]);
    }
    send = row_connector->send;
    for (p=0; p<send->numNeighbors; p++) {
@@ -2328,13 +1865,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d RECV %d from %d tag %d\n", rank, i-j, nei
 		MPI_INT, send->neighbor[p],
 		mpi_info->msg_tag_counter+rank,
 		mpi_info->comm, &mpi_requests[p+num_neighbors]);
-if (MY_DEBUG) fprintf(stderr, "rank %d SEND %d TO %d tag %d\n", rank, send_len[send->neighbor[p]], send->neighbor[p], mpi_info->msg_tag_counter+rank);
    }
    MPI_Waitall(num_neighbors + send->numNeighbors,
 	mpi_requests, mpi_stati); 
    mpi_info->msg_tag_counter += size; 
    TMPMEMFREE(send_len);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
 
    sum = 0;
    for (i=0; i<num_RAPext_rows; i++) {
@@ -2382,7 +1917,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
    Esys_MPIInfo_free(mpi_info);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP18\n", rank);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
    main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
@@ -2400,7 +1934,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP18\n", rank);
                 row_couple_pattern, col_connector, row_connector);
    out = Paso_SystemMatrix_alloc(A->type, pattern,
                 row_block_size, col_block_size, FALSE);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP19\n", rank);
 
    /* finally, fill in the data*/
    memcpy(out->mainBlock->val, RAP_main_val, 
@@ -2478,8 +2011,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
    R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
 
-if (MY_DEBUG) fprintf(stderr, "CP1\n");
-
    /* generate P_ext, i.e. portion of P that is tored on neighbor procs
       and needed locally for triple matrix product RAP 
       to be specific, P_ext (on processor k) are group of rows in P, where 
@@ -2490,7 +2021,6 @@ if (MY_DEBUG) fprintf(stderr, "CP1\n");
       P_ext is represented by two sparse matrixes P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP2\n", rank);
 
    /* count the number of cols in P_ext_couple, resize the pattern of 
       sparse matrix P_ext_couple with new compressed order, and then
@@ -2511,13 +2041,9 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP2\n", rank);
 	temp = TMPMEMALLOC(num_Pcouple_cols+sum, index_t);
 	for (; iptr<sum; iptr++){ 
 	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
-if (MY_DEBUG && rank ==1)
-fprintf(stderr, "rank %d remote_block[%d] = %d\n", rank, iptr, temp[iptr]);
 	}
 	for (j=0; j<num_Pcouple_cols; j++, iptr++){
 	  temp[iptr] = P->global_id[j];
-if (MY_DEBUG && rank ==1)
-fprintf(stderr, "rank %d global_id[%d] = %d\n", rank, j, P->global_id[j]);
 	}
      }
      if (iptr) {
@@ -2541,21 +2067,6 @@ fprintf(stderr, "rank %d global_id[%d] = %d\n", rank, j, P->global_id[j]);
 	global_id_P = TMPMEMALLOC(num_Pext_cols, index_t);
 	for (i=0; i<num_Pext_cols; i++)
 	  global_id_P[i] = temp[i];
-if (MY_DEBUG && rank == 1) {
-int my_i, sum=num_Pext_cols;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d global_id_P[%d] = (", rank, sum);
-for (my_i=0; my_i<sum; my_i++) {
-  sprintf(str2, "%d ", global_id_P[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
      }
      if (num_Pcouple_cols || sum > 0) 
 	TMPMEMFREE(temp);
@@ -2580,14 +2091,6 @@ TMPMEMFREE(str2);
      }
    }
 
-if (MY_DEBUG) fprintf(stderr, "CP3\n");
-if (MY_DEBUG && rank == 0) {
-fprintf(stderr, "Rank %d Now Prolongation Matrix ************************\n", rank);
-Paso_SystemMatrix_print(P);
-fprintf(stderr, "Rank %d Now Restriction Matrix ************************\n", rank);
-Paso_SystemMatrix_print(R);
-}
-
    /* alloc and initialize the makers */
    sum = num_Pext_cols + num_Pmain_cols;
    P_marker = TMPMEMALLOC(sum, index_t);
@@ -2597,20 +2100,16 @@ Paso_SystemMatrix_print(R);
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_1 %d\n", rank, num_Pcouple_cols);
    /* Now, count the size of RAP_ext. Start with rows in R_couple */
    sum = 0;
    for (i_r=0; i_r<num_Pcouple_cols; i_r++){
      row_marker = sum;
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_2 %d (%d %d)\n", rank, i_r, R_couple->pattern->ptr[i_r], j1_ub);
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
 	i1 = R_couple->pattern->index[j1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_3 %d %d\n", rank, j1, i1);
 	/* then, loop over elements in row i1 of A->col_coupleBlock */
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP3_4 %d %d %d\n", rank, j1, i1, j2_ub);
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
 
@@ -2668,7 +2167,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP3_4 %d %d %d\n", rank, j1, i1, j2_ub);
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stderr, "rank %d access to P_marker excceeded( %d-%d out of %d+%d) 5\n", rank, i_c, P->col_coupleBlock->pattern->index[j3], num_Pext_cols, num_Pmain_cols);
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
 		  sum++;
@@ -2678,7 +2176,6 @@ if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stde
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4 num_Pcouple_cols %d sum %d\n", rank, num_Pcouple_cols, sum);
 
    /* Now we have the number of non-zero elements in RAP_ext, allocate
       PAP_ext_ptr, RAP_ext_idx and RAP_ext_val */
@@ -2694,12 +2191,10 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4 num_Pcouple_cols %d sum %d\n", rank, 
    for (i=0; i<sum; i++) P_marker[i] = -1;
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4_1 sum %d\n", rank, sum);
    sum = 0;
    RAP_ext_ptr[0] = 0;
    for (i_r=0; i_r<num_Pcouple_cols; i_r++){
      row_marker = sum;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
@@ -2710,7 +2205,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  //RA_val = R_val * A->col_coupleBlock->val[j2];
 	  temp_val = &(A->col_coupleBlock->val[j2*block_size]);
 	  for (irb=0; irb<row_block_size; irb++) {
 	    for (icb=0; icb<col_block_size; icb++) {
@@ -2733,7 +2227,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-//		RAP_val = RA_val * P->row_coupleBlock->val[j3];
 		temp_val = &(P->row_coupleBlock->val[j3*block_size]);
 		for (irb=0; irb<row_block_size; irb++) {
 		  for (icb=0; icb<col_block_size; icb++) {
@@ -2751,23 +2244,14 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP4_2 i_r %d sum %d\n", rank, i_r, sum);
 		   the total number of elements in RAP_ext */
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum*block_size] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = i_c + offset; 
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "1-ext[%d (%d,%d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum*block_size]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c] * block_size] += RAP_val;
 		  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
 		  for (ib=0; ib<block_size; ib++) {
 		    temp_val[ib] += RAP_val[ib];
 		  }
-		  
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "1-ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 
@@ -2789,23 +2273,14 @@ if (rank == 1) fprintf(stderr, "1-ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "ext[%d (%d,%d)]=%f (R%f, A(%d %d)%f, P%f)\n", sum, i_r, i_c, RAP_ext_val[sum], *R_val, i1, i2, A->col_coupleBlock->val[j2], P->remote_coupleBlock->val[j3]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 
@@ -2815,7 +2290,6 @@ if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2827,20 +2301,14 @@ if (rank == 1) fprintf(stderr, "ext[(%d,%d)]+=%f\n", i_r, i_c, *RAP_val);
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2852,15 +2320,10 @@ if (rank == 1) fprintf(stderr, "Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	  }
 	}
@@ -2870,7 +2333,6 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 	j2_ub = A->mainBlock->pattern->ptr[i1+1];
 	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->mainBlock->pattern->index[j2];
-	  //RA_val = R_val * A->mainBlock->val[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -2887,7 +2349,6 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2901,30 +2362,19 @@ if (rank == 1) fprintf(stderr, "Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_ext_idx[sum] = i_c + offset;
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main 1-ext[%d (%d, %d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d) 1\n", rank, i_c, num_Pext_cols + num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2938,30 +2388,20 @@ if (MY_DEBUG && (i_c < 0 || i_c >= num_Pext_cols + num_Pmain_cols)) fprintf(stde
 
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = sum;
-		  //RAP_ext_val[sum] = RAP_val;
 		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
                   RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main ext[%d (%d, %d)]=%f\n", sum, i_r, i_c, RAP_ext_val[sum]);
-}
 		  sum++;
 		} else {
-		  //RAP_ext_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 		}
 	    }
 	  } else {
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2973,20 +2413,14 @@ if (rank == 1) fprintf(stderr, "Main ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2998,15 +2432,10 @@ if (rank == 1) fprintf(stderr, "Main Visited 1-ext[%d, %d]+=%f\n", i_r, i_c, *RA
                   }
                 }
 
-		//RAP_ext_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 1) fprintf(stderr, "Main Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_val);
-}
 	    }
 	  }
 	}
@@ -3015,21 +2444,6 @@ if (rank == 1) fprintf(stderr, "Main Visited ext[%d, %d]+=%f\n", i_r, i_c, *RAP_
    }
    TMPMEMFREE(P_marker);
    TMPMEMFREE(Pcouple_to_Pext);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP5 num_Pcouple_cols %d sum %d\n", rank, num_Pcouple_cols, sum);
-
-if (MY_DEBUG) {
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d RAP_ext_idx[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%d ", RAP_ext_idx[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
@@ -3039,20 +2453,16 @@ TMPMEMFREE(str2);
       RAP[r,c] entries in the neighboring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
 		&RAP_ext_val, global_id_P, block_size);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6\n", rank);
 
    num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
    sum = RAP_ext_ptr[num_RAPext_rows];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6_0 %d %d (%d %d)\n", rank, sum, num_Pext_cols, num_RAPext_rows, num_Pcouple_cols);
    num_RAPext_cols = 0;
    if (num_Pext_cols || sum > 0) {
      temp = TMPMEMALLOC(num_Pext_cols+sum, index_t);
      j1_ub = offset + num_Pmain_cols;
      for (i=0, iptr=0; i<sum; i++) {
-	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ {
+	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
 	  temp[iptr++] = RAP_ext_idx[i];		  /* XXX */
-if (MY_DEBUG && rank ==1) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx[i]);
-}
      }
      for (j=0; j<num_Pext_cols; j++, iptr++){
 	temp[iptr] = global_id_P[j];
@@ -3072,24 +2482,8 @@ if (MY_DEBUG && rank ==1) fprintf(stderr, "RAP_ext_idx[%d]=%d\n", i, RAP_ext_idx
 	    temp[num_RAPext_cols++] = i;
 	  }
 	}
-
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t my_sum=iptr, i;
-str1 = TMPMEMALLOC(my_sum*20+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d temp[%d] = (", rank, my_sum);
-for (i=0; i<my_sum; i++){
-  sprintf(str2, "%d ", temp[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP6_1 %d %d\n", rank, iptr, num_RAPext_cols);
 
    /* resize the pattern of P_ext_couple */
    if(num_RAPext_cols){
@@ -3097,20 +2491,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP6_1 %d %d\n", rank, iptr, num_RAPext_co
      for (i=0; i<num_RAPext_cols; i++)
 	global_id_RAP[i] = temp[i];
    }
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t my_sum=num_RAPext_cols, i;
-str1 = TMPMEMALLOC(my_sum*20+100, char);
-str2 = TMPMEMALLOC(15, char);
-sprintf(str1, "rank %d global_id_RAP[%d] = (", rank, my_sum);
-for (i=0; i<my_sum; i++){
-  sprintf(str2, "%d ", global_id_RAP[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
    if (num_Pext_cols || sum > 0)
      TMPMEMFREE(temp);
    j1_ub = offset + num_Pmain_cols;
@@ -3122,7 +2502,6 @@ TMPMEMFREE(str2);
      } else 
 	RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP7 %d\n", rank, num_Pext_cols);
 
    /* build the mapping */
    if (num_Pcouple_cols) {
@@ -3157,7 +2536,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP7 %d\n", rank, num_Pext_cols);
    for (i=0; i<sum; i++) P_marker[i] = -1;
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<num_A_cols; i++) A_marker[i] = -1;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP8 %d\n", rank, num_Pmain_cols);
 
    /* Now, count the size of RAP. Start with rows in R_main */
    num_neighbors = P->col_coupler->connector->send->numNeighbors;
@@ -3260,7 +2638,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP8 %d\n", rank, num_Pmain_cols);
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c <0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d) 2\n", rank, i_c, sum);
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
 		  j++;
@@ -3270,7 +2647,6 @@ if (MY_DEBUG && (i_c <0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_mar
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP9 main_size%d couple_size%d\n", rank, i, j);
 
    /* Now we have the number of non-zero elements in RAP_main and RAP_couple.
       Allocate RAP_main_ptr, RAP_main_idx and RAP_main_val for RAP_main, 
@@ -3315,37 +2691,24 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP9 main_size%d couple_size%d\n", rank, i
 	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
 	      i_c = RAP_ext_idx[k];
 	      if (i_c < num_Pmain_cols) {
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: ext %f\n", RAP_ext_val[k*block_size]);
-}
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
 		  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-		  //RAP_main_val[i] = RAP_ext_val[k];
-if (MY_DEBUG){
-if (rank == 0 && i == 2) fprintf(stderr, "ext %f\n", RAP_ext_val[k]);
-}
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_ext_val[k];
 		  temp_val = &(RAP_ext_val[k*block_size]);
 		  RAP_val = &(RAP_main_val[P_marker[i_c]*block_size]);
 		  for (ib=0; ib<block_size; ib++)
 		    RAP_val[ib] += temp_val[ib];
-if (MY_DEBUG){ 
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP_ext_val[k]);
-}  
 		}
 	      } else {
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_ext_val[k];
 		  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_ext_val[k];
 		  temp_val = &(RAP_ext_val[k*block_size]);
 		  RAP_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
 		  for (ib=0; ib<block_size; ib++)
@@ -3368,7 +2731,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
 	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  //RA_val = R_val * A->col_coupleBlock->val[j2];
           temp_val = &(A->col_coupleBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -3392,7 +2754,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3408,28 +2769,16 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "i_c %d ext %f\n", i_c, RAP
 		/* check whether entry RAP[i_r,i_c] has been created. 
 		   If not yet created, create the entry and increase 
 		   the total number of elements in RAP_ext */
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP %f\n", RAP_val[0]);
-}
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
-		  //RAP_main_val[i] = RAP_val;
 		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-if (MY_DEBUG){ 
-if (rank == 0 && i == 2) fprintf(stderr, "R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-}  
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1 , *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-} 
 		}
 	    }
 
@@ -3437,7 +2786,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3451,12 +2799,10 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_val;
 		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
@@ -3470,7 +2816,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
 	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->row_coupleBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->row_coupleBlock->val[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3482,23 +2827,14 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "row_marker R[%d %d] %f A[%
                   }
                 }
 
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[2] %f\n", RAP_val[0]);
-}
-		//RAP_main_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->col_coupleBlock->val[j2], i2, i_c, P->row_coupleBlock->val[j3]);
-} 
 	    }
 	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		//RAP_val = RA_val * P->remote_coupleBlock->val[j3];
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3510,7 +2846,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
                   }
                 }
 
-		//RAP_couple_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
@@ -3524,7 +2859,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
 	j2_ub = A->mainBlock->pattern->ptr[i1+1];
 	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
 	  i2 = A->mainBlock->pattern->index[j2];
-	  //RA_val = R_val * A->mainBlock->val[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -3541,7 +2875,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3553,29 +2886,16 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "visited R[%d %d] %f A[%d %
                   }
                 }
 
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[3] %f\n", RAP_val[0]);
-}
-
 		if (P_marker[i_c] < row_marker) {
 		  P_marker[i_c] = i;
-		  //RAP_main_val[i] = RAP_val;
 		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-if (MY_DEBUG){
-if (rank == 0 && i == 2) fprintf(stderr, "Main R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-} 
 		  RAP_main_idx[i] = i_c;
 		  i++;
 		} else {
-		  //RAP_main_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-
-if (MY_DEBUG){   
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main row_marker R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-}
 		}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
@@ -3584,8 +2904,6 @@ if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main row_marker R[%d %d] %
 		   P->col_coupleBlock back into the column index in 
 		   P_ext_couple */
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d--%d,%d) 3\n", rank, i_c, sum, num_RAPext_cols, num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3599,12 +2917,10 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
 
 		if (P_marker[i_c] < row_marker_ext) {
 		  P_marker[i_c] = j;
-		  //RAP_couple_val[j] = RAP_val;
 		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
 		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
 		  j++;
 		} else {
-		  //RAP_couple_val[P_marker[i_c]] += RAP_val;
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
@@ -3616,7 +2932,6 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
 	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
 	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = P->mainBlock->pattern->index[j3];
-		//RAP_val = RA_val * P->mainBlock->val[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3628,24 +2943,14 @@ if (MY_DEBUG && (i_c < 0 || i_c >= sum)) fprintf(stderr, "rank %d access to P_ma
                   }
                 }
 
-if (MY_DEBUG){
-if (rank == 0 && i_r == 5 && i_c == 58) fprintf(stderr, "From: RAP[4] %.20f %d\n", RAP_val[0], P_marker[i_c]);
-}
-		//RAP_main_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-
-if (MY_DEBUG){
-if (rank == 0 && P_marker[i_c] == 2) fprintf(stderr, "Main Visited R[%d %d] %f A[%d %d] %f P[%d %d] %f \n", i_r, i1, *R_val, i1, i2, A->mainBlock->val[j2], i2, i_c, P->mainBlock->val[j3]);
-}
 	    }
 	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
 	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
 		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceeded( %d out of %d -- %d,%d) 4\n", rank, i_c, sum, num_RAPext_cols, num_Pmain_cols);
-		//RAP_val = RA_val * P->col_coupleBlock->val[j3];
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -3657,7 +2962,6 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
                   }
                 }
 
-		//RAP_couple_val[P_marker[i_c]] += RAP_val;
                 temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
@@ -3683,13 +2987,11 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
 	temp_val = TMPMEMALLOC(offset * block_size, double);
 	for (iptr=0; iptr<offset; iptr++){
 	  k = P_marker[temp[iptr]];
-	  //temp_val[iptr] = RAP_main_val[k];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
 	  P_marker[temp[iptr]] = iptr + row_marker;
 	}
 	for (iptr=0; iptr<offset; iptr++){
 	  RAP_main_idx[row_marker+iptr] = temp[iptr];
-	  //RAP_main_val[row_marker+iptr] = temp_val[iptr];
 	  memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
 	}
 	TMPMEMFREE(temp);
@@ -3709,16 +3011,12 @@ if (MY_DEBUG && i_c >= sum) fprintf(stderr, "rank %d access to P_marker excceede
         }
         temp_val = TMPMEMALLOC(offset * block_size, double);
         for (iptr=0; iptr<offset; iptr++){
-if (MY_DEBUG && temp[iptr] >= num_RAPext_cols) 
-fprintf(stderr, "rank%d index %d exceed %d\n", rank, temp[iptr], num_RAPext_cols);
           k = P_marker[temp[iptr] + num_Pmain_cols];
-          //temp_val[iptr] = RAP_couple_val[k];
 	  memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
           P_marker[temp[iptr] + num_Pmain_cols] = iptr + row_marker_ext;
         }
         for (iptr=0; iptr<offset; iptr++){
           RAP_couple_idx[row_marker_ext+iptr] = temp[iptr];
-          //RAP_couple_val[row_marker_ext+iptr] = temp_val[iptr];
 	  memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
         }
         TMPMEMFREE(temp);
@@ -3737,39 +3035,12 @@ fprintf(stderr, "rank%d index %d exceed %d\n", rank, temp[iptr], num_RAPext_cols
    Paso_SparseMatrix_free(R_main);
    Paso_SparseMatrix_free(R_couple);
 
-if (MY_DEBUG){
-if (rank == 0) fprintf(stderr, "A[%d]=%f A[%d]=%f A[%d]=%f A[%d]=%f \n", RAP_main_idx[0], RAP_main_val[0], RAP_main_idx[1], RAP_main_val[1], RAP_main_idx[2], RAP_main_val[2], RAP_main_idx[3], RAP_main_val[3]);
-}
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10\n", rank);
-if (MY_DEBUG && rank == 1) {
-int sum = num_RAPext_cols, my_i;
-char *str1, *str2;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d global_id_RAP[%d] = (", rank, sum);
-for (my_i=0; my_i<sum; my_i++){
-  sprintf(str2, "%d ", global_id_RAP[my_i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-sprintf(str1, "rank %d distribution = (", rank);
-for (my_i=0; my_i<size; my_i++){
-  sprintf(str2, "%d ", P->pattern->input_distribution->first_component[my_i+1]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<num_RAPext_cols; i++) P_marker[i] = 1;
    /* num of non-empty columns is stored in "k" */
    k = 0;  
    j = RAP_couple_ptr[num_Pmain_cols];
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10_1 %d %d %d\n", rank, num_RAPext_cols, num_Pmain_cols, j);
    for (i=0; i<j; i++) {
      i1 = RAP_couple_idx[i];
      if (P_marker[i1]) {
@@ -3778,7 +3049,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP10_1 %d %d %d\n", rank, num_RAPext_cols
      }
    }
 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP10_2 %d\n", rank, k);
    /* empty columns is found */
    if (k < num_RAPext_cols) {
      temp = TMPMEMALLOC(k, index_t);
@@ -3798,7 +3068,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP10_2 %d\n", rank, k);
      global_id_RAP = temp;
    }
    TMPMEMFREE(P_marker);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP11\n", rank);
 
    /******************************************************/
    /* Start to create the coasre level System Matrix A_c */
@@ -3815,7 +3084,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP11\n", rank);
    num_neighbors = 0;
    offsetInShared[0] = 0;
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
-if (MY_DEBUG && rank == 1) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, global_id_RAP[i], recv_len[j]);
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
 	if (recv_len[j] > 0) {
@@ -3839,7 +3107,6 @@ if (MY_DEBUG && rank == 1) fprintf(stderr, "i%d j%d k%d %d %d\n", i, j, k, globa
 			neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP12 %d %d\n", rank, num_neighbors, num_RAPext_cols);
 
    #ifdef ESYS_MPI
      mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
@@ -3878,7 +3145,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP12 %d %d\n", rank, num_neighbors, num_R
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
 		mpi_requests, mpi_stati); 
    mpi_info->msg_tag_counter += size; 
-if (MY_DEBUG) fprintf(stderr, "rank %d CP13\n", rank);
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -3890,13 +3156,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP13\n", rank);
    TMPMEMFREE(shared);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14\n", rank);
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
    input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_1\n", rank);
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */
@@ -3910,7 +3174,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_1\n", rank);
      memset(send_ptr[i], 0, sizeof(index_t) * num_Pmain_cols);
    }
    memset(len, 0, sizeof(dim_t) * size);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_2 %d\n", rank, sum);
    recv = col_connector->recv;
    sum=0;
    for (i_r=0; i_r<num_Pmain_cols; i_r++) {
@@ -3925,8 +3188,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP14_2 %d\n", rank, sum);
 	  for (p=0; p<recv->numNeighbors; p++) {
 	    if (i_c < recv->offsetInShared[p+1]) {
 	      k = recv->neighbor[p];
-if (MY_DEBUG && rank == 1 && k == 1)
-fprintf(stderr, "******* i_r %d i_c %d p %d ub %d numNeighbors %d\n", i_r, i_c, p, recv->offsetInShared[p+1], recv->numNeighbors);
 	      if (send_ptr[k][i_r] == 0) sum++;
 	      send_ptr[k][i_r] ++;
 	      send_idx[k][len[k]] = global_id_RAP[i_c];
@@ -3937,21 +3198,17 @@ fprintf(stderr, "******* i_r %d i_c %d p %d ub %d numNeighbors %d\n", i_r, i_c, 
 	}
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_3 %d\n", rank, send_ptr[1][0]);
    if (global_id_RAP) {
      TMPMEMFREE(global_id_RAP);
      global_id_RAP = NULL;
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_4 %d sum%d cols%d\n", rank, len[0], sum, num_RAPext_cols);
 
    /* now allocate the sender */
    shared = TMPMEMALLOC(sum, index_t);
    memset(send_len, 0, sizeof(dim_t) * size);
    num_neighbors=0;
    offsetInShared[0] = 0;
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_5 %d\n", rank, size);
    for (p=0, k=0; p<size; p++) {
-if (MY_DEBUG && rank == 1) fprintf(stderr, "rank %d CP14_6 %d %d %d\n", rank, p, k, num_neighbors);
      for (i=0; i<num_Pmain_cols; i++) {
 	if (send_ptr[p][i] > 0) {
 	  shared[k] = i;
@@ -3966,14 +3223,12 @@ if (MY_DEBUG && rank == 1) fprintf(stderr, "rank %d CP14_6 %d %d %d\n", rank, p,
 	offsetInShared[num_neighbors] = k;
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP14_8 %d %d %d %d %d\n", rank, k, send_len[0], send_len[1], offsetInShared[1], k);
    send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
    /* send/recv number of rows will be sent from current proc 
       recover info for the receiver of row_connector from the sender */
    MPI_Alltoall(send_len, 1, MPI_INT, recv_len, 1, MPI_INT, mpi_info->comm);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15 %d %d\n", rank, recv_len[0], recv_len[1]);
    num_neighbors = 0;
    offsetInShared[0] = 0;
    j = 0;
@@ -3985,7 +3240,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP15 %d %d\n", rank, recv_len[0], recv_le
 	offsetInShared[num_neighbors] = j;
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_1\n", rank);
    TMPMEMFREE(shared);
    TMPMEMFREE(recv_len);
    shared = TMPMEMALLOC(j, index_t);
@@ -3993,15 +3247,12 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP15_1\n", rank);
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols; 
    }
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_2\n", rank);
    recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP15_3\n", rank);
    row_connector = Paso_Connector_alloc(send, recv);
    TMPMEMFREE(shared);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbors, send->numNeighbors);
 
    /* send/recv pattern->ptr for rowCoupleBlock */
    num_RAPext_rows = offsetInShared[num_neighbors]; 
@@ -4012,7 +3263,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP16 %d R%d S%d\n", rank, k, num_neighbor
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
 		mpi_info->msg_tag_counter+neighbor[p],
 		mpi_info->comm, &mpi_requests[p]);
-if (MY_DEBUG) fprintf(stderr, "rank %d RECV %d from %d tag %d\n", rank, i-j, neighbor[p], mpi_info->msg_tag_counter+neighbor[p]);
    }
    send = row_connector->send;
    for (p=0; p<send->numNeighbors; p++) {
@@ -4020,13 +3270,11 @@ if (MY_DEBUG) fprintf(stderr, "rank %d RECV %d from %d tag %d\n", rank, i-j, nei
 		MPI_INT, send->neighbor[p],
 		mpi_info->msg_tag_counter+rank,
 		mpi_info->comm, &mpi_requests[p+num_neighbors]);
-if (MY_DEBUG) fprintf(stderr, "rank %d SEND %d TO %d tag %d\n", rank, send_len[send->neighbor[p]], send->neighbor[p], mpi_info->msg_tag_counter+rank);
    }
    MPI_Waitall(num_neighbors + send->numNeighbors,
 	mpi_requests, mpi_stati); 
    mpi_info->msg_tag_counter += size; 
    TMPMEMFREE(send_len);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
 
    sum = 0;
    for (i=0; i<num_RAPext_rows; i++) {
@@ -4074,7 +3322,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP17\n", rank);
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
    Esys_MPIInfo_free(mpi_info);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP18\n", rank);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
    main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
@@ -4092,7 +3339,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d CP18\n", rank);
                 row_couple_pattern, col_connector, row_connector);
    out = Paso_SystemMatrix_alloc(A->type, pattern,
                 row_block_size, col_block_size, FALSE);
-if (MY_DEBUG) fprintf(stderr, "rank %d CP19\n", rank);
 
    /* finally, fill in the data*/
    memcpy(out->mainBlock->val, RAP_main_val, 

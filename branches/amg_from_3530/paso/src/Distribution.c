@@ -108,7 +108,6 @@ dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
    the distribution but the global length yet :*/
 
 static double Paso_Distribution_random_seed=.4142135623730951;
-//static double Paso_Distribution_random_seed=0.9500958652206464;
 
 double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t block )
 {
