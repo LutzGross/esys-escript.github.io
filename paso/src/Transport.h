@@ -27,20 +27,16 @@ typedef struct Paso_TransportProblem {
     bool_t valid_matrices;
     double dt_max_R;       /* safe time step size for reactive  part */
     double dt_max_T;       /* safe time step size for transport  part */
-
-
-    /****************** REVISE ****************************/
-    double dt_factor; 
-    double constraint_factor;  
-    double* constraint_weights;
-/*****************************************************/
+    double* constraint_mask;
 
     Paso_SystemMatrix * transport_matrix;
     Paso_SystemMatrix * mass_matrix;
  
     Paso_SystemMatrix * iteration_matrix;
     double* main_diagonal_low_order_transport_matrix;
-    double* lumped_mass_matrix;
+    double* lumped_mass_matrix;     /* 'relevant' lumped mass matrix is assumed to be positive. 
+                                       values with corresponding constraint_mask>0 value are set to -1
+                                       to indicate the value infinity */
     double* reactive_matrix;
     double* main_diagonal_mass_matrix;
 
@@ -95,7 +91,7 @@ void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const 
 
 
 PASO_DLL_API
-void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q, const double factor);
+void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q);
 
 #define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) Paso_SparseMatrix_borrowMainDiagonalPointer((_fct_)->mass_matrix->mainBlock)
 #define Paso_TransportProblem_getBlockSize(__in__) (__in__)->transport_matrix->row_block_size

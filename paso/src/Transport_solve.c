@@ -186,26 +186,58 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    double dt_max=0., dt_R=LARGE_POSITIVE_FLOAT, dt_T=LARGE_POSITIVE_FLOAT;
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   
    if ( ! fctp->valid_matrices) {
      /* set row-sum of mass_matrix */
      Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
+     {  
+        /* check for positive entries in lumped_mass_matrix and set negative value for constraints */
+	index_t fail=0, i;
+        #pragma omp parallel private(i)
+        {
+	       index_t fail_loc=0;
+               #pragma omp for schedule(static)
+               for (i=0;i<n;++i) {
+                  const double m_i=fctp->lumped_mass_matrix[i];
+		  if ( m_i > 0 ) {
+		     if (fctp->constraint_mask[i] > 0 ) fctp->lumped_mass_matrix[i]=-1.;
+		  } else {
+		      fail_loc=1;
+		  }
+               }
+               #pragma omp critical 
+               {
+		  fail=MIN(fail, fail_loc);
+               }
+        }
+        #ifdef ESYS_MPI
+        { 
+	       fail_loc=fail;
+               MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MIN, fctp->mpi_info->comm);
+	}
+        #endif
+        if (fail < 0 )
+	   Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
+     }
      /* split off row-sum from transport_matrix */
      Paso_SystemMatrix_makeZeroRowSums(fctp->transport_matrix,fctp->reactive_matrix);
      /* get a copy of the main diagonal of the mass matrix */
      Paso_SystemMatrix_copyFromMainDiagonal(fctp->mass_matrix,fctp->main_diagonal_mass_matrix);
 
      if (Esys_noError()) {
-          dt_R=Paso_ReactiveSolver_getSafeTimeStepSize(fctp); 
+          dt_R=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
 	  dt_T=Paso_FCT_Solver_getSafeTimeStepSize(fctp);
+printf("dts  =%e, %e\n",dt_R,dt_T);
      }
      if (Esys_noError()) {
           fctp->dt_max_R=dt_R;
           fctp->dt_max_T=dt_T;
           fctp->valid_matrices=TRUE;
-	  dt_max=MIN(dt_R,dt_T);
+	  dt_max=MIN( 2 * dt_R,dt_T);
        }
    } else {
-        dt_max=MIN(fctp->dt_max_R,fctp->dt_max_T);  
+        dt_max=MIN(2 * fctp->dt_max_R,fctp->dt_max_T);   /* factor 2 as we use operator splitting */
    }
    return dt_max;
 }
