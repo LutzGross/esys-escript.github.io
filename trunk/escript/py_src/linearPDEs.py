@@ -3637,8 +3637,6 @@ class TransportPDE(LinearProblem):
      :param debug: if True debug information is printed
      """
      super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
-
-     self.setConstraintWeightingFactor()
      #
      #   the coefficients of the transport problem
      #
@@ -3851,25 +3849,6 @@ class TransportPDE(LinearProblem):
        """
        return self.getOperator().getSafeTimeStepSize()
 
-   def setConstraintWeightingFactor(self,value=1./util.sqrt(util.EPSILON)):
-       """
-       Sets the weighting factor used to insert the constraints into the problem
-
-       :param value: value for the weighting factor
-       :type value: large positive ``float``
-       """
-       if not value>0:
-         raise ValueError("weighting factor needs to be positive.")
-       self.__constraint_factor=value
-       self.trace("Weighting factor for constraints is set to %e."%value)
-
-   def getConstraintWeightingFactor(self):
-       """
-       returns the weighting factor used to insert the constraints into the problem
-       :return: value for the weighting factor
-       :rtype: ``float``
-       """
-       return self.__constraint_factor
    #====================================================================
    def getSolution(self, dt=None, u0=None):
        """
@@ -3966,7 +3945,7 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y_contact_reduced"),
                             escript.Data(),
                             escript.Data() )
-          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"),self.getConstraintWeightingFactor())
+          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
           self.trace("New system has been built.")
           self.validOperator()
           self.validRightHandSide()

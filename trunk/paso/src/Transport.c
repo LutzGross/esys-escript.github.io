@@ -39,7 +39,7 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
            Esys_MPIInfo_free(in->mpi_info);
-           MEMFREE(in->constraint_weights);
+           MEMFREE(in->constraint_mask);
            MEMFREE(in->reactive_matrix);
            MEMFREE(in->main_diagonal_mass_matrix);
            MEMFREE(in->lumped_mass_matrix);
@@ -67,19 +67,11 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
      out->reference_counter=0; 
      out->dt_max_R=LARGE_POSITIVE_FLOAT;
      out->dt_max_T=LARGE_POSITIVE_FLOAT;
-     
-          
-
-/****************** REVISE ****************************/
-     out->constraint_factor=sqrt(LARGE_POSITIVE_FLOAT);
-
-     out->dt_factor=2.;
-/*****************************************************/
      out->valid_matrices=FALSE;
      out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
      out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
      out->iteration_matrix=NULL;
-     out->constraint_weights=NULL;
+     out->constraint_mask=NULL;
      out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
 
      out->lumped_mass_matrix=NULL;
@@ -89,14 +81,14 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
 
      if (Esys_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         out->constraint_weights=MEMALLOC(n,double); /* ? */
+         out->constraint_mask=MEMALLOC(n,double); /* ? */
          out->lumped_mass_matrix=MEMALLOC(n,double);  /* ? */
          out->reactive_matrix=MEMALLOC(n,double); /* ? */
          out->main_diagonal_mass_matrix=MEMALLOC(n,double); /* ? */	 
          out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double); /* ? */
 
 
-         if ( ! (Esys_checkPtr(out->constraint_weights) || 
+         if ( ! (Esys_checkPtr(out->constraint_mask) || 
 	         Esys_checkPtr(out->reactive_matrix) || Esys_checkPtr(out->main_diagonal_mass_matrix) || 
                  Esys_checkPtr(out->lumped_mass_matrix) || Esys_checkPtr(out->main_diagonal_low_order_transport_matrix)) && Esys_noError()  ) 
 	 {
@@ -104,6 +96,7 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
                  for (i = 0; i < n; ++i) {
                     out->lumped_mass_matrix[i]=0.;
                     out->main_diagonal_low_order_transport_matrix[i]=0.;
+		    out->constraint_mask[i]=0.;
                  }
 	 }
   }
@@ -118,9 +111,11 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
 
 void Paso_TransportProblem_reset(Paso_TransportProblem* in) 
 {
+    const dim_t n = Paso_SystemMatrix_getTotalNumRows(in->transport_matrix);
     Paso_SystemMatrix_setValues(in->transport_matrix, 0.);
     Paso_SystemMatrix_setValues(in->mass_matrix, 0.);
     Paso_solve_free(in->iteration_matrix);
+    Paso_zeroes( n, in->constraint_mask);
     in->valid_matrices=FALSE;
 }
 
@@ -130,45 +125,34 @@ index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preco
    return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
 }
 
-/****************** REVISE ****************************/
-void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q, const double factor)
+void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q)
 {
    dim_t i;
-   register double m, rtmp;
-   double factor2= fctp->dt_factor * factor;
-   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   const index_t* main_iptr=Paso_SparseMatrix_borrowMainDiagonalPointer(fctp->mass_matrix->mainBlock);
-   
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);   
    if ( fctp->valid_matrices ) {
       Esys_setError(VALUE_ERROR, "Paso_TransportProblem_setUpConstraint: Cannot insert a constraint into a valid system.");
       return;
    }
-   if (factor<=0) {
-      Esys_setError(VALUE_ERROR, "Paso_TransportProblem_setUpConstraint: constraint_factor needs to be positive.");
-      return;
-   }
-
    
    #pragma omp parallel for schedule(static) private(i,m,rtmp)
    for (i=0;i<n;++i) {
         if (q[i]>0) {
-           m=fctp->mass_matrix->mainBlock->val[main_iptr[i]];
-           rtmp=factor2 * (m == 0 ? 1 : m);
-           fctp->constraint_weights[i]=rtmp;
-           fctp->mass_matrix->mainBlock->val[main_iptr[i]]=m+rtmp;
+	  fctp->constraint_mask[i]=1;
         } else {
-           fctp->constraint_weights[i]=0;
+           fctp->constraint_mask[i]=0;
         }
    }
-   fctp->constraint_factor=factor;
+   fctp->valid_matrices=FALSE;
 }
 
 void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const double* r,  double* source)
 {
-   dim_t i, n;
-   n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   dim_t i;
+   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
 
    #pragma omp parallel for schedule(static) private(i)
-   for (i=0;i<n;++i) source[i]+=fctp->constraint_weights[i] * r[i];
+   for (i=0;i<n;++i) {
+       if (fctp->constraint_mask[i] > 0) source[i] =  r[i];
+   }
 }
-/*****************************************************/
+
