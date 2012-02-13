@@ -134,7 +134,7 @@ void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const d
       return;
    }
    
-   #pragma omp parallel for schedule(static) private(i,m,rtmp)
+   #pragma omp parallel for schedule(static) private(i)
    for (i=0;i<n;++i) {
         if (q[i]>0) {
 	  fctp->constraint_mask[i]=1;

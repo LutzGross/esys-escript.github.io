@@ -97,6 +97,7 @@ void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
 double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    dim_t i, n;
+   double dt_max_loc=LARGE_POSITIVE_FLOAT;
    double dt_max=LARGE_POSITIVE_FLOAT;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    /* set low order transport operator */
@@ -107,9 +108,9 @@ double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
          *  calculate time step size:                                           
         */
         dt_max=LARGE_POSITIVE_FLOAT;
-        #pragma omp parallel private(i)
+        #pragma omp parallel private(i, dt_max_loc)
         {
-               double dt_max_loc=LARGE_POSITIVE_FLOAT;
+
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
                   const double l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
@@ -208,12 +209,14 @@ err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_o
 err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp) 
 {
     double const dt = fct_solver->dt;
-    dim_t sweep_max;
+    dim_t sweep_max, i;
     double *b = fct_solver->b;
     double const RTOL = options->tolerance;
     const dim_t n=Paso_TransportProblem_getTotalNumRows(fct_solver->transportproblem); 
     Paso_SystemMatrix * iteration_matrix = fct_solver->transportproblem->iteration_matrix;
+    const index_t*  main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fct_solver->transportproblem);
     err_t errorCode = SOLVER_NO_ERROR;
+    double norm_u_tilde;
   
     Paso_Coupler_startCollect(fct_solver->u_old_coupler,u_old);
     Paso_Coupler_finishCollect(fct_solver->u_old_coupler);
@@ -240,17 +243,22 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
    Paso_FCT_FluxLimiter_addLimitedFluxes_Start(fct_solver->flux_limiter);
    Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(fct_solver->flux_limiter, b); 
    
-   
+   Paso_Scale(n, b,fct_solver->omega );    
    /* solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1 */
-   
+   #pragma omp for private(i) schedule(static) 
+   for (i = 0; i < n; ++i) {
+       if (! (fct_solver->transportproblem->lumped_mass_matrix[i] > 0 ) ) {
+	 b[i] = fct_solver->flux_limiter->u_tilde[i] 
+	     * fct_solver->transportproblem->iteration_matrix->mainBlock->val[main_iptr[i]]; 
+       } 
+   }
    /* initial guess is u<- -u + 2*u_tilde */
    Paso_Update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
-   Paso_Scale(n, b,fct_solver->omega ); 
-   sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
 
+   sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
+   norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
    if (options->verbose) {
-       const double norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
-       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL,sweep_max); 
+       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL * norm_u_tilde ,sweep_max); 
    }
    errorCode = Paso_Preconditioner_Smoother_solve_byTolerance( iteration_matrix,  ((Paso_Preconditioner*) (iteration_matrix->solver_p))->gs, 
 						   u, b, RTOL, &sweep_max, TRUE);
@@ -311,7 +319,6 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
     }        
     Paso_FCT_FluxLimiter_setU_tilda(flux_limiter, b); /* u_tilda = m^{-1} b */
     /* u_tilda_connector is completed */
- for (i = 0; i < n; ++i) printf("%d : %e %e\n",i, fctp->lumped_mass_matrix[i], flux_limiter->u_tilde[i]);
     /**********************************************************************************************************************/   
     /* calculate stopping criterium */
     norm_u_tilde=Paso_lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
@@ -352,7 +359,6 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
    
  
 	  Paso_Update(n,-1.,z,1.,b);  /* z=b-z */
- for (i = 0; i < n; ++i) printf("%d : %e\n",i,z[i]);
 
 	  /* z_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
 	  Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(flux_limiter, z); 
@@ -382,7 +388,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 					  du, z, 1, FALSE); 
 	      options->num_iter++;
 	   }           
- for (i = 0; i < n; ++i) printf("%d : %e\n",i,du[i]);	   
+   
  
 	   Paso_Update(n,1.,u,fct_solver->omega,du);
 	   norm_du_old=norm_du;
@@ -700,6 +706,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
   if (ABS(a)>0) {
       #pragma omp parallel for schedule(static) private(i, iptr_ij) 
       for (i = 0; i < n; ++i) {
+	if ( M[i] > 0.) {
           double sum=0;
           const double u_i=u[i];
           #pragma ivdep
@@ -716,6 +723,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
                sum+=l_ij*(remote_u[j]-u_i);
           }
           out[i]+=a*sum;
+	}
       }
   }
 }

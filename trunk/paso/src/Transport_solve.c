@@ -186,6 +186,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    double dt_max=0., dt_R=LARGE_POSITIVE_FLOAT, dt_T=LARGE_POSITIVE_FLOAT;
+   index_t fail_loc=0;
    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    
    if ( ! fctp->valid_matrices) {
@@ -194,9 +195,9 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      {  
         /* check for positive entries in lumped_mass_matrix and set negative value for constraints */
 	index_t fail=0, i;
-        #pragma omp parallel private(i)
+        #pragma omp parallel private(i,fail_loc )
         {
-	       index_t fail_loc=0;
+	       
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
                   const double m_i=fctp->lumped_mass_matrix[i];
@@ -228,7 +229,6 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      if (Esys_noError()) {
           dt_R=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
 	  dt_T=Paso_FCT_Solver_getSafeTimeStepSize(fctp);
-printf("dts  =%e, %e\n",dt_R,dt_T);
      }
      if (Esys_noError()) {
           fctp->dt_max_R=dt_R;

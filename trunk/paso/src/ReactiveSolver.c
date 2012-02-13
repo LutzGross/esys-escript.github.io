@@ -110,7 +110,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
          *  calculate time step size:                                           
         */
         dt_max=LARGE_POSITIVE_FLOAT;
-        #pragma omp parallel private(dt_max_loc, fail_loc)
+        #pragma omp parallel private(dt_max_loc)
         {
                 dt_max_loc=LARGE_POSITIVE_FLOAT;
                #pragma omp for schedule(static) private(i,d_ii,m_i) 
@@ -129,7 +129,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
         #ifdef ESYS_MPI
         {
 	       dt_max_loc=dt_max;
-               MPI_Allreduce(&dt_max_loc, dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
 	}
         #endif
 
