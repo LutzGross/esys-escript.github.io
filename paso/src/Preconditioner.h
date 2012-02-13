@@ -54,7 +54,7 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
 void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
-err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const double tol, dim_t *sweeps, const bool_t x_is_initial);
+err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const double atol, dim_t *sweeps, const bool_t x_is_initial);
 
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
