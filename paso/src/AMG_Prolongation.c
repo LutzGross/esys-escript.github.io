@@ -46,9 +46,6 @@
    
 */
 
-#define MY_DEBUG 0
-#define MY_DEBUG1 1
- 
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, 
                                                            const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 							   const dim_t n_C, index_t* counter_C, const index_t interpolation_method) 
@@ -82,34 +79,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      int *mpi_requests=NULL, *mpi_stati=NULL;
    #endif
 
-   if (MY_DEBUG) {
-     fprintf(stderr, "size=%d rank=%d n=%d my_n=%d overlap_n=%d\n", 
-		size, rank, n, my_n, overlap_n);
-   }
-
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum=n;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d counter_C[Main %d]: \n", rank, my_n);
-for (i=0; i<my_n; ++i) {
-  sprintf(str2, "(%d %d), ", i, counter_C[i]);
-  strcat(str1, str2);
-  if (i == (i/25) *25) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-sprintf(str1, "rank %d counter_C[Couple %d]: \n", rank, overlap_n);
-for (i=0; i<overlap_n; ++i) {
-  sprintf(str2, "(%d %d), ", i, counter_C[i+my_n]);
-  strcat(str1, str2);
-  if (i == (i/25) *25) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
    /* number of C points in current distribution */
    my_n_C = 0;
    if (num_threads>1) {
@@ -135,10 +104,6 @@ TMPMEMFREE(str2);
       }
    }
 
-   if (MY_DEBUG) {
-     fprintf(stderr, "my_n_C=%d\n", my_n_C);
-   }
-
    /* create row distribution (output_distribution) and col distribution 
       (input_distribution) */
    /* ??? should I alloc an new Esys_MPIInfo object or reuse the one in
@@ -155,20 +120,6 @@ TMPMEMFREE(str2);
      global_label += k;
    }
    dist[size] = global_label;
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum = size+1;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-strcpy(str1, "dist=");
-for (p=0;p<sum;p++) {
-  sprintf(str2, "(%d)%d ", p, dist[p]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "rank%d: %s\n", rank, str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
    input_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    TMPMEMFREE(dist);
@@ -191,7 +142,6 @@ TMPMEMFREE(str2);
 	    if (counter_C[j]>=0) { /* and is in C */
 		if (j <my_n) k++;
 		else {
-if (MY_DEBUG) fprintf(stderr, "rank %d overlap %d, j %d, my_n %d\n", rank, overlap_n, j, my_n);
 		  l++; 
 		}
 	    }
@@ -200,22 +150,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d overlap %d, j %d, my_n %d\n", rank, overl
 	main_p[i] = k;
 	couple_p[i] = l;
      }
-
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum = overlap_n;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d counter_C[Couple %d]: \n", rank, overlap_n);
-for (i=0; i<overlap_n; ++i) {
-  sprintf(str2, "(%d %d), ", i, counter_C[i+my_n]);
-  strcat(str1, str2);
-  if (i == (i/25) *25) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
      /* number of unknowns in the col-coupleBlock of the interplation matrix */
      sum = 0;
@@ -226,33 +160,13 @@ TMPMEMFREE(str2);
 	}
      }
 
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum = overlap_n;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d After counter_C[Couple %d]: \n", rank, overlap_n);
-for (i=0; i<overlap_n; ++i) {
-  sprintf(str2, "(%d %d), ", i, counter_C[i+my_n]);
-  strcat(str1, str2);
-  if (i == (i/25) *25) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-if (MY_DEBUG) fprintf(stderr, "rank %d Strange sum %d\n", rank, sum);
-
      /* allocate and create index vector for prolongation: */
      p = Paso_Util_cumsum(my_n, main_p);
      main_p[my_n] = p;
      main_idx = MEMALLOC(p, index_t);
-if (MY_DEBUG) fprintf(stderr, "rank%d: len of mainBlock %d\n", rank, p);
      p = Paso_Util_cumsum(my_n, couple_p);
      couple_p[my_n] = p;
      couple_idx = MEMALLOC(p, index_t);
-if (MY_DEBUG) fprintf(stderr, "rank%d: len of coupleBlock %d %d\n", rank, p, my_n);
      if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
 //	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
 	for (i=0; i<my_n; i++) {
@@ -270,7 +184,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: len of coupleBlock %d %d\n", rank, p, my_
 		  k++; 
 		} else {
 		  couple_idx[couple_p[i]+l] = counter_C[j];
-if (MY_DEBUG) fprintf(stderr, "rank%d: couple_index %d, l%d p%d i%d j%d counter_C%d n_C%d\n", rank, couple_idx[couple_p[i]+l], l, couple_p[i], i, j, counter_C[j], my_n_C);
 		  l++;
 		}
 	      }
@@ -279,68 +192,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: couple_index %d, l%d p%d i%d j%d counter_
 	}
      }
    }
-
-if (MY_DEBUG) fprintf(stderr, "rank%d: couple_index len %d my_n_C %d sum %d\n", rank, l, my_n_C, sum);
-
-if (MY_DEBUG) {
-  int i, iptr, j, len_A, len_P;
-  for (i=0; i<my_n; i++) {
-    if (counter_C[i] == -1) {
-    len_A = 0;
-    len_P = couple_p[i+1] - couple_p[i];
-    for (iptr=A_p->col_coupleBlock->pattern->ptr[i]; iptr<A_p->col_coupleBlock->pattern->ptr[i+1]; iptr++) {
-	j = A_p->col_coupleBlock->pattern->index[iptr];
-	if (counter_C[j+my_n] > -1) len_A ++;
-    }
-    if (len_A != len_P) {
-	fprintf(stderr, "rank %d ROW %d Couple inconsistant: A %d P %d\n", rank, i, len_A, len_P);
-	if (len_P == 0) {
-	  for (iptr=A_p->col_coupleBlock->pattern->ptr[i]; iptr<A_p->col_coupleBlock->pattern->ptr[i+1]; iptr++) {
-            j = A_p->col_coupleBlock->pattern->index[iptr];
-	    if (counter_C[j+my_n] > -1)
-		fprintf(stderr, "rank %d j %d C_j %d\n", rank, j, counter_C[j+my_n]);
-	  }
-	  iptr = offset_S[i];
-	  fprintf(stderr, "rank %d S[%d]: ", rank, i);
-          for (j=0; j<degree_S[i]; j++) {
-	     if (S[iptr+j] >= my_n)
-	      fprintf(stderr, "%d ", S[iptr+j]-my_n);
-	  }
-	  fprintf(stderr, "\n");
-	}
-    }
-/*    len_A = 0;
-    len_P = main_p[i+1] - main_p[i];
-    for (iptr=A_p->mainBlock->pattern->ptr[i]; iptr<A_p->mainBlock->pattern->ptr[i+1]; iptr++) {
-        j = A_p->mainBlock->pattern->index[iptr];
-        if (counter_C[j] > -1) len_A ++;
-    }
-    if (len_A != len_P) {
-        fprintf(stderr, "rank %d ROW %d Main inconsistant: A %d P %d\n", rank, i, len_A, len_P);
-    }
-*/
-    }
-  }
-}
-
-/*if (MY_DEBUG) {
-char *str1, *str2;
-int sum = couple_p[my_n];
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-strcpy(str1, "couple ptr and index --");
-for (p=0;p<my_n;p++) {
-  sprintf(str2, ") row%d (", p);
-  strcat(str1, str2);
-  for (i=couple_p[p]; i<couple_p[p+1]; i++) {
-    sprintf(str2, "%d,", couple_idx[i]);
-    strcat(str1, str2);
-  }
-}
-fprintf(stderr, "rank%d: %s\n", rank, str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}*/
 
    if (Esys_noError()) {   
      main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
@@ -366,7 +217,6 @@ TMPMEMFREE(str2);
    memset(recv_shared, 0, sizeof(index_t)*i);
    k = send->numSharedComponents;
    send_shared = TMPMEMALLOC(k,index_t);
-if (MY_DEBUG) fprintf(stderr, "rank%d: recv sharedcomponent %d send sharedcomponent %d\n", rank, i, k);
    if (k > i) i = k;
    shared = TMPMEMALLOC(i, index_t);
 
@@ -392,7 +242,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: recv sharedcomponent %d send sharedcompon
    for (i=0; i<p; i++) {
      l = 0;
      k = recv->offsetInShared[i+1];
-if (MY_DEBUG) fprintf(stderr, "rank%d: recv-A %d\n", rank, k);
      for (j=recv->offsetInShared[i]; j<k; j++) {
 	if (counter_C[recv->shared[j]] > -1) {
 	  shared[q] = my_n_C + q;
@@ -412,8 +261,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: recv-A %d\n", rank, k);
 		mpi_info->msg_tag_counter+rank, mpi_info->comm,
 		&mpi_requests[i+send->numNeighbors]);
    }
-if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d, shared %d\n", rank, num_neighbors, q);
-//   Paso_Coupler_finishCollect(coupler);
    recv = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
                                       offsetInShared, 1, 0, mpi_info);
 
@@ -427,19 +274,12 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d, shared %d\n", rank, num_nei
    q = 0;
    p = send->numNeighbors;
    offsetInShared[0]=0;
-if (MY_DEBUG) fprintf(stderr, "rank%d: neighbors %d\n", rank, p);
-if (MY_DEBUG) fprintf(stderr, "rank%d: shared %d\n", rank, send->offsetInShared[p]);
    for (i=0; i<p; i++) {
      l = 0;
      k = send->offsetInShared[i+1];
      for (j=send->offsetInShared[i]; j<k; j++) {
-//        if (coupler->recv_buffer[j] == 1) {
-//	if (counter_C[send->shared[j]] >= 0) {
 	if (send_shared[j] == 1) {
-	  /* is it where the error occurs?? due to array access exceed */
-          shared[q] = counter_C[send->shared[j]];  /*XXX*/
-if (shared[q] == -1)
-fprintf(stderr, "rank %d Shared ele out of range: j%d q %d\n", rank, j, q);
+          shared[q] = counter_C[send->shared[j]];  
           q++;
           l = 1;
         }
@@ -451,8 +291,6 @@ fprintf(stderr, "rank %d Shared ele out of range: j%d q %d\n", rank, j, q);
         offsetInShared[num_neighbors] = q;
      }
    }
-if (MY_DEBUG) fprintf(stderr, "rank%d: for send--neighbors %d, shared %d\n", rank, num_neighbors, q);
-//   Paso_Coupler_free(coupler);
 
    send = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
 				      offsetInShared, 1, 0, mpi_info);
@@ -477,8 +315,6 @@ if (MY_DEBUG) fprintf(stderr, "rank%d: for send--neighbors %d, shared %d\n", ran
 		row_block_size, col_block_size, FALSE);
    } 
 
-if (MY_DEBUG1) fprintf(stderr, "before filling data\n");
-
    /* now fill in the matrix */
    if (Esys_noError()) {
      if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
@@ -497,44 +333,6 @@ if (MY_DEBUG1) fprintf(stderr, "before filling data\n");
      }
    }  
 
-if (MY_DEBUG) fprintf(stderr, "after filling data rank%d r-shared%d s-shared%d\n", rank, out->col_coupler->connector->recv->offsetInShared[1], out->col_coupler->connector->send->offsetInShared[1]);
-if (MY_DEBUG) fprintf(stderr, "rank %d Error %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
-
-if (MY_DEBUG) {
-     index_t rank, col, p, ptr, range;
-     rank = A_p->mpi_info->rank;
-     fprintf(stderr, "rank%d: Start to print Matrix A\n", rank);
-     for (p=0; p<my_n; p++) {
-        range = A_p->mainBlock->pattern->ptr[p+1];
-        for (ptr = A_p->mainBlock->pattern->ptr[p]; ptr < range; ptr++) {
-          col = A_p->mainBlock->pattern->index[ptr];
-          fprintf(stderr, "rank%d: row %d col %d val %g\n", rank, p, col, A_p->mainBlock->val[ptr]);
-        }
-
-        range = A_p->col_coupleBlock->pattern->ptr[p+1];
-        for (ptr = A_p->col_coupleBlock->pattern->ptr[p]; ptr < range; ptr++) {
-          col = A_p->col_coupleBlock->pattern->index[ptr];
-          fprintf(stderr, "rank%d: row %d col %d(%d) val %g\n", rank, p, col, col+my_n, A_p->mainBlock->val[ptr]);
-        }
-     }
-
-
-     fprintf(stderr, "rank%d: Start to print Matrix P\n", rank);
-     for (p=0; p<my_n; p++) {
-	range = out->mainBlock->pattern->ptr[p+1];
-	for (ptr = out->mainBlock->pattern->ptr[p]; ptr < range; ptr++) {
-	  col = out->mainBlock->pattern->index[ptr];
-	  fprintf(stderr, "rank%d: row %d col %d val %g\n", rank, p, col, out->mainBlock->val[ptr]);
-	} 
-
-	range = out->col_coupleBlock->pattern->ptr[p+1];
-	for (ptr = out->col_coupleBlock->pattern->ptr[p]; ptr < range; ptr++) {
-          col = out->col_coupleBlock->pattern->index[ptr];
-          fprintf(stderr, "rank%d: row %d col %d(%d) val %g\n", rank, p, col, col+my_n_C, out->mainBlock->val[ptr]);
-        }
-     }
-}
-  
    /* clean up */ 
    Paso_SystemMatrixPattern_free(pattern);
    Paso_Pattern_free(main_pattern);
@@ -643,8 +441,6 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
          for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
             j=A->col_coupleBlock->pattern->index[iPtr];
             A_ij=A->col_coupleBlock->val[iPtr];
-if (MY_DEBUG && rank == 1 && i == 1)
-fprintf(stderr, "j %d A_ij %f is_in_C %d\n", j, A_ij, counter_C[j+my_n]);
             if(A_ij< 0)  {
                   sum_all_neg+=A_ij;
             } else {
@@ -661,9 +457,6 @@ fprintf(stderr, "j %d A_ij %f is_in_C %d\n", j, A_ij, counter_C[j+my_n]);
                   if (! (where_p == NULL) ) { /* yes i stronly connect with j */
                         offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                         couple_block->val[offset]=A_ij; /* will be modified later */
-if (MY_DEBUG && rank == 1 && i == 1)
-fprintf(stderr, "j_in_C %d A_ij %f offset %d\n", j, A_ij, offset);
-
                         if (A_ij< 0)  {
                            sum_strong_neg+=A_ij;
                         } else {
@@ -702,8 +495,6 @@ fprintf(stderr, "j_in_C %d A_ij %f offset %d\n", j, A_ij, offset);
 
          range = couple_pattern->ptr[i + 1];
          for (iPtr=couple_pattern->ptr[i]; iPtr<range; iPtr++) {
-if (MY_DEBUG && rank == 1 && i == 1)
-fprintf(stderr, "iptr %d A_ij %f beta %f alpha %f\n", iPtr, couple_block->val[iPtr], beta, alpha);
             A_ij=couple_block->val[iPtr];
             if (A_ij > 0 ) {
                couple_block->val[iPtr] = A_ij * beta;
@@ -934,8 +725,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
    const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
-   index_t *start_p_main_i, *start_p_couple_i, *start_p_main_j, *start_p_couple_j;
-   dim_t degree_p_main_i, degree_p_couple_i, degree_p_main_j, degree_p_couple_j;
+   index_t *start_p_main_i, *start_p_couple_i;
+   dim_t degree_p_main_i, degree_p_couple_i;
    dim_t len, ll, main_len, len_D_s;
 
    len = A->col_coupleBlock->numCols;
@@ -985,11 +776,6 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
-			       start_p_main_j = &(main_pattern->index[main_pattern->ptr[j]]);
-                               start_p_couple_j = &(couple_pattern->index[couple_pattern->ptr[j]]);
-                               degree_p_main_j = main_pattern->ptr[j+1] - main_pattern->ptr[j];
-                               degree_p_couple_j = couple_pattern->ptr[j+1] - couple_pattern->ptr[j];
-
                                double s=0.;
                                len_D_s=0;
 
@@ -1074,10 +860,6 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
 			       double s=0.;
-			       start_p_main_j = &(main_pattern->index[main_pattern->ptr[j]]);
-                               start_p_couple_j = &(couple_pattern->index[couple_pattern->ptr[j]]);
-                               degree_p_main_j = main_pattern->ptr[j+1] - main_pattern->ptr[j];
-                               degree_p_couple_j = couple_pattern->ptr[j+1] - couple_pattern->ptr[j];
                                len_D_s=0;
 
                                /* first, the row_coupleBlock part */
@@ -1100,9 +882,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                }
 
                                /* then the remote_coupleBlock part */
-			       if (degree_p_couple_j) {
-				 range_j = A->remote_coupleBlock->pattern->ptr[j + 1];
-				 for (iPtr_j=A->remote_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
+			       range_j = A->remote_coupleBlock->pattern->ptr[j + 1];
+			       for (iPtr_j=A->remote_coupleBlock->pattern->ptr[j]; iPtr_j<range_j; iPtr_j++) {
                                     const double A_jm=A->remote_coupleBlock->val[iPtr_j];
                                     const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
@@ -1117,7 +898,6 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                                          D_s_offset[len_D_s]=offset_m + main_len;
                                          len_D_s++;
                                     }
-				 }
                                }
 
                                for (q=0;q<len_D_s;++q) s+=D_s[q];
@@ -1178,9 +958,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    dim_t i, q, ib;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
-   index_t *start_p_main_i, *start_p_couple_i, *start_p_main_j, *start_p_couple_j;
-   dim_t degree_p_main_i, degree_p_couple_i, degree_p_main_j, degree_p_couple_j;
-//   const dim_t ll = Paso_Util_iMax(n, degree_S);
+   index_t *start_p_main_i, *start_p_couple_i;
+   dim_t degree_p_main_i, degree_p_couple_i;
    dim_t len, ll, main_len, len_D_s;
    const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
    
@@ -1188,23 +967,6 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    len = MAX(A->remote_coupleBlock->numCols, len);
    ll = len + my_n;
    main_len = main_pattern->len;
-if (MY_DEBUG){
-  fprintf(stderr, "rank %d P_main %dX%d P_col_couple %dX%d\n", rank, P->mainBlock->numRows, P->mainBlock->numCols, P->col_coupleBlock->numRows, P->col_coupleBlock->numCols);
-fprintf(stderr, "rank %d A_main %dX%d A_col_couple %dX%d\n", rank, A->mainBlock->numRows, A->mainBlock->numCols, A->col_coupleBlock->numRows, A->col_coupleBlock->numCols);
-/*char *str1, *str2;
-int sum = A->col_coupleBlock->numCols;
-str1 = TMPMEMALLOC(sum*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d counter_C[%d]: \n", rank, sum);
-for (i=0; i<sum; ++i) {
-  sprintf(str2, "(%d %d), ", i, counter_C[i+my_n]);
-  strcat(str1, str2);
-  if (i == (i/25) *25) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);*/
-}
 //   #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
    {
         double *a=TMPMEMALLOC(row_block, double);
@@ -1213,16 +975,12 @@ TMPMEMFREE(str2);*/
 
 //   	#pragma omp for private(i) schedule(static)
         for (i=0;i<my_n;++i) {
-//if (MY_DEBUG1 && rank == 1 && (i==((i+1)/50*50-1)))
-//fprintf(stderr, "processing i=%d\n", i);
             if (counter_C[i]>=0) {
 	        const index_t offset = main_pattern->ptr[i];
 	        for (ib =0; ib<row_block; ++ib) main_block->val[row_block*offset+ib]=1.;  /* i is a C row */
             } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
 		       (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
 	       const index_t *start_s = &(S[offset_S[i]]);
-if (MY_DEBUG1 && rank == 1 && i==763)
-fprintf(stderr, "processing i=%d, main u%d l%d couple u%d l%d \n", i, main_pattern->ptr[i + 1], main_pattern->ptr[i], couple_pattern->ptr[i + 1], couple_pattern->ptr[i]);
 	       start_p_main_i = &(main_pattern->index[main_pattern->ptr[i]]);
 	       start_p_couple_i = &(couple_pattern->index[couple_pattern->ptr[i]]);
                degree_p_main_i = main_pattern->ptr[i+1] - main_pattern->ptr[i];
@@ -1231,9 +989,6 @@ fprintf(stderr, "processing i=%d, main u%d l%d couple u%d l%d \n", i, main_patte
                                                                       which are not in C (=no interpolation nodes) */
               const double *A_ii = &(A->mainBlock->val[ptr_main_A[i]*A_block]);
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
-
-if (MY_DEBUG && rank == 1 && i==763)
-fprintf(stderr, "CP1\n");
 
 	      /* first, check the mainBlock */
 	      range = A->mainBlock->pattern->ptr[i + 1];
@@ -1251,19 +1006,12 @@ fprintf(stderr, "CP1\n");
 	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
-if (MY_DEBUG1)
-fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_main_i);
                                } else {
   		                    const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p_main_i);
                                     for (ib=0; ib<row_block; ib++) main_block->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
-			       start_p_main_j = &(main_pattern->index[main_pattern->ptr[j]]);
-			       start_p_couple_j = &(couple_pattern->index[couple_pattern->ptr[j]]);
-			       degree_p_main_j = main_pattern->ptr[j+1] - main_pattern->ptr[j];
-			       degree_p_couple_j = couple_pattern->ptr[j+1] - couple_pattern->ptr[j];
-
                                len_D_s=0;
 
 			       /* first, the mainBlock part */
@@ -1288,9 +1036,8 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
                                }
 
 			       /* then the coupleBlock part */
-			       if (degree_p_couple_j) {
-				 range_j = A->col_coupleBlock->pattern->ptr[j+1];
-				 for (iPtr_j=A->col_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
+			       range_j = A->col_coupleBlock->pattern->ptr[j+1];
+			       for (iPtr_j=A->col_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
                                     const double* A_jm=&(A->col_coupleBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
@@ -1307,8 +1054,7 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
                                          D_s_offset[len_D_s]=offset_m + main_len;
                                          len_D_s++;
                                     }
-				 }
-                               }
+			       }
 
                                for (ib=0; ib<row_block; ib++) { 
                                    double s=0;
@@ -1335,8 +1081,6 @@ fprintf(stderr, "MISSING j%d (C_j%d), degree %d\n", j, counter_C[j], degree_p_ma
 	      if (A->mpi_info->size > 1) {
 	      /* now, deal with the coupleBlock */
 	      range = A->col_coupleBlock->pattern->ptr[i + 1];
-if (MY_DEBUG && rank == 1 && i==763)
-fprintf(stderr, "CP2 %d %d\n", range, A->col_coupleBlock->pattern->ptr[i]);
 	      for (iPtr=A->col_coupleBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
 	         const index_t j=A->col_coupleBlock->pattern->index[iPtr];
 	         const double* A_ij=&(A->col_coupleBlock->val[iPtr*A_block]);
@@ -1345,8 +1089,6 @@ fprintf(stderr, "CP2 %d %d\n", range, A->col_coupleBlock->pattern->ptr[i]);
                     /* is (i,j) a strong connection ?*/
 		    index_t t=j+my_n;
 	            const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
-if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
-fprintf(stderr, "CP21 %d\n", counter_C[t]);
 	            if (where_s == NULL) { /* weak connections are accummulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i stronly connect with j */
@@ -1354,11 +1096,6 @@ fprintf(stderr, "CP21 %d\n", counter_C[t]);
 	                       const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
-if (MY_DEBUG1){
-fprintf(stderr, "ROW %d MISSING j%d+my_n%d (C_j%d), couple_degree %d\n", i, j, my_n, counter_C[j+my_n], degree_p_couple_i);
-for (ib=0; ib<degree_p_couple_i; ib++)
-fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[i]+ib]);
-}
 
                                } else {
   		                    const index_t offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p_couple_i);
@@ -1366,34 +1103,20 @@ fprintf(stderr, "c_idx[%d]=%d\n", ib, couple_pattern->index[couple_pattern->ptr[
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
-			       start_p_main_j = &(main_pattern->index[main_pattern->ptr[j]]);
-                               start_p_couple_j = &(couple_pattern->index[couple_pattern->ptr[j]]);
-                               degree_p_main_j = main_pattern->ptr[j+1] - main_pattern->ptr[j];
-                               degree_p_couple_j = couple_pattern->ptr[j+1] - couple_pattern->ptr[j];
                                len_D_s=0;
 
 			       /* first, the row_coupleBlock part */
 			       range_j = A->row_coupleBlock->pattern->ptr[j + 1];
-if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
-fprintf(stderr, "CP22 %d %d\n", range_j, A->row_coupleBlock->pattern->ptr[j]);
-
 	                       for (iPtr_j=A->row_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
 //	                            const double* A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
 //	                            const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-//	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_j,degree_p_main_j, sizeof(index_t), Paso_comparIndex);
 				    index_t m, *where_p_m;
 				    double *A_jm;
 				    A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
 				    m=A->row_coupleBlock->pattern->index[iPtr_j];
-if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
-fprintf(stderr, "iPtr_j %d m %d degree %d\n", iPtr_j, m, degree_p_main_i);
 
 				    where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), Paso_comparIndex);
-if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
-fprintf(stderr, "iPtr_j %d\n", iPtr_j);
-
-
                                     if (! (where_p_m==NULL)) {
   		                         const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
@@ -1407,9 +1130,6 @@ fprintf(stderr, "iPtr_j %d\n", iPtr_j);
                                          len_D_s++;
                                     }
                                }
-
-if (MY_DEBUG && rank == 1 && i==763 && iPtr == 18076)
-fprintf(stderr, "CP23\n");
 
 			       /* then the remote_coupleBlock part */
 			       if (degree_p_couple_i) {
@@ -1434,9 +1154,6 @@ fprintf(stderr, "CP23\n");
 				 }
                                }
 
-//if (MY_DEBUG1 && rank == 1 && i==763 && iPtr == 18076)
-//fprintf(stderr, "CP24\n");
-
                                for (ib=0; ib<row_block; ib++) { 
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
@@ -1458,9 +1175,6 @@ fprintf(stderr, "CP23\n");
                  }
 	      }
 	      }
-
-if (MY_DEBUG && rank == 1 && i==763)
-fprintf(stderr, "CP3\n");
 
 	      /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) { 
@@ -1484,6 +1198,4 @@ fprintf(stderr, "CP3\n");
         TMPMEMFREE(D_s_offset);
         TMPMEMFREE(a);
      }    /* end of parallel region */
-if (MY_DEBUG)
-fprintf(stderr, "rank %d (after) Error Type %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
 }

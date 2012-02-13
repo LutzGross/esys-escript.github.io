@@ -37,20 +37,16 @@ void Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(Paso_SparseMatrix* A, const dou
   const dim_t n_block=row_block*col_block;
   
   register double rtmp;
-//  #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb, rtmp) schedule(static)
+  #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb, rtmp) schedule(static)
   for (ir=0;ir< A->pattern->numOutput;ir++) {
      for (irb=0;irb< row_block;irb++) {
 	irow=irb+row_block*ir;
 	rtmp=left[irow];
 	for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-//            #pragma ivdep
+            #pragma ivdep
 	    for (icb=0;icb< A->col_block_size;icb++) {
 	       icol=icb+col_block*(A->pattern->index[iptr]);
 	       l=iptr*n_block+irb+row_block*icb;
-if (0){
-  if (iptr == 40478) fprintf(stderr, "A[40478]=%.31f left %.31f right %.31f %d\n", A->val[40478*A->block_size], rtmp, right[icol], icol);
-  if (iptr == 9873) fprintf(stderr, "A[9873]=%.31f left %.31f right %.31f %d\n", A->val[9873*A->block_size], rtmp, right[icol], icol);
-}
 	       A->val[l]*=rtmp*right[icol];
 	    }
         }

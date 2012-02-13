@@ -111,11 +111,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t global_n=Paso_SystemMatrix_getGlobalNumRows(A_p);
 
 
-if (MY_DEBUG && level == 1){
-  if (A_p->mpi_info->size == 1) fprintf(stderr, "A[40478]=%.31f\n", A_p->mainBlock->val[40478*A_p->block_size]);
-  if (A_p->mpi_info->rank == 1) fprintf(stderr, "A[9873]=%.31f\n", A_p->mainBlock->val[9873*A_p->block_size]);
-}
-  
   /*
       is the input matrix A suitable for coarsening
       
@@ -174,10 +169,7 @@ if (MY_DEBUG && level == 1){
 	       make sure that corresponding values in the row_coupleBlock and col_coupleBlock are identical 
 	*/
         Paso_SystemMatrix_copyColCoupleBlock(A_p);
-if (MY_DEBUG) fprintf(stderr, "after copy Row-couple Block, before remote-couple Block for A\n");
-
         Paso_SystemMatrix_copyRemoteCoupleBlock(A_p, FALSE); 
-if (MY_DEBUG) fprintf(stderr, "after copy Remote-couple Block for A %d\n", n_block);
 
 	/* 
 	      set splitting of unknows:
@@ -189,80 +181,14 @@ if (MY_DEBUG) fprintf(stderr, "after copy Remote-couple Block for A %d\n", n_blo
 	 } else {
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
-if (MY_DEBUG) fprintf(stderr, "rank %d degree_S[0]=%d\n", A_p->mpi_info->rank, degree_S[0]);
 	 Paso_Preconditioner_AMG_transposeStrongConnections(n, degree_S, offset_S, S, n, degree_ST, offset_ST, ST);
-if (MY_DEBUG1) fprintf(stderr, "rand %d after set strong connections\n", A_p->mpi_info->rank);
 //	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
 
-if (MY_DEBUG) {
-int p;
-char *str1, *str2;
-str1 = TMPMEMALLOC(n*1000+100, char);
-str2 = TMPMEMALLOC(100, char);
-/*sprintf(str1, "rank %d n=%d my_n=%d\n", A_p->mpi_info->rank, n, my_n);
-for (i=0; i<n; ++i) {
-  sprintf(str2, "%d(%d,%d): ", i, offset_S[i], degree_S[i]);
-  strcat(str1, str2);
-  for (p=0; p<degree_S[i];++p) {
-     sprintf(str2, "%d ",S[offset_S[i]+p]);
-     strcat(str1, str2);
-  }
-  sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s", str1);
-*/
-/*if (A_p->mpi_info->rank == 1) {
-  i = 486;
-  sprintf(str2, "%d(%d,%d): ", i, offset_S[i], degree_S[i]);
-  strcat(str1, str2);
-  for (p=0; p<degree_S[i];++p) {
-     sprintf(str2, "%d ",S[offset_S[i]+p]);
-     strcat(str1, str2);
-  }
-  fprintf(stderr, "S: %s\n", str1);
-} else if (A_p->mpi_info->size == 1) {
-  i = 1715;
-  sprintf(str2, "%d(%d,%d): ", i, offset_S[i], degree_S[i]);
-  strcat(str1, str2);
-  for (p=0; p<degree_S[i];++p) {
-     sprintf(str2, "%d ",S[offset_S[i]+p]);
-     strcat(str1, str2);
-  }
-  fprintf(stderr, "S: %s\n", str1);
-} */
-/*for (i=0; i<n; ++i) {
-{
-  sprintf(str2, "%d(%d,%d): ", i, offset_ST[i], degree_ST[i]);
-  strcat(str1, str2);
-  for (p=0; p<degree_ST[i];++p) {
-     sprintf(str2, "%d ",ST[offset_ST[i]+p]);
-     strcat(str1, str2);
-  }
-  sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "Now ST: %s", str1);
-}
-for (i=my_n; i<n; ++i) {
-  sprintf(str2, "%d(%d,%d) ", i, offset_S[i], degree_S[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s\n", str1);
-*/
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-/*if (MY_DEBUG && level ==2) Paso_SystemMatrix_print(A_p); */
 	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
 					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
 						A_p->col_coupler->connector,A_p->col_distribution);
-if (MY_DEBUG) fprintf(stderr, "after CIJPCoarsening\n");
       
 
-/*MPI: 
-	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
-*/
-	 
          /* in BoomerAMG interpolation is used FF connectiovity is required :*/
 /*MPI:
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
@@ -293,7 +219,6 @@ if (MY_DEBUG) fprintf(stderr, "after CIJPCoarsening\n");
                 }
             }
             TMPMEMFREE(F_set);
-if (MY_DEBUG) fprintf(stderr, "rank %d F_FLAG %d N_F %d\n", A_p->mpi_info->rank, F_flag, n_F);
          
 //          if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
             if (F_flag == 0) {
@@ -354,51 +279,7 @@ if (MY_DEBUG) fprintf(stderr, "rank %d F_FLAG %d N_F %d\n", A_p->mpi_info->rank,
 			   */					
 			   time0=Esys_timer();
 
-if (MY_DEBUG) {
-int my_i, p, sum;
-char *str1, *str2;
-sum = n;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-sprintf(str1, "rank %d n=%d my_n=%d i=%d\n", A_p->mpi_info->rank, n, my_n, i);
-for (my_i=0; my_i<n; ++my_i) {
-  sprintf(str2, "%d(%d,%d,%d): ", my_i, offset_S[my_i], degree_S[my_i], mask_C[my_i]);
-  strcat(str1, str2);
-/*  for (p=0; p<degree_S[my_i];++p) {
-     sprintf(str2, "%d ",S[offset_S[my_i]+p]);
-     strcat(str1, str2);
-  }
-  sprintf(str1, "%s\n", str1);*/
-  if (my_i == ((my_i+1)/20)*20-1) sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-} 
-if (MY_DEBUG1) fprintf(stderr, "Rank %d before get Prolongation level %d\n", A_p->mpi_info->rank, level);
-/*if (level == 1){
-    int i=0;
-    char hostname[256];
-    gethostname(hostname, sizeof(hostname));
-    fprintf(stderr, "rank %d PID %d on %s ready for attach\n", A_p->mpi_info->rank, getpid(), hostname);
-    if (A_p->mpi_info->rank == 0) {
-      fflush(stdout);
-      while (0 == i)
-        sleep(5);
-    }
-}*/
 			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,offset_S, degree_S,S,n_C,mask_C, options->interpolation_method);
-if (MY_DEBUG && A_p->mpi_info->size == 1) {
-  Paso_SparseMatrix_free(out->P->mainBlock);
-  out->P->mainBlock = Paso_Preconditioner_LocalAMG_getProlongation(A_p->mainBlock, A_p->mainBlock->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
-}
-if (MY_DEBUG1) fprintf(stderr, "after get Prolongation %d\n", out->P->mpi_info->rank);
-
-if (MY_DEBUG) {
-Paso_SystemMatrix_print(out->P);
-Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
-return NULL;
-}
 
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
 			}
@@ -408,23 +289,7 @@ return NULL;
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
 
-//			   out->R=Paso_SystemMatrix_getTranspose(out->P);
 			   out->R=Paso_Preconditioner_AMG_getRestriction(out->P);
-
-if (MY_DEBUG && A_p->mpi_info->rank == 0) {
-Paso_SystemMatrix_print(out->R);
-Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
-return NULL;
-}
-
-if (MY_DEBUG && level == 3) {
-int rank=A_p->mpi_info->rank;
-if (rank == 3) fprintf(stderr, "SEND %d TO %d\n", out->R->col_coupler->connector->send->offsetInShared[2] - out->R->col_coupler->connector->send->offsetInShared[1],
-out->R->col_coupler->connector->send->neighbor[1]);
-if (rank == 4) fprintf(stderr, "RECV %d FM %d\n", out->R->col_coupler->connector->recv->offsetInShared[1] - out->R->col_coupler->connector->recv->offsetInShared[0],
-out->R->col_coupler->connector->recv->neighbor[0]);
-}
-
 
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
@@ -434,96 +299,7 @@ out->R->col_coupler->connector->recv->neighbor[0]);
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
 
-if (MY_DEBUG1) fprintf(stderr, "rank %d before buildInterpolation\n", A_p->mpi_info->rank);
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum, rank, i, iPtr;
-sum = A_p->mainBlock->numRows;
-rank = A_p->mpi_info->rank;
-str1 = TMPMEMALLOC(sum*sum*20+100, char);
-str2 = TMPMEMALLOC(20, char);
-sprintf(str1, "rank %d A Main Block: %d rows\n-----------\n", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "Row %d: ",i);
-  strcat(str1, str2);
-  for (iPtr =A_p->mainBlock->pattern->ptr[i]; iPtr<A_p->mainBlock->pattern->ptr[i+1]; ++iPtr) {
-         sprintf(str2, "(%d %f),",A_p->mainBlock->pattern->index[iPtr], A_p->mainBlock->val[iPtr]);
-         strcat(str1, str2);
-  }
-  sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
 			   A_C = Paso_Preconditioner_AMG_buildInterpolationOperator(A_p, out->P, out->R);
-
-if (MY_DEBUG && A_p->mpi_info->size > 1){
-Paso_SystemMatrix_print(A_C);
-}
-
-if (MY_DEBUG && A_p->mpi_info->size == 1) {
-char *str1, *str2;
-int sum, rank, i, iPtr, ib, block_size;
-Paso_SparseMatrix *Atemp=NULL, *A_C=NULL;
-Atemp = Paso_SparseMatrix_MatrixMatrix(A_p->mainBlock,out->P->mainBlock);
-A_C = Paso_SparseMatrix_MatrixMatrix(out->R->mainBlock, Atemp);
-block_size = A_C->block_size;
-Paso_SparseMatrix_free(Atemp);
-sum = A_C->numRows;
-str1 = TMPMEMALLOC(sum*sum*20+100, char);
-str2 = TMPMEMALLOC(20, char);
-sprintf(str1, "A_C: %d rows\n-----------\n", sum);
-for (i=670; i<690; i++) {
-  sprintf(str2, "Row %d: ",i);
-  strcat(str1, str2);
-  for (iPtr =A_C->pattern->ptr[i]; iPtr<A_C->pattern->ptr[i+1]; ++iPtr) {
-    sprintf(str1, "%s (%d", str1, A_C->pattern->index[iPtr]);
-    for (ib = 0; ib<block_size; ib++) {
-      sprintf(str1, "%s %f", str1, A_C->val[iPtr*block_size+ib]);
-    }
-    sprintf(str1, "%s) ", str1);
-  }
-  sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s\n", str1);
-Paso_SparseMatrix_free(A_C);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-//if (A_p->mpi_info->rank == 0) {
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum, rank, i, iPtr;
-sum = A_C->mainBlock->numRows;
-rank = A_p->mpi_info->rank;
-str1 = TMPMEMALLOC(sum*sum*20+100, char);
-str2 = TMPMEMALLOC(20, char);
-sprintf(str1, "rank %d A_C Main Block: %d rows\n-----------\n", rank, sum);
-/*for (i=0; i<sum; i++) {
-  sprintf(str2, "Row %d: ",i);
-  strcat(str1, str2);
-  for (iPtr =A_C->mainBlock->pattern->ptr[i]; iPtr<A_C->mainBlock->pattern->ptr[i+1]; ++iPtr) {
-         sprintf(str2, "(%d %f),",A_C->mainBlock->pattern->index[iPtr], A_C->mainBlock->val[iPtr]);
-         strcat(str1, str2);
-  }
-  sprintf(str1, "%s\n", str1);
-}*/
-fprintf(stderr, "%s\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-//}
-if (MY_DEBUG1) fprintf(stderr, "after buildInterpolation\n");
-//Esys_setError(SYSTEM_ERROR, "AMG:DONE.");
-//return NULL;
-/*			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
-			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
-			   Paso_Preconditioner_AMG_setStrongConnections
-			   Paso_SystemMatrix_free(Atemp);
-*/
 
 			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
 			}
@@ -533,16 +309,11 @@ if (MY_DEBUG1) fprintf(stderr, "after buildInterpolation\n");
 			   
 			*/
 			if ( Esys_noError()) {
-if (MY_DEBUG1) fprintf(stderr, "before Step into a level deeper\n");
 			   out->AMG_C=Paso_Preconditioner_AMG_alloc(A_C,level+1,options);
-if (MY_DEBUG1) fprintf(stderr, "after step into a level deeper\n");
 			}
 
 			if ( Esys_noError()) {
-if (MY_DEBUG) fprintf(stderr, "Now checking whether AMG_C is set:");
 			  if ( out->AMG_C == NULL ) { 
-if (MY_DEBUG) fprintf(stderr, " NO, need direct solver!\n");
-//			    if (total_n <= options->min_coarse_matrix_size) {
 			      /* merge the system matrix into 1 rank when 
 				 it's not suitable coarsening due to the 
 				 total number of unknowns are too small */
@@ -551,34 +322,8 @@ if (MY_DEBUG) fprintf(stderr, " NO, need direct solver!\n");
                               out->refinements = options->coarse_matrix_refinements;
 			      out->verbose = verbose;
 			      out->options_smoother = options->smoother;
-/*			    } else {
-fprintf(stderr, " NO, need direct solver!\n");
-			      out->reordering = options->reordering;
-			      out->refinements = options->coarse_matrix_refinements;
-			      // no coarse level matrix has been constructed. use direct solver 
-			      #ifdef MKL
-				    out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
-				    Paso_SystemMatrix_free(A_C);
-				    out->A_C->solver_package = PASO_MKL;
-				    if (verbose) printf("Paso_Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
-			      #else
-				    #ifdef UMFPACK
-				       out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
-				       Paso_SystemMatrix_free(A_C);
-				       out->A_C->solver_package = PASO_UMFPACK;
-				       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
-				    #else
-				       out->A_C=A_C;
-				       out->A_C->solver_p=Paso_Preconditioner_Smoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
-				       out->A_C->solver_package = PASO_SMOOTHER;
-				       if (verbose) printf("Paso_Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
-				    #endif
-			      #endif
-			    }
-*/
 			  } else {
 			      /* finally we set some helpers for the solver step */
-if (MY_DEBUG) fprintf(stderr, "YES\n");
 			      out->A_C=A_C;
 			  }
 			}		  
@@ -617,388 +362,45 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      const dim_t pre_sweeps=amg->pre_sweeps;
      int rank = A->mpi_info->rank;
 
-if (MY_DEBUG1) fprintf(stderr, "rank %d Now in AMG_solve level %d %d %d\n", A->mpi_info->rank, amg->level, n, A->mainBlock->numRows);
-
-if (MY_DEBUG && A->mpi_info->rank == 0 && amg->level == 1){
-   int iPtr, ib, sum, i;
-   char *str1, *str2;
-//   sum = Paso_SystemMatrix_getTotalNumRows(A);
-   sum = A->mainBlock->numRows;
-   str1 = TMPMEMALLOC(n*100+100, char);
-   str2 = TMPMEMALLOC(100, char);
-   sprintf(str1, "rank 0 Main Block Row 0 (%d): ", n);
-   for (iPtr =A->mainBlock->pattern->ptr[0]; iPtr<A->mainBlock->pattern->ptr[1]; ++iPtr) {
-         sprintf(str2, "(%d ",A->mainBlock->pattern->index[iPtr]);
-         strcat(str1, str2);
-//         for (ib=0; ib<A->mainBlock->block_size; ib++){
-           sprintf(str2, "%f ", A->mainBlock->val[iPtr*A->mainBlock->block_size]);
-           strcat(str1, str2);
-//         }
-         sprintf(str1, "%s),", str1);
-         if (iPtr == ((iPtr+1)/200*200 -1)) sprintf(str1, "%s\n", str1);
-   }
-  fprintf(stderr, "%s\n", str1);
-  sprintf(str1, "Presmoothing b[%d]=(", sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%g ", b[i*A->mainBlock->row_block_size]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  sprintf(str1, "Presmoothing x[%d]=(", sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%g ", x[i*A->mainBlock->row_block_size]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-
-if (MY_DEBUG1 && A->mpi_info->rank == 0) fprintf(stderr, "x[0]=%g b[0]\n", x[0], b[0]);
-
      /* presmoothing */
      time0=Esys_timer();
      Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
-//     Paso_Preconditioner_LocalSmoother_solve(A->mainBlock, amg->Smoother->localSmoother, x, b, pre_sweeps, FALSE);
-
-if (MY_DEBUG1 && A->mpi_info->rank == 0) fprintf(stderr, "x[0]=%g\n", x[0]);
-
-if (MY_DEBUG && A->mpi_info->rank == 0 && amg->level == 1) {
-  char * str1, *str2;
-  int i, ib, sum = Paso_SystemMatrix_getTotalNumRows(A);
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "Presmoothing x[%d]=(", sum);
-  if (sum > 2452) ib = 2452;
-  else ib = sum;
-  for (i=2430; i<ib; i++) {
-    sprintf(str2, "%g ", x[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-
 
      time0=Esys_timer()-time0;
-if (MY_DEBUG) fprintf(stderr, "rank %d after smoother_solve F%d n%d %d %d\n", A->mpi_info->rank, amg->n_F, amg->n, A->is_balanced, Esys_getErrorType());
      if (SHOW_TIMING) printf("timing: level %d: Presmooting: %e\n",amg->level, time0); 
      /* end of presmoothing */
 	
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
          time0=Esys_timer();
-if (MY_DEBUG){
-char *str1, *str2;
-int sum, rank, i;
-sum = n;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d Level %d (after Smoother) x[%d] = (", rank, amg->level, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%g ", x[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-if (MY_DEBUG) fprintf(stderr, "rank %d after r=b \n", A->mpi_info->rank);
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-if (MY_DEBUG1 && rank == 0) fprintf(stderr, "r[0] == %g\n", amg->r[0]);
-if (MY_DEBUG && A->mpi_info->rank == 0) {
-  char * str1, *str2;
-  int i, sum = Paso_SystemMatrix_getTotalNumRows(A);
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d level %d amg->r[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<20; i++) {
-    sprintf(str2, "%g ", amg->r[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-
-
-
-if (MY_DEBUG) fprintf(stderr, "rank %d after r=r-Ax\n", A->mpi_info->rank);
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
 
-if (MY_DEBUG && A->mpi_info->rank == 0) {
-  char * str1, *str2;
-  int i, sum = Paso_SystemMatrix_getTotalNumRows(amg->A_C);
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d level %d amg->b_C[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<20; i++) {
-    sprintf(str2, "%g ", amg->b_C[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-
-
-if (MY_DEBUG) {
-  char * str1, *str2;
-  int i, q;
-  int sum = Paso_SystemMatrix_getTotalNumRows(A);
-  int sum1 = Paso_SystemMatrix_getTotalNumRows(amg->A_C);
-  if (sum > 20) sum = 20;
-  if (sum1 > 20) sum1 = 20;
-  str1 = TMPMEMALLOC(sum*sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d Level %d x[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", x[i]);
-    strcat(str1, str2);
-  }
-//  fprintf(stderr, "%s)\n", str1);
-  if (amg->level > 1) {
-    sprintf(str1, "rank %d A Main Block:\n-----------\n", A->mpi_info->rank);
-    for (q=0; q< sum; ++q){
-      sprintf(str2, "Row %d: ",q);
-      strcat(str1, str2);
-      for (i =A->mainBlock->pattern->ptr[q]; i<A->mainBlock->pattern->ptr[q+1]; ++i) {
-         sprintf(str2, "(%d %f),",A->mainBlock->pattern->index[i], A->mainBlock->val[i]);
-         strcat(str1, str2);
-      }
-      sprintf(str1, "%s\n", str1);
-    }
- //   fprintf(stderr, "%s)\n", str1);
-  }
-  sprintf(str1, "rank %d level %d r[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", amg->r[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  sprintf(str1, "rank %d level %d b_C[%d]=(", A->mpi_info->rank, amg->level, sum1);
-  for (i=0; i<sum1; i++) {
-    sprintf(str2, "%f ", amg->b_C[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-
          time0=Esys_timer()-time0;
-if (MY_DEBUG) fprintf(stderr, "rank %d after matrix_vector %d %d\n", A->mpi_info->rank, A->is_balanced, Esys_getErrorType());
 	 /* coarse level solve */
 	 if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
-if (MY_DEBUG1 && rank == 0) fprintf(stderr, "b_C[0] == %g\n", amg->b_C[0]);
 	    Paso_Preconditioner_AMG_mergeSolve(amg); 
-if (MY_DEBUG){
-char *str1, *str2;
-int sum, rank, i, n;
-n = amg->A_C->mainBlock->numRows * amg->A_C->mainBlock->row_block_size;
-sum = n;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d mergeSolve b_C[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  if (i == ((i+1)/200*200 -1))
-    sprintf(str2, "\n rank %d Continue from %d: %f ", rank, i, amg->b_C[i]);
-  else
-    sprintf(str2, "%f ", amg->b_C[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-sprintf(str1, "rank %d mergeSolve x_C[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  if (i == ((i+1)/200*200 -1))
-    sprintf(str2, "\n rank %d Continue from %d: %f ", rank, i, amg->x_C[i]);
-  else
-    sprintf(str2, "%f ", amg->x_C[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
 
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-if (MY_DEBUG1) {
-  char *str1, *str2;
-  int q, i, n, block_size, sum, rank, ib;
-  double loc_norm, norm2_of_residual, *r;
-  n = amg->A_C->mainBlock->numRows * amg->A_C->mainBlock->row_block_size;
-  r = TMPMEMALLOC(n, double);
-  block_size = amg->A_C->block_size;
-  Paso_Copy(n, r, amg->b_C);
-  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), amg->A_C, amg->x_C, DBLE(1), r);
-  norm2_of_residual = 0;
-  for (i=0; i<n; i++) {
-    norm2_of_residual += r[i]*r[i];
-  }
-  loc_norm = norm2_of_residual;
-  MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-  norm2_of_residual =sqrt(norm2_of_residual);
-  fprintf(stderr, "rank %d Now out of mergeSolve %e n%d remote%d\n", A->mpi_info->rank, norm2_of_residual, n, amg->A_C->col_coupleBlock->numCols);
-//  if (A->mpi_info->rank == 0)  fprintf(stderr, "rank %d r[0]=%.20f, b[0]=%.20f, x[0]=%.20f\n", A->mpi_info->rank, r[0], amg->b_C[0], amg->x_C[0]);
-/*  str1 = TMPMEMALLOC(n*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  if (A->mpi_info->rank == 0) {
-    sprintf(str1, "rank %d Matrix A_C: N%d\n-----------\n", A->mpi_info->rank, amg->A_C->mainBlock->numRows);
-//    for (q=0; q< amg->A_C->mainBlock->numRows; ++q){
-    for (q=0; q<1; ++q){
-      sprintf(str2, "Row %d: ",q);
-      strcat(str1, str2);
-      for (i =amg->A_C->mainBlock->pattern->ptr[q]; i<amg->A_C->mainBlock->pattern->ptr[q+1]; ++i) {
-         sprintf(str2, "(%d ",amg->A_C->mainBlock->pattern->index[i]);
-         strcat(str1, str2);
-	 ib = 0;
-//         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%f ", amg->A_C->mainBlock->val[i*block_size+ib]);
-           strcat(str1, str2);
-//         }
-         sprintf(str2, "),");
-         strcat(str1, str2);*/
-//         sprintf(str2, "(%d %f %f %f %f ),",amg->A_C->mainBlock->pattern->index[i], amg->A_C->mainBlock->val[i*block_size], amg->A_C->mainBlock->val[i*block_size+1], amg->A_C->mainBlock->val[i*block_size+2], amg->A_C->mainBlock->val[i*block_size+3]);*/
-/*      }
-      sprintf(str1, "%s\n Row %d Couple:", str1, q);
-      for (i =amg->A_C->col_coupleBlock->pattern->ptr[q]; i<amg->A_C->col_coupleBlock->pattern->ptr[q+1]; ++i) {
-	  sprintf(str2, "(%d %f ),", amg->A_C->col_coupleBlock->pattern->index[i], amg->A_C->col_coupleBlock->val[i*block_size]);
-//         sprintf(str2, "(%d %d %.20f %.20f %.20f %.20f ),", amg->A_C->col_coupleBlock->pattern->index[i], amg->A_C->global_id[amg->A_C->col_coupleBlock->pattern->index[i]], amg->A_C->col_coupleBlock->val[i*block_size], amg->A_C->col_coupleBlock->val[i*block_size+1], amg->A_C->col_coupleBlock->val[i*block_size+2], amg->A_C->col_coupleBlock->val[i*block_size+3]);
-//	 sprintf(str2, "(%d),",amg->A_C->col_coupleBlock->pattern->index[i]);
-         strcat(str1, str2);*/ 
-/*      }
-      sprintf(str1, "%s\n", str1);
-    }
-    fprintf(stderr, "%s)\n", str1);
-  }
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2); */
-/*sum = n;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d mergeSolve r[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  if (i == ((i+1)/200*200 -1))
-    sprintf(str2, "\n rank %d Continue from %d: %e ", rank, i, r[i]);
-  else
-    sprintf(str2, "%e ", r[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);*/
-  TMPMEMFREE(r);
-}
-
-if (MY_DEBUG) fprintf(stderr, "rank %d after merge_solve %d %d\n", A->mpi_info->rank, A->is_balanced, Esys_getErrorType());
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
 	 } else {
 	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
 	 }
-if (MY_DEBUG) {
-  char * str1, *str2;
-  int i, sum = Paso_SystemMatrix_getTotalNumRows(amg->A_C);
-  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d level %d b[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%g ", amg->b_C[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  sprintf(str1, "rank %d level %d Before \"P*x_C\"  x[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", amg->x_C[i]);
-    strcat(str1, str2);
-  }
-//  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
 
-if (MY_DEBUG) fprintf(stderr, "rank %d after AMG_solve %d %d\n", A->mpi_info->rank, A->is_balanced, Esys_getErrorType());  
   	 time0=time0+Esys_timer();
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
-if (MY_DEBUG) fprintf(stderr, "rank %d after MatrixVector %d %d %s\n", A->mpi_info->rank, A->is_balanced, Esys_getErrorType(), Esys_getErrorMessage());
-if (MY_DEBUG) {
-  char * str1, *str2;
-  int i, sum = n;
-  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d level %d b[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", b[i]);
-    strcat(str1, str2);
-  }
-//  fprintf(stderr, "%s)\n", str1);
-  sprintf(str1, "rank %d level %d x[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", x[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
 
          /*postsmoothing*/
       
         /*solve Ax=b with initial guess x */
         time0=Esys_timer();
         Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
-//	Paso_Preconditioner_LocalSmoother_solve(A->mainBlock, amg->Smoother->localSmoother, x, b, post_sweeps, TRUE);
         time0=Esys_timer()-time0;
         if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
         /*end of postsmoothing*/
-if (MY_DEBUG) {
-  char * str1, *str2;
-  int i, sum = n;
-  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank %d level %d b[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%g ", b[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  sprintf(str1, "rank %d level %d x[%d]=(", A->mpi_info->rank, amg->level, sum);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", x[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-     
      }
-
-if (MY_DEBUG) {
-  double loc_norm, norm2_of_residual, *r = TMPMEMALLOC(n, double);
-  int i;
-  Paso_Copy(n, r, b);
-  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
-  norm2_of_residual = 0;
-  for (i=0; i<n; i++) {
-    norm2_of_residual += r[i]*r[i];
-  }
-  loc_norm = norm2_of_residual;
-  MPI_Allreduce(&loc_norm,&norm2_of_residual, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-  norm2_of_residual =sqrt(norm2_of_residual);
-  fprintf(stderr, "rank %d Now out of AMG_solve level %d %e\n", A->mpi_info->rank, amg->level, norm2_of_residual);
-  TMPMEMFREE(r);
-}
-if (MY_DEBUG) fprintf(stderr, "rank %d Now out of AMG_solve level %d\n", A->mpi_info->rank, amg->level);
 
      return;
 }
@@ -1066,8 +468,6 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 //	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->mainBlock->pattern->index[iptr];
-if (MY_DEBUG && rank == 1 && i == 486 && j == 179) 
-fprintf(stderr, "Row 16--debug: j %d, val %f, threshold %f\n", j, ABS(A->mainBlock->val[iptr]), threshold);
 	          if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
 		     S[koffset+kdeg] = j;
 		     kdeg++;
@@ -1076,8 +476,6 @@ fprintf(stderr, "Row 16--debug: j %d, val %f, threshold %f\n", j, ABS(A->mainBlo
 //	       #pragma ivdep
 	       for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->col_coupleBlock->pattern->index[iptr];
-if (MY_DEBUG && rank == 0 && i == 16)
-fprintf(stderr, "Row 16--debug: j %d, Cval %f, threshold %f\n", j, ABS(A->col_coupleBlock->val[iptr]), threshold);
 	          if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
 		     S[koffset+kdeg] = j + my_n;
 		     kdeg++;
@@ -1113,8 +511,6 @@ fprintf(stderr, "Row 16--debug: j %d, Cval %f, threshold %f\n", j, ABS(A->col_co
 //	         #pragma ivdep
 		for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->row_coupleBlock->pattern->index[iptr];
-if (MY_DEBUG && rank == 0 && i == 1)
-fprintf(stderr, "Row 9--debug: j %d, Rowval %f, threshold %f\n", j, ABS(A->row_coupleBlock->val[iptr]), threshold);
 	          if(ABS(A->row_coupleBlock->val[iptr])>threshold) {
 		     S[koffset+kdeg] = j ;
 		     kdeg++;
@@ -1124,8 +520,6 @@ fprintf(stderr, "Row 9--debug: j %d, Rowval %f, threshold %f\n", j, ABS(A->row_c
 //		 #pragma ivdep
 		for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; iptr++) {
 		  register index_t j=A->remote_coupleBlock->pattern->index[iptr];
-if (MY_DEBUG && rank == 1 && i == 394)
-fprintf(stderr, "Row 394--debug: j %d, Remote-val %f, threshold %f\n", j, ABS(A->remote_coupleBlock->val[iptr]), threshold);
 		  if(ABS(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
 		      S[koffset+kdeg] = j + my_n;
 		      kdeg++;
@@ -1162,42 +556,6 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    
    threshold_p = TMPMEMALLOC(2*my_n, double);
 
-if (MY_DEBUG && A->mpi_info->rank == 0){
-   int iPtr, ib;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(my_n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(30, char);
-   sprintf(str1, "rank 0 Main Block Row 0: ");
-   for (iPtr =A->mainBlock->pattern->ptr[0]; iPtr<A->mainBlock->pattern->ptr[1]; ++iPtr) {
-         sprintf(str2, "(%d ",A->mainBlock->pattern->index[iPtr]);
-         strcat(str1, str2);
-         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%f ", A->mainBlock->val[iPtr*block_size+ib]);
-           strcat(str1, str2);
-         }
-         sprintf(str1, "%s),", str1);
-	 if (iPtr == ((iPtr+1)/20*20 -1)) sprintf(str1, "%s\n", str1);
-   }
-   fprintf(stderr, "%s\n", str1);
-   if ( ( A->col_coupleBlock != NULL) && (A->mpi_info->size>1) ) {
-   sprintf(str1, "rank 0 Col-couple Block Row 0: ");
-   for (iPtr =A->col_coupleBlock->pattern->ptr[0]; iPtr<A->col_coupleBlock->pattern->ptr[1]; ++iPtr) {
-         sprintf(str2, "(%d ",A->col_coupleBlock->pattern->index[iPtr]);
-         strcat(str1, str2);
-         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%f ", A->col_coupleBlock->val[iPtr*block_size+ib]);
-           strcat(str1, str2);
-         }
-         sprintf(str1, "%s),", str1);
-         if (iPtr == ((iPtr+1)/20*20 -1)) sprintf(str1, "%s\n", str1);
-   }
-   fprintf(stderr, "%s\n", str1);
-   }
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
-}
- 
-   
 //   #pragma omp parallel private(i,iptr, bi)
    {
    
@@ -1229,8 +587,6 @@ if (MY_DEBUG && A->mpi_info->rank == 0){
 	       fnorm+=rtmp2*rtmp2;
 	    }
 	    fnorm=sqrt(fnorm);
-if (MY_DEBUG && ((i == 486 && j == 179 && A->mpi_info->rank == 1) || (i == 1715 && j == 1408 && A->mpi_info->size == 1)))
-fprintf(stderr, "rank %d (M) rtmp2 %.31f fnorm %.31f %d %d\n", A->mpi_info->rank, A->mainBlock->val[iptr*block_size], fnorm, iptr, rtmp_offset);
 	    rtmp[iptr+rtmp_offset]=fnorm;
 	    
 	    if( j != i) {
@@ -1269,15 +625,9 @@ fprintf(stderr, "rank %d (M) rtmp2 %.31f fnorm %.31f %d %d\n", A->mpi_info->rank
 //	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 		  register index_t j=A->mainBlock->pattern->index[iptr];
-if (MY_DEBUG && ((i == 486 && j == 179 && A->mpi_info->rank == 1) || (i == 1715 && j == 1408 && A->mpi_info->size == 1)))
-fprintf(stderr, "rank %d (M) kdeg %d j %d threshold %.31f val %e %d %d %f\n", A->mpi_info->rank, kdeg, j, threshold, rtmp[iptr+rtmp_offset]-threshold, iptr, rtmp_offset, theta);
 		  if(rtmp[iptr+rtmp_offset] > threshold && i!=j) {
 		     S[koffset+kdeg] = j;
 		     kdeg++;
-if (MY_DEBUG && ((i == 486 && j == 179 && A->mpi_info->rank == 1) || (i == 1715 && j == 1408 && A->mpi_info->size == 1)))
-fprintf(stderr, "rank %d (M) INTO S stet, i 1715 j 1408 kdeg %d koffset %d\n", A->mpi_info->rank, kdeg, koffset);
-if (MY_DEBUG && i == 13 && A->mpi_info->rank == 1) 
-fprintf(stderr, "rank %d (M) kdeg %d j %d threshold %g val %g\n", A->mpi_info->rank, kdeg, j, threshold, rtmp[iptr+rtmp_offset]);
 		  }
 	       }
 	       rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
@@ -1287,8 +637,6 @@ fprintf(stderr, "rank %d (M) kdeg %d j %d threshold %g val %g\n", A->mpi_info->r
 		  if( rtmp[iptr+rtmp_offset] >threshold) {
 		     S[koffset+kdeg] = j + my_n;
 		     kdeg++;
-if (MY_DEBUG && i == 13 && A->mpi_info->rank == 1)
-fprintf(stderr, "rank %d (C) kdeg %d j %d neighbor %d threshold %g val %g\n", A->mpi_info->rank, kdeg, j, A->col_coupler->connector->recv->neighbor[0], threshold, rtmp[iptr+rtmp_offset]);
 		  }
 	       }
 	    } else {
@@ -1301,8 +649,6 @@ fprintf(stderr, "rank %d (C) kdeg %d j %d neighbor %d threshold %g val %g\n", A-
       TMPMEMFREE(rtmp);
    }
    /* now we need to distribute the threshold and the diagonal dominance indicator */
-if (MY_DEBUG && A->mpi_info->rank == 0)
-fprintf(stderr, "0 send to 1: 14(%d) 15(%d) 32(%d) 48(%d) 49(%d) 304(%d)\n", A->col_coupler->connector->send->shared[14], A->col_coupler->connector->send->shared[15], A->col_coupler->connector->send->shared[32], A->col_coupler->connector->send->shared[48], A->col_coupler->connector->send->shared[49], A->col_coupler->connector->send->shared[304]);
    if (A->mpi_info->size > 1) {
       
       const index_t koffset_0=A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
@@ -1314,7 +660,6 @@ fprintf(stderr, "0 send to 1: 14(%d) 15(%d) 32(%d) 48(%d) 49(%d) 304(%d)\n", A->
       Paso_Coupler_startCollect(threshold_coupler,threshold_p);
       Paso_Coupler_finishCollect(threshold_coupler);
       remote_threshold=threshold_coupler->recv_buffer;
-if (MY_DEBUG && A->mpi_info->rank == 1) fprintf(stderr, "my_n %d overlap_n %d\n", my_n, overlap_n);
       
 //      #pragma omp parallel for private(i,iptr) schedule(static)
       for (i=0; i<overlap_n; i++) {
@@ -1336,9 +681,6 @@ if (MY_DEBUG && A->mpi_info->rank == 1) fprintf(stderr, "my_n %d overlap_n %d\n"
 	       if(fnorm2 > threshold2 ) {
 		  S[koffset+kdeg] = j ;
 		  kdeg++;
-if (MY_DEBUG && A->mpi_info->rank == 0 && i == 13)
-fprintf(stderr, "i %d (R) kdeg %d j %d threshold %g val %g\n", i, kdeg, j, threshold2, fnorm2);
-
 	       }
 	    }
 
@@ -1351,21 +693,15 @@ fprintf(stderr, "i %d (R) kdeg %d j %d threshold %g val %g\n", i, kdeg, j, thres
                   register double rtmp2 = A->remote_coupleBlock->val[iptr*block_size+bi];
                   fnorm2+=rtmp2*rtmp2;
                }
-if (MY_DEBUG && A->mpi_info->rank == 1 && i == 376)
-fprintf(stderr, "Row 376 (%d) --debug: j %d (%d), Remote-val %f, threshold %f\n", A->global_id[376], j, A->global_id[j], fnorm2, threshold2);
                if(fnorm2 > threshold2 && i != j) {
                   S[koffset+kdeg] = j + my_n;
                   kdeg++;
-if (MY_DEBUG && i == 0)
-fprintf(stderr, "rank %d (Remote) kdeg %d j %d threshold %g val %g\n", A->mpi_info->rank, kdeg, j, threshold2, fnorm2);
-
                }
             }
 	    
 	 }
 	 offset_S[i+my_n]=koffset;
 	 degree_S[i+my_n]=kdeg;
-//fprintf(stderr, "rank %d row i%d remote_threshold %f\n", A->mpi_info->rank, i+my_n, threshold2);
       }
       Paso_Coupler_free(threshold_coupler);
    }
@@ -1420,37 +756,16 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   Status=TMPMEMALLOC(n, double);
   random = Paso_Distribution_createRandomVector(col_dist,1);
   ST_flag=TMPMEMALLOC(offset_ST[n-1]+ degree_ST[n-1], index_t);
-if (MY_DEBUG1) fprintf(stderr, "rank %d offset %d\n", rank, col_dist->first_component[rank]); 
 
 //  #pragma omp parallel for private(i)
   for (i=0; i< my_n; ++i) {
       w[i]=degree_ST[i]+random[i];
-if (MY_DEBUG && rank == 0 && i == 935)
-fprintf(stderr, "rank %d row %d w %f degree_ST %d\n", rank, i+col_dist->first_component[rank], w[i], degree_ST[i]);
       if (degree_ST[i] < 1) {
 	   Status[i]=-100; /* F point  */
-if (MY_DEBUG) fprintf(stderr, "rank %d row %d w %f degree_ST %d\n", rank, i+col_dist->first_component[rank], w[i], degree_ST[i]);
       } else {
 	   Status[i]=1; /* status undefined */
       }
   }
-
-if (MY_DEBUG) {
-  int p, sum;
-  char *str1, *str2;
-  sum = my_n;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank%d ", rank);
-  for (p=0; p<my_n; ++p) {
-    sprintf(str2, "(%d: %f %f %d) ", p, w[p], Status[p], degree_ST[p]);
-    strcat(str1, str2);
-    if ( (p+1) == ((p+1)/20)*20) sprintf(str1, "%s\n", str1);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
 
   #pragma omp parallel for private(i, iptr)
   for (i=0; i< n; ++i) {
@@ -1462,42 +777,10 @@ if (MY_DEBUG) {
   
   numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
   printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined); 
-
-  
   iter=0; 
   while (numUndefined > 0) {
      Paso_Coupler_fillOverlap(n, w, w_coupler);
-if (MY_DEBUG && iter==0) {
-  int p, sum;
-  char *str1, *str2;
-  sum = n;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "rank%d iter%d", rank, iter+1);
-  for (p=0; p<my_n; ++p) {
-    sprintf(str2, "(%d: %f %f) ", p, w[p], Status[p]);
-    strcat(str1, str2);
-    if ( (p+1) == ((p+1)/20)*20) sprintf(str1, "%s\n", str1);
-  }
-  for (p=my_n; p<n; ++p) {
-    sprintf(str2, "(%d: %f) ", p, w[p]);
-    strcat(str1, str2);
-    if ( (p+1) == ((p+1)/20)*20) sprintf(str1, "%s\n", str1);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
 
-if (MY_DEBUG && rank == 1) 
-  fprintf(stderr, "iterm 1715: (486: %f %f)\n", w[486], Status[486]);
-if (MY_DEBUG && rank == 0 && col_connector->mpi_info->size == 1){
-  fprintf(stderr, "iterm 1715: (1715: %f %f)\n", w[1715], Status[1715]);
-}
-if (MY_DEBUG && rank == 1){
-  fprintf(stderr, "iterm 1948: (719: %f %f)\n", w[719], Status[719]);
-  fprintf(stderr, "iterm 2238: (1009: %f %f)\n", w[1009], Status[1009]);
-}
       /* calculate the maximum value of naigbours following active strong connections:
 	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) conenction is still active  */       
 //      #pragma omp parallel for private(i, iptr)
@@ -1512,14 +795,8 @@ if (MY_DEBUG && rank == 1){
 	       const index_t* start_p = &ST[offset_ST[k]];
 	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), Paso_comparIndex);
 
-if (MY_DEBUG && iter == 3 && ((col_connector->mpi_info->size == 1 && i == 1715) || (rank == 1 && i == 486)))
-fprintf(stderr, "rank %d item 1715 has S: %d (%e) -> %d (%e)\n", rank, i, wi, k, w[k]);
-
 	       if (ST_flag[offset_ST[k] + (index_t)(where_p-start_p)]>0) {
-//if (MY_DEBUG) fprintf(stderr, "rank%d S: %d (%e) -> %d	(%e)\n",rank, i, wi, k, w[k]);	  
 		  if (wi <= w[k] ) {
-if (MY_DEBUG && col_connector->mpi_info->size == 1 && iter == 3 && i == 1715)
-fprintf(stderr, "rank%d S: %d (%e) -> %d        (%e)\n",rank, i, wi, k, w[k]);
 		     inD=FALSE;
 		     break;
 		  }
@@ -1531,11 +808,7 @@ fprintf(stderr, "rank%d S: %d (%e) -> %d        (%e)\n",rank, i, wi, k, w[k]);
 		  for( iptr =0 ; iptr < degree_ST[i]; ++iptr) {
 		     const index_t k=ST[offset_ST[i]+iptr];
 		     if ( ST_flag[offset_ST[i]+iptr] > 0 ) {
-//if (MY_DEBUG) fprintf(stderr, "rank%d ST: %d (%e) -> %d	(%e)\n",rank, i, wi, k, w[k]);
-			
                        if (wi <= w[k] ) {
-if (MY_DEBUG && col_connector->mpi_info->size == 1 && iter == 3 && i == 1715)
-fprintf(stderr, "rank%d ST: %d (%e) -> %d        (%e)\n",rank, i, wi, k, w[k]);
 			   inD=FALSE;
 			   break;
 			}
@@ -1544,7 +817,6 @@ fprintf(stderr, "rank%d ST: %d (%e) -> %d        (%e)\n",rank, i, wi, k, w[k]);
 	    }    
 	    if (inD) { 
 	       Status[i]=0.; /* is in D */
-if (MY_DEBUG) fprintf(stderr, "rank%d %d is in D\n",rank, i);
 	    }
 	 }
 	 
@@ -1574,15 +846,8 @@ if (MY_DEBUG) fprintf(stderr, "rank%d %d is in D\n",rank, i);
 
 	       for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 		  const index_t j=ST[offset_ST[i]+jptr];
-if (MY_DEBUG && col_connector->mpi_info->size == 1 && iter == 3 && i ==1444)
-fprintf(stderr, "CHECK j %d: Status %f, ST_flag %d\n", j, Status[j], ST_flag[offset_ST[i]+jptr]);
-if (MY_DEBUG && iter == 3 && i==215 && rank ==1)
-fprintf(stderr, "CHECK j %d: Status %f, ST_flag %d\n", j, Status[j], ST_flag[offset_ST[i]+jptr]);
-
 		  if ( (Status[j] == 0.) && (ST_flag[offset_ST[i]+jptr]>0) ) {
 		     w[i]--;
-if (MY_DEBUG && iter == 3 && ((i==1444 && rank==0)||(i==215 && rank ==1)))
-fprintf(stderr, "rank%d %d reduced by %d\n",rank, i,j);
 		     ST_flag[offset_ST[i]+jptr]=-1;
 		  }
 	       }
@@ -1604,21 +869,13 @@ fprintf(stderr, "rank%d %d reduced by %d\n",rank, i,j);
 
 		     for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 			const index_t j=ST[offset_ST[i]+jptr];
-//if (MY_DEBUG) fprintf(stderr, "rank%d check connection: %d %d\n",rank, i,j);
 			ST_flag[offset_ST[i]+jptr]=-1;
 			for (kptr=0; kptr<degree_ST[j]; ++kptr) {
 			   const index_t k=ST[offset_ST[j]+kptr]; 
-if (MY_DEBUG && iter == 0 && ((rank == 1 && j == 1009 && i == 1622) || (rank == 0 && j == 2238 && i == 2544)))
-fprintf(stderr, "rank%d check connection: %d of %d\n",rank, k,j);
-//if (MY_DEBUG) fprintf(stderr, "rank%d check connection: %d of %d\n",rank, k,j); 
 			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), Paso_comparIndex) ) { /* k in ST[i] ? */
-if (MY_DEBUG && iter == 0 && ((rank == 1 && j == 1009 && i == 1622) || (rank == 0 && j == 2238 && i == 2544)))
-fprintf(stderr, "rank%d found!\n", rank);
 			      if (ST_flag[offset_ST[j]+kptr] >0) {
 				 if (j< my_n ) {
 				    w[j]--;
-if (MY_DEBUG && iter == 3 && ((j==1444 && rank==0)||(j==215 && rank ==1)))
-fprintf(stderr, "rank%d %d reduced by %d and %d \n",rank, j, i,k); 
 				 }
 				 ST_flag[offset_ST[j]+kptr]=-1;
 			      }
@@ -1632,8 +889,6 @@ fprintf(stderr, "rank%d %d reduced by %d and %d \n",rank, j, i,k);
 	 /* adjust status */
 //	 #pragma omp parallel for private(i)
 	 for (i=0; i< my_n; ++i) {
-if (MY_DEBUG && iter == 3 && ((i==1444 && rank==0)||(i==215 && rank ==1)))
-fprintf(stderr, "rank%d %d Status %f w %f\n",rank, i,Status[i], w[i]);
 	    if ( Status[i] == 0. ) {
 	       Status[i] = -10;   /* this is now a C point */
 	    } else if (Status[i] == 1. && w[i]<1.) {
@@ -1651,22 +906,6 @@ fprintf(stderr, "rank%d %d Status %f w %f\n",rank, i,Status[i], w[i]);
 	 iter++;
 	 printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
 
-if (MY_DEBUG && iter == 4) {
-  int i, j=0, sum=my_n;
-  char *str1;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  sprintf(str1, "rank %d: ", rank);
-  for (i=0; i<sum; i++)
-   if (Status[i]<=0) {
-    if (j == ((j+1)/300)*300 -1)
-      sprintf(str1, "%s %d\n rank %d:", str1, i+col_dist->first_component[rank], rank);
-    else 
-      sprintf(str1, "%s %d", str1, i+col_dist->first_component[rank]);
-    j++;
-   }
-  fprintf(stderr, "%s\n", str1);
-  TMPMEMFREE(str1);
-}
   } /* end of while loop */
 
   /* map to output :*/
@@ -1675,7 +914,6 @@ if (MY_DEBUG && iter == 4) {
   for (i=0; i< n; ++i) {
 	 if (Status[i] > -50.) {
 	    split_marker[i]=PASO_AMG_IN_C;
-if (MY_DEBUG) fprintf(stderr, "rank%d CIJP C sets: %d\n",rank, i);
 	 } else {
 	    split_marker[i]=PASO_AMG_IN_F;
 	 }
@@ -1717,7 +955,7 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     TMPMEMFREE(ptr);
     return out;
   }
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP1 %d\n", rank, Esys_getErrorType());
+
   n = A->mainBlock->numRows;
   block_size = A->block_size;
 
@@ -1726,62 +964,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP1 %d\n", rank, Esy
      contains all info needed from current rank to merge a system 
      matrix  */
   Paso_SystemMatrix_mergeMainAndCouple(A, &ptr, &idx, &val);
-if (MY_DEBUG && rank == 0) {
-int i, j, iptr, n, offset, ib, block_size;
-double A_val, A_D_val;
-n = A->mainBlock->numRows;
-block_size = A->block_size;
-offset = 0;
-for (i=0; i<n; i++) {
-  for (iptr=A->mainBlock->pattern->ptr[i]; iptr<A->mainBlock->pattern->ptr[i+1]; iptr++) {
-        j = A->mainBlock->pattern->index[iptr];
-	if (j != idx[offset+iptr]) fprintf(stderr, "miss match index(%d) %d %d %d\n", n, i, j, idx[offset+iptr]);
-        for (ib = 0; ib<block_size; ib++) {
-          A_val = A->mainBlock->val[iptr*block_size + ib];
-          A_D_val = val[(offset+iptr)*block_size + ib];
-//          if (A_val != A_D_val) fprintf(stderr, "Miss Match found(%d) %d %d %d, A %f D %f\n", n, i, j, ib, A_val, A_D_val);
-        }
-    }
-  offset = A->mainBlock->pattern->ptr[i+1];
-  for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; iptr++) {
-        j = A->global_id[A->col_coupleBlock->pattern->index[iptr]];
-	if (j != idx[offset+iptr]) fprintf(stderr, "miss match index(%d %d) %d %d %d %d\n", n, offset, i, j, idx[offset+iptr], iptr);
-        for (ib = 0; ib<block_size; ib++) {
-          A_val = A->col_coupleBlock->val[iptr*block_size + ib];
-          A_D_val = val[(offset+iptr)*block_size + ib];
-//          if (A_val != A_D_val) fprintf(stderr, "Miss Match found(%d) %d %d %d, A %f colD %f\n", n, i, j, ib, A_val, A_D_val);
-        }
-    }
-  offset = A->col_coupleBlock->pattern->ptr[i+1];
-  }
-}
-
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP2 %d %s\n", rank, Esys_getErrorType(), Esys_getErrorMessage());
-if (MY_DEBUG && rank == 0) {
-char *str1, *str2;
-index_t i, j, ib, sum=ptr[n], block=A->block_size;
-str1 = TMPMEMALLOC(sum*block*30+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d val[%d X %d] = (", rank, n, block);
-for (i=0; i<n; i++){
- sprintf(str2, "Row %d: ", i);
- strcat(str1, str2);
- for (j=ptr[i]; j<ptr[i+1]; j++){
-  sprintf(str2, "(%d, ", idx[j]);
-  strcat(str1, str2);
-  for (ib=0; ib<block; ib++) {
-    sprintf(str2, "%f ", val[j*block+ib]);
-    strcat(str1, str2);
-  }
-  sprintf(str1, "%s) ", str1);
- }
- sprintf(str1, "%s\n", str1);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
 
   #ifdef ESYS_MPI
     mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
@@ -1798,32 +980,16 @@ TMPMEMFREE(str2);
     total_n=Paso_SystemMatrix_getGlobalNumRows(A);
     ptr_global = MEMALLOC(total_n+1, index_t);
     memcpy(ptr_global, ptr, (n+1) * sizeof(index_t));
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum=total_n+1;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d ptr_global[%d of %d] = (", rank, n+1, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", ptr_global[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
     iptr = n+1;
     MEMFREE(ptr);
     temp_n = TMPMEMALLOC(size, index_t);
     temp_len = TMPMEMALLOC(size, index_t);
     temp_n[0] = iptr;
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP3 %d\n", rank, Esys_getErrorType());
     
     /* Second, receive ptr values from other ranks */
     for (i=1; i<size; i++) {
       remote_n = A->row_distribution->first_component[i+1] -
 		 A->row_distribution->first_component[i];
-if (MY_DEBUG) fprintf(stderr, "rank %d n %d i %d remote_n %d iptr %d\n", rank, n, i, remote_n, iptr);
       MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
 			A->mpi_info->msg_tag_counter+i,
 			A->mpi_info->comm,
@@ -1833,22 +999,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d n %d i %d remote_n %d iptr %d\n", rank, n
     }
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     A->mpi_info->msg_tag_counter += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP4 %d\n", rank, Esys_getErrorType());
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum=iptr;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d ptr_global[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", ptr_global[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
 
     /* Then, prepare to receive idx and val from other ranks */
     len = 0;
@@ -1861,20 +1011,6 @@ TMPMEMFREE(str2);
       }else 
 	temp_len[i] = 0;
     }
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum = size;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d temp[%d, len%d] = (", rank, sum, len);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", temp_len[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
     idx_global = MEMALLOC(len, index_t);
     iptr = temp_len[0];
@@ -1886,15 +1022,12 @@ TMPMEMFREE(str2);
 			A->mpi_info->comm,
 			&mpi_requests[i]);
       remote_n = temp_n[i];
-if (MY_DEBUG) fprintf(stderr,"RECV %d from %d offset %d tag %d\n", len, i, iptr, A->mpi_info->msg_tag_counter+i);
       for (j=0; j<remote_n; j++) {
 	ptr_global[j+offset] = ptr_global[j+offset] + iptr;
-if (MY_DEBUG) fprintf(stderr, "rank %d j %d iptr %d offset %d\n", rank, j, iptr, offset);
       }
       offset += remote_n;
       iptr += len;
     }
-if (MY_DEBUG) fprintf(stderr, "rank %d copy len %d\n", rank, temp_len[0]);
     memcpy(idx_global, idx, temp_len[0] * sizeof(index_t));
     MEMFREE(idx);
     row_block_size = A->mainBlock->row_block_size;
@@ -1902,35 +1035,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d copy len %d\n", rank, temp_len[0]);
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     A->mpi_info->msg_tag_counter += size;
     TMPMEMFREE(temp_n);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP5 %d\n", rank, Esys_getErrorType());
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum= total_n+1;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d ptr_global[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", ptr_global[i+1]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum =  ptr_global[total_n];
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(30, char);
-sprintf(str1, "rank %d idx_global[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", idx_global[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s) -- total_n %d len %d\n", str1, total_n, ptr_global[total_n]);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
     /* Then generate the sparse matrix */
     pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, total_n,
@@ -1938,22 +1042,6 @@ TMPMEMFREE(str2);
     out = Paso_SparseMatrix_alloc(A->mainBlock->type, pattern, 
 			row_block_size, col_block_size, FALSE);
     Paso_Pattern_free(pattern);
-
-if (MY_DEBUG) {
-char *str1, *str2;
-index_t sum;
-str1 = TMPMEMALLOC(size*1000+100, char);
-str2 = TMPMEMALLOC(15, char);
-sum = out->pattern->ptr[pattern->numOutput];
-sprintf(str1, "rank %d out_idx[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", out->pattern->index[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
 
     /* Finally, receive and copy the value */
     iptr = temp_len[0] * block_size;
@@ -1970,31 +1058,22 @@ TMPMEMFREE(str2);
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     A->mpi_info->msg_tag_counter += size;
     TMPMEMFREE(temp_len);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP6 %d\n", rank, Esys_getErrorType());
   } else { /* it's not rank 0 */
 
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP3 n %d\n", rank, n);
     /* First, send out the local ptr */
     tag = A->mpi_info->msg_tag_counter+rank;
     MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[0]);
-
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP4\n", rank);
-if (MY_DEBUG && rank == 1) 
-fprintf(stderr, "SIZE n %d distribution %d, ptr[n] %d\n", n, A->row_distribution->first_component[rank+1] - A->row_distribution->first_component[rank], ptr[n]);
 
     /* Next, send out the local idx */
     len = ptr[n];
     tag += size;
     MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[1]);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP5\n", rank);
-if (MY_DEBUG) fprintf(stderr, "rank %d SEND len%d tag %d \n", rank, len, tag);
 
     /* At last, send out the local val */
     len *= block_size;
     tag += size;
-if (MY_DEBUG) fprintf(stderr, "rank %d send len%d tag %d \n", rank, len, tag);
     MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[2]);
 
@@ -2003,7 +1082,6 @@ if (MY_DEBUG) fprintf(stderr, "rank %d send len%d tag %d \n", rank, len, tag);
     MEMFREE(ptr);
     MEMFREE(idx);
     MEMFREE(val);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSystemMatrix CP6\n", rank);
 
     out = NULL;
   }
@@ -2024,58 +1102,10 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
   index_t i, n, p, count, n_block;
   index_t *counts, *offset, *dist;
 
-//if (MY_DEBUG1 && rank == 0) Paso_SystemMatrix_print(A);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP1\n", rank);
   n_block = amg->n_block;
 
   A_D = Paso_Preconditioner_AMG_mergeSystemMatrix(A); 
-if (MY_DEBUG && rank == 0) Paso_SystemMatrix_print(A);
-if (MY_DEBUG && rank == 0) {
-   int q, iPtr, ib, block_size=A_D->block_size, n=A_D->numRows;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(100, char);
-   sprintf(str1, "rank %d merged Matrix A_D (N%d X N%d Block%d):\n %d from Local\n", rank, n, n, block_size, A->mainBlock->numRows);
-   for (q=0; q< n; ++q){
-      sprintf(str2, "Row %d: ",q);
-      strcat(str1, str2);
-      for (iPtr =A_D->pattern->ptr[q]; iPtr<A_D->pattern->ptr[q+1]; ++iPtr) {
-         sprintf(str2, "(%d ",A_D->pattern->index[iPtr]);
-         strcat(str1, str2);
-	 ib = 0;
-//         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%f ", A_D->val[iPtr*block_size+ib]);
-           strcat(str1, str2);
-//         }
-         sprintf(str2, "),");
-         strcat(str1, str2);
-      }
-      sprintf(str1, "%s\n", str1);
-   }
-   fprintf(stderr, "%s", str1);
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
-}
 
-if (MY_DEBUG) {
-if (rank == 0) {
-char *str1, *str2;
-index_t sum;
-str1 = TMPMEMALLOC(size*1000+100, char);
-str2 = TMPMEMALLOC(15, char);
-sum = A_D->pattern->ptr[A_D->pattern->numOutput];
-sprintf(str1, "rank %d idx[%d] = (", rank, sum);
-for (i=0; i<sum; i++){
-  sprintf(str2, "%d ", A_D->pattern->index[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-}
-
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP2 %d\n", rank, Esys_getErrorType());
   /* First, gather x and b into rank 0 */
   dist = A->pattern->input_distribution->first_component;
   n = Paso_SystemMatrix_getGlobalNumRows(A);
@@ -2093,164 +1123,13 @@ if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP2 %d\n", rank, Esys_getEr
   MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
   MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
 
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP3 %d %d %d\n", rank, Esys_getErrorType(), n, n_block);
-
-if (MY_DEBUG) {
-if (rank == 0) {
-  char * str1, *str2;
-  int sum = n*n_block;
-//  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*30+100, char);
-  str2 = TMPMEMALLOC(30, char);
-  sprintf(str1, "b[%d of %d] from all ranks=(", sum, n*n_block);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%g ", b[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-}
-
   if (rank == 0) {
     /* solve locally */
     #ifdef MKL
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP3_0 MKL\n", rank);
-if (MY_DEBUG) {
-   int q, iPtr, ib, block_size=A_D->block_size, n=A_D->numRows;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(100, char);
-   sprintf(str1, "rank %d merged Matrix A_D (N%d X N%d Block%d):\n %d from Local\n", rank, n, n, block_size, A->mainBlock->numRows);
-   for (q=0; q<1; ++q){
-      sprintf(str2, "Row %d: ",q);
-      strcat(str1, str2);
-      for (iPtr =A_D->pattern->ptr[q]; iPtr<A_D->pattern->ptr[q+1]; ++iPtr) {
-         sprintf(str2, "(%d ",A_D->pattern->index[iPtr]);
-         strcat(str1, str2);
-         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%.20f ", A_D->val[iPtr*block_size+ib]);
-           strcat(str1, str2);
-         }
-         sprintf(str2, "),");
-         strcat(str1, str2);
-      }
-      sprintf(str1, "%s\n", str1);
-   }
-   fprintf(stderr, "%s", str1);
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
-}
       A_temp = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_D);
       A_temp->solver_package = PASO_MKL;
-//      Paso_SparseMatrix_free(A_D);
-if (MY_DEBUG) {
-   int q, iPtr, ib, block_size=A_temp->block_size, n=A_temp->numRows;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(100, char);
-
-   sprintf(str1, "rank %d merged Matrix A_temp (N%d X N%d Block%d):\n", rank, n, n, block_size);
-   for (q=0; q< 4; ++q){
-      sprintf(str2, "Row %d [%d->%d]: ",q, A_temp->pattern->ptr[q], A_temp->pattern->ptr[q+1]);
-      strcat(str1, str2);
-      for (iPtr =A_temp->pattern->ptr[q]-1; iPtr<A_temp->pattern->ptr[q+1]-1; ++iPtr) {
-         sprintf(str2, "(%d ",A_temp->pattern->index[iPtr]);
-         strcat(str1, str2);
-         for (ib=0; ib<block_size; ib++){
-           sprintf(str2, "%f ", A_temp->val[iPtr*block_size+ib]);
-           strcat(str1, str2);
-         }
-         sprintf(str2, "),");
-         strcat(str1, str2);
-      }
-      sprintf(str1, "%s\n", str1);
-   }
-   fprintf(stderr, "%s", str1);
-
-}
-      Paso_MKL(A_temp, x, b, amg->reordering, amg->refinements, SHOW_TIMING);
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP3_4\n", rank);
-if (MY_DEBUG1) {
-  char *str1, *str2;
-  int i, n = A_temp->numRows * A_temp->row_block_size;
-  double loc_norm, norm2_of_residual, *r = TMPMEMALLOC(n, double);
-  Paso_Copy(n, r, b);
-  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A_D, x, DBLE(1), r);
-//  Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(DBLE(-1), A_temp, x, DBLE(1), r);
-  norm2_of_residual = 0;
-  for (i=0; i<n; i++) {
-    norm2_of_residual += r[i]*r[i];
-  }
-  norm2_of_residual =sqrt(norm2_of_residual);
-  fprintf(stderr, "rank %d With Paso_MKL %e n %d\n", rank, norm2_of_residual, n);
-/*str1 = TMPMEMALLOC(n*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-fprintf(stderr, "rank %d r[0]=%.20f, b[0]=%.20f, x[0]=%.20f\n", rank, r[0], b[0], x[0]);
-sprintf(str1, "rank %d With Paso_MKL r[%d] = (", rank, n);
-for (i=0; i<n; i++) {
-  if (i == ((i+1)/200*200 -1))
-//    sprintf(str2, "\n Continue Paso_MKL b[from %d]: (%d %f) ", i, i, b[i]);
-    sprintf(str2, "\n Continue Paso_MKL b[from %d]: %e ", i, r[i]);
-  else
-    sprintf(str2, "%e ", r[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);*/
-  TMPMEMFREE(r);
-}
-if (MY_DEBUG) {
-char *str1, *str2;
-int sum, rank, i, n;
-n = A_temp->numRows * A_temp->row_block_size;
-sum = n;
-str1 = TMPMEMALLOC(sum*100+100, char);
-str2 = TMPMEMALLOC(100, char);
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d With Paso_MKL x[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  if (i == ((i+1)/200*200 -1))
-    sprintf(str2, "\n rank %d Continue from %d: %f ", rank, i, x[i]);
-  else
-    sprintf(str2, "%f ", x[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}
-
-if (MY_DEBUG) {
-int i, j, iptr, n, offset, ib, block_size;
-double A_val, A_D_val;
-n = A->mainBlock->numRows;
-block_size = A->block_size;
-offset = 0;
-for (i=0; i<n; i++) {
-  for (iptr=A->mainBlock->pattern->ptr[i]; iptr<A->mainBlock->pattern->ptr[i+1]; iptr++) {
-	j = A->mainBlock->pattern->index[iptr];
-        for (ib = 0; ib<block_size; ib++) {
-	  A_val = A->mainBlock->val[iptr*block_size + ib];
-	  A_D_val = A_D->val[(offset+iptr)*block_size + ib];
-	  if (A_val != A_D_val) fprintf(stderr, "Miss Match found %d %d %d, A %f A_D %f\n", i, j, ib, A_val, A_D_val);
-	}
-    }
-  offset = A->mainBlock->pattern->ptr[i+1];
-  for (iptr=A->col_coupleBlock->pattern->ptr[i]; iptr<A->col_coupleBlock->pattern->ptr[i+1]; iptr++) {
-	j = A->global_id[A->col_coupleBlock->pattern->index[iptr]];
-	for (ib = 0; ib<block_size; ib++) {
-	  A_val = A->col_coupleBlock->val[iptr*block_size + ib];
-	  A_D_val = A_D->val[(offset+iptr)*block_size + ib];
-	  if (A_val != A_D_val) fprintf(stderr, "Miss Match found %d %d %d, A %f A_D %f\n", i, j, ib, A_val, A_D_val);    
-	}
-    }
-  offset = A->col_coupleBlock->pattern->ptr[i+1];
-  }
-}
       Paso_SparseMatrix_free(A_D);
+      Paso_MKL(A_temp, x, b, amg->reordering, amg->refinements, SHOW_TIMING);
       Paso_SparseMatrix_free(A_temp);
     #else 
       #ifdef UMFPACK
@@ -2268,45 +1147,8 @@ for (i=0; i<n; i++) {
     #endif
   }
 
-if (MY_DEBUG) {
-if (rank == 0) {
-  char * str1, *str2;
-  int sum = n*n_block;
-  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "Solve x[%d of %d] = ( ", sum, n*n_block);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", x[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-}
-
-if (MY_DEBUG) fprintf(stderr, "rank %d In mergeSolve CP4 %d\n", rank, Esys_getErrorType());
   /* now we need to distribute the solution to all ranks */
   MPI_Scatterv(x, counts, offset, MPI_DOUBLE, amg->x_C, count, MPI_DOUBLE, 0, A->mpi_info->comm);
-
-if (MY_DEBUG) {
-if (rank == 0) {
-  char * str1, *str2;
-  int sum = n*n_block;
-  if (sum > 20) sum = 20;
-  str1 = TMPMEMALLOC(sum*100+100, char);
-  str2 = TMPMEMALLOC(100, char);
-  sprintf(str1, "Scattered x_C[%d of %d] = ( ", sum, n*n_block);
-  for (i=0; i<sum; i++) {
-    sprintf(str2, "%f ", amg->x_C[i]);
-    strcat(str1, str2);
-  }
-  fprintf(stderr, "%s)\n", str1);
-  TMPMEMFREE(str1);
-  TMPMEMFREE(str2);
-}
-}
 
   TMPMEMFREE(x);
   TMPMEMFREE(b);

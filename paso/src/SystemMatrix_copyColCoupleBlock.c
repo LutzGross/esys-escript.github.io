@@ -42,7 +42,6 @@
 
 void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 {
-   /* const dim_t n=Paso_SystemMatrix_getNumRows(A); */
    dim_t p;
    index_t z0, iPtr, rPtr;
    const dim_t block_size=A->block_size;
@@ -59,29 +58,6 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	 return;
       }
 
-/*if (A->mpi_info->rank == 1){
-   int q, ib, n=A->mainBlock->numRows;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(100, char);
-   sprintf(str1, "row 13: ");
-   if (n > 15) {
-   for (q=A->col_coupleBlock->pattern->ptr[13]; q<A->col_coupleBlock->pattern->ptr[14]; q++) {
-      sprintf(str2, "(%d ", A->col_coupleBlock->pattern->index[q]);
-      strcat(str1, str2);
-      for (ib=0; ib<block_size; ib++){
-	sprintf(str2, "%f ", A->col_coupleBlock->val[q*block_size+ib]);
-	strcat(str1, str2);
-      }
-      sprintf(str2, ")\n");
-      strcat(str1, str2);
-   }
-   }
-   fprintf(stderr, "%s", str1);
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
-}*/
-
       /* start receiving */
       for (p=0; p<A->row_coupler->connector->recv->numNeighbors; p++) {
 	    #ifdef ESYS_MPI
@@ -89,12 +65,6 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	    const index_t irow2= A->row_coupler->connector->recv->offsetInShared[p+1];
 	    const index_t a = A->row_coupleBlock->pattern->ptr[irow1];
 	    const index_t b = A->row_coupleBlock->pattern->ptr[irow2];
-/*if (A->mpi_info->rank == 0) {
-fprintf(stderr, "recv from %d: rows(%d %d) size (%d %d) row13:(%d %d)\n", A->row_coupler->connector->recv->neighbor[p], irow1, irow2, a, b, A->row_coupleBlock->pattern->ptr[13], A->row_coupleBlock->pattern->ptr[14]);
-}*/
-
-//	    printf(" %d %d : %d %d : %d %d\n",A->row_coupler->connector->recv->offsetInShared[p], A->row_coupler->connector->recv->offsetInShared[p+1],a,b,irow1,irow2);
-//	    printf("reveive from %d len = %d\n",A->row_coupler->connector->recv->neighbor[p], (b-a) * block_size);
 	     
 	    MPI_Irecv(&(A->row_coupleBlock->val[a * block_size]), (b-a) * block_size,  MPI_DOUBLE,
 	       A->row_coupler->connector->recv->neighbor[p], 
@@ -129,7 +99,6 @@ fprintf(stderr, "recv from %d: rows(%d %d) size (%d %d) row13:(%d %d)\n", A->row
 	    
 	 }
 	 #ifdef ESYS_MPI
-//	 printf("send to %d len = %d\n",A->row_coupler->connector->send->neighbor[p], z-z0);
 	 MPI_Issend(&(send_buffer[z0]),z-z0, MPI_DOUBLE,
 		       A->row_coupler->connector->send->neighbor[p], 
 		       A->mpi_info->msg_tag_counter+A->mpi_info->rank,
@@ -150,28 +119,6 @@ fprintf(stderr, "recv from %d: rows(%d %d) size (%d %d) row13:(%d %d)\n", A->row
          A->mpi_info->msg_tag_counter+=A->mpi_info->size;
          TMPMEMFREE(send_buffer);
    }
-/*if (A->mpi_info->rank == 0){
-   int q, ib, n=A->mainBlock->numRows;
-   char *str1, *str2;
-   str1 = TMPMEMALLOC(n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(100, char);
-   sprintf(str1, "row 13 (%d %d): ", A->row_coupleBlock->pattern->ptr[13], A->row_coupleBlock->pattern->ptr[14]);
-   if (A->row_coupleBlock->numRows > 14) {
-   for (q=A->row_coupleBlock->pattern->ptr[13]; q<A->row_coupleBlock->pattern->ptr[14]; q++) {
-      sprintf(str2, "(%d ", A->row_coupleBlock->pattern->index[q]);
-      strcat(str1, str2);
-      for (ib=0; ib<block_size; ib++){
-        sprintf(str2, "%f ", A->row_coupleBlock->val[q*block_size+ib]);
-        strcat(str1, str2);
-      }
-      sprintf(str2, ")\n");
-      strcat(str1, str2);
-   }
-   }
-   fprintf(stderr, "%s", str1);
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
-}*/
    return; 		      
 }
 
