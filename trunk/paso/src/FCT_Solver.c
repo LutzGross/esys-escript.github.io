@@ -386,6 +386,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 
 	      Paso_Preconditioner_Smoother_solve(fctp->iteration_matrix, ((Paso_Preconditioner*) (fctp->iteration_matrix->solver_p))->jacobi, 
 					  du, z, 1, FALSE); 
+            
 	      options->num_iter++;
 	   }           
    

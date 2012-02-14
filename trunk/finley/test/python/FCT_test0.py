@@ -26,13 +26,14 @@ from esys.finley import Rectangle, Brick
 from esys.weipa import saveVTK
 from math import pi, ceil
 
-NE=5
+NE=50
 dom=Rectangle(NE,1,l1=1./NE)
+dom=Rectangle(NE,NE)
 fc=TransportPDE(dom,numEquations=1)
 fc.getSolverOptions().setVerbosityOn()
+fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
 fc.setValue(M=1,C=[-1,0])
 x=dom.getX()
 u0=whereNegative(x[0]-1./NE)

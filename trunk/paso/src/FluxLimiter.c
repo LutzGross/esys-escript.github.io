@@ -85,7 +85,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
   const double *lumped_mass_matrix = flux_limiter->borrowed_lumped_mass_matrix;
   index_t i, iptr_ij;
 
-  #pragma omp parallel private(i, iptr_ij)
+  #pragma omp parallel private(i)
   {
     #pragma omp for schedule(static) 
     for (i = 0; i < n; ++i) {
@@ -97,20 +97,18 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
 		}
 	   
     }        
-    
-    /* distribute u_tilde: */
-    #pragma omp master
-    {
-        Paso_Coupler_startCollect(flux_limiter->u_tilde_coupler,flux_limiter->u_tilde);
-    }
-    /* 
+  }
+  /* distribute u_tilde: */
+  Paso_Coupler_startCollect(flux_limiter->u_tilde_coupler,flux_limiter->u_tilde);
+  /* 
      * calculate MQ_P[i] = lumped_mass_matrix[i] * max_{j} (\tilde{u}[j]- \tilde{u}[i] ) 
      *           MQ_N[i] = lumped_mass_matrix[i] * min_{j} (\tilde{u}[j]- \tilde{u}[i] ) 
      *
      */
-    /* first we calculate the min and max of u_tilda in the main block 
+  /* first we calculate the min and max of u_tilda in the main block 
        QP, QN are used to hold the result */ 
-
+  #pragma omp parallel private(i)
+  {
      #pragma omp  for schedule(static)
      for (i = 0; i < n; ++i) {
         if (  flux_limiter->borrowed_lumped_mass_matrix[i]> 0) { /* no constraint */    
@@ -131,13 +129,14 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
 		    flux_limiter->MQ[2*i+1] =LARGE_POSITIVE_FLOAT;
 	}
      }
-     /* complete distribute u_tilde: */
-     #pragma omp master
-     {  
-		Paso_Coupler_finishCollect(flux_limiter->u_tilde_coupler);
-		remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
-      }
-      /* now we look at the couple matrix and set the final value for QP, QN */
+  } /* parallel region */
+  /* complete distribute u_tilde: */
+  Paso_Coupler_finishCollect(flux_limiter->u_tilde_coupler);
+  remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
+
+  /* now we look at the couple matrix and set the final value for QP, QN */
+  #pragma omp parallel private(i, iptr_ij)
+  {
       #pragma omp  for schedule(static)
       for (i = 0; i < n; ++i) {
 	    if ( flux_limiter->borrowed_lumped_mass_matrix[i]> 0) { /* no constraint */ 
@@ -157,7 +156,6 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
 
      }
   } /* parallel region */
-
 }
 
 /* starts to update a vector (not given yet) from the antidiffusion fluxes in flux_limiter->antidiffusive_fluxes

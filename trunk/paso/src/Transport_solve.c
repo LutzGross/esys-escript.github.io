@@ -198,6 +198,7 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
         #pragma omp parallel private(i,fail_loc )
         {
 	       
+               fail_loc=0;
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
                   const double m_i=fctp->lumped_mass_matrix[i];
@@ -209,13 +210,13 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
                }
                #pragma omp critical 
                {
-		  fail=MIN(fail, fail_loc);
+		  fail=MAX(fail, fail_loc);
                }
         }
         #ifdef ESYS_MPI
         { 
 	       fail_loc=fail;
-               MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MIN, fctp->mpi_info->comm);
+               MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
 	}
         #endif
         if (fail < 0 )
