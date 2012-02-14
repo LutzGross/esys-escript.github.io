@@ -184,7 +184,7 @@ lapack_libs = ['mkl_lapack']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.8'
