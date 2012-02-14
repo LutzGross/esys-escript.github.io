@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: returns the package to be used                   */
+/* Paso: returns the solver to be used                        */
 
 /**************************************************************/
 
@@ -111,7 +111,8 @@ index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, 
   } else if (package==PASO_UMFPACK) {
       out=PASO_DIRECT;
   } else {
-      Esys_setError(VALUE_ERROR,"Unidentified package.");
+      Esys_setError(VALUE_ERROR,"Paso_Options_getSolver: Unidentified package.");
   }
   return out;
 }
+

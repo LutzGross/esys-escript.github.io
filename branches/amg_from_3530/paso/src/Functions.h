@@ -21,8 +21,7 @@
 #include "performance.h"
 
 enum Paso_FunctionType {
-  LINEAR_SYSTEM,
-  FCT
+  LINEAR_SYSTEM
 };
 
 typedef enum Paso_FunctionType Paso_FunctionType;

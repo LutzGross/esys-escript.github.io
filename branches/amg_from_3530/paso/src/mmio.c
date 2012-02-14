@@ -46,8 +46,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 
     if (mm_read_banner(f, &matcode) != 0)
     {
-        printf("mm_read_unsymetric: Could not process Matrix Market banner ");
-        printf(" in file [%s]\n", fname);
+        printf("mm_read_unsymmetric_sparse: Could not process Matrix Market banner in file [%s]\n", fname);
         return -1;
     }
 
@@ -66,7 +65,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 
     if (mm_read_mtx_crd_size(f, &M, &N, &nz) !=0)
     {
-        fprintf(stderr, "read_unsymmetric_sparse(): could not parse matrix size.\n");
+        fprintf(stderr, "mm_read_unsymmetric_sparse: Could not parse matrix size.\n");
         return -1;
     }
 
@@ -74,7 +73,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
     *N_ = N;
     *nz_ = nz;
 
-    /* reseve memory for matrices */
+    /* reserve memory for matrices */
 
     Ip = MEMALLOC(nz, int);
     Jp = MEMALLOC(nz, int);
@@ -155,7 +154,7 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
 
 
     /* second field describes whether this is a sparse matrix (in coordinate
-            storgae) or a dense array */
+       storage) or a dense array */
 
 
     if (strcmp(crd, MM_SPARSE_STR) == 0)

@@ -68,7 +68,7 @@ dim_t Paso_IndexList_count(Paso_IndexList* in, index_t range_min,index_t range_m
   }
 }
 
-/* count the number of row indices in the Paso_IndexList in */
+/* counts the number of row indices in the Paso_IndexList in */
 
 void Paso_IndexList_toArray(Paso_IndexList* in, index_t* array, index_t range_min,index_t range_max, index_t index_offset) {
   dim_t i, ptr;
@@ -134,5 +134,5 @@ void Paso_IndexListArray_free(Paso_IndexListArray* in)
       MEMFREE(in);
 
    }
-   
 }
+

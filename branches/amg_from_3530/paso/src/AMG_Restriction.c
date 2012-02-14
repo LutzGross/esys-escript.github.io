@@ -84,10 +84,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    degree_set = TMPMEMALLOC(num_Pcouple_cols, index_t);
    send_ptr = TMPMEMALLOC(num_Pcouple_cols+1, index_t);
    memset(degree_set, 0, sizeof(index_t) * num_Pcouple_cols);
-   #pragma omp parallel for private(i,iptr,iptr_ub,j) schedule(static)
    for (i=0; i<n; i++) {
      iptr_ub = couple_block->pattern->ptr[i+1];
-     #pragma ivdep
      for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
 	j = couple_block->pattern->index[iptr];
 	degree_set[j] ++;
@@ -179,7 +177,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    TMPMEMFREE(degree_set);
    degree_set = TMPMEMALLOC(send->numNeighbors, index_t);
    memset(degree_set, 0, sizeof(index_t)*send->numNeighbors);
-   
    for (p=0, sum=0; p<send->numNeighbors; p++) {
      iptr_ub = send->offsetInShared[p+1];
      for (iptr = send->offsetInShared[p]; iptr < iptr_ub; iptr++){

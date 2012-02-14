@@ -14,14 +14,14 @@
 
 /**************************************************************/
 
-/* Paso: SystemMatrix                                       */
+/* Paso: SystemMatrix                                         */
 
 /*  nullify rows and columns in the matrix                    */
 /*                                                            */
-/*  the rows and columns are marked by positive values in     */
+/*  The rows and columns are marked by positive values in     */
 /*  mask_row and mask_col. Values on the main diagonal        */
 /*  which are marked to set to zero by both mask_row and      */
-/*  mask_col are set to main_diagonal_value                   */
+/*  mask_col are set to main_diagonal_value.                  */
 
 
 /**************************************************************/

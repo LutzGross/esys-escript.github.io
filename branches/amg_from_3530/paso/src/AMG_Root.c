@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: AMG sets-up                                          */
+/* Paso: AMG set-ups                                          */
 
 /**************************************************************/
 
@@ -119,9 +119,9 @@ fprintf(stderr, "option %d boomer %d\n", options->preconditioner, PASO_BOOMERAMG
       }
 }
 
-/* applies the preconditioner */
-/* has to be called within a parallel reqion */
-/* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
+/* Applies the preconditioner. */
+/* Has to be called within a parallel region. */
+/* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Preconditioner_AMG_Root_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG_Root* prec, double* x,double* b)
 {
              if (prec->localamg != NULL) {
@@ -134,3 +134,4 @@ void Paso_Preconditioner_AMG_Root_solve(Paso_SystemMatrix* A, Paso_Preconditione
 	             Paso_Preconditioner_Smoother_solve(A, prec->amgsubstitute,x,b,prec->sweeps,FALSE);
 	    }
 }
+

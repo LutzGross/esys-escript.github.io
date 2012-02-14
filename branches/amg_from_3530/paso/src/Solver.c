@@ -17,8 +17,8 @@
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003/04 */
-/* Author: Lutz Gross, l.gross@uq.edu.au */
+/* Copyrights by ACcESS Australia 2003/04                     */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 
@@ -27,7 +27,7 @@
 #include "Solver.h"
 #include "esysUtils/blocktimer.h"
 
-/***********************************************************************************/
+/****************************************************************************/
 
 /*  free space */
 
@@ -61,7 +61,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
        Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance is too small.");
      }
      if (tolerance >1.) {
-       Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance mut be less than one.");
+       Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance must be less than one.");
      }
      method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric,A->mpi_info);
      /* check matrix type */
@@ -139,7 +139,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
             #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
-            if (options->verbose) printf("right hand side is identical zero.\n");
+            if (options->verbose) printf("right hand side is identical to zero.\n");
 
         } else {
 
@@ -317,8 +317,8 @@ TMPMEMFREE(str2);
                         if (errorCode==SOLVER_NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
-                           Esys_setError(DIVERGED,"Paso_Solver: maximum number of iteration step reached.\nReturned solution does not fulfil stopping criterion.");
-                           if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.!\n");
+                           Esys_setError(DIVERGED,"Paso_Solver: maximum number of iteration steps reached.\nReturned solution does not fulfill stopping criterion.");
+                           if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.\n");
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
                            Esys_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");
                            if (options->verbose) printf("Paso_Solver: Internal error!\n");
@@ -334,11 +334,11 @@ TMPMEMFREE(str2);
                               finalizeIteration = FALSE;
                            }
                         } else {
-			   Esys_setError(SYSTEM_ERROR,"Paso_Solver:generic error in solver.");
-			   if (options->verbose) printf("Paso_Solver: generic error in solver!\n");
+			   Esys_setError(SYSTEM_ERROR,"Paso_Solver: Generic error in solver.");
+			   if (options->verbose) printf("Paso_Solver: Generic error in solver!\n");
                         }
                       } else {
-                         if (options->verbose) printf(". convergence! \n");
+                         if (options->verbose) printf(" convergence!\n");
                          options->converged=TRUE;
                       }
                    }

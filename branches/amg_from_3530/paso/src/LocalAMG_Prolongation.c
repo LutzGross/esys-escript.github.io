@@ -29,21 +29,21 @@
 
 /**************************************************************
 
-    Methods nessecary for AMG preconditioner
+    Methods necessary for AMG preconditioner
 
-    construct n x n_C the prolongation matrix P from A_p.
+    Construct the n x n_C prolongation matrix P from A_p.
     
-    the columns in A_p to be considered are marked by counter_C[n] where
-    an unknown i is to be considered in P is marked by 0<= counter_C[i] < n_C 
-    and counter_C[i]  gives the new column number in P. S defines the strong connections.
+    The columns in A_p to be considered are marked by counter_C[n] where
+    an unknown i to be considered in P is marked by 0<= counter_C[i] < n_C 
+    and counter_C[i]  gives the new column number in P.
+    S defines the strong connections.
     
     The pattern of P is formed as follows:
 
     If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise
     If row i is not C, then P[i,j] <> 0 if counter_C[k]==j (k in C) and (i,k) is strong connection.  
     
-    two settings for P are implemented (see below) 
-   
+    Two settings for P are implemented (see below).
 */
 
  
@@ -143,7 +143,7 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
     Direct Prolongation:
     -------------------
 
-    If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise
+    If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise.
     If row i is not C, then P[i,j] = - a[i] * A[i,k]/A[i,i] with j=counter_C[k]>=0 and k in S
    
    and    a[i]= 
@@ -189,13 +189,13 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation(Paso_SparseMatrix* P_p,
 	       }
 	       
 	       if (counter_C[j]>=0) {
-		  /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */ 
+		  /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
 		  start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
 		  where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
 					    P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
 					    sizeof(index_t),
 					    Paso_comparIndex);
-		  if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+		  if (! (where_p == NULL) ) { /* yes i strongly connected with j */
 			offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
 			P_p->val[offset]=A_ij; /* will be modified later */
 			if (A_ij< 0)  {
@@ -287,13 +287,13 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
 		  }
 	       
 		  if (counter_C[j]>=0) {
-		     /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */ 
+		     /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
 		     start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
 		     where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
 					     P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
 					     sizeof(index_t),
 					     Paso_comparIndex);
-		     if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+		     if (! (where_p == NULL) ) { /* yes i strongly connected with j */
 			      offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
 			      for (ib =0; ib<row_block; ++ib) {
 				 A_ij=A_p->val[A_block*iPtr+ib+row_block*ib];
@@ -354,7 +354,7 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
     Classic Prolongation:
     -------------------
 
-    If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise
+    If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise.
     If row i is not C, then P[i,j] = - 1/a[i] * ( A[i,k] + sum_{l} A[i,l]*A+[l,k]/B[i,k]) 
              where the summation over l is considering columns which are strongly connected 
              to i (l in S[i]) and not in C (counter_C[l]<0) and 
@@ -362,8 +362,7 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
                 B[i,k]=sum_{m in S_i and in C} A+[k,m]
                 a[i]=A[i,i]+sum{l not strongly connected to i} A[i,l]
 
-            A+[i,k]=A[i,k] if sign(A[i,k])==sign(A[i,i])  or 0 otherwise
-              
+            A+[i,k]=A[i,k] if sign(A[i,k])==sign(A[i,i])  or 0 otherwise.
 
 */
 void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p, 
@@ -392,8 +391,9 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
 	       const index_t *start_s = &(S[offset_S[i]]);
 	       const index_t *start_p = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
                const dim_t degree_P_i   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
-              /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
-                                                                      which are not in C (=no interpolation nodes) */
+              /* this loop sums up the weak connections in A and creates a
+               * list of the strong connected columns which are not in C
+               * (=no interpolation nodes) */
               const double A_ii = A_p->val[ptr_main_A[i]];
               double a=A_ii;
 
@@ -401,15 +401,15 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
 	         const index_t j=A_p->pattern->index[iPtr];
 	         const double A_ij=A_p->val[iPtr];
                  if ( (i!=j) && (degree_S[j]>0) ) {
-                    /* is (i,j) a strong connection ?*/
+                    /* is (i,j) a strong connection? */
 	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
-	            if (where_s == NULL) { /* weak connections are accummulated */
+	            if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;  
-                    } else {   /* yes i stronly connect with j */
+                    } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
 	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setBoomerProlongation: interpolation point is missing.");
+                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
                                } else {
   		                    const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
   	                            P_p->val[offset]+=A_ij; 
@@ -423,7 +423,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
 	                       for (iPtr_j=A_p->pattern->ptr[j];iPtr_j<A_p->pattern->ptr[j + 1]; ++iPtr_j) {
 	                            const double A_jm=A_p->val[iPtr_j];
 	                            const index_t m=A_p->pattern->index[iPtr_j];
-                                    /* is m an interpolation point ? */
+                                    /* is m an interpolation point? */
 	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
   		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
@@ -456,7 +456,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
                    }
               }
           }
-        }  /* endo of row i loop */
+        }  /* end of row i loop */
         TMPMEMFREE(D_s);
         TMPMEMFREE(D_s_offset);
      }    /* end of parallel region */
@@ -491,8 +491,9 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
 	       const index_t *start_s = &(S[offset_S[i]]);
 	       const index_t *start_p = &(P_p->pattern->index[P_p->pattern->ptr[i]]);
                const dim_t degree_P_i   = P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i];
-              /* this loop sums up the weak connections in a and creates a list of the strong connected columns 
-                                                                      which are not in C (=no interpolation nodes) */
+              /* this loop sums up the weak connections in A and creates a
+               * list of the strong connected columns which are not in C
+               * (=no interpolation nodes) */
               const double *A_ii = &(A_p->val[ptr_main_A[i]*A_block]);
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
               
@@ -504,13 +505,13 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
 	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
-	            if (where_s == NULL) { /* weak connections are accummulated */
+	            if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
-                    } else {   /* yes i stronly connect with j */
+                    } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
 	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
                                if (where_p == NULL)  {
-                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setClassicProlongation: interpolation point is missing.");
+                                       Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setClassicProlongation_Block: Interpolation point is missing.");
                                } else {
   		                    const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
                                     for (ib=0; ib<row_block; ib++) P_p->val[offset*row_block+ib] +=A_ij[(row_block+1)*ib];
@@ -523,7 +524,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
 	                       for (iPtr_j=A_p->pattern->ptr[j];iPtr_j<A_p->pattern->ptr[j + 1]; ++iPtr_j) {
 	                            const double* A_jm=&(A_p->val[iPtr_j*A_block]);
 	                            const index_t m=A_p->pattern->index[iPtr_j];
-                                    /* is m an interpolation point ? */
+                                    /* is m an interpolation point? */
 	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
                                     if (! (where_p_m==NULL)) {
   		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
@@ -565,9 +566,10 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
                    }
               }
           }
-        }  /* endo of row i loop */
+        }  /* end of row i loop */
         TMPMEMFREE(D_s);
         TMPMEMFREE(D_s_offset);
         TMPMEMFREE(a);
      }    /* end of parallel region */
 }
+

@@ -15,7 +15,7 @@
 /**************************************************************
 
  Paso: Sparse matrix product (for efficiency, use the transpose
-       of Matrix B when the B^T is available) 
+       of Matrix B when B^T is available) 
 
 **************************************************************
 
@@ -126,9 +126,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*4]);
@@ -139,6 +141,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                    C_ij_11 +=A_ik[1+2*0]*B_kj[0+2*1]+A_ik[1+2*1]*B_kj[1+2*1];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -181,9 +184,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			A_ik=&(A->val[ik_ptrA*9]);
@@ -220,6 +225,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
 				 +A_ik[2+3*2]*B_kj[2+3*2];
 			ik_ptrA ++;
 			kj_ptrB ++;
+			if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			kA=A->pattern->index[ik_ptrA];
 			kB=T->pattern->index[kj_ptrB];
 		 }
@@ -272,9 +278,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			   A_ik=&(A->val[ik_ptrA*16]);
@@ -349,6 +357,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
 				    +A_ik[3+4*3]*B_kj[3+4*3];
 			   ik_ptrA ++;
 			   kj_ptrB ++;
+			   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			   kA=A->pattern->index[ik_ptrA];
 			   kB=T->pattern->index[kj_ptrB];
 		  }
@@ -391,9 +400,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -409,6 +420,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
                    }
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -459,9 +471,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			A_ik=&(A->val[ik_ptrA*2]);
@@ -474,6 +488,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
 			C_ij_11 +=A_ik[1]*B_kj[1+2*1];
 			ik_ptrA ++;
 			kj_ptrB ++;
+			if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			kA=A->pattern->index[ik_ptrA];
 			kB=T->pattern->index[kj_ptrB];
 
@@ -517,9 +532,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			A_ik=&(A->val[ik_ptrA*3]);
@@ -538,6 +555,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
 			C_ij_22 +=A_ik[2]*B_kj[2+3*2];
 			ik_ptrA ++;
 			kj_ptrB ++;
+			if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			kA=A->pattern->index[ik_ptrA];
 			kB=T->pattern->index[kj_ptrB];
 		 }
@@ -590,9 +608,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			   A_ik=&(A->val[ik_ptrA*4]);
@@ -620,6 +640,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
 
 			   ik_ptrA ++;
 			   kj_ptrB ++;
+			   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			   kA=A->pattern->index[ik_ptrA];
 			   kB=T->pattern->index[kj_ptrB];
 		 }
@@ -662,9 +683,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -678,6 +701,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
 		       }
 		       ik_ptrA ++;
 		       kj_ptrB ++;
+		       if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 		       kA=A->pattern->index[ik_ptrA];
 		       kB=T->pattern->index[kj_ptrB];
 		  }
@@ -727,9 +751,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			A_ik=&(A->val[ik_ptrA*4]);
@@ -743,6 +769,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
 
 			ik_ptrA ++;
 			kj_ptrB ++;
+			if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			kA=A->pattern->index[ik_ptrA];
 			kB=T->pattern->index[kj_ptrB];
 		 }
@@ -785,9 +812,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			A_ik=&(A->val[ik_ptrA*9]);
@@ -807,6 +836,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
 
 			ik_ptrA ++;
 			kj_ptrB ++;
+			if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			kA=A->pattern->index[ik_ptrA];
 			kB=T->pattern->index[kj_ptrB];
 		 }
@@ -859,9 +889,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 			   A_ik=&(A->val[ik_ptrA*16]);
@@ -889,6 +921,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
 
 			   ik_ptrA ++;
 			   kj_ptrB ++;
+			   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 			   kA=A->pattern->index[ik_ptrA];
 			   kB=T->pattern->index[kj_ptrB];
 		 }
@@ -931,9 +964,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -948,6 +983,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
 
 		       ik_ptrA ++;
 		       kj_ptrB ++;
+		       if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
 		       kA=A->pattern->index[ik_ptrA];
 		       kB=T->pattern->index[kj_ptrB];
 		 }
@@ -988,14 +1024,17 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    C_ij_0+=A->val[ik_ptrA]*T->val[kj_ptrB];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -1023,9 +1062,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*2]);
@@ -1034,6 +1075,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                    C_ij_1+=A_ik[1]*B_kj[1];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -1063,9 +1105,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*3]);
@@ -1075,6 +1119,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                    C_ij_2+=A_ik[2]*B_kj[2];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -1106,9 +1151,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*4]);
@@ -1119,6 +1166,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                    C_ij_3+=A_ik[3]*B_kj[3];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }
@@ -1148,9 +1196,11 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
                while (ik_ptrA < ikb && kj_ptrB < kjb) {
                  if (kA < kB) {
                    ik_ptrA ++;
+                   if (ik_ptrA >= ikb) break;
                    kA=A->pattern->index[ik_ptrA];
                  } else if (kA > kB) {
                    kj_ptrB ++;
+                   if (kj_ptrB >= kjb) break;
                    kB=T->pattern->index[kj_ptrB];
                  } else {
                    A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -1158,6 +1208,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
 		   for (ib=0; ib<MIN(A_block_size, B_block_size); ++ib) C_ij[ib]+=A_ik[ib]*B_kj[ib];
                    ik_ptrA ++;
                    kj_ptrB ++;
+                   if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;
                    kA=A->pattern->index[ik_ptrA];
                    kB=T->pattern->index[kj_ptrB];
                  }

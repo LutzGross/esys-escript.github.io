@@ -18,7 +18,7 @@
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au, l.gross@uq.edu.au                                */
+/* Author: artak@uq.edu.au, l.gross@uq.edu.au                 */
 
 /**************************************************************/
 
@@ -112,7 +112,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
 
   /*
-      is the input matrix A suitable for coarsening
+      is the input matrix A suitable for coarsening?
       
   */
   if ( (sparsity >= options->min_coarse_sparsity) || 
@@ -130,13 +130,13 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	      printf("Paso_Preconditioner: AMG: termination of coarsening by "); 
 
 	      if (sparsity >= options->min_coarse_sparsity)
-	          printf("SPAR ");
+	          printf("SPAR");
 
 	      if (total_n <= options->min_coarse_matrix_size)
-	          printf("SIZE ");
+	          printf("SIZE");
 
 	      if (level > options->level_max)
-	          printf("LEVEL ");
+	          printf("LEVEL");
 
 	      printf("\n");
 
@@ -252,7 +252,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
 		  if (n_C != 0) {
-			   /* if nothing is been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
+			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
 			out->x_C=MEMALLOC(n_block*n_C,double);
@@ -272,7 +272,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 				 if  (F_marker[i]) rows_in_F[counter[i]]=i;
 			      }
 			   }
-			   /*  create mask of C nodes with value >-1 gives new id */
+			   /*  create mask of C nodes with value >-1, gives new id */
 			   i=Paso_Util_cumsum_maskedFalse(n, mask_C, F_marker);
 			   /*
 			      get Prolongation :	 
@@ -283,6 +283,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
 			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
 			}
+
 			/*      
 			   construct Restriction operator as transposed of Prolongation operator: 
 			*/
@@ -293,6 +294,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
+
 			/* 
 			construct coarse level matrix:
 			*/
@@ -463,7 +465,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
          {
 	    const double threshold = theta*max_offdiagonal;
             threshold_p[2*i+1]=threshold;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	    if (tau*main_row < sum_row) { /* no diagonal dominance */
                threshold_p[2*i]=1;
 	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
@@ -620,7 +622,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    rtmp_offset=-A->mainBlock->pattern->ptr[i];
 	    
 	    threshold_p[2*i+1]=threshold;
-	    if (tau*main_row < sum_row) { /* no diagonal domainance */
+	    if (tau*main_row < sum_row) { /* no diagonal dominance */
 	       threshold_p[2*i]=1;
 	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
@@ -707,6 +709,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    }
    TMPMEMFREE(threshold_p);
 }
+
 void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 							const dim_t nT, dim_t* degree_ST, index_t* offset_ST,index_t* ST)
 {

@@ -25,8 +25,8 @@ Author: Lutz Gross, l.gross@uq.edu.au
 
 /**************************************************************/
 
-/* fills the matrix with values i+f1*j where i and j are the global row and column indices of the matrix 
-   entry */
+/* fills the matrix with values i+f1*j where i and j are the global row
+ * and column indices of the matrix entry */
 void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const double f1)
 {
    dim_t ib, iPtr, q, i,p;
@@ -162,3 +162,4 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
    TMPMEMFREE(str2);
    return; 
 }
+

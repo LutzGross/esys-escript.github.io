@@ -276,3 +276,4 @@ dim_t Paso_Pattern_maxDeg(Paso_Pattern* A)
    }
    return deg;
 }
+
