@@ -14,11 +14,11 @@
 
 /**************************************************************/
 
-/* Paso: Gauss-Seidel                */
+/* Paso: Gauss-Seidel                                         */
 
 /**************************************************************/
 
-/* Author: artak@uq.edu.au                                   */
+/* Author: artak@uq.edu.au                                    */
 
 /**************************************************************/
 
@@ -32,7 +32,7 @@
 
 /**************************************************************/
 
-/* free all memory used by Smoother                                */
+/* free all memory used by Smoother                           */
 
 void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in) {
      if (in!=NULL) {
@@ -50,9 +50,8 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
 }
 /**************************************************************/
 
-/*   constructs the symmetric Gauss-Seidel preconditioner     
+/*   constructs the symmetric Gauss-Seidel preconditioner     */
 
-*/
 Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose) 
 {
   
@@ -72,9 +71,9 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
 Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, bool_t verbose)
 {
    
-   dim_t n=A_p->numRows;
-   dim_t n_block=A_p->row_block_size;
-   dim_t block_size=A_p->block_size;
+   const dim_t n=A_p->numRows;
+   const dim_t n_block=A_p->row_block_size;
+   const dim_t block_size=A_p->block_size;
    
    double time0=Esys_timer();
    /* allocations: */  
@@ -103,15 +102,14 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
 
 /*
 
-performs a few sweeps of the  from
+performs a few sweeps of the form
 
 S (x_{k} -  x_{k-1}) = b - A x_{k-1}
 
-where x_{0}=0 and S provides some approximatioon of A.
+where x_{0}=0 and S provides some approximation of A.
 
-Under MPI S is build on using A_p->mainBlock only.
-if Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
-
+Under MPI S is built using A_p->mainBlock only.
+If Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
 */
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
@@ -131,19 +129,51 @@ void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditio
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
 	 nsweeps--;
       }
-//if (A_p->mpi_info->rank == 0) fprintf(stderr, "x[0]=%g\n", x[0]);
       while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
-
          Paso_SystemMatrix_MatrixVector_CSR_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);	 
 	 Paso_AXPY(n, x, 1., b_new); 
-
 	 nsweeps--;
       }
       
    }
 }
+
+err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother,
+                                                    double * x, const double * b,
+                                                    const double rtol, dim_t *sweeps, const bool_t x_is_initial)
+{
+   const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
+   double *b_new = smoother->localSmoother->buffer;
+   const dim_t max_sweeps=*sweeps;
+   dim_t s=0;
+   double norm_b, norm_r;
+   err_t errorCode = PRECONDITIONER_NO_ERROR;
+
+   norm_b=Paso_lsup(n,b,A_p->mpi_info);
+   if (! x_is_initial) {
+         Paso_Copy(n, x, b);
+         Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
+         s++;
+   }
+   while (1) {
+         Paso_Copy(n, b_new, b);
+         Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
+         norm_r=Paso_lsup(n,b_new,A_p->mpi_info);
+         if (norm_r <= rtol * norm_b ) break;
+         Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);
+         Paso_AXPY(n, x, 1., b_new);
+         if (s >= max_sweeps) {
+              errorCode = PRECONDITIONER_MAXITER_REACHED;
+              break;
+         }
+         s++;
+   }
+   *sweeps=s;
+   return errorCode;
+}
+
 void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
 					     const dim_t sweeps, const bool_t x_is_initial) 
 {
@@ -181,15 +211,16 @@ void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Precondi
    }
 }
 
-/* inplace Gauss-Seidel sweep in seqential mode: */
+/* inplace Gauss-Seidel sweep in sequential mode: */
 
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x)
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    double *diag = smoother->diag;
-   index_t* pivot = smoother->pivot;
-   const dim_t block_len=A_p->block_size;
+   index_t* pivot = smoother->pivot; 
+   const dim_t block_len=A_p->block_size; 
+
    
    register dim_t i,k;
    register index_t iptr_ik, mm;
@@ -319,8 +350,8 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    double *diag = smoother->diag;
-   index_t* pivot = smoother->pivot; 
-   const dim_t block_len=A_p->block_size;
+   index_t* pivot = smoother->pivot;   
+   const dim_t block_len=A_p->block_size;   
    double *y;
    
    register dim_t i,k;
@@ -331,6 +362,9 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    const index_t* coloring = Paso_Pattern_borrowColoringPointer(A_p->pattern);
    const dim_t num_colors = Paso_Pattern_getNumColors(A_p->pattern);
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   
+   (void)pivot;			/* These vars are dropped by some macros*/
+   (void)block_len;
 
    #pragma omp parallel  private(mm, i,iptr_ik,k,rtmp, color, y)
    {

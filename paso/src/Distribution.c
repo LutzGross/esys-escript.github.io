@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/*   Paso: system matrix pattern                            */
+/*   Paso: distribution                                       */
 
 /**************************************************************/
 
@@ -104,8 +104,8 @@ dim_t Paso_Distribution_getMaxGlobalComponents(Paso_Distribution *in ){
  }
 }
 
-/* Pseudo random numbers such that the values are independend from
-   the distribution but the global length yet :*/
+/* Pseudo random numbers such that the values are independent from
+   the distribution */
 
 static double Paso_Distribution_random_seed=.4142135623730951;
 
@@ -120,7 +120,6 @@ double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t 
    const dim_t my_n = n_1-n_0;
    
    out=MEMALLOC(my_n , double);
-fprintf(stderr, "rank %d random_seed %.16lf\n", in->mpi_info->rank, Paso_Distribution_random_seed);
 
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<my_n ;++i) {
@@ -154,3 +153,4 @@ dim_t Paso_Distribution_numPositives(const double* x, const Paso_Distribution *i
    
    return out;
 }
+

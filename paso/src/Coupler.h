@@ -43,7 +43,7 @@ typedef struct Paso_Coupler {
   Paso_Connector* connector;
 
   bool_t in_use;
-  double *data; /* unmanaged pointer to data be send */
+  double *data; /* unmanaged pointer to data to be sent */
   double *send_buffer;
   double *recv_buffer;
   #ifdef ESYS_MPI
@@ -110,5 +110,5 @@ void Paso_Coupler_fillOverlap(const dim_t n, double* x, Paso_Coupler *coupler);
 PASO_DLL_API
 void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler);
 
-   
-#endif 
+#endif
+

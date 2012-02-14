@@ -41,7 +41,7 @@ typedef struct Paso_SharedComponents {
 
   Esys_MPI_rank* neighbor;  /* list of the processor sharing values with this processor */
 
-  index_t* shared;           /* list of the (local) componets which is shared with other 
+  index_t* shared;           /* list of the (local) components which are shared with other 
                                 processors. Has length numSharedComponents */
                           
   dim_t numSharedComponents; /* = offsetInShared[numNeighbors] */

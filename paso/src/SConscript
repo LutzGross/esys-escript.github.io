@@ -23,6 +23,7 @@ sources = """
 	BlockOps.c
 	Coupler.c
 	Distribution.c
+        FluxLimiter.c
 	Functions.c
 	GMRES.c
 	GMRES2.c
@@ -44,8 +45,7 @@ sources = """
 	Solver.c
 	Transport.c
 	Transport_solve.c
-	FCTSolver.c
-	FCTSolver_util.c
+        FCT_Solver.c
 	ReactiveSolver.c
 	Solver_Function.c
 	Smoother.c
@@ -104,6 +104,7 @@ headers = """
 	Common.h
 	Coupler.h
 	Distribution.h
+        FluxLimiter.h
 	Functions.h
 	IndexList.h
 	MKL.h
@@ -115,7 +116,7 @@ headers = """
 	SharedComponents.h
 	Solver.h
 	Transport.h
-	FCTSolver.h
+        FCT_Solver.h
 	ReactiveSolver.h
 	SparseMatrix.h
 	SystemMatrix.h
@@ -128,16 +129,12 @@ headers = """
 	performance.h
 """.split()
 
-#if local_env['boomeramg']:
-#    env.Append(CPPDEFINES = ['BOOMERAMG'])
-#    local_env.AppendUnique(LIBS = env['boomeramg_libs'])
-
 # And just for blocktimer cancer.....
-local_env.Append(LIBS = ['esysUtils'])
+local_env.Prepend(LIBS = ['esysUtils'])
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
 
-if local_env['share_paso']:
+if local_env['build_shared']:
     lib = local_env.SharedLibrary(lib_name, sources)
 else:
     lib = local_env.StaticLibrary(lib_name, sources)

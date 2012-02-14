@@ -14,15 +14,16 @@
 
 /**************************************************************/
 
-/* Paso: apply block diagonal matrix D: x=D*b               */
+/* Paso: apply block diagonal matrix D: x=D*b                 */
 
-/* should be called within a parallel region                                              */
-/* barrier synconization should be performed to make sure that the input vector available */
+/* should be called within a parallel region                  */
+/* barrier synchronization should be performed to make sure   */
+/* that the input vector available                            */
 
 /**************************************************************/
 
-/* Copyrights by ACcESS Australia 2003, 2004, 2005 */
-/* Author: Lutz Gross, l.gross@uq.edu.au */
+/* Copyrights by ACcESS Australia 2003, 2004, 2005            */
+/* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
 /**************************************************************/
 

@@ -14,7 +14,7 @@
 
 /**************************************************************/
 
-/* Paso: SparseMatrix :                           */
+/* Paso: SparseMatrix :                             */
 /*  sets the values of the sparse matrix to a value */
 
 /**************************************************************/

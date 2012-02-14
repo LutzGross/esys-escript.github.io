@@ -70,13 +70,25 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
         switch (options->preconditioner) {
            default:
            case PASO_JACOBI:
-	      if (options->verbose) printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",options->sweeps);
+	      if (options->verbose) {
+				if (options->sweeps >0 ) {
+				  printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",options->sweeps);
+				} else {
+				  printf("Paso_Preconditioner: Jacobi preconditioner is used.\n");
+				}
+	      }
 	      prec->jacobi=Paso_Preconditioner_Smoother_alloc(A, TRUE, options->use_local_preconditioner, options->verbose);
               prec->type=PASO_JACOBI;
 	      prec->sweeps=options->sweeps;
               break;
 	   case PASO_GS:
-	      if (options->verbose) printf("Paso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
+	      if (options->verbose)  {
+		if (options->sweeps >0 ) {
+		  printf("Paso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",options->sweeps);
+		} else {
+		   printf("Paso_Preconditioner: Gauss-Seidel preconditioner is used.\n");
+		}
+	      }
 	      prec->gs=Paso_Preconditioner_Smoother_alloc(A, FALSE, options->use_local_preconditioner, options->verbose);
 	      prec->type=PASO_GS;
 	      prec->sweeps=options->sweeps;
@@ -111,9 +123,9 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
     }
 }
 
-/* applies the preconditioner */
-/* has to be called within a parallel reqion */
-/* barrier synchronization is performed before the evaluation to make sure that the input vector is available */
+/* Applies the preconditioner. */
+/* Has to be called within a parallel region. */
+/* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,double* x,double* b){
 
     switch (prec->type) {
@@ -137,5 +149,5 @@ void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,d
            break;
 
     }
-
 }
+

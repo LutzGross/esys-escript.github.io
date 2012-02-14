@@ -17,17 +17,17 @@
  Paso: SystemMatrix: copies the col_coupleBlock into 
                      row_coupleBlock. 
                      
-  WARNING: function uses mpi_reqests of the coupler attached to A.
+  WARNING: function uses mpi_requests of the coupler attached to A.
   
-                     No reordering on the colums received is performed.
-                     In practice this means that components in
-			A->row_coupleBlock->pattern->index
-		     and 
-		        A->row_coupler->connector->recv->shared
-		     are ordered by increasing value.
+                 No reordering on the columns received is performed.
+                 In practice this means that components in
+                    A->row_coupleBlock->pattern->index
+                 and 
+                    A->row_coupler->connector->recv->shared
+                 are ordered by increasing value.
 		     
-		     Notice: that send and receive A->row_coupler->connectors
-		     are swapping roles.
+                 Notice: that send and receive A->row_coupler->connectors
+                 are swapping roles.
 
 **************************************************************/
 
@@ -54,7 +54,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	 return;
       }
       if ( A->row_coupler->in_use ) {
-	 Esys_setError(SYSTEM_ERROR,"Paso_Coupler_finishCollect: Communication has not been initiated.");
+	 Esys_setError(SYSTEM_ERROR,"SystemMatrix_copyColCoupleBlock: Coupler in use.");
 	 return;
       }
 
@@ -71,7 +71,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	       A->mpi_info->msg_tag_counter+A->row_coupler->connector->recv->neighbor[p],
 	       A->mpi_info->comm,
 	       &(A->row_coupler->mpi_requests[p]) );
-									  
+
 	     #endif
       }
       /* start sending */
@@ -88,7 +88,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 	 for (rPtr= A->row_coupler->connector->send->offsetInShared[p];  rPtr< A->row_coupler->connector->send->offsetInShared[p+1]; ++rPtr) {
 	    const index_t row=A->row_coupler->connector->send->shared[rPtr];
     
-	    /* collect the entries in the col. couple block refering to columns on processor p */
+	    /* collect the entries in the col. couple block referring to columns on processor p */
 	    for (iPtr =A->col_coupleBlock->pattern->ptr[row]; iPtr<A->col_coupleBlock->pattern->ptr[row+1]; ++iPtr) {
 	       register index_t j =A->col_coupleBlock->pattern->index[iPtr];
 	       if ( (j_min <= j) && (j < j_max) ) {
@@ -110,7 +110,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
       }
    
 	 
-        /* wait til everything is done */
+        /* wait until everything is done */
 	 #ifdef ESYS_MPI
 	 MPI_Waitall(A->row_coupler->connector->send->numNeighbors+A->row_coupler->connector->recv->numNeighbors,
 		     A->row_coupler->mpi_requests,
@@ -121,4 +121,3 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
    }
    return; 		      
 }
-

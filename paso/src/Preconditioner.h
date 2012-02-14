@@ -19,6 +19,14 @@
 #include "performance.h"
 #include "BOOMERAMG.h"
 
+#define PRECONDITIONER_NO_ERROR 0
+#define PRECONDITIONER_MAXITER_REACHED 1
+#define PRECONDITIONER_INPUT_ERROR -1
+#define PRECONDITIONER_MEMORY_ERROR -9
+#define PRECONDITIONER_BREAKDOWN -10
+#define PRECONDITIONER_NEGATIVE_NORM_ERROR -11
+#define PRECONDITIONER_DIVERGENCE -12
+
 
 #define PASO_AMG_UNDECIDED -1
 #define PASO_AMG_IN_F 0
@@ -40,16 +48,19 @@ typedef struct Paso_Preconditioner_Smoother {
 void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in);
 void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * in);
 
+
 Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose);
 Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p,const bool_t jacobi, const bool_t verbose);
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
 void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
+err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const double atol, dim_t *sweeps, const bool_t x_is_initial);
 
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_tiled(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
+
 
 
 /* Local preconditioner */
@@ -99,6 +110,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(Paso_Syste
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R);
 Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A);
 void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG* amg);
+
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
    dim_t level;

@@ -24,7 +24,8 @@
 void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
      dim_t i;
      int failed=0;
-     const dim_t block_size=n_block*n_block;
+     const dim_t block_size=n_block*n_block+17;
+     (void)block_size;	/* silence warning from var being unused by macros */
      
      if (n_block==1) {
          #pragma omp parallel for private(i) schedule(static)
@@ -37,6 +38,7 @@ void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,doubl
          #pragma omp parallel for private(i) schedule(static)
          for (i=0;i<n;++i) Paso_BlockOps_MViP_3(&D[9*i], &x[3*i]);
      } else {
+
 	#pragma omp parallel for private(i) schedule(static)
 	for (i=0;i<n;++i) {
 	   Paso_BlockOps_solve_N(n_block, &x[n_block*i], &D[block_size*i], &pivot[n_block*i], &failed);

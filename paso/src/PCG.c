@@ -32,7 +32,7 @@
 *  =======
 *
 *  PCG solves the linear system A*x = b using the
-*  preconditioned conjugate gradient method plus a smoother
+*  preconditioned conjugate gradient method plus a smoother.
 *  A has to be symmetric.
 *
 *  Convergence test: norm( b - A*x )< TOL.
@@ -42,7 +42,7 @@
 *  =========
 *
 *  r       (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess x
+*          On entry, residual of initial guess x.
 *
 *  x       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess.
@@ -54,10 +54,10 @@
 *  INFO    (output) INT
 *
 *          = SOLVER_NO_ERROR: Successful exit. Iterated approximate solution returned.
-*          = SOLVEr_MAXITER_REACHED
+*          = SOLVER_MAXITER_REACHED
 *          = SOLVER_INPUT_ERROR Illegal parameter:
-*          = SOLVEr_BREAKDOWN: If parameters rHO or OMEGA become smaller
-*          = SOLVER_MEMORY_ERROR : If parameters rHO or OMEGA become smaller
+*          = SOLVER_BREAKDOWN: If parameters RHO or OMEGA become smaller
+*          = SOLVER_MEMORY_ERROR : If parameters RHO or OMEGA become smaller
 *
 *  ==============================================================
 */
@@ -94,7 +94,7 @@ err_t Paso_Solver_PCG(
   double norm_of_residual=0,norm_of_residual_global;
   register double d;
 
-  /* Should not be any executable code before this ifdef */
+  /* There should not be any executable code before this ifdef */
 
 #ifdef USE_DYNAMIC_SCHEDULING
 
@@ -125,23 +125,6 @@ err_t Paso_Solver_PCG(
   v=TMPMEMALLOC(n,double);
   x2=TMPMEMALLOC(n,double);
 
-//fprintf(stderr, "rank %d in PCG CP2\n", A->mpi_info->rank);
-/*{
-char *str1, *str2;
-int sum, rank, i;
-str1 = TMPMEMALLOC(2000+100, char);
-str2 = TMPMEMALLOC(15, char);
-sum = n;
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d r[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%f ", r[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}*/
   /*     Test the input parameters. */
 
   if (n < 0) {
@@ -182,9 +165,8 @@ TMPMEMFREE(str2);
     num_iter=0;
 
     /* PGH */
-    /* without this we get a use of an unititialised var below */
+    /* without this we get a use of an uninitialised var below */
     tau = 0;
-fprintf(stderr, "rank %d in PCG CP3\n", A->mpi_info->rank);
 
     /* start of iteration */
     while (!(convergeFlag || maxIterFlag || breakFlag)) {
@@ -194,8 +176,7 @@ fprintf(stderr, "rank %d in PCG CP3\n", A->mpi_info->rank);
            /* The next lines were commented out before I got here */
            /* v=prec(r)  */
            /* tau=v*r; */
-           /* leading to the use of an unititialised var below */
-fprintf(stderr, "rank %d in PCG CP4 %d %d\n", A->mpi_info->rank, num_iter, maxit);
+           /* leading to the use of an uninitialised var below */
 
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
@@ -238,24 +219,6 @@ fprintf(stderr, "rank %d in PCG CP4 %d %d\n", A->mpi_info->rank, num_iter, maxit
            #endif
            tau_old=tau;
            tau=sum_1;
-//fprintf(stderr, "rank %d in PCG CP5 %f %f\n", A->mpi_info->rank, tau, TOLERANCE_FOR_SCALARS);
-/*{
-char *str1, *str2;
-int sum, rank, i;
-str1 = TMPMEMALLOC(2000+100, char);
-str2 = TMPMEMALLOC(15, char);
-sum = n;
-rank = A->mpi_info->rank;
-sprintf(str1, "rank %d v[%d] = (", rank, sum);
-for (i=0; i<sum; i++) {
-  sprintf(str2, "%f ", v[i]);
-  strcat(str1, str2);
-}
-fprintf(stderr, "%s)\n", str1);
-TMPMEMFREE(str1);
-TMPMEMFREE(str2);
-}*/
-
            /* p=v+beta*p */
            #pragma omp parallel private(i0, istart, iend, ipp,beta)
            {
@@ -412,10 +375,8 @@ TMPMEMFREE(str2);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter > maxit;
                 breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
-fprintf(stderr, "rank %d in PCG CP6 %g %g\n", A->mpi_info->rank, norm_of_residual, tol);
            }
     }
-fprintf(stderr, "rank %d in PCG CP10 %d %d %d\n", A->mpi_info->rank, convergeFlag, maxIterFlag, breakFlag);
     /* end of iteration */
     num_iter_global=num_iter;
     norm_of_residual_global=norm_of_residual;
@@ -435,3 +396,4 @@ fprintf(stderr, "rank %d in PCG CP10 %d %d %d\n", A->mpi_info->rank, convergeFla
   /*     End of PCG */
   return status;
 }
+

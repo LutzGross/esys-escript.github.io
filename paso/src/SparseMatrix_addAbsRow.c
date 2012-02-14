@@ -14,7 +14,7 @@
 
 /***************************************************************************/
 
-/* Paso: SparseMatrix:  adds the absolut values of row entries to an array */
+/* Paso: SparseMatrix: adds the absolute values of row entries to an array */
 
 /***************************************************************************/
 
@@ -26,38 +26,38 @@
 #include "SparseMatrix.h"
 
 void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double* array) {
-   dim_t ir,irow,icb,irb;
+   dim_t ir,icb,irb;
    index_t iptr;
-   register double fac;
-   #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
+   #pragma omp parallel for private(ir,irb,iptr,icb) schedule(static)
    for (ir=0;ir< A->pattern->numOutput;ir++) {
        for (irb=0;irb< A->row_block_size;irb++) {
-	  irow=irb+A->row_block_size*ir;
-          fac=0.;
+	  const dim_t irow=irb+A->row_block_size*ir;
+          register double fac=0.;
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	      for (icb=0;icb< A->col_block_size;icb++) 
-                 fac+=ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]);
+	      for (icb=0;icb< A->col_block_size;icb++) {
+                 const double rtmp=A->val[iptr*A->block_size+irb+A->row_block_size*icb];
+                 fac+=ABS(rtmp);
+              }
           }
           array[irow]+=fac;
         }
    }
 }
 void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double* array) {
-   dim_t ir,irow,icb,irb;
+   dim_t ir,icb,irb;
    index_t iptr;
-   register double fac;
-   #pragma omp parallel for private(ir,irb,irow,fac,iptr,icb) schedule(static)
+   #pragma omp parallel for private(ir,irb,iptr,icb) schedule(static)
    for (ir=0;ir< A->pattern->numOutput;ir++) {
        for (irb=0;irb< A->row_block_size;irb++) {
-	  irow=irb+A->row_block_size*ir;
-//          fac=0.;
-	  fac=array[irow];
+	  const dim_t irow=irb+A->row_block_size*ir;
+          register double fac=0.;
 	  for (iptr=A->pattern->ptr[ir];iptr<A->pattern->ptr[ir+1]; iptr++) {
-	      for (icb=0;icb< A->col_block_size;icb++) 
-                 fac=MAX(fac,ABS(A->val[iptr*A->block_size+irb+A->row_block_size*icb]));
+	      for (icb=0;icb< A->col_block_size;icb++)  {
+                 const double rtmp=A->val[iptr*A->block_size+irb+A->row_block_size*icb];
+                 fac=MAX(fac,rtmp);
+              }
           }
-//          array[irow]+=fac;
-	  array[irow]=fac;
+          array[irow]=MAX(array[irow], fac);
         }
    }
 }
