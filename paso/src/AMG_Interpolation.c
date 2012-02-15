@@ -442,7 +442,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 {
   Paso_SharedComponents *send=NULL, *recv=NULL;
   index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
-  index_t i, j, p, m, n, rank, size, offset;
+  index_t i, j, p, m, n, rank, size;
   index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
   index_t *ptr=*p_ptr, *idx=*p_idx;
   double  *val=*p_val, *recv_val=NULL;
@@ -455,7 +455,6 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
   recv_neighbors = recv->numNeighbors;
   send_rows = P->col_coupleBlock->numCols;
   recv_rows = recv->offsetInShared[recv_neighbors];
-  offset = P->col_distribution->first_component[rank];
 
   send_degree = TMPMEMALLOC(send_rows, index_t);
   recv_ptr = MEMALLOC(recv_rows + 1, index_t);
