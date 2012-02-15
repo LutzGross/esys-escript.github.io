@@ -63,8 +63,8 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   index_t couple_num_vals, rank, row_offset, ij_ptr=0, idx=0, idx2=0;
   index_t main_num_rows, couple_num_rows, col_offset, num_cols;
   index_t *main_ptr, *main_idx, *couple_ptr, *couple_idx, *global_id;
-  double  *main_val, *couple_val, *rows;
-  Paso_Coupler* coupler;
+  double  *main_val, *couple_val, *rows=NULL;
+  Paso_Coupler* coupler=NULL;
 
   if (A->mainBlock->col_block_size!=1 ||
       A->mainBlock->row_block_size!=1 ||
@@ -186,8 +186,8 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
   index_t couple_num_vals, rank, row_offset, ij_ptr=0, idx=0, idx2=0;
   index_t main_num_rows, couple_num_rows, col_offset, num_cols, block_size;
   index_t *main_ptr, *main_idx, *couple_ptr, *couple_idx, *global_id;
-  double  *main_val, *couple_val, *rows;
-  Paso_Coupler* coupler;
+  double  *main_val, *couple_val, *rows=NULL;
+  Paso_Coupler* coupler=NULL;
 
   block_size = A->block_size;
   if (A->mpi_info->size == 1) {

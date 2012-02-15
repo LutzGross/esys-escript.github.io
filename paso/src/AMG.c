@@ -91,7 +91,7 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
 Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,dim_t level,Paso_Options* options) {
 
   Paso_Preconditioner_AMG* out=NULL;
-  Paso_SystemMatrix *A_C;
+  Paso_SystemMatrix *A_C=NULL;
   bool_t verbose=options->verbose;
 
   const dim_t my_n=A_p->mainBlock->numRows;
@@ -100,7 +100,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-//  const dim_t n_block=A_p->block_size;
   index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
   dim_t i, n_F, n_C, F_flag, *F_set=NULL;
   double time0=0;
@@ -108,7 +107,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const double tau = options->diagonal_dominance_threshold;
   const double sparsity=Paso_SystemMatrix_getSparsity(A_p);
   const dim_t total_n=Paso_SystemMatrix_getGlobalTotalNumRows(A_p);
-  const dim_t global_n=Paso_SystemMatrix_getGlobalNumRows(A_p);
 
 
   /*
@@ -116,8 +114,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
       
   */
   if ( (sparsity >= options->min_coarse_sparsity) || 
-//       (total_n <= options->min_coarse_matrix_size) || 
-       (global_n <= options->min_coarse_matrix_size) ||
+       (total_n <= options->min_coarse_matrix_size) || 
        (level > options->level_max) ) {
 
         if (verbose) { 
@@ -182,7 +179,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
 	 Paso_Preconditioner_AMG_transposeStrongConnections(n, degree_S, offset_S, S, n, degree_ST, offset_ST, ST);
-//	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
+/*	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
+ */
 
 	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
 					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
@@ -210,7 +208,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
             /* collect n_F values on all processes, a direct solver should 
                 be used if any n_F value is 0 */
             F_set = TMPMEMALLOC(A_p->mpi_info->size, dim_t);
+	    #ifdef ESYS_MPI
             MPI_Allgather(&n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
+	    #endif
             F_flag = 1;
             for (i=0; i<A_p->mpi_info->size; i++) {
                 if (F_set[i] == 0) {
@@ -220,7 +220,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
             }
             TMPMEMFREE(F_set);
          
-//          if ( n_F == 0 ) {  /*  is a nasty case. a direct solver should be used, return NULL */
+/*          if ( n_F == 0 ) {  is a nasty case. a direct solver should be used, return NULL */
             if (F_flag == 0) {
 	       out = NULL;
 	    } else {
@@ -233,10 +233,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 		  out->A_C = NULL; 
 		  out->P = NULL;  
 		  out->R = NULL; 	       
-//		  out->post_sweeps = options->post_sweeps;
-//		  out->pre_sweeps  = options->pre_sweeps;
-		  out->post_sweeps = 2;
-		  out->pre_sweeps = 2;
+		  out->post_sweeps = options->post_sweeps;
+		  out->pre_sweeps  = options->pre_sweeps;
 		  out->r = NULL;
 		  out->x_C = NULL;
 		  out->b_C = NULL;
@@ -362,7 +360,6 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      double time0=0;
      const dim_t post_sweeps=amg->post_sweeps;
      const dim_t pre_sweeps=amg->pre_sweeps;
-     int rank = A->mpi_info->rank;
 
      /* presmoothing */
      time0=Esys_timer();
@@ -425,7 +422,6 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
    
    index_t iptr, i;
    double *threshold_p=NULL; 
-   index_t rank=A->mpi_info->rank;
 
    threshold_p = TMPMEMALLOC(2*my_n, double);
    
@@ -475,7 +471,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 		     kdeg++;
 	          }
 	       }
-//	       #pragma ivdep
+	       #pragma ivdep
 	       for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->col_coupleBlock->pattern->index[iptr];
 	          if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
@@ -751,7 +747,6 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   index_t iptr, jptr, kptr;
   double *random=NULL, *w=NULL, *Status=NULL;
   index_t * ST_flag=NULL;
-  index_t rank=col_connector->mpi_info->rank;
 
   Paso_Coupler* w_coupler=Paso_Coupler_alloc(col_connector  ,1);
    
@@ -994,14 +989,18 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     for (i=1; i<size; i++) {
       remote_n = A->row_distribution->first_component[i+1] -
 		 A->row_distribution->first_component[i];
+      #ifdef ESYS_MPI
       MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
 			A->mpi_info->msg_tag_counter+i,
 			A->mpi_info->comm,
 			&mpi_requests[i]);
+      #endif
       temp_n[i] = remote_n;
       iptr += remote_n;
     }
+    #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
     A->mpi_info->msg_tag_counter += size;
 
     /* Then, prepare to receive idx and val from other ranks */
@@ -1021,10 +1020,12 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     offset = n+1;
     for (i=1; i<size; i++) {
       len = temp_len[i];
+      #ifdef ESYS_MPI
       MPI_Irecv(&(idx_global[iptr]), len, MPI_INT, i,
 			A->mpi_info->msg_tag_counter+i,
 			A->mpi_info->comm,
 			&mpi_requests[i]);
+      #endif
       remote_n = temp_n[i];
       for (j=0; j<remote_n; j++) {
 	ptr_global[j+offset] = ptr_global[j+offset] + iptr;
@@ -1036,7 +1037,9 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     MEMFREE(idx);
     row_block_size = A->mainBlock->row_block_size;
     col_block_size = A->mainBlock->col_block_size;
+    #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
     A->mpi_info->msg_tag_counter += size;
     TMPMEMFREE(temp_n);
 
@@ -1051,37 +1054,47 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     iptr = temp_len[0] * block_size;
     for (i=1; i<size; i++) {
       len = temp_len[i];
+      #ifdef ESYS_MPI
       MPI_Irecv(&(out->val[iptr]), len * block_size, MPI_DOUBLE, i,
                         A->mpi_info->msg_tag_counter+i,
                         A->mpi_info->comm,
                         &mpi_requests[i]);
+      #endif
       iptr += (len * block_size);
     }
     memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
     MEMFREE(val);
+    #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
     A->mpi_info->msg_tag_counter += size;
     TMPMEMFREE(temp_len);
   } else { /* it's not rank 0 */
 
     /* First, send out the local ptr */
     tag = A->mpi_info->msg_tag_counter+rank;
+    #ifdef ESYS_MPI
     MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[0]);
+    #endif
 
     /* Next, send out the local idx */
     len = ptr[n];
     tag += size;
+    #ifdef ESYS_MPI
     MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[1]);
+    #endif
 
     /* At last, send out the local val */
     len *= block_size;
     tag += size;
+    #ifdef ESYS_MPI
     MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
 			&mpi_requests[2]);
 
     MPI_Waitall(3, mpi_requests, mpi_stati);
+    #endif
     A->mpi_info->msg_tag_counter = tag + size - rank;
     MEMFREE(ptr);
     MEMFREE(idx);
@@ -1125,8 +1138,10 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
     offset[i] = p*n_block;
   }
   count = counts[rank];
+  #ifdef ESYS_MPI
   MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
   MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+  #endif
 
   if (rank == 0) {
     /* solve locally */
@@ -1152,8 +1167,10 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
     #endif
   }
 
+  #ifdef ESYS_MPI
   /* now we need to distribute the solution to all ranks */
   MPI_Scatterv(x, counts, offset, MPI_DOUBLE, amg->x_C, count, MPI_DOUBLE, 0, A->mpi_info->comm);
+  #endif
 
   TMPMEMFREE(x);
   TMPMEMFREE(b);
