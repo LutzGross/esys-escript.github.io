@@ -149,27 +149,26 @@ void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditio
 
 err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother,
                                                     double * x, const double * b,
-                                                    const double rtol, dim_t *sweeps, const bool_t x_is_initial)
+                                                    const double atol, dim_t *sweeps, const bool_t x_is_initial)
 {
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
    double *b_new = smoother->localSmoother->buffer;
    const dim_t max_sweeps=*sweeps;
    dim_t s=0;
-   double norm_b, norm_r;
+   double norm_dx = atol * 2.;
    err_t errorCode = PRECONDITIONER_NO_ERROR;
 
-   norm_b=Paso_lsup(n,b,A_p->mpi_info);
    if (! x_is_initial) {
          Paso_Copy(n, x, b);
          Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,x);
+	 norm_dx=Paso_lsup(n,x,A_p->mpi_info);
          s++;
    }
-   while (1) {
+   while (norm_dx > atol) {
          Paso_Copy(n, b_new, b);
          Paso_SystemMatrix_MatrixVector((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
-         norm_r=Paso_lsup(n,b_new,A_p->mpi_info);
-         if (norm_r <= rtol * norm_b ) break;
          Paso_Preconditioner_LocalSmoother_Sweep(A_p->mainBlock,smoother->localSmoother,b_new);
+	 norm_dx=Paso_lsup(n,b_new,A_p->mpi_info);
          Paso_AXPY(n, x, 1., b_new);
          if (s >= max_sweeps) {
               errorCode = PRECONDITIONER_MAXITER_REACHED;
@@ -250,13 +249,16 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    int failed = 0;
 
    const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
-   /* forward sweep */
+
+   (void)pivot;                /* silence warning from var being unused by macros */
+   (void)block_len;
+   /* forward substitution */
 
    if (n_block==1) {
       x[0]*=diag[0];
       for (i = 1; i < n; ++i) {
 	 mm=ptr_main[i];
-	 /* x_i=x_i-a_ik*x_k (with k<i) - a_ik*x_k (with k>i) */
+	 /* x_i=x_i-a_ik*x_k (with k<i) */
 	 rtmp=x[i];
 	 for (iptr_ik=A_p->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik]; 
@@ -299,8 +301,8 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    /* backward sweeps */
    if (n_block==1) {
       for (i = n-2; i > -1; --i) {	       
-	    rtmp=x[i];
 	    mm=ptr_main[i];
+	    rtmp=x[i]*A_p->val[mm];
 	    for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik];
 	       rtmp-=A_p->val[iptr_ik]*x[k];
@@ -311,6 +313,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    } else if (n_block==2) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
+	    Paso_BlockOps_MViP_2(&A_p->val[4*mm], &x[2*i]);
             for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik]; 
 	       Paso_BlockOps_SMV_2(&x[2*i], &A_p->val[4*iptr_ik], &x[2*k]);
@@ -321,6 +324,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    } else if (n_block==3) {
       for (i = n-2; i > -1; --i) {
 	    mm=ptr_main[i];
+	    Paso_BlockOps_MViP_3(&A_p->val[9*mm], &x[3*i]);
             for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	       k=A_p->pattern->index[iptr_ik];    
 	       Paso_BlockOps_SMV_3(&x[3*i], &A_p->val[9*iptr_ik], &x[3*k]);
@@ -331,6 +335,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
       double *y=TMPMEMALLOC(n_block, double);
       for (i = n-2; i > -1; --i) {
 	 mm=ptr_main[i];
+	 Paso_BlockOps_MV_N(n_block, &y[0], &A_p->val[block_len*mm], &x[n_block*i]);
          for (iptr_ik=mm+1; iptr_ik < A_p->pattern->ptr[i+1]; ++iptr_ik) {
 	    k=A_p->pattern->index[iptr_ik];    
 	    Paso_BlockOps_SMV_N(n_block, &y[0], &A_p->val[block_len*iptr_ik], &x[n_block*k]);
