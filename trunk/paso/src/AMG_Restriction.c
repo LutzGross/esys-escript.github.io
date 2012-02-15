@@ -1,4 +1,3 @@
-//
 /*******************************************************
 *
 * Copyright (c) 2003-2011 by University of Queensland
@@ -46,14 +45,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL, *row_connector=NULL;
-   Paso_Coupler *coupler=NULL;
+   Paso_Connector *col_connector=NULL;
    Paso_Pattern *couple_pattern=NULL;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
    const dim_t n_C=P->mainBlock->numCols;
-   const dim_t num_threads=omp_get_max_threads();
    index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
    index_t *ptr=NULL, *idx=NULL, *degree_set=NULL, *offset_set=NULL;
    index_t *send_ptr=NULL, *recv_ptr=NULL, *recv_idx=NULL;
@@ -152,9 +149,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = send->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
+	#ifdef ESYS_MPI
 	MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
 		mpi_info->msg_tag_counter+send->neighbor[p],
 		mpi_info->comm, &mpi_requests[msgs]); 
+	#endif
 	msgs++;
      }
    }
@@ -164,14 +163,18 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = recv->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
+	#ifdef ESYS_MPI
 	MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
 		mpi_info->msg_tag_counter+rank, mpi_info->comm, 
                 &mpi_requests[msgs]);
+	#endif
 	msgs++;
      }
    }
 
+   #ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
+   #endif
    mpi_info->msg_tag_counter += size;
 
    TMPMEMFREE(degree_set);
@@ -192,6 +195,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    recv_val = TMPMEMALLOC(sum * block_size, double);
    for (p=0, offset=0; p<send->numNeighbors; p++) {
      if (degree_set[p]) {
+	#ifdef ESYS_MPI
 	MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
 		send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
 		mpi_info->comm, &mpi_requests[msgs]);
@@ -201,6 +205,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 		mpi_info->msg_tag_counter+send->neighbor[p]+size,
 		mpi_info->comm, &mpi_requests[msgs]);
 	offset += degree_set[p];
+	#endif
 	msgs++;
      }
    }
@@ -210,6 +215,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = recv->offsetInShared[p+1];
      k = send_ptr[j] - send_ptr[i];
      if (k > 0) {
+	#ifdef ESYS_MPI
 	MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
 		recv->neighbor[p], mpi_info->msg_tag_counter+rank,
 		mpi_info->comm, &mpi_requests[msgs]);
@@ -217,6 +223,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 	MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
 		recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
 		mpi_info->comm, &mpi_requests[msgs]);
+	#endif
 	msgs++;
      }
    }
@@ -228,7 +235,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      temp[p] = temp[p-1] + recv_ptr[p-1];
    }
 
+   #ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
+   #endif
    mpi_info->msg_tag_counter += 2*size;
    TMPMEMFREE(degree_set);
    TMPMEMFREE(offset_set);

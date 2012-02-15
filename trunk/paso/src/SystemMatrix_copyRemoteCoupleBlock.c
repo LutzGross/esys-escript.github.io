@@ -95,7 +95,9 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   global_id = A->global_id;
 
   /* distribute the number of cols in current col_coupleBlock to all ranks */
+  #ifdef ESYS_MPI
   MPI_Allgatherv(&num_couple_cols, 1, MPI_INT, recv_buf, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm); 
+  #endif
 
   /* distribute global_ids of cols to be considered to all ranks*/
   len = 0;
@@ -108,17 +110,21 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   cols_array = TMPMEMALLOC(len, index_t);
   if (Esys_checkPtr(cols_array)) fprintf(stderr, "rank %d MALLOC has trouble\n", rank);
 
+  #ifdef ESYS_MPI
   MPI_Allgatherv(global_id, num_couple_cols, MPI_INT, cols_array, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm);
+  #endif
 
   /* first, prepare the ptr_ptr to be received */
   ptr_ptr = MEMALLOC(overlapped_n+1, index_t);
   for (p=0; p<recv->numNeighbors; p++) {
     row = recv->offsetInShared[p];
     i = recv->offsetInShared[p+1];
+    #ifdef ESYS_MPI
     MPI_Irecv(&(ptr_ptr[row]), i-row, MPI_INT, recv->neighbor[p], 
 		A->mpi_info->msg_tag_counter+recv->neighbor[p],
 		A->mpi_info->comm,
 		&(A->row_coupler->mpi_requests[p]));
+    #endif
   }
 
   /* now prepare the rows to be sent (the degree, the offset and the data) */
@@ -213,17 +219,21 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
     }
 
     /* sending */
+    #ifdef ESYS_MPI
     MPI_Issend(&(send_offset[i0]), i-i0, MPI_INT, send->neighbor[p],
 		A->mpi_info->msg_tag_counter+rank,
 		A->mpi_info->comm,
 		&(A->row_coupler->mpi_requests[p+recv->numNeighbors]));
+    #endif
     send_degree[p] = len;
     i0 = i;
   }
 
+  #ifdef ESYS_MPI
   MPI_Waitall(A->row_coupler->connector->send->numNeighbors+A->row_coupler->connector->recv->numNeighbors,
 		A->row_coupler->mpi_requests,
 		A->row_coupler->mpi_stati);
+  #endif
   A->mpi_info->msg_tag_counter += mpi_size;
 
   len = 0;
@@ -239,28 +249,34 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   j=0;
   for (p=0; p<recv->numNeighbors; p++) {
     i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
+    #ifdef ESYS_MPI
     if (i > 0) 
 	MPI_Irecv(&(ptr_idx[j]), i, MPI_INT, recv->neighbor[p],
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->row_coupler->mpi_requests[p]));
+    #endif
     j += i;
   }
 
   j=0;
   for (p=0; p<num_neighbors; p++) {
     i = send_degree[p] - j;
+    #ifdef ESYS_MPI
     if (i > 0) 
 	MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->row_coupler->mpi_requests[p+recv->numNeighbors]));
+    #endif
     j = send_degree[p];
   }
 
+  #ifdef ESYS_MPI
   MPI_Waitall(A->row_coupler->connector->send->numNeighbors+A->row_coupler->connector->recv->numNeighbors,
                 A->row_coupler->mpi_requests,
                 A->row_coupler->mpi_stati);
+  #endif
   A->mpi_info->msg_tag_counter += mpi_size;
 
   /* allocate pattern and sparsematrix for remote_coupleBlock */
@@ -275,29 +291,35 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   j=0;
   for (p=0; p<recv->numNeighbors; p++) {
     i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
+    #ifdef ESYS_MPI
     if (i > 0) 
 	MPI_Irecv(&(A->remote_coupleBlock->val[j]), i * block_size, 
 		MPI_DOUBLE, recv->neighbor[p],
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->row_coupler->mpi_requests[p]));
+    #endif
     j += (i * block_size);
   }
 
   j=0;
   for (p=0; p<num_neighbors; p++) {
     i = send_degree[p] - j;
+    #ifdef ESYS_MPI
     if (i > 0)
 	MPI_Issend(&(send_buf[j*block_size]), i*block_size, MPI_DOUBLE, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->row_coupler->mpi_requests[p+recv->numNeighbors]));
+    #endif
     j = send_degree[p];
   }
 
+  #ifdef ESYS_MPI
   MPI_Waitall(A->row_coupler->connector->send->numNeighbors+A->row_coupler->connector->recv->numNeighbors,
                 A->row_coupler->mpi_requests,
                 A->row_coupler->mpi_stati);
+  #endif
   A->mpi_info->msg_tag_counter += mpi_size;
 
   /* release all temp memory allocation */

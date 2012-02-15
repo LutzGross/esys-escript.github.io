@@ -1,4 +1,3 @@
-//
 /*******************************************************
 *
 * Copyright (c) 2003-2010 by University of Queensland
@@ -52,26 +51,26 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 							   const dim_t n_C, index_t* counter_C, const index_t interpolation_method) 
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
-   Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL, *row_connector=NULL;
-   Paso_Coupler *coupler=NULL;
+   Paso_Connector *col_connector=NULL;
    Paso_Pattern *main_pattern=NULL, *couple_pattern=NULL;
    const dim_t row_block_size=A_p->row_block_size;
    const dim_t col_block_size=A_p->col_block_size;
    const dim_t my_n=A_p->mainBlock->numCols;
    const dim_t overlap_n=A_p->col_coupleBlock->numCols;
-   const dim_t n = my_n + overlap_n;
    const dim_t num_threads=omp_get_max_threads();
-   index_t size=mpi_info->size, rank=mpi_info->rank, *dist=NULL;
+   index_t size=mpi_info->size, *dist=NULL;
    index_t *main_p=NULL, *couple_p=NULL, *main_idx=NULL, *couple_idx=NULL;
    index_t *shared=NULL, *offsetInShared=NULL;
    index_t *recv_shared=NULL, *send_shared=NULL;
-   index_t sum, j, iptr;;
-   dim_t i, my_n_C, k, l, p, q, global_label, num_neighbors;
+   index_t sum, i, j, k, l, p, q, iptr;
+   index_t my_n_C, global_label, num_neighbors;
+   #ifdef ESYS_MPI
+   index_t rank=mpi_info->rank;
+   #endif
    Esys_MPI_rank *neighbor=NULL;
    #ifdef ESYS_MPI
      MPI_Request* mpi_requests=NULL;
@@ -82,6 +81,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 
    /* number of C points in current distribution */
    my_n_C = 0;
+   sum=0;
    if (num_threads>1) {
      #pragma omp parallel private(i,sum)
      {
@@ -113,7 +113,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    output_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    dist = TMPMEMALLOC(size+1, index_t); /* now prepare for col distribution */
    Esys_checkPtr(dist);
+   #ifdef ESYS_MPI
    MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
+   #endif
    global_label=0;
    for (i=0; i<size; i++) {
      k = dist[i];
@@ -231,9 +233,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 
    for (p=0; p<send->numNeighbors; p++) {
      i = send->offsetInShared[p];
+     #ifdef ESYS_MPI
      MPI_Irecv (&(send_shared[i]), send->offsetInShared[p+1]-i, MPI_INT,
 		send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
 		mpi_info->comm, &mpi_requests[p]);
+     #endif
    }
 
    num_neighbors = 0;
@@ -257,16 +261,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 	num_neighbors++;
 	offsetInShared[num_neighbors] = q;
      }
+     #ifdef ESYS_MPI
      MPI_Issend(&(recv_shared[recv->offsetInShared[i]]), 
 		k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
 		mpi_info->msg_tag_counter+rank, mpi_info->comm,
 		&mpi_requests[i+send->numNeighbors]);
+     #endif
    }
    recv = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
                                       offsetInShared, 1, 0, mpi_info);
 
    /* now we can build the sender */
+   #ifdef ESYS_MPI
    MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
+   #endif
    mpi_info->msg_tag_counter += size;
    TMPMEMFREE(mpi_requests);
    TMPMEMFREE(mpi_stati);
@@ -368,18 +376,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P, 
 	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C) { 
-   Esys_MPIInfo *mpi_info=A->mpi_info;
    Paso_SparseMatrix *main_block=P->mainBlock;
    Paso_SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
-   const dim_t row_block_size=A->row_block_size;
-   const dim_t col_block_size=A->col_block_size;
    const dim_t my_n=A->mainBlock->numRows;
-   const dim_t overlap_n=A->row_coupleBlock->numRows;
-   const dim_t n = my_n + overlap_n;
-   const dim_t num_threads=omp_get_max_threads();
-   index_t size=mpi_info->size, rank=mpi_info->rank, range;
+   index_t range;
 
    dim_t i;
    register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
@@ -510,19 +512,14 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
         Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C) {
-   Esys_MPIInfo *mpi_info=A->mpi_info;
    Paso_SparseMatrix *main_block=P->mainBlock;
    Paso_SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t row_block_size=A->row_block_size;
-   const dim_t col_block_size=A->col_block_size;
    const dim_t A_block = A->block_size;
    const dim_t my_n=A->mainBlock->numRows;
-   const dim_t overlap_n=A->row_coupleBlock->numRows;
-   const dim_t n = my_n + overlap_n;
-   const dim_t num_threads=omp_get_max_threads();
-   index_t size=mpi_info->size, rank=mpi_info->rank, range;
+   index_t range;
 
    dim_t i;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
@@ -709,18 +706,12 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P, 
 	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
 	const index_t* S, const index_t *counter_C) { 
-   Esys_MPIInfo *mpi_info=A->mpi_info;
    Paso_SparseMatrix *main_block=P->mainBlock;
    Paso_SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
-   const dim_t row_block_size=A->row_block_size;
-   const dim_t col_block_size=A->col_block_size;
    const dim_t my_n=A->mainBlock->numRows;
-   const dim_t overlap_n=A->row_coupleBlock->numRows;
-   const dim_t n = my_n + overlap_n;
-   const dim_t num_threads=omp_get_max_threads();
-   index_t size=mpi_info->size, rank=mpi_info->rank, range, range_j;
+   index_t range, range_j;
 
    dim_t i, q;
    double *D_s=NULL;
@@ -944,19 +935,14 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setClassicProlongation_Block(
 	Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S,
 	const dim_t* degree_S, const index_t* S, const index_t *counter_C) {
-   Esys_MPIInfo *mpi_info=A->mpi_info;
    Paso_SparseMatrix *main_block=P->mainBlock;
    Paso_SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t row_block=A->row_block_size;
-   const dim_t col_block=A->col_block_size;
    const dim_t my_n=A->mainBlock->numRows;
-   const dim_t overlap_n=A->row_coupleBlock->numRows;
-   const dim_t n = my_n + overlap_n;
    const dim_t A_block = A->block_size;
-   const dim_t num_threads=omp_get_max_threads();
-   index_t size=mpi_info->size, rank=mpi_info->rank, range, range_j;
+   index_t range, range_j;
 
    dim_t i, q, ib;
    double *D_s=NULL;
@@ -1112,8 +1098,6 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
 			       /* first, the row_coupleBlock part */
 			       range_j = A->row_coupleBlock->pattern->ptr[j + 1];
 	                       for (iPtr_j=A->row_coupleBlock->pattern->ptr[j];iPtr_j<range_j; iPtr_j++) {
-//	                            const double* A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
-//	                            const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
 				    index_t m, *where_p_m;
 				    double *A_jm;
