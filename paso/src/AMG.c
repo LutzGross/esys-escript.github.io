@@ -1116,7 +1116,7 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
   double* b=NULL;
   index_t rank = A->mpi_info->rank;
   index_t size = A->mpi_info->size;
-  index_t i, n, p, count, n_block;
+  index_t i, n, p, n_block;
   index_t *counts, *offset, *dist;
 
   n_block = amg->n_block;
@@ -1137,10 +1137,12 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
     counts[i] = (dist[i+1] - p)*n_block;
     offset[i] = p*n_block;
   }
-  count = counts[rank];
   #ifdef ESYS_MPI
-  MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
-  MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+  {
+     index_t count = counts[rank];
+     MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+     MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+  }
   #endif
 
   if (rank == 0) {
