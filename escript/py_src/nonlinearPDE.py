@@ -209,9 +209,9 @@ class NonlinearPDE(object):
         """
         s=self._u.getShape()
         if len(s) > 0:
-          return s[0]
+            return s[0]
         else:
-          return 1
+            return 1
 
     def getShapeOfCoefficient(self,name):
         """
@@ -226,30 +226,30 @@ class NonlinearPDE(object):
         numSol=self.getNumSolutions()
         dim = self.dim
         if name=="X" or name=="X_reduced":
-           if numSol > 1: 
-              return (numSol,dim)         
-           else:
-	      return (dim,)
+            if numSol > 1: 
+                return (numSol,dim)         
+            else:
+                return (dim,)
         elif name=="q" :
-           if numSol > 1: 
-              return (numSol,)         
-           else:
-	      return ()
+            if numSol > 1: 
+                return (numSol,)         
+            else:
+                return ()
         elif name=="Y" or name=="Y_reduced":
-           if numSol > 1:
-              return (numSol,)         
-           else:
-              return ()
+            if numSol > 1:
+                return (numSol,)         
+            else:
+                return ()
         elif name=="y" or name=="y_reduced":
             if numSol > 1: 
-               return (numSol,)         
+                return (numSol,)         
             else:
-	       return ()	 
+                return ()         
         elif name=="y_contact" or name=="y_contact_reduced":
             if numSol > 1: 
-               return (numSol,)         
+                return (numSol,)         
             else:
-	       return ()	 
+                return ()         
         else:
             raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name) 
 
@@ -340,7 +340,6 @@ class NonlinearPDE(object):
                             A[i,j]=y.subs(x,1)-B[i]
                     A=Symbol(A)
                     B=Symbol(B)
-                    self.trace("Computing A, B took %f seconds."%(time()-ttt0))
                 else:  #u.getRank()==1
                     X=self._removeFsFromGrad(val)
                     dXdu=X.diff(u)
@@ -435,7 +434,8 @@ class NonlinearPDE(object):
                     self._coeffs['C']=C
                     self._coeffs['D']=D
                     self._coeffs['Y']=val
-            elif name=="y" or name=="y_reduced":
+            elif name in ("y", "y_reduced", "y_contact", "y_contact_reduced", \
+                    "y_dirac", "y_dirac_reduced"):
                 y=val
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
@@ -443,40 +443,8 @@ class NonlinearPDE(object):
                     d=numpy.zeros(u.getShape())
                 else:
                     d=y.diff(u)
-                if name=='y_reduced':
-                    self._coeffs['d_reduced']=d
-                    self._coeffs['y_reduced']=y
-                else:
-                    self._coeffs['d']=d
-                    self._coeffs['y']=y
-            elif name=="y_contact" or name=="y_contact_reduced":
-                y_contact=val
-                if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
-                if not hasattr(y_contact, 'diff'):
-                    d_contact=numpy.zeros(u.getShape())
-                else:
-                    d_contact=y_contact.diff(u)
-                if name=='y_contact_reduced':
-                    self._coeffs['d_contact_reduced']=d_contact
-                    self._coeffs['y_contact_reduced']=y_contact
-                else:
-                    self._coeffs['d_contact']=d_contact
-                    self._coeffs['y_contact']=y_contact
-            elif name=="y_dirac" or name=="y_dirac_reduced":
-                y=val
-                if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
-                if not hasattr(y, 'diff'):
-                    d=numpy.zeros(u.getShape())
-                else:
-                    d=y.diff(u)
-                if name=='y_dirac_reduced':
-                    self._coeffs['d_dirac_reduced']=d
-                    self._coeffs['y_dirac_reduced']=y
-                else:
-                    self._coeffs['d_dirac']=d
-                    self._coeffs['y_dirac']=y
+                self._coeffs[name]=y
+                self._coeffs['d'+name[1:]]=d
             elif name=="q":
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("q must have rank %d"%u.getRank())
