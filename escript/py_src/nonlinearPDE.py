@@ -94,17 +94,19 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: if True debug information is printed
         """
-        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "q" ]
-        self.coeffs={}
+        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac", "y_dirac_reduced", "q" ]
+        self._coeffs={}
         self._u=u
         self._debug=debug
+        self._tol=1e-6
+        self._iterMax=100
         self.dim = domain.getDim()
         if u.getRank()==0:
             numEquations=1
         else:
             numEquations=u.getShape()[0]
         numSolutions=numEquations
-        self.lpde=LinearPDE(domain,numEquations,numSolutions,debug)
+        self._lpde=LinearPDE(domain,numEquations,numSolutions,debug)
 
     def __str__(self):
         """
@@ -115,11 +117,11 @@ class NonlinearPDE(object):
         """
         return "<NonlinearPDE %d>"%id(self)
         
-    def getSolutionSymbol(self):
+    def getUnknownSymbol(self):
         """
-        Returns the symbol of the PDE solution
+        Returns the symbol of the PDE unknown
 
-        :return: returns the symbol of the PDE solution
+        :return: the symbol of the PDE unknown
         :rtype: `Symbol`
         """
         return self._u
@@ -134,8 +136,26 @@ class NonlinearPDE(object):
         if self._debug:
             print("%s: %s"%(str(self), text))
 
-    def getSolverOptions(self):
-        return self.lpde.getSolverOptions()
+    def getLinearSolverOptions(self):
+        """
+        Returns the options of the linear PDE solver class.
+        """
+        return self._lpde.getSolverOptions()
+
+    def setOptions(self, **opts):
+        """
+        Allows setting options for the nonlinear PDE.
+        The supported options are:
+          'tolerance' - error tolerance for the Newton method
+          'iterMax'   - maximum number of Newton iterations
+        """
+        for key in opts:
+            if key=='tolerance':
+                self._tol=opts[key]
+            elif key=='iterMax':
+                self._iterMax=opts[key]
+            else:
+                raise KeyError("Invalid option '%s'"%key)
 
     def getSolution(self, **subs):
         """
@@ -153,53 +173,34 @@ class NonlinearPDE(object):
 
         ui=subs.pop(u_sym)
         if isinstance(ui,float) or isinstance(ui,int):
-            ui=Data(ui, self.lpde.getFunctionSpaceForSolution())
+            ui=Data(ui, self._lpde.getFunctionSpaceForSolution())
 
-        coeffs={}
         # separate symbolic expressions from other coefficients
+        constants={}
         expressions={}
-        for n, e in self.coeffs.items():
+        for n, e in self._coeffs.items():
             if hasattr(e, "atoms"):
                 expressions[n]=e
             else:
-                coeffs[n]=e
+                constants[n]=e
 
-        coeffnames=expressions.keys()
-        # substitute all symbols except 'u' which is done in newton()
-        ev=Evaluator(*expressions.values())
-        ev.subs(**subs)
+        # set constant PDE values now
+        self._lpde.setValue(**constants)
 
         # perform Newton iterations until error is small enough or
         # maximum number of iterations reached
         n=0
         while True:
             n=n+1
-            delta_u=self._newton(ev, ui, coeffnames, coeffs)
+            subs[u_sym]=ui
+            delta_u=self._newtonStep(expressions, subs)
             ui=ui-delta_u
-            self.trace("Error after %d iteration(s): %g"%(n,util.Lsup(delta_u)))
-            self.trace("RHS after %d iteration(s): %g"%(n,util.Lsup(self.lpde.getRightHandSide())))
-            if util.Lsup(delta_u)<self.lpde.getSolverOptions().getTolerance() \
-                or n>=self.lpde.getSolverOptions().getIterMax():
-                    break
+            self.trace("Error after %d Newton iteration(s): %g"%(n,util.Lsup(delta_u)))
+            if util.Lsup(delta_u) < self._tol or n >= self._iterMax:
+                break
 
-        self.trace("Final error after %d iterations: %g"%(n,util.Lsup(delta_u)))
+        self.trace("Final error after %d Newton iteration(s): %g"%(n,util.Lsup(delta_u)))
         return ui
-
-    def _newton(self, ev, u, names, coeffs):
-        u_sym=self._u.atoms().pop().name
-        ev.subs(**{u_sym:u})
-        self.trace("Starting expression evaluation.")
-        ttt0=time()
-        res=ev.evaluate()
-        ttt1=time()
-        self.trace("Expressions evaluated in %f seconds."%(ttt1-ttt0))
-        for i in range(len(names)):
-            coeffs[names[i]]=res[i]
-            self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
-
-        self.lpde.setValue(**coeffs)
-        delta_u=self.lpde.getSolution()
-        return delta_u
 
     def getNumSolutions(self):
         """
@@ -211,7 +212,7 @@ class NonlinearPDE(object):
           return s[0]
         else:
           return 1
-     
+
     def getShapeOfCoefficient(self,name):
         """
         Returns the shape of the coefficient ``name``.
@@ -264,7 +265,7 @@ class NonlinearPDE(object):
         """
         s=self.getShapeOfCoefficient(name)
         return Symbol(name, s)
-        
+
     def getCoefficient(self, name):
         """
         Returns the value of the coefficient ``name`` as Symbol
@@ -275,12 +276,11 @@ class NonlinearPDE(object):
         :rtype: `Symbol`
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """
-        if self.coeffs.has_key(name):
-	     return self.coeffs[name]
-	else:
-	     raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+        if self._coeffs.has_key(name):
+            return self._coeffs[name]
+        else:
+            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
-        
     def setValue(self,**coefficients):
         """
         Sets new values to one or more coefficients.
@@ -307,7 +307,7 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-	        raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape ) )
+                raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
             rank=len(shape)
             if name=="X" or name=="X_reduced":
                 # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
@@ -316,6 +316,7 @@ class NonlinearPDE(object):
                 
                 if rank != u.getRank()+1:
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
+                T0=time()
                 if not hasattr(val, 'diff'):
                     A=numpy.zeros(shape+u.grad().getShape())
                     B=numpy.zeros(shape+u.getShape())
@@ -325,7 +326,6 @@ class NonlinearPDE(object):
                     dgdu=u.grad().diff(u)
                     A=numpy.empty(shape+dgdu.getShape(), dtype=object)
                     B=numpy.empty(shape, dtype=object)
-                    ttt0=time()
                     for i in numpy.ndindex(shape):
                         for j in numpy.ndindex(dgdu.getShape()):
                             y=dXdu[i]
@@ -349,7 +349,6 @@ class NonlinearPDE(object):
                     K,L=u.grad().getShape()
                     A=numpy.empty((I,J,K,L), dtype=object)
                     B=numpy.empty((I,J,K), dtype=object)
-                    ttt0=time()
                     for i,j,k,l in numpy.ndindex(I,J,K,L):
                         if dgdu[k,k,l]==0:
                             A[i,j,k,l]=0
@@ -365,22 +364,24 @@ class NonlinearPDE(object):
 
                     A=Symbol(A)
                     B=Symbol(B)
-                    self.trace("Computing A, B took %f seconds."%(time()-ttt0))
 
                 if name=='X_reduced':
-                    self.coeffs['A_reduced']=A
-                    self.coeffs['B_reduced']=B
-                    self.coeffs['X_reduced']=val
+                    self.trace("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
+                    self._coeffs['A_reduced']=A
+                    self._coeffs['B_reduced']=B
+                    self._coeffs['X_reduced']=val
                 else:
-                    self.coeffs['A']=A
-                    self.coeffs['B']=B
-                    self.coeffs['X']=val
+                    self.trace("Computing A, B took %f seconds."%(time()-T0))
+                    self._coeffs['A']=A
+                    self._coeffs['B']=B
+                    self._coeffs['X']=val
             elif name=="Y" or name=="Y_reduced":
                 # DY/Du = del_Y/del_u + del_Y/del_grad(u)*del_grad(u)/del_u
                 #            \   /         \   /
                 #              D             C
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                T0=time()
                 if not hasattr(val, 'diff'):
                     C=numpy.zeros(shape+u.grad().getShape())
                     D=numpy.zeros(shape+u.getShape())
@@ -409,7 +410,6 @@ class NonlinearPDE(object):
                     J,K=u.grad().getShape()
                     C=numpy.empty((I,J,K), dtype=object)
                     D=numpy.empty((I,J), dtype=object)
-                    ttt0=time()
                     for i,j,k in numpy.ndindex(I,J,K):
                         if dgdu[j,j,k]==0:
                             C[i,j,k]=0
@@ -424,16 +424,17 @@ class NonlinearPDE(object):
                             C[i,j,k]=y.subs(x,1)-D[i,j]
                     C=Symbol(C)
                     D=Symbol(D)
-                    self.trace("Computing C, D took %f seconds."%(time()-ttt0))
 
                 if name=='Y_reduced':
-                    self.coeffs['C_reduced']=C
-                    self.coeffs['D_reduced']=D
-                    self.coeffs['Y_reduced']=val
+                    self.trace("Computing C_reduced, D_reduced took %f seconds."%(time()-T0))
+                    self._coeffs['C_reduced']=C
+                    self._coeffs['D_reduced']=D
+                    self._coeffs['Y_reduced']=val
                 else:
-                    self.coeffs['C']=C
-                    self.coeffs['D']=D
-                    self.coeffs['Y']=val
+                    self.trace("Computing C, D took %f seconds."%(time()-T0))
+                    self._coeffs['C']=C
+                    self._coeffs['D']=D
+                    self._coeffs['Y']=val
             elif name=="y" or name=="y_reduced":
                 y=val
                 if rank != u.getRank():
@@ -443,11 +444,11 @@ class NonlinearPDE(object):
                 else:
                     d=y.diff(u)
                 if name=='y_reduced':
-                    self.coeffs['d_reduced']=d
-                    self.coeffs['y_reduced']=y
+                    self._coeffs['d_reduced']=d
+                    self._coeffs['y_reduced']=y
                 else:
-                    self.coeffs['d']=d
-                    self.coeffs['y']=y
+                    self._coeffs['d']=d
+                    self._coeffs['y']=y
             elif name=="y_contact" or name=="y_contact_reduced":
                 y_contact=val
                 if rank != u.getRank():
@@ -457,24 +458,87 @@ class NonlinearPDE(object):
                 else:
                     d_contact=y_contact.diff(u)
                 if name=='y_contact_reduced':
-                    self.coeffs['d_contact_reduced']=d_contact
-                    self.coeffs['y_contact_reduced']=y_contact
+                    self._coeffs['d_contact_reduced']=d_contact
+                    self._coeffs['y_contact_reduced']=y_contact
                 else:
-                    self.coeffs['d_contact']=d_contact
-                    self.coeffs['y_contact']=y_contact
+                    self._coeffs['d_contact']=d_contact
+                    self._coeffs['y_contact']=y_contact
+            elif name=="y_dirac" or name=="y_dirac_reduced":
+                y=val
+                if rank != u.getRank():
+                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                if not hasattr(y, 'diff'):
+                    d=numpy.zeros(u.getShape())
+                else:
+                    d=y.diff(u)
+                if name=='y_dirac_reduced':
+                    self._coeffs['d_dirac_reduced']=d
+                    self._coeffs['y_dirac_reduced']=y
+                else:
+                    self._coeffs['d_dirac']=d
+                    self._coeffs['y_dirac']=y
             elif name=="q":
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("q must have rank %d"%u.getRank())
-                self.coeffs['q']=val
+                self._coeffs['q']=val
             else:
                 raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+
+    def _newtonStep(self, expressions, subs):
+        """
+        """
+        self._updateLinearPDE(expressions, subs)
+        delta_u=self._lpde.getSolution()
+        return delta_u
+
+    def _updateRHS(self, expressions, subs):
+        ev=Evaluator()
+        names=[]
+        for name in expressions:
+            if name in self.__COEFFICIENTS:
+                ev.addExpression(expressions[name])
+                names.append(name)
+        if len(names)==0:
+            return
+        self.trace("Starting expression evaluation.")
+        ttt0=time()
+        ev.subs(**subs)
+        res=ev.evaluate()
+        if len(names)==1: res=[res]
+        self.trace("RHS expressions evaluated in %f seconds."%(time()-ttt0))
+        for i in range(len(names)):
+            self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        self._lpde.setValue(**dict(zip(names,res)))
+
+    def _updateMatrix(self, expressions, subs):
+        ev=Evaluator()
+        names=[]
+        for name in expressions:
+            if not name in self.__COEFFICIENTS:
+                ev.addExpression(expressions[name])
+                names.append(name)
+        if len(names)==0:
+            return
+        self.trace("Starting expression evaluation.")
+        ttt0=time()
+        ev.subs(**subs)
+        res=ev.evaluate()
+        if len(names)==1: res=[res]
+        self.trace("Matrix expressions evaluated in %f seconds."%(time()-ttt0))
+        for i in range(len(names)):
+            self.trace("Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        self._lpde.setValue(**dict(zip(names,res)))
+
+    def _updateLinearPDE(self, expressions, subs):
+        self._updateMatrix(expressions, subs)
+        self._updateRHS(expressions, subs)
 
     def _removeFsFromGrad(self, sym):
         """
         Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
         That is, all functionspace parameters are removed.
-        This method is used in setValue() in order to find coefficients of
-        grad(u) with the coeff() function.
+        This method is used in setValue() in order to get substitutions work
+        properly.
         """
         from esys.escript import symfn
         gg=sym.atoms(symfn.grad_n)
