@@ -110,6 +110,14 @@ where x_{0}=0 and S provides some approximation of A.
 
 Under MPI S is built using A_p->mainBlock only.
 If Smoother is local the defect b - A x_{k-1} is calculated using A_p->mainBlock only.
+
+The MPI-versioned smoother works in the following way:
+ (1) initialize x
+ (2) calculate residual r_n = b - A * x_n
+ (3) store residual r_n in b_new and pass to Paso_Preconditioner_LocalSmoother_Sweep() as input
+ (4) /delta x_{n+1} is returned (stored in b_new) as the output of Paso_Preconditioner_LocalSmoother_Sweep()
+ (5) recover x_{n+1} by /delta x_{n+1} + x_n
+ (6) repeat steps 2-5 for until sweeps number reduce to 0
 */
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
@@ -196,6 +204,21 @@ void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Precon
    }
 }
 
+/*
+  Gauss-Seidel sweep to calculate /delta x_{n+1} from matrix A and 
+  residual r_n. It has two steps: forward substitution and backward
+  substitution.
+  Forward substitution: (D+L) * /delta x_{n+1/2} = r_n
+  Backward substitution: (D+U) * /delta x_{n+1} = r_n - L * /delta x_{n+1/2}
+					 	= D * /delta x_{n+1/2}
+  where A = D + L + U
+	/delta x_{n+1/2} = x_{n+1/2} - x_n
+	/delta x_{n+1} = x_{n+1} - x_n
+
+  Input: Matrix A
+	 residual r_n (in x)
+  Output: /delta x_{n+1} (in x)
+*/
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
    const dim_t nt=omp_get_max_threads();
