@@ -442,12 +442,14 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 {
   Paso_SharedComponents *send=NULL, *recv=NULL;
   index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
-  index_t i, j, p, m, n, rank, size;
+  index_t i, j, p, m, n, size;
   index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
   index_t *ptr=*p_ptr, *idx=*p_idx;
   double  *val=*p_val, *recv_val=NULL;
+  #ifdef ESYS_MPI
+  index_t rank = P->mpi_info->rank;
+  #endif
 
-  rank = P->mpi_info->rank;
   size = P->mpi_info->size;
   send = P->col_coupler->connector->recv;
   recv = P->col_coupler->connector->send;
