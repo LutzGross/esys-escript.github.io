@@ -728,56 +728,11 @@ void RipleyDomain::addPDEToSystem(
     if (!sma)
         throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
 
-    if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw RipleyException("addPDEToSystem: right hand side coefficients are provided but no right hand side vector given");
-
-    int fsType=UNKNOWN;
-    fsType=(A.isEmpty() ? fsType : A.getFunctionSpace().getTypeCode());
-    fsType=(B.isEmpty() ? fsType : B.getFunctionSpace().getTypeCode());
-    fsType=(C.isEmpty() ? fsType : C.getFunctionSpace().getTypeCode());
-    fsType=(D.isEmpty() ? fsType : D.getFunctionSpace().getTypeCode());
-    fsType=(X.isEmpty() ? fsType : X.getFunctionSpace().getTypeCode());
-    fsType=(Y.isEmpty() ? fsType : Y.getFunctionSpace().getTypeCode());
-    fsType=(d.isEmpty() ? fsType : d.getFunctionSpace().getTypeCode());
-    fsType=(y.isEmpty() ? fsType : y.getFunctionSpace().getTypeCode());
-    fsType=(d_dirac.isEmpty() ? fsType : d_dirac.getFunctionSpace().getTypeCode());
-    fsType=(y_dirac.isEmpty() ? fsType : y_dirac.getFunctionSpace().getTypeCode());
-    if (fsType==UNKNOWN)
-        return;
-
-    const bool reducedOrder=(fsType==ReducedElements || fsType==ReducedFaceElements);
-
-    //TODO: more input param checks (shape, etc)
-
     Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    assemblePDE(S, rhs, A, B, C, D, X, Y);
+    assemblePDEBoundary(S, rhs, d, y);
+    //assemblePDEDirac(S, rhs, d_dirac, y_dirac);
 
-    if (!rhs.isEmpty() && rhs.getDataPointSize() != S->logical_row_block_size)
-        throw RipleyException("addPDEToSystem: matrix row block size and number of components of right hand side don't match");
-
-    const int numEq=S->logical_row_block_size;
-    const int numComp=S->logical_col_block_size;
-
-    if (numEq != numComp)
-        throw RipleyException("addPDEToSystem: number of equations and number of solutions don't match");
-    //TODO: more system matrix checks
-
-    if (numEq==1) {
-        if (reducedOrder) {
-            assemblePDESingleReduced(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySingleReduced(S, rhs, d, y);
-        } else {
-            assemblePDESingle(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySingle(S, rhs, d, y);
-        }
-    } else {
-        if (reducedOrder) {
-            assemblePDESystemReduced(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySystemReduced(S, rhs, d, y);
-        } else {
-            assemblePDESystem(S, rhs, A, B, C, D, X, Y);
-            assemblePDEBoundarySystem(S, rhs, d, y);
-        }
-    }
 }
 
 void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
@@ -801,6 +756,52 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         assemblePDESystem(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
         assemblePDEBoundarySystem(NULL, rhs, escript::Data(), y);
     }
+}
+
+escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
+        const escript::FunctionSpace& functionspace, const int type) const
+{
+    bool reduceOrder=false;
+    // is the domain right?
+    const RipleyDomain& domain=dynamic_cast<const RipleyDomain&>(*(functionspace.getDomain()));
+    if (domain != *this)
+        throw RipleyException("newTransportProblem: domain of function space does not match the domain of transport problem generator");
+    // is the function space type right?
+    if (functionspace.getTypeCode()==ReducedDegreesOfFreedom)
+        reduceOrder=true;
+    else if (functionspace.getTypeCode()!=DegreesOfFreedom)
+        throw RipleyException("newTransportProblem: illegal function space type for transport problem");
+
+    // generate matrix
+    Paso_SystemMatrixPattern* pattern=getPattern(reduceOrder, reduceOrder);
+    Paso_TransportProblem* tp = Paso_TransportProblem_alloc(pattern, blocksize);
+    paso::checkPasoError();
+    escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
+    return atp;
+}
+
+void RipleyDomain::addPDEToTransportProblem(
+        escript::AbstractTransportProblem& tp,
+        escript::Data& source, const escript::Data& M,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
+        const escript::Data& d, const escript::Data& y,
+        const escript::Data& d_contact, const escript::Data& y_contact,
+        const escript::Data& d_dirac, const escript::Data& y_dirac) const
+{
+    if (!d_contact.isEmpty() || !y_contact.isEmpty())
+        throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
+
+    paso::TransportProblemAdapter* tpa=dynamic_cast<paso::TransportProblemAdapter*>(&tp);
+    if (!tpa)
+        throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
+
+    Paso_TransportProblem* ptp = tpa->getPaso_TransportProblem();
+    assemblePDE(ptp->mass_matrix, source, escript::Data(), escript::Data(),
+            escript::Data(), M, escript::Data(), escript::Data());
+    assemblePDE(ptp->transport_matrix, source, A, B, C, D, X, Y);
+    assemblePDEBoundary(ptp->transport_matrix, source, d, y);
+    //assemblePDEDirac(ptp->transport_matrix, source, d_dirac, y_dirac);
 }
 
 void RipleyDomain::setNewX(const escript::Data& arg)
@@ -1047,6 +1048,103 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
     }
 }
 
+//private
+void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+        const escript::Data& A, const escript::Data& B, const escript::Data& C,
+        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
+{
+    if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
+        throw RipleyException("assemblePDE: right hand side coefficients are provided but no right hand side vector given");
+
+    vector<int> fsTypes;
+    if (!A.isEmpty()) fsTypes.push_back(A.getFunctionSpace().getTypeCode());
+    if (!B.isEmpty()) fsTypes.push_back(B.getFunctionSpace().getTypeCode());
+    if (!C.isEmpty()) fsTypes.push_back(C.getFunctionSpace().getTypeCode());
+    if (!D.isEmpty()) fsTypes.push_back(D.getFunctionSpace().getTypeCode());
+    if (!X.isEmpty()) fsTypes.push_back(X.getFunctionSpace().getTypeCode());
+    if (!Y.isEmpty()) fsTypes.push_back(Y.getFunctionSpace().getTypeCode());
+    if (fsTypes.empty())
+        return;
+
+    int fs=fsTypes[0];
+    if (fs != Elements && fs != ReducedElements)
+        throw RipleyException("assemblePDE: illegal function space type for coefficients");
+
+    for (vector<int>::const_iterator it=fsTypes.begin()+1; it!=fsTypes.end(); it++) {
+        if (*it != fs) {
+            throw RipleyException("assemblePDE: coefficient function spaces don't match");
+        }
+    }
+
+    if (!rhs.isEmpty() && rhs.getDataPointSize() != mat->logical_row_block_size)
+        throw RipleyException("assemblePDE: matrix row block size and number of components of right hand side don't match");
+
+    const int numEq=mat->logical_row_block_size;
+    const int numComp=mat->logical_col_block_size;
+
+    if (numEq != numComp)
+        throw RipleyException("assemblePDE: number of equations and number of solutions don't match");
+
+    //TODO: check shape and num samples of coeffs
+
+    if (numEq==1) {
+        if (fs==ReducedElements)
+            assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
+        else
+            assemblePDESingle(mat, rhs, A, B, C, D, X, Y);
+    } else {
+        if (fs==ReducedElements)
+            assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
+        else
+            assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
+    }
+}
+
+//private
+void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
+      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+{
+    if (rhs.isEmpty() && !y.isEmpty())
+        throw RipleyException("assemblePDEBoundary: y provided but no right hand side vector given");
+
+    int fs=-1;
+    if (!d.isEmpty())
+        fs=d.getFunctionSpace().getTypeCode();
+    if (!y.isEmpty()) {
+        if (fs == -1)
+            fs = y.getFunctionSpace().getTypeCode();
+        else if (fs != y.getFunctionSpace().getTypeCode())
+            throw RipleyException("assemblePDEBoundary: coefficient function spaces don't match");
+    }
+    if (fs==-1) return;
+
+    if (fs != FaceElements && fs != ReducedFaceElements)
+        throw RipleyException("assemblePDEBoundary: illegal function space type for coefficients");
+
+    if (!rhs.isEmpty() && rhs.getDataPointSize() != mat->logical_row_block_size)
+        throw RipleyException("assemblePDEBoundary: matrix row block size and number of components of right hand side don't match");
+
+    const int numEq=mat->logical_row_block_size;
+    const int numComp=mat->logical_col_block_size;
+
+    if (numEq != numComp)
+        throw RipleyException("assemblePDEBoundary: number of equations and number of solutions don't match");
+
+    //TODO: check shape and num samples of coeffs
+
+    if (numEq==1) {
+        if (fs==ReducedFaceElements)
+            assemblePDEBoundarySingleReduced(mat, rhs, d, y);
+        else
+            assemblePDEBoundarySingle(mat, rhs, d, y);
+    } else {
+        if (fs==ReducedFaceElements)
+            assemblePDEBoundarySystemReduced(mat, rhs, d, y);
+        else
+            assemblePDEBoundarySystem(mat, rhs, d, y);
+    }
+}
+
 //
 // the methods that follow have to be implemented by the subclasses
 //
@@ -1095,25 +1193,6 @@ void RipleyDomain::setToSize(escript::Data& size) const
 bool RipleyDomain::ownSample(int fsType, index_t id) const
 {
     throw RipleyException("ownSample() not implemented");
-}
-
-void RipleyDomain::addPDEToTransportProblem(
-        escript::AbstractTransportProblem& tp,
-        escript::Data& source, const escript::Data& M,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac, const escript::Data& y_dirac) const
-{
-    throw RipleyException("addPDEToTransportProblem() not implemented");
-}
-
-escript::ATP_ptr RipleyDomain::newTransportProblem(
-        const int blocksize, const escript::FunctionSpace& functionspace,
-        const int type) const
-{
-    throw RipleyException("newTransportProblem() not implemented");
 }
 
 Paso_SystemMatrixPattern* RipleyDomain::getPattern(bool reducedRowOrder,
