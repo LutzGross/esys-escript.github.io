@@ -89,7 +89,7 @@ class Evaluator:
         self._subsdict.update(args)
         return self
 
-    def evaluate(self):
+    def evaluate(self, **args):
         """
         Evaluates all expressions in this evaluator and returns the result
         as a tuple.
@@ -97,6 +97,7 @@ class Evaluator:
         :return: the evaluated expressions in the order they were added to
                  this Evaluator.
         """
+        self.subs(**args)
         res=()
         for i in range(len(self.lambdas)):
             x=self.symbols[i]
