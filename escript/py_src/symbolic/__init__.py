@@ -23,6 +23,7 @@ from symbols import *
 from evaluator import *
 from pretty import pretty_print, pprint
 import functions as symfn
+#from pde import *
 
 # prefer escript's implementation of functions such as 'sign' etc.
 from sympy.utilities.lambdify import MODULES
