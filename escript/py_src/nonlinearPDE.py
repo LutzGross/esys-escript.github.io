@@ -51,8 +51,7 @@ class InadmissiblePDEOrdering(Exception):
    Exception thrown if the ordering of the PDE equations should be revised.
    """
    pass
-   
-
+      
 class NonlinearPDE(object):
     """
     This class is used to define a general nonlinear, steady, second order PDE
@@ -80,9 +79,9 @@ class NonlinearPDE(object):
     Constraints for the solution prescribe the value of the solution at certain
     locations in the domain. They have the form
 
-    *u=u0* where *q>0*
+    *u=r* where *q>0*
 
-    *u0* and *q* are each scalar where *q* is the characteristic function
+    *r* and *q* are each scalar where *q* is the characteristic function
     defining where the constraint is applied. The constraints override any
     other condition set by the PDE or the boundary condition.
 
@@ -117,7 +116,7 @@ class NonlinearPDE(object):
         """
         self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac" ]
 
-        self.r=Data()
+        self._r=Data()
         self._set_coeffs={}
         self._unknown=u
         self._debug=debug
@@ -178,7 +177,13 @@ class NonlinearPDE(object):
         Returns the options of the linear PDE solver class.
         """
         return self._lpde.getSolverOptions()
-
+    def getLinearPDE(self):
+        """
+        returns the linear PDE used to calculate the Newton-Raphson update
+        
+        :rtype: `LinearPDE`
+        """
+        return self._lpde
     def setOptions(self, **opts):
         """
         Allows setting options for the nonlinear PDE.
@@ -232,8 +237,8 @@ class NonlinearPDE(object):
         # modify ui so it meets the constraints:
         q=self._lpde.getCoefficient("q")
         if not q.isEmpty():
-           if subs.has_key("r"): self.r=subs.pop("r")
-           r=self.r
+           if subs.has_key("r"): self._r=subs.pop("r")
+           r=self._r
            if hasattr(r, "atoms"):
               r=Evaluator(r).evaluate(**subs)
            elif not isinstance(r, Data):
@@ -485,11 +490,14 @@ class NonlinearPDE(object):
         :rtype: `Symbol` or `Data` 
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """   
-        if name == q:
-            return self._lpde.createCoefficient("q")           
+        if name == "q":
+            return self._lpde.createCoefficient("q")  
+        elif name == "r":
+	   s=self.getShapeOfCoefficient('r')
+           return Symbol('r', s, dim=self.dim)
         else:
            s=self.getShapeOfCoefficient(name)
-           return Symbol(name, s)
+           return Symbol(name, s, dim=self.dim)
 
     def getCoefficient(self, name):
         """
@@ -503,12 +511,21 @@ class NonlinearPDE(object):
         """
         if self._set_coeffs.has_key(name):
             return self._set_coeffs[name]
+        elif name == "r":
+	     if hasattr(self, "_r"):
+	         return self._r
+	     else:
+	         raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+        elif name == "q":
+	     return self._lpde.getCoefficient("q")  
         else:
             raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
     def setValue(self,**coefficients):
         """
         Sets new values to one or more coefficients.
+
+        :param coefficients: new values assigned to coefficients
 
         :param coefficients: new values assigned to coefficients
         :keyword X: value for coefficient ``X``
@@ -524,12 +541,12 @@ class NonlinearPDE(object):
         :keyword q: mask for location of constraint
         :type q: any type that can be cast to a `Data` object       
         :keyword r: value of solution prescribed by constraint
-        :type r: `Symbol` or any type that can be cast to a `Data` object       
+        :type r: `Symbol` or any type that can be cast to a `Data` object   
         :raise IllegalCoefficient: if an unknown coefficient keyword is used
         :raise IllegalCoefficientValue: if a supplied coefficient value has an
                                         invalid shape
-        """
-
+        """  
+        
         u=self._unknown
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
@@ -539,8 +556,9 @@ class NonlinearPDE(object):
             if name == "q":
                 self._lpde.setValue(q=val)  
             elif name == "r":
-                self.r=val
+                self._r=val
             elif name=="X" or name=="X_reduced":
+	        Z=H+
                 # DX/Du = del_X/del_unknown + del_X/del_grad(u)*del_grad(u)/del_unknown
                 #            \   /         \   /
                 #              B             A
@@ -747,3 +765,486 @@ class NonlinearPDE(object):
                 sym=sym.subs(g, r)
         return sym
 
+class VariationalProblem(object):
+    """
+    This class is used to define a general constraint vartional problem
+    for an unknown function *u* and (spially variable) parameter *p* on a given domain defined through a `Domain`
+    object. *u* may be a scalar or a vector. *p* which may be a scalar or a vector may not be present. 
+    
+    The solution *u* and the paremeter *p* a given as the solution of the minimization problem: 
+    
+    *min_{u,p} int(H) + int(h)*
+
+    
+    where int{H} refers to intagration over the domain and *H*=f(*x*,*u*,*grad(u)*,*p*, *grad(p)*) is a functions which may depoend on the location *x*
+    within the  domain and is a function of the solution *u* and the parameter *p* and their gardients *grad(u)* and *grad(p)*, respectively. 
+    Similarly, int{H} refers to intagration over the boundray of the domain and *h=f(*x*,*u*, *p*) is a functions which may depoend
+    on the location *x* within the domain boundary and is a function of the solution *u* and the parameter *p*. 
+
+    If *p* is present, *u* is solution of a PDE with coefficences depending on the parameter *p*. The PDE defines a constraint 
+    for the varational problem. It is assumed that, if *p* is present, for any given parameter *p* a unique solution 
+    *u* of the PDE esxists.
+    
+    For a single PDE having a solution with a single component the nonlinear
+    PDE is defined in the following form:
+
+    *-div(X) + Y = 0*
+
+    where *X*,*Y*=f(*x*,*u*,*grad(u)*, *p*, *grad(p)*), *div(F)* denotes the divergence of *F* and
+    *grad(F)* is the spatial derivative of *F*.
+
+    The coefficients *X* (rank 1) and *Y* (scalar) have to be specified through
+    `Symbol` objects.
+
+    The following natural boundary conditions are considered:
+
+    *n[j]*X[j] - y = 0*
+
+    where *n* is the outer normal field. Notice that the coefficient *X*
+    is defined in the PDE. The coefficient *y* is a scalar `Symbol`.
+
+    Constraints for the solution prescribe the value of the solution at certain
+    locations in the domain. They have the form
+
+    *u=r* where *q>0*
+
+    *r* and *q* are each scalar where *q* is the characteristic function
+    defining where the constraint is applied. The constraints override any
+    other condition set by the PDE or the boundary condition.
+
+    For a system of PDEs and a solution with several components, *u* is rank
+    one, while the PDE coefficient *X* is rank two and *Y* and *y* is rank one.
+
+    The PDE is solved by linearising the coefficients and iteratively solving
+    the corresponding linear PDE until the error is smaller than a tolerance
+    or a maximum number of iterations is reached.
+
+    Typical usage:
+
+        s=Symbol('s', dim=dom.getDim())
+        T = Symbol('T', dim=dom.getDim())
+        log_k = Symbol('log_k', dim=dom.getDim())
+        v = VariationalProblem(dom, u=T,p=log_k)
+        v.setValue(X=exp(-p)*grad(u), Y=s, h=0.3*(u-0.3)**2)
+        T, log_k, l = v.getSolution(T=0.,log_K=1, s=2.45)
+        sT,S_log_K=v.getSensitivity(s, direction=1, T=T, log_K=log_K, s=2.45)
+        
+    """
+    DEBUG0=0 # no debug info
+    DEBUG1=1 # info on Newton-Raphson solver printed
+    DEBUG2=2 # in addition info from linear solver are printed
+    DEBUG3=3 # in addition info on linearization printed
+    DEBUG4=4 # in addition info on LinearPDE handeling printed.
+    def __init__(self,domain,u,p=None, debug=0):
+        """
+        Initializes a new nonlinear PDE.
+
+        :param domain: domain of the PDE
+        :type domain: `Domain`
+        :param u: The symbol for the unknown PDE function u.
+        :type u: `Symbol`
+        :param debug: level of debug information to be printed
+        """
+        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac", \
+                                "H", "h_reduced", "h", "h_reduced", "h_contact", "h_contact_reduced", "h_dirac" ]
+
+        self._set_coeffs={}
+        self._unknown=u
+        self._parameter=p
+        self._debug=debug
+        self.dim = domain.getDim()
+        
+        if self._parameter == None:
+	    U=u
+	else:
+	    self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
+            U=concateRow(self._parameter, self.__unknwon, self._lagrangean)
+        self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
+        
+    def __str__(self):
+        """
+        Returns the string representation of the PDE.
+
+        :return: a simple representation of the PDE
+        :rtype: ``str``
+        """
+        return "<VariationalProblem %d>"%id(self)
+    def getNonlinearPDE(self):
+        """
+        return the `NonlinearPDE` used to solve the variational problem.
+        
+        :return: underlying nonlinear PDE
+        :rtype: `NonlinearPDE`
+        """
+        return self.__PDE
+      
+    def trace1(self, text):
+        """
+        Prints the text message if debug mode is switched on.
+
+        :param text: message to be printed
+        :type text: ``string``
+        """
+        if self._debug > self.DEBUG0:
+            print("%s: %s"%(str(self), text))
+            
+    def trace3(self, text):
+        """
+        Prints the text message if debug mode level DEBUG3 is switched on.
+
+        :param text: message to be printed
+        :type text: ``string``
+        """
+        if self._debug > self.DEBUG2:
+            print("%s: %s"%(str(self), text))
+            
+    def getNumSolutions(self):
+        """
+        Returns the number of the solution components
+        :rtype: ``int``
+        """
+        s=self._unknown.getShape()
+        if len(s) > 0:
+            return s[0]
+        else:
+            return 1
+    
+    def getNumParameters(self):
+        """
+        Returns the number of the parameter components. If no parameter is present
+        zero is returned.
+        
+        :rtype: ``int``
+        """
+        if self.__parameter == None:
+	     return 0
+	else:
+	    s=self._unknown.getShape()
+	    if len(s) > 0:
+		return s[0]
+	    else:
+		return 1
+            
+    def getShapeOfCoefficient(self,name):
+        """
+        Returns the shape of the coefficient ``name``.
+
+        :param name: name of the coefficient enquired
+        :type name: ``string``
+        :return: the shape of the coefficient ``name``
+        :rtype: ``tuple`` of ``int``
+        :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+        """
+        numSol=self.getNumSolutions()
+        numParams=self.getNumParameters()
+        dim = self.dim
+        if (name=="X" or name=="X_reduced") and numParams>0:
+            if numSol > 1: 
+                return (numSol,dim)         
+            else:
+                return (dim,)
+        elif name=="r" or name == "q" :
+            if numSol > 1: 
+                return (numSol,)         
+            else:
+                return ()
+        elif ( name=="rp" or name == "qp") and numParams>0:
+            if numParams > 1: 
+                return (numParams,)         
+            else:
+                return ()
+        elif ( name=="Y" or name=="Y_reduced") and numParams>0:
+            if numSol > 1:
+                return (numSol,)         
+            else:
+                return ()
+        elif ( name=="y" or name=="y_reduced") and numParams>0:
+            if numSol > 1: 
+                return (numSol,)         
+            else:
+                return ()         
+        elif ( name=="y_contact" or name=="y_contact_reduced") and numParams>0:
+            if numSol > 1: 
+                return (numSol,)         
+            else:
+                return ()         
+        elif name=="y_dirac" and numParams>0:
+            if numSol > 1: 
+                return (numSol,)         
+            else:
+                return ()         
+        elif name=="H" or name=="H_reduced":
+                return ()
+        elif name=="h" or name=="h_reduced":
+                return ()         
+        elif name=="h_contact" or name=="h_contact_reduced":
+                return ()         
+        elif name=="h_dirac":
+                return ()                  
+        else:
+            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name) 
+
+    def createCoefficient(self, name):
+        """
+        create a new coefficient ``name`` as Symbol
+
+        :param name: name of the coefficient requested
+        :type name: ``string``
+        :return: the value of the coefficient
+        :rtype: `Symbol` or `Data` 
+        :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+        """   
+        numSol=self.getNumSolutions()
+        numParams=self.getNumParameters()        
+        if name == "q":
+	    if numParams > 0:
+                return self.getNonlinearPDE().createCoefficient("q")[numParams:numParams+numSol]
+            else:
+	        return self.getNonlinearPDE().createCoefficient("q")
+        elif name == "qp":
+	    if numParams > 0:
+                return self.getNonlinearPDE().createCoefficient("q")[:numParams]
+            else:
+	        raise IllegalCoefficient("Attempt to request coefficient %s"%name) 
+        else:
+           s=self.getShapeOfCoefficient(name)
+           return Symbol(name, s, dim=self.dim)
+
+    def getCoefficient(self, name):
+        """
+        Returns the value of the coefficient ``name`` as Symbol
+
+        :param name: name of the coefficient requested
+        :type name: ``string``
+        :return: the value of the coefficient
+        :rtype: `Symbol`
+        :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
+        """
+        if self._set_coeffs.has_key(name):
+            return self._set_coeffs[name]
+        else:
+            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+	  
+    def __getNonlinearPDECoefficient(self, extension, capson=False):
+      if capson:
+	  H_key="H"+extension
+	  X_key="X"+extension
+	  Y_key="Y"+extension
+	  Z_key="Z"+extension
+      else:     
+	  H_key="h"+extension
+	  X_key="x"+extension
+	  Y_key="y"+extension
+	  Z_key="z"+extension
+
+      Z=Symbol(Z_key,(), dim=self.dim)
+      if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
+      if self._set_coeffs.has_key(X_key): Z+=inner(self._set_coeffs[X_key],grad(self._lagrangean))
+      if self._set_coeffs.has_key(Y_key): Z+=inner(self._set_coeffs[Y_key],self._lagrangean)
+      
+      if numParam>0:
+	  Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
+	  Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
+	  Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
+	  Y=concateRow(Yp, Yl, Yu)  # order differenr from solution!!!
+	  X=concateRow(Xp, Xl, Xu)  # order differenr from solution!!!
+      else:
+	  Y,X=getTotalDifferential(Z, self._unknown, order=1)
+      return Y,X    
+      
+    def setValue(self,**coefficients):
+        """
+        Sets new values to one or more coefficients.
+
+        
+        
+        :keyword H: value for coefficient ``H``
+        :type H: `Symbol`
+        :keyword h: value for coefficient ``h``
+        :type h: `Symbol`
+        :keyword h_contact: value for coefficient `h_contact``
+        :type h_contact: `Symbol`
+        :keyword h_dirac: value for coefficient ``y_dirac``
+        :type h_dirac: `Symbol`
+        :keyword X: value for coefficient ``X``
+        :type X: `Symbol` or any type that can be cast to a `Data` object
+        :keyword Y: value for coefficient ``Y``
+        :type Y: `Symbol` or any type that can be cast to a `Data` object
+        :keyword y: value for coefficient ``y``
+        :type y: `Symbol` or any type that can be cast to a `Data` object
+        :keyword y_contact: value for coefficient ``y_contact``
+        :type y_contact: `Symbol` or any type that can be cast to a `Data` object
+        :keyword y_dirac: value for coefficient ``y_dirac``
+        :type y_dirac: `Symbol` or any type that can be cast to a `Data` object
+        :keyword q: mask for location of constraint
+        :type q: any type that can be casted to a `Data` object       
+        :keyword r: value of solution prescribed by constraint
+        :type r: `Symbol` or any type that can be cast to a `Data` object  
+        :keyword qp: mask for location of constraint fro parameter
+        :type qp: any type that can be casted to a `Data` object        
+        :keyword rp: value of the parameter prescribed by parameter constraint
+        :type rp: `Symbol` or any type that can be cast to a `Data` object   
+        
+        :raise IllegalCoefficient: if an unknown coefficient keyword is used
+        :raise IllegalCoefficientValue: if a supplied coefficient value has an
+                                        invalid shape
+        """
+        numSol=self.getNumSolutions()
+        numParams=self.getNumParameters()
+        update=[]
+        for name,val in coefficients.iteritems():
+            shape=util.getShape(val)
+            if not shape == self.getShapeOfCoefficient(name):
+                raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
+            if name == "q":
+	        self._q = q
+	        update.append("q")
+	        
+            elif name == "qp":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+	        self._qp = qp
+	        update.append("q")
+	        
+	    elif name == "r":
+	        self._r = r
+	        update.append("r")
+	        
+            elif name == "rp":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+	        self._rp = rp
+	        update.append("r") 
+	        
+            elif name=="X":
+	        if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['X']=val
+                update.append("Y")
+                
+            elif name=="X_reduced":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['X_reduced']=val
+                update.append("Y_reduced")
+                
+            elif name=="Y":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['Y']=val
+                update.append("Y")
+                
+            elif name=="Y_reduced":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['Y_reduced']=val
+                update.append("Y_reduced")
+                
+            elif name=="H":
+                self._set_coeffs['H']=val
+                update.append("Y")
+                
+            elif name=="H_reduced"
+                self._set_coeffs['H_reduced']=val
+                update.append("Y_reduced")
+                
+            elif name=="y":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['y']=val
+                update.append("y")
+                
+            elif name=="y_reduced":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['y_reduced']=val
+                update.append("y_reduced")
+                
+            elif name=="h":
+                self._set_coeffs['h']=val
+                update.append("y")
+                
+            elif name=="h_reduced"
+                self._set_coeffs['h_reduced']=val
+                update.append("y_reduced")
+                
+            elif name=="y_contact":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['y_contact']=val
+                update.append("y_contact")
+                
+            elif name=="y_contact_reduced":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['y_contact_reduced']=val
+                update.append("y_contact_reduced")
+                
+            elif name=="h_contact":
+                self._set_coeffs['h_contact']=val
+                update.append("y_contact")
+                
+            elif name=="h_contact_reduced"
+                self._set_coeffs['h_contact_reduced']=val
+                update.append("y_contact_reduced")
+                
+            elif name=="y_dirac":
+	      	if numParams <1 : 
+	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._set_coeffs['y_dirac']=val
+                update.append("y_dirac")
+                
+            elif name=="h_dirac":
+                self._set_coeffs['h_diract']=val
+                update.append("y_dirac")
+            else:                
+                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+	      
+	    # now we can update the coefficience of the non-linear PDE:
+	    coeff2={}
+	    if "q" in update:
+	        if numParams>0:
+	             q=self.getNonlinearPDE().createCoefficient("q")
+	             if hasattr(self, "qp"): q[:numParams]=self._qp
+	             if hasattr(self, "q"): 
+	                 q[numParams:numParams+numSol]=self._q
+	                 q[numParams+numSol:]=self._q
+	        else:
+		     q=self._q
+	        coeff2["q"]=q 
+	    elif "r" in update:
+	        if numParams>0:
+	             r=self.getNonlinearPDE().createCoefficient("r")
+	             if hasattr(self, "rp"): r[:numParams]=self._rp
+	             if hasattr(self, "r"): 
+	                 r[numParams:numParams+numSol]=self._r
+	                 r[numParams+numSol:]=0
+	        else:
+		     r=self._r
+	        coeff2["r"]=r
+	    elif "Y" in update:
+	         Y,X = __getNonlinearPDECoefficient("",capson=True)
+	         coeff2["Y"]=Y
+	         coeff2["X"]=X
+	    elif "y" in update: 
+	         Y,X = __getNonlinearPDECoefficient("",capson=False)
+	         coeff2["y"]=Y
+	    elif "y_contact" in update: 
+	         Y,X = __getNonlinearPDECoefficient("_contact",capson=False)
+	         coeff2["y_contact"]=Y
+	    elif "y_dirac" in update:
+	          Y,X = __getNonlinearPDECoefficient("_dirac",capson=False)
+	          coeff2["y_dirac"]=Y
+	    elif "Y_reduced" in update:
+	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=True)
+	         coeff2["Y_reduced"]=Y
+	         coeff2["X_reduced"]=X
+	    elif "y_reduced" in update: 
+	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=False)
+	         coeff2["y_reduced"]=Y
+	    elif "y_contact_reduced" in update: 
+	         Y,X = __getNonlinearPDECoefficient("_contact_reduced",capson=False)
+	         coeff2["y_contact_reduced"]=Y
+
+            # and now we can set the PDE coefficient:
+            self.getNonlinearPDE().setValue(**coeff2)
