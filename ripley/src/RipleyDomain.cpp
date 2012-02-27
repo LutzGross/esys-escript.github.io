@@ -967,6 +967,9 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
        const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
        dim_t num_Sol, const vector<double>& array) const
 {
+    if (mat->type & MATRIX_FORMAT_CSC ||  mat->type & MATRIX_FORMAT_TRILINOS_CRS) {
+        throw RipleyException("addToSystemMatrix: CSC and TRILINOS_CRS not supported");
+    }
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
     const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
@@ -981,6 +984,7 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
     const index_t* row_coupleBlock_ptr = mat->row_coupleBlock->pattern->ptr;
     const index_t* row_coupleBlock_index = mat->row_coupleBlock->pattern->index;
     double* row_coupleBlock_val = mat->row_coupleBlock->val;
+    index_t offset=(mat->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
 
     for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
         // down columns of array
@@ -990,9 +994,9 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
             if (i_row < numMyRows) {
                 for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
                     for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
-                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
-                        if (i_col < numMyCols) {
-                            for (dim_t k = mainBlock_ptr[i_row]; k < mainBlock_ptr[i_row + 1]; ++k) {
+                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
+                        if (i_col < numMyCols+offset) {
+                            for (dim_t k = mainBlock_ptr[i_row]-offset; k < mainBlock_ptr[i_row + 1]-offset; ++k) {
                                 if (mainBlock_index[k] == i_col) {
                                     for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
                                         const dim_t i_Sol=ic+mat->col_block_size*l_col;
@@ -1005,7 +1009,7 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
                                 }
                             }
                         } else {
-                            for (dim_t k = col_coupleBlock_ptr[i_row]; k < col_coupleBlock_ptr[i_row + 1]; ++k) {
+                            for (dim_t k = col_coupleBlock_ptr[i_row]-offset; k < col_coupleBlock_ptr[i_row + 1]-offset; ++k) {
                                 if (col_coupleBlock_index[k] == i_col - numMyCols) {
                                     for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
                                         const dim_t i_Sol=ic+mat->col_block_size*l_col;
@@ -1024,10 +1028,10 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
                 for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
                     // across rows of array
                     for (dim_t l_col=0; l_col<numSubblocks_Sol; ++l_col) {
-                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
-                        if (i_col < numMyCols) {
-                            for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows];
-                                 k < row_coupleBlock_ptr[i_row - numMyRows + 1]; ++k)
+                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
+                        if (i_col < numMyCols+offset) {
+                            for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows]-offset;
+                                 k < row_coupleBlock_ptr[i_row - numMyRows + 1]-offset; ++k)
                             {
                                 if (row_coupleBlock_index[k] == i_col) {
                                     for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
