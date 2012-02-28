@@ -1237,23 +1237,23 @@ class VariationalProblem(object):
 		     coeff2["r"]=self._r
 		     
 	    elif "Y" in update:
-	         Y,X = __getNonlinearPDECoefficient("",capson=True, order=1)
+	         Y,X = self.__getNonlinearPDECoefficient("",capson=True, order=1)
 	         coeff2["Y"]=Y
 	         coeff2["X"]=X
 	    elif "y" in update: 
-	         coeff2["y"]=__getNonlinearPDECoefficient("",capson=False)
+	         coeff2["y"]=_self._getNonlinearPDECoefficient("",capson=False)
 	    elif "y_contact" in update: 
-	         coeff2["y_contact"]=__getNonlinearPDECoefficient("_contact",capson=False)
+	         coeff2["y_contact"]=self.__getNonlinearPDECoefficient("_contact",capson=False)
 	    elif "y_dirac" in update:
-	          coeff2["y_dirac"]=__getNonlinearPDECoefficient("_dirac",capson=False)
+	          coeff2["y_dirac"]=self.__getNonlinearPDECoefficient("_dirac",capson=False)
 	    elif "Y_reduced" in update:
-	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
+	         Y,X =self. __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
 	         coeff2["Y_reduced"]=Y
 	         coeff2["X_reduced"]=X
 	    elif "y_reduced" in update: 
-	         coeff2["y_reduced"]= __getNonlinearPDECoefficient("_reduced",capson=False)
+	         coeff2["y_reduced"]= self.__getNonlinearPDECoefficient("_reduced",capson=False)
 	    elif "y_contact_reduced" in update: 
-	         coeff2["y_contact_reduced"]=__getNonlinearPDECoefficient("_contact_reduced",capson=False)
+	         coeff2["y_contact_reduced"]=self.__getNonlinearPDECoefficient("_contact_reduced",capson=False)
 
             # and now we can set the PDE coefficient:
             self.getNonlinearPDE().setValue(**coeff2)
