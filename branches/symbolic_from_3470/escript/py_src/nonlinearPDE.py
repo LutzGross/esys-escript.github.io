@@ -18,13 +18,13 @@ http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
-__unknownrl__="https://launchpad.net/escript-finley"
+__url__="https://launchpad.net/escript-finley"
 
 """
 :var __author__: name of author
 :var __copyright__: copyrights
 :var __license__: licence agreement
-:var __unknownrl__: url entry point on documentation
+:var __url__: url entry point on documentation
 :var __version__: version
 :var __date__: date of the version
 """
@@ -34,24 +34,24 @@ from time import time
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
 from esys.escript import util, Data, Symbol, Evaluator
 
-__author__="Cihan Altinay"
+__author__="Cihan Altinay, Lutz Gross"
 
 class iteration_steps_maxReached(Exception):
-   """
-   Exception thrown if the maximum number of iteration steps is reached.
-   """
-   pass
+    """
+    Exception thrown if the maximum number of iteration steps is reached.
+    """
+    pass
 class DivergenceDetected(Exception):
-   """
-   Exception thrown if Newton-Raphson did not converge.
-   """
-   pass
+    """
+    Exception thrown if Newton-Raphson did not converge.
+    """
+    pass
 class InadmissiblePDEOrdering(Exception):
-   """
-   Exception thrown if the ordering of the PDE equations should be revised.
-   """
-   pass
-      
+    """
+    Exception thrown if the ordering of the PDE equations should be revised.
+    """
+    pass
+
 class NonlinearPDE(object):
     """
     This class is used to define a general nonlinear, steady, second order PDE
@@ -101,10 +101,10 @@ class NonlinearPDE(object):
     """
     DEBUG0=0 # no debug info
     DEBUG1=1 # info on Newton-Raphson solver printed
-    DEBUG2=2 # in addition info from linear solver are printed
-    DEBUG3=3 # in addition info on linearization printed
-    DEBUG4=4 # in addition info on LinearPDE handeling printed.
-    def __init__(self,domain,u,debug=0):
+    DEBUG2=2 # in addition info from linear solver is printed
+    DEBUG3=3 # in addition info on linearization is printed
+    DEBUG4=4 # in addition info on LinearPDE handling is printed
+    def __init__(self, domain, u, debug=DEBUG0):
         """
         Initializes a new nonlinear PDE.
 
@@ -134,15 +134,16 @@ class NonlinearPDE(object):
             numEquations=u.getShape()[0]
         numSolutions=numEquations
         self._lpde=LinearPDE(domain,numEquations,numSolutions,self._debug > self.DEBUG4 )
-        
+
     def __str__(self):
         """
-        Returns the string representation of the PDE.
+        Returns the string representation of the PDE
 
         :return: a simple representation of the PDE
         :rtype: ``str``
         """
-        return "<NonlinearPDE %d>"%id(self)
+        return "<%s %d>"%(self.__class__.__name__, id(self))
+
     def getUnknownSymbol(self):
         """
         Returns the symbol of the PDE unknown
@@ -151,20 +152,20 @@ class NonlinearPDE(object):
         :rtype: `Symbol`
         """
         return self._unknown
-      
+
     def trace1(self, text):
         """
-        Prints the text message if debug mode is switched on.
+        Prints the text message if the debug level is greater than DEBUG0
 
         :param text: message to be printed
         :type text: ``string``
         """
         if self._debug > self.DEBUG0:
             print("%s: %s"%(str(self), text))
-            
+
     def trace3(self, text):
         """
-        Prints the text message if debug mode level DEBUG3 is switched on.
+        Prints the text message if the debug level is greater than DEBUG3
 
         :param text: message to be printed
         :type text: ``string``
@@ -174,32 +175,35 @@ class NonlinearPDE(object):
 
     def getLinearSolverOptions(self):
         """
-        Returns the options of the linear PDE solver class.
+        Returns the options of the linear PDE solver class
         """
         return self._lpde.getSolverOptions()
+
     def getLinearPDE(self):
         """
-        returns the linear PDE used to calculate the Newton-Raphson update
-        
+        Returns the linear PDE used to calculate the Newton-Raphson update
+
         :rtype: `LinearPDE`
         """
         return self._lpde
+
     def setOptions(self, **opts):
         """
         Allows setting options for the nonlinear PDE.
         The supported options are:
           'tolerance' - error tolerance for the Newton method
-          'iteration_steps_max'   - maximum number of Newton iterations
-          'omega_min'   - minimum relaxation factor
-          'atol'   - solution norms less then 'atol' are assumed to be 'atol'.
-                     this can be use full if one of your solution is expected to be zero.
-          'quadratic_convergence_limit' - if the norm of the Newton-Raphson correction is 
-                                          reduced by less then 'quadratic_convergence_limit' 
-                                          between two iteration steps quadratic convergence 
-                                          is assumed.
-          'simplified_newton_limit' - if the norm of the defect is reduced by less then 'simplified_newton_limit'
-                                      between two iteration steps and quadratic convergence is detected
-                                      the iteration swiches to the simplified Newton-Raphson scheme.
+          'iteration_steps_max' - maximum number of Newton iterations
+          'omega_min' - minimum relaxation factor
+          'atol' - solution norms less than 'atol' are assumed to be 'atol'.
+                   This can be useful if one of your solutions is expected to
+                   be zero.
+          'quadratic_convergence_limit' - if the norm of the Newton-Raphson
+                    correction is reduced by less than 'quadratic_convergence_limit'
+                    between two iteration steps quadratic convergence is assumed
+          'simplified_newton_limit' - if the norm of the defect is reduced by
+                    less than 'simplified_newton_limit' between two iteration
+                    steps and quadratic convergence is detected the iteration
+                    swiches to the simplified Newton-Raphson scheme
         """
         for key in opts:
             if key=='tolerance':
@@ -209,11 +213,11 @@ class NonlinearPDE(object):
             elif key=='omega_min':
                 self._omega_min=opts[key]
             elif key=='atol':
-                self._atol=opts[key] 
+                self._atol=opts[key]
             elif key=='quadratic_convergence_limit':
-                self._quadratic_convergence_limit=opts[key] 
+                self._quadratic_convergence_limit=opts[key]
             elif key=='simplified_newton_limit':
-                self._simplified_newton_limit=opts[key] 
+                self._simplified_newton_limit=opts[key]
             else:
                 raise KeyError("Invalid option '%s'"%key)
 
@@ -221,7 +225,7 @@ class NonlinearPDE(object):
         """
         Returns the solution of the PDE.
         :param subs: Substitutions for all symbols used in the coefficients
-                     including the initial value for *u*.
+                     including the initial value for the unknown *u*.
         :return: the solution
         :rtype: `Data`
         """
@@ -237,18 +241,18 @@ class NonlinearPDE(object):
         # modify ui so it meets the constraints:
         q=self._lpde.getCoefficient("q")
         if not q.isEmpty():
-	   if hasattr(self, "_r"):
-	      r=self._r
-	      if hasattr(r, "atoms"):
-		  r=Evaluator(r).evaluate(**subs)
-	      elif not isinstance(r, Data):
-		  r=Data(r, self._lpde.getFunctionSpaceForSolution())
-	      elif r.isEmpty():
-		  r=0
-	   else:
-	      r=0 
-           ui = q * r + (1-q) * ui
-           
+            if hasattr(self, "_r"):
+                r=self._r
+                if hasattr(r, "atoms"):
+                    r=Evaluator(r).evaluate(**subs)
+                elif not isinstance(r, Data):
+                    r=Data(r, self._lpde.getFunctionSpaceForSolution())
+                elif r.isEmpty():
+                    r=0
+            else:
+                r=0
+            ui = q * r + (1-q) * ui
+
         # separate symbolic expressions from other coefficients
         constants={}
         expressions={}
@@ -262,7 +266,7 @@ class NonlinearPDE(object):
         self._lpde.setValue(**constants)
         self._lpde.getSolverOptions().setAbsoluteTolerance(0.)
         self._lpde.getSolverOptions().setVerbosity(self._debug > self.DEBUG1)
-        #============================================================================================================
+        #=====================================================================
         # perform Newton iterations until error is small enough or
         # maximum number of iterations reached
         n=0
@@ -271,78 +275,82 @@ class NonlinearPDE(object):
         defect_norm=None
         delta_norm=None
         converged=False
-        
+
         subs[u_sym]=ui
         while not converged:
             if n > self._iteration_steps_max:
-               raise iteration_steps_maxReached("maximum number of iteration steps reach. Giving up.")
-            self.trace1(5*"="+" %s-th iteration step."%n + 5*"=") 
+               raise iteration_steps_maxReached("maximum number of iteration steps reached, giving up.")
+            self.trace1(5*"="+" iteration step %d "%n + 5*"=")
             # calculate the correction delta_u
             if n == 0:
-                self._unknownpdateLinearPDE(expressions, subs)
+                self._updateLinearPDE(expressions, subs)
                 defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
                 LINTOL=0.1
             else:
-                if not use_simplified_Newton: self._unknownpdateMatrix(expressions, subs)
+                if not use_simplified_Newton:
+                    self._updateMatrix(expressions, subs)
                 if q_u == None:
-                   LINTOL = 0.1 * min(qtol/defect_norm)
+                    LINTOL = 0.1 * min(qtol/defect_norm)
                 else:
-                   LINTOL = 0.1 * max( q_u**2, min(qtol/defect_norm) )
+                    LINTOL = 0.1 * max( q_u**2, min(qtol/defect_norm) )
                 LINTOL=max(1e-4,min(LINTOL, 0.1))
             self._lpde.getSolverOptions().setTolerance(LINTOL)
-            self.trace1("PDE is solved with rel. tolerance = %e"%(LINTOL,))
+            self.trace1("PDE is solved with rel. tolerance = %e"%LINTOL)
             delta_u=self._lpde.getSolution()
-            
+
             #check for reduced defect:
-            omega=min(2*omega, 1.) # raise omega 
+            omega=min(2*omega, 1.) # raise omega
             defect_reduced=False
             while not defect_reduced:
-                ui=ui-delta_u * omega               
-                subs[u_sym]=ui        
-                self._unknownpdateRHS(expressions, subs)
+                ui=ui-delta_u * omega
+                subs[u_sym]=ui
+                self._updateRHS(expressions, subs)
                 new_defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
-                q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm)) # if defect_norm==0 and new_defect_norm!=0 
-                                                                               # this will be util.DBLE_MAX
+                q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
+                # if defect_norm==0 and new_defect_norm!=0
+                # this will be util.DBLE_MAX
                 self.trace1("Defect reduction = %e with relaxation factor %e."%(q_defect, omega))
                 if q_defect < 1:
                     defect_reduced=True
                 else:
                     omega*=0.5
                     if omega < self._omega_min:
-                        raise DivergenceDetected("Underrelaxtion failed to reduce defect. Giving up.")
-                        
-            delta_norm, delta_norm_old = self._getSolutionNorm(delta_u) * omega, delta_norm   
+                        raise DivergenceDetected("Underrelaxtion failed to reduce defect, giving up.")
+
+            delta_norm, delta_norm_old = self._getSolutionNorm(delta_u) * omega, delta_norm
             defect_norm, defect_norm_old = new_defect_norm, defect_norm
             u_norm=self._getSolutionNorm(ui, atol=self._atol)
-            # set the tolerance on equation level: 
-            qtol=self._getSafeRatio(defect_norm_old * u_norm * self._rtol, delta_norm) 
+            # set the tolerance on equation level:
+            qtol=self._getSafeRatio(defect_norm_old * u_norm * self._rtol, delta_norm)
             # if defect_norm_old==0 and defect_norm_old!=0 this will be util.DBLE_MAX
             #    -> the ordering of the equations is not appropriate.
-            # if defect_norm_old==0 and defect_norm_old==0  this is zero so convergence can happen for defect_norm==0 only.
+            # if defect_norm_old==0 and defect_norm_old==0  this is zero so
+            # convergence can happen for defect_norm==0 only.
             if not max(qtol)<util.DBLE_MAX:
-                     raise InadmissiblePDEOrdering("Review ordering of PDE equations.")
-            # check stoping criteria
-            if not delta_norm_old == None: 
-               q_u=max(self._getSafeRatio(delta_norm , delta_norm_old))  # if delta_norm_old==0 and delta_norm!=0 
-                                                                           # this will be util.DBLE_MAX
-               if q_u <= self._quadratic_convergence_limit and not omega<1. :
-                 quadratic_convergence=True
-                 self.trace1("Quadratic convergence detected (rate %e <= %e)"%(q_u, self._quadratic_convergence_limit))
+                raise InadmissiblePDEOrdering("Review ordering of PDE equations.")
+            # check stopping criteria
+            if not delta_norm_old == None:
+                q_u=max(self._getSafeRatio(delta_norm, delta_norm_old))
+                # if delta_norm_old==0 and delta_norm!=0
+                # this will be util.DBLE_MAX
+                if q_u <= self._quadratic_convergence_limit and not omega<1. :
+                    quadratic_convergence=True
+                    self.trace1("Quadratic convergence detected (rate %e <= %e)"%(q_u, self._quadratic_convergence_limit))
 
-                 converged = all( [ defect_norm[i] <= qtol[i] for i in range(len(qtol)) ])
-                  
-               else:
-                   self.trace1("No quadratic convergence detected (rate %e > %e, omega=%e)"%(q_u, self._quadratic_convergence_limit,omega ))
-                   quadratic_convergence=False
-	           converged=False
+                    converged = all( [ defect_norm[i] <= qtol[i] for i in range(len(qtol)) ])
+
+                else:
+                    self.trace1("No quadratic convergence detected (rate %e > %e, omega=%e)"%(q_u, self._quadratic_convergence_limit,omega ))
+                    quadratic_convergence=False
+                    converged=False
             else:
-               q_u=None
-               converged=False 
-               quadratic_convergence=False
+                q_u=None
+                converged=False
+                quadratic_convergence=False
             if self._debug > self.DEBUG0:
                 for i in range(len(u_norm)):
-                     self.trace1("Component %s: u: %e, du: %e, defect: %e, qtol: %e"%(i, u_norm[i], delta_norm[i], defect_norm[i], qtol[i]))
-                if converged: self.trace1("Iteration has converged.")                
+                    self.trace1("Component %s: u: %e, du: %e, defect: %e, qtol: %e"%(i, u_norm[i], delta_norm[i], defect_norm[i], qtol[i]))
+                if converged: self.trace1("Iteration has converged.")
             # Can we switch to simplified Newton?
             if quadratic_convergence:
                 q_defect=max(self._getSafeRatio(defect_norm, defect_norm_old))
@@ -350,64 +358,68 @@ class NonlinearPDE(object):
                     use_simplified_Newton=True
                     self.trace1("Simplified Newton-Raphson is applied (rate %e < %e)."%(q_defect, self._simplified_newton_limit))
             n+=1
-        self.trace1(5*"="+" Newton-Raphson iteration completed after %s steps."%n + 5*"=")
+        self.trace1(5*"="+" Newton-Raphson iteration completed after %d steps "%n + 5*"=")
         return ui
+
     def _getDefectNorm(self, f):
         """
         calculates the norm of the defect ``f``
-        
+
         :param f: defect vector
         :type f: `Data` of rank 0 or 1.
         :return: component-by-component norm of ``f``
         :rtype: `numpy.array` of rank 1
         :raise ValueError: if shape if ``f`` is incorrect.
-        
+
         """
         # this still needs some work!!!
         out=[]
         s=f.getShape()
         if len(s) == 0:
-           out.append(util.Lsup(f))
+            out.append(util.Lsup(f))
         elif len(s) == 1:
-           for i in range(s[0]):
+            for i in range(s[0]):
                 out.append(util.Lsup(f[i]))
         else:
-           raise ValueError("Illegal shape %s."%(s,))
+            raise ValueError("Illegal shape of defect vector: %s"%s)
         return numpy.array(out)
-        
+
     def _getSolutionNorm(self, u, atol=0.):
         """
-        calculates the norm of the defect ``u``
-        
-        :param f: defect vector
+        calculates the norm of the solution ``u``
+
+        :param u: solution vector
         :type f: `Data` of rank 0 or 1.
         :return: component-by-component norm of ``u``
         :rtype: `numpy.array` of rank 1
         :raise ValueError: if shape if ``u`` is incorrect.
-        
+
         """
         out=[]
         s=u.getShape()
         if len(s) == 0:
-           out.append(max(util.Lsup(u),atol) )
+            out.append(max(util.Lsup(u),atol) )
         elif len(s) == 1:
-           for i in range(s[0]):
+            for i in range(s[0]):
                 out.append(max(util.Lsup(u[i]), atol))
         else:
-           raise ValueError("Illegal shape %s."%(s,))
+            raise ValueError("Illegal shape of solution: %s"%s)
         return numpy.array(out)
+
     def _getSafeRatio(self, a , b):
         """
-        return the component-by-component ratio of ''a'' and ''b''
-        
-        If for a component ``i`` the values ``a[i]`` and ``b[i]`` both are equal to zero their ratio is set to zero.
-        If ``b[i]`` equals zero but ``a[i]`` is positive the ratio is set to `util.DBLE_MAX`.  
-        
+        Returns the component-by-component ratio of ''a'' and ''b''
+
+        If for a component ``i`` the values ``a[i]`` and ``b[i]`` are both
+        equal to zero their ratio is set to zero.
+        If ``b[i]`` equals zero but ``a[i]`` is positive the ratio is set to
+        `util.DBLE_MAX`.
+
         :param a: numerator
         :param b: denominator
         :type a: `numpy.array` of rank 1 with non-negative entries.
         :type b: `numpy.array` of rank 1 with non-negative entries.
-        :return: ratio of ``a`` and ``b`` 
+        :return: ratio of ``a`` and ``b``
         :rtype: `numpy.array`
         """
         out=0.
@@ -415,17 +427,17 @@ class NonlinearPDE(object):
             raise ValueError("shapes must match.")
         s=a.shape
         if len(s) != 1:
-            raise ValueError("rank one is expected.") 
-        out=numpy.zeros(s)   
-        for i in range(s[0]): 
-           if abs(b[i]) > 0:
-               out[i]=a[i]/b[i]
-           elif abs(a[i]) > 0:
-               out[i] = util.DBLE_MAX
-           else:
-               out[i] = 0
+            raise ValueError("rank one is expected.")
+        out=numpy.zeros(s)
+        for i in range(s[0]):
+            if abs(b[i]) > 0:
+                out[i]=a[i]/b[i]
+            elif abs(a[i]) > 0:
+                out[i] = util.DBLE_MAX
+            else:
+                out[i] = 0
         return out
-        
+
     def getNumSolutions(self):
         """
         Returns the number of the solution components
@@ -439,7 +451,7 @@ class NonlinearPDE(object):
 
     def getShapeOfCoefficient(self,name):
         """
-        Returns the shape of the coefficient ``name``.
+        Returns the shape of the coefficient ``name``
 
         :param name: name of the coefficient enquired
         :type name: ``string``
@@ -450,53 +462,50 @@ class NonlinearPDE(object):
         numSol=self.getNumSolutions()
         dim = self.dim
         if name=="X" or name=="X_reduced":
-            if numSol > 1: 
-                return (numSol,dim)         
+            if numSol > 1:
+                return (numSol,dim)
             else:
                 return (dim,)
         elif name=="r" or name == "q" :
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
                 return ()
         elif name=="Y" or name=="Y_reduced":
             if numSol > 1:
-                return (numSol,)         
+                return (numSol,)
             else:
                 return ()
         elif name=="y" or name=="y_reduced":
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         elif name=="y_contact" or name=="y_contact_reduced":
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         elif name=="y_dirac":
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name) 
+            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
-        create a new coefficient ``name`` as Symbol
+        Creates a new coefficient ``name`` as Symbol
 
         :param name: name of the coefficient requested
         :type name: ``string``
         :return: the value of the coefficient
         :rtype: `Symbol` or `Data` (for name = "q")
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
-        """   
+        """
         if name == "q":
-            return self._lpde.createCoefficient("q")  
-        elif name == "r":
-	   s=self.getShapeOfCoefficient('r')
-           return Symbol('r', s, dim=self.dim)
+            return self._lpde.createCoefficient("q")
         else:
            s=self.getShapeOfCoefficient(name)
            return Symbol(name, s, dim=self.dim)
@@ -514,12 +523,12 @@ class NonlinearPDE(object):
         if self._set_coeffs.has_key(name):
             return self._set_coeffs[name]
         elif name == "r":
-	     if hasattr(self, "_r"):
-	         return self._r
-	     else:
-	         raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+             if hasattr(self, "_r"):
+                 return self._r
+             else:
+                 raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
         elif name == "q":
-	     return self._lpde.getCoefficient("q")  
+             return self._lpde.getCoefficient("q")
         else:
             raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
@@ -541,29 +550,29 @@ class NonlinearPDE(object):
         :keyword y_dirac: value for coefficient ``y_dirac``
         :type y_dirac: `Symbol` or any type that can be cast to a `Data` object
         :keyword q: mask for location of constraint
-        :type q: any type that can be cast to a `Data` object       
+        :type q: any type that can be cast to a `Data` object
         :keyword r: value of solution prescribed by constraint
-        :type r: `Symbol` or any type that can be cast to a `Data` object   
+        :type r: `Symbol` or any type that can be cast to a `Data` object
         :raise IllegalCoefficient: if an unknown coefficient keyword is used
         :raise IllegalCoefficientValue: if a supplied coefficient value has an
                                         invalid shape
-        """  
-        
+        """
+
         u=self._unknown
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
+                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, self.getShapeOfCoefficient(name), shape))
             rank=len(shape)
             if name == "q":
-                self._lpde.setValue(q=val)  
+                self._lpde.setValue(q=val)
             elif name == "r":
                 self._r=val
             elif name=="X" or name=="X_reduced":
-                # DX/Du = del_X/del_unknown + del_X/del_grad(u)*del_grad(u)/del_unknown
+                # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
                 #            \   /         \   /
                 #              B             A
-                
+
                 if rank != u.getRank()+1:
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
@@ -625,7 +634,7 @@ class NonlinearPDE(object):
                     self._set_coeffs['B']=B
                     self._set_coeffs['X']=val
             elif name=="Y" or name=="Y_reduced":
-                # DY/Du = del_Y/del_unknown + del_Y/del_grad(u)*del_grad(u)/del_unknown
+                # DY/Du = del_Y/del_u + del_Y/del_grad(u)*del_grad(u)/del_u
                 #            \   /         \   /
                 #              D             C
                 if rank != u.getRank():
@@ -705,11 +714,13 @@ class NonlinearPDE(object):
     def _newtonStep(self, expressions, subs):
         """
         """
-        self._unknownpdateLinearPDE(expressions, subs)
+        self._updateLinearPDE(expressions, subs)
         delta_u=self._lpde.getSolution()
         return delta_u
 
-    def _unknownpdateRHS(self, expressions, subs):
+    def _updateRHS(self, expressions, subs):
+        """
+        """
         ev=Evaluator()
         names=[]
         for name in expressions:
@@ -728,7 +739,9 @@ class NonlinearPDE(object):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         self._lpde.setValue(**dict(zip(names,res)))
 
-    def _unknownpdateMatrix(self, expressions, subs):
+    def _updateMatrix(self, expressions, subs):
+        """
+        """
         ev=Evaluator()
         names=[]
         for name in expressions:
@@ -747,15 +760,15 @@ class NonlinearPDE(object):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         self._lpde.setValue(**dict(zip(names,res)))
 
-    def _unknownpdateLinearPDE(self, expressions, subs):
-        self._unknownpdateMatrix(expressions, subs)
-        self._unknownpdateRHS(expressions, subs)
+    def _updateLinearPDE(self, expressions, subs):
+        self._updateMatrix(expressions, subs)
+        self._updateRHS(expressions, subs)
 
     def _removeFsFromGrad(self, sym):
         """
         Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
         That is, all functionspace parameters are removed.
-        This method is used in setValue() in order to get substitutions work
+        This method is used in setValue() in order to get substitutions to work
         properly.
         """
         from esys.escript import symfn
@@ -769,30 +782,37 @@ class NonlinearPDE(object):
 class VariationalProblem(object):
     """
     This class is used to define a general constraint vartional problem
-    for an unknown function *u* and (spially variable) parameter *p* on a given domain defined through a `Domain`
-    object. *u* may be a scalar or a vector. *p* which may be a scalar or a vector may not be present. 
-    
-    The solution *u* and the paremeter *p* a given as the solution of the minimization problem: 
-    
+    for an unknown function *u* and (spatially variable) parameter *p* on a
+    given domain defined through a `Domain` object. *u* may be a scalar or a
+    vector. *p* which may be a scalar or a vector may not be present.
+
+    The solution *u* and the paremeter *p* are given as the solution of the
+    minimization problem:
+
     *min_{u,p} int(H) + int(h)*
 
-    
-    where int{H} refers to intagration over the domain and *H*=f(*x*,*u*,*grad(u)*,*p*, *grad(p)*) is a functions which may depoend on the location *x*
-    within the  domain and is a function of the solution *u* and the parameter *p* and their gardients *grad(u)* and *grad(p)*, respectively. 
-    Similarly, int{H} refers to intagration over the boundray of the domain and *h=f(*x*,*u*, *p*) is a functions which may depoend
-    on the location *x* within the domain boundary and is a function of the solution *u* and the parameter *p*. 
+    where int{H} refers to integration over the domain and
+    *H*=f(*x*,*u*,*grad(u)*,*p*, *grad(p)*) is a function which may depend on
+    the location *x* within the domain and is a function of the solution *u*
+    and the parameter *p* and their gradients *grad(u)* and *grad(p)*,
+    respectively.
+    Similarly, int{H} refers to integration over the boundary of the domain and
+    *h=f(*x*,*u*, *p*) is a function which may depend on the location *x*
+    within the domain boundary and is a function of the solution *u* and the
+    parameter *p*.
 
-    If *p* is present, *u* is solution of a PDE with coefficences depending on the parameter *p*. The PDE defines a constraint 
-    for the varational problem. It is assumed that, if *p* is present, for any given parameter *p* a unique solution 
-    *u* of the PDE esxists.
-    
+    If *p* is present, *u* is the solution of a PDE with coefficients depending
+    on the parameter *p*. The PDE defines a constraint for the variational
+    problem. It is assumed that, if *p* is present, for any given parameter *p*
+    a unique solution *u* of the PDE exists.
+
     For a single PDE having a solution with a single component the nonlinear
     PDE is defined in the following form:
 
     *-div(X) + Y = 0*
 
-    where *X*,*Y*=f(*x*,*u*,*grad(u)*, *p*, *grad(p)*), *div(F)* denotes the divergence of *F* and
-    *grad(F)* is the spatial derivative of *F*.
+    where *X*,*Y*=f(*x*,*u*,*grad(u)*, *p*, *grad(p)*), *div(F)* denotes the
+    divergence of *F* and *grad(F)* is the spatial derivative of *F*.
 
     The coefficients *X* (rank 1) and *Y* (scalar) have to be specified through
     `Symbol` objects.
@@ -825,25 +845,27 @@ class VariationalProblem(object):
         s=Symbol('s', dim=dom.getDim())
         T = Symbol('T', dim=dom.getDim())
         log_k = Symbol('log_k', dim=dom.getDim())
-        v = VariationalProblem(dom, u=T,p=log_k)
+        v = VariationalProblem(dom, u=T, p=log_k)
         v.setValue(X=exp(-p)*grad(u), Y=s, h=0.3*(u-0.3)**2)
-        T, log_k, l = v.getSolution(T=0.,log_K=1, s=2.45)
+        T, log_k, l = v.getSolution(T=0., log_K=1, s=2.45)
         sT,S_log_K=v.getSensitivity(s, direction=1, T=T, log_K=log_K, s=2.45)
-        
+
     """
     DEBUG0=0 # no debug info
     DEBUG1=1 # info on Newton-Raphson solver printed
-    DEBUG2=2 # in addition info from linear solver are printed
-    DEBUG3=3 # in addition info on linearization printed
-    DEBUG4=4 # in addition info on LinearPDE handeling printed.
-    def __init__(self,domain,u,p=None, debug=0):
+    DEBUG2=2 # in addition info from linear solver is printed
+    DEBUG3=3 # in addition info on linearization is printed
+    DEBUG4=4 # in addition info on LinearPDE handling is printed
+    def __init__(self, domain, u, p=None, debug=DEBUG0):
         """
-        Initializes a new nonlinear PDE.
+        Initializes a new variational problem.
 
         :param domain: domain of the PDE
         :type domain: `Domain`
         :param u: The symbol for the unknown PDE function u.
         :type u: `Symbol`
+        :param p: The symbol for the parameter p.
+        :type p: `Symbol`
         :param debug: level of debug information to be printed
         """
         self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac", \
@@ -854,54 +876,55 @@ class VariationalProblem(object):
         self._parameter=p
         self._debug=debug
         self.dim = domain.getDim()
-        
+
         if self._parameter == None:
-	    U=u
-	else:
-	    self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
-            U=concatenateRow(self._parameter, self.__unknwon, self._lagrangean)
+            U=u
+        else:
+            self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
+            U=concatenateRow(self._parameter, self.__unknown, self._lagrangean)
         self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
-        
+
     def __str__(self):
         """
-        Returns the string representation of the PDE.
+        Returns the string representation of the problem.
 
-        :return: a simple representation of the PDE
+        :return: a simple representation of the variational problem
         :rtype: ``str``
         """
-        return "<VariationalProblem %d>"%id(self)
-    def getNonlinearPDE(self):
-        """
-        return the `NonlinearPDE` used to solve the variational problem.
-        
-        :return: underlying nonlinear PDE
-        :rtype: `NonlinearPDE`
-        """
-        return self.__PDE
-      
+        return "<%s %d>"%(self.__class__.__name__, id(self))
+
     def trace1(self, text):
         """
-        Prints the text message if debug mode is switched on.
+        Prints the text message if the debug level is greater than DEBUG0
 
         :param text: message to be printed
         :type text: ``string``
         """
         if self._debug > self.DEBUG0:
             print("%s: %s"%(str(self), text))
-            
+
     def trace3(self, text):
         """
-        Prints the text message if debug mode level DEBUG3 is switched on.
+        Prints the text message if the debug level is greater than DEBUG3
 
         :param text: message to be printed
         :type text: ``string``
         """
         if self._debug > self.DEBUG2:
             print("%s: %s"%(str(self), text))
-            
+
+    def getNonlinearPDE(self):
+        """
+        Returns the `NonlinearPDE` used to solve the variational problem
+
+        :return: underlying nonlinear PDE
+        :rtype: `NonlinearPDE`
+        """
+        return self.__PDE
+
     def getNumSolutions(self):
         """
-        Returns the number of the solution components
+        Returns the number of solution components
         :rtype: ``int``
         """
         s=self._unknown.getShape()
@@ -909,26 +932,26 @@ class VariationalProblem(object):
             return s[0]
         else:
             return 1
-    
+
     def getNumParameters(self):
         """
-        Returns the number of the parameter components. If no parameter is present
+        Returns the number of parameter components. If no parameter is present
         zero is returned.
-        
+
         :rtype: ``int``
         """
         if self.__parameter == None:
-	     return 0
-	else:
-	    s=self._unknown.getShape()
-	    if len(s) > 0:
-		return s[0]
-	    else:
-		return 1
-            
-    def getShapeOfCoefficient(self,name):
+            return 0
+        else:
+            s=self._unknown.getShape()
+            if len(s) > 0:
+                return s[0]
+            else:
+                return 1
+
+    def getShapeOfCoefficient(self, name):
         """
-        Returns the shape of the coefficient ``name``.
+        Returns the shape of the coefficient ``name``
 
         :param name: name of the coefficient enquired
         :type name: ``string``
@@ -940,73 +963,73 @@ class VariationalProblem(object):
         numParams=self.getNumParameters()
         dim = self.dim
         if (name=="X" or name=="X_reduced") and numParams>0:
-            if numSol > 1: 
-                return (numSol,dim)         
+            if numSol > 1:
+                return (numSol,dim)
             else:
                 return (dim,)
         elif name=="r" or name == "q" :
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
                 return ()
         elif ( name=="rp" or name == "qp") and numParams>0:
-            if numParams > 1: 
-                return (numParams,)         
+            if numParams > 1:
+                return (numParams,)
             else:
                 return ()
         elif ( name=="Y" or name=="Y_reduced") and numParams>0:
             if numSol > 1:
-                return (numSol,)         
+                return (numSol,)
             else:
                 return ()
         elif ( name=="y" or name=="y_reduced") and numParams>0:
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         elif ( name=="y_contact" or name=="y_contact_reduced") and numParams>0:
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         elif name=="y_dirac" and numParams>0:
-            if numSol > 1: 
-                return (numSol,)         
+            if numSol > 1:
+                return (numSol,)
             else:
-                return ()         
+                return ()
         elif name=="H" or name=="H_reduced":
                 return ()
         elif name=="h" or name=="h_reduced":
-                return ()         
+                return ()
         elif name=="h_contact" or name=="h_contact_reduced":
-                return ()         
+                return ()
         elif name=="h_dirac":
-                return ()                  
+                return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name) 
+            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
-        create a new coefficient ``name`` as Symbol
+        Creates a new coefficient ``name`` as Symbol
 
         :param name: name of the coefficient requested
         :type name: ``string``
         :return: the value of the coefficient
-        :rtype: `Symbol` or `Data` 
+        :rtype: `Symbol` or `Data`
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
-        """   
+        """
         numSol=self.getNumSolutions()
-        numParams=self.getNumParameters()        
+        numParams=self.getNumParameters()
         if name == "q":
-	    if numParams > 0:
+            if numParams > 0:
                 return self.getNonlinearPDE().createCoefficient("q")[numParams:numParams+numSol]
             else:
-	        return self.getNonlinearPDE().createCoefficient("q")
+                return self.getNonlinearPDE().createCoefficient("q")
         elif name == "qp":
-	    if numParams > 0:
+            if numParams > 0:
                 return self.getNonlinearPDE().createCoefficient("q")[:numParams]
             else:
-	        raise IllegalCoefficient("Attempt to request coefficient %s"%name) 
+                raise IllegalCoefficient("Attempt to request coefficient %s"%name)
         else:
            s=self.getShapeOfCoefficient(name)
            return Symbol(name, s, dim=self.dim)
@@ -1025,49 +1048,49 @@ class VariationalProblem(object):
             return self._set_coeffs[name]
         else:
             raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
-	  
-    def __getNonlinearPDECoefficient(self, extension, capson=False, order=0):
-      if capson:
-	  H_key="H"+extension
-	  X_key="X"+extension
-	  Y_key="Y"+extension
-	  Z_key="Z"+extension
-      else:     
-	  H_key="h"+extension
-	  X_key="x"+extension
-	  Y_key="y"+extension
-	  Z_key="z"+extension
 
-      Z=Symbol(Z_key,(), dim=self.dim)
-      if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
-      if self._set_coeffs.has_key(X_key): Z+=inner(self._set_coeffs[X_key],grad(self._lagrangean))
-      if self._set_coeffs.has_key(Y_key): Z+=inner(self._set_coeffs[Y_key],self._lagrangean)
-      
-      if numParam>0:
-	  if order == 0:
-	    Yp=getTotalDifferential(Z, self._parameter, order=0)
-	    Yu=getTotalDifferential(Z, self._unknown, order=0)
-	    Yl=getTotalDifferential(Z, self._lagrangean, order=0)
-	    Y=concatenateRow(Yp, Yl, Yu)  # order differenr from solution!!!
-	  else:
-	    Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
-	    Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
-	    Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
-	    Y=concatenateRow(Yp, Yl, Yu)  # order differenr from solution!!!
-	    X=concatenateRow(Xp, Xl, Xu)  # order differenr from solution!!!
-      else:
-	  if order == 0:
-	    Y=getTotalDifferential(Z, self._unknown, order=0)
-	  else:
-	    Y,X=getTotalDifferential(Z, self._unknown, order=1)
-      return Y,X    
-      
+    def __getNonlinearPDECoefficient(self, extension, capson=False, order=0):
+        """
+        """
+        if capson:
+            H_key="H"+extension
+            X_key="X"+extension
+            Y_key="Y"+extension
+            Z_key="Z"+extension
+        else:
+            H_key="h"+extension
+            X_key="x"+extension
+            Y_key="y"+extension
+            Z_key="z"+extension
+
+        Z=Symbol(Z_key,(), dim=self.dim)
+        if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
+        if self._set_coeffs.has_key(X_key): Z+=inner(self._set_coeffs[X_key],grad(self._lagrangean))
+        if self._set_coeffs.has_key(Y_key): Z+=inner(self._set_coeffs[Y_key],self._lagrangean)
+
+        if numParam>0:
+            if order == 0:
+                Yp=getTotalDifferential(Z, self._parameter, order=0)
+                Yu=getTotalDifferential(Z, self._unknown, order=0)
+                Yl=getTotalDifferential(Z, self._lagrangean, order=0)
+                Y=concatenateRow(Yp, Yl, Yu)  # order different from solution!
+            else:
+                Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
+                Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
+                Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
+                Y=concatenateRow(Yp, Yl, Yu)  # order different from solution!
+                X=concatenateRow(Xp, Xl, Xu)  # order different from solution!
+        else:
+            if order == 0:
+                Y=getTotalDifferential(Z, self._unknown, order=0)
+            else:
+                Y,X=getTotalDifferential(Z, self._unknown, order=1)
+        return Y,X
+
     def setValue(self,**coefficients):
         """
         Sets new values to one or more coefficients.
 
-        
-        
         :keyword H: value for coefficient ``H``
         :type H: `Symbol`
         :keyword h: value for coefficient ``h``
@@ -1087,14 +1110,14 @@ class VariationalProblem(object):
         :keyword y_dirac: value for coefficient ``y_dirac``
         :type y_dirac: `Symbol` or any type that can be cast to a `Data` object
         :keyword q: mask for location of constraint
-        :type q: any type that can be casted to a `Data` object       
+        :type q: any type that can be casted to a `Data` object
         :keyword r: value of solution prescribed by constraint
-        :type r: `Symbol` or any type that can be cast to a `Data` object  
+        :type r: `Symbol` or any type that can be cast to a `Data` object
         :keyword qp: mask for location of constraint fro parameter
-        :type qp: any type that can be casted to a `Data` object        
+        :type qp: any type that can be casted to a `Data` object
         :keyword rp: value of the parameter prescribed by parameter constraint
-        :type rp: `Symbol` or any type that can be cast to a `Data` object   
-        
+        :type rp: `Symbol` or any type that can be cast to a `Data` object
+
         :raise IllegalCoefficient: if an unknown coefficient keyword is used
         :raise IllegalCoefficientValue: if a supplied coefficient value has an
                                         invalid shape
@@ -1107,162 +1130,163 @@ class VariationalProblem(object):
             if not shape == self.getShapeOfCoefficient(name):
                 raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
             if name == "q":
-	        self._q = q
-	        update.append("q")
-	        
+                self._q = q
+                update.append("q")
+
             elif name == "qp":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
-	        self._qp = qp
-	        update.append("q")
-	        
-	    elif name == "r":
-	        self._r = r
-	        update.append("r")
-	        
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._qp = qp
+                update.append("q")
+
+            elif name == "r":
+                self._r = r
+                update.append("r")
+
             elif name == "rp":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
-	        self._rp = rp
-	        update.append("r") 
-	        
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                self._rp = rp
+                update.append("r")
+
             elif name=="X":
-	        if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X']=val
                 update.append("Y")
-                
+
             elif name=="X_reduced":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X_reduced']=val
                 update.append("Y_reduced")
-                
+
             elif name=="Y":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y']=val
                 update.append("Y")
-                
+
             elif name=="Y_reduced":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y_reduced']=val
                 update.append("Y_reduced")
-                
+
             elif name=="H":
                 self._set_coeffs['H']=val
                 update.append("Y")
-                
+
             elif name=="H_reduced":
                 self._set_coeffs['H_reduced']=val
                 update.append("Y_reduced")
-                
+
             elif name=="y":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y']=val
                 update.append("y")
-                
+
             elif name=="y_reduced":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_reduced']=val
                 update.append("y_reduced")
-                
+
             elif name=="h":
                 self._set_coeffs['h']=val
                 update.append("y")
-                
+
             elif name=="h_reduced":
                 self._set_coeffs['h_reduced']=val
                 update.append("y_reduced")
-                
+
             elif name=="y_contact":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact']=val
                 update.append("y_contact")
-                
+
             elif name=="y_contact_reduced":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact_reduced']=val
                 update.append("y_contact_reduced")
-                
+
             elif name=="h_contact":
                 self._set_coeffs['h_contact']=val
                 update.append("y_contact")
-                
+
             elif name=="h_contact_reduced":
                 self._set_coeffs['h_contact_reduced']=val
                 update.append("y_contact_reduced")
-                
+
             elif name=="y_dirac":
-	      	if numParams <1 : 
-	            raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                if numParams<1:
+                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_dirac']=val
                 update.append("y_dirac")
-                
+
             elif name=="h_dirac":
                 self._set_coeffs['h_diract']=val
                 update.append("y_dirac")
-            else:                
+            else:
                 raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
-	      
-	    # now we can update the coefficience of the non-linear PDE:
-	    coeff2={}
-	    if "q" in update:
-	        if numParams>0:
-	             q=self.getNonlinearPDE().createCoefficient("q")
-	             if hasattr(self, "_qp"): q[:numParams]=self._qp
-	             if hasattr(self, "_q"): 
-	                 q[numParams:numParams+numSol]=self._q
-	                 q[numParams+numSol:]=self._q
-	        else:
-		     q=self._q
-	        coeff2["q"]=q 
-	    elif "r" in update:
-	        if numParams>0:
-	             if hasattr(self, "_rp"): 
-	                 rp=self._rp
-	             else:
-		         rp=numpy.zeros(self.getShapeOfCoefficient('rp'))
-	             if hasattr(self, "_r"): 
-	                 r=self._r
-	             else:
-		         r=numpy.zeros(self.getShapeOfCoefficient('r'))
-	             coeff2["r"]=concatenateRow(rp, r, numpy.zeros(self.getShapeOfCoefficient('r')) )
-	        else:
-		     coeff2["r"]=self._r
-		     
-	    elif "Y" in update:
-	         Y,X = self.__getNonlinearPDECoefficient("",capson=True, order=1)
-	         coeff2["Y"]=Y
-	         coeff2["X"]=X
-	    elif "y" in update: 
-	         coeff2["y"]=_self._getNonlinearPDECoefficient("",capson=False)
-	    elif "y_contact" in update: 
-	         coeff2["y_contact"]=self.__getNonlinearPDECoefficient("_contact",capson=False)
-	    elif "y_dirac" in update:
-	          coeff2["y_dirac"]=self.__getNonlinearPDECoefficient("_dirac",capson=False)
-	    elif "Y_reduced" in update:
-	         Y,X =self. __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
-	         coeff2["Y_reduced"]=Y
-	         coeff2["X_reduced"]=X
-	    elif "y_reduced" in update: 
-	         coeff2["y_reduced"]= self.__getNonlinearPDECoefficient("_reduced",capson=False)
-	    elif "y_contact_reduced" in update: 
-	         coeff2["y_contact_reduced"]=self.__getNonlinearPDECoefficient("_contact_reduced",capson=False)
 
-            # and now we can set the PDE coefficient:
+            # now we can update the coefficients of the nonlinear PDE:
+            coeff2={}
+            if "q" in update:
+                if numParams>0:
+                     q=self.getNonlinearPDE().createCoefficient("q")
+                     if hasattr(self, "_qp"): q[:numParams]=self._qp
+                     if hasattr(self, "_q"):
+                         q[numParams:numParams+numSol]=self._q
+                         q[numParams+numSol:]=self._q
+                else:
+                     q=self._q
+                coeff2["q"]=q
+            elif "r" in update:
+                if numParams>0:
+                     if hasattr(self, "_rp"):
+                         rp=self._rp
+                     else:
+                         rp=numpy.zeros(self.getShapeOfCoefficient('rp'))
+                     if hasattr(self, "_r"):
+                         r=self._r
+                     else:
+                         r=numpy.zeros(self.getShapeOfCoefficient('r'))
+                     coeff2["r"]=concatenateRow(rp, r, numpy.zeros(self.getShapeOfCoefficient('r')) )
+                else:
+                     coeff2["r"]=self._r
+
+            elif "Y" in update:
+                 Y,X = __getNonlinearPDECoefficient("", capson=True, order=1)
+                 coeff2["Y"]=Y
+                 coeff2["X"]=X
+            elif "y" in update:
+                 coeff2["y"]=__getNonlinearPDECoefficient("", capson=False)
+            elif "y_contact" in update:
+                 coeff2["y_contact"]=__getNonlinearPDECoefficient("_contact", capson=False)
+            elif "y_dirac" in update:
+                 coeff2["y_dirac"]=__getNonlinearPDECoefficient("_dirac", capson=False)
+            elif "Y_reduced" in update:
+                 Y,X = __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
+                 coeff2["Y_reduced"]=Y
+                 coeff2["X_reduced"]=X
+            elif "y_reduced" in update:
+                 coeff2["y_reduced"]= __getNonlinearPDECoefficient("_reduced",capson=False)
+            elif "y_contact_reduced" in update:
+                 coeff2["y_contact_reduced"]=__getNonlinearPDECoefficient("_contact_reduced",capson=False)
+
+            # and now we can set the PDE coefficients:
             self.getNonlinearPDE().setValue(**coeff2)
 
     def getSolution(self, **subs):
         """
-        Returns the solution of the PDE.
+        Returns the solution of the variational problem.
         :param subs: Substitutions for all symbols used in the coefficients
-                     including the initial value for solution *u* and for the parameter *p* (if present)
+                     including the initial value for solution *u* and for the
+                     parameter *p* (if present)
         :return: parameter, corresponding solution and lagrangean multiplier
         :rtype: tuple of `Data` or single `Data` (if no parameter present)
         """
@@ -1277,23 +1301,23 @@ class VariationalProblem(object):
         if not isinstance(ui,Data):
             ui=Data(ui, self._lpde.getFunctionSpaceForSolution())
 
-        if numParams >0 :
-	      p_sym=self._parameter.atoms().pop().name
-              if not subs.has_key(u_sym):
-                  raise KeyError("Initial value for '%s' missing."%p_sym)
-              pi=subs.pop(p_sym)
-              if not isinstance(pi,Data):
-                  pi=Data(pi, self._lpde.getFunctionSpaceForSolution())
-	      Ui=concatenateRow(pi, ui, numpy.zeros((numSol,)) )
+        if numParams>0:
+            p_sym=self._parameter.atoms().pop().name
+            if not subs.has_key(p_sym):
+                raise KeyError("Initial value for '%s' missing."%p_sym)
+            pi=subs.pop(p_sym)
+            if not isinstance(pi,Data):
+                pi=Data(pi, self._lpde.getFunctionSpaceForSolution())
+            Ui=concatenateRow(pi, ui, numpy.zeros((numSol,)) )
         else:
-	    Ui=uq
-	subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui    
-	
-	
-	Ui=self.getNonlinearPDE().getSolution(**subs)
-	
-	if numParams >0 :
-	   # return parameter, solution, lagrangean multiplier
-	   return Ui[:numParams], Ui[numParams:numParams+numSol], Ui[numParams+numSol:]   
-	else:
-	   return Ui
+            Ui=uq
+        subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui
+
+        Ui=self.getNonlinearPDE().getSolution(**subs)
+
+        if numParams >0 :
+            # return parameter, solution, lagrangean multiplier
+            return Ui[:numParams], Ui[numParams:numParams+numSol], Ui[numParams+numSol:]
+        else:
+            return Ui
+
