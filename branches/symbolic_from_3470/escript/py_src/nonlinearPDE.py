@@ -237,14 +237,16 @@ class NonlinearPDE(object):
         # modify ui so it meets the constraints:
         q=self._lpde.getCoefficient("q")
         if not q.isEmpty():
-           if subs.has_key("r"): self._r=subs.pop("r")
-           r=self._r
-           if hasattr(r, "atoms"):
-              r=Evaluator(r).evaluate(**subs)
-           elif not isinstance(r, Data):
-              ui=Data(r, self._lpde.getFunctionSpaceForSolution())
-           elif r.isEmpty():
-              r=0  
+	   if hasattr(self, "_r"):
+	      r=self._r
+	      if hasattr(r, "atoms"):
+		  r=Evaluator(r).evaluate(**subs)
+	      elif not isinstance(r, Data):
+		  r=Data(r, self._lpde.getFunctionSpaceForSolution())
+	      elif r.isEmpty():
+		  r=0
+	   else:
+	      r=0 
            ui = q * r + (1-q) * ui
            
         # separate symbolic expressions from other coefficients
@@ -487,7 +489,7 @@ class NonlinearPDE(object):
         :param name: name of the coefficient requested
         :type name: ``string``
         :return: the value of the coefficient
-        :rtype: `Symbol` or `Data` 
+        :rtype: `Symbol` or `Data` (for name = "q")
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """   
         if name == "q":
@@ -558,7 +560,6 @@ class NonlinearPDE(object):
             elif name == "r":
                 self._r=val
             elif name=="X" or name=="X_reduced":
-	        Z=H+
                 # DX/Du = del_X/del_unknown + del_X/del_grad(u)*del_grad(u)/del_unknown
                 #            \   /         \   /
                 #              B             A
@@ -858,7 +859,7 @@ class VariationalProblem(object):
 	    U=u
 	else:
 	    self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
-            U=concateRow(self._parameter, self.__unknwon, self._lagrangean)
+            U=concatenateRow(self._parameter, self.__unknwon, self._lagrangean)
         self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
         
     def __str__(self):
@@ -1025,7 +1026,7 @@ class VariationalProblem(object):
         else:
             raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 	  
-    def __getNonlinearPDECoefficient(self, extension, capson=False):
+    def __getNonlinearPDECoefficient(self, extension, capson=False, order=0):
       if capson:
 	  H_key="H"+extension
 	  X_key="X"+extension
@@ -1043,13 +1044,22 @@ class VariationalProblem(object):
       if self._set_coeffs.has_key(Y_key): Z+=inner(self._set_coeffs[Y_key],self._lagrangean)
       
       if numParam>0:
-	  Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
-	  Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
-	  Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
-	  Y=concateRow(Yp, Yl, Yu)  # order differenr from solution!!!
-	  X=concateRow(Xp, Xl, Xu)  # order differenr from solution!!!
+	  if order == 0:
+	    Yp=getTotalDifferential(Z, self._parameter, order=0)
+	    Yu=getTotalDifferential(Z, self._unknown, order=0)
+	    Yl=getTotalDifferential(Z, self._lagrangean, order=0)
+	    Y=concatenateRow(Yp, Yl, Yu)  # order differenr from solution!!!
+	  else:
+	    Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
+	    Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
+	    Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
+	    Y=concatenateRow(Yp, Yl, Yu)  # order differenr from solution!!!
+	    X=concatenateRow(Xp, Xl, Xu)  # order differenr from solution!!!
       else:
-	  Y,X=getTotalDifferential(Z, self._unknown, order=1)
+	  if order == 0:
+	    Y=getTotalDifferential(Z, self._unknown, order=0)
+	  else:
+	    Y,X=getTotalDifferential(Z, self._unknown, order=1)
       return Y,X    
       
     def setValue(self,**coefficients):
@@ -1068,7 +1078,7 @@ class VariationalProblem(object):
         :type h_dirac: `Symbol`
         :keyword X: value for coefficient ``X``
         :type X: `Symbol` or any type that can be cast to a `Data` object
-        :keyword Y: value for coefficient ``Y``
+        :keyword Y: value for coefficient ``Y``=r
         :type Y: `Symbol` or any type that can be cast to a `Data` object
         :keyword y: value for coefficient ``y``
         :type y: `Symbol` or any type that can be cast to a `Data` object
@@ -1144,7 +1154,7 @@ class VariationalProblem(object):
                 self._set_coeffs['H']=val
                 update.append("Y")
                 
-            elif name=="H_reduced"
+            elif name=="H_reduced":
                 self._set_coeffs['H_reduced']=val
                 update.append("Y_reduced")
                 
@@ -1164,7 +1174,7 @@ class VariationalProblem(object):
                 self._set_coeffs['h']=val
                 update.append("y")
                 
-            elif name=="h_reduced"
+            elif name=="h_reduced":
                 self._set_coeffs['h_reduced']=val
                 update.append("y_reduced")
                 
@@ -1184,7 +1194,7 @@ class VariationalProblem(object):
                 self._set_coeffs['h_contact']=val
                 update.append("y_contact")
                 
-            elif name=="h_contact_reduced"
+            elif name=="h_contact_reduced":
                 self._set_coeffs['h_contact_reduced']=val
                 update.append("y_contact_reduced")
                 
@@ -1205,8 +1215,8 @@ class VariationalProblem(object):
 	    if "q" in update:
 	        if numParams>0:
 	             q=self.getNonlinearPDE().createCoefficient("q")
-	             if hasattr(self, "qp"): q[:numParams]=self._qp
-	             if hasattr(self, "q"): 
+	             if hasattr(self, "_qp"): q[:numParams]=self._qp
+	             if hasattr(self, "_q"): 
 	                 q[numParams:numParams+numSol]=self._q
 	                 q[numParams+numSol:]=self._q
 	        else:
@@ -1214,37 +1224,76 @@ class VariationalProblem(object):
 	        coeff2["q"]=q 
 	    elif "r" in update:
 	        if numParams>0:
-	             r=self.getNonlinearPDE().createCoefficient("r")
-	             if hasattr(self, "rp"): r[:numParams]=self._rp
-	             if hasattr(self, "r"): 
-	                 r[numParams:numParams+numSol]=self._r
-	                 r[numParams+numSol:]=0
+	             if hasattr(self, "_rp"): 
+	                 rp=self._rp
+	             else:
+		         rp=numpy.zeros(self.getShapeOfCoefficient('rp'))
+	             if hasattr(self, "_r"): 
+	                 r=self._r
+	             else:
+		         r=numpy.zeros(self.getShapeOfCoefficient('r'))
+	             coeff2["r"]=concatenateRow(rp, r, numpy.zeros(self.getShapeOfCoefficient('r')) )
 	        else:
-		     r=self._r
-	        coeff2["r"]=r
+		     coeff2["r"]=self._r
+		     
 	    elif "Y" in update:
-	         Y,X = __getNonlinearPDECoefficient("",capson=True)
+	         Y,X = __getNonlinearPDECoefficient("",capson=True, order=1)
 	         coeff2["Y"]=Y
 	         coeff2["X"]=X
 	    elif "y" in update: 
-	         Y,X = __getNonlinearPDECoefficient("",capson=False)
-	         coeff2["y"]=Y
+	         coeff2["y"]=__getNonlinearPDECoefficient("",capson=False)
 	    elif "y_contact" in update: 
-	         Y,X = __getNonlinearPDECoefficient("_contact",capson=False)
-	         coeff2["y_contact"]=Y
+	         coeff2["y_contact"]=__getNonlinearPDECoefficient("_contact",capson=False)
 	    elif "y_dirac" in update:
-	          Y,X = __getNonlinearPDECoefficient("_dirac",capson=False)
-	          coeff2["y_dirac"]=Y
+	          coeff2["y_dirac"]=__getNonlinearPDECoefficient("_dirac",capson=False)
 	    elif "Y_reduced" in update:
-	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=True)
+	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
 	         coeff2["Y_reduced"]=Y
 	         coeff2["X_reduced"]=X
 	    elif "y_reduced" in update: 
-	         Y,X = __getNonlinearPDECoefficient("_reduced",capson=False)
-	         coeff2["y_reduced"]=Y
+	         coeff2["y_reduced"]= __getNonlinearPDECoefficient("_reduced",capson=False)
 	    elif "y_contact_reduced" in update: 
-	         Y,X = __getNonlinearPDECoefficient("_contact_reduced",capson=False)
-	         coeff2["y_contact_reduced"]=Y
+	         coeff2["y_contact_reduced"]=__getNonlinearPDECoefficient("_contact_reduced",capson=False)
 
             # and now we can set the PDE coefficient:
             self.getNonlinearPDE().setValue(**coeff2)
+
+    def getSolution(self, **subs):
+        """
+        Returns the solution of the PDE.
+        :param subs: Substitutions for all symbols used in the coefficients
+                     including the initial value for solution *u* and for the parameter *p* (if present)
+        :return: parameter, corresponding solution and lagrangean multiplier
+        :rtype: tuple of `Data` or single `Data` (if no parameter present)
+        """
+        numSol=self.getNumSolutions()
+        numParams=self.getNumParameters()
+
+        # get the initial value for the iteration process:
+        u_sym=self._unknown.atoms().pop().name
+        if not subs.has_key(u_sym):
+            raise KeyError("Initial value for '%s' missing."%u_sym)
+        ui=subs.pop(u_sym)
+        if not isinstance(ui,Data):
+            ui=Data(ui, self._lpde.getFunctionSpaceForSolution())
+
+        if numParams >0 :
+	      p_sym=self._parameter.atoms().pop().name
+              if not subs.has_key(u_sym):
+                  raise KeyError("Initial value for '%s' missing."%p_sym)
+              pi=subs.pop(p_sym)
+              if not isinstance(pi,Data):
+                  pi=Data(pi, self._lpde.getFunctionSpaceForSolution())
+	      Ui=concatenateRow(pi, ui, numpy.zeros((numSol,)) )
+        else:
+	    Ui=uq
+	subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui    
+	
+	
+	Ui=self.getNonlinearPDE().getSolution(**subs)
+	
+	if numParams >0 :
+	   # return parameter, solution, lagrangean multiplier
+	   return Ui[:numParams], Ui[numParams:numParams+numSol], Ui[numParams+numSol:]   
+	else:
+	   return Ui
