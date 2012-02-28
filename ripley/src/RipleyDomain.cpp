@@ -967,9 +967,9 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
        const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
        dim_t num_Sol, const vector<double>& array) const
 {
-    if (mat->type & MATRIX_FORMAT_CSC ||  mat->type & MATRIX_FORMAT_TRILINOS_CRS) {
-        throw RipleyException("addToSystemMatrix: CSC and TRILINOS_CRS not supported");
-    }
+    if (mat->type & MATRIX_FORMAT_TRILINOS_CRS)
+        throw RipleyException("addToSystemMatrix: TRILINOS_CRS not supported");
+
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
     const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
@@ -986,62 +986,103 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
     double* row_coupleBlock_val = mat->row_coupleBlock->val;
     index_t offset=(mat->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
 
-    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
-        // down columns of array
-        for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
-            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row;
-            // only look at the matrix rows stored on this processor
-            if (i_row < numMyRows) {
-                for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                    for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
-                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
-                        if (i_col < numMyCols+offset) {
-                            for (dim_t k = mainBlock_ptr[i_row]-offset; k < mainBlock_ptr[i_row + 1]-offset; ++k) {
-                                if (mainBlock_index[k] == i_col) {
-                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
-                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
-                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
-                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
-                                            mainBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
-                                        }
+#define UPDATE_BLOCK(VAL) do {\
+    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {\
+        const dim_t i_Sol=ic+mat->col_block_size*l_col;\
+        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {\
+            const dim_t i_Eq=ir+mat->row_block_size*l_row;\
+            VAL[k*mat->block_size+ir+mat->row_block_size*ic]\
+                += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];\
+        }\
+    }\
+} while(0)
+
+    if (mat->type & MATRIX_FORMAT_CSC) {
+        for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+            // down columns of array
+            for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
+                const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
+                if (i_col < numMyCols) {
+                    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
+                        for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
+                            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row+offset;
+                            if (i_row < numMyRows+offset) {
+                                for (dim_t k = mainBlock_ptr[i_col]-offset; k < mainBlock_ptr[i_col+1]-offset; ++k) {
+                                    if (mainBlock_index[k] == i_row) {
+                                        UPDATE_BLOCK(mainBlock_val);
+                                        break;
                                     }
-                                    break;
+                                }
+                            } else {
+                                for (dim_t k = col_coupleBlock_ptr[i_col]-offset; k < col_coupleBlock_ptr[i_col+1]-offset; ++k) {
+                                    if (row_coupleBlock_index[k] == i_row - numMyRows) {
+                                        UPDATE_BLOCK(row_coupleBlock_val);
+                                        break;
+                                    }
                                 }
                             }
-                        } else {
-                            for (dim_t k = col_coupleBlock_ptr[i_row]-offset; k < col_coupleBlock_ptr[i_row + 1]-offset; ++k) {
-                                if (col_coupleBlock_index[k] == i_col - numMyCols) {
-                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
-                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
-                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
-                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
-                                            col_coupleBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
-                                        }
+                        }
+                    }
+                } else {
+                    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
+                        // across rows of array
+                        for (dim_t l_row=0; l_row<numSubblocks_Eq; ++l_row) {
+                            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row+offset;
+                            if (i_row < numMyRows+offset) {
+                                for (dim_t k = col_coupleBlock_ptr[i_col-numMyCols]-offset;
+                                     k < col_coupleBlock_ptr[i_col-numMyCols+1]-offset; ++k)
+                                {
+                                    if (col_coupleBlock_index[k] == i_row) {
+                                        UPDATE_BLOCK(col_coupleBlock_val);
+                                        break;
                                     }
-                                    break;
                                 }
                             }
                         }
                     }
                 }
-            } else {
-                for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                    // across rows of array
-                    for (dim_t l_col=0; l_col<numSubblocks_Sol; ++l_col) {
-                        const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
-                        if (i_col < numMyCols+offset) {
-                            for (dim_t k = row_coupleBlock_ptr[i_row - numMyRows]-offset;
-                                 k < row_coupleBlock_ptr[i_row - numMyRows + 1]-offset; ++k)
-                            {
-                                if (row_coupleBlock_index[k] == i_col) {
-                                    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {
-                                        const dim_t i_Sol=ic+mat->col_block_size*l_col;
-                                        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {
-                                            const dim_t i_Eq=ir+mat->row_block_size*l_row;
-                                        row_coupleBlock_val[k*mat->block_size+ir+mat->row_block_size*ic] += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];
-                                        }
+            }
+        }
+    } else {
+        for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
+            // down columns of array
+            for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
+                const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row;
+                // only look at the matrix rows stored on this processor
+                if (i_row < numMyRows) {
+                    for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                        for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
+                            const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
+                            if (i_col < numMyCols+offset) {
+                                for (dim_t k = mainBlock_ptr[i_row]-offset; k < mainBlock_ptr[i_row+1]-offset; ++k) {
+                                    if (mainBlock_index[k] == i_col) {
+                                        UPDATE_BLOCK(mainBlock_val);
+                                        break;
                                     }
-                                    break;
+                                }
+                            } else {
+                                for (dim_t k = col_coupleBlock_ptr[i_row]-offset; k < col_coupleBlock_ptr[i_row+1]-offset; ++k) {
+                                    if (col_coupleBlock_index[k] == i_col-numMyCols) {
+                                        UPDATE_BLOCK(col_coupleBlock_val);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
+                        // across rows of array
+                        for (dim_t l_col=0; l_col<numSubblocks_Sol; ++l_col) {
+                            const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
+                            if (i_col < numMyCols+offset) {
+                                for (dim_t k = row_coupleBlock_ptr[i_row-numMyRows]-offset;
+                                     k < row_coupleBlock_ptr[i_row-numMyRows+1]-offset; ++k)
+                                {
+                                    if (row_coupleBlock_index[k] == i_col) {
+                                        UPDATE_BLOCK(row_coupleBlock_val);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1050,6 +1091,7 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
             }
         }
     }
+#undef UPDATE_BLOCK
 }
 
 //private
