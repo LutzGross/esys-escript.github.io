@@ -409,9 +409,9 @@ then
    if [ ! -z $HOSTFILE ] 
    then
       HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bynode -np $TOTPROC --host $HOST_LIST $EXEC_CMD"
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bynode -np $TOTPROC --bind-to-socket --cpus-per-rank $ESCRIPT_NUM_THREADS --host $HOST_LIST $EXEC_CMD"
    else
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } -np $TOTPROC $EXEC_CMD"
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
    fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD

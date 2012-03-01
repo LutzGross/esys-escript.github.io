@@ -81,11 +81,11 @@ verbose = True
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-#openmp = True
+openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
-#omp_flags = '-openmp -openmp-report2'
+omp_flags = '-openmp -openmp-report2'
 
 # Additional linker flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -97,8 +97,8 @@ verbose = True
 mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/opt/mpi/intel/openmpi/1.4.3-11.1'
-#mpi_prefix = '/opt/mpi/gcc/openmpi/1.4.3'
+#mpi_prefix = '/opt/mpi/intel/openmpi/1.4.3-11.1'
+mpi_prefix = '/opt/mpi/gcc/openmpi/1.4.3'
 
 # MPI libraries to link against
 #mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
@@ -211,16 +211,16 @@ visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2'
 # modules)
 # DEFAULT: False
 #pyvisi = True
+
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
 #boomeramg = True
-boomeramg = False
 
 # Prefix or paths to BoomerAMG headers and libraries. See note above.
-boomeramg_prefix = '/opt/hypre/2.0.0'
+#boomeramg_prefix = '/opt/hypre/2.0.0'
 
 # BoomerAMG library/libraries to link against
-boomeramg_libs = ['HYPRE']
+#boomeramg_libs = ['HYPRE']
 #boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
 
 
