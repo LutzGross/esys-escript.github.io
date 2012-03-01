@@ -98,40 +98,40 @@ def insertTaggedValues(target,**kwargs):
 
 def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
     try:
-	dim=len(start)
+        dim=len(start)
     except TypeError:
-	start=(start,)
-	dim=1
+        start=(start,)
+        dim=1
     try:
-	slen=len(step)
+        slen=len(step)
     except TypeError:
-	step=(step,)
-	slen=1
+        step=(step,)
+        slen=1
     if dim<1 or dim>3:
-	raise ValueError("Length of start list must be between 1 and 3.")
+        raise ValueError("Length of start list must be between 1 and 3.")
     if dim!=slen:
-	raise ValueError("Length of start and step must be the same.")
+        raise ValueError("Length of start and step must be the same.")
     dshape=dat.getShape()
     if len(dshape)==0:
-	datdim=0
-	firstdim=dat
+        datdim=0
+        firstdim=dat
     else:
-	datdim=dshape[0]
-	firstdim=dat[0]
+        datdim=dshape[0]
+        firstdim=dat[0]
     #So now we know firstdim is a scalar
     if (dim==1 and datdim>1) or (dim>1 and datdim!=dim):
-	print((dim, datdim))
-	raise ValueError("The dimension of dat must be equal to the length of start.")
+        print((dim, datdim))
+        raise ValueError("The dimension of dat must be equal to the length of start.")
     if dim==3:
-	d1=dat[1]
-	d2=dat[2]
-	return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
+        d1=dat[1]
+        d2=dat[2]
+        return firstdim._interpolateTable3d(tab, start[0], step[0], d1, start[1], step[1], d2, start[2], step[2], undef, check_boundaries)
     if dim==2:
-	d1=dat[1]
-	return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
+        d1=dat[1]
+        return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
 #	return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
     else:
-	return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
+        return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
 
 def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
@@ -171,19 +171,19 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     # find a function space:
     fs = None
     for n,d in list(data.items()):
-	if isinstance(d, Data): fs=d.getFunctionSpace()
+        if isinstance(d, Data): fs=d.getFunctionSpace()
     if fs == None:
-	raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
+        raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
     
     new_data={}
     for n,d in list(data.items()):
-	if isinstance(d, Data):
+        if isinstance(d, Data):
      	    new_data[n]=d
         else:
             try:
                new_data[n]=Data(d,fs)
             except:
-	       raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
+               raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     _saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
@@ -4786,7 +4786,7 @@ def maximum(*args):
           out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-	     if out.getRank()==0 and a.getRank()>0:
+             if out.getRank()==0 and a.getRank()>0:
 		#We need to consider the case where we have scalars and higher 
 		#ranked objects mixed. If the scalar was first it will get
 		#picked as the initial out and we have a problem,

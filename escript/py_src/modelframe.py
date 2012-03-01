@@ -92,11 +92,11 @@ class ESySXMLParser(object):
     """
     def __init__(self,xml, debug=False):
         if sys.version_info[0]<3:
-	    xml=str(xml)	# xml might be unicode 
-	print("\n")
-	print(type(xml))
-	print(xml)
-	print("\n")
+            xml=str(xml)	# xml might be unicode 
+        print("\n")
+        print(type(xml))
+        print(xml)
+        print("\n")
         self.__dom = minidom.parseString(xml)
         self.__linkable_object_registry= {}
         self.__link_registry=  []
@@ -682,11 +682,11 @@ class ParameterSet(LinkableObject):
                     shape = [int(x) for x in shape.split()]
                 if node.tagName == 'Data':
                     data = node.firstChild.nodeValue.strip()
-	    ndtype=getattr(numpy,arraytype)
-	    if ndtype==numpy.bool_:
-		data=[(x=="True") for x in data.split()]
-	    else:
-		data=[ndtype(x) for x in data.split()]
+            ndtype=getattr(numpy,arraytype)
+            if ndtype==numpy.bool_:
+                data=[(x=="True") for x in data.split()]
+            else:
+                data=[ndtype(x) for x in data.split()]
             return numpy.reshape(numpy.array(data, dtype=ndtype),
                                     shape)
 
@@ -709,7 +709,7 @@ class ParameterSet(LinkableObject):
                     "str":_stringfromValue,
                     "bool":_boolfromValue,
                     "list":_listfromValue,
-		    "ndarray" : _ndarrayfromValue,
+                    "ndarray" : _ndarrayfromValue,
                     "NoneType":_nonefromValue,
                     }
 
@@ -754,7 +754,7 @@ class ParameterSet(LinkableObject):
         if sys.version_info[0]<3:
             ostream.write(unicode(esysxml.toprettyxml()))
         else:
-	    ostream.write(esysxml.toprettyxml())
+            ostream.write(esysxml.toprettyxml())
 
 class Model(ParameterSet):
     """
