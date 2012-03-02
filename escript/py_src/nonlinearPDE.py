@@ -52,6 +52,104 @@ class InadmissiblePDEOrdering(Exception):
     """
     pass
 
+def removeFsFromGrad(sym):
+    """
+    Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
+    That is, all functionspace parameters are removed.
+    """
+    from esys.escript import symfn
+    gg=sym.atoms(symfn.grad_n)
+    for g in gg:
+        if len(g.args)==3:
+            r=symfn.grad_n(*g.args[:2])
+            sym=sym.subs(g, r)
+    return sym
+
+def getTotalDifferential(f, x, order=0):
+    # Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
+    #            \   /         \   /
+    #              a             b
+
+    res=()
+    shape=util.getShape(f)
+    if not hasattr(f, 'diff'):
+        res+=(numpy.zeros(shape+x.getShape()),)
+        for i in range(order):
+            x=x.grad()
+            res+=numpy.zeros(shape+x.getShape())
+
+    elif x.getRank()==0:
+        f=removeFsFromGrad(f)
+        dfdx=f.diff(x)
+        dgdx=x.grad().diff(x)
+        a=numpy.empty(shape, dtype=object)
+        if order>0:
+            b=numpy.empty(shape+dgdx.getShape(), dtype=object)
+
+        if len(shape)==0:
+            for j in numpy.ndindex(dgdx.getShape()):
+                y=dfdx
+                z=dgdx[j]
+                # expand() and coeff() are very expensive so
+                # we set the unwanted factors to zero to extract
+                # the one we need
+                for jj in numpy.ndindex(dgdx.getShape()):
+                    if j==jj: continue
+                    y=y.subs(dgdx[jj], 0)
+                a=y.subs(z,0) # terms in x and constants
+                if order>0:
+                    b[j]=y.subs(z,1)-a
+        else:
+            for i in numpy.ndindex(shape):
+                for j in numpy.ndindex(dgdx.getShape()):
+                    y=dfdx[i]
+                    z=dgdx[j]
+                    for jj in numpy.ndindex(dgdx.getShape()):
+                        if j==jj: continue
+                        y=y.subs(dgdx[jj], 0)
+                    a[i]=y.subs(z,0) # terms in x and constants
+                    if order>0:
+                        b[i+j]=y.subs(z,1)-a[i]
+        res+=(Symbol(a),)
+        if order>0:
+            res+=(Symbol(b),)
+
+    elif x.getRank()==1:
+        f=removeFsFromGrad(f)
+        dfdx=f.diff(x)
+        dgdx=x.grad().diff(x).transpose(2)
+        a=numpy.empty(shape+x.getShape(), dtype=object)
+        if order>0:
+            b=numpy.empty(shape+x.grad().getShape(), dtype=object)
+
+        if len(shape)==0:
+            raise NotImplementedError('f scalar, x vector')
+        else:
+            for i in numpy.ndindex(shape):
+                for k,l in numpy.ndindex(x.grad().getShape()):
+                    if dgdx[k,k,l]==0:
+                        a[i+(k,)]=0
+                        if order>0:
+                            b[i+(k,l)]=0
+                    else:
+                        y=dfdx[i+(k,)]
+                        z=dgdx[k,k,l]
+                        for kk,ll in numpy.ndindex(x.grad().getShape()):
+                            if k==kk and l==ll: continue
+                            y=y.subs(dgdx[kk,kk,ll], 0)
+                        a[i+(k,)]=y.subs(z,0) # terms in x and constants
+                        if order>0:
+                            b[i+(k,l)]=y.subs(z,1)-a[i+(k,)]
+
+        res+=(Symbol(a),)
+        if order>0:
+           res+=(Symbol(b),)
+
+    if len(res)==1:
+        return res[0]
+    else:
+        return res
+
 class NonlinearPDE(object):
     """
     This class is used to define a general nonlinear, steady, second order PDE
@@ -569,60 +667,10 @@ class NonlinearPDE(object):
             elif name == "r":
                 self._r=val
             elif name=="X" or name=="X_reduced":
-                # DX/Du = del_X/del_u + del_X/del_grad(u)*del_grad(u)/del_u
-                #            \   /         \   /
-                #              B             A
-
                 if rank != u.getRank()+1:
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
-                if not hasattr(val, 'diff'):
-                    A=numpy.zeros(shape+u.grad().getShape())
-                    B=numpy.zeros(shape+u.getShape())
-                elif u.getRank()==0:
-                    X=self._removeFsFromGrad(val)
-                    dXdu=X.diff(u)
-                    dgdu=u.grad().diff(u)
-                    A=numpy.empty(shape+dgdu.getShape(), dtype=object)
-                    B=numpy.empty(shape, dtype=object)
-                    for i in numpy.ndindex(shape):
-                        for j in numpy.ndindex(dgdu.getShape()):
-                            y=dXdu[i]
-                            x=dgdu[j]
-                            # expand() and coeff() are very expensive so
-                            # we set the unwanted factors to zero to extract
-                            # the one we need
-                            for jj in numpy.ndindex(dgdu.getShape()):
-                                if j==jj: continue
-                                y=y.subs(dgdu[jj], 0)
-                            B[i]=y.subs(x,0) # terms in u and constants
-                            A[i,j]=y.subs(x,1)-B[i]
-                    A=Symbol(A)
-                    B=Symbol(B)
-                else:  #u.getRank()==1
-                    X=self._removeFsFromGrad(val)
-                    dXdu=X.diff(u)
-                    dgdu=u.grad().diff(u).transpose(2)
-                    I,J=shape
-                    K,L=u.grad().getShape()
-                    A=numpy.empty((I,J,K,L), dtype=object)
-                    B=numpy.empty((I,J,K), dtype=object)
-                    for i,j,k,l in numpy.ndindex(I,J,K,L):
-                        if dgdu[k,k,l]==0:
-                            A[i,j,k,l]=0
-                            B[i,j,k]=0
-                        else:
-                            y=dXdu[i,j,k]
-                            x=dgdu[k,k,l]
-                            for kk,ll in numpy.ndindex(K,L):
-                                if k==kk and l==ll: continue
-                                y=y.subs(dgdu[kk,kk,ll], 0)
-                            B[i,j,k]=y.subs(x,0) # terms in u and constants
-                            A[i,j,k,l]=y.subs(x,1)-B[i,j,k]
-
-                    A=Symbol(A)
-                    B=Symbol(B)
-
+                B,A=getTotalDifferential(val, u, 1)
                 if name=='X_reduced':
                     self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['A_reduced']=A
@@ -640,49 +688,7 @@ class NonlinearPDE(object):
                 if rank != u.getRank():
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 T0=time()
-                if not hasattr(val, 'diff'):
-                    C=numpy.zeros(shape+u.grad().getShape())
-                    D=numpy.zeros(shape+u.getShape())
-                elif u.getRank()==0:
-                    Y=self._removeFsFromGrad(val)
-                    dYdu=Y.diff(u)
-                    dgdu=u.grad().diff(u)
-                    C=numpy.empty(dgdu.getShape(), dtype=object)
-                    for j in numpy.ndindex(dgdu.getShape()):
-                        y=dYdu
-                        x=dgdu[j]
-                        # expand() and coeff() are very expensive so
-                        # we set the unwanted factors to zero to extract
-                        # the one we need
-                        for jj in numpy.ndindex(dgdu.getShape()):
-                            if j==jj: continue
-                            y=y.subs(dgdu[jj], 0)
-                        D=y.subs(x,0) # terms in u and constants
-                        C[j]=y.subs(x,1)-D
-                    C=Symbol(C)
-                else:  #u.getRank()==1
-                    Y=self._removeFsFromGrad(val)
-                    dYdu=Y.diff(u)
-                    dgdu=u.grad().diff(u).transpose(2)
-                    I,=shape
-                    J,K=u.grad().getShape()
-                    C=numpy.empty((I,J,K), dtype=object)
-                    D=numpy.empty((I,J), dtype=object)
-                    for i,j,k in numpy.ndindex(I,J,K):
-                        if dgdu[j,j,k]==0:
-                            C[i,j,k]=0
-                            D[i,j]=0
-                        else:
-                            y=dYdu[i,j]
-                            x=dgdu[j,j,k]
-                            for jj,kk in numpy.ndindex(J,K):
-                                if j==jj and k==kk: continue
-                                y=y.subs(dgdu[jj,jj,kk], 0)
-                            D[i,j]=y.subs(x,0) # terms in u and constants
-                            C[i,j,k]=y.subs(x,1)-D[i,j]
-                    C=Symbol(C)
-                    D=Symbol(D)
-
+                D,C=getTotalDifferential(val, u, 1)
                 if name=='Y_reduced':
                     self.trace3("Computing C_reduced, D_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['C_reduced']=C

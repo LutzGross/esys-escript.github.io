@@ -36,8 +36,8 @@ __author__="Cihan Altinay"
 
 class Symbol(object):
     """
-    `Symbol` objects are placeholders for a single mathematic symbol, such as
-    'x', or for arbitrarily complex mathematic expressions such as
+    `Symbol` objects are placeholders for a single mathematical symbol, such as
+    'x', or for arbitrarily complex mathematical expressions such as
     'c*x**4+alpha*exp(x)-2*sin(beta*x)', where 'alpha', 'beta', 'c', and 'x'
     are also `Symbol`s (the symbolic 'atoms' of the expression).
 
@@ -45,7 +45,7 @@ class Symbol(object):
     be resolved by substituting numeric values and/or escript `Data` objects
     for the atoms. To facilitate the use of `Data` objects a `Symbol` has a
     shape (and thus a rank) as well as a dimension (see constructor).
-    `Symbol`s are useful to perform mathematic simplifications, compute
+    `Symbol`s are useful to perform mathematical simplifications, compute
     derivatives and as coefficients for nonlinear PDEs which can be solved by
     the `NonlinearPDE` class.
     """
