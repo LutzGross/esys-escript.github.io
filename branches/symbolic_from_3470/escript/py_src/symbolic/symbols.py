@@ -34,6 +34,8 @@ import sympy
 
 __author__="Cihan Altinay"
 
+
+   
 class Symbol(object):
     """
     `Symbol` objects are placeholders for a single mathematical symbol, such as
@@ -846,3 +848,8 @@ class SymFunction(Symbol):
         res._arr=-res._arr
         return res
 
+def isSymbol(arg):
+   """
+   return True is the argument ``arg`` is a `Symbol`` or ``sympy.Symbol`` object
+   """
+   return isinstance(arg, Symbol) or isinstance(arg, sympy.Symbol) 

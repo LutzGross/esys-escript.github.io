@@ -251,6 +251,8 @@ class NonlinearPDE(object):
     DEBUG2=2 # in addition info from linear solver is printed
     DEBUG3=3 # in addition info on linearization is printed
     DEBUG4=4 # in addition info on LinearPDE handling is printed
+    
+    ORDER=0
     def __init__(self, domain, u, debug=DEBUG0):
         """
         Initializes a new nonlinear PDE.
@@ -261,8 +263,8 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: level of debug information to be printed
         """
-        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac" ]
-
+        self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac"]
+        
         self._r=Data()
         self._set_coeffs={}
         self._unknown=u
@@ -390,7 +392,7 @@ class NonlinearPDE(object):
         if not q.isEmpty():
             if hasattr(self, "_r"):
                 r=self._r
-                if hasattr(r, "atoms"):
+                if isSymbol(r):
                     r=Evaluator(r).evaluate(**subs)
                 elif not isinstance(r, Data):
                     r=Data(r, self._lpde.getFunctionSpaceForSolution())
@@ -404,7 +406,7 @@ class NonlinearPDE(object):
         constants={}
         expressions={}
         for n, e in self._set_coeffs.items():
-            if hasattr(e, "atoms"):
+            if isSymbol(e):
                 expressions[n]=e
             else:
                 constants[n]=e
@@ -759,19 +761,239 @@ class NonlinearPDE(object):
                     d=y.diff(u)
                 self._set_coeffs[name]=y
                 self._set_coeffs['d'+name[1:]]=d
-            elif name=="q":
-                if rank != u.getRank():
-                    raise IllegalCoefficientValue("q must have rank %d"%u.getRank())
-                self._set_coeffs['q']=val
             else:
                 raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+	      
+    def getSensitivity(self, f, g=None, **subs):
+        """
+        calculates the sensitivity of the solution of an input factor ``f`` indirection ``g``
+     
+        :param f: the input factor to be investigated. ``f`` may be of rank 0 or 1.
+        :type f: `Symbol`
+        :param g: the directions of change. 
+                  if not present, it is *g=eye(n)* where ``n`` is the number of components of ``f``. 
+        :type g: ``list`` or single of ``float``, `ndarray` or `Data`.
+        :param subs: Substitutions for all symbols used in the coefficients
+                     including unknown *u* and the input factor ``f`` to be investigated.
+        :return: the sensitivity
+        :rtype: `Data` with shape  *u.getShape()+(len(g),)* if *len(g)>1* or *u.getShape()* if *len(g)==1* 
+        """
+        s_f=f.getShape()
+        if len(s_f) == 0:
+	    len_f=1
+	elif len(s_f) == 1:
+	    len_f=s_f[0]
+	else:
+	    raise ValueError("rank of input factor must be zero or one.")
+	
+	if not g == None:
+	   if len(s_f) == 0:
+	       if not isinstance(g, list): g=[g]
+	   else:
+	      if isinstance(g, list):
+		  if len(g) == 0: 
+		      raise ValueError("no direction given.")
+		  if len(getShape(g[0])) == 0: g=[g] # if g[0] is a scalar we assume that the list g is to be interprested a data object
+              else:
+	         g=[g]
+	   # at this point g is a list of directions:
+	   len_g=len(g)
+   	   for g_i in g:
+	        if not getShape(g_i) == s_f:
+		    raise ValueError("shape of direction (=%s) must match rank of input factor (=%s)"%(getShape(g_i) , s_f) )	   
+	else:
+	   len_g=len_f
+	
+	#*** at this point g is a list of direction or None and len_g is the number of directions to be investigated.
+	
+        # now we make sure that the operator in the lpde is set (it is the same as for the Newton-Raphson scheme)
+        # if the solution etc are cached this could be omitted:
+        constants={}
+        expressions={}
+        for n, e in self._set_coeffs.items():
+	    if n not in self.__COEFFICIENTS:
+		if isSymbol(e):
+		    expressions[n]=e
+		else:
+		    constants[n]=e
+        self._lpde.setValue(**constants)
+        self._updateMatrix(self, expressions, subs)
+        #=====================================================================
+        self._lpde.getSolverOptions().setAbsoluteTolerance(0.)
+        self._lpde.getSolverOptions().setTolerance(self._rtol)
+        self._lpde.getSolverOptions().setVerbosity(self._debug > self.DEBUG1)
+        #=====================================================================
+        # 
+        #   evaluate the derivatives of X, etc with respect of f:
+        #
+        ev=Evaluator()
+        names=[]
+        if hasattr(self, "_r"):
+	     if isSymbol(self._r):
+	         names.append('r')
+	         ev.addExpression(self._r.diff(f))
+	for n in self._set_coeffs.keys():
+	    if n in self.__COEFFICIENTS and isSymbol(self._set_coeffs[n]):
+                   if n=="X" or n=="X_reduced":
+                      T0=time()
+                      B,A=getTotalDifferential(self._set_coeffs[n], f, 1)
+                      if n=='X_reduced':
+                          self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
+                          names.append('A_reduced'); ev.addExpression(A)
+                          names.append('B_reduced'); ev.addExpression(B)
+		      else:
+			  self.trace3("Computing A, B took %f seconds."%(time()-T0))
+                          names.append('A'); ev.addExpression(A)
+                          names.append('B'); ev.addExpression(B)
+                   elif n=="Y" or n=="Y_reduced":
+		      T0=time()
+   		      D,C=getTotalDifferential(self._set_coeffs[n], f, 1)
+                      if n=='Y_reduced':
+                         self.trace3("Computing C_reduced, D_reduced took %f seconds."%(time()-T0))
+                         names.append('C_reduced'); ev.addExpression(C)
+                         names.append('D_reduced'); ev.addExpression(D)
+                      else:
+			 self.trace3("Computing C, D took %f seconds."%(time()-T0))
+                         names.append('C'); ev.addExpression(C)
+                         names.append('D'); ev.addExpression(D)
+                   elif n in ("y", "y_reduced", "y_contact", "y_contact_reduced",  "y_dirac"):
+		          names.append('d'+name[1:]); ev.addExpression(self._set_coeffs[name].diff(f))
+                          relevant_symbols['d'+name[1:]]=self._set_coeffs[name].diff(f)
+        res=ev.evaluate()
+        if len(names)==1: res=[res]
+        self.trace3("RHS expressions evaluated in %f seconds."%(time()-ttt0))
+        for i in range(len(names)):
+            self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
+        coeffs_f=dict(zip(names,res))
+        # 
+        
+        # now we are ready to calculate the right hand side coefficients into args by multiplication 
+        # with g and grad(g).
+	if len_g >1:
+	    if self.getNumSolutions() == 1:
+	        u_g=Data(0., (len_g,), self._lpde.getFunctionSpaceForSolution())
+	    else:
+	        u_g=Data(0., (self.getNumSolutions(), len_g), self._lpde.getFunctionSpaceForSolution())
 
-    def _newtonStep(self, expressions, subs):
-        """
-        """
-        self._updateLinearPDE(expressions, subs)
-        delta_u=self._lpde.getSolution()
-        return delta_u
+	for i in xrange(len_g):
+	      # reset coefficients may be set at previous calls:
+	      args={}
+	      for n in self.__COEFFICIENTS: args[n]=Data()     
+	      args['r']=Data()
+	      if g == None: # g_l=delta_{il} and len_f=len_g
+	          for n,v in coeffs_f:
+		      name=None
+		      if len_f > 1: 
+		          val=v[:,i]
+		      else:
+			  val=v
+		      if n.startswith("d"):
+			   name='y'+n[1:]
+	              elif n.startswith("D"):
+			  name='Y'+n[1:]
+		      elif n.startswith("r"):
+   		          name='r'+n[1:]
+   		      if name: args[name]=val
+	      else:
+		    g_i=g[i]
+		    for n,v in coeffs_f:
+		      name=None
+		      if n.startswith("d"):
+			  name = 'y'+n[1:]
+			  val = self.__mm(v, g_i)
+   	              elif n.startswith("r"):
+			  name= 'r'
+			  val = self.__mm(v, g_i)
+	              elif n.startswith("D"):
+			  name = 'Y'+n[1:] 
+			  val = self.__mm(v, g_i)
+	              elif n.startswith("B") and isinstance(g_i, Data):
+			  name = 'Y'+n[1:]
+			  val = self.__mm(v, grad(g_i))
+  		      elif n.startswith("C"):
+			  name = 'X'+n[1:] 
+			  val = matrix_multiply(v, g_i)
+	              elif n.startswith("A") and isinstance(g_i, Data):
+			  name = 'X'+n[1:] 
+			  val = self.__mm(v, grad(g_i))
+		      if name:
+			  if args.has_key(name):
+			      args[name]+=val
+			  else:
+			      args[name]=val 
+	      self._lpde.setValue(**args)
+	      u_g_i=self._lpde.getSolution()
+	      
+	      if len_g >1:
+		 if self.getNumSolutions() == 1:
+		     u_g[i]=-u_g_i
+		 else:
+		     u_g[:,i]=-u_g_i
+              else:
+		  u_g=-u_g_i
+		  
+        return u_g
+
+    def __mm(self,  m, v):
+	  """
+	  a sligtly crude matrix*matrix multipication
+	  m is  A-coefficient, u is vector, v is grad vector:   A_ijkl*v_kl
+	  m is  B-coefficient, u is vector, v is vector:        B_ijk*v_k
+	  m is  C-coefficient, u is vector, v is grad vector:   C_ikl*v_kl
+	  m is  D-coefficient, u is vector, v is vector:        D_ij*v_j
+	  m is  A-coefficient, u is scalar, v is grad vector:   A_jkl*v_kl
+	  m is  B-coefficient, u is scalar, v is vector:        B_jk*v_k
+	  m is  C-coefficient, u is scalar, v is grad vector:   C_kl*v_kl
+	  m is  D-coefficient, u is scalar, v is vector:        D_j*v_j	  
+	  m is  A-coefficient, u is vector, v is grad scalar:   A_ijl*v_l
+	  m is  B-coefficient, u is vector, v is scalar:        B_ij*v
+	  m is  C-coefficient, u is vector, v is grad scalar:   C_il*v_l
+	  m is  D-coefficient, u is vector, v is scalar:        D_i*v
+	  m is  A-coefficient, u is scalar, v is grad scalar:   A_jl*v_l
+	  m is  B-coefficient, u is scalar, v is scalar:        B_j*v
+	  m is  C-coefficient, u is scalar, v is grad scalar:   C_l*v_l
+	  m is  D-coefficient, u is scalar, v is scalar:        D*v	
+	  """
+	  s_m=getShape(m)
+	  s_v=getShape(v)
+	  
+	  # m is  B-coefficient, u is vector, v is scalar:        B_ij*v
+	  # m is  D-coefficient, u is vector, v is scalar:        D_i*v
+	  # m is  B-coefficient, u is scalar, v is scalar:        B_j*v
+	  # m is  D-coefficient, u is scalar, v is scalar:        D*v	
+	  if s_m == () or s_v == ():
+	      return m*v
+	  
+	  # m is  D-coefficient, u is scalar, v is vector:        D_j*v_j	  
+	  # m is  C-coefficient, u is scalar, v is grad scalar:   C_l*v_l
+	  elif len(s_m) == 1: 
+	         return inner(m,v)
+
+	  # m is  D-coefficient, u is vector, v is vector:        D_ij*v_j
+	  # m is  B-coefficient, u is scalar, v is vector:        B_jk*v_k
+	  # m is  C-coefficient, u is vector, v is grad scalar:   C_il*v_l
+	  # m is  A-coefficient, u is scalar, v is grad scalar:   A_jl*v_l       
+	  elif len(s_m) == 2 and len(s_v) ==1 :
+	         return matrix_mult(m,v)
+	    
+	  # m is  C-coefficient, u is scalar, v is grad vector:   C_kl*v_kl
+	  elif len(s_m) == 2 and len(s_v) ==2 :
+	      return inner(m,v)
+
+	  # m is  B-coefficient, u is vector, v is vector:        B_ijk*v_k
+	  # m is  A-coefficient, u is vector, v is grad scalar:   A_ijl*v_l   
+	  elif len(s_m) == 3 and len(s_v) ==1 :
+	      return  matrix_mult(m,v)
+	  
+	  # m is  A-coefficient, u is scalar, v is grad vector:   A_jkl*v_kl
+	  # m is  C-coefficient, u is vector, v is grad vector:   C_ikl*v_kl
+	  elif len(s_m) == 3 and len(s_v) ==2 :
+	       return tensor_mult(m,v)
+	  
+	  # m is  A-coefficient, u is vector, v is grad vector:   A_ijkl*v_kl
+	  elif len(s_m) == 4 and len(s_v) ==2 :
+	       return tensor_mult(m,v)
+	       
 
     def _updateRHS(self, expressions, subs):
         """
@@ -792,7 +1014,12 @@ class NonlinearPDE(object):
         self.trace3("RHS expressions evaluated in %f seconds."%(time()-ttt0))
         for i in range(len(names)):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
-        self._lpde.setValue(**dict(zip(names,res)))
+        args=dict(zip(names,res))
+        # reset coefficients may be set at previous calls:
+        for n in self.__COEFFICIENTS :
+	    if not args.has_key(n): args[n]=Data()     
+	if not args.has_key('r'): args['r']=Data() 
+        self._lpde.setValue(**args)
 
     def _updateMatrix(self, expressions, subs):
         """
@@ -835,6 +1062,7 @@ class NonlinearPDE(object):
                 sym=sym.subs(g, r)
         return sym
 
+        
 class VariationalProblem(object):
     """
     This class is used to define a general constraint vartional problem

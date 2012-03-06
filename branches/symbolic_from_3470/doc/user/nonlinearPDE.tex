@@ -1,11 +1,11 @@
-\chapter{The Newton Method}
+\chapter{Non-Linear Partial Differential Equations}
 \label{APP: NEWTON}
 
 The solution $u_i$ is given as a solution of
 the nonlinear equation
 \begin{equation} \label{APP NEWTON EQU 40}
-\int{\Omega} v_{i,j} \cdot X_{ij} + v_{i} \cdot Y_{i} \; dx
-+ \int{\partial \Omega}  v_{i} \cdot y_{i} \; ds  = 0 
+\int_{\Omega} v_{i,j} \cdot X_{ij} + v_{i} \cdot Y_{i} \; dx
++ \int_{\partial \Omega}  v_{i} \cdot y_{i} \; ds  = 0 
 \end{equation}
 for all smooth $v_i$ with $v_i=0$ where $q_i>0$ and
 \begin{equation} \label{APP NEWTON EQU 40b}
@@ -24,6 +24,8 @@ equation~(\ref{APP NEWTON EQU 40}) can be written in compact formulation
 \begin{equation} \label{APP NEWTON EQU 40d}
 F(u)= 0 
 \end{equation}
+
+\section{Newton-Raphson Scheme}
 This equation is iteratively solved by the Newton-Raphson method\index{Newton-Raphson method}, see \cite{lit171}.
 Starting with the initial guess
 $u^{(0)}$ the sequence
@@ -32,18 +34,17 @@ $u^{(0)}$ the sequence
 \end{equation}
 for $\nu=1,2,\ldots \;$ generates the (general) Newton-Raphson iteration for the
 solution $u$. The correction $\delta^{(\nu-1)}$ is the solution of the linear problem
-\begin{equation} \label{APP NEWTON EQU 43b}
+\begin{equation} \label{APP NEWTON EQU 43b0}
 < \fracp{F}{u^{(\nu-1)}} \delta^{(\nu-1)} ,v > = <F(u^{(\nu-1)}),v>
 \end{equation}
 for all smooth $v$ on $\Omega$ with $v_i=0$ where $q_i>0$. 
 where
 \begin{equation} \label{APP NEWTON EQU 43b}
-< \fracp{F}{u} \delta ,v > = 
+< \fracp{F}{u} \cdot \delta ,v > = 
 \int_{\Omega} \left( \fracp{X_{ij}}{u_{k,l}} v_{i,j}\delta_{k,l} + 
 \fracp{X_{ij}}{u_{k}} v_{i,j}\delta_{k} + \fracp{Y_{i}}{u_{k,l}} v_{i}\delta_{k,l} + 
 \fracp{Y_{i}}{u_{k}} v_{i}\delta_{k} \right) \; dx 
 + \int_{\partial \Omega} 
- \fracp{y_{i}}{u_{k,l}} v_{i}\delta_{k,l} +
 \fracp{y_{i}}{u_{k}} v_{i}\delta_{k} \; ds 
 \end{equation}
 It is assumed that the initial guess $u^{(0)}$ fulfills the constraint~(\ref{APP NEWTON EQU 40b}). 
@@ -76,6 +77,9 @@ the change on the level of the equation are proportional:
  \frac{ \| u_i - u^{(\nu)}_i \|_{\infty} }{ \| 0 - F(u^{(\nu)}) \|_{i} } =
  \frac{ \| \delta^{(\nu)}_i \|_{\infty} }{ \| F(u^{(\nu)}) - F(u^{(\nu-1)}) \|_{i} }  \; .
 \end{equation}
+where we assume that that component $\nu$ $F(u)$ is mainly controlled by component $\nu$ of the solution.
+
+
 We assume that the term $F(u^{(\nu)})$ can be neglected versus
 $F(u^{(\nu-1)})$ since $u^{(\nu)}$ is a better approximation,
 and use the stopping criterion in the formulation:
@@ -289,3 +293,38 @@ the Newton-Raphson update aglorithm.
 
 \caption{\label{APP NEWTON PIC 61}Flow diagram of the Newton-Raphson algorithm}
 \end{figure}
+
+\section{Local Sensitivity Analysis}
+If the coefficients 
+$X_{ij}$, $Y_i$ and $y_{i}$ in equation~(\ref{APP NEWTON EQU 40})
+depend on a vector of input factors $f_i$ index{input factor} and its gradient one is interested in how the solution $u_i$
+is changing if the input factors are changed. This problem is called a local sensitivity 
+analysis \index{local sensitivity analysis}. If $u(f)$ denotes the 
+solution of equation~(\ref{APP NEWTON EQU 40}) for the input factor $p$ 
+and $u(f+\alpha \cdot g)$ denotes the solution 
+for a perturbed value  $f+\alpha \cdot g$ for input factor $f$ where
+$q$ denotes the direction of perturbation and $\alpha$ is the small scaling factor.
+The derivative of the solution in the direction $g$ is defined as
+\begin{equation}
+\fracp{u}{g} : = \lim_{\alpha \rightarrow 0} \frac{ u(f+\alpha \cdot g) - u(f)}{\alpha}
+\end{equation}
+In practice one needs to distinguish between the cases of a spatially constant
+spatially variable. In the first case $g$ is set to a unit vector while
+in a second case an appropriate function needs to be given for $g$. 
+
+The function  $\fracp{u}{g}$ is calculated from solving the equation
+\begin{align} \label{APP NEWTON EQU 100} 
+\int_{\Omega} \left( \fracp{X_{ij}}{u_{k,l}} v_{i,j} \left(\fracp{u_k}{g}\right)_{,l} + 
+\fracp{X_{ij}}{u_{k}} v_{i,j}\fracp{u_k}{g} + \fracp{Y_{i}}{u_{k,l}} v_{i}\left(\fracp{u_k}{g}\right)_{,l}  + 
+\fracp{Y_{i}}{u_{k}} v_{i}\fracp{u_k}{g}\right) \; dx 
++ \int_{\partial \Omega}  
+\fracp{y_{i}}{u_{k}} v_{i}\fracp{u_k}{g}\; ds \\
++ \int_{\Omega} v_{i,j}  \left( \fracp{X_{ij}}{f_{k,l}} g_{k,l} + \fracp{X_{ij}}{f_{k}} g_k \right) 
++ v_{i} \left( \fracp{Y_{i}}{f_{k,l}} g_{k,l} +  \fracp{Y_{i}}{f_{k}} g_k \right) \; dx 
++ \int_{\partial \Omega}  v_{i}
+\fracp{y_{i}}{f_{k}}  g_k\; ds
+\end{align}
+for all smooth $v$ on $\Omega$ with $v_i=0$ where $q_i>0$
+for the unknown sensitivity $\fracp{u}{g}$. 
+Notice that this equation is similar to the equation which needs to be solved for
+the Newton-Raphson correction $\delta_k$, see equation~(\ref{APP NEWTON EQU 43b}).
