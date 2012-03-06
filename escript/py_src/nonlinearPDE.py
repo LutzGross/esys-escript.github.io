@@ -52,6 +52,53 @@ class InadmissiblePDEOrdering(Exception):
     """
     pass
 
+def concatenateRow(*args):
+    """
+    """
+    if len(args)==1:
+        return args[0]
+
+    if len(args)>2:
+        return concatenateRow(args[0], concatenateRow(*args[1:]))
+
+    lshape=util.getShape(args[0])
+    rshape=util.getShape(args[1])
+    if len(lshape)==0:
+        if len(rshape)==0:
+            shape=(2,)
+            res=numpy.zeros(shape, dtype=object)
+            res[0]=args[0]
+            res[1]=args[1]
+        elif len(rshape)==1:
+            shape=(rshape[0]+1,)
+            res=numpy.zeros(shape, dtype=object)
+            res[0]=args[0]
+            res[1:]=args[1]
+    elif len(lshape)==1:
+        if len(rshape)==1:
+            shape=(2,)+lshape
+            res=numpy.zeros(shape, dtype=object)
+            res[0]=args[0]
+            res[1]=args[1]
+        else:
+            shape=(rshape[0]+1,)+lshape
+            res=numpy.zeros(shape, dtype=object)
+            res[0]=args[0]
+            res[1:]=args[1]
+    else:
+        if len(rshape)==1:
+            shape=(lshape[0]+1,)+lshape[1:]
+            res=numpy.zeros(shape, dtype=object)
+            res[:lshape[0]]=args[0]
+            res[lshape[0]]=args[1]
+        else:
+            shape=(lshape[0]+rshape[0],)+lshape[1:]
+            res=numpy.zeros(shape, dtype=object)
+            res[:lshape[0]]=args[0]
+            res[lshape[0]:]=args[1]
+
+    return Symbol(res, dim=args[0].dim)
+
 def removeFsFromGrad(sym):
     """
     Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
@@ -66,9 +113,11 @@ def removeFsFromGrad(sym):
     return sym
 
 def getTotalDifferential(f, x, order=0):
-    # Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
-    #            \   /         \   /
-    #              a             b
+    """
+    Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
+               \   /         \   /
+                 a             b
+    """
 
     res=()
     shape=util.getShape(f)
@@ -660,7 +709,7 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, self.getShapeOfCoefficient(name), shape))
+                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             rank=len(shape)
             if name == "q":
                 self._lpde.setValue(q=val)
@@ -759,6 +808,7 @@ class NonlinearPDE(object):
         self.trace3("Starting expression evaluation.")
         ttt0=time()
         ev.subs(**subs)
+        print ev
         res=ev.evaluate()
         if len(names)==1: res=[res]
         self.trace3("Matrix expressions evaluated in %f seconds."%(time()-ttt0))
@@ -852,9 +902,9 @@ class VariationalProblem(object):
         T = Symbol('T', dim=dom.getDim())
         log_k = Symbol('log_k', dim=dom.getDim())
         v = VariationalProblem(dom, u=T, p=log_k)
-        v.setValue(X=exp(-p)*grad(u), Y=s, h=0.3*(u-0.3)**2)
-        T, log_k, l = v.getSolution(T=0., log_K=1, s=2.45)
-        sT,S_log_K=v.getSensitivity(s, direction=1, T=T, log_K=log_K, s=2.45)
+        v.setValue(X=exp(-log_k)*grad(T), Y=s, h=0.3*(T-0.3)**2)
+        T, log_k, l = v.getSolution(T=0., log_k=1, s=2.45)
+        sT,S_log_k=v.getSensitivity(s, direction=1, T=T, log_k=log_k, s=2.45)
 
     """
     DEBUG0=0 # no debug info
@@ -887,7 +937,7 @@ class VariationalProblem(object):
             U=u
         else:
             self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
-            U=concatenateRow(self._parameter, self.__unknown, self._lagrangean)
+            U=concatenateRow(self._parameter, self._unknown, self._lagrangean)
         self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
 
     def __str__(self):
@@ -946,10 +996,10 @@ class VariationalProblem(object):
 
         :rtype: ``int``
         """
-        if self.__parameter == None:
+        if self._parameter == None:
             return 0
         else:
-            s=self._unknown.getShape()
+            s=self._parameter.getShape()
             if len(s) > 0:
                 return s[0]
             else:
@@ -1071,10 +1121,10 @@ class VariationalProblem(object):
 
         Z=Symbol(Z_key,(), dim=self.dim)
         if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
-        if self._set_coeffs.has_key(X_key): Z+=inner(self._set_coeffs[X_key],grad(self._lagrangean))
-        if self._set_coeffs.has_key(Y_key): Z+=inner(self._set_coeffs[Y_key],self._lagrangean)
+        if self._set_coeffs.has_key(X_key): Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
+        if self._set_coeffs.has_key(Y_key): Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
 
-        if numParam>0:
+        if self.getNumParameters() > 0:
             if order == 0:
                 Yp=getTotalDifferential(Z, self._parameter, order=0)
                 Yu=getTotalDifferential(Z, self._unknown, order=0)
@@ -1266,23 +1316,23 @@ class VariationalProblem(object):
                      coeff2["r"]=self._r
 
             elif "Y" in update:
-                 Y,X = __getNonlinearPDECoefficient("", capson=True, order=1)
+                 Y,X = self.__getNonlinearPDECoefficient("", capson=True, order=1)
                  coeff2["Y"]=Y
                  coeff2["X"]=X
             elif "y" in update:
-                 coeff2["y"]=__getNonlinearPDECoefficient("", capson=False)
+                 coeff2["y"] = self.__getNonlinearPDECoefficient("", capson=False)
             elif "y_contact" in update:
-                 coeff2["y_contact"]=__getNonlinearPDECoefficient("_contact", capson=False)
+                 coeff2["y_contact"] = self.__getNonlinearPDECoefficient("_contact", capson=False)
             elif "y_dirac" in update:
-                 coeff2["y_dirac"]=__getNonlinearPDECoefficient("_dirac", capson=False)
+                 coeff2["y_dirac"] = self.__getNonlinearPDECoefficient("_dirac", capson=False)
             elif "Y_reduced" in update:
-                 Y,X = __getNonlinearPDECoefficient("_reduced",capson=True, order=1)
+                 Y,X = self.__getNonlinearPDECoefficient("_reduced",capson=True, order=1)
                  coeff2["Y_reduced"]=Y
                  coeff2["X_reduced"]=X
             elif "y_reduced" in update:
-                 coeff2["y_reduced"]= __getNonlinearPDECoefficient("_reduced",capson=False)
+                 coeff2["y_reduced"]= self.__getNonlinearPDECoefficient("_reduced",capson=False)
             elif "y_contact_reduced" in update:
-                 coeff2["y_contact_reduced"]=__getNonlinearPDECoefficient("_contact_reduced",capson=False)
+                 coeff2["y_contact_reduced"] = self.__getNonlinearPDECoefficient("_contact_reduced",capson=False)
 
             # and now we can set the PDE coefficients:
             self.getNonlinearPDE().setValue(**coeff2)
@@ -1300,24 +1350,29 @@ class VariationalProblem(object):
         numParams=self.getNumParameters()
 
         # get the initial value for the iteration process:
+        fs=self.getNonlinearPDE().getLinearPDE().getFunctionSpaceForSolution()
         u_sym=self._unknown.atoms().pop().name
         if not subs.has_key(u_sym):
             raise KeyError("Initial value for '%s' missing."%u_sym)
-        ui=subs.pop(u_sym)
+        ui=subs[u_sym]
         if not isinstance(ui,Data):
-            ui=Data(ui, self._lpde.getFunctionSpaceForSolution())
+            ui=Data(ui, fs)
+            subs[u_sym]=ui
 
         if numParams>0:
+            subs[self._lagrangean.name]=Data(0., self._lagrangean.getShape(), fs)
             p_sym=self._parameter.atoms().pop().name
             if not subs.has_key(p_sym):
                 raise KeyError("Initial value for '%s' missing."%p_sym)
-            pi=subs.pop(p_sym)
+            pi=subs[p_sym]
             if not isinstance(pi,Data):
-                pi=Data(pi, self._lpde.getFunctionSpaceForSolution())
-            Ui=concatenateRow(pi, ui, numpy.zeros((numSol,)) )
-        else:
-            Ui=uq
-        subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui
+                fs=self.getNonlinearPDE().getLinearPDE().getFunctionSpaceForSolution()
+                pi=Data(pi, fs)
+                subs[p_sym]=pi
+        #    Ui=concatenateRow(pi, ui, numpy.zeros((numSol,)) )
+        #else:
+        #    Ui=ui
+        #subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui
 
         Ui=self.getNonlinearPDE().getSolution(**subs)
 
