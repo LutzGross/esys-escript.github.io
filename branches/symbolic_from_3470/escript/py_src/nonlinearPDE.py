@@ -32,7 +32,8 @@ __url__="https://launchpad.net/escript-finley"
 import numpy
 from time import time
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
-from esys.escript import util, Data, Symbol, Evaluator
+from esys.escript import util, Data, Symbol, Evaluator, getTotalDifferential, \
+        isSymbol
 
 __author__="Cihan Altinay, Lutz Gross"
 
@@ -98,106 +99,6 @@ def concatenateRow(*args):
             res[lshape[0]:]=args[1]
 
     return Symbol(res, dim=args[0].dim)
-
-def removeFsFromGrad(sym):
-    """
-    Returns sym with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
-    That is, all functionspace parameters are removed.
-    """
-    from esys.escript import symfn
-    gg=sym.atoms(symfn.grad_n)
-    for g in gg:
-        if len(g.args)==3:
-            r=symfn.grad_n(*g.args[:2])
-            sym=sym.subs(g, r)
-    return sym
-
-def getTotalDifferential(f, x, order=0):
-    """
-    Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
-               \   /         \   /
-                 a             b
-    """
-
-    res=()
-    shape=util.getShape(f)
-    if not hasattr(f, 'diff'):
-        res+=(numpy.zeros(shape+x.getShape()),)
-        for i in range(order):
-            x=x.grad()
-            res+=numpy.zeros(shape+x.getShape())
-
-    elif x.getRank()==0:
-        f=removeFsFromGrad(f)
-        dfdx=f.diff(x)
-        dgdx=x.grad().diff(x)
-        a=numpy.empty(shape, dtype=object)
-        if order>0:
-            b=numpy.empty(shape+dgdx.getShape(), dtype=object)
-
-        if len(shape)==0:
-            for j in numpy.ndindex(dgdx.getShape()):
-                y=dfdx
-                z=dgdx[j]
-                # expand() and coeff() are very expensive so
-                # we set the unwanted factors to zero to extract
-                # the one we need
-                for jj in numpy.ndindex(dgdx.getShape()):
-                    if j==jj: continue
-                    y=y.subs(dgdx[jj], 0)
-                a=y.subs(z,0) # terms in x and constants
-                if order>0:
-                    b[j]=y.subs(z,1)-a
-        else:
-            for i in numpy.ndindex(shape):
-                for j in numpy.ndindex(dgdx.getShape()):
-                    y=dfdx[i]
-                    z=dgdx[j]
-                    for jj in numpy.ndindex(dgdx.getShape()):
-                        if j==jj: continue
-                        y=y.subs(dgdx[jj], 0)
-                    a[i]=y.subs(z,0) # terms in x and constants
-                    if order>0:
-                        b[i+j]=y.subs(z,1)-a[i]
-        res+=(Symbol(a),)
-        if order>0:
-            res+=(Symbol(b),)
-
-    elif x.getRank()==1:
-        f=removeFsFromGrad(f)
-        dfdx=f.diff(x)
-        dgdx=x.grad().diff(x).transpose(2)
-        a=numpy.empty(shape+x.getShape(), dtype=object)
-        if order>0:
-            b=numpy.empty(shape+x.grad().getShape(), dtype=object)
-
-        if len(shape)==0:
-            raise NotImplementedError('f scalar, x vector')
-        else:
-            for i in numpy.ndindex(shape):
-                for k,l in numpy.ndindex(x.grad().getShape()):
-                    if dgdx[k,k,l]==0:
-                        a[i+(k,)]=0
-                        if order>0:
-                            b[i+(k,l)]=0
-                    else:
-                        y=dfdx[i+(k,)]
-                        z=dgdx[k,k,l]
-                        for kk,ll in numpy.ndindex(x.grad().getShape()):
-                            if k==kk and l==ll: continue
-                            y=y.subs(dgdx[kk,kk,ll], 0)
-                        a[i+(k,)]=y.subs(z,0) # terms in x and constants
-                        if order>0:
-                            b[i+(k,l)]=y.subs(z,1)-a[i+(k,)]
-
-        res+=(Symbol(a),)
-        if order>0:
-           res+=(Symbol(b),)
-
-    if len(res)==1:
-        return res[0]
-    else:
-        return res
 
 class NonlinearPDE(object):
     """
@@ -1035,7 +936,6 @@ class NonlinearPDE(object):
         self.trace3("Starting expression evaluation.")
         ttt0=time()
         ev.subs(**subs)
-        print ev
         res=ev.evaluate()
         if len(names)==1: res=[res]
         self.trace3("Matrix expressions evaluated in %f seconds."%(time()-ttt0))
