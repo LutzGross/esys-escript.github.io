@@ -21,6 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from symbols import *
 from evaluator import *
+from utils import *
 from pretty import pretty_print, pprint
 import functions as symfn
 

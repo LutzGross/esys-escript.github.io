@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -621,6 +620,8 @@ class Symbol(object):
 
     @staticmethod
     def _symComp(sym):
+        """
+        """
         n=sym.name
         a=n.split('[')
         if len(a)!=2:
@@ -745,111 +746,3 @@ class Symbol(object):
             return Symbol(other._arr**self._arr, dim=self.dim)
         return Symbol(other**self._arr, dim=self.dim)
 
-
-def symbols(*names, **kwargs):
-    """
-    Emulates the behaviour of sympy.symbols.
-    """
-
-    shape=kwargs.pop('shape', ())
-
-    s = names[0]
-    if not isinstance(s, list):
-        import re
-        s = re.split('\s|,', s)
-    res = []
-    for t in s:
-        # skip empty strings
-        if not t:
-            continue
-        sym = Symbol(t, shape, **kwargs)
-        res.append(sym)
-    res = tuple(res)
-    if len(res) == 0:   # var('')
-        res = None
-    elif len(res) == 1: # var('x')
-        res = res[0]
-                        # otherwise var('a b ...')
-    return res
-
-def combineData(array, shape):
-    """
-    """
-
-    # array could just be a single value
-    if not hasattr(array,'__len__') and shape==():
-        return array
-
-    from esys.escript import Data
-    n=numpy.array(array) # for indexing
-
-    # find function space if any
-    dom=set()
-    fs=set()
-    for idx in numpy.ndindex(shape):
-        if isinstance(n[idx], Data):
-            fs.add(n[idx].getFunctionSpace())
-            dom.add(n[idx].getDomain())
-
-    if len(dom)>1:
-        domain=dom.pop()
-        while len(dom)>0:
-            if domain!=dom.pop():
-                raise ValueError("Mixing of domains not supported")
-
-    if len(fs)>0:
-        d=Data(0., shape, fs.pop()) #FIXME: interpolate instead of using first?
-    else:
-        d=numpy.zeros(shape)
-    for idx in numpy.ndindex(shape):
-        #z=numpy.zeros(shape)
-        #z[idx]=1.
-        #d+=n[idx]*z # much slower!
-        if hasattr(n[idx], "ndim") and n[idx].ndim==0:
-            d[idx]=float(n[idx])
-        else:
-            d[idx]=n[idx]
-    return d
-
-
-class SymFunction(Symbol):
-    """
-    """
-    def __init__(self, *args, **kwargs):
-        """
-        Initialises a new symbolic function object.
-        """
-        super(SymFunction, self).__init__(self.__class__.__name__, **kwargs)
-        self.args=args
-
-    def __repr__(self):
-        return self.name+"("+", ".join([str(a) for a in self.args])+")"
-
-    def __str__(self):
-        return self.name+"("+", ".join([str(a) for a in self.args])+")"
-
-    def lambdarepr(self):
-        return self.name+"("+", ".join([a.lambdarepr() for a in self.args])+")"
-
-    def atoms(self, *types):
-        s=set()
-        for el in self.args:
-            atoms=el.atoms(*types)
-            for a in atoms:
-                if a.is_Symbol:
-                    n,c=Symbol._symComp(a)
-                    s.add(sympy.Symbol(n))
-                else:
-                    s.add(a)
-        return s
-
-    def __neg__(self):
-        res=self.__class__(*self.args)
-        res._arr=-res._arr
-        return res
-
-def isSymbol(arg):
-   """
-   return True is the argument ``arg`` is a `Symbol`` or ``sympy.Symbol`` object
-   """
-   return isinstance(arg, Symbol) or isinstance(arg, sympy.Symbol) 
