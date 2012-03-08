@@ -281,6 +281,7 @@ class NonlinearPDE(object):
         """
         # get the initial value for the iteration process:
         u_sym=self._unknown.atoms().pop().name
+        
         if not subs.has_key(u_sym):
             raise KeyError("Initial value for '%s' missing."%u_sym)
 
@@ -1247,7 +1248,7 @@ class VariationalProblem(object):
             Y_key="y"+extension
             Z_key="z"+extension
 
-        Z=Symbol(Z_key,(), dim=self.dim)
+        Z=0
         if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
         if self._set_coeffs.has_key(X_key): Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
         if self._set_coeffs.has_key(Y_key): Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
@@ -1269,7 +1270,10 @@ class VariationalProblem(object):
                 Y=getTotalDifferential(Z, self._unknown, order=0)
             else:
                 Y,X=getTotalDifferential(Z, self._unknown, order=1)
-        return Y,X
+        if order == 0:
+	    return Y
+	else:
+	    return Y,X
 
     def setValue(self,**coefficients):
         """
@@ -1314,23 +1318,23 @@ class VariationalProblem(object):
             if not shape == self.getShapeOfCoefficient(name):
                 raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
             if name == "q":
-                self._q = q
+                self._q = val
                 update.append("q")
 
             elif name == "qp":
                 if numParams<1:
                     raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
-                self._qp = qp
+                self._qp = val
                 update.append("q")
 
             elif name == "r":
-                self._r = r
+                self._r = val
                 update.append("r")
 
             elif name == "rp":
                 if numParams<1:
                     raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
-                self._rp = rp
+                self._rp = val
                 update.append("r")
 
             elif name=="X":
@@ -1417,9 +1421,9 @@ class VariationalProblem(object):
             else:
                 raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
-            # now we can update the coefficients of the nonlinear PDE:
-            coeff2={}
-            if "q" in update:
+        # now we can update the coefficients of the nonlinear PDE:
+        coeff2={}
+        if "q" in update:
                 if numParams>0:
                      q=self.getNonlinearPDE().createCoefficient("q")
                      if hasattr(self, "_qp"): q[:numParams]=self._qp
@@ -1429,7 +1433,7 @@ class VariationalProblem(object):
                 else:
                      q=self._q
                 coeff2["q"]=q
-            elif "r" in update:
+        if "r" in update:
                 if numParams>0:
                      if hasattr(self, "_rp"):
                          rp=self._rp
@@ -1443,27 +1447,27 @@ class VariationalProblem(object):
                 else:
                      coeff2["r"]=self._r
 
-            elif "Y" in update:
+        if "Y" in update:
                  Y,X = self.__getNonlinearPDECoefficient("", capson=True, order=1)
                  coeff2["Y"]=Y
                  coeff2["X"]=X
-            elif "y" in update:
+        if "y" in update:
                  coeff2["y"] = self.__getNonlinearPDECoefficient("", capson=False)
-            elif "y_contact" in update:
+        if "y_contact" in update:
                  coeff2["y_contact"] = self.__getNonlinearPDECoefficient("_contact", capson=False)
-            elif "y_dirac" in update:
+        if "y_dirac" in update:
                  coeff2["y_dirac"] = self.__getNonlinearPDECoefficient("_dirac", capson=False)
-            elif "Y_reduced" in update:
+        if "Y_reduced" in update:
                  Y,X = self.__getNonlinearPDECoefficient("_reduced",capson=True, order=1)
                  coeff2["Y_reduced"]=Y
                  coeff2["X_reduced"]=X
-            elif "y_reduced" in update:
+        if "y_reduced" in update:
                  coeff2["y_reduced"]= self.__getNonlinearPDECoefficient("_reduced",capson=False)
-            elif "y_contact_reduced" in update:
+        if "y_contact_reduced" in update:
                  coeff2["y_contact_reduced"] = self.__getNonlinearPDECoefficient("_contact_reduced",capson=False)
 
-            # and now we can set the PDE coefficients:
-            self.getNonlinearPDE().setValue(**coeff2)
+        # and now we can set the PDE coefficients:
+        self.getNonlinearPDE().setValue(**coeff2)
 
     def getSolution(self, **subs):
         """
@@ -1476,7 +1480,6 @@ class VariationalProblem(object):
         """
         numSol=self.getNumSolutions()
         numParams=self.getNumParameters()
-
         # get the initial value for the iteration process:
         fs=self.getNonlinearPDE().getLinearPDE().getFunctionSpaceForSolution()
         u_sym=self._unknown.atoms().pop().name
@@ -1486,7 +1489,6 @@ class VariationalProblem(object):
         if not isinstance(ui,Data):
             ui=Data(ui, fs)
             subs[u_sym]=ui
-
         if numParams>0:
             subs[self._lagrangean.name]=Data(0., self._lagrangean.getShape(), fs)
             p_sym=self._parameter.atoms().pop().name
@@ -1501,6 +1503,7 @@ class VariationalProblem(object):
         #else:
         #    Ui=ui
         #subs[self.getNonlinearPDE().getUnknownSymbol().name] = Ui
+        print subs
 
         Ui=self.getNonlinearPDE().getSolution(**subs)
 
