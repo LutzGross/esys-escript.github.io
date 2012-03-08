@@ -351,6 +351,7 @@ class NonlinearPDE(object):
             if n == 0:
                 self._updateLinearPDE(expressions, subs)
                 defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
+                print defect_norm
                 LINTOL=0.1
             else:
                 if not use_simplified_Newton:
@@ -360,6 +361,7 @@ class NonlinearPDE(object):
                 else:
                     LINTOL = 0.1 * max( q_u**2, min(qtol/defect_norm) )
                 LINTOL=max(1e-4,min(LINTOL, 0.1))
+                #LINTOL=1.e-5
             self._lpde.getSolverOptions().setTolerance(LINTOL)
             self.trace1("PDE is solved with rel. tolerance = %e"%LINTOL)
             delta_u=self._lpde.getSolution()
@@ -376,17 +378,20 @@ class NonlinearPDE(object):
                         subs[u_syms[i]]=ui[i]
                 self._updateRHS(expressions, subs)
                 new_defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
-                q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
+                defect_reduced=False
+                for i in xrange(len( new_defect_norm)):
+		     if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
+		    
+                #print new_defect_norm
+                #q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
                 # if defect_norm==0 and new_defect_norm!=0
                 # this will be util.DBLE_MAX
-                self.trace1("Defect reduction = %e with relaxation factor %e."%(q_defect, omega))
-                if q_defect < 1:
-                    defect_reduced=True
-                else:
+                #self.trace1("Defect reduction = %e with relaxation factor %e."%(q_defect, omega))
+                if not defect_reduced:
                     omega*=0.5
                     if omega < self._omega_min:
                         raise DivergenceDetected("Underrelaxtion failed to reduce defect, giving up.")
-
+            self.trace1("Defect reduction with relaxation factor %e."%(omega, ))
             delta_norm, delta_norm_old = self._getSolutionNorm(delta_u) * omega, delta_norm
             defect_norm, defect_norm_old = new_defect_norm, defect_norm
             u_norm=self._getSolutionNorm(ui, atol=self._atol)
