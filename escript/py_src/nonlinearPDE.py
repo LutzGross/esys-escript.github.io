@@ -1328,7 +1328,7 @@ class VariationalProblem(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %d"%(name, self.getShapeOfCoefficient(name), shape))
+                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             if name == "q":
                 self._q = val
                 update.append("q")
