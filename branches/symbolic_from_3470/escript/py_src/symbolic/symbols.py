@@ -151,10 +151,21 @@ class Symbol(object):
         return (self._arr==other._arr).all()
 
     def __getitem__(self, key):
-        return self._arr[key]
+        """
+        Returns an element of this symbol which must have rank >0.
+        Unlike item() this method converts sympy objects and numpy arrays into
+        escript Symbols in order to facilitate expressions that require
+        element access, such as: grad(u)[1]+x
 
-    def __iter__(self):
-        return self._arr.__iter__
+        :param key: (nd-)index of item to be returned
+        :return: the requested element
+        :rtype: ``Symbol``, ``int``, or ``float``
+        """
+        res=self._arr[key]
+        # replace sympy Symbols/expressions by escript Symbols
+        if isinstance(res, sympy.Basic) or isinstance(res, numpy.ndarray):
+            res=Symbol(res)
+        return res
 
     def __setitem__(self, key, value):
         if isinstance(value, Symbol):
@@ -163,7 +174,7 @@ class Symbol(object):
             elif hasattr(self._arr[key], "shape"):
                 if self._arr[key].shape==value.getShape():
                     for idx in numpy.ndindex(self._arr[key].shape):
-                        self._arr[key][idx]=value[idx]
+                        self._arr[key][idx]=value[idx].item()
                 else:
                     raise ValueError("Wrong shape of value")
             else:
@@ -174,6 +185,9 @@ class Symbol(object):
             self._arr[key]=map(sympy.sympify,value.flat)
         else:
             self._arr[key]=sympy.sympify(value)
+
+    def __iter__(self):
+        return self._arr.__iter__
 
     def getDim(self):
         """
@@ -316,7 +330,7 @@ class Symbol(object):
             result=numpy.zeros(self.getShape(), dtype=object)
             for idx in numpy.ndindex(y.shape):
                 if y[idx]!=0:
-                    res=self[idx].coeff(y[idx], expand)
+                    res=self._arr[idx].coeff(y[idx], expand)
                     if res is not None:
                         result[idx]=res
         elif y.item()==0:
@@ -375,7 +389,7 @@ class Symbol(object):
                     for d in range(dim):
                         for idx in numpy.ndindex(self.getShape()):
                             index=idx+(d,)
-                            out[index]=out[index].diff(s[d], **assumptions)
+                            out[index]=out[index].diff(s[d].item(), **assumptions)
                     result=Symbol(out, dim=self.dim)
                 else:
                     raise ValueError("diff: Only rank 0 and 1 supported")
@@ -605,7 +619,7 @@ class Symbol(object):
         Raises TypeError if not compatible.
         """
         sh0=self.getShape()
-        if isinstance(other, Symbol):
+        if isinstance(other, Symbol): # or isinstance(other, Data):
             sh1=other.getShape()
         elif isinstance(other, numpy.ndarray):
             sh1=other.shape
