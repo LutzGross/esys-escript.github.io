@@ -99,7 +99,9 @@ def concatenateRow(*args):
             res[:lshape[0]]=args[0]
             res[lshape[0]:]=args[1]
 
-    return Symbol(res, dim=args[0].dim)
+    subs=args[0].getDataSubstitutions().copy()
+    subs.update(args[1].getDataSubstitutions())
+    return Symbol(res, dim=args[0].getDim(), subs=subs)
 
 class NonlinearPDE(object):
     """
@@ -791,7 +793,7 @@ class NonlinearPDE(object):
                           relevant_symbols['d'+name[1:]]=self._set_coeffs[name].diff(f)
         res=ev.evaluate()
         if len(names)==1: res=[res]
-        self.trace3("RHS expressions evaluated in %f seconds."%(time()-ttt0))
+        self.trace3("RHS expressions evaluated in %f seconds."%(time()-T0))
         for i in range(len(names)):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         coeffs_f=dict(zip(names,res))
@@ -936,11 +938,11 @@ class NonlinearPDE(object):
         if len(names)==0:
             return
         self.trace3("Starting expression evaluation.")
-        ttt0=time()
+        T0=time()
         ev.subs(**subs)
         res=ev.evaluate()
         if len(names)==1: res=[res]
-        self.trace3("RHS expressions evaluated in %f seconds."%(time()-ttt0))
+        self.trace3("RHS expressions evaluated in %f seconds."%(time()-T0))
         for i in range(len(names)):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         args=dict(zip(names,res))
@@ -962,11 +964,11 @@ class NonlinearPDE(object):
         if len(names)==0:
             return
         self.trace3("Starting expression evaluation.")
-        ttt0=time()
+        T0=time()
         ev.subs(**subs)
         res=ev.evaluate()
         if len(names)==1: res=[res]
-        self.trace3("Matrix expressions evaluated in %f seconds."%(time()-ttt0))
+        self.trace3("Matrix expressions evaluated in %f seconds."%(time()-T0))
         for i in range(len(names)):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         self._lpde.setValue(**dict(zip(names,res)))

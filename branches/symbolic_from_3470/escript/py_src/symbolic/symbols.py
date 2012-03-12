@@ -18,6 +18,7 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
+__author__="Cihan Altinay"
 
 """
 :var __author__: name of author
@@ -30,9 +31,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import numpy
 import sympy
-
-__author__="Cihan Altinay"
-
+from esys.escript import Data, FunctionSpace
 
    
 class Symbol(object):
@@ -84,9 +83,14 @@ class Symbol(object):
         :type dim: ``int``
         """
         if 'dim' in kwargs:
-            self.dim=kwargs.pop('dim')
+            self._dim=kwargs.pop('dim')
         else:
-            self.dim=2
+            self._dim=2
+
+        if 'subs' in kwargs:
+            self._subs=kwargs.pop('subs')
+        else:
+            self._subs={}
 
         if len(args)==1:
             arg=args[0]
@@ -106,6 +110,9 @@ class Symbol(object):
                     else:
                         res[idx]=arr[idx]
                 self._arr=res
+                if isinstance(arg, Symbol):
+                    self._subs.update(arg._subs)
+                    self._dim=arg._dim
             elif isinstance(arg, sympy.Basic):
                 self._arr=numpy.array(arg)
             else:
@@ -189,6 +196,14 @@ class Symbol(object):
     def __iter__(self):
         return self._arr.__iter__
 
+    def __array__(self):
+        return self._arr
+
+    def _sympy_(self):
+        """
+        """
+        return self.applyfunc(sympy.sympify)
+
     def getDim(self):
         """
         Returns the spatial dimensionality of this symbol.
@@ -196,7 +211,7 @@ class Symbol(object):
         :return: the symbol's spatial dimensionality
         :rtype: ``int``
         """
-        return self.dim
+        return self._dim
 
     def getRank(self):
         """
@@ -215,6 +230,16 @@ class Symbol(object):
         :rtype: ``tuple`` of ``int``
         """
         return self._arr.shape
+
+    def getDataSubstitutions(self):
+        """
+        Returns a dictionary of symbol names and the escript ``Data`` objects
+        they represent within this Symbol.
+
+        :return: the dictionary of substituted ``Data`` objects
+        :rtype: ``dict``
+        """
+        return self._subs
 
     def item(self, *args):
         """
@@ -340,32 +365,39 @@ class Symbol(object):
             none_to_zero=lambda item: 0 if item is None else item
             result=self.applyfunc(coeff_item)
             result=result.applyfunc(none_to_zero)
-        return Symbol(result, dim=self.dim)
+        res=Symbol(result, dim=self._dim)
+        for i in self._subs: res.subs(i, self._subs[i])
+        return res
 
     def subs(self, old, new):
         """
         Substitutes an expression.
         """
-        if isinstance(old, Symbol) and old.getRank()>0:
-            old._ensureShapeCompatible(new)
+        old._ensureShapeCompatible(new)
+        if isinstance(new, Data):
+            subs=self._subs.copy()
+            if isinstance(old, Symbol) and old.getRank()>0:
+                old=Symbol(old.atoms(sympy.Symbol)[0])
+            subs[old]=new
+            result=Symbol(self._arr, dim=self._dim, subs=subs)
+        elif isinstance(old, Symbol) and old.getRank()>0:
             if hasattr(new, '__array__'):
                 new=new.__array__()
             else:
                 new=numpy.array(new)
 
-            result=Symbol(self._arr, dim=self.dim)
+            result=numpy.empty(self.getShape(), dtype=object)
             if new.ndim>0:
                 for idx in numpy.ndindex(self.getShape()):
                     for symidx in numpy.ndindex(new.shape):
-                        result[idx]=result[idx].subs(old[symidx], new[symidx])
+                        result[idx]=self._arr[idx].subs(old._arr[symidx], new[symidx])
             else: # substitute scalar for non-scalar
                 for idx in numpy.ndindex(self.getShape()):
                     for symidx in numpy.ndindex(old.getShape()):
-                        result[idx]=result[idx].subs(old[symidx], new.item())
+                        result[idx]=self._arr[idx].subs(old._arr[symidx], new.item())
+            result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
-                if new.getRank()>0:
-                    raise TypeError("Cannot substitute, incompatible ranks.")
                 new=new.item()
             if isinstance(old, Symbol):
                 old=old.item()
@@ -377,7 +409,7 @@ class Symbol(object):
         """
         """
         symbols=Symbol._symbolgen(*symbols)
-        result=Symbol(self._arr, dim=self.dim)
+        result=Symbol(self._arr, dim=self._dim, subs=self._subs)
         for s in symbols:
             if isinstance(s, Symbol):
                 if s.getRank()==0:
@@ -390,9 +422,9 @@ class Symbol(object):
                         for idx in numpy.ndindex(self.getShape()):
                             index=idx+(d,)
                             out[index]=out[index].diff(s[d].item(), **assumptions)
-                    result=Symbol(out, dim=self.dim)
+                    result=Symbol(out, dim=self._dim, subs=self._subs)
                 else:
-                    raise ValueError("diff: Only rank 0 and 1 supported")
+                    raise ValueError("diff: argument must have rank 0 or 1")
             else:
                 diff_item=lambda item: getattr(item, 'diff')(s, **assumptions)
                 result=result.applyfunc(diff_item)
@@ -400,22 +432,30 @@ class Symbol(object):
 
     def grad(self, where=None):
         """
+        :type where: ``Symbol``, ``FunctionSpace``
         """
+        subs=self._subs
         if isinstance(where, Symbol):
             if where.getRank()>0:
                 raise ValueError("grad: 'where' must be a scalar symbol")
             where=where._arr.item()
+        elif isinstance(where, FunctionSpace):
+            name='fs'+str(id(where))
+            fssym=Symbol(name)
+            subs=self._subs.copy()
+            subs.update({fssym:where})
+            where=name
 
         from functions import grad_n
-        out=self._arr.copy().reshape(self.getShape()+(1,)).repeat(self.dim,axis=self.getRank())
-        for d in range(self.dim):
+        out=self._arr.copy().reshape(self.getShape()+(1,)).repeat(self._dim,axis=self.getRank())
+        for d in range(self._dim):
             for idx in numpy.ndindex(self.getShape()):
                 index=idx+(d,)
                 if where is None:
                     out[index]=grad_n(out[index],d)
                 else:
                     out[index]=grad_n(out[index],d,where)
-        return Symbol(out, dim=self.dim)
+        return Symbol(out, dim=self._dim, subs=subs)
 
     def inverse(self):
         """
@@ -469,12 +509,12 @@ class Symbol(object):
             out[2,2]=(A11*A22-A12*A21)*D
         else:
            raise TypeError("inverse: Only matrix dimensions 1,2,3 are supported")
-        return Symbol(out, dim=self.dim)
+        return Symbol(out, dim=self._dim, subs=self._subs)
 
     def swap_axes(self, axis0, axis1):
         """
         """
-        return Symbol(numpy.swapaxes(self._arr, axis0, axis1), dim=self.dim)
+        return Symbol(numpy.swapaxes(self._arr, axis0, axis1), dim=self._dim, subs=self._subs)
 
     def tensorProduct(self, other, axis_offset):
         """
@@ -498,7 +538,9 @@ class Symbol(object):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
         out.resize(sh0[:self._arr.ndim-axis_offset]+sh1[axis_offset:])
-        return Symbol(out, dim=self.dim)
+        subs=self._subs.copy()
+        subs.update(other._subs)
+        return Symbol(out, dim=self._dim, subs=subs)
 
     def transposedTensorProduct(self, other, axis_offset):
         """
@@ -522,7 +564,9 @@ class Symbol(object):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
         out.resize(sh0[axis_offset:]+sh1[axis_offset:])
-        return Symbol(out, dim=self.dim)
+        subs=self._subs.copy()
+        subs.update(other._subs)
+        return Symbol(out, dim=self._dim, subs=subs)
 
     def tensorTransposedProduct(self, other, axis_offset):
         """
@@ -548,7 +592,9 @@ class Symbol(object):
             for i1 in range(d1):
                 out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
         out.resize(sh0[:self._arr.ndim-axis_offset]+sh1[:r1-axis_offset])
-        return Symbol(out, dim=self.dim)
+        subs=self._subs.copy()
+        subs.update(other._subs)
+        return Symbol(out, dim=self._dim, subs=subs)
 
     def trace(self, axis_offset):
         """
@@ -565,7 +611,7 @@ class Symbol(object):
                 for j in range(sh[axis_offset]):
                     out[i1,i2]+=arr_r[i1,j,j,i2]
         out.resize(sh[:axis_offset]+sh[axis_offset+2:])
-        return Symbol(out, dim=self.dim)
+        return Symbol(out, dim=self._dim, subs=self._subs)
 
     def transpose(self, axis_offset):
         """
@@ -573,19 +619,19 @@ class Symbol(object):
         if axis_offset is None:
             axis_offset=int(self._arr.ndim/2)
         axes=range(axis_offset, self._arr.ndim)+range(0,axis_offset)
-        return Symbol(numpy.transpose(self._arr, axes=axes), dim=self.dim)
+        return Symbol(numpy.transpose(self._arr, axes=axes), dim=self._dim, subs=self._subs)
 
     def applyfunc(self, f, on_type=None):
         """
         """
         assert callable(f)
         if self._arr.ndim==0:
-            if on_type is None or isinstance(self._arr.item(),on_type):
+            if on_type is None or isinstance(self._arr.item(), on_type):
                 el=f(self._arr.item())
             else:
                 el=self._arr.item()
             if el is not None:
-                out=Symbol(el, dim=self.dim)
+                out=Symbol(el, dim=self._dim, subs=self._subs)
             else:
                 return el
         else:
@@ -595,7 +641,7 @@ class Symbol(object):
                     out[idx]=f(self._arr[idx])
                 else:
                     out[idx]=self._arr[idx]
-            out=Symbol(out, dim=self.dim)
+            out=Symbol(out, dim=self._dim, subs=self._subs)
         return out
 
     def expand(self):
@@ -608,10 +654,16 @@ class Symbol(object):
         """
         return self.applyfunc(sympy.simplify, sympy.Basic)
 
-    def _sympy_(self):
-        """
-        """
-        return self.applyfunc(sympy.sympify)
+    # unary/binary operations follow
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return Symbol(-self._arr, dim=self._dim, subs=self._subs)
+
+    def __abs__(self):
+        return Symbol(abs(self._arr), dim=self._dim, subs=self._subs)
 
     def _ensureShapeCompatible(self, other):
         """
@@ -619,7 +671,7 @@ class Symbol(object):
         Raises TypeError if not compatible.
         """
         sh0=self.getShape()
-        if isinstance(other, Symbol): # or isinstance(other, Data):
+        if isinstance(other, Symbol) or isinstance(other, Data):
             sh1=other.getShape()
         elif isinstance(other, numpy.ndarray):
             sh1=other.shape
@@ -631,6 +683,50 @@ class Symbol(object):
             raise TypeError("Unsupported argument type '%s' for operation"%other.__class__.__name__)
         if not sh0==sh1 and not sh0==() and not sh1==():
             raise TypeError("Incompatible shapes for operation")
+
+    def __binaryop(self, op, other):
+        self._ensureShapeCompatible(other)
+        if isinstance(other, Symbol):
+            subs=self._subs.copy()
+            subs.update(other._subs)
+            return Symbol(getattr(self._arr, op)(other._arr), dim=self._dim, subs=subs)
+        if isinstance(other, Data):
+            name='data'+str(id(other))
+            othersym=Symbol(name, other.getShape(), dim=self._dim)
+            subs=self._subs.copy()
+            subs.update({Symbol(name):other})
+            return Symbol(getattr(self._arr, op)(othersym._arr), dim=self._dim, subs=subs)
+        return Symbol(getattr(self._arr, op)(other), dim=self._dim, subs=self._subs)
+
+    def __add__(self, other):
+        return self.__binaryop('__add__', other)
+
+    def __radd__(self, other):
+        return self.__binaryop('__radd__', other)
+
+    def __sub__(self, other):
+        return self.__binaryop('__sub__', other)
+
+    def __rsub__(self, other):
+        return self.__binaryop('__rsub__', other)
+
+    def __mul__(self, other):
+        return self.__binaryop('__mul__', other)
+
+    def __rmul__(self, other):
+        return self.__binaryop('__rmul__', other)
+
+    def __div__(self, other):
+        return self.__binaryop('__div__', other)
+
+    def __rdiv__(self, other):
+        return self.__binaryop('__rdiv__', other)
+
+    def __pow__(self, other):
+        return self.__binaryop('__pow__', other)
+
+    def __rpow__(self, other):
+        return self.__binaryop('__rpow__', other)
 
     @staticmethod
     def _symComp(sym):
@@ -685,78 +781,4 @@ class Symbol(object):
                     yield s
             else:
                 yield s
-
-    def __array__(self):
-        return self._arr
-
-    # unary/binary operations follow
-
-    def __pos__(self):
-        return self
-
-    def __neg__(self):
-        return Symbol(-self._arr, dim=self.dim)
-
-    def __abs__(self):
-        return Symbol(abs(self._arr), dim=self.dim)
-
-    def __add__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(self._arr+other._arr, dim=self.dim)
-        return Symbol(self._arr+other, dim=self.dim)
-
-    def __radd__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(other._arr+self._arr, dim=self.dim)
-        return Symbol(other+self._arr, dim=self.dim)
-
-    def __sub__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(self._arr-other._arr, dim=self.dim)
-        return Symbol(self._arr-other, dim=self.dim)
-
-    def __rsub__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(other._arr-self._arr, dim=self.dim)
-        return Symbol(other-self._arr, dim=self.dim)
-
-    def __mul__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(self._arr*other._arr, dim=self.dim)
-        return Symbol(self._arr*other, dim=self.dim)
-
-    def __rmul__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(other._arr*self._arr, dim=self.dim)
-        return Symbol(other*self._arr, dim=self.dim)
-
-    def __div__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(self._arr/other._arr, dim=self.dim)
-        return Symbol(self._arr/other, dim=self.dim)
-
-    def __rdiv__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(other._arr/self._arr, dim=self.dim)
-        return Symbol(other/self._arr, dim=self.dim)
-
-    def __pow__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(self._arr**other._arr, dim=self.dim)
-        return Symbol(self._arr**other, dim=self.dim)
-
-    def __rpow__(self, other):
-        self._ensureShapeCompatible(other)
-        if isinstance(other, Symbol):
-            return Symbol(other._arr**self._arr, dim=self.dim)
-        return Symbol(other**self._arr, dim=self.dim)
 

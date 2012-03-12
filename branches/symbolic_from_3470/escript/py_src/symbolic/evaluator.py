@@ -18,12 +18,11 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
+__author__="Cihan Altinay"
 
 """
 Symbolic expression evaluator for escript
 """
-
-__author__="Cihan Altinay"
 
 class Evaluator:
     def __init__(self, *expressions):
@@ -71,10 +70,12 @@ class Evaluator:
                     sym.update(arg.atoms(sympy.Symbol))
             self.symbols.append(tuple(sym))
         else:
-            sym=tuple(expression.atoms(sympy.Symbol))
+            sym=set(expression.atoms(sympy.Symbol))
             self.symbols.append(sym)
 
         if isinstance(expression, escript.Symbol):
+            subs=expression.getDataSubstitutions()
+            self.subs(**{s.name:subs[s] for s in subs.keys()})
             self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"]))
         else:
             self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"]))
@@ -141,6 +142,8 @@ class Evaluator:
             v=self._subsdict[k]
             if v.__class__.__name__=="Data":
                 ret+="%s=<Data object>"%k
+            elif v.__class__.__name__=="FunctionSpace":
+                ret+="%s=<FunctionSpace object>"%k
             else:
                 ret+="%s=%s"%(k,v)
             ret+=", "
