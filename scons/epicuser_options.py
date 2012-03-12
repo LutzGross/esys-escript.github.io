@@ -162,8 +162,8 @@ mkl = True
 mkl_prefix = ['/opt/intel-mkl/10.3.5.220/mkl/include', '/opt/intel-mkl/10.3.5.220/mkl/lib/intel64']
 
 # MKL library/libraries to link against
-#mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
-mkl_libs = ['mkl_intel_lp64', 'mkl_sequential', 'mkl_core', 'pthread']
+mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
+#mkl_libs = ['mkl_intel_lp64', 'mkl_sequential', 'mkl_core', 'pthread']
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
