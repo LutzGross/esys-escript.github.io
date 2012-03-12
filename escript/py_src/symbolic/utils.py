@@ -166,9 +166,9 @@ def getTotalDifferential(f, x, order=0):
                     a[i]=y.subs(z,0) # terms in x and constants
                     if order>0:
                         b[i+j]=y.subs(z,1)-a[i]
-        res+=(Symbol(a),)
+        res+=(Symbol(a, dim=f.getDim(), subs=f.getDataSubstitutions()),)
         if order>0:
-            res+=(Symbol(b),)
+            res+=(Symbol(b, dim=f.getDim(), subs=f.getDataSubstitutions()),)
 
     elif x.getRank()==1:
         f=removeFsFromGrad(f)
@@ -197,9 +197,9 @@ def getTotalDifferential(f, x, order=0):
                         if order>0:
                             b[i+(k,l)]=y.subs(z,1)-a[i+(k,)]
 
-        res+=(Symbol(a),)
+        res+=(Symbol(a, dim=f.getDim(), subs=f.getDataSubstitutions()),)
         if order>0:
-           res+=(Symbol(b),)
+            res+=(Symbol(b, dim=f.getDim(), subs=f.getDataSubstitutions()),)
 
     if len(res)==1:
         return res[0]
