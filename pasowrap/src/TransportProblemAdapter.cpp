@@ -112,7 +112,6 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
      throw PasoException("copyConstraint : function spaces of transport problem and source don't match.");
     }
     Paso_TransportProblem* transp=getPaso_TransportProblem();
-cout << "FDSFDFFSDFSD\n"; 
 
 
     if (false) {
@@ -155,7 +154,6 @@ cout << "FDSFDFFSDFSD\n";
        double* r_dp=r.getSampleDataRW(0);
        double* source_dp=source.getSampleDataRW(0);
        double* q_dp=q.getSampleDataRW(0);
-cout << "FDSFDFFSDFSD\n";     
        Paso_TransportProblem_setUpConstraint(transp, q_dp);
        checkPasoError();
        Paso_TransportProblem_insertConstraint(transp,r_dp, source_dp);
