@@ -126,7 +126,7 @@ double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t 
       out[i]=fmod( Paso_Distribution_random_seed*(n_0+i+1) ,1.);
    }
    
-   Paso_Distribution_random_seed=fmod( Paso_Distribution_random_seed * (n+1), 1.);
+   Paso_Distribution_random_seed=fmod( Paso_Distribution_random_seed * (n+1.7), 1.);
    
    return out;
 }

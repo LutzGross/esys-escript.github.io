@@ -96,7 +96,7 @@ void TransportProblemAdapter::resetTransport() const
 }
 
 PASOWRAP_DLL_API
-void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r, const double factor) const
+void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Data& q, escript::Data& r) const
 {
     if ( q.getDataPointSize()  != getBlockSize()) {
      throw PasoException("copyConstraint : block size does not match the number of components of constraint mask.");
@@ -113,22 +113,24 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
     }
     Paso_TransportProblem* transp=getPaso_TransportProblem();
 
-    /* r2=r where q>0, 0 elsewhere */
-    escript::Data r2(0.,q.getDataPointShape(),q.getFunctionSpace());
-    r2.copyWithMask(r,q);
-
-    /* source-=transp->mass_matrix*r2 */
-    r2.expand();
-    source.expand();
-    q.expand();
-    r2.requireWrite();
-    source.requireWrite();
-    q.requireWrite();
-    double* r2_dp=r2.getSampleDataRW(0);
-    double* source_dp=source.getSampleDataRW(0);
-    double* q_dp=q.getSampleDataRW(0);
 
     if (false) {
+      
+      /* r2=r where q>0, 0 elsewhere */
+      escript::Data r2(0.,q.getDataPointShape(),q.getFunctionSpace());
+      r2.copyWithMask(r,q);
+
+      /* source-=transp->mass_matrix*r2 */
+      r2.expand();
+      source.expand();
+      q.expand();
+      r2.requireWrite();
+      source.requireWrite();
+      q.requireWrite();
+      double* r2_dp=r2.getSampleDataRW(0);
+      double* source_dp=source.getSampleDataRW(0);
+      double* q_dp=q.getSampleDataRW(0);
+    
        cout << "v1\n";
        Paso_SystemMatrix_MatrixVector(-1., transp->mass_matrix, r2_dp, 1., source_dp);
        checkPasoError();
@@ -143,9 +145,18 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
 
        source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);
    } else {
-       Paso_TransportProblem_setUpConstraint(transp, q_dp, factor);
+       r.expand();
+       source.expand();
+       q.expand();
+       r.requireWrite();
+       source.requireWrite();
+       q.requireWrite();
+       double* r_dp=r.getSampleDataRW(0);
+       double* source_dp=source.getSampleDataRW(0);
+       double* q_dp=q.getSampleDataRW(0);
+       Paso_TransportProblem_setUpConstraint(transp, q_dp);
        checkPasoError();
-       Paso_TransportProblem_insertConstraint(transp,r2_dp, source_dp);
+       Paso_TransportProblem_insertConstraint(transp,r_dp, source_dp);
        checkPasoError();
    }
 }

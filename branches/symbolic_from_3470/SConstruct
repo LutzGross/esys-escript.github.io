@@ -16,6 +16,8 @@ EnsurePythonVersion(2,5)
 import sys, os, platform, re
 from distutils import sysconfig
 from site_init import *
+import subprocess
+from subprocess import PIPE, Popen
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
@@ -126,6 +128,7 @@ vars.AddVariables(
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
+  ('pythoncmd', 'which python to compile with','python'),
 )
 
 ##################### Create environment and help text #######################
@@ -352,7 +355,10 @@ except KeyError:
 
 ######################## Add some custom builders ############################
 
-py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+if env['pythoncmd']=='python':
+    py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+else:
+    py_builder = Builder(action = "scripts/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 runUnitTest_builder = Builder(action = runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
@@ -404,6 +410,45 @@ if IS_WINDOWS:
 else:
     python_libs=['python'+sysconfig.get_python_version()]
 
+#if we want to use a python other than the one scons is running
+if env['pythoncmd']!='python':
+   py3scons=False	# Is scons running on python3?
+   initstring='from __future__ import print_function;from distutils import sysconfig;'
+   if IS_WINDOWS:
+      cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
+   else:
+      cmd='print("python"+sysconfig.get_python_version())'
+   p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+   python_libs=p.stdout.readline()
+   if type(python_libs)!=str():
+      py3scons=True
+      python_libs=python_libs.encode()
+   p.wait()
+   python_libs=python_libs.strip()
+   # Now we know whether we are using python3 or not
+   p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
+   python_inc_path=p.stdout.readline()
+   if py3scons:
+         python_inc_path=python_inc_path.encode()
+   p.wait()   
+   python_inc_path=python_inc_path.strip()
+   if IS_WINDOWS:
+        cmd="os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
+   elif env['PLATFORM']=='darwin':
+        cmd="sysconfig.get_config_var(\"LIBPL\")"
+   else:
+        cmd="sysconfig.get_config_var(\"LIBDIR\")"
+
+   p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
+   python_lib_path=p.stdout.readline()
+   if py3scons:
+      python_lib_path=python_lib_path.decode()
+   p.wait()
+   python_lib_path=python_lib_path.strip()
+
+
+
+
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
 else:
@@ -450,11 +495,17 @@ env.PrependENVPath(LD_LIBRARY_PATH_KEY, boost_lib_path)
 
 ######## numpy (required)
 
-try:
-    from numpy import identity
-except ImportError:
-    print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
-    Exit(1)
+if env['pythoncmd']=='python':
+    try:
+      from numpy import identity
+    except ImportError:
+      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+      Exit(1)
+else:
+    p=subprocess.call([env['pythoncmd'],'-c','import numpy'])
+    if p!=0:
+      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+      Exit(1)
 
 ######## CppUnit (required for tests)
 
@@ -697,6 +748,7 @@ if env['numpy_h']:
     print("   numpy headers:  FOUND")
 else:
     print("   numpy headers:  NOT FOUND")
+print("   vsl_random:  %s"%env['vsl_random'])
      
 if ((fatalwarning != '') and (env['werror'])):
     print("  Treating warnings as errors")
@@ -766,8 +818,15 @@ buildvars.write("svn_revision="+str(global_revision)+"\n")
 buildvars.write("prefix="+prefix+"\n")
 buildvars.write("cc="+env['CC']+"\n")
 buildvars.write("cxx="+env['CXX']+"\n")
-buildvars.write("python="+sys.executable+"\n")
-buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
+if env['pythoncmd']=='python':
+    buildvars.write("python="+sys.executable+"\n")
+    buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
+else:
+    buildvars.write("python="+env['pythoncmd']+"\n")
+    p=Popen([env['pythoncmd'], '-c', 'from __future__import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])'], stdout=PIPE)
+    verstring=p.stdout.readline().strip()
+    p.wait()
+    buildvars.write("python version="+verstring+"\n")
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")
@@ -849,7 +908,7 @@ install_all_list += ['install_finley']
 install_all_list += ['install_ripley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
-install_all_list += ['install_pyvisi_py']
+#install_all_list += ['install_pyvisi_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
@@ -882,7 +941,7 @@ if not IS_WINDOWS:
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()
-        Execute(Chmod('utest.sh', 0755))
+        Execute(Chmod('utest.sh', 0o755))
         print("Generated utest.sh.")
     except IOError:
         print("Error attempting to write unittests file.")

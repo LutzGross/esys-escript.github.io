@@ -139,6 +139,12 @@ bool DataVar::initFromEscript(escript::Data& escriptData, const_DomainChunk_ptr 
         initialized = false;
     }
 
+    // special case: shape=(1,) or shape=(1,1) -> convert to scalar
+    if (dimSize==1 && rank>0) {
+        rank=0;
+        shape.clear();
+    }
+
     if (initialized) {
         size_t dataSize = dimSize * ptsPerSample;
         float* tempData = new float[dataSize*numSamples];

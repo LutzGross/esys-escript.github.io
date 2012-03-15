@@ -120,7 +120,7 @@ netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.3.2/netcdf-4.1.1'
 parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
-parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1'
+parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-12/parmetis-4.0.2'
 
 # parMETIS library/libraries to link against
 #parmetis_libs = ['parmetis', 'metis']
@@ -144,20 +144,20 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-10.1.015/intelmpi/parmetis-3.1.1
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/mkl/10.2.5.035/include', '/sw/sdev/intel/mkl/10.2.5.035/lib/em64t']
+mkl_prefix = ['/sw/sdev/intel/composerxe-2011.3.174/mkl/include', '/sw/sdev/intel/composerxe-2011.3.174/mkl/lib/intel64']
 
 # MKL library/libraries to link against
-mkl_libs = ['mkl_core', 'mkl_intel_lp64', 'mkl_intel_thread', 'mkl_lapack', 'guide', 'pthread', 'mkl_mc', 'mkl_def']
+mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
 umfpack = True
 
 # Prefix or paths to UMFPACK headers and libraries. See note above.
-umfpack_prefix = '/sw/libs/umfpack/x86_64/gcc-4.1.2/umfpack-5.2'
+umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-12/umfpack-5.5.2'
 
 # UMFPACK library/libraries to link against
-umfpack_libs = ['umfpack', 'amd', 'blas']
+umfpack_libs = ['umfpack', 'amd']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
@@ -180,7 +180,7 @@ lapack = 'mkl'
 lapack_prefix = mkl_prefix
 
 # LAPACK library/libraries to link against
-lapack_libs = ['mkl_lapack']
+lapack_libs = ['mkl_core']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False

@@ -98,9 +98,10 @@ u0=u0+1./4.*(1+cos(pi*clip(r,maxval=1)))
 x=Function(dom).getX()
 V=OMEGA0*((0.5-x[0])*[0,1]+(0.5-x[1])*[-1,0])
 #===================
+
 fc=TransportPDE(dom,numEquations=1)
 fc.getSolverOptions().setVerbosityOn()
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
+#fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
 fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
 x=Function(dom).getX()
