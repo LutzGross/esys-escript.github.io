@@ -115,9 +115,9 @@ class SteadyIncompressibleFlow(Model):
           self.trace("pressure correction: %e"%self.__diff)
           if self.__iter>2 and diff_old<self.__diff:
               self.trace("Pressure iteration failed!")
-              raise IterationDivergenceError,"no improvement in pressure iteration"
+              raise IterationDivergenceError("no improvement in pressure iteration")
           if self.__iter>self.max_iter:
-              raise IterationDivergenceError,"Maximum number of iterations steps reached"
+              raise IterationDivergenceError("Maximum number of iterations steps reached")
 
        def terminateIteration(self):
           """iteration is terminateIterationd if relative pressure change is less then rel_tol"""

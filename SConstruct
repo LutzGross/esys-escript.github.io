@@ -247,6 +247,9 @@ if env['cc_extra']  != '': env.Append(CFLAGS = env['cc_extra'])
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
+
+env.Append(CPPDEFINES=['ESPYTHON3'])
+
 # set up the autolazy values
 if env['forcelazy'] == 'on':
     env.Append(CPPDEFINES=['FAUTOLAZYON'])
@@ -358,7 +361,7 @@ except KeyError:
 if env['pythoncmd']=='python':
     py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 else:
-    py_builder = Builder(action = "scripts/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
+    py_builder = Builder(action = env['pythoncmd']+" scripts/py_comp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 runUnitTest_builder = Builder(action = runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
@@ -412,6 +415,7 @@ else:
 
 #if we want to use a python other than the one scons is running
 if env['pythoncmd']!='python':
+   print "Need to try to use LDLIBRARY config variable to get real name of library if the setup fails ... may need to remove the old lib (or copy before adding)"
    py3scons=False	# Is scons running on python3?
    initstring='from __future__ import print_function;from distutils import sysconfig;'
    if IS_WINDOWS:
@@ -425,6 +429,8 @@ if env['pythoncmd']!='python':
       python_libs=python_libs.encode()
    p.wait()
    python_libs=python_libs.strip()
+   python_libs="python3.2mu"
+   
    # Now we know whether we are using python3 or not
    p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
    python_inc_path=p.stdout.readline()
@@ -446,9 +452,6 @@ if env['pythoncmd']!='python':
    p.wait()
    python_lib_path=python_lib_path.strip()
 
-
-
-
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
 else:
@@ -466,12 +469,17 @@ if not conf.CheckFunc('Py_Exit'):
     print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
     Exit(1)
 
-# reuse conf to check for numpy header (optional)
-if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
-    conf.env['numpy_h']=True
-else:
-    conf.env['numpy_h']=False
+## reuse conf to check for numpy header (optional)
+#if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+#    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+#    conf.env['numpy_h']=True
+#else:
+#    conf.env['numpy_h']=False
+
+
+# This is until we can work out how to make the checks in python 3
+conf.env['numpy_h']=False
+
 
 # Commit changes to environment
 env = conf.Finish()
@@ -778,6 +786,9 @@ Export(
   ]
 )
 
+print "William"
+
+
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
@@ -787,12 +798,18 @@ env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowr
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
+print "Terry"
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
+print "X1"
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
+print "X2"
 env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
+print "X3"
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
+
+print "Bob"
 
 ######################## Populate the buildvars file #########################
 
@@ -813,6 +830,8 @@ except StopIteration:
     pass
 boosthpp.close()
 
+print "Tim"
+
 buildvars=open(os.path.join(env['libinstall'], 'buildvars'), 'w')
 buildvars.write("svn_revision="+str(global_revision)+"\n")
 buildvars.write("prefix="+prefix+"\n")
@@ -823,10 +842,10 @@ if env['pythoncmd']=='python':
     buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
 else:
     buildvars.write("python="+env['pythoncmd']+"\n")
-    p=Popen([env['pythoncmd'], '-c', 'from __future__import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])'], stdout=PIPE)
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
     verstring=p.stdout.readline().strip()
     p.wait()
-    buildvars.write("python version="+verstring+"\n")
+    buildvars.write("python_version="+verstring+"\n")
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")
@@ -844,6 +863,8 @@ for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
         buildvars.write("%s_inc_path=%s\n"%(i, eval(i+'_inc_path')))
         buildvars.write("%s_lib_path=%s\n"%(i, eval(i+'_lib_path')))
 buildvars.close()
+
+print "Bozo"
 
 ################### Targets to build and install libraries ###################
 
@@ -866,6 +887,9 @@ env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_e
 env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
 env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
 
+
+
+print "Orange"
 
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])

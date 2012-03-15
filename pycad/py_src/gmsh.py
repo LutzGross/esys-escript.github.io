@@ -321,14 +321,14 @@ class Design(design.Design):
          s=p.getTransfiniteMeshing()
          if not s == None:
              if len(s)>0:
-		    out2=""
-         	    for q in s[0]:
-			if len(out2)==0:
-			    out2="%s"%q.getID()
-			else:
-			     out2="%s,%s"%(out2,q.getID())
-		    out+="Transfinite Volume{%s} = {%s};\n"%(p.getID(),out2)
-	     else:
-		    out+="Transfinite Volume{%s};\n"%(p.getID(),)
+                    out2=""
+                    for q in s[0]:
+                        if len(out2)==0:
+                            out2="%s"%q.getID()
+                        else:
+                             out2="%s,%s"%(out2,q.getID())
+                    out+="Transfinite Volume{%s} = {%s};\n"%(p.getID(),out2)
+             else:
+                    out+="Transfinite Volume{%s};\n"%(p.getID(),)
          return out
      

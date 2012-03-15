@@ -1087,20 +1087,20 @@ class CurveLoop(Primitive, PrimitiveBase):
        restart=True
        while restart:
           restart=False
-	  for k in curves:
-	      if not k in found:
-		  if k.getStartPoint() == s[-1]:
+          for k in curves:
+              if not k in found:
+                  if k.getStartPoint() == s[-1]:
                       found.append(k)
                       if hasattr(k,"getControlPoints"): s+=k.getControlPoints()[1:-1]
                       if k.getEndPoint() == s[0]: 
                            if len(found) == len(curves):
                              return s
                            else:
-			     raise ValueError("loop %s is not closed."%self.getID())
-		      s.append(k.getEndPoint())
-		      restart=True
-		      break
-	  if not restart:
+                             raise ValueError("loop %s is not closed."%self.getID())
+                      s.append(k.getEndPoint())
+                      restart=True
+                      break
+          if not restart:
                raise ValueError("loop %s is not closed."%self.getID())           
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):

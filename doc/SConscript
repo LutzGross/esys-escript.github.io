@@ -14,20 +14,38 @@
 import os
 Import('*')
 
+from subprocess import PIPE, Popen
+
 haveMPL=False   # do we have matplotlib?
 haveGD=False    # does matplotlib have griddata?
 
 mplmagicversion='0.98.5'
 
+print "ZZ"
+
+
+
 # check for matplotlib
-try:
+if env['pythoncmd']=='python':
+  try:
     import matplotlib
     haveMPL=True
     mplversion=matplotlib.__version__
     from matplotlib.mlab import griddata
     haveGD=True
-except ImportError:
+  except ImportError:
     pass
+else:
+  # we need to fire up the external command
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import matplotlib;print(matplotlib.__version__);from matplotlib.mlab import griddata;print("1")'], stdout=PIPE)
+    try:
+        mplversion=p.stdout.readline().strip()
+        haveMPL=True
+        hgd=p.stdout.readline().strip()
+        haveGD=True
+    except IOError:
+        pass
+    p.wait()
 
 if not haveMPL:
     print("matplotlib not found, skipping some tests")
@@ -39,6 +57,9 @@ example_files_allow_mpi = []
 example_files_no_mpi = []
 example_deps = []
 skipped_tests = []
+
+print "QQ"
+
 
 def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
     if needsMagicMPL: needsMPL=True
@@ -116,7 +137,7 @@ sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
 
 if len(skipped_tests)>0:
-    print("gmsh not available. Skipping tests %s."%' '.join(skipped_tests))
+    print("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 
@@ -142,6 +163,8 @@ tar_path=os.path.join(release_dir, 'escript_examples.tar.gz')
 tar = local_env.Command(tar_path, None, dir_cmd+"tar -czf "+tar_path+" "+" ".join(ex2))
 env.Alias('examples_tarfile', tar)
 
+print "Terrance"
+
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
 #if 'Tar' in dir(env):
 # tar=env.Tar(tar_path, example_files, chdir=src_dir)
@@ -154,3 +177,5 @@ local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='$BUILD_DIR/$PLATFORM
 local_env.SConscript(dirs = ['#/doc/install'], variant_dir='$BUILD_DIR/$PLATFORM/doc/install', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='$BUILD_DIR/$PLATFORM/doc/examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps'])
 
+
+print "End here"
