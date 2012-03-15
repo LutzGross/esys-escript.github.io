@@ -91,50 +91,75 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
 
 void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
 {
-   dim_t iPtr, q, p;
+   dim_t iPtr, q, p, ib;
    const dim_t n=Paso_SystemMatrix_getNumRows(A);
    const dim_t block_size=A->block_size;
+   index_t rank=A->mpi_info->rank;
+   char *str1, *str2;
+   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
+   str2 = TMPMEMALLOC(30, char);
    
-   printf("Main Block:\n-----------\n");
+   sprintf(str1, "rank %d Main Block:\n-----------\n", rank);
    for (q=0; q< n; ++q){
-      printf("Row %d:\n",q);
+      sprintf(str2, "Row %d: ",q);
+      strcat(str1, str2);
       for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
-	 printf("%d, ",A->mainBlock->pattern->index[iPtr]);
+	 sprintf(str2, "(%d ",A->mainBlock->pattern->index[iPtr]);
+	 strcat(str1, str2);
+	 for (ib=0; ib<block_size; ib++){
+	   sprintf(str2, "%f ", A->mainBlock->val[iPtr*block_size+ib]);
+	   strcat(str1, str2);
+	 }
+	 sprintf(str2, "),");
+	 strcat(str1, str2);
       }
-      printf("\n");
-      for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
-	 printf("%f, ",A->mainBlock->val[iPtr*block_size]);
-      }
-      printf("\n");
+      sprintf(str1, "%s\n", str1);
    }
+   fprintf(stderr, "%s", str1);
    if ( ( A->col_coupleBlock != NULL) && (A->mpi_info->size>1) ) {
-      printf("Column Couple Block:\n------------------\n");
+      sprintf(str1, "rank %d Column Couple Block:\n------------------\n", rank);
       for (q=0; q< A->col_coupleBlock->pattern->numOutput; ++q){
-	 printf("Row %d:\n",q);
+	 sprintf(str2, "Row %d: ", q);
+	 strcat(str1, str2);
 	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-	    printf("%d, ",A->col_coupleBlock->pattern->index[iPtr]);
+	    if (A->global_id) 
+	      sprintf(str2, "(%d %f),",A->global_id[A->col_coupleBlock->pattern->index[iPtr]], A->col_coupleBlock->val[iPtr*block_size]);
+	    else 
+	      sprintf(str2, "(%d %f),",A->col_coupleBlock->pattern->index[iPtr], A->col_coupleBlock->val[iPtr*block_size]);
+	    strcat(str1, str2);
 	 }
-	 printf("\n");
-	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-	    printf("%f, ",A->col_coupleBlock->val[iPtr*block_size]);
-	 }
-	 printf("\n");
+	 sprintf(str1, "%s\n", str1);
       }
+      fprintf(stderr, "%s", str1);
    }
    if ( ( A->row_coupleBlock != NULL ) && (A->mpi_info->size>1) ) {
-      printf("Row Couple Block:\n--------------------\n");
+      sprintf(str1, "rank %d Row Couple Block:\n--------------------\n", rank);
       for (p=0; p< A->row_coupleBlock->pattern->numOutput; ++p){
-	 printf("Row %d:\n",p);
-	 for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-	    printf("%d, ",A->row_coupleBlock->pattern->index[iPtr]);
-	 }
-	 printf("\n");
-	 for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-	    printf("%f, ",A->row_coupleBlock->val[iPtr*block_size]);
-	 }
-	 printf("\n");
-      }      
+         sprintf(str2, "Row %d:", p);
+         strcat(str1, str2);
+         for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
+            sprintf(str2, "(%d %f),",A->row_coupleBlock->pattern->index[iPtr], A->row_coupleBlock->val[iPtr*block_size]);
+            strcat(str1, str2);
+         }
+         sprintf(str1, "%s\n", str1);
+      }
+      fprintf(stderr, "%s", str1);
    }
+   if ( ( A->remote_coupleBlock != NULL ) && (A->mpi_info->size>1) ) {
+      sprintf(str1, "rank %d Remote Couple Block:\n--------------------\n", rank);
+      for (p=0; p< A->remote_coupleBlock->pattern->numOutput; ++p){
+         sprintf(str2, "Row %d:", p);
+         strcat(str1, str2);
+         for (iPtr =A->remote_coupleBlock->pattern->ptr[p]; iPtr<A->remote_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
+            sprintf(str2, "(%d %f),",A->remote_coupleBlock->pattern->index[iPtr], A->remote_coupleBlock->val[iPtr*block_size]);
+            strcat(str1, str2);
+         }
+         sprintf(str1, "%s\n", str1);
+      }
+      fprintf(stderr, "%s", str1);
+   }
+   TMPMEMFREE(str1);
+   TMPMEMFREE(str2);
    return; 
 }
 

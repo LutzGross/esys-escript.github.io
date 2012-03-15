@@ -127,17 +127,45 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
 			if (arr->two==2 && arr->flags&NPY_IN_ARRAY)
 			{
-				if (arr->typekind == 'f' && arr->itemsize==sizeof(double))
-			   	{
-					convertNumpyArray<double>((const double*)arr->data);
+				std::vector<int> strides;
+				// convert #bytes to #elements
+				for (int i=0; i<arr->nd; i++)
+				{
+					strides.push_back(arr->strides[i]/arr->itemsize);
 				}
-				else if (arr->typekind == 'f' && arr->itemsize==sizeof(float))
-			   	{
-					convertNumpyArray<float>((const float*)arr->data);
+
+				if (arr->typekind == 'f')
+				{
+					if (arr->itemsize==sizeof(double))
+					{
+						convertNumpyArray<double>((const double*)arr->data, strides);
+					}
+					else if (arr->itemsize==sizeof(float))
+			   		{
+						convertNumpyArray<float>((const float*)arr->data, strides);
+					}
 				}
-				else if (arr->typekind == 'i' && arr->itemsize==sizeof(int))
-			   	{
-					convertNumpyArray<int>((const int*)arr->data);
+				else if (arr->typekind == 'i')
+				{
+					if (arr->itemsize==sizeof(int))
+				   	{
+						convertNumpyArray<int>((const int*)arr->data, strides);
+					}
+					else if (arr->itemsize==sizeof(long))
+				   	{
+						convertNumpyArray<long>((const long*)arr->data, strides);
+					}
+				}
+				else if (arr->typekind == 'u')
+				{
+					if (arr->itemsize==sizeof(unsigned))
+				   	{
+						convertNumpyArray<unsigned>((const unsigned*)arr->data, strides);
+					}
+					else if (arr->itemsize==sizeof(unsigned long))
+				   	{
+						convertNumpyArray<unsigned long>((const unsigned long*)arr->data, strides);
+					}
 				}
 			}
 		}
@@ -149,7 +177,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 }
 
 template<typename T>
-void WrappedArray::convertNumpyArray(const T* array) const
+void WrappedArray::convertNumpyArray(const T* array, const std::vector<int>& strides) const
 {
 	// this method is only called by the constructor above which does the
 	// necessary checks and initialisations
@@ -161,7 +189,7 @@ void WrappedArray::convertNumpyArray(const T* array) const
 #pragma omp parallel for
 			for (int i=0;i<shape[0];i++)
 			{
-				dat[i]=array[i];
+				dat[i]=array[i*strides[0]];
 			}
 		break;
 		case 2:
@@ -170,7 +198,7 @@ void WrappedArray::convertNumpyArray(const T* array) const
 			{
 				for (int j=0;j<shape[1];j++)
 				{
-					dat[DataTypes::getRelIndex(shape,i,j)]=array[j+i*shape[1]];
+					dat[DataTypes::getRelIndex(shape,i,j)]=array[i*strides[0]+j*strides[1]];
 				}
 			}
 		break;
@@ -182,7 +210,7 @@ void WrappedArray::convertNumpyArray(const T* array) const
 				{
 					for (int k=0;k<shape[2];k++)
 					{
-						dat[DataTypes::getRelIndex(shape,i,j,k)]=array[k+j*shape[2]+i*shape[1]*shape[2]];
+						dat[DataTypes::getRelIndex(shape,i,j,k)]=array[i*strides[0]+j*strides[1]+k*strides[2]];
 					}
 				}
 			}
@@ -197,7 +225,7 @@ void WrappedArray::convertNumpyArray(const T* array) const
 					{
 						for (int m=0;m<shape[3];m++)
 						{
-							dat[DataTypes::getRelIndex(shape,i,j,k,m)]=array[m+k*shape[3]+j*shape[2]*shape[3]+i*shape[1]*shape[2]*shape[3]];
+							dat[DataTypes::getRelIndex(shape,i,j,k,m)]=array[i*strides[0]+j*strides[1]+k*strides[2]+m*strides[3]];
 						}
 					}
 				}

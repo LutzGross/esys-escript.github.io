@@ -452,7 +452,7 @@ def getInfLocator(arg):
     Return a Locator for a point with the inf value over all arg.
     """
     if not isinstance(arg, escript.Data):
-	raise TypeError("getInfLocator: Unknown argument type.")
+       raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.inf(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
@@ -464,7 +464,7 @@ def getSupLocator(arg):
     Return a Locator for a point with the sup value over all arg.
     """
     if not isinstance(arg, escript.Data):
-	raise TypeError("getInfLocator: Unknown argument type.")
+       raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.sup(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
@@ -581,7 +581,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
        alpha = rhat_dot_r / bilinearform(d, q)
        x += alpha * d
        if isinstance(q,ArithmeticTuple):
-	   r += q * (-alpha)      # Doing it the other way calls the float64.__mul__ not AT.__rmul__ 
+          r += q * (-alpha)      # Doing it the other way calls the float64.__mul__ not AT.__rmul__ 
        else:
            r += (-alpha) * q
        rhat=Msolve(r)
@@ -744,11 +744,11 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
 	    #   adjust subtol_
 	    #
             if iter > 1:
-	       rat=fnrm/fnrmo
+               rat=fnrm/fnrmo
                subtol_old=subtol
-	       subtol=gamma*rat**2
-	       if gamma*subtol_old**2 > .1: subtol=max(subtol,gamma*subtol_old**2)
-	       subtol=max(min(subtol,subtol_max), .5*stop_tol/fnrm)
+               subtol=gamma*rat**2
+               if gamma*subtol_old**2 > .1: subtol=max(subtol,gamma*subtol_old**2)
+               subtol=max(min(subtol,subtol_max), .5*stop_tol/fnrm)
 	    #
 	    # calculate newton increment xc
             #     if iter_max in __FDGMRES is reached MaxIterReached is thrown
@@ -766,9 +766,9 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
             else:
                iter+=sub_iter
             # ====
-	    x+=xc
+            x+=xc
             F=defect(x)
-	    iter+=1
+            iter+=1
             fnrmo, fnrm=fnrm, defect.norm(F)
             if verbose: print(("             step %s: residual %e."%(iter,fnrm)))
    if verbose: print(("NewtonGMRES: completed after %s steps."%iter))
@@ -787,7 +787,7 @@ def __givapp(c,s,vin):
     else:
         for i in range(len(c)):
             w1=c[i]*vrot[i]-s[i]*vrot[i+1]
-	    w2=s[i]*vrot[i]+c[i]*vrot[i+1]
+            w2=s[i]*vrot[i]+c[i]*vrot[i+1]
             vrot[i]=w1
             vrot[i+1]=w2
     return vrot
@@ -869,7 +869,7 @@ def __FDGMRES(F0, defect, x0, atol, iter_max=100, iter_restart=20):
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
-	xhat += v[i]*y[i]
+       xhat += v[i]*y[i]
    else :
       xhat=v[0] * 0
 
@@ -971,47 +971,47 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
    if verbose: print(("GMRES: initial residual %e (absolute tolerance = %e)"%(rho,atol)))
    while not (rho<=atol or iter==iter_restart):
 
-	if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
+        if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
 
         if P_R!=None:
             p=Aprod(P_R(v[iter]))
         else:
-	    p=Aprod(v[iter])
-	v.append(p)
+            p=Aprod(v[iter])
+        v.append(p)
 
-	v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
+        v_norm1=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
 
 # Modified Gram-Schmidt
-	for j in range(iter+1):
-	  h[j,iter]=bilinearform(v[j],v[iter+1])
-	  v[iter+1]-=h[j,iter]*v[j]
+        for j in range(iter+1):
+          h[j,iter]=bilinearform(v[j],v[iter+1])
+          v[iter+1]-=h[j,iter]*v[j]
 
-	h[iter+1,iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1]))
-	v_norm2=h[iter+1,iter]
+        h[iter+1,iter]=math.sqrt(bilinearform(v[iter+1],v[iter+1]))
+        v_norm2=h[iter+1,iter]
 
 # Reorthogonalize if needed
-	if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
-   	 for j in range(iter+1):
-	    hr=bilinearform(v[j],v[iter+1])
-      	    h[j,iter]=h[j,iter]+hr
-      	    v[iter+1] -= hr*v[j]
+        if v_norm1 + 0.001*v_norm2 == v_norm1:   #Brown/Hindmarsh condition (default)
+         for j in range(iter+1):
+            hr=bilinearform(v[j],v[iter+1])
+            h[j,iter]=h[j,iter]+hr
+            v[iter+1] -= hr*v[j]
 
-   	 v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
-	 h[iter+1,iter]=v_norm2
+         v_norm2=math.sqrt(bilinearform(v[iter+1], v[iter+1]))
+         h[iter+1,iter]=v_norm2
 
 #   watch out for happy breakdown
         if not v_norm2 == 0:
          v[iter+1]=v[iter+1]/h[iter+1,iter]
 
 #   Form and store the information for the new Givens rotation
-	if iter > 0: h[:iter+1,iter]=__givapp(c[:iter],s[:iter],h[:iter+1,iter])
-	mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
+        if iter > 0: h[:iter+1,iter]=__givapp(c[:iter],s[:iter],h[:iter+1,iter])
+        mu=math.sqrt(h[iter,iter]*h[iter,iter]+h[iter+1,iter]*h[iter+1,iter])
 
-	if mu!=0 :
-		c[iter]=h[iter,iter]/mu
-		s[iter]=-h[iter+1,iter]/mu
-		h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
-		h[iter+1,iter]=0.0
+        if mu!=0 :
+                c[iter]=h[iter,iter]/mu
+                s[iter]=-h[iter+1,iter]/mu
+                h[iter,iter]=c[iter]*h[iter,iter]-s[iter]*h[iter+1,iter]
+                h[iter+1,iter]=0.0
                 gg=__givapp(c[iter],s[iter],[g[iter],g[iter+1]])
                 g[iter]=gg[0] 
                 g[iter+1]=gg[1]
@@ -1019,7 +1019,7 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
 
         rho=abs(g[iter+1])
         if verbose: print(("GMRES: iteration step %s: residual %e"%(iter,rho)))
-	iter+=1
+        iter+=1
 
 # At this point either iter > iter_max or rho < tol.
 # It's time to compute x and leave.
@@ -1035,7 +1035,7 @@ def _GMRESm(r, Aprod, x, bilinearform, atol, iter_max=100, iter_restart=20, verb
           i=i-1
      xhat=v[iter-1]*y[iter-1]
      for i in range(iter-1):
-	xhat += v[i]*y[i]
+       xhat += v[i]*y[i]
    else:
      xhat=v[0] * 0
    if P_R!=None:
@@ -1143,7 +1143,7 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
     # --------------------------------------------------------------------
     while not rnorm<=atol+rtol*Anorm*ynorm:    #  checks ||r|| < (||A|| ||x||) * TOL
 
-	if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
+        if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
         iter    = iter  +  1
 
         #-----------------------------------------------------------------
@@ -1525,9 +1525,9 @@ class HomogeneousSaddlePointProblem(object):
       *A* may depend weakly on *v* and *p*.
       """
       def __init__(self, **kwargs):
-	"""
-	initializes the saddle point problem
-	"""
+        """
+        initializes the saddle point problem
+        """
         self.resetControlParameters()
         self.setTolerance()
         self.setAbsoluteTolerance()
@@ -1832,7 +1832,7 @@ class HomogeneousSaddlePointProblem(object):
              correction_step+=1
              v,p =v2, p2
          if self.verbose: print(("HomogeneousSaddlePointProblem: tolerance reached after %s steps."%correction_step))
- 	 return v,p
+         return v,p
       #========================================================================
       def setTolerance(self,tolerance=1.e-4):
          """

@@ -97,8 +97,8 @@ void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
 double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    dim_t i, n;
+   double dt_max_loc=LARGE_POSITIVE_FLOAT;
    double dt_max=LARGE_POSITIVE_FLOAT;
-   index_t fail=0;
    n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
    /* set low order transport operator */
    Paso_FCT_setLowOrderOperator(fctp);
@@ -108,43 +108,29 @@ double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
          *  calculate time step size:                                           
         */
         dt_max=LARGE_POSITIVE_FLOAT;
-	fail=0;
-        #pragma omp parallel private(i)
+        #pragma omp parallel private(i, dt_max_loc)
         {
-               double dt_max_loc=LARGE_POSITIVE_FLOAT;
-	       index_t fail_loc=0;
+               dt_max_loc=LARGE_POSITIVE_FLOAT; 
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
                   const double l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
                   const double m_i=fctp->lumped_mass_matrix[i];
-		  if ( (m_i > 0) ) {
+		  if ( m_i > 0 ) {
 		      if (l_ii<0) dt_max_loc=MIN(dt_max_loc,m_i/(-l_ii));
-		  } else {
-		      fail_loc=-1;
-		  }
-               }
+                  }
+	       }
                #pragma omp critical 
                {
                   dt_max=MIN(dt_max,dt_max_loc);
-		  fail=MIN(fail, fail_loc);
                }
         }
         #ifdef ESYS_MPI
         {
-	       double rtmp_loc[2], rtmp[2];
-               rtmp_loc[0]=dt_max;
-	       rtmp_loc[1]= (double) fail;
-               MPI_Allreduce(rtmp_loc, rtmp, 2, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
-	       dt_max=rtmp[0];
-	       fail = rtmp[1] < 0 ? -1 : 0;
+               dt_max_loc=dt_max;
+               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
 	}
         #endif
-        if (fail < 0 ) {
-	   Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
-	   return -1;
-	} else {
-	    if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=2.;
-	}
+	if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=2.;
    }
    return dt_max;
 }
@@ -171,9 +157,13 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
     fct_solver->dt = dt;
     #pragma omp parallel for private(i)
     for (i = 0; i < n; ++i) {
-           const double m=fctp->lumped_mass_matrix[i];
+           const double m_i=fctp->lumped_mass_matrix[i];
 	   const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
-           fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m * omega - l_ii;
+	   if ( m_i > 0 ) {
+               fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m_i * omega - l_ii;
+	   } else {
+	       fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = ABS(m_i * omega - l_ii)/(EPSILON*EPSILON);
+	   }
     }
     
     /* allocate preconditioner/solver */
@@ -219,17 +209,20 @@ err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_o
 err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp) 
 {
     double const dt = fct_solver->dt;
-    dim_t sweep_max;
+    dim_t sweep_max, i;
     double *b = fct_solver->b;
     double const RTOL = options->tolerance;
     const dim_t n=Paso_TransportProblem_getTotalNumRows(fct_solver->transportproblem); 
     Paso_SystemMatrix * iteration_matrix = fct_solver->transportproblem->iteration_matrix;
+    const index_t*  main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fct_solver->transportproblem);
     err_t errorCode = SOLVER_NO_ERROR;
+    double norm_u_tilde;
   
     Paso_Coupler_startCollect(fct_solver->u_old_coupler,u_old);
     Paso_Coupler_finishCollect(fct_solver->u_old_coupler);
     
-    /* b[i]=m*u_tilde[i] = m u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i]) 
+    /* b[i]=m*u_tilde[i] = m u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i])  
+           = u_tilde[i]   = u_old[i] where constraint m<0.
         * note that iteration_matrix stores the negative values of the 
         * low order transport matrix l. Therefore a=-dt*0.5 is used. */
 	  
@@ -250,17 +243,22 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
    Paso_FCT_FluxLimiter_addLimitedFluxes_Start(fct_solver->flux_limiter);
    Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(fct_solver->flux_limiter, b); 
    
-   
+   Paso_Scale(n, b,fct_solver->omega );    
    /* solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1 */
-   
+   #pragma omp for private(i) schedule(static) 
+   for (i = 0; i < n; ++i) {
+       if (! (fct_solver->transportproblem->lumped_mass_matrix[i] > 0 ) ) {
+	 b[i] = fct_solver->flux_limiter->u_tilde[i] 
+	     * fct_solver->transportproblem->iteration_matrix->mainBlock->val[main_iptr[i]]; 
+       } 
+   }
    /* initial guess is u<- -u + 2*u_tilde */
    Paso_Update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
-   Paso_Scale(n, b,fct_solver->omega ); 
-   sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
 
+   sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
+   norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
    if (options->verbose) {
-       const double norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
-       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL,sweep_max); 
+       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL * norm_u_tilde ,sweep_max); 
    }
    errorCode = Paso_Preconditioner_Smoother_solve_byTolerance( iteration_matrix,  ((Paso_Preconditioner*) (iteration_matrix->solver_p))->gs, 
 						   u, b, RTOL, &sweep_max, TRUE);
@@ -306,17 +304,21 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
           /* b[i]=m_i* u_old[i] */
           #pragma omp for private(i) schedule(static) 
           for (i = 0; i < n; ++i) {
-               b[i]=u_old[i]* fctp->lumped_mass_matrix[i];
+	       if (fctp->lumped_mass_matrix[i] > 0 ) {
+		   b[i]=u_old[i]* fctp->lumped_mass_matrix[i];
+	       } else {
+		   b[i]=u_old[i];
+	       } 
           } 
     } else {
-       /* b[i]=m_i* u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i]) = m_i * u_tilde_i 
+       /* b[i]=m_i* u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i]) = m_i * u_tilde_i where m_i>0
+	*     = u_old[i]  otherwise
         * note that iteration_matrix stores the negative values of the 
         * low order transport matrix l. Therefore a=-dt*0.5 is used. */
        Paso_FCT_Solver_setMuPaLu(b,fctp->lumped_mass_matrix,fct_solver->u_old_coupler,-dt*0.5,fctp->iteration_matrix);
     }        
     Paso_FCT_FluxLimiter_setU_tilda(flux_limiter, b); /* u_tilda = m^{-1} b */
     /* u_tilda_connector is completed */
-   
     /**********************************************************************************************************************/   
     /* calculate stopping criterium */
     norm_u_tilde=Paso_lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
@@ -341,7 +343,10 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
          Paso_FCT_FluxLimiter_addLimitedFluxes_Start(flux_limiter); /* uses u_tilde */  
 
          /*
-	  * z_m[i]=b[i] - (m_i*u[i] - omega*sum_{j<>i} l_{ij} (u[j]-u[i]) ) omega = dt/2 or dt .
+	  * z_m[i]=b[i] - (m_i*u[i] - omega*sum_{j<>i} l_{ij} (u[j]-u[i]) ) where m_i>0
+	  *       ==b[i] - u[i] = u_tilda[i]-u[i] =0 otherwise
+	  * 
+	  * omega = dt/2 or dt .
 	  *
 	  * note that iteration_matrix stores the negative values of the 
 	  * low order transport matrix l. Therefore a=dt*theta is used.
@@ -354,7 +359,6 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
    
  
 	  Paso_Update(n,-1.,z,1.,b);  /* z=b-z */
-
 
 	  /* z_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
 	  Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(flux_limiter, z); 
@@ -382,9 +386,10 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 
 	      Paso_Preconditioner_Smoother_solve(fctp->iteration_matrix, ((Paso_Preconditioner*) (fctp->iteration_matrix->solver_p))->jacobi, 
 					  du, z, 1, FALSE); 
+            
 	      options->num_iter++;
 	   }           
-	   
+   
  
 	   Paso_Update(n,1.,u,fct_solver->omega,du);
 	   norm_du_old=norm_du;
@@ -674,7 +679,8 @@ printf("a[%d,%d]=%e\n",j,i,rtmp2);
 }
 
 /*
- * out_i=m_i u_i + a * \sum_{j <> i} l_{ij} (u_j-u_i)
+ * out_i=m_i u_i + a * \sum_{j <> i} l_{ij} (u_j-u_i) where m_i>0
+ *       = u_i                                        where m_i<=0
  *
  */
 void Paso_FCT_Solver_setMuPaLu(double* out,
@@ -692,11 +698,16 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
 
   #pragma omp parallel for private(i) schedule(static)
   for (i = 0; i < n; ++i) {
-      out[i]=M[i]*u[i];
+      if ( M[i] > 0.) {
+          out[i]=M[i]*u[i];
+      } else {
+	  out[i]=u[i];
+      }
   } 
   if (ABS(a)>0) {
       #pragma omp parallel for schedule(static) private(i, iptr_ij) 
       for (i = 0; i < n; ++i) {
+	if ( M[i] > 0.) {
           double sum=0;
           const double u_i=u[i];
           #pragma ivdep
@@ -713,6 +724,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
                sum+=l_ij*(remote_u[j]-u_i);
           }
           out[i]+=a*sum;
+	}
       }
   }
 }

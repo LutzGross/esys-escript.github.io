@@ -23,6 +23,8 @@
 /**************************************************************/
 
 #define SHOW_TIMING FALSE
+#define MY_DEBUG 0
+#define MY_DEBUG1 1
 
 #include "Paso.h"
 #include "Preconditioner.h"
@@ -89,6 +91,7 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
 Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,dim_t level,Paso_Options* options) {
 
   Paso_Preconditioner_AMG* out=NULL;
+  Paso_SystemMatrix *A_C=NULL;
   bool_t verbose=options->verbose;
 
   const dim_t my_n=A_p->mainBlock->numRows;
@@ -97,15 +100,15 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL;
-  dim_t i;
+  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
+  dim_t i, n_F, n_C, F_flag, *F_set=NULL;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
   const double sparsity=Paso_SystemMatrix_getSparsity(A_p);
   const dim_t total_n=Paso_SystemMatrix_getGlobalTotalNumRows(A_p);
 
-  
+
   /*
       is the input matrix A suitable for coarsening?
       
@@ -144,7 +147,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      /* Start Coarsening : */
      
      /* this is the table for strong connections combining mainBlock, col_coupleBlock and row_coupleBlock */
-     const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len;
+     const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len  + A_p->row_coupleBlock->numRows * A_p->col_coupleBlock->numCols;
 
      dim_t* degree_S=TMPMEMALLOC(n, dim_t);
      index_t *offset_S=TMPMEMALLOC(n, index_t);
@@ -163,7 +166,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       make sure that corresponding values in the row_coupleBlock and col_coupleBlock are identical 
 	*/
         Paso_SystemMatrix_copyColCoupleBlock(A_p);
-        /* Paso_SystemMatrix_copyRemoteCoupleBlock(A_p, FALSE); */
+        Paso_SystemMatrix_copyRemoteCoupleBlock(A_p, FALSE); 
 
 	/* 
 	      set splitting of unknows:
@@ -176,26 +179,14 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       Paso_Preconditioner_AMG_setStrongConnections(A_p, degree_S, offset_S, S, theta,tau);
 	 }
 	 Paso_Preconditioner_AMG_transposeStrongConnections(n, degree_S, offset_S, S, n, degree_ST, offset_ST, ST);
-	 
-{
-   dim_t p;
-   for (i=0; i<n; ++i) {
-         printf("%d: ",i);
-        for (p=0; p<degree_S[i];++p) printf("%d ",S[offset_S[i]+p]);
-        printf("\n");
-   }
-}
+/*	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
+ */
+
 	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
 					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
 						A_p->col_coupler->connector,A_p->col_distribution);
-Esys_setError(SYSTEM_ERROR, "AMG:DONE."); 
-return NULL;
       
 
-/*MPI: 
-	 Paso_Preconditioner_AMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
-*/
-	 
          /* in BoomerAMG if interpolation is used FF connectivity is required */
 /*MPI:
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
@@ -203,8 +194,6 @@ return NULL;
 */
 
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
-
-#ifdef AAAAA
 	 if (Esys_noError() ) {
 	    #pragma omp parallel for private(i) schedule(static)
 	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
@@ -214,9 +203,25 @@ return NULL;
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
 	    n_C=n-n_F;
-	    if (verbose) printf("Paso_Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
-	 
-	    if ( n_F == 0 ) {  /* this is a nasty case. a direct solver should be used, return NULL */
+	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+
+            /* collect n_F values on all processes, a direct solver should 
+                be used if any n_F value is 0 */
+            F_set = TMPMEMALLOC(A_p->mpi_info->size, dim_t);
+	    #ifdef ESYS_MPI
+            MPI_Allgather(&n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
+	    #endif
+            F_flag = 1;
+            for (i=0; i<A_p->mpi_info->size; i++) {
+                if (F_set[i] == 0) {
+                  F_flag = 0;
+                  break;
+                }
+            }
+            TMPMEMFREE(F_set);
+         
+/*          if ( n_F == 0 ) {  is a nasty case. a direct solver should be used, return NULL */
+            if (F_flag == 0) {
 	       out = NULL;
 	    } else {
 	       out=MEMALLOC(1,Paso_Preconditioner_AMG);
@@ -242,7 +247,7 @@ return NULL;
 	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
 
-		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
+		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
 		  if (n_C != 0) {
 			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
@@ -266,51 +271,39 @@ return NULL;
 			      }
 			   }
 			   /*  create mask of C nodes with value >-1, gives new id */
-			   i=Paso_Util_cumsum_maskedFalse(n,counter, F_marker);
-
-			   #pragma omp parallel for private(i) schedule(static)
-			   for (i = 0; i < n; ++i) {
-			      if  (F_marker[i]) {
-				 mask_C[i]=-1;
-			      } else {
-				 mask_C[i]=counter[i];;
-			      }
-			   }
+			   i=Paso_Util_cumsum_maskedFalse(n, mask_C, F_marker);
 			   /*
 			      get Prolongation :	 
 			   */					
-/*MPI: 
+ 
 			   time0=Esys_timer();
-			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
-			   if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
-*/
+
+			   out->P=Paso_Preconditioner_AMG_getProlongation(A_p,offset_S, degree_S,S,n_C,mask_C, options->interpolation_method);
+
 			}
+
 			/*      
 			   construct Restriction operator as transposed of Prolongation operator: 
 			*/
-/*MPI:
+
 			if ( Esys_noError()) {
 			   time0=Esys_timer();
-			   out->R=Paso_SystemMatrix_getTranspose(out->P);
+
+			   out->R=Paso_Preconditioner_AMG_getRestriction(out->P);
+
 			   if (SHOW_TIMING) printf("timing: level %d: Paso_SystemMatrix_getTranspose: %e\n",level,Esys_timer()-time0);
 			}		
-*/
-			/* 
-			construct coarse level matrix:
-			*/
-/*MPI:
-			if ( Esys_noError()) {
-			   time0=Esys_timer();
-			   Atemp=Paso_SystemMatrix_MatrixMatrix(A_p,out->P);
-			   A_C=Paso_SystemMatrix_MatrixMatrix(out->R,Atemp);
-			   Paso_Preconditioner_AMG_setStrongConnections
-			   Paso_SystemMatrix_free(Atemp);
+			/*
+                        construct coarse level matrix:
+                        */
+                        if ( Esys_noError()) {
+                           time0=Esys_timer();
 
-			   if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);			
-			}
-*/
+                           A_C = Paso_Preconditioner_AMG_buildInterpolationOperator(A_p, out->P, out->R);
 
-			
+                           if (SHOW_TIMING) printf("timing: level %d : construct coarse matrix: %e\n",level,Esys_timer()-time0);
+                        }
+
 			/*
 			   constructe courser level:
 			   
@@ -318,33 +311,21 @@ return NULL;
 			if ( Esys_noError()) {
 			   out->AMG_C=Paso_Preconditioner_AMG_alloc(A_C,level+1,options);
 			}
+
 			if ( Esys_noError()) {
-			   if ( out->AMG_C == NULL ) { 
+			  if ( out->AMG_C == NULL ) { 
+			      /* merge the system matrix into 1 rank when 
+				 it's not suitable coarsening due to the 
+				 total number of unknowns are too small */
+			      out->A_C=A_C;
 			      out->reordering = options->reordering;
-			      out->refinements = options->coarse_matrix_refinements;
-			      /* no coarse level matrix has been constructed. use direct solver */
-			      #ifdef MKL
-				    out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_C);
-				    Paso_SystemMatrix_free(A_C);
-				    out->A_C->solver_package = PASO_MKL;
-				    if (verbose) printf("Paso_Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
-			      #else
-				    #ifdef UMFPACK
-				       out->A_C=Paso_SystemMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_C); 
-				       Paso_SystemMatrix_free(A_C);
-				       out->A_C->solver_package = PASO_UMFPACK;
-				       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
-				    #else
-				       out->A_C=A_C;
-				       out->A_C->solver_p=Paso_Preconditioner_Smoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
-				       out->A_C->solver_package = PASO_SMOOTHER;
-				       if (verbose) printf("Paso_Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
-				    #endif
-			      #endif
-			   } else {
+                              out->refinements = options->coarse_matrix_refinements;
+			      out->verbose = verbose;
+			      out->options_smoother = options->smoother;
+			  } else {
 			      /* finally we set some helpers for the solver step */
 			      out->A_C=A_C;
-			   }
+			  }
 			}		  
 		  }
 	       }
@@ -352,7 +333,6 @@ return NULL;
 	       TMPMEMFREE(rows_in_F);
 	    }
 	 }
-#endif
 
   }
   TMPMEMFREE(counter);
@@ -376,7 +356,7 @@ return NULL;
 
 
 void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG * amg, double * x, double * b) {
-     const dim_t n = amg->n * amg->n_block;
+     const dim_t n = A->mainBlock->numRows * A->mainBlock->row_block_size;
      double time0=0;
      const dim_t post_sweeps=amg->post_sweeps;
      const dim_t pre_sweeps=amg->pre_sweeps;
@@ -384,41 +364,33 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      /* presmoothing */
      time0=Esys_timer();
      Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
+
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
 	
      if (amg->n_F < amg->n) { /* is there work on the coarse level? */
          time0=Esys_timer();
+
 	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+
          time0=Esys_timer()-time0;
 	 /* coarse level solve */
 	 if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
-#ifdef FIXME
-	    switch (amg->A_C->solver_package) {
-	       case (PASO_MKL):
-		  Paso_MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
-		  break;
-	       case (PASO_UMFPACK):
-		  Paso_UMFPACK(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
-		  break;
-	       case (PASO_SMOOTHER):
-		  Paso_Preconditioner_Smoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
-		  break;
-	    }
-#endif
-   	    Paso_Preconditioner_Smoother_solve(amg->A_C, amg->A_C->solver_p,amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
+	    Paso_Preconditioner_AMG_mergeSolve(amg); 
+
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
 	 } else {
 	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
-	 }  
+	 }
+
   	 time0=time0+Esys_timer();
 	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
-	
+
          /*postsmoothing*/
       
         /*solve Ax=b with initial guess x */
@@ -427,8 +399,8 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
         time0=Esys_timer()-time0;
         if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
         /*end of postsmoothing*/
-     
      }
+
      return;
 }
 
@@ -451,7 +423,6 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
    index_t iptr, i;
    double *threshold_p=NULL; 
 
-
    threshold_p = TMPMEMALLOC(2*my_n, double);
    
    #pragma omp parallel for private(i,iptr) schedule(static)
@@ -462,13 +433,13 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	 register double main_row=0;
 	 register dim_t kdeg=0;
          register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
+
          
 	 /* collect information for row i: */
 	 #pragma ivdep
 	 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 	    register index_t j=A->mainBlock->pattern->index[iptr];
 	    register double fnorm=ABS(A->mainBlock->val[iptr]);
-	    
 	    if( j != i) {
 	       max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	       sum_row+=fnorm;
@@ -477,10 +448,11 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	    }
 
 	 }
-	 
+
 	 #pragma ivdep
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
+
 	    max_offdiagonal = MAX(max_offdiagonal,fnorm);
 	    sum_row+=fnorm;
 	 }
@@ -514,6 +486,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
          offset_S[i]=koffset;
 	 degree_S[i]=kdeg;
       }
+
       /* now we need to distribute the threshold and the diagonal dominance indicator */
       if (A->mpi_info->size > 1) {
 
@@ -529,20 +502,27 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
           #pragma omp parallel for private(i,iptr) schedule(static)
           for (i=0; i<overlap_n; i++) {
-	     
 	      const double threshold = remote_threshold[2*i+1];
 	      register dim_t kdeg=0;
-              register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+              register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
               if (remote_threshold[2*i]>0) {
-	         #pragma ivdep
-	         for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+		#pragma ivdep
+		for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	          register index_t j=A->row_coupleBlock->pattern->index[iptr];
 	          if(ABS(A->row_coupleBlock->val[iptr])>threshold) {
 		     S[koffset+kdeg] = j ;
 		     kdeg++;
 	          }
-	       }
+		}
 
+		#pragma ivdep
+		for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; iptr++) {
+		  register index_t j=A->remote_coupleBlock->pattern->index[iptr];
+		  if(ABS(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
+		      S[koffset+kdeg] = j + my_n;
+		      kdeg++;
+		  }
+		}
               }
               offset_S[i+my_n]=koffset;
 	      degree_S[i+my_n]=kdeg;
@@ -564,7 +544,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 							const double theta, const double tau)
 
 {
-   const dim_t n_block=A->block_size;
+   const dim_t block_size=A->block_size;
    const dim_t my_n=A->mainBlock->numRows;
    const dim_t overlap_n=A->row_coupleBlock->numRows;
    
@@ -573,8 +553,8 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    
    
    threshold_p = TMPMEMALLOC(2*my_n, double);
-   
-   #pragma omp parallel private(i,iptr, bi)
+
+   #pragma omp parallel private(i,iptr,bi)
    {
    
       dim_t max_deg=0;
@@ -600,8 +580,8 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    register index_t j=A->mainBlock->pattern->index[iptr];
 	    register double fnorm=0;
 	    #pragma ivdep
-	    for(bi=0;bi<n_block;++bi) {
-   	        register double  rtmp2= A->mainBlock->val[iptr*n_block+bi];
+	    for(bi=0;bi<block_size;++bi) {
+   	        register double  rtmp2= A->mainBlock->val[iptr*block_size+bi];
 	       fnorm+=rtmp2*rtmp2;
 	    }
 	    fnorm=sqrt(fnorm);
@@ -620,8 +600,8 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	    register double fnorm=0;
 	    #pragma ivdep
-	    for(bi=0;bi<n_block;++bi) {
-	       register double rtmp2 = A->col_coupleBlock->val[iptr*n_block+bi];
+	    for(bi=0;bi<block_size;++bi) {
+	       register double rtmp2 = A->col_coupleBlock->val[iptr*block_size+bi];
 	       fnorm+=rtmp2*rtmp2;
 	    }
 	    fnorm=sqrt(fnorm);
@@ -640,7 +620,6 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	    threshold_p[2*i+1]=threshold;
 	    if (tau*main_row < sum_row) { /* no diagonal dominance */
 	       threshold_p[2*i]=1;
-	       rtmp_offset=-A->mainBlock->pattern->ptr[i];
 	       #pragma ivdep
 	       for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
 		  register index_t j=A->mainBlock->pattern->index[iptr];
@@ -685,15 +664,15 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 
 	 const double threshold2 = remote_threshold[2*i+1]*remote_threshold[2*i+1];
 	 register dim_t kdeg=0;
-	 register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i];
+	 register const index_t koffset=koffset_0+A->row_coupleBlock->pattern->ptr[i]+A->remote_coupleBlock->pattern->ptr[i];
 	 if (remote_threshold[2*i]>0) {
 	    #pragma ivdep
 	    for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
 	       register index_t j=A->row_coupleBlock->pattern->index[iptr];
 	       register double fnorm2=0;
 	       #pragma ivdepremote_threshold[2*i]
-	       for(bi=0;bi<n_block;++bi) {
-		  register double rtmp2 = A->row_coupleBlock->val[iptr*n_block+bi];
+	       for(bi=0;bi<block_size;++bi) {
+		  register double rtmp2 = A->row_coupleBlock->val[iptr*block_size+bi];
 		  fnorm2+=rtmp2*rtmp2;
 	       }
 	       
@@ -702,6 +681,21 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 		  kdeg++;
 	       }
 	    }
+
+	    #pragma ivdep
+            for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; ++iptr) {
+               register index_t j=A->remote_coupleBlock->pattern->index[iptr];
+               register double fnorm2=0;
+               #pragma ivdepremote_threshold[2*i]
+               for(bi=0;bi<block_size;++bi) {
+                  register double rtmp2 = A->remote_coupleBlock->val[iptr*block_size+bi];
+                  fnorm2+=rtmp2*rtmp2;
+               }
+               if(fnorm2 > threshold2 && i != j) {
+                  S[koffset+kdeg] = j + my_n;
+                  kdeg++;
+               }
+            }
 	    
 	 }
 	 offset_S[i+my_n]=koffset;
@@ -739,6 +733,11 @@ void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim
    }
 }
 
+int compareindex(const void *a, const void *b)
+{
+  return (*(int *)a - *(int *)b);
+}
+
 void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
@@ -755,7 +754,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   Status=TMPMEMALLOC(n, double);
   random = Paso_Distribution_createRandomVector(col_dist,1);
   ST_flag=TMPMEMALLOC(offset_ST[n-1]+ degree_ST[n-1], index_t);
-   
+
   #pragma omp parallel for private(i)
   for (i=0; i< my_n; ++i) {
       w[i]=degree_ST[i]+random[i];
@@ -765,6 +764,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	   Status[i]=1; /* status undefined */
       }
   }
+
   #pragma omp parallel for private(i, iptr)
   for (i=0; i< n; ++i) {
       for( iptr =0 ; iptr < degree_ST[i]; ++iptr)  {
@@ -775,23 +775,10 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   
   numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
   printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined); 
-
-  
   iter=0; 
   while (numUndefined > 0) {
      Paso_Coupler_fillOverlap(n, w, w_coupler);
-     {
-	int p;
-	for (p=0; p<my_n; ++p) {
-	   printf(" %d : %f %f \n",p, w[p], Status[p]);
-	}
-	for (p=my_n; p<n; ++p) {
-	   printf(" %d : %f \n",p, w[p]);
-	}
-	
-	
-     }
-     
+
       /* calculate the maximum value of neighbours following active strong connections:
 	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) connection is still active  */       
       #pragma omp parallel for private(i, iptr)
@@ -801,15 +788,12 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	    register bool_t inD=TRUE;
 	    const double wi=w[i];
 
-
 	    for( iptr =0 ; iptr < degree_S[i]; ++iptr) {
-
 	       const index_t k=S[offset_S[i]+iptr];
 	       const index_t* start_p = &ST[offset_ST[k]];
 	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), Paso_comparIndex);
 
-	       if (ST_flag[(index_t)(where_p-start_p)]>0) {
-printf("S: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
+	       if (ST_flag[offset_ST[k] + (index_t)(where_p-start_p)]>0) {
 		  if (wi <= w[k] ) {
 		     inD=FALSE;
 		     break;
@@ -822,8 +806,6 @@ printf("S: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);
 		  for( iptr =0 ; iptr < degree_ST[i]; ++iptr) {
 		     const index_t k=ST[offset_ST[i]+iptr];
 		     if ( ST_flag[offset_ST[i]+iptr] > 0 ) {
-printf("ST: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);	  
-			
                        if (wi <= w[k] ) {
 			   inD=FALSE;
 			   break;
@@ -833,7 +815,6 @@ printf("ST: %d (%e) -> %d	(%e)\n",i, wi, k, w[k]);
 	    }    
 	    if (inD) { 
 	       Status[i]=0.; /* is in D */
-printf("%d is in D\n",i);
 	    }
 	 }
 	 
@@ -865,7 +846,6 @@ printf("%d is in D\n",i);
 		  const index_t j=ST[offset_ST[i]+jptr];
 		  if ( (Status[j] == 0.) && (ST_flag[offset_ST[i]+jptr]>0) ) {
 		     w[i]--;
-printf("%d reduced by %d\n",i,j);
 		     ST_flag[offset_ST[i]+jptr]=-1;
 		  }
 	       }
@@ -887,17 +867,13 @@ printf("%d reduced by %d\n",i,j);
 
 		     for (jptr=0; jptr<degree_ST[i]; ++jptr) {
 			const index_t j=ST[offset_ST[i]+jptr];
-printf("check connection: %d %d\n",i,j);
 			ST_flag[offset_ST[i]+jptr]=-1;
 			for (kptr=0; kptr<degree_ST[j]; ++kptr) {
 			   const index_t k=ST[offset_ST[j]+kptr]; 
-printf("check connection: %d of %d\n",k,j);
 			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), Paso_comparIndex) ) { /* k in ST[i] ? */
-printf("found!\n");
 			      if (ST_flag[offset_ST[j]+kptr] >0) {
 				 if (j< my_n ) {
 				    w[j]--;
-printf("%d reduced by %d and %d\n",j, i,k);
 				 }
 				 ST_flag[offset_ST[j]+kptr]=-1;
 			      }
@@ -907,22 +883,28 @@ printf("%d reduced by %d and %d\n",j, i,k);
 		  }
 	    }
 	 }
+
 	 /* adjust status */
 	 #pragma omp parallel for private(i)
 	 for (i=0; i< my_n; ++i) {
 	    if ( Status[i] == 0. ) {
 	       Status[i] = -10;   /* this is now a C point */
-	    } else if ( w[i]<1.) {
+	    } else if (Status[i] == 1. && w[i]<1.) {
 	       Status[i] = -100;   /* this is now a F point */  
 	    }
 	 }
 	 
-	 
+	 i = numUndefined;
 	 numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+	 if (numUndefined == i) {
+	   Esys_setError(SYSTEM_ERROR, "Can NOT reduce numUndefined."); 
+	   return;
+	 }
+
 	 iter++;
 	 printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
-  } /* end of while loop */
 
+  } /* end of while loop */
 
   /* map to output :*/
   Paso_Coupler_fillOverlap(n, Status, w_coupler);
@@ -934,7 +916,6 @@ printf("%d reduced by %d and %d\n",j, i,k);
 	    split_marker[i]=PASO_AMG_IN_F;
 	 }
   }
-
   /* clean up : */
   Paso_Coupler_free(w_coupler);
   TMPMEMFREE(random);
@@ -943,4 +924,257 @@ printf("%d reduced by %d and %d\n",j, i,k);
   TMPMEMFREE(ST_flag);
   
   return;
+}
+
+/* Merge the system matrix which is distributed on ranks into a complete 
+   matrix on rank 0, then solve this matrix on rank 0 only */
+Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A) {
+  index_t i, iptr, j, n, remote_n, total_n, len, offset, tag;
+  index_t row_block_size, col_block_size, block_size;
+  index_t size=A->mpi_info->size;
+  index_t rank=A->mpi_info->rank;
+  index_t *ptr=NULL, *idx=NULL, *ptr_global=NULL, *idx_global=NULL;
+  index_t *temp_n=NULL, *temp_len=NULL;
+  double  *val=NULL;
+  Paso_Pattern *pattern=NULL;
+  Paso_SparseMatrix *out=NULL;
+  #ifdef ESYS_MPI
+    MPI_Request* mpi_requests=NULL;
+    MPI_Status* mpi_stati=NULL;
+  #else
+    int *mpi_requests=NULL, *mpi_stati=NULL;
+  #endif
+
+  if (size == 1) {
+    n = A->mainBlock->numRows;
+    ptr = TMPMEMALLOC(n, index_t); 
+    #pragma omp parallel for private(i)
+    for (i=0; i<n; i++) ptr[i] = i;
+    out = Paso_SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
+    TMPMEMFREE(ptr);
+    return out;
+  }
+
+  n = A->mainBlock->numRows;
+  block_size = A->block_size;
+
+  /* Merge MainBlock and CoupleBlock to get a complete column entries
+     for each row allocated to current rank. Output (ptr, idx, val) 
+     contains all info needed from current rank to merge a system 
+     matrix  */
+  Paso_SystemMatrix_mergeMainAndCouple(A, &ptr, &idx, &val);
+
+  #ifdef ESYS_MPI
+    mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
+    mpi_stati=TMPMEMALLOC(size*2,MPI_Status);
+  #else
+    mpi_requests=TMPMEMALLOC(size*2,int);
+    mpi_stati=TMPMEMALLOC(size*2,int);
+  #endif
+
+  /* Now, pass all info to rank 0 and merge them into one sparse 
+     matrix */
+  if (rank == 0) {
+    /* First, copy local ptr values into ptr_global */
+    total_n=Paso_SystemMatrix_getGlobalNumRows(A);
+    ptr_global = MEMALLOC(total_n+1, index_t);
+    memcpy(ptr_global, ptr, (n+1) * sizeof(index_t));
+    iptr = n+1;
+    MEMFREE(ptr);
+    temp_n = TMPMEMALLOC(size, index_t);
+    temp_len = TMPMEMALLOC(size, index_t);
+    temp_n[0] = iptr;
+    
+    /* Second, receive ptr values from other ranks */
+    for (i=1; i<size; i++) {
+      remote_n = A->row_distribution->first_component[i+1] -
+		 A->row_distribution->first_component[i];
+      #ifdef ESYS_MPI
+      MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
+			A->mpi_info->msg_tag_counter+i,
+			A->mpi_info->comm,
+			&mpi_requests[i]);
+      #endif
+      temp_n[i] = remote_n;
+      iptr += remote_n;
+    }
+    #ifdef ESYS_MPI
+    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
+    A->mpi_info->msg_tag_counter += size;
+
+    /* Then, prepare to receive idx and val from other ranks */
+    len = 0;
+    offset = -1;
+    for (i=0; i<size; i++) {
+      if (temp_n[i] > 0) {
+	offset += temp_n[i];
+	len += ptr_global[offset];
+	temp_len[i] = ptr_global[offset];
+      }else 
+	temp_len[i] = 0;
+    }
+
+    idx_global = MEMALLOC(len, index_t);
+    iptr = temp_len[0];
+    offset = n+1;
+    for (i=1; i<size; i++) {
+      len = temp_len[i];
+      #ifdef ESYS_MPI
+      MPI_Irecv(&(idx_global[iptr]), len, MPI_INT, i,
+			A->mpi_info->msg_tag_counter+i,
+			A->mpi_info->comm,
+			&mpi_requests[i]);
+      #endif
+      remote_n = temp_n[i];
+      for (j=0; j<remote_n; j++) {
+	ptr_global[j+offset] = ptr_global[j+offset] + iptr;
+      }
+      offset += remote_n;
+      iptr += len;
+    }
+    memcpy(idx_global, idx, temp_len[0] * sizeof(index_t));
+    MEMFREE(idx);
+    row_block_size = A->mainBlock->row_block_size;
+    col_block_size = A->mainBlock->col_block_size;
+    #ifdef ESYS_MPI
+    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
+    A->mpi_info->msg_tag_counter += size;
+    TMPMEMFREE(temp_n);
+
+    /* Then generate the sparse matrix */
+    pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, total_n,
+			total_n, ptr_global, idx_global);
+    out = Paso_SparseMatrix_alloc(A->mainBlock->type, pattern, 
+			row_block_size, col_block_size, FALSE);
+    Paso_Pattern_free(pattern);
+
+    /* Finally, receive and copy the value */
+    iptr = temp_len[0] * block_size;
+    for (i=1; i<size; i++) {
+      len = temp_len[i];
+      #ifdef ESYS_MPI
+      MPI_Irecv(&(out->val[iptr]), len * block_size, MPI_DOUBLE, i,
+                        A->mpi_info->msg_tag_counter+i,
+                        A->mpi_info->comm,
+                        &mpi_requests[i]);
+      #endif
+      iptr += (len * block_size);
+    }
+    memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
+    MEMFREE(val);
+    #ifdef ESYS_MPI
+    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
+    #endif
+    A->mpi_info->msg_tag_counter += size;
+    TMPMEMFREE(temp_len);
+  } else { /* it's not rank 0 */
+
+    /* First, send out the local ptr */
+    tag = A->mpi_info->msg_tag_counter+rank;
+    #ifdef ESYS_MPI
+    MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
+			&mpi_requests[0]);
+    #endif
+
+    /* Next, send out the local idx */
+    len = ptr[n];
+    tag += size;
+    #ifdef ESYS_MPI
+    MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
+			&mpi_requests[1]);
+    #endif
+
+    /* At last, send out the local val */
+    len *= block_size;
+    tag += size;
+    #ifdef ESYS_MPI
+    MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
+			&mpi_requests[2]);
+
+    MPI_Waitall(3, mpi_requests, mpi_stati);
+    #endif
+    A->mpi_info->msg_tag_counter = tag + size - rank;
+    MEMFREE(ptr);
+    MEMFREE(idx);
+    MEMFREE(val);
+
+    out = NULL;
+  }
+
+  TMPMEMFREE(mpi_requests);
+  TMPMEMFREE(mpi_stati);
+  return out;
+}
+
+
+void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
+  Paso_SystemMatrix *A = amg->A_C;
+  Paso_SparseMatrix *A_D, *A_temp;
+  double* x=NULL;
+  double* b=NULL;
+  index_t rank = A->mpi_info->rank;
+  index_t size = A->mpi_info->size;
+  index_t i, n, p, n_block;
+  index_t *counts, *offset, *dist;
+  #ifdef ESYS_MPI
+  index_t count;
+  #endif
+  n_block = amg->n_block;
+  A_D = Paso_Preconditioner_AMG_mergeSystemMatrix(A); 
+
+  /* First, gather x and b into rank 0 */
+  dist = A->pattern->input_distribution->first_component;
+  n = Paso_SystemMatrix_getGlobalNumRows(A);
+  b = TMPMEMALLOC(n*n_block, double);
+  x = TMPMEMALLOC(n*n_block, double);
+  counts = TMPMEMALLOC(size, index_t);
+  offset = TMPMEMALLOC(size, index_t);
+
+  #pragma omp parallel for private(i,p)
+  for (i=0; i<size; i++) {
+    p = dist[i];
+    counts[i] = (dist[i+1] - p)*n_block;
+    offset[i] = p*n_block;
+  }
+  #ifdef ESYS_MPI
+  count = counts[rank];
+  MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+  MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
+  #endif
+
+  if (rank == 0) {
+    /* solve locally */
+    #ifdef MKL
+      A_temp = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_D);
+      A_temp->solver_package = PASO_MKL;
+      Paso_SparseMatrix_free(A_D);
+      Paso_MKL(A_temp, x, b, amg->reordering, amg->refinements, SHOW_TIMING);
+      Paso_SparseMatrix_free(A_temp);
+    #else 
+      #ifdef UMFPACK
+	A_temp = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_D);
+	A_temp->solver_package = PASO_UMFPACK;
+	Paso_SparseMatrix_free(A_D);
+	Paso_UMFPACK(A_temp, x, b, amg->refinements, SHOW_TIMING);
+	Paso_SparseMatrix_free(A_temp);
+      #else
+	A_D->solver_p = Paso_Preconditioner_LocalSmoother_alloc(A_D, (amg->options_smoother == PASO_JACOBI), amg->verbose);
+	A_D->solver_package = PASO_SMOOTHER;
+	Paso_Preconditioner_LocalSmoother_solve(A_D, A_D->solver_p, x, b, amg->pre_sweeps+amg->post_sweeps, FALSE);
+	Paso_SparseMatrix_free(A_D);
+      #endif
+    #endif
+  }
+
+  #ifdef ESYS_MPI
+  /* now we need to distribute the solution to all ranks */
+  MPI_Scatterv(x, counts, offset, MPI_DOUBLE, amg->x_C, count, MPI_DOUBLE, 0, A->mpi_info->comm);
+  #endif
+
+  TMPMEMFREE(x);
+  TMPMEMFREE(b);
+  TMPMEMFREE(counts);
+  TMPMEMFREE(offset);
 }

@@ -636,7 +636,6 @@ class Test_Poisson(Test_linearPDEs):
        mypde=Poisson(self.domain)
        mypde.setValue(f=f,q=msk)
        u=mypde.getSolution()
-       print(u,u_ex, self.TOL)
        self.assertTrue(self.check(u,u_ex,10*self.TOL),"incorrect solution")
 
 class Test_LinearPDE_noLumping(Test_linearPDEs):

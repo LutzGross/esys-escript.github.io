@@ -789,6 +789,19 @@ protected:
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
+
+private:
+    /// calls the right PDE assembly routines after performing input checks
+    virtual void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const;
+
+    /// calls the right PDE boundary assembly routines after performing input
+    /// checks
+    virtual void assemblePDEBoundary(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const;
 };
 
 } // end of namespace ripley

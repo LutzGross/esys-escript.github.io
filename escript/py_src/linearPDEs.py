@@ -202,8 +202,8 @@ class SolverOptions(object):
         self.setUsePanel()
         self.setDiagonalDominanceThreshold()
         self.setAMGInterpolation()
-	self.setCycleType()
-	self.setODESolver()
+        self.setCycleType()
+        self.setODESolver()
         
 
     def __str__(self):
@@ -252,15 +252,15 @@ class SolverOptions(object):
                 out+="\nCoarsening threshold = %e"%self.getMinCoarseMatrixSize()
                 out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-	    if self.getPreconditioner() == self.BOOMERAMG:
-		out+="\nMaximum number of levels = %s"%self.getLevelMax()
-		out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
-		out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
-		out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
-		out+="\nV-cycle (1) or W-cyle (2) = %s"%self.getCycleType()
-		out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-		out+="\nSmoother = %s"%self.getName(self.getSmoother())
-	    if self.getPreconditioner() == self.GAUSS_SEIDEL:
+            if self.getPreconditioner() == self.BOOMERAMG:
+                out+="\nMaximum number of levels = %s"%self.getLevelMax()
+                out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
+                out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
+                out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
+                out+="\nV-cycle (1) or W-cyle (2) = %s"%self.getCycleType()
+                out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
+                out+="\nSmoother = %s"%self.getName(self.getSmoother())
+            if self.getPreconditioner() == self.GAUSS_SEIDEL:
                 out+="\nNumber of sweeps = %s"%self.getNumSweeps()
             if self.getPreconditioner() == self.ILUT:
                 out+="\nDrop tolerance = %e"%self.getDropTolerance()
@@ -317,13 +317,13 @@ class SolverOptions(object):
         if key == self.CLASSIC_INTERPOLATION_WITH_FF_COUPLING: return "CLASSIC_INTERPOLATION_WITH_FF"
         if key == self.CLASSIC_INTERPOLATION: return "CLASSIC_INTERPOLATION"
         if key == self.DIRECT_INTERPOLATION: return "DIRECT_INTERPOLATION"
-	if key == self.BOOMERAMG: return "BOOMERAMG"
-	if key == self.CIJP_FIXED_RANDOM_COARSENING: return "CIJP_FIXED_RANDOM_COARSENING"
-	if key == self.CIJP_COARSENING: return "CIJP_COARSENING"
-	if key == self.FALGOUT_COARSENING: return "FALGOUT_COARSENING"
-	if key == self.PMIS_COARSENING: return "PMIS_COARSENING"
-	if key == self.HMIS_COARSENING: return "HMIS_COARSENING"
-	if key == self.LINEAR_CRANK_NICOLSON: return "LINEAR_CRANK_NICOLSON"
+        if key == self.BOOMERAMG: return "BOOMERAMG"
+        if key == self.CIJP_FIXED_RANDOM_COARSENING: return "CIJP_FIXED_RANDOM_COARSENING"
+        if key == self.CIJP_COARSENING: return "CIJP_COARSENING"
+        if key == self.FALGOUT_COARSENING: return "FALGOUT_COARSENING"
+        if key == self.PMIS_COARSENING: return "PMIS_COARSENING"
+        if key == self.HMIS_COARSENING: return "HMIS_COARSENING"
+        if key == self.LINEAR_CRANK_NICOLSON: return "LINEAR_CRANK_NICOLSON"
         if key == self.CRANK_NICOLSON: return "CRANK_NICOLSON"
         if key == self.BACKWARD_EULER: return "BACKWARD_EULER"
 
@@ -386,9 +386,9 @@ class SolverOptions(object):
         if name == "time_step_backtracking_used":
             self.__time_step_backtracking_used = (value == True)
         if name == "coarse_level_sparsity":
-	       self.__coarse_level_sparsity = value
-	if name == "num_coarse_unknowns": 
-	       self.__num_coarse_unknowns= value
+            self.__coarse_level_sparsity = value
+        if name == "num_coarse_unknowns": 
+            self.__num_coarse_unknowns= value
     def getDiagnostics(self, name):
         """
         Returns the diagnostic information ``name``. Possible values are:
@@ -448,7 +448,7 @@ class SolverOptions(object):
         :param method: selects the coarsening method .
         :type method: in {SolverOptions.DEFAULT}, `SolverOptions.YAIR_SHAPIRA_COARSENING`,  `SolverOptions.RUGE_STUEBEN_COARSENING`, `SolverOptions.AGGREGATION_COARSENING`, `SolverOptions.CIJP_FIXED_RANDOM_COARSENING`, `SolverOptions.CIJP_COARSENING`, `SolverOptions.FALGOUT_COARSENING`, `SolverOptions.PMIS_COARSENING`, `SolverOptions.HMIS_COARSENING`
         """
-	if method==None: method=0
+        if method==None: method=0
         if not method in [self.DEFAULT, self.YAIR_SHAPIRA_COARSENING, self.RUGE_STUEBEN_COARSENING, self.AGGREGATION_COARSENING, self.STANDARD_COARSENING, self.CIJP_FIXED_RANDOM_COARSENING, self.CIJP_COARSENING, self.FALGOUT_COARSENING, self.PMIS_COARSENING, self.HMIS_COARSENING,]:
              raise ValueError("unknown coarsening method %s"%method)
         self.__coarsening=method
@@ -468,7 +468,7 @@ class SolverOptions(object):
         :param size: minumum size of the coarsest level matrix .
         :type size: positive ``int`` or ``None``
         """
-	if size==None: size=500
+        if size==None: size=500
         size=int(size)
         if size<0:
            raise ValueError("minumum size of the coarsest level matrix must be non-negative.")
@@ -492,7 +492,7 @@ class SolverOptions(object):
                                     `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
-	if preconditioner==None: preconditioner=10
+        if preconditioner==None: preconditioner=10
         if not preconditioner in [  SolverOptions.ILU0, SolverOptions.ILUT, SolverOptions.JACOBI, 
                                     SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU, SolverOptions.BOOMERAMG,
                                     SolverOptions.NO_PRECONDITIONER] :
@@ -515,7 +515,7 @@ class SolverOptions(object):
         :type smoother: in `SolverOptions.JACOBI`, `SolverOptions.GAUSS_SEIDEL`
         :note: Not all packages support all smoothers. It can be assumed that a package makes a reasonable choice if it encounters an unknown smoother. 
         """
-	if smoother==None: smoother=28
+        if smoother==None: smoother=28
         if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
              raise ValueError("unknown smoother %s"%smoother)
         self.__smoother=smoother    
@@ -540,7 +540,7 @@ class SolverOptions(object):
                         `SolverOptions.NONLINEAR_GMRES`, `SolverOptions.TFQMR`, `SolverOptions.MINRES`
         :note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method. 
         """
-	if method==None: method=0
+        if method==None: method=0
         if not method in [ SolverOptions.DEFAULT, SolverOptions.DIRECT, SolverOptions.CHOLEVSKY, SolverOptions.PCG, 
                            SolverOptions.CR, SolverOptions.CGS, SolverOptions.BICGSTAB, 
                            SolverOptions.GMRES, SolverOptions.PRES20, SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING,
@@ -567,7 +567,7 @@ class SolverOptions(object):
         :type package: in `SolverOptions.DEFAULT`, `SolverOptions.PASO`, `SolverOptions.SUPER_LU`, `SolverOptions.PASTIX`, `SolverOptions.MKL`, `SolverOptions.UMFPACK`, `SolverOptions.TRILINOS`
         :note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular is requested. 
         """
-	if package==None: package=0
+        if package==None: package=0
         if not package in [SolverOptions.DEFAULT, SolverOptions.PASO, SolverOptions.SUPER_LU, SolverOptions.PASTIX, SolverOptions.MKL, SolverOptions.UMFPACK, SolverOptions.TRILINOS]:
              raise ValueError("unknown solver package %s"%package)
         self.__package=package
@@ -623,11 +623,11 @@ class SolverOptions(object):
         else:
             return self.__restart
     def _getRestartForC(self):
-	    r=self.getRestart()
-	    if r == None: 
-		    return -1
+            r=self.getRestart()
+            if r == None: 
+               return -1
             else: 
-		    return r
+               return r
    
     def setDiagonalDominanceThreshold(self,value=0.5):
         """
@@ -638,8 +638,8 @@ class SolverOptions(object):
         """
         value=float(value)
         if value<0 or value>1.:
-	   raise ValueError("Diagonal dominance threshold must be between 0 and 1.")
-	self.__diagonal_dominance_threshold=value
+           raise ValueError("Diagonal dominance threshold must be between 0 and 1.")
+        self.__diagonal_dominance_threshold=value
         
     def getDiagonalDominanceThreshold(self):
         """
@@ -1097,7 +1097,7 @@ class SolverOptions(object):
        """
        sparsity=float(sparsity)
        if sparsity<0: 
-	 raise ValueError("sparsity must be non-negative.")
+          raise ValueError("sparsity must be non-negative.")
        if sparsity>1: 
           raise ValueError("sparsity must be less than 1.")
        self.__min_sparsity=sparsity
@@ -1122,7 +1122,7 @@ class SolverOptions(object):
       """
       refinements=int(refinements)
       if refinements<0:
-	 raise ValueError("number of refinements must be non-negative.")
+        raise ValueError("number of refinements must be non-negative.")
       self.__refinements=refinements
    
     def getNumRefinements(self):
@@ -1142,7 +1142,7 @@ class SolverOptions(object):
       """
       refinements=int(refinements)
       if refinements<0:
-	 raise ValueError("number of refinements must be non-negative.")
+         raise ValueError("number of refinements must be non-negative.")
       self.__coarse_refinements=refinements
    
     def getNumCoarseMatrixRefinements(self):
@@ -1194,7 +1194,7 @@ class SolverOptions(object):
         :param method: key of the interpolation method to be used.
         :type method: in `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
         """
-	if method==None: method=self.DIRECT_INTERPOLATION
+        if method==None: method=self.DIRECT_INTERPOLATION
         if not method in [ SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING, SolverOptions.CLASSIC_INTERPOLATION, SolverOptions.DIRECT_INTERPOLATION ]:
              raise ValueError("unknown AMG interpolation method %s"%method)
         self.__amg_interpolation_method=method
@@ -1214,7 +1214,7 @@ class SolverOptions(object):
         :param method: key of the ODE solver method to be used.
         :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
         """
-	if method==None: method=self.LINEAR_CRANK_NICOLSON
+        if method==None: method=self.LINEAR_CRANK_NICOLSON
         if not method in [ SolverOptions.CRANK_NICOLSON, SolverOptions.BACKWARD_EULER, SolverOptions.LINEAR_CRANK_NICOLSON ]:
              raise ValueError("unknown ODE solver method %s"%method)
         self.__ode_solver=method
@@ -2232,7 +2232,7 @@ class LinearProblem(object):
        if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateSolution()
        if self.__solution_rtol>self.getSolverOptions().getTolerance() or \
           self.__solution_atol>self.getSolverOptions().getAbsoluteTolerance():
-	     self.invalidateSolution()  
+            self.invalidateSolution()  
        return self.__is_solution_valid
 
    def validOperator(self):
@@ -2357,9 +2357,9 @@ class LinearProblem(object):
        defined by the solver options
        """
        if validate:
-	  self.__solution_rtol=self.getSolverOptions().getTolerance()
-	  self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
-	  self.validSolution()
+          self.__solution_rtol=self.getSolverOptions().getTolerance()
+          self.__solution_atol=self.getSolverOptions().getAbsoluteTolerance()
+          self.validSolution()
        self.__solution=u
    def getCurrentSolution(self):
        """
@@ -2395,7 +2395,7 @@ class LinearProblem(object):
                self.__operator=self.createSolution()
            else:
                self.__operator=self.createOperator()
-	   self.__operator_type=self.getRequiredOperatorType()
+           self.__operator_type=self.getRequiredOperatorType()
        else:
            if self.isUsingLumping():
                self.__operator.setToZero()
@@ -2404,7 +2404,7 @@ class LinearProblem(object):
                    self.__operator.resetValues()
                else:
                    self.__operator=self.createOperator()
-	           self.__operator_type=self.getRequiredOperatorType()
+                   self.__operator_type=self.getRequiredOperatorType()
            self.trace("Operator reset to zero")
 
    def getCurrentOperator(self):
@@ -2719,10 +2719,10 @@ class LinearPDE(LinearProblem):
       Returns the system type which needs to be used by the current set up.
       """
       if self.isUsingLumping():
-	 return "__ESCRIPT_DATA"
+         return "__ESCRIPT_DATA"
       else:
-	 solver_options=self.getSolverOptions()
-	 return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
+         solver_options=self.getSolverOptions()
+         return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2774,8 +2774,8 @@ class LinearPDE(LinearProblem):
        if not self.isSolutionValid():
           mat,f=self.getSystem()
           if self.isUsingLumping():
-	     if not util.inf(abs(mat)) > 0.:
-		 raise ZeroDivisionError("Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping).")
+             if not util.inf(abs(mat)) > 0.:
+                 raise ZeroDivisionError("Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping).")
              self.setSolution(f*1/mat)
           else:
              self.trace("PDE is resolved.")
@@ -2860,9 +2860,9 @@ class LinearPDE(LinearProblem):
                  self.resetOperator()
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
-		    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
-		    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
-		    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escript.Data(), hrz_lumping)
+                    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
+                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escript.Data(), hrz_lumping)
                  else:
                     self.getDomain().addPDEToRHS(operator, \
                                                  escript.Data(), \
@@ -3637,8 +3637,6 @@ class TransportPDE(LinearProblem):
      :param debug: if True debug information is printed
      """
      super(TransportPDE, self).__init__(domain,numEquations,numSolutions,debug)
-
-     self.setConstraintWeightingFactor()
      #
      #   the coefficients of the transport problem
      #
@@ -3851,25 +3849,6 @@ class TransportPDE(LinearProblem):
        """
        return self.getOperator().getSafeTimeStepSize()
 
-   def setConstraintWeightingFactor(self,value=1./util.sqrt(util.EPSILON)):
-       """
-       Sets the weighting factor used to insert the constraints into the problem
-
-       :param value: value for the weighting factor
-       :type value: large positive ``float``
-       """
-       if not value>0:
-         raise ValueError("weighting factor needs to be positive.")
-       self.__constraint_factor=value
-       self.trace("Weighting factor for constraints is set to %e."%value)
-
-   def getConstraintWeightingFactor(self):
-       """
-       returns the weighting factor used to insert the constraints into the problem
-       :return: value for the weighting factor
-       :rtype: ``float``
-       """
-       return self.__constraint_factor
    #====================================================================
    def getSolution(self, dt=None, u0=None):
        """
@@ -3885,21 +3864,21 @@ class TransportPDE(LinearProblem):
        :rtype: `Data`
        """
        if not dt == None:
-	  option_class=self.getSolverOptions()
-	  if dt<=0:
-	      raise ValueError("step size needs to be positive.")
-	  if u0 == None:
-	      u0=self.getCurrentSolution()
-	  else:
-	      u0=util.interpolate(u0,self.getFunctionSpaceForSolution())
-	      if self.getNumSolutions() == 1:
-		if u0.getShape()!=():
-		    raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
-	      else:
-		    if u0.getShape()!=(self.getNumSolutions(),):
-		      raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
-	  self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
-	  self.validSolution()
+          option_class=self.getSolverOptions()
+          if dt<=0:
+              raise ValueError("step size needs to be positive.")
+          if u0 == None:
+              u0=self.getCurrentSolution()
+          else:
+              u0=util.interpolate(u0,self.getFunctionSpaceForSolution())
+              if self.getNumSolutions() == 1:
+                if u0.getShape()!=():
+                  raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
+              else:
+                 if u0.getShape()!=(self.getNumSolutions(),):
+                   raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
+          self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
+          self.validSolution()
        return self.getCurrentSolution()
 
    def setInitialSolution(self,u):
@@ -3966,7 +3945,7 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y_contact_reduced"),
                             escript.Data(),
                             escript.Data() )
-          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"),self.getConstraintWeightingFactor())
+          operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
           self.trace("New system has been built.")
           self.validOperator()
           self.validRightHandSide()

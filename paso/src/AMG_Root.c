@@ -53,8 +53,6 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
 	  prec->boomeramg = Paso_Preconditioner_BoomerAMG_alloc(A,options);
 	} else {
           prec->is_local=( A->mpi_info->size == 1 ) | options->use_local_preconditioner;
-          prec->is_local=FALSE;
-          prec->is_local=TRUE; 
         
           if (prec->is_local) {
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);

@@ -47,11 +47,11 @@ escript_opts_version = 201
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
+#cc_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
+#cxx_extra = '-isystem /usr/local/py2.6.2/silo4.7.2/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
@@ -184,7 +184,7 @@ lapack_libs = ['lapack_atlas']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/usr/local/py2.6.2/silo4.7.2'
+#silo_prefix = '/usr/local/py2.6.2/silo4.7.2'
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5', 'hdf5']

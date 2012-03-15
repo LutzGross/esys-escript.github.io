@@ -77,6 +77,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->remote_coupleBlock=NULL;
      out->is_balanced=FALSE;
      out->balance_vector=NULL; 
+     out->global_id=NULL;
      out->solver_package=PASO_PASO;  
      out->solver_p=NULL;  
      out->trilinos_data=NULL;
@@ -123,7 +124,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
          }
      }
      if (Esys_noError()) {
-        out->block_size=out->row_block_size*out->col_block_size;
+	if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+	  out->block_size=MIN(out->row_block_size,out->col_block_size);
+	} else {
+          out->block_size=out->row_block_size*out->col_block_size;
+	}
         out->col_coupler=Paso_Coupler_alloc(out->pattern->col_connector,out->col_block_size);
         out->row_coupler=Paso_Coupler_alloc(out->pattern->row_connector,out->row_block_size);
         /* this should be bypassed if trilinos is used */
@@ -185,6 +190,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
 	Paso_SparseMatrix_free(in->remote_coupleBlock);
 	
 	MEMFREE(in->balance_vector);
+        if (in->global_id) MEMFREE(in->global_id);
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);
         #endif
