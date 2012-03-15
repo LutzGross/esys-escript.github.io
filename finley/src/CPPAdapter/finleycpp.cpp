@@ -156,7 +156,6 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param periodic0:  whether or not boundary conditions are periodic\n"
 ":param periodic1:\n"
 ":param useFullElementOrder:\n:param optimize:\n"
-":param useMacroElements: Enable the usage of first order macro elements.\n:type useMacroElements: ``bool``\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
