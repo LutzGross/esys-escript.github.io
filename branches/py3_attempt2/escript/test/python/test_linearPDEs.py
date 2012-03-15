@@ -74,10 +74,10 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	    self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
@@ -104,10 +104,10 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	    self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x")
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
@@ -135,12 +135,12 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_f(self):
@@ -165,11 +165,11 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -196,9 +196,9 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
         if self.domain.supportsContactElements():
-	    self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	    self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
@@ -229,11 +229,11 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -263,12 +263,12 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-	self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_lambdamu(self):
@@ -296,12 +296,12 @@ class Test_LameEquation(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_solve(self):
@@ -346,11 +346,11 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -377,12 +377,12 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty") 
-	self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x[0]")
+        self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x[0]")
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
 
 
@@ -409,11 +409,11 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -440,11 +440,11 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -471,11 +471,11 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")	
+            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
@@ -502,12 +502,12 @@ class Test_Helmholtz(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-	self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_solve(self):
@@ -546,12 +546,12 @@ class Test_Poisson(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-	self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
+        self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
     def test_setCoefficient_f(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
@@ -576,9 +576,9 @@ class Test_Poisson(Test_linearPDEs):
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
         if self.domain.supportsContactElements():
-	    self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-	    self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
+            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
         self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
@@ -604,12 +604,12 @@ class Test_Poisson(Test_linearPDEs):
         self.assertTrue(self.check(mypde.getCoefficient("Y_reduced"),Y_ref),"Y_reduced is not x[0]")
         self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
         self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
             self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
             self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-	self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
+        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
         self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
     def test_solve(self):
        d=self.domain.getDim()
@@ -732,7 +732,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(so.getRestart() == 14, "Truncation is wrong.")
         so.setRestart(None)
         self.assertTrue(so.getRestart() == None, "Truncation is wrong.")
-	
+        
         self.assertTrue(not so.isVerbose(), "initial verbosity flag is wrong.")
         so.setVerbosityOn()
         self.assertTrue(so.isVerbose(), "verbosity (1) flag is wrong.")
@@ -1021,7 +1021,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_Scalar(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact=1.)
@@ -1029,7 +1029,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_Scalar(self):
         d=self.domain.getDim()
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact=1.)
             coeff=mypde.getCoefficient("y_contact")
@@ -1083,14 +1083,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_reduced_Scalar(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact_reduced=1.)
             coeff=mypde.getCoefficient("d_contact_reduced")
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_reduced_Scalar(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact_reduced=1.)
@@ -1172,14 +1172,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_reduced_Scalar_using_d_contact(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
             coeff=mypde.getCoefficient("d_contact_reduced")
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),ReducedFunctionOnContactZero(self.domain),1,1))
     def test_setCoefficient_y_contact_reduced_Scalar_using_y_contact(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact=Scalar(1.,ReducedFunctionOnContactZero(self.domain)))
@@ -1237,14 +1237,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact=numpy.ones((self.N,self.N)))
             coeff=mypde.getCoefficient("d_contact")
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact=numpy.ones((self.N,)))
@@ -1299,14 +1299,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_reduced_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact_reduced=numpy.ones((self.N,self.N)))
             coeff=mypde.getCoefficient("d_contact_reduced")
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_reduced_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact_reduced=numpy.ones((self.N,)))
@@ -1388,14 +1388,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         coeff=mypde.getCoefficient("d_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_reduced_System_using_d_contact(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact=Data(numpy.ones((self.N,self.N)),ReducedFunctionOnContactZero(self.domain)))
             coeff=mypde.getCoefficient("d_contact_reduced")
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),ReducedFunctionOnContactZero(self.domain),self.N,self.N))
     def test_setCoefficient_y_contact_reduced_System_using_y_contact(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=LinearPDE(self.domain,numSolutions=3,debug=self.DEBUG)
             mypde.setValue(y_contact=Data(numpy.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
@@ -1413,7 +1413,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_resetCoefficient_InHomogeneousConstraint(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setSymmetryOn()
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         x=self.domain.getX()
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.,r=1,q=whereZero(x[0]))
         u1=mypde.getSolution()
@@ -1460,11 +1460,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3*numpy.ones((self.N,self.N))
         d=4*numpy.ones((self.N,self.N))
         d_contact=5*numpy.ones((self.N,self.N))
-	pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
-	if self.domain.supportsContactElements():
-		pars["d_contact"]=d_contact
-		pars["d_contact_reduced"]=-d_contact
-	mypde.setValue(**pars)
+        pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
+        if self.domain.supportsContactElements():
+                pars["d_contact"]=d_contact
+                pars["d_contact_reduced"]=-d_contact
+        mypde.setValue(**pars)
         self.assertTrue(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_System(self):
@@ -1498,7 +1498,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_d_contact_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             d_contact=5*numpy.ones((self.N,self.N))
             d_contact[0,1]=0.
@@ -1536,7 +1536,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(not mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_d_contact_reduced_System(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             d_contact=5*numpy.ones((self.N,self.N))
             d_contact[0,1]=0.
@@ -1552,11 +1552,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         D=3
         d=4
         d_contact=5
-	pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
-	if self.domain.supportsContactElements():
-		pars["d_contact"]=d_contact
-		pars["d_contact_reduced"]=-d_contact
-	mypde.setValue(**pars)
+        pars={"A":A, "B":B, "C":C, "D":D, "d":d, "A_reduced":-A, "B_reduced":-B, "C_reduced":-C, "D_reduced":-D, "d_reduced":-d}
+        if self.domain.supportsContactElements():
+                pars["d_contact"]=d_contact
+                pars["d_contact_reduced"]=-d_contact
+        mypde.setValue(**pars)
         self.assertTrue(mypde.checkSymmetry(verbose=False),"symmetry detected")
 
     def test_symmetryCheckFalse_A_Scalar(self):
@@ -1595,30 +1595,30 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnIterative(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_symmetryOnDirect(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_AMG(self):
@@ -1633,46 +1633,46 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_PCG_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -1689,39 +1689,39 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_BICGSTAB_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -1738,39 +1738,39 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_MINRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -1787,40 +1787,40 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_TFQMR_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1836,43 +1836,43 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_PRES20_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_AMG(self):
@@ -1888,43 +1888,43 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)                         
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(50)                         
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(50)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1940,45 +1940,45 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_GMRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_GAUSS_SEIDEL(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG(self):
@@ -1995,31 +1995,31 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_GMRES_truncation_restart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_RILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.RILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_REC_ILU(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
-	mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.REC_ILU)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     #
@@ -2063,7 +2063,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2078,7 +2078,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2109,7 +2109,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2137,8 +2137,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2152,8 +2152,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2183,8 +2183,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2198,8 +2198,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2213,8 +2213,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2244,8 +2244,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2259,8 +2259,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2275,8 +2275,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2308,8 +2308,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2324,8 +2324,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2339,8 +2339,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2370,8 +2370,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -2385,11 +2385,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_GAUSS_SEIDEL_System(self):
@@ -2402,11 +2402,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG_System(self):
@@ -2437,11 +2437,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-	mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
+        mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-	mypde.getSolverOptions().setTruncation(10)
-	mypde.getSolverOptions().setRestart(20)
+        mypde.getSolverOptions().setTruncation(10)
+        mypde.getSolverOptions().setRestart(20)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
@@ -2518,10 +2518,10 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(A=kronecker(self.domain))
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-           u=mypde.getSolution()	
+           u=mypde.getSolution()        
         except ValueError:
            success=False
         self.assertTrue(not success,'error should be issued')
@@ -2529,7 +2529,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(B=kronecker(self.domain)[0])
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
            u=mypde.getSolution()
@@ -2540,7 +2540,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(C=kronecker(self.domain)[0])
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
            u=mypde.getSolution()
@@ -2552,7 +2552,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(A_reduced=kronecker(self.domain))
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
            u=mypde.getSolution()
@@ -2563,7 +2563,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(B_reduced=kronecker(self.domain)[0])
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
            u=mypde.getSolution()
@@ -2574,7 +2574,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         try: 
            success=True
-	   mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+           mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(C_reduced=kronecker(self.domain)[0])
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
            u=mypde.getSolution()
@@ -2584,7 +2584,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         
     def test_Lumping(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2592,7 +2592,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Constrained_Lumping(self):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=1.,Y=1.,q=whereZero(x[0]),r=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2600,7 +2600,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
 
     def test_Lumping_System(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=numpy.array([[1.,0.],[0.,2.]]),Y=numpy.array([1.,2.]))
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2608,7 +2608,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Constrained_Lumping_System(self):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=numpy.array([[1.,0.],[0.,2.]]),Y=numpy.array([1.,2.]), \
                        q=whereZero(x[0])*[0.,1],r=[0.,1.])
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
@@ -2618,7 +2618,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Lumping_updateRHS(self):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2630,7 +2630,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Lumping_updateOperator(self):
         x=self.domain.getX()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
         mypde.setValue(D=1.,Y=1.)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2649,12 +2649,12 @@ class Test_TransportPDE(Test_linearPDEs):
     def test_setCoefficient_WithWrongName(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficient)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))
 
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficientFunctionSpace)
-	mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
         
     def test_resetCoefficient_WithWrongShape(self):
         mypde=TransportPDE(self.domain,numEquations=2,debug=self.DEBUG)
@@ -2749,7 +2749,7 @@ class Test_TransportPDE(Test_linearPDEs):
         coeff=mypde.getCoefficient("m")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((),FunctionOnBoundary(self.domain),1,1))
     def test_setCoefficient_d_contact_Scalar(self):
-	if self.domain.supportsContactElements():
+        if self.domain.supportsContactElements():
             d=self.domain.getDim()
             mypde=TransportPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(d_contact=1.)
@@ -2997,7 +2997,7 @@ class Test_TransportPDE(Test_linearPDEs):
         coeff=mypde.getCoefficient("d")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,self.N),FunctionOnBoundary(self.domain),self.N,self.N))
     def test_setCoefficient_d_contact_System(self):
-	
+        
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(d_contact=numpy.ones((self.N,self.N)))

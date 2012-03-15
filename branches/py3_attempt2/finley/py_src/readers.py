@@ -32,7 +32,7 @@ some mesh handling
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.pycad.gmsh import Design as GMSHDesign
-from finleycpp import ReadGmsh
+from .finleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """

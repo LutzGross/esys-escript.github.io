@@ -92,30 +92,30 @@ class Probe(Model):
 
        def doStepPostprocessing(self,dt):
             t=self.t
-            print "%s : time %e"%(self.line_tag,t)
+            print("%s : time %e"%(self.line_tag,t))
             v=self.value
             x=v.getFunctionSpace().getX()
             if v.getRank()==0:
               if self.expression==None:
-                 print "%s : true (min,max)= (%e,%e)"%(self.line_tag,inf(v),sub(v))
+                 print("%s : true (min,max)= (%e,%e)"%(self.line_tag,inf(v),sub(v)))
               else:
                 ref=eval(self.expression)
                 err=Lsup(v-ref)/Lsup(ref)
-                print "%s : true (min,max)= (%e,%e)"%(self.line_tag,inf(ref),sup(ref))
-                print "%s : (min,max,rel error)= (%e,%e,%e)"%(self.line_tag,inf(v),sup(v),err)
+                print("%s : true (min,max)= (%e,%e)"%(self.line_tag,inf(ref),sup(ref)))
+                print("%s : (min,max,rel error)= (%e,%e,%e)"%(self.line_tag,inf(v),sup(v),err))
             else:
               err=0
               for i in range(v.getRank()):
                  vi=v[i]
                  if self.expression==None:
-                    print "%s :   component %d: true (min,max)= (%e,%e)"%(self.line_tag,i,inf(vi))
+                    print("%s :   component %d: true (min,max)= (%e,%e)"%(self.line_tag,i,inf(vi)))
                  else:
                     refi=eval(self.expression[i])
                     erri=Lsup(vi-refi)/Lsup(refi)
-                    print "%s :   component %d true (min,max)= (%e,%e)"%(self.line_tag,i,inf(refi),sup(refi))
-                    print "%s :   component %d (min,max,rel error)= (%e,%e,%e,%e,%e)"%(self.line_tag,i,inf(vi),sup(vi),erri)
+                    print("%s :   component %d true (min,max)= (%e,%e)"%(self.line_tag,i,inf(refi),sup(refi)))
+                    print("%s :   component %d (min,max,rel error)= (%e,%e,%e,%e,%e)"%(self.line_tag,i,inf(vi),sup(vi),erri))
                     err=max(err,erri)
-              if not self.expression==None: print "%s :   maximum error %e",err
+              if not self.expression==None: print("%s :   maximum error %e",err)
             
             if not self.expression==None: 
                if err>self.max_error:
@@ -126,6 +126,6 @@ class Probe(Model):
           """
 	  Print out the maximum error.
 	  """
-          if not self.t_max==None: print "%s : == maximum error %e at time %e == "%(self.line_tag,self.max_error,self.t_max)
+          if not self.t_max==None: print("%s : == maximum error %e at time %e == "%(self.line_tag,self.max_error,self.t_max))
 
 # vim: expandtab shiftwidth=4:

@@ -154,7 +154,7 @@ class ShadePlot(Movie):
             # look for a vtk xml file of the right name and plot it
             dataFname = "data.s.%d.xml" % n
             if not os.path.exists(dataFname):
-                print "Data file doesn't exist!  Skipping frame generation."
+                print("Data file doesn't exist!  Skipping frame generation.")
 
             else:
                 import pyvisi
@@ -193,7 +193,7 @@ class ArrowPlot(Movie):
             # look for a vtk xml file of the right name and plot it
             dataFname = "data.v.%d.xml" % n
             if not os.path.exists(dataFname):
-                print "Data file doesn't exist!  Skipping frame generation."
+                print("Data file doesn't exist!  Skipping frame generation.")
 
             else:
                 import pyvisi

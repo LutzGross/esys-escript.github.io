@@ -30,39 +30,39 @@ import sys
 class ModuleFnsTestCase(unittest.TestCase):
 
     def setUp(self):
-	pass
+        pass
 
     def testGlobalMax(self):
-	r=esys.escript.getMPIRankWorld()
-	self.assertEqual(esys.escript.getMPISizeWorld()-1,esys.escript.getMPIWorldMax(r))
+        r=esys.escript.getMPIRankWorld()
+        self.assertEqual(esys.escript.getMPISizeWorld()-1,esys.escript.getMPIWorldMax(r))
 
         
     def testGlobalSum(self):
-	r=esys.escript.getMPIRankWorld()
-	s=esys.escript.getMPISizeWorld()
-	total=s/2.0*(1+s)-s
-	self.assertEqual(total,esys.escript.getMPIWorldSum(r))
+        r=esys.escript.getMPIRankWorld()
+        s=esys.escript.getMPISizeWorld()
+        total=s/2.0*(1+s)-s
+        self.assertEqual(total,esys.escript.getMPIWorldSum(r))
 
     def testgetMachinePrecision(self):
-	if esys.escript.getMachinePrecision()>1:	#Arbitrary value
-		self.fail("Machine precision is not sensible")
+        if esys.escript.getMachinePrecision()>1:        #Arbitrary value
+                self.fail("Machine precision is not sensible")
 
     def testMPIBarrier(self):
-	esys.escript.MPIBarrierWorld()
+        esys.escript.MPIBarrierWorld()
 
     def testgetMaxFloat(self):
-	self.assertTrue(esys.escript.getMaxFloat()>1)    #Arbitrary value
-	
+        self.assertTrue(esys.escript.getMaxFloat()>1)    #Arbitrary value
+        
     def testprintParallelThreadCounts(self):
-	esys.escript.printParallelThreadCounts()
-	
+        esys.escript.printParallelThreadCounts()
+        
     def testgetNumberOfThreads(self):
-	self.assertTrue(esys.escript.getNumberOfThreads()>=1)
-	
+        self.assertTrue(esys.escript.getNumberOfThreads()>=1)
+        
 
     def testgetSvnVersion(self):
-	esys.escript.getVersion()
-	
+        esys.escript.getVersion()
+        
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ModuleFnsTestCase))

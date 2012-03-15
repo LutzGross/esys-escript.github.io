@@ -50,7 +50,25 @@ int main( int argc, char **argv ) {
     /*
      * Start the python parser
      */
+
+#ifdef ESPYTHON3
+        wchar_t** wargv=new wchar_t*[argc+1];
+	for (int i=0;i<argc;++i)
+	{
+	    int len=strlen(argv[i]);
+	    wargv[i]=new wchar_t[len+1];
+	    for (int j=0;j<len;++j)
+	    {
+	          wargv[i][j]=wchar_t(argv[i][j]);
+	    }
+            wargv[i][len]=0;
+	}
+        wargv[argc]=0;
+        status = Py_Main(argc, wargv);
+#else
+
     status = Py_Main(argc, argv);
+#endif
 
     /*
      * Close down MPI.

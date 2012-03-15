@@ -33,7 +33,6 @@ Environment for implementing models in escript
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-from types import StringType,IntType,FloatType,BooleanType,ListType,DictType
 import sys
 import numpy
 import operator
@@ -494,9 +493,9 @@ class ParameterSet(LinkableObject):
         Declares a set of parameters. parameters can be a list, a dictionary
         or a ParameterSet.
         """
-        if isinstance(parameters,ListType):
+        if isinstance(parameters,type([])):
             parameters = list(zip(parameters, itertools.repeat(None)))
-        if isinstance(parameters,DictType):
+        if isinstance(parameters,type(dict())):
             parameters = iter(list(parameters.items()))
 
         for prm, value in parameters:
