@@ -8,7 +8,7 @@ import esys.escript.unitsSI as U
 #import scipy.optimize as so
 
 DIM=3
-NE=25
+NE=10
 
 #DIM=2
 #NE=20

@@ -1079,7 +1079,7 @@ class VariationalProblem(object):
         if self._parameter == None:
             U=u
         else:
-            self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape())
+            self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape(), dim=self.dim)
             U=concatenateRow(self._parameter, self._unknown, self._lagrangean)
         self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
 
@@ -1264,6 +1264,8 @@ class VariationalProblem(object):
 
         Z=0
         if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
+        print self._set_coeffs[X_key]
+        print util.grad(self._lagrangean)
         if self._set_coeffs.has_key(X_key): Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
         if self._set_coeffs.has_key(Y_key): Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
 
@@ -1511,7 +1513,17 @@ class VariationalProblem(object):
 
         if numParams > 0:
             # return parameter, solution, lagrangean multiplier
-            return Ui[:numParams], Ui[numParams:numParams+numSol], Ui[numParams+numSol:]
+            if numParams == 1:
+                 p=Ui[0]
+            else:
+                 p=Ui[:numParams]
+            if numSol == 1:
+                 u=Ui[numParams]
+                 l=Ui[numParams+1]
+            else:
+                 u=Ui[numParams:numParams+numSol]
+                 l= Ui[numParams+numSol:]
+            return p,u,l
         else:
             return Ui
 
