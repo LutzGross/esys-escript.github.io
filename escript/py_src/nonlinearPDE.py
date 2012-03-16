@@ -101,7 +101,8 @@ def concatenateRow(*args):
 
     subs=args[0].getDataSubstitutions().copy()
     subs.update(args[1].getDataSubstitutions())
-    return Symbol(res, dim=args[0].getDim(), subs=subs)
+    dim=args[1].getDim() if args[0].getDim()<0 else args[0].getDim()
+    return Symbol(res, dim=dim, subs=subs)
 
 class NonlinearPDE(object):
     """
