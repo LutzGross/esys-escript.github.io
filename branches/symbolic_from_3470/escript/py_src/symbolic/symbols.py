@@ -85,7 +85,7 @@ class Symbol(object):
         if 'dim' in kwargs:
             self._dim=kwargs.pop('dim')
         else:
-            self._dim=2
+            self._dim=-1 # undefined
 
         if 'subs' in kwargs:
             self._subs=kwargs.pop('subs')
@@ -112,7 +112,8 @@ class Symbol(object):
                 self._arr=res
                 if isinstance(arg, Symbol):
                     self._subs.update(arg._subs)
-                    self._dim=arg._dim
+                    if self._dim==-1:
+                        self._dim=arg._dim
             elif isinstance(arg, sympy.Basic):
                 self._arr=numpy.array(arg)
             else:
@@ -208,7 +209,7 @@ class Symbol(object):
         """
         Returns the spatial dimensionality of this symbol.
 
-        :return: the symbol's spatial dimensionality
+        :return: the symbol's spatial dimensionality, or -1 if undefined
         :rtype: ``int``
         """
         return self._dim
@@ -294,6 +295,8 @@ class Symbol(object):
         return self.lambdarepr()
 
     def lambdarepr(self):
+        """
+        """
         from sympy.printing.lambdarepr import lambdarepr
         temp_arr=numpy.empty(self.getShape(), dtype=object)
         for idx,el in numpy.ndenumerate(self._arr):
@@ -432,8 +435,11 @@ class Symbol(object):
 
     def grad(self, where=None):
         """
+        Returns a symbol which represents the gradient of this symbol.
         :type where: ``Symbol``, ``FunctionSpace``
         """
+        if self._dim < 0:
+            raise ValueError("grad: cannot compute gradient as symbol has undefined dimensionality")
         subs=self._subs
         if isinstance(where, Symbol):
             if where.getRank()>0:
@@ -524,9 +530,11 @@ class Symbol(object):
         if isinstance(other, Symbol):
             arg1_c=other._arr.copy()
             sh1=other.getShape()
+            dim=other._dim if self._dim < 0 else self._dim
         else:
             arg1_c=other.copy()
             sh1=other.shape
+            dim=self._dim
         d0,d1,d01=1,1,1
         for i in sh0[:self._arr.ndim-axis_offset]: d0*=i
         for i in sh1[axis_offset:]: d1*=i
@@ -540,7 +548,7 @@ class Symbol(object):
         out.resize(sh0[:self._arr.ndim-axis_offset]+sh1[axis_offset:])
         subs=self._subs.copy()
         subs.update(other._subs)
-        return Symbol(out, dim=self._dim, subs=subs)
+        return Symbol(out, dim=dim, subs=subs)
 
     def transposedTensorProduct(self, other, axis_offset):
         """
@@ -550,9 +558,11 @@ class Symbol(object):
         if isinstance(other, Symbol):
             arg1_c=other._arr.copy()
             sh1=other.getShape()
+            dim=other._dim if self._dim < 0 else self._dim
         else:
             arg1_c=other.copy()
             sh1=other.shape
+            dim=self._dim
         d0,d1,d01=1,1,1
         for i in sh0[axis_offset:]: d0*=i
         for i in sh1[axis_offset:]: d1*=i
@@ -566,7 +576,7 @@ class Symbol(object):
         out.resize(sh0[axis_offset:]+sh1[axis_offset:])
         subs=self._subs.copy()
         subs.update(other._subs)
-        return Symbol(out, dim=self._dim, subs=subs)
+        return Symbol(out, dim=dim, subs=subs)
 
     def tensorTransposedProduct(self, other, axis_offset):
         """
@@ -577,10 +587,12 @@ class Symbol(object):
             arg1_c=other._arr.copy()
             sh1=other.getShape()
             r1=other.getRank()
+            dim=other._dim if self._dim < 0 else self._dim
         else:
             arg1_c=other.copy()
             sh1=other.shape
             r1=other.ndim
+            dim=self._dim
         d0,d1,d01=1,1,1
         for i in sh0[:self._arr.ndim-axis_offset]: d0*=i
         for i in sh1[:r1-axis_offset]: d1*=i
@@ -594,10 +606,11 @@ class Symbol(object):
         out.resize(sh0[:self._arr.ndim-axis_offset]+sh1[:r1-axis_offset])
         subs=self._subs.copy()
         subs.update(other._subs)
-        return Symbol(out, dim=self._dim, subs=subs)
+        return Symbol(out, dim=dim, subs=subs)
 
     def trace(self, axis_offset):
         """
+        Returns the trace of this Symbol.
         """
         sh=self.getShape()
         s1=1
@@ -615,6 +628,7 @@ class Symbol(object):
 
     def transpose(self, axis_offset):
         """
+        Returns the transpose of this Symbol.
         """
         if axis_offset is None:
             axis_offset=int(self._arr.ndim/2)
@@ -623,6 +637,8 @@ class Symbol(object):
 
     def applyfunc(self, f, on_type=None):
         """
+        Applies the function `f` to all elements (if on_type is None) or to
+        all elements of type `on_type`.
         """
         assert callable(f)
         if self._arr.ndim==0:
@@ -646,15 +662,17 @@ class Symbol(object):
 
     def expand(self):
         """
+        Applies the sympy.expand operation on all elements in this symbol
         """
         return self.applyfunc(sympy.expand, sympy.Basic)
 
     def simplify(self):
         """
+        Applies the sympy.simplify operation on all elements in this symbol
         """
         return self.applyfunc(sympy.simplify, sympy.Basic)
 
-    # unary/binary operations follow
+    # unary/binary operators follow
 
     def __pos__(self):
         return self
@@ -685,11 +703,15 @@ class Symbol(object):
             raise TypeError("Incompatible shapes for operation")
 
     def __binaryop(self, op, other):
+        """
+        Helper for binary operations that checks types, shapes etc.
+        """
         self._ensureShapeCompatible(other)
         if isinstance(other, Symbol):
             subs=self._subs.copy()
             subs.update(other._subs)
-            return Symbol(getattr(self._arr, op)(other._arr), dim=self._dim, subs=subs)
+            dim=other._dim if self._dim < 0 else self._dim
+            return Symbol(getattr(self._arr, op)(other._arr), dim=dim, subs=subs)
         if isinstance(other, Data):
             name='data'+str(id(other))
             othersym=Symbol(name, other.getShape(), dim=self._dim)
@@ -727,6 +749,8 @@ class Symbol(object):
 
     def __rpow__(self, other):
         return self.__binaryop('__rpow__', other)
+
+    # static methods
 
     @staticmethod
     def _symComp(sym):
