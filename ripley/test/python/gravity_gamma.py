@@ -110,15 +110,14 @@ psi_s=Symbol("psi", (), dim=DIM)
 rho_s=Symbol("rho", (), dim=DIM)
 gamma_s=Symbol("gamma", (), dim=DIM)
 #g=Symbol("g", (), dim=DIM)
-gamma_s=2
 
 v=VariationalProblem(domain, u=psi_s,p=rho_s, debug=VariationalProblem.DEBUG3)
-v.setValue( H = 0.5*chi*(grad(psi_s)[DIM-1]-g_hat)**2 + beta/gamma_s * (length(grad(rho_s)) + EPSILON)**gamma_s,
+v.setValue( H = 0.5*chi*(grad(psi_s)[DIM-1]-g_hat)**2 + beta/gamma_s * (length(grad(rho_s))**2 + EPSILON)**gamma_s,
             X=grad(psi_s), Y=-4*pi*rho_s/LL**2,
             qp=m_rho, q=m_psi_ref)
-#v.getNonlinearPDE().getLinearSolverOptions().setSolverMethod(v.getNonlinearPDE().getLinearSolverOptions().DIRECT) 
+v.getNonlinearPDE().getLinearSolverOptions().setSolverMethod(v.getNonlinearPDE().getLinearSolverOptions().DIRECT) 
             
-rho_v, psi_v, lag=v.getSolution(psi=0, rho=1, gamma=2)  # gamma=1 is the interesting case!
+rho_v, psi_v, lag=v.getSolution(psi=0, rho=1, gamma=1./2)  # gamma=1 is the interesting case!
 print "rho =",rho_v
 print "rho_ref =",rho_ref*g0
 print "psi =",psi_v
