@@ -16,7 +16,6 @@ EnsurePythonVersion(2,5)
 import sys, os, platform, re
 from distutils import sysconfig
 from site_init import *
-import subprocess
 from subprocess import PIPE, Popen
 
 # Version number to check for in options file. Increment when new features are
@@ -495,17 +494,9 @@ env.PrependENVPath(LD_LIBRARY_PATH_KEY, boost_lib_path)
 
 ######## numpy (required)
 
-if env['pythoncmd']=='python':
-    try:
-      from numpy import identity
-    except ImportError:
-      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
-      Exit(1)
-else:
-    p=subprocess.call([env['pythoncmd'],'-c','import numpy'])
-    if p!=0:
-      print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
-      Exit(1)
+if not detectModule(env, 'numpy'):
+    print("Cannot import numpy, you need to set your PYTHONPATH and probably %s"%LD_LIBRARY_PATH_KEY)
+    Exit(1)
 
 ######## CppUnit (required for tests)
 
@@ -520,13 +511,17 @@ except:
 
 ######## VTK (optional)
 
-if env['pyvisi']:
-    try:
-        import vtk
-        env['pyvisi'] = True
-    except ImportError:
-        print("Cannot import vtk, disabling pyvisi.")
-        env['pyvisi'] = False
+if env['pyvisi'] and not detectModule(env, 'pyvisi'):
+    print("Cannot import vtk, disabling pyvisi.")
+    env['pyvisi'] = False
+
+######## sympy (optional)
+
+if detectModule(env, 'sympy'):
+    env['sympy'] = True
+else:
+    print("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
+    env['sympy'] = False
 
 ######## netCDF (optional)
 
@@ -673,8 +668,7 @@ if env['parmetis']:
 ######## gmsh (optional, for tests)
 
 try:
-    import subprocess
-    p=subprocess.Popen(['gmsh', '-info'], stderr=subprocess.PIPE)
+    p=Popen(['gmsh', '-info'], stderr=PIPE)
     _,e=p.communicate()
     if e.split().count("MPI"):
         env['gmsh']='m'
@@ -727,7 +721,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit','vsl_random':
+for i in 'debug','openmp','boomeramg','mkl','netcdf','papi','parmetis','silo','sympy','umfpack','visit','vsl_random':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:

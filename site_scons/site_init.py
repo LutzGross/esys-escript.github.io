@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -19,7 +19,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import sys, os, time, glob, fnmatch, types, py_compile, re
+import sys, os, time, py_compile, re, subprocess
 
 def findLibWithHeader(env, libs, header, paths, lang='c'):
     from SCons.Script.SConscript import Configure
@@ -69,6 +69,17 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
     conf.Finish()
     return inc_path, lib_path
 
+def detectModule(env, module):
+    if env['pythoncmd']=='python':
+        try:
+            __import__(module)
+        except ImportError:
+            return False
+    else:
+        p=subprocess.call([env['pythoncmd'],'-c','import numpy'])
+        if p!=0:
+            return False
+    return True
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
