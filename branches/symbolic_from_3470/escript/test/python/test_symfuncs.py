@@ -18,6 +18,7 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
+__author__="Cihan Altinay"
 
 """
 Test suite for the escript.symbolic module
@@ -29,8 +30,6 @@ Test suite for the escript.symbolic module
 :var __version__: version
 :var __date__: date of the version
 """
-
-__author__="Cihan Altinay"
 
 from esys.escript import *
 import unittest
