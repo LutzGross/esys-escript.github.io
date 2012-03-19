@@ -85,12 +85,10 @@ beta=1/1000000.
 #
 #  where do we know the gravity:
 #
-chi=1.
 x=Function(domain).getX()
 dz=H/NE_H
 H_earth=int(H_earth/dz)*dz # lock to grid
 chi=whereNegative(abs(x[DIM-1]-(H_earth+dz/2))-dz/2)
-chi=1
 # 
 #   normalize  g_hat (data):
 #
@@ -161,7 +159,7 @@ print "psi =",Lsup(psi_v-psi_l)/Lsup(psi_l)
 print "Differences to Data :"
 print "rho =",Lsup(rho_ref-rho_l*g0/LL**2)/Lsup(rho_ref)
 print "psi =",Lsup(psi_ref-psi_l*g0)/Lsup(psi_ref)
-print "g =",Lsup(grad(psi_ref-psi_l*g0)[DIM-1])/Lsup(grad(psi_ref)[DIM-1])
+print "g =",Lsup(chi*grad(psi_ref-psi_l*g0)[DIM-1])/Lsup(chi*grad(psi_ref)[DIM-1])
 
 
 #saveVTK("u.vtu", rho_ref=rho_ref, psi_ref=psi_ref, g=grad(psi_ref)[DIM-1], rho=rho_v, psi=psi_v, chi=chi)

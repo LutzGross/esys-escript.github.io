@@ -177,7 +177,7 @@ class NonlinearPDE(object):
         self._rtol=1e-6
         self._atol=0.
         self._iteration_steps_max=100
-        self._omega_min=0.01
+        self._omega_min=0.0001
         self._quadratic_convergence_limit=0.2
         self._simplified_newton_limit=0.1
 
@@ -354,7 +354,6 @@ class NonlinearPDE(object):
             if n == 0:
                 self._updateLinearPDE(expressions, subs)
                 defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
-                print defect_norm
                 LINTOL=0.1
             else:
                 if not use_simplified_Newton:
@@ -372,8 +371,10 @@ class NonlinearPDE(object):
             #check for reduced defect:
             omega=min(2*omega, 1.) # raise omega
             defect_reduced=False
+            ui_old=ui
+            print defect_norm
             while not defect_reduced:
-                ui=ui-delta_u * omega
+                ui=ui_old-delta_u * omega
                 if simple_u:
                     subs[u_syms[0]]=ui
                 else:
@@ -384,6 +385,7 @@ class NonlinearPDE(object):
                 defect_reduced=False
                 for i in xrange(len( new_defect_norm)):
 		     if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
+                print new_defect_norm
 		    
                 #print new_defect_norm
                 #q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
@@ -651,6 +653,7 @@ class NonlinearPDE(object):
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
                 B,A=getTotalDifferential(val, u, 1)
+                print A
                 if name=='X_reduced':
                     self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['A_reduced']=A
@@ -1265,8 +1268,6 @@ class VariationalProblem(object):
 
         Z=0
         if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
-        print self._set_coeffs[X_key]
-        print util.grad(self._lagrangean)
         if self._set_coeffs.has_key(X_key): Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
         if self._set_coeffs.has_key(Y_key): Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
 

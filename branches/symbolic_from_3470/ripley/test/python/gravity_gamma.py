@@ -59,9 +59,9 @@ else:
    x_cord=domain.getX()-[L0, L1, H_earth]
 LL=max(L,H)
    
-m_psi_ref=whereZero(x_cord[DIM-1]-inf(x_cord[DIM-1])) +  whereZero(x_cord[DIM-1]-sup(x_cord[DIM-1]))
+m_psi=whereZero(x_cord[DIM-1]-inf(x_cord[DIM-1])) +  whereZero(x_cord[DIM-1]-sup(x_cord[DIM-1]))
 for i in range(DIM-1):
-    m_psi_ref= m_psi_ref + whereZero(x_cord[i]-inf(x_cord[i])) +  whereZero(x_cord[i]-sup(x_cord[i]))
+    m_psi= m_psi + whereZero(x_cord[i]-inf(x_cord[i])) +  whereZero(x_cord[i]-sup(x_cord[i]))
 #m_rho=wherePositive(domain.getX()[DIM-1]-H_earth)
 #m_rho=whereZero(x_cord[DIM-1]-inf(x_cord[DIM-1])) +  whereZero(x_cord[DIM-1]-sup(x_cord[DIM-1]))
 m_rho=wherePositive(domain.getX()[DIM-1]-H_earth) + whereZero(x_cord[DIM-1]-inf(x_cord[DIM-1])) +  whereZero(x_cord[DIM-1]-sup(x_cord[DIM-1]))
@@ -78,7 +78,7 @@ for f in feastures:
 
 # get the reference potential:
 pde=LinearSinglePDE(domain)
-pde.setValue(A=kronecker(domain), Y=4*pi*rho_ref, q=m_psi_ref)
+pde.setValue(A=kronecker(domain), Y=4*pi*rho_ref, q=m_psi)
 pde.getSolverOptions().setVerbosityOn()
 pde.setSymmetryOn()
 #pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT) 
@@ -87,7 +87,7 @@ del pde
 d_obs=kronecker(DIM)[DIM-1]
 g_hat=grad(psi_ref)[DIM-1]
 beta=1/1000000.
-beta=1/100.
+#beta=1/100.
 #
 #  where do we know the gravity:
 #
@@ -109,15 +109,17 @@ print "====== Use variational problem  =========================================
 psi_s=Symbol("psi", (), dim=DIM)
 rho_s=Symbol("rho", (), dim=DIM)
 gamma_s=Symbol("gamma", (), dim=DIM)
+gamma_s=0.5
+gamma_s=0.6
 #g=Symbol("g", (), dim=DIM)
 
 v=VariationalProblem(domain, u=psi_s,p=rho_s, debug=VariationalProblem.DEBUG3)
-v.setValue( H = 0.5*chi*(grad(psi_s)[DIM-1]-g_hat)**2 + beta/gamma_s * (length(grad(rho_s))**2 + EPSILON)**gamma_s,
+v.setValue( H = 0.5*chi*(grad(psi_s)[DIM-1]-g_hat)**2 + beta/gamma_s * (length(grad(rho_s))**2 + EPSILON**2)**gamma_s,
             X=grad(psi_s), Y=-4*pi*rho_s/LL**2,
-            qp=m_rho, q=m_psi_ref)
+            qp=m_rho, q=m_psi)
 v.getNonlinearPDE().getLinearSolverOptions().setSolverMethod(v.getNonlinearPDE().getLinearSolverOptions().DIRECT) 
             
-rho_v, psi_v, lag=v.getSolution(psi=0, rho=1, gamma=1./2)  # gamma=1 is the interesting case!
+rho_v, psi_v, lag=v.getSolution(psi=0, rho=1, gamma=2)  # gamma=0.5 is the interesting case!
 print "rho =",rho_v
 print "rho_ref =",rho_ref*g0
 print "psi =",psi_v
