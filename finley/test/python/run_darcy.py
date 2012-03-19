@@ -307,7 +307,7 @@ class Test_Darcy2D(Test_Darcy):
     SOLVER=DarcyFlow.POST
     def setUp(self):
         NE=40  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
-	self.dom = Rectangle(NE,NE)
+        self.dom = Rectangle(NE,NE)
         self.rescaleDomain()
     def tearDown(self):
         del self.dom

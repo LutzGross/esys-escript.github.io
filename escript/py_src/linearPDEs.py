@@ -56,10 +56,10 @@ class SolverOptions(object):
     ::
 	
       opts=SolverOptions()
-      print opts
+      print(opts)
       opts.resetDiagnostics()
       u=solver(opts)
-      print "number of iteration steps: =",opts.getDiagnostics("num_iter")
+      print("number of iteration steps: =",opts.getDiagnostics("num_iter"))
 
     :cvar DEFAULT: The default method used to solve the system of linear equations
     :cvar DIRECT: The direct solver based on LDU factorization
@@ -618,7 +618,7 @@ class SolverOptions(object):
 
         :rtype: ``int`` or ``None``
         """
-        if self.__restart < 0:
+        if (self.__restart is None) or (self.__restart < 0):
             return None
         else:
             return self.__restart
@@ -1481,7 +1481,7 @@ class PDECoef(object):
           for u in range(num):
              for e in range(num):
                 search.append((e,u))
-          search.sort(self.__CompTuple2)
+          search.sort(key=lambda x: -(x[0]+x[1]))
           for item in search:
              s=self.getShape(domain,item[0],item[1])
              if len(s)==0 and len(shape)==0:

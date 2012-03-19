@@ -40,11 +40,11 @@ NE=4 # number elements, must be even
 
 class Test_SharedOnDudley(Test_Shared):
   def setUp(self):
-	self.domain=Rectangle(NE,NE)
-	self.tol=0.001
+        self.domain=Rectangle(NE,NE)
+        self.tol=0.001
   def tearDown(self):
-	del self.domain
-	del self.tol
+        del self.domain
+        del self.tol
 
 class Test_DomainOnDudley(Test_Domain):
    def setUp(self):
@@ -105,25 +105,25 @@ class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax,
 
 class Test_TableInterpolationOnDudley(Test_TableInterpolation):
     def setUp(self):
-	self.domain=Brick(4,4,4)
-	self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-	    FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
-	    #We aren't testing DiracDeltaFunctions
-	self.xn=5	# number of grids on x axis
-	self.yn=5	# number of grids on y axis
-	self.zn=5
+        self.domain=Brick(4,4,4)
+        self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
+            #We aren't testing DiracDeltaFunctions
+        self.xn=5       # number of grids on x axis
+        self.yn=5       # number of grids on y axis
+        self.zn=5
 
     def tearDown(self):
-	del self.domain
-	del self.functionspaces
+        del self.domain
+        del self.functionspaces
 
-	
-		
-		
+        
+                
+                
 class Test_CSVOnDudley(Test_saveCSV):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1)
-       self.linecount1=31		#see test_save1 for the meaning of these params
+       self.linecount1=31               #see test_save1 for the meaning of these params
        self.linecount2=25
        self.line_expected=[0.25, 0., 0.25]
        
@@ -132,32 +132,32 @@ class Test_CSVOnDudley(Test_saveCSV):
        
    #This test checks to see that all FunctionSpaces can be saved
    def test_singleFS(self):
-	fname=os.path.join(DUDLEY_WORKDIR, "test_singlefs.csv")
-	fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-	FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-	DiracDeltaFunctions(self.domain)]
-	for f in fss:
-		d=Data(7,f)
-		print("Testing "+str(f)+"\n")
-		saveDataCSV(fname, D=d)
+        fname=os.path.join(DUDLEY_WORKDIR, "test_singlefs.csv")
+        fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+        FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
+        DiracDeltaFunctions(self.domain)]
+        for f in fss:
+                d=Data(7,f)
+                print("Testing "+str(f)+"\n")
+                saveDataCSV(fname, D=d)
 
    def test_multiFS(self):
-	fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
-	sol=Data(8,Solution(self.domain))
-	ctsfn=Data(9,ContinuousFunction(self.domain))
-	#test line 0
-	dirac=Data(-1,DiracDeltaFunctions(self.domain))
-	saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
-	#test line 1
-	fun=Data(5,Function(self.domain))
-	rfun=Data(3,ReducedFunction(self.domain))
-	saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
-	#test line 2
-	bound=Data(1,FunctionOnBoundary(self.domain))
-	rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
-	saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+        fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
+        sol=Data(8,Solution(self.domain))
+        ctsfn=Data(9,ContinuousFunction(self.domain))
+        #test line 0
+        dirac=Data(-1,DiracDeltaFunctions(self.domain))
+        saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
+        #test line 1
+        fun=Data(5,Function(self.domain))
+        rfun=Data(3,ReducedFunction(self.domain))
+        saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
+        #test line 2
+        bound=Data(1,FunctionOnBoundary(self.domain))
+        rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
+        saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
 
-	
+        
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
