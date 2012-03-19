@@ -204,7 +204,7 @@ class Unit(object):
        else:
           return self(other)
 
-   def __div__(self,other):
+   def __truediv__(self,other):
        """
        Performs self*other operation for two `Unit` objects
 
@@ -222,7 +222,8 @@ class Unit(object):
               return _DivUnit(self.getName()+"/"+other.getName(),self.getLongName()+"/"+other.getLongName(),0 , self(1.)/other(1.))
        else:
           return NotImplemented
-   def __rdiv__(self,other):
+
+   def __rtruediv__(self,other):
        """
        Performs other/self operation
 

@@ -92,10 +92,10 @@ class ESySXMLParser(object):
     def __init__(self,xml, debug=False):
         if sys.version_info[0]<3:
             xml=str(xml)	# xml might be unicode 
-        print("\n")
-        print(type(xml))
-        print(xml)
-        print("\n")
+        #print("\n")
+        #print(type(xml))
+        #print(xml)
+        #print("\n")
         self.__dom = minidom.parseString(xml)
         self.__linkable_object_registry= {}
         self.__link_registry=  []
@@ -355,7 +355,7 @@ class LinkableObject(object):
         If debugging is on, prints the message, otherwise does nothing.
         """
         if self.debug:
-            print(("%s: %s"%(str(self),msg)))
+            print("%s: %s"%(str(self),msg))
 
     def __getattr__(self,name):
         """
@@ -733,7 +733,7 @@ class ParameterSet(LinkableObject):
         try:
            o = cls(debug=esysxml.debug)
         except TypeError as inst:
-           print((inst.args[0]))
+           print(inst.args[0])
            if inst.args[0]=="__init__() got an unexpected keyword argument 'debug'":
               raise TypeError("The Model class %s __init__ needs to have argument 'debug'.")
            else:
@@ -1210,12 +1210,15 @@ class Simulation(Model):
             if isinstance(n, minidom.Text):
                 continue
             sims.append(esysxml.getComponent(n))
-        sims.sort(_comp)
+        sims.sort(key=_cmpkey)
         sim=cls([s[1] for s in sims], debug=esysxml.debug)
         esysxml.registerLinkableObject(sim, node)
         return sim
 
     fromDom = classmethod(fromDom)
+
+def _cmpkey(a):
+    return a[0]
 
 def _comp(a,b):
     if a[0]<a[1]:
