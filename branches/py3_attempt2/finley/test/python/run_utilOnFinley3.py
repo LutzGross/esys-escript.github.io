@@ -234,13 +234,16 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DMacro))
+      # These tests use JoinFaces and are not MPI parallel
+      if getMPISizeWorld() == 1:
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact))
+        suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact))
    else:
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact))
       pass

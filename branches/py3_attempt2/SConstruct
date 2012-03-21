@@ -887,10 +887,6 @@ env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_e
 env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
 env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
 
-
-
-print "Orange"
-
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
 

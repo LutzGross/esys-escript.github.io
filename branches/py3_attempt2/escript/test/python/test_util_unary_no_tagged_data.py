@@ -5591,46 +5591,46 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       haveLapack=(getEscriptParamInt('LAPACK_SUPPORT')>0)
       arg=Data(numpy.array([[2.7386874118759605, 0.24320192932450824, -0.98551433885644957,1], [-0.47237322912611623, 2.0770157618999936, -0.70532850079694409,2], [-0.55077067435537064, -0.72886734893974148, 1.8532894898622749,3],[0,1,0,1]]),self.functionspace)
       try:
-	res=inverse(arg)
+        res=inverse(arg)
       except RuntimeError:
-	self.assertTrue(not haveLapack,'matrix>3x3 should have inverted')	#We expect no lapack versions to throw
+        self.assertTrue(not haveLapack,'matrix>3x3 should have inverted')       #We expect no lapack versions to throw
       else:
-	self.assertTrue(haveLapack,'matrix <=3x3 should have thrown')	#We should have thrown here if we don't have lapack
+        self.assertTrue(haveLapack,'matrix <=3x3 should have thrown')   #We should have thrown here if we don't have lapack
         self.assertTrue(isinstance(res,Data),"wrong type of result.")
         self.assertEqual(res.getShape(),(4, 4),"wrong shape of result.")
         self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(4))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_constData_singular(self):
-	arg=Data(0,self.functionspace)
-	try:
-	   inverse(arg)
-	except RuntimeError:
-	   pass
-	else:
-	   self.fail('Singular matrix (1x1) did not fail to invert.')
-	arg=Data([[0,0],[0,1]],self.functionspace)
-   	try:
-	  inverse(arg)
-	except RuntimeError:
-	  pass
-	else:
-	  self.fail('Singular matrix (2x2) did not fail to invert.')
-	arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace)
-   	try:
-	  inverse(arg)
-	except RuntimeError:
-	  pass
-	else:
-	  self.fail('Singular matrix (3x3) did not fail to invert.')
-	#Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-	if getEscriptParamInt('LAPACK_SUPPORT')>0:
-	    arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace)
-	    try:
-		inverse(arg)
-	    except RuntimeError:
-		pass
-	    else:
-		self.fail('Singular matrix (4x4) did not fail to invert.')
+        arg=Data(0,self.functionspace)
+        try:
+           inverse(arg)
+        except RuntimeError:
+           pass
+        else:
+           self.fail('Singular matrix (1x1) did not fail to invert.')
+        arg=Data([[0,0],[0,1]],self.functionspace)
+        try:
+          inverse(arg)
+        except RuntimeError:
+          pass
+        else:
+          self.fail('Singular matrix (2x2) did not fail to invert.')
+        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace)
+        try:
+          inverse(arg)
+        except RuntimeError:
+          pass
+        else:
+          self.fail('Singular matrix (3x3) did not fail to invert.')
+        #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
+        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace)
+            try:
+                inverse(arg)
+            except RuntimeError:
+                pass
+            else:
+                self.fail('Singular matrix (4x4) did not fail to invert.')
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_expandedData_dim1(self):
       msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
@@ -5661,46 +5661,46 @@ class Test_util_unary_no_tagged_data(Test_util_base):
       msk_arg=whereNegative(self.functionspace.getX()[0]-0.5)
       arg=msk_arg*numpy.array([[2.2418112382624198, 0.81650662903581805, -0.094756021110331989,0], [-0.79442369492917742, 1.9995946283413137, 0.99436683143019566,1], [0.20497870840231047, 0.56858349778979589, 1.7344833021084756,2],[1,2,3,4]])+(1.-msk_arg)*numpy.array([[2.3428233100558398, 0.5902214559572323, 0.7775760520103312,0], [0.30856300288555638, 2.8439402341090472, 0.60593451605418513,1], [0.99714433866199181, -0.38410207533093699, 3.2417070638990513,2],[2,3,4,5]])
       try:
-	res=inverse(arg)
+        res=inverse(arg)
       except RuntimeError:
-	self.assertTrue(not haveLapack,'matrix>3x3 should have inverted')	#We expect no lapack versions to throw
+        self.assertTrue(not haveLapack,'matrix>3x3 should have inverted')       #We expect no lapack versions to throw
       else:
-	self.assertTrue(haveLapack,'matrix <=3x3 should have thrown')	#We should have thrown here if we don't have lapack
+        self.assertTrue(haveLapack,'matrix <=3x3 should have thrown')   #We should have thrown here if we don't have lapack
         self.assertTrue(isinstance(res,Data),"wrong type of result.")
         self.assertEqual(res.getShape(),(4, 4),"wrong shape of result.")
         self.assertTrue(Lsup(matrix_mult(res,arg)-kronecker(4))<=self.RES_TOL,"wrong result")
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inverse_expandedData_singular(self):
-	arg=Data([[0]],self.functionspace, expand=True)
-	try:
-	   inverse(arg)
-	except RuntimeError:
-	   pass
-	else:
-	   self.fail('Singular matrix (1x1) did not fail to invert.')
-	arg=Data([[0,0],[0,1]],self.functionspace, expand=True)
-   	try:
-	  inverse(arg)
-	except RuntimeError:
-	  pass
-	else:
-	  self.fail('Singular matrix (2x2) did not fail to invert.')
-	arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, expand=True)
-   	try:
-	  inverse(arg)
-	except RuntimeError:
-	  pass
-	else:
-	  self.fail('Singular matrix (3x3) did not fail to invert.')
-	#Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
-	if getEscriptParamInt('LAPACK_SUPPORT')>0:
-	    arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, expand=True)
-	    try:
-		inverse(arg)
-	    except RuntimeError:
-		pass
-	    else:
-		self.fail('Singular matrix (4x4) did not fail to invert.')
+        arg=Data([[0]],self.functionspace, expand=True)
+        try:
+           inverse(arg)
+        except RuntimeError:
+           pass
+        else:
+           self.fail('Singular matrix (1x1) did not fail to invert.')
+        arg=Data([[0,0],[0,1]],self.functionspace, expand=True)
+        try:
+          inverse(arg)
+        except RuntimeError:
+          pass
+        else:
+          self.fail('Singular matrix (2x2) did not fail to invert.')
+        arg=Data([[0,0,0],[0,1,0],[1,1,1]],self.functionspace, expand=True)
+        try:
+          inverse(arg)
+        except RuntimeError:
+          pass
+        else:
+          self.fail('Singular matrix (3x3) did not fail to invert.')
+        #Unsupported matrix sizes are checked in the _dim4 tests so I won't check it here
+        if getEscriptParamInt('LAPACK_SUPPORT')>0:
+            arg=Data([[0,0,0,0],[1,4,5,8],[1.0007, 4.00005, 19.00001, 34.000],[-1,1,-243,0]], self.functionspace, expand=True)
+            try:
+                inverse(arg)
+            except RuntimeError:
+                pass
+            else:
+                self.fail('Singular matrix (4x4) did not fail to invert.')
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_transpose_array_rank0_offset0(self):
       arg=numpy.array(-0.991585801448)

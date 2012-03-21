@@ -234,13 +234,12 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DMacro))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder1))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DOrder2))
+      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex3DMacro))
    else:
       suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact))
       pass
