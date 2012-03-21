@@ -1135,6 +1135,9 @@ class Symbol(object):
        """
        return quotient(self,other)
 
+   def __truediv__(self,other):
+	   return self.__div__(other)
+
    def __rdiv__(self,other):
        """
        Divides another object by this object.
@@ -1147,6 +1150,9 @@ class Symbol(object):
        :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
        """
        return quotient(other,self)
+
+   def __rtruediv__(self,other):
+       return self.__rdiv__(other)
 
    def __pow__(self,other):
        """
@@ -6129,6 +6135,7 @@ class FileWriter(object):
          :param createLocalFiles: switches on the creation of local files.
          :type createLocalFiles: ``bool``
          """
+         error=None
          errno=0
          self.name=fn
          if append:
@@ -6138,7 +6145,6 @@ class FileWriter(object):
          self.__file=None
          self.closed=False
          self.newlines=os.linesep
-         e=None
          # if not the master:
          if getMPIRankWorld()>0:
               if createLocalFiles:
@@ -6147,12 +6153,14 @@ class FileWriter(object):
                      self.__file=open(fn2,self.mode)
                   except Exception as e:
                      errno=1
+                     error=e
          else:
               try:
                   self.__file=open(fn,self.mode)
               except Exception as e:
                   errno=1
-         self.__handelerror(errno,e,"opening")
+                  error=e
+         self.__handelerror(errno, error, "opening")
 
     def __handelerror(self,errno,e,operation):
          errno=getMPIWorldMax(errno)
