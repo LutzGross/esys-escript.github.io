@@ -1209,6 +1209,10 @@ class DependendSymbol(Symbol):
           `Symbol` arguments. This will allow the optimizer to remove
           redundant function calls.
    """
+
+   def __hash__(self):
+	   return hash(self.getShape()) ^ hash(self.getDim()) ^ len(self.getArgument())
+
    def __eq__(self,other):
       """
       Checks if ``other`` equals self.
