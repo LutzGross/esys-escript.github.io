@@ -19,6 +19,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+try:
+    # this is required so newer intel MKL libraries find necessary symbols
+    import ctypes, sys
+    sys.setdlopenflags(sys.getdlopenflags()|ctypes.RTLD_GLOBAL)
+except:
+    pass
+
 from .escript import *
 from .util import *
 from .datamanager import DataManager
