@@ -170,7 +170,8 @@ class DarcyFlow(object):
          elif self.solver  == self.POST:
               k=util.kronecker(self.domain.getDim())
               self.omega = self.w*util.length(perm_inv)*self.l*self.domain.getSize()
-              self.__pde_v.setValue(D=self.__permeability_inv, A=self.omega*util.outer(k,k))
+              #self.__pde_v.setValue(D=self.__permeability_inv, A=self.omega*util.outer(k,k))
+              self.__pde_v.setValue(D=self.__permeability_inv, A_reduced=self.omega*util.outer(k,k))
          elif self.solver  == self.SMOOTH:
             self.__pde_v.setValue(D=self.__permeability_inv)
 

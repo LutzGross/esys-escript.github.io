@@ -101,12 +101,12 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   const dim_t n_block=A_p->row_block_size;
   index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
-  dim_t i, n_F, n_C, F_flag, *F_set=NULL, total_n_C=0, total_n_F=0;
+  dim_t i, n_F, n_C, F_flag, *F_set=NULL, global_n_C=0, global_n_F=0;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
   const double sparsity=Paso_SystemMatrix_getSparsity(A_p);
-  const dim_t total_n=Paso_SystemMatrix_getGlobalTotalNumRows(A_p);
+  const dim_t global_n=Paso_SystemMatrix_getGlobalNumRows(A_p);
 
 
   /*
@@ -114,7 +114,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
       
   */
   if ( (sparsity >= options->min_coarse_sparsity) || 
-       (total_n <= options->min_coarse_matrix_size) || 
+       (global_n <= options->min_coarse_matrix_size) || 
        (level > options->level_max) ) {
 
         if (verbose) { 
@@ -129,7 +129,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	      if (sparsity >= options->min_coarse_sparsity)
 	          printf("SPAR");
 
-	      if (total_n <= options->min_coarse_matrix_size)
+	      if (global_n <= options->min_coarse_matrix_size)
 	          printf("SIZE");
 
 	      if (level > options->level_max)
@@ -138,7 +138,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	      printf("\n");
 
         printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
-	       level,  options->level_max, sparsity, options->min_coarse_sparsity, total_n, options->min_coarse_matrix_size);  
+	       level,  options->level_max, sparsity, options->min_coarse_sparsity, global_n, options->min_coarse_matrix_size);  
 
        } 
 
@@ -208,20 +208,19 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	    #ifdef ESYS_MPI
             MPI_Allgather(&n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
 	    #endif
-            total_n_F=0;
+            global_n_F=0;
             F_flag = 1;
             for (i=0; i<A_p->mpi_info->size; i++) {
-                total_n_F+=F_set[i];
-                if (F_set[i] == 0) {
-                  F_flag = 0;
-                  break;
-                }
+                global_n_F+=F_set[i];
+                if (F_set[i] == 0) F_flag = 0;
+printf(" p [%d]=%d\n",i, F_set[i]);
             }
+printf(" global n = %d\n",global_n);
             TMPMEMFREE(F_set);
 
 	    n_C=n-n_F;
-            total_n_C=total_n-total_n_F;
-	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,total_n_F,total_n_C);
+            global_n_C=global_n-global_n_F;
+	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,global_n_F,global_n_C);
 
          
 /*          if ( n_F == 0 ) {  is a nasty case. a direct solver should be used, return NULL */
@@ -253,7 +252,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
-		  if (total_n_C != 0) {
+		  if (global_n_C != 0) {
 			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
@@ -933,7 +932,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 /* Merge the system matrix which is distributed on ranks into a complete 
    matrix on rank 0, then solve this matrix on rank 0 only */
 Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A) {
-  index_t i, iptr, j, n, remote_n, total_n, len, offset, tag;
+  index_t i, iptr, j, n, remote_n, global_n, len, offset, tag;
   index_t row_block_size, col_block_size, block_size;
   index_t size=A->mpi_info->size;
   index_t rank=A->mpi_info->rank;
@@ -980,8 +979,8 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
      matrix */
   if (rank == 0) {
     /* First, copy local ptr values into ptr_global */
-    total_n=Paso_SystemMatrix_getGlobalNumRows(A);
-    ptr_global = MEMALLOC(total_n+1, index_t);
+    global_n=Paso_SystemMatrix_getGlobalNumRows(A);
+    ptr_global = MEMALLOC(global_n+1, index_t);
     memcpy(ptr_global, ptr, (n+1) * sizeof(index_t));
     iptr = n+1;
     MEMFREE(ptr);
@@ -1048,8 +1047,8 @@ Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* 
     TMPMEMFREE(temp_n);
 
     /* Then generate the sparse matrix */
-    pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, total_n,
-			total_n, ptr_global, idx_global);
+    pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, global_n,
+			global_n, ptr_global, idx_global);
     out = Paso_SparseMatrix_alloc(A->mainBlock->type, pattern, 
 			row_block_size, col_block_size, FALSE);
     Paso_Pattern_free(pattern);
