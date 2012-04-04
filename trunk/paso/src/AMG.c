@@ -101,7 +101,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   const dim_t n_block=A_p->row_block_size;
   index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
-  dim_t i, n_F, n_C, F_flag, *F_set=NULL;
+  dim_t i, n_F, n_C, F_flag, *F_set=NULL, total_n_C=0, total_n_F=0;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
@@ -202,23 +202,27 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       count number of unkowns to be eliminated:
 	    */
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
-	    n_C=n-n_F;
-	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
-
             /* collect n_F values on all processes, a direct solver should 
                 be used if any n_F value is 0 */
             F_set = TMPMEMALLOC(A_p->mpi_info->size, dim_t);
 	    #ifdef ESYS_MPI
             MPI_Allgather(&n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
 	    #endif
+            total_n_F=0;
             F_flag = 1;
             for (i=0; i<A_p->mpi_info->size; i++) {
+                total_n_F+=F_set[i];
                 if (F_set[i] == 0) {
                   F_flag = 0;
                   break;
                 }
             }
             TMPMEMFREE(F_set);
+
+	    n_C=n-n_F;
+            total_n_C=total_n-total_n_F;
+	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,total_n_F,total_n_C);
+
          
 /*          if ( n_F == 0 ) {  is a nasty case. a direct solver should be used, return NULL */
             if (F_flag == 0) {
@@ -249,7 +253,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
-		  if (n_C != 0) {
+		  if (total_n_C != 0) {
 			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
@@ -774,7 +778,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 
   
   numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
-  printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined); 
+  /* printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined);  */
   iter=0; 
   while (numUndefined > 0) {
      Paso_Coupler_fillOverlap(n, w, w_coupler);
@@ -902,7 +906,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 	 }
 
 	 iter++;
-	 printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
+	 /* printf(" coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined); */
 
   } /* end of while loop */
 
