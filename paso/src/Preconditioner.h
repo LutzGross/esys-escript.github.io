@@ -18,6 +18,7 @@
 #include "SystemMatrix.h"
 #include "performance.h"
 #include "BOOMERAMG.h"
+#include "MergedSolver.h"
 
 #define PRECONDITIONER_NO_ERROR 0
 #define PRECONDITIONER_MAXITER_REACHED 1
@@ -80,6 +81,7 @@ struct Paso_Preconditioner_AMG {
    double* r;         /* buffer for residual */
    double* x_C;       /* solution of coarse level system */
    double* b_C;       /* right hand side of coarse level system */
+   Paso_MergedSolver* merged_solver; /* used on the coarsest level */
    struct Paso_Preconditioner_AMG * AMG_C;
 };
 typedef struct Paso_Preconditioner_AMG Paso_Preconditioner_AMG;

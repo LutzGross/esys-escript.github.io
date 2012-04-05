@@ -28,6 +28,7 @@ sources = """
 	GMRES.c
 	GMRES2.c
 	IndexList.c
+        MergedSolver.c
 	MKL.c
 	NewtonGMRES.c
 	Options_getPackage.c
@@ -107,6 +108,7 @@ headers = """
         FluxLimiter.h
 	Functions.h
 	IndexList.h
+        MergedSolver.h
 	MKL.h
 	Options.h
 	Paso.h

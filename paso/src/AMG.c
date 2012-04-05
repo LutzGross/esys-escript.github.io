@@ -49,6 +49,7 @@ void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in) {
 	MEMFREE(in->r);
 	MEMFREE(in->x_C);
 	MEMFREE(in->b_C);
+        Paso_MergedSolver_free(in->merged_solver);
 
 	MEMFREE(in);
      }
@@ -239,6 +240,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 		  out->b_C = NULL;
 		  out->AMG_C = NULL;
 		  out->Smoother=NULL;
+                  out->merged_solver=NULL;
 	       }
 	       mask_C=TMPMEMALLOC(n,index_t);
 	       rows_in_F=TMPMEMALLOC(n_F,index_t);
@@ -312,18 +314,12 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			}
 
 			if ( Esys_noError()) {
+			  out->A_C=A_C;
 			  if ( out->AMG_C == NULL ) { 
 			      /* merge the system matrix into 1 rank when 
 				 it's not suitable coarsening due to the 
 				 total number of unknowns are too small */
-			      out->A_C=A_C;
-			      out->reordering = options->reordering;
-                              out->refinements = options->coarse_matrix_refinements;
-			      out->verbose = verbose;
-			      out->options_smoother = options->smoother;
-			  } else {
-			      /* finally we set some helpers for the solver step */
-			      out->A_C=A_C;
+                              out->merged_solver= Paso_MergedSolver_alloc(A_C, options);
 			  }
 			}		  
 		  }
@@ -379,8 +375,7 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
-	    Paso_Preconditioner_AMG_mergeSolve(amg); 
-
+            Paso_MergedSolver_solve(amg->merged_solver,amg->x_C, amg->b_C);
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
      } else {
 	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
@@ -921,256 +916,3 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   return;
 }
 
-/* Merge the system matrix which is distributed on ranks into a complete 
-   matrix on rank 0, then solve this matrix on rank 0 only */
-Paso_SparseMatrix* Paso_Preconditioner_AMG_mergeSystemMatrix(Paso_SystemMatrix* A) {
-  index_t i, iptr, j, n, remote_n, global_n, len, offset, tag;
-  index_t row_block_size, col_block_size, block_size;
-  index_t size=A->mpi_info->size;
-  index_t rank=A->mpi_info->rank;
-  index_t *ptr=NULL, *idx=NULL, *ptr_global=NULL, *idx_global=NULL;
-  index_t *temp_n=NULL, *temp_len=NULL;
-  double  *val=NULL;
-  Paso_Pattern *pattern=NULL;
-  Paso_SparseMatrix *out=NULL;
-  #ifdef ESYS_MPI
-    MPI_Request* mpi_requests=NULL;
-    MPI_Status* mpi_stati=NULL;
-  #else
-    int *mpi_requests=NULL, *mpi_stati=NULL;
-  #endif
-
-  if (size == 1) {
-    n = A->mainBlock->numRows;
-    ptr = TMPMEMALLOC(n, index_t); 
-    #pragma omp parallel for private(i)
-    for (i=0; i<n; i++) ptr[i] = i;
-    out = Paso_SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
-    TMPMEMFREE(ptr);
-    return out;
-  }
-
-  n = A->mainBlock->numRows;
-  block_size = A->block_size;
-
-  /* Merge MainBlock and CoupleBlock to get a complete column entries
-     for each row allocated to current rank. Output (ptr, idx, val) 
-     contains all info needed from current rank to merge a system 
-     matrix  */
-  Paso_SystemMatrix_mergeMainAndCouple(A, &ptr, &idx, &val);
-
-  #ifdef ESYS_MPI
-    mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
-    mpi_stati=TMPMEMALLOC(size*2,MPI_Status);
-  #else
-    mpi_requests=TMPMEMALLOC(size*2,int);
-    mpi_stati=TMPMEMALLOC(size*2,int);
-  #endif
-
-  /* Now, pass all info to rank 0 and merge them into one sparse 
-     matrix */
-  if (rank == 0) {
-    /* First, copy local ptr values into ptr_global */
-    global_n=Paso_SystemMatrix_getGlobalNumRows(A);
-    ptr_global = MEMALLOC(global_n+1, index_t);
-    memcpy(ptr_global, ptr, (n+1) * sizeof(index_t));
-    iptr = n+1;
-    MEMFREE(ptr);
-    temp_n = TMPMEMALLOC(size, index_t);
-    temp_len = TMPMEMALLOC(size, index_t);
-    temp_n[0] = iptr;
-    
-    /* Second, receive ptr values from other ranks */
-    for (i=1; i<size; i++) {
-      remote_n = A->row_distribution->first_component[i+1] -
-		 A->row_distribution->first_component[i];
-      #ifdef ESYS_MPI
-      MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
-			A->mpi_info->msg_tag_counter+i,
-			A->mpi_info->comm,
-			&mpi_requests[i]);
-      #endif
-      temp_n[i] = remote_n;
-      iptr += remote_n;
-    }
-    #ifdef ESYS_MPI
-    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
-    #endif
-    A->mpi_info->msg_tag_counter += size;
-
-    /* Then, prepare to receive idx and val from other ranks */
-    len = 0;
-    offset = -1;
-    for (i=0; i<size; i++) {
-      if (temp_n[i] > 0) {
-	offset += temp_n[i];
-	len += ptr_global[offset];
-	temp_len[i] = ptr_global[offset];
-      }else 
-	temp_len[i] = 0;
-    }
-
-    idx_global = MEMALLOC(len, index_t);
-    iptr = temp_len[0];
-    offset = n+1;
-    for (i=1; i<size; i++) {
-      len = temp_len[i];
-      #ifdef ESYS_MPI
-      MPI_Irecv(&(idx_global[iptr]), len, MPI_INT, i,
-			A->mpi_info->msg_tag_counter+i,
-			A->mpi_info->comm,
-			&mpi_requests[i]);
-      #endif
-      remote_n = temp_n[i];
-      for (j=0; j<remote_n; j++) {
-	ptr_global[j+offset] = ptr_global[j+offset] + iptr;
-      }
-      offset += remote_n;
-      iptr += len;
-    }
-    memcpy(idx_global, idx, temp_len[0] * sizeof(index_t));
-    MEMFREE(idx);
-    row_block_size = A->mainBlock->row_block_size;
-    col_block_size = A->mainBlock->col_block_size;
-    #ifdef ESYS_MPI
-    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
-    #endif
-    A->mpi_info->msg_tag_counter += size;
-    TMPMEMFREE(temp_n);
-
-    /* Then generate the sparse matrix */
-    pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, global_n,
-			global_n, ptr_global, idx_global);
-    out = Paso_SparseMatrix_alloc(A->mainBlock->type, pattern, 
-			row_block_size, col_block_size, FALSE);
-    Paso_Pattern_free(pattern);
-
-    /* Finally, receive and copy the value */
-    iptr = temp_len[0] * block_size;
-    for (i=1; i<size; i++) {
-      len = temp_len[i];
-      #ifdef ESYS_MPI
-      MPI_Irecv(&(out->val[iptr]), len * block_size, MPI_DOUBLE, i,
-                        A->mpi_info->msg_tag_counter+i,
-                        A->mpi_info->comm,
-                        &mpi_requests[i]);
-      #endif
-      iptr += (len * block_size);
-    }
-    memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
-    MEMFREE(val);
-    #ifdef ESYS_MPI
-    MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
-    #endif
-    A->mpi_info->msg_tag_counter += size;
-    TMPMEMFREE(temp_len);
-  } else { /* it's not rank 0 */
-
-    /* First, send out the local ptr */
-    tag = A->mpi_info->msg_tag_counter+rank;
-    #ifdef ESYS_MPI
-    MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[0]);
-    #endif
-
-    /* Next, send out the local idx */
-    len = ptr[n];
-    tag += size;
-    #ifdef ESYS_MPI
-    MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[1]);
-    #endif
-
-    /* At last, send out the local val */
-    len *= block_size;
-    tag += size;
-    #ifdef ESYS_MPI
-    MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[2]);
-
-    MPI_Waitall(3, mpi_requests, mpi_stati);
-    #endif
-    A->mpi_info->msg_tag_counter = tag + size - rank;
-    MEMFREE(ptr);
-    MEMFREE(idx);
-    MEMFREE(val);
-
-    out = NULL;
-  }
-
-  TMPMEMFREE(mpi_requests);
-  TMPMEMFREE(mpi_stati);
-  return out;
-}
-
-
-void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
-  Paso_SystemMatrix *A = amg->A_C;
-  Paso_SparseMatrix *A_D, *A_temp;
-  double* x=NULL;
-  double* b=NULL;
-  const index_t rank = A->mpi_info->rank;
-  const index_t size = A->mpi_info->size;
-  const n_block = A->mainBlock->row_block_size;
-
-  index_t i, n, p;
-  index_t *counts, *offset, *dist;
-  #ifdef ESYS_MPI
-  index_t count;
-  #endif
-  A_D = Paso_Preconditioner_AMG_mergeSystemMatrix(A); 
-
-  /* First, gather x and b into rank 0 */
-  dist = A->pattern->input_distribution->first_component;
-  n = Paso_SystemMatrix_getGlobalNumRows(A);
-  b = TMPMEMALLOC(n*n_block, double);
-  x = TMPMEMALLOC(n*n_block, double);
-  counts = TMPMEMALLOC(size, index_t);
-  offset = TMPMEMALLOC(size, index_t);
-
-  #pragma omp parallel for private(i,p)
-  for (i=0; i<size; i++) {
-    p = dist[i];
-    counts[i] = (dist[i+1] - p)*n_block;
-    offset[i] = p*n_block;
-  }
-  #ifdef ESYS_MPI
-  count = counts[rank];
-  MPI_Gatherv(amg->b_C, count, MPI_DOUBLE, b, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
-  MPI_Gatherv(amg->x_C, count, MPI_DOUBLE, x, counts, offset, MPI_DOUBLE, 0, A->mpi_info->comm);
-  #endif
-
-  if (rank == 0) {
-    /* solve locally */
-    #ifdef MKL
-      A_temp = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_D);
-      A_temp->solver_package = PASO_MKL;
-      Paso_SparseMatrix_free(A_D);
-      Paso_MKL(A_temp, x, b, amg->reordering, amg->refinements, SHOW_TIMING);
-      Paso_SparseMatrix_free(A_temp);
-    #else 
-      #ifdef UMFPACK
-	A_temp = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_D);
-	A_temp->solver_package = PASO_UMFPACK;
-	Paso_SparseMatrix_free(A_D);
-	Paso_UMFPACK(A_temp, x, b, amg->refinements, SHOW_TIMING);
-	Paso_SparseMatrix_free(A_temp);
-      #else
-	A_D->solver_p = Paso_Preconditioner_LocalSmoother_alloc(A_D, (amg->options_smoother == PASO_JACOBI), amg->verbose);
-	A_D->solver_package = PASO_SMOOTHER;
-	Paso_Preconditioner_LocalSmoother_solve(A_D, A_D->solver_p, x, b, amg->pre_sweeps+amg->post_sweeps, FALSE);
-	Paso_SparseMatrix_free(A_D);
-      #endif
-    #endif
-  }
-
-  #ifdef ESYS_MPI
-  /* now we need to distribute the solution to all ranks */
-  MPI_Scatterv(x, counts, offset, MPI_DOUBLE, amg->x_C, count, MPI_DOUBLE, 0, A->mpi_info->comm);
-  #endif
-
-  TMPMEMFREE(x);
-  TMPMEMFREE(b);
-  TMPMEMFREE(counts);
-  TMPMEMFREE(offset);
-}
