@@ -101,7 +101,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   const dim_t n_block=A_p->row_block_size;
   index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
-  dim_t i, n_F, n_C, F_flag, *F_set=NULL, global_n_C=0, global_n_F=0;
+  dim_t i, my_n_F, my_n_C, n_C, F_flag, *F_set=NULL, global_n_C=0, global_n_F=0, n_F;
   double time0=0;
   const double theta = options->coarsening_threshold;
   const double tau = options->diagonal_dominance_threshold;
@@ -201,24 +201,23 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	    /*
 	       count number of unkowns to be eliminated:
 	    */
-	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
-            /* collect n_F values on all processes, a direct solver should 
-                be used if any n_F value is 0 */
+	    my_n_F=Paso_Util_cumsum_maskedTrue(my_n,counter, F_marker);
+	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker); 
+            /* collect my_n_F values on all processes, a direct solver should 
+                be used if any my_n_F value is 0 */
             F_set = TMPMEMALLOC(A_p->mpi_info->size, dim_t);
 	    #ifdef ESYS_MPI
-            MPI_Allgather(&n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
+            MPI_Allgather(&my_n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
 	    #endif
             global_n_F=0;
             F_flag = 1;
             for (i=0; i<A_p->mpi_info->size; i++) {
                 global_n_F+=F_set[i];
                 if (F_set[i] == 0) F_flag = 0;
-printf(" p [%d]=%d\n",i, F_set[i]);
             }
-printf(" global n = %d\n",global_n);
             TMPMEMFREE(F_set);
 
-	    n_C=n-n_F;
+	    my_n_C=my_n-my_n_F;
             global_n_C=global_n-global_n_F;
 	    if (verbose) printf("Paso_Preconditioner: AMG (non-local) level %d: %d unknowns are flagged for elimination. %d left.\n",level,global_n_F,global_n_C);
 
@@ -230,9 +229,6 @@ printf(" global n = %d\n",global_n);
 	       out=MEMALLOC(1,Paso_Preconditioner_AMG);
 	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
-		  out->n = n;
-		  out->n_F = n_F;
-		  out->n_block = n_block;
 		  out->A_C = NULL; 
 		  out->P = NULL;  
 		  out->R = NULL; 	       
@@ -253,12 +249,14 @@ printf(" global n = %d\n",global_n);
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
 	  
 		  if (global_n_C != 0) {
-			   /* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
+			/*  create mask of C nodes with value >-1, gives new id */
+			n_C=Paso_Util_cumsum_maskedFalse(n, mask_C, F_marker);
+			/* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
-			out->x_C=MEMALLOC(n_block*n_C,double);
-			out->b_C=MEMALLOC(n_block*n_C,double);
-			out->r=MEMALLOC(n_block*n,double);
+			out->x_C=MEMALLOC(n_block*my_n_C,double);
+			out->b_C=MEMALLOC(n_block*my_n_C,double);
+			out->r=MEMALLOC(n_block*my_n,double);
 		     
 			Esys_checkPtr(out->r);
 			Esys_checkPtr(out->x_C);
@@ -273,8 +271,6 @@ printf(" global n = %d\n",global_n);
 				 if  (F_marker[i]) rows_in_F[counter[i]]=i;
 			      }
 			   }
-			   /*  create mask of C nodes with value >-1, gives new id */
-			   i=Paso_Util_cumsum_maskedFalse(n, mask_C, F_marker);
 			   /*
 			      get Prolongation :	 
 			   */					
@@ -372,39 +368,35 @@ void Paso_Preconditioner_AMG_solve(Paso_SystemMatrix* A, Paso_Preconditioner_AMG
      if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
 	
-     if (amg->n_F < amg->n) { /* is there work on the coarse level? */
-         time0=Esys_timer();
+     time0=Esys_timer();
 
-	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+     Paso_Copy(n, amg->r, b);                            /*  r <- b */
+     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
 
-         time0=Esys_timer()-time0;
-	 /* coarse level solve */
-	 if ( amg->AMG_C == NULL) {
+     time0=Esys_timer()-time0;
+     /* coarse level solve */
+     if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
 	    Paso_Preconditioner_AMG_mergeSolve(amg); 
 
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
-	 } else {
+     } else {
 	    Paso_Preconditioner_AMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
-	 }
-
-  	 time0=time0+Esys_timer();
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
-
-         /*postsmoothing*/
-      
-        /*solve Ax=b with initial guess x */
-        time0=Esys_timer();
-        Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
-        time0=Esys_timer()-time0;
-        if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
-        /*end of postsmoothing*/
      }
 
-     return;
+    time0=time0+Esys_timer();
+    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
+
+    /*postsmoothing*/
+      
+    /*solve Ax=b with initial guess x */
+    time0=Esys_timer();
+    Paso_Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
+    time0=Esys_timer()-time0;
+    if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
+    return;
 }
 
 /* theta = threshold for strong connections */
@@ -1117,14 +1109,15 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG * amg) {
   Paso_SparseMatrix *A_D, *A_temp;
   double* x=NULL;
   double* b=NULL;
-  index_t rank = A->mpi_info->rank;
-  index_t size = A->mpi_info->size;
-  index_t i, n, p, n_block;
+  const index_t rank = A->mpi_info->rank;
+  const index_t size = A->mpi_info->size;
+  const n_block = A->mainBlock->row_block_size;
+
+  index_t i, n, p;
   index_t *counts, *offset, *dist;
   #ifdef ESYS_MPI
   index_t count;
   #endif
-  n_block = amg->n_block;
   A_D = Paso_Preconditioner_AMG_mergeSystemMatrix(A); 
 
   /* First, gather x and b into rank 0 */
