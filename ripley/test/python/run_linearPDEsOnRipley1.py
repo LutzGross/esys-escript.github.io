@@ -56,7 +56,7 @@ class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_pdetools, Test_assemblage_
     def setUp(self):
         for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
             NX=x
-            NY=mpiSize/x
+            NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
@@ -71,7 +71,7 @@ class Test_LinearPDEOnRipleyBrick(Test_LinearPDE, Test_pdetools, Test_assemblage
         for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
             NX=x[0]
             NY=x[1]
-            NZ=mpiSize/(x[0]*x[1])
+            NZ=mpiSize//(x[0]*x[1])
             if NX*NY*NZ == mpiSize:
                 break
 
@@ -87,7 +87,7 @@ class Test_PoissonOnRipley(Test_Poisson):
     def setUp(self):
         for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
             NX=x
-            NY=mpiSize/x
+            NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)

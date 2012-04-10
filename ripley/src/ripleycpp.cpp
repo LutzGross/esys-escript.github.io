@@ -28,9 +28,12 @@ namespace ripley {
 // These wrappers are required to make the shared pointers work through the
 // Python wrapper
 
-escript::Domain_ptr _brick(int n0, int n1, int n2, const object& l0,
+// The double for n? is just to keep python happy when people need to deal with
+// trudiv
+escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2)
 {
+    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
     if (extract<tuple>(l0).check()) {
         tuple x=extract<tuple>(l0);
@@ -72,9 +75,10 @@ escript::Domain_ptr _brick(int n0, int n1, int n2, const object& l0,
 }
 
 const int _q[]={0x61686969,0x746c4144,0x79616e43};
-escript::Domain_ptr _rectangle(int n0, int n1, const object& l0,
+escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1)
 {
+    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
     if (extract<tuple>(l0).check()) {
         tuple x=extract<tuple>(l0);
