@@ -457,8 +457,6 @@ else:
     p.wait()
     python_lib_path=python_lib_path.strip()
 
-print "python_libs=",python_libs
-
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
 else:
@@ -793,9 +791,6 @@ Export(
   ]
 )
 
-print "William"
-
-
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
@@ -805,18 +800,13 @@ env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowr
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
-print "Terry"
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
-print "X1"
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-print "X2"
 env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
-print "X3"
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
 
-print "Bob"
 
 ######################## Populate the buildvars file #########################
 
@@ -837,7 +827,6 @@ except StopIteration:
     pass
 boosthpp.close()
 
-print "Tim"
 
 buildvars=open(os.path.join(env['libinstall'], 'buildvars'), 'w')
 buildvars.write("svn_revision="+str(global_revision)+"\n")
@@ -870,8 +859,6 @@ for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
         buildvars.write("%s_inc_path=%s\n"%(i, eval(i+'_inc_path')))
         buildvars.write("%s_lib_path=%s\n"%(i, eval(i+'_lib_path')))
 buildvars.close()
-
-print "Bozo"
 
 ################### Targets to build and install libraries ###################
 
