@@ -21,10 +21,6 @@ haveGD=False    # does matplotlib have griddata?
 
 mplmagicversion='0.98.5'
 
-print "ZZ"
-
-
-
 # check for matplotlib
 if env['pythoncmd']=='python':
   try:
@@ -57,9 +53,6 @@ example_files_allow_mpi = []
 example_files_no_mpi = []
 example_deps = []
 skipped_tests = []
-
-print "QQ"
-
 
 def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
     if needsMagicMPL: needsMPL=True
@@ -163,8 +156,6 @@ tar_path=os.path.join(release_dir, 'escript_examples.tar.gz')
 tar = local_env.Command(tar_path, None, dir_cmd+"tar -czf "+tar_path+" "+" ".join(ex2))
 env.Alias('examples_tarfile', tar)
 
-print "Terrance"
-
 #env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
 #if 'Tar' in dir(env):
 # tar=env.Tar(tar_path, example_files, chdir=src_dir)
@@ -177,5 +168,3 @@ local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='$BUILD_DIR/$PLATFORM
 local_env.SConscript(dirs = ['#/doc/install'], variant_dir='$BUILD_DIR/$PLATFORM/doc/install', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='$BUILD_DIR/$PLATFORM/doc/examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps'])
 
-
-print "End here"

@@ -1,3 +1,5 @@
+
+from __future__ import print_function
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -60,12 +62,12 @@ else:
 
 mts=Mountains(mydomain,eps=EPS)
 while t<T_END:
-    print "STEP ", t
+    print("STEP ", t)
     mts.setVelocity(v*cos(OMEGA*t))
     Z=mts.update()
     
     saveVTK("state.%d.vtu"%n,sol=Z, v=mts.getVelocity())
-    print "Integral(Z)=",integrate(Z),Lsup(mts.getVelocity()[DIM-1])
+    print("Integral(Z)=",integrate(Z),Lsup(mts.getVelocity()[DIM-1]))
     n+=1
     t+=mts.getSafeTimeStepSize()
 
