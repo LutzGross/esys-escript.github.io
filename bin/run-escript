@@ -62,7 +62,7 @@ fi
 
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
-PYTHON_CMD=python3
+PYTHON_CMD=python
 
 # if possible please express paths relative to $ESCRIPT_ROOT unless
 # they are in an unrelated location
@@ -362,8 +362,16 @@ then
 else
     # Check to see if the python version we were compiled with matches the
     # one of PYTHON_CMD.
-    compversion=`get_buildvar python_version | cut -d. -f1,2`
-
+    compfull=`get_buildvar python_version`
+    compversion=`echo $compfull | cut -d. -f1,2`
+    compmajor=`echo $compfull | cut -d. -f1`
+    if [ "$PYTHON_CMD" = "python" ]	# if people have customised the command they
+    then                                # might not want us changing it
+        if [ "$compmajor" = "3" ]
+        then
+            PYTHON_CMD=python3
+        fi
+    fi
     intversion=`$PYTHON_CMD -c 'from __future__ import print_function;import sys;print("%d.%d"%(sys.version_info[0], sys.version_info[1]))'`
     if [ "$compversion" != "$intversion" ]
     then

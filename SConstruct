@@ -129,6 +129,8 @@ vars.AddVariables(
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with','python'),
+  ('usepython3', 'Is this a python3 build? (experimental)', False),
+  ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
 )
 
 ##################### Create environment and help text #######################
@@ -247,8 +249,8 @@ if env['cc_extra']  != '': env.Append(CFLAGS = env['cc_extra'])
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
-
-env.Append(CPPDEFINES=['ESPYTHON3'])
+if env['usepython3']:
+    env.Append(CPPDEFINES=['ESPYTHON3'])
 
 # set up the autolazy values
 if env['forcelazy'] == 'on':
@@ -400,57 +402,62 @@ if conf.CheckFunc('gethostname'):
 
 ######## Python headers & library (required)
 
-python_inc_path=sysconfig.get_python_inc()
-if IS_WINDOWS:
-    python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
-elif env['PLATFORM']=='darwin':
-    python_lib_path=sysconfig.get_config_var('LIBPL')
-else:
-    python_lib_path=sysconfig.get_config_var('LIBDIR')
-#python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
-if IS_WINDOWS:
-    python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
-else:
-    python_libs=['python'+sysconfig.get_python_version()]
+# Use the python scons is running
+if env['pythoncmd']=='python':
+    python_inc_path=sysconfig.get_python_inc()
+    if IS_WINDOWS:
+        python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+    elif env['PLATFORM']=='darwin':
+        python_lib_path=sysconfig.get_config_var('LIBPL')
+    else:
+        python_lib_path=sysconfig.get_config_var('LIBDIR')
+
+    #python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
+    if IS_WINDOWS:
+        python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+    else:
+        python_libs=['python'+sysconfig.get_python_version()]
 
 #if we want to use a python other than the one scons is running
-if env['pythoncmd']!='python':
-   print "Need to try to use LDLIBRARY config variable to get real name of library if the setup fails ... may need to remove the old lib (or copy before adding)"
-   py3scons=False	# Is scons running on python3?
-   initstring='from __future__ import print_function;from distutils import sysconfig;'
-   if IS_WINDOWS:
-      cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
-   else:
-      cmd='print("python"+sysconfig.get_python_version())'
-   p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-   python_libs=p.stdout.readline()
-   if type(python_libs)!=str():
-      py3scons=True
-      python_libs=python_libs.encode()
-   p.wait()
-   python_libs=python_libs.strip()
-   python_libs="python3.2mu"
+else:
+    initstring='from __future__ import print_function;from distutils import sysconfig;'
+    if env['pythonlibname']!='':
+        python_libs=env['pythonlibname']
+    else:	# work it out by calling python    
+        if IS_WINDOWS:
+            cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
+        else:
+            cmd='print("python"+sysconfig.get_python_version())'
+        p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+        python_libs=p.stdout.readline()
+        if env['usepython3']:		# This is to convert unicode str into py2 string
+            python_libs=python_libs.encode() # If scons runs on py3 then this must be rethought
+        p.wait()
+        python_libs=python_libs.strip()
+
    
-   # Now we know whether we are using python3 or not
-   p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
-   python_inc_path=p.stdout.readline()
-   if py3scons:
+    # Now we know whether we are using python3 or not
+    p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
+    python_inc_path=p.stdout.readline()
+    if env['usepython3']:
          python_inc_path=python_inc_path.encode()
-   p.wait()   
-   python_inc_path=python_inc_path.strip()
-   if IS_WINDOWS:
+    p.wait()   
+    python_inc_path=python_inc_path.strip()
+    if IS_WINDOWS:
         cmd="os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
-   elif env['PLATFORM']=='darwin':
+    elif env['PLATFORM']=='darwin':
         cmd="sysconfig.get_config_var(\"LIBPL\")"
-   else:
+    else:
         cmd="sysconfig.get_config_var(\"LIBDIR\")"
 
-   p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
-   python_lib_path=p.stdout.readline()
-   if py3scons:
-      python_lib_path=python_lib_path.decode()
-   p.wait()
-   python_lib_path=python_lib_path.strip()
+    p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
+    python_lib_path=p.stdout.readline()
+    if env['usepython3']:
+        python_lib_path=python_lib_path.decode()
+    p.wait()
+    python_lib_path=python_lib_path.strip()
+
+print "python_libs=",python_libs
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
