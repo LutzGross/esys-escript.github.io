@@ -49,7 +49,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
-    print "This example will not run in an MPI world."
+    print("This example will not run in an MPI world.")
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -101,7 +101,7 @@ pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"Ucontour.png"))
-print "Solution has been plotted  ..."
+print("Solution has been plotted  ...")
 
 cut=int(len(xi)/2)
 

@@ -9,4 +9,5 @@ try:
     py_compile.compile(argv[1], argv[2], argv[1], True)
 except Exception as e:
    print(e.args)
+   exit(1)
 

@@ -45,7 +45,7 @@ from esys.finley import ReadMesh
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -63,8 +63,8 @@ nlayers=9  #number of layers in layercake model.
 ####################################################TESTING SWITCH
 testing=True
 if testing:
-    print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-    print "Try changing testing to False for more iterations."
+    print('The testing end time is currently selected. This severely limits the number of time iterations.')
+    print("Try changing testing to False for more iterations.")
     tend=0.001
     #Model Parameters    
     mx=40.
@@ -85,7 +85,7 @@ h=0.00001    # time step
 rtime=0.0 # first time to record
 rtime_inc=tend/outputs # time increment to record
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 ####################################################CREATING THE SOURCE FUNCTION
 U0=0.1 # amplitude of point source
@@ -101,7 +101,7 @@ a = 2.0 * (np.pi * dfeq)**2.0
 t0 = 5.0 / (2.0 * np.pi * dfeq)
 srclength = 5. * t0
 ls = int(srclength/h)
-print 'source length',ls
+print('source length',ls)
 source=np.zeros(ls,'float') # source array
 ampmax=0
 for it in range(0,ls):
@@ -142,7 +142,7 @@ mypde.setValue(D=rho*kmat) #set the general form value D
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_rad = 20; print "src radius= ",src_rad
+src_rad = 20; print("src radius= ",src_rad)
 # set initial values for first two time steps with source terms
 xb=FunctionOnBoundary(domain).getX()
 yx=(cos(length(xb-xc)*3.1415/src_rad)+1)*whereNegative(length(xb-xc)-src_rad)
@@ -177,4 +177,4 @@ while t<tend:
     t=t+h; n=n+1
     if (n < ls):
         mypde.setValue(y=source[n]*yx*src_dir*stop) #set the source as a function on the boundary
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)

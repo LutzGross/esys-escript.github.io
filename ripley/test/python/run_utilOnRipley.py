@@ -39,14 +39,14 @@ NE=4 # number elements
 mpiSize=getMPISizeWorld()
 for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
     NX=x
-    NY=mpiSize/x
+    NY=mpiSize//x
     if NX*NY == mpiSize:
         break
 
 for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     NXb=x[0]
     NYb=x[1]
-    NZb=mpiSize/(x[0]*x[1])
+    NZb=mpiSize//(x[0]*x[1])
     if NXb*NYb*NZb == mpiSize:
         break
 

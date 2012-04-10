@@ -45,7 +45,7 @@ from esys.finley import ReadMesh
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -68,7 +68,7 @@ vel=Scalar(0,Function(domain))
 mu=Scalar(0,Function(domain))
 lam=Scalar(0,Function(domain))
 
-print 0.5*np.sqrt(prho/(plam+2*pmu))*0.5
+print(0.5*np.sqrt(prho/(plam+2*pmu))*0.5)
 
 for i in range(0,nlayers):
     rho.setTaggedValue('lblock%d'%i,prho[i])
@@ -89,8 +89,8 @@ lam.setTaggedValue('fault',plam[i])
 # Time related variables.
 testing=False
 if testing:
-	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-	print "Try changing testing to False for more iterations."
+	print('The testing end time is currently selected. This severely limits the number of time iterations.')
+	print("Try changing testing to False for more iterations.")
 	tend=0.1
 else:
 	tend=0.1    # end time
@@ -100,7 +100,7 @@ h=0.00001    # time step
 rtime=0.0 # first time to record
 rtime_inc=tend/750.0 # time increment to record
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 U0=0.1 # amplitude of point source
 ls=500   # length of the source
@@ -115,7 +115,7 @@ a = 2.0 * (np.pi * dfeq)**2.0
 t0 = 5.0 / (2.0 * np.pi * dfeq)
 srclength = 5. * t0
 ls = int(srclength/h)
-print 'source length',ls
+print('source length',ls)
 source=np.zeros(ls,'float') # source array
 ampmax=0
 for it in range(0,ls):
@@ -140,7 +140,7 @@ mypde.setValue(D=rho*kmat) #set the general form value D
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_length = 10; print "src_length = ",src_length
+src_length = 10; print("src_length = ",src_length)
 # set initial values for first two time steps with source terms
 xb=FunctionOnBoundary(domain).getX()
 yx=(cos(length(xb-xc)*3.1415/src_length)+1)*whereNegative(length(xb-xc)-src_length)
@@ -176,4 +176,4 @@ while t<tend:
     t=t+h; n=n+1
     if (n < ls):
         mypde.setValue(y=source[n]*yx*src_dir*stop) #set the source as a function on the boundary
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)

@@ -63,7 +63,7 @@ class DomainReader(ParameterSet):
                 raise TypeError("unknown mesh file format %s."%self.source.fileformat)
              self.trace("mesh read from %s in %s format."%(self.source.getLocalFileName(), self.source.fileformat))           
           return self.__domain
-		
+                
 class FinleyReader(DomainReader):
         def __init__(self, **kw):
             DomainReader.__init__(self, esys.finley, **kw)
@@ -93,13 +93,13 @@ class RectangularDomain(ParameterSet):
            self.declareParameter(dim=2,\
                                  l=[1.,1.,1.],\
                                  n=[10,10,10], \
-				 order=1,\
+                                 order=1,\
                                  periodic=[False,False,False],
                                  integrationOrder=-1)
            self.__domain=None
-	   self.__domainModule=domainmodule
-	   if self.__domainModule==None:
-		self.__domainModule=esys.finley
+           self.__domainModule=domainmodule
+           if self.__domainModule==None:
+                self.__domainModule=esys.finley
 
        def domain(self):
            """

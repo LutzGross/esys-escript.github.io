@@ -57,4 +57,4 @@ try:
 	#matplotlib.pyplot.show()
 
 except AttributeError:
-	print "Your version of matplotlib does not provide the griddata method.\nSkipping example.\n"
+	print("Your version of matplotlib does not provide the griddata method.\nSkipping example.\n")

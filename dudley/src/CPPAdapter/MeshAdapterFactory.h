@@ -96,7 +96,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr brick(int n0=1,int n1=1,int n2=1,int order=1,
+  escript::Domain_ptr brick(double n0=1,double n1=1,double n2=1,int order=1,
                     double l0=1.0,double l1=1.0,double l2=1.0,
                     int periodic0=0,int periodic1=0,
                     int periodic2=0,
@@ -111,7 +111,7 @@ namespace dudley {
      Creates a rectangular mesh with n0 x n1 elements over the brick 
      [0,l0] x [0,l1].
 
-     \param n0,n1 Input - number of elements in each dimension
+     \param n0,n1 Input - number of elements in each dimension [We only except floats for py transition]
      \param order Input - =1, =-1 or =2 gives the order of shape function (-1= macro elements of order 1)
      \param l0,l1 Input - length of each side of brick
      \param integrationOrder Input - order of the quadrature scheme. 
@@ -126,7 +126,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr rectangle(int n0=1,int n1=1,int order=1,
+  escript::Domain_ptr rectangle(double n0=1,double n1=1,int order=1,
                                       double l0=1.0, double l1=1.0,
                                       int periodic0=false,int periodic1=false,
                                       int integrationOrder=-1,
