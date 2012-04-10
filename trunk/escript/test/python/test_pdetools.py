@@ -106,7 +106,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 #        l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
 #        d=Data(0, Solution(self.domain))
 #        l.setValue(d, 7)
-#        self.assertTrue(sup(d)>6, "value not set")	# guarantees we have set something
+#        self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
 #        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")        
 
 
@@ -153,7 +153,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
 #        l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
 #        d=Data(0, Solution(self.domain))
 #        l.setValue(d, 7)
-#        self.assertTrue(sup(d)>6, "value not set")	# guarantees we have set something
+#        self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
 #        self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")
            
          
@@ -585,7 +585,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
                 -8.7934289814322  ])
 
       def Ap(x):
-	  out=dot(A,x)
+          out=dot(A,x)
           for i in range(size(x)):
             out[i]/=A[i,i]
           return out

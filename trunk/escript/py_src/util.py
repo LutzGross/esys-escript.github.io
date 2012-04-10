@@ -1135,6 +1135,9 @@ class Symbol(object):
        """
        return quotient(self,other)
 
+   def __truediv__(self,other):
+	   return self.__div__(other)
+
    def __rdiv__(self,other):
        """
        Divides another object by this object.
@@ -1147,6 +1150,9 @@ class Symbol(object):
        :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
        """
        return quotient(other,self)
+
+   def __rtruediv__(self,other):
+       return self.__rdiv__(other)
 
    def __pow__(self,other):
        """
@@ -1209,6 +1215,10 @@ class DependendSymbol(Symbol):
           `Symbol` arguments. This will allow the optimizer to remove
           redundant function calls.
    """
+
+   def __hash__(self):
+	   return hash(self.getShape()) ^ hash(self.getDim()) ^ len(self.getArgument())
+
    def __eq__(self,other):
       """
       Checks if ``other`` equals self.
@@ -4791,17 +4801,17 @@ def maximum(*args):
 		#ranked objects mixed. If the scalar was first it will get
 		#picked as the initial out and we have a problem,
 		#so we swap the objects
-		res=a.copy()	#Deep copy of a
-		res.copyWithMask(out,wherePositive(out-a))
-		out=res
-	     else:
+                res=a.copy()	#Deep copy of a
+                res.copyWithMask(out,wherePositive(out-a))
+                out=res
+             else:
              	out.copyWithMask(a,wherePositive(a-out))
           else:
              diff=add(a,-out)
              temp=add(mult(out, whereNonPositive(diff)), mult(a, wherePositive(diff)))
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
 	       # we need to convert the result to an array 
-	       temp=numpy.array(temp)             
+               temp=numpy.array(temp)             
              out=temp
     return out
 
@@ -4821,29 +4831,29 @@ def minimum(*args):
     for a in args:
        if out==None:
           #out=a*1
-	  if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
-	      out=a.copy()
-	  else:
-	      out=a*1
+          if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
+              out=a.copy()
+          else:
+              out=a*1
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
-	     if out.getRank()==0 and a.getRank()>0:
-		#We need to consider the case where we have scalars and higher 
+             if out.getRank()==0 and a.getRank()>0:
+        	#We need to consider the case where we have scalars and higher 
 		#ranked objects mixed. If the scalar was first it will get
 		#picked as the initial out and we have a problem,
 		#so we swap the objects
-		res=a.copy()	#Deep copy of a
-		res.copyWithMask(out,whereNegative(out-a))
-		out=res
-	     else:
-		out.copyWithMask(a,whereNegative(a-out))
+                res=a.copy()	#Deep copy of a
+                res.copyWithMask(out,whereNegative(out-a))
+                out=res
+             else:
+                out.copyWithMask(a,whereNegative(a-out))
           else:
              diff=add(a,-out)
              #out=add(out,mult(whereNegative(diff),diff))
              temp=add(mult(out, whereNonNegative(diff)), mult(a, whereNegative(diff)))
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
 	       # we need to convert the result to an array 
-	       temp=numpy.array(temp)
+               temp=numpy.array(temp)
              out=temp
     return out
 
@@ -6070,8 +6080,8 @@ def mkDir(*pathname):
     if getMPIRankWorld()==0:
       for p in pathname:
        if os.path.exists(p):
-	   if not os.path.isdir(p):
-		errno=2
+          if not os.path.isdir(p):
+                errno=2
                 p_fail=p
        else:
           try:
@@ -6082,24 +6092,24 @@ def mkDir(*pathname):
     
     errno=getMPIWorldMax(errno)
     if errno>0:
-	 if errno==2:
+         if errno==2:
             if p_fail == None:
-	       raise IOError("Unable to create directory.")
+               raise IOError("Unable to create directory.")
             else:
-	       raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
+               raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
          elif e==None:
             if p_fail == None:
-	       raise IOError("Unable to create directory.")
+               raise IOError("Unable to create directory.")
             else:
-	       raise IOError("Unable to create directory %s."%p_fail)
+               raise IOError("Unable to create directory %s."%p_fail)
          else:
             if hasattr(e,"message"):
                raise IOError(e.message)
             else:
                if p_fail == None:
-	          raise IOError("Unable to create directory.")
+                  raise IOError("Unable to create directory.")
                else:
-	          raise IOError("Unable to create directory %s."%p_fail)
+                  raise IOError("Unable to create directory %s."%p_fail)
 
 class FileWriter(object):
     """
@@ -6125,6 +6135,7 @@ class FileWriter(object):
          :param createLocalFiles: switches on the creation of local files.
          :type createLocalFiles: ``bool``
          """
+         error=None
          errno=0
          self.name=fn
          if append:
@@ -6134,7 +6145,6 @@ class FileWriter(object):
          self.__file=None
          self.closed=False
          self.newlines=os.linesep
-         e=None
          # if not the master:
          if getMPIRankWorld()>0:
               if createLocalFiles:
@@ -6143,12 +6153,14 @@ class FileWriter(object):
                      self.__file=open(fn2,self.mode)
                   except Exception as e:
                      errno=1
+                     error=e
          else:
               try:
                   self.__file=open(fn,self.mode)
               except Exception as e:
                   errno=1
-         self.__handelerror(errno,e,"opening")
+                  error=e
+         self.__handelerror(errno, error, "opening")
 
     def __handelerror(self,errno,e,operation):
          errno=getMPIWorldMax(errno)
@@ -6233,7 +6245,7 @@ def showEscriptParams():
     """
     p=listEscriptParams()
     for name,value,desc in p:
-	print('%s (=%s): %s'%(name, value, desc))
+       print('%s (=%s): %s'%(name, value, desc))
 
 #Lazy related things
 #These are just wrappers
@@ -6242,9 +6254,9 @@ def resolve(arg):
    Returns the value of arg resolved.
    """
    if not isinstance(arg,Data):
-	raise TypeError("Can only resolve Data.")
+        raise TypeError("Can only resolve Data.")
    if arg.isLazy():
-	arg.resolve()
+        arg.resolve()
    return arg
    
 def delay(arg):
@@ -6252,7 +6264,7 @@ def delay(arg):
    Returns a lazy version of arg
    """
    if not isinstance(arg,Data):
-	raise TypeError("Can only delay Data.")
+         raise TypeError("Can only delay Data.")
    return arg.delay()
 
 def positive(arg):
@@ -6282,10 +6294,10 @@ def condEval(f, tval, fval):
     Wrapper to allow non-data objects to be used.
     """
     if not isinstance(tval,Data) and not isinstance(fval,Data):
-	raise TypeError("At least one of the alternatives must be a Data object.")
+        raise TypeError("At least one of the alternatives must be a Data object.")
     if isinstance(tval,Data) and isinstance(fval, Data):
-	return _condEval(f,tval,fval)
+        return _condEval(f,tval,fval)
     if not isinstance(fval, Data):
-	return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
+        return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
     return _condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
 

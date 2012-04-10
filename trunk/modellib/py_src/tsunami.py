@@ -107,7 +107,7 @@ class PointOnEarthSurface:
     Coordinates of a point on the surface of the Earth
     """
     def __init__(self, long=0, lat=0):
-        self.long=long
+        self.long=int
         self.lat=lat
 
     def __str__(self):
@@ -117,11 +117,11 @@ class PointOnEarthSurface:
         return self.dist(other)
 
     def split(self,p,t):
-        return PointOnEarthSurface(long=self.long+t*(p.long-self.long),
+        return PointOnEarthSurface(int=self.long+t*(p.long-self.long),
                                    lat=self.lat+t*(p.lat-self.lat) )
 
     def midPoint(self,other):
-        return PointOnEarthSurface(long=(self.long+other.long)/2,
+        return PointOnEarthSurface(int=(self.long+other.long)/2,
                                    lat=(self.lat+other.lat)/2 )
 
     def dist(self,other):
@@ -140,15 +140,15 @@ class RegionOnEarthSurface:
     SOUTH=3
     def __init__(self, west_south=PointOnEarthSurface(), east_north=PointOnEarthSurface(), resolution=1.):
         if resolution <= 0:
-            raise ValueError, "resolution must be positive"
+            raise ValueError("resolution must be positive")
         if west_south.long >= east_north.long:
-            raise ValueError, "south-west corner must be west of north-east corner"
+            raise ValueError("south-west corner must be west of north-east corner")
         if west_south.lat >= east_north.lat:
-            raise ValueError, "south-east corner must be south of north-west corner"
+            raise ValueError("south-east corner must be south of north-west corner")
         if east_north.lat-west_south.lat < resolution/2:
-            raise ValueError, "latitude length of region must be at least 2*larger than the resolution"
+            raise ValueError("latitude length of region must be at least 2*larger than the resolution")
         if  east_north.long-west_south.long < resolution/2:
-            raise ValueError, "longitude length of region must be at least 2*larger than the resolution"
+            raise ValueError("longitude length of region must be at least 2*larger than the resolution")
 
         self.west_south = west_south
         self.east_north = east_north
@@ -357,7 +357,7 @@ class Polyline:
         Returns the orientation of the polyline
         """
         if not self.isLoop():
-            raise TypeError, "polyline is not a loop"
+            raise TypeError("polyline is not a loop")
 
         integ = 0.
         for i in range(len(self.list_of_coordinates)-1):
@@ -436,7 +436,7 @@ class Coastline:
                                     s_tmp = ((mid.lat-p0.lat)*a_long-(mid.long-p0.long)*a_lat)/d
                                     if s_tmp > EPS:
                                         s = min(s,s_tmp)
-                        h = PointOnEarthSurface(long=mid.long+s/2*n_long,lat=mid.lat+s/2*n_lat)
+                        h = PointOnEarthSurface(int=mid.long+s/2*n_long,lat=mid.lat+s/2*n_lat)
                         holes.append(h)
                 else:
                     if len(short_pl) > 1:
@@ -451,20 +451,20 @@ class Coastline:
         # put into the bounding box:
         new_vertices = []
         if west_south_is_water:
-            new_vertices.append(PointOnEarthSurface(long=self.region.west_south.long, lat=self.region.west_south.lat))
+            new_vertices.append(PointOnEarthSurface(int=self.region.west_south.long, lat=self.region.west_south.lat))
         if east_south_is_water:
-            new_vertices.append(PointOnEarthSurface(long=self.region.east_north.long, lat=self.region.west_south.lat))
+            new_vertices.append(PointOnEarthSurface(int=self.region.east_north.long, lat=self.region.west_south.lat))
         if west_north_is_water:
-            new_vertices.append(PointOnEarthSurface(long=self.region.west_south.long, lat=self.region.east_north.lat))
+            new_vertices.append(PointOnEarthSurface(int=self.region.west_south.long, lat=self.region.east_north.lat))
         if east_north_is_water:
-            new_vertices.append(PointOnEarthSurface(long=self.region.east_north.long, lat=self.region.east_north.lat))
+            new_vertices.append(PointOnEarthSurface(int=self.region.east_north.long, lat=self.region.east_north.lat))
 
         # add new vertices if they don't exist yet
         for q in new_vertices:
             for p2 in vertices_on_face:
                 if p2-q < EPS:
                     q = None
-                    raise ValueError, "coast line crosses boundary box vertex. This case is currently not supported."
+                    raise ValueError("coast line crosses boundary box vertex. This case is currently not supported.")
             if not q == None:
                 vertices.append(q)
                 vertices_on_face.append(q)
@@ -547,7 +547,7 @@ class Coastline:
                                 pl_min = pl2
                                 k_min = k2
             if k_min == None:
-                raise ValueError, "cannot link coastline %s to any other coastline." % pl.name
+                raise ValueError("cannot link coastline %s to any other coastline." % pl.name)
             plc = pl.list_of_coordinates
             plc_min = pl_min.list_of_coordinates
             if k == 0: plc.reverse()
@@ -744,7 +744,7 @@ class Bathymetry(Model):
         Initializes the bathymetry grid
         """
 
-        print "Intializing bathymetry..."
+        print("Intializing bathymetry...")
         if hasattr(self.source,"readline"):
             f=self.source
         else:
@@ -764,7 +764,7 @@ class Bathymetry(Model):
         x_grd=numpy.array(x_grd_list)
         y_grd=numpy.array(y_grd_list)
         if len(x_grd)<2:
-            raise ValueError,"%s: data base is too small"%str(self)
+            raise ValueError("%s: data base is too small"%str(self))
         ox=x_grd[0]
         oy=y_grd[0]
         diam=max(abs(x_grd[len(x_grd)-1]-ox),abs(y_grd[len(y_grd)-1]-oy))
@@ -806,7 +806,7 @@ class OceanRegion(Model):
         # create output directory if necessary
         if not os.path.isdir(WORKDIR): os.mkdir(WORKDIR)
 
-        print "Initializing ocean region..."
+        print("Initializing ocean region...")
         if hasattr(self.source,"readline"):
             f=self.source
             data_name=f.geturl()
@@ -821,7 +821,7 @@ class OceanRegion(Model):
             line=line.strip()
             if line[:7]=="#region":
                 data=line[line.index("[")+1:line.index("]")].split(",")
-                reg=RegionOnEarthSurface(PointOnEarthSurface(lat=self.south,long=self.west),PointOnEarthSurface(lat=self.north,long=self.east),self.resolution)
+                reg=RegionOnEarthSurface(PointOnEarthSurface(lat=self.south,int=self.west),PointOnEarthSurface(lat=self.north,int=self.east),self.resolution)
                 self.coastline=Coastline(region=reg,name=data_name)
             elif line.find("Shore Bin")>-1:
                 self.coastline.append(Polyline(segs,name))
@@ -829,7 +829,7 @@ class OceanRegion(Model):
                 segs=[]
             if not (line=="" or line[0]=="#" or line[0]==">") :
                 x=line.split()
-                segs.append(PointOnEarthSurface(long=float(x[0]),lat=float(x[1])))
+                segs.append(PointOnEarthSurface(int=float(x[0]),lat=float(x[1])))
             line=f.readline()
         self.coastline.append(Polyline(segs,name))
         d=self.bathymetry_data.interpolate([[self.east,self.south],
@@ -998,7 +998,7 @@ class SurfMovie(Model):
         factImage = vtk.vtkImagingFactory()
         factImage.SetUseMesaClasses(1)
 
-        print "Preparing bathymetry data..."
+        print("Preparing bathymetry data...")
         # get depth (z), origin, dx and dy of the bathymetry
         bathZData = self.bathymetry.getData()
         bathOrigin = self.bathymetry.getOrigin()
@@ -1105,11 +1105,11 @@ class SurfMovie(Model):
         self.bathActor = vtk.vtkActor()
         self.bathActor.SetMapper(bathMapper)
 
-        print "Done preparing bathymetry data"
+        print("Done preparing bathymetry data")
 
         ### prepare and add the coastline ###
 
-        print "Preparing coastline data..."
+        print("Preparing coastline data...")
         # create the coastline grid
         coastGrid = vtk.vtkUnstructuredGrid()
         coastPoints = vtk.vtkPoints()
@@ -1136,7 +1136,7 @@ class SurfMovie(Model):
         self.coastActor.SetMapper(coastMapper)
         self.coastActor.GetProperty().SetColor(0,0,0)
 
-        print "Done preparing coastline data"
+        print("Done preparing coastline data")
 
         # set up the lookup table for the wave data
         refLut = vtk.vtkLookupTable()
@@ -1193,7 +1193,7 @@ class SurfMovie(Model):
         imgFile = prefix+".pnm"
 
         # save the VTK file first
-        print "Writing", vtuFile
+        print("Writing", vtuFile)
         saveVTK(vtuFile, h=self.wave_height)
 
         # make a reader for the data
@@ -1212,7 +1212,7 @@ class SurfMovie(Model):
         self.waveActor.SetMapper(waveMapper)
 
         # now render the window and save the image file
-        print "Rendering to", imgFile
+        print("Rendering to", imgFile)
         self.renWin.Render()
 
         # convert the render window to an image
@@ -1238,7 +1238,7 @@ class SurfMovie(Model):
 
             zMin = inf(self.wave_height)
             zMax = sup(self.wave_height)
-            print "T = %7.1f: Wave height range=%f...%f" % (self.t, zMin, zMax)
+            print("T = %7.1f: Wave height range=%f...%f" % (self.t, zMin, zMax))
 
             #self.saveImage(prefix)
             self.wave_height.dump(os.path.join(WORKDIR, \
@@ -1296,16 +1296,16 @@ class SurfMovie(Model):
         fp.write(paramsFileString)
         fp.close()
 
-        print "Performing conversion to mpeg"
+        print("Performing conversion to mpeg")
         convertString = "ppmtompeg %s.params" % self.filename
         # write the movie into self.filename
         result = os.system(convertString)
         if result != 0:
-            print "An error occurred in mpeg conversion"
+            print("An error occurred in mpeg conversion")
 
         # now clean up the image files
         if result == 0:
-            print "Removing temporary image files"
+            print("Removing temporary image files")
             os.unlink("%s.params" % self.filename)
             for fname in self.imageFiles:
                 os.unlink(fname)

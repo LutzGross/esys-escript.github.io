@@ -72,7 +72,7 @@ def setVerticalPositionsFromDip(layers, dip):
 
 def setBackLayers(layers, slop, dip):
       if layers[0][3]-tan(slop)*length <=0:
-          raise ValueError,"negative thickness in %s at back"%(layers[0][0],)
+          raise ValueError("negative thickness in %s at back"%(layers[0][0],))
       out=[[ layers[0][0], layers[0][3]-tan(slop)*length ]]
       for i in range(1,len(layers)-1): out.append([layers[i][0], layers[i][3] ])
       out.append([ layers[-1][0] ])
@@ -123,13 +123,13 @@ def addVolume(front_left, back_left, front_right, back_right, PS, FF, map, filte
         face_right=PlaneSurface(CurveLoop(front_right[i], front_to_back_right[i+1], -back_right[i], -front_to_back_right[i]))
         
         v=Volume(SurfaceLoop(topface,-face2, face_front, -face_back, -face_left, face_right))
-        print v
+        print(v)
         topface=face2
         if filter_left:
             FF.append(face_right)
         else:
             FF.append(-face_right)
-        if not PS.has_key(name): PS[name]=PropertySet(name)
+        if name not in PS: PS[name]=PropertySet(name)
         PS[name].addItem(v)
     return out1, out2, PS, FF
     

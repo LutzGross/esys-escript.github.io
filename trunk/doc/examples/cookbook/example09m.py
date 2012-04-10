@@ -40,7 +40,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 # make sure path exists 
@@ -51,8 +51,8 @@ mkDir(save_path)
 # Time related variables.
 testing=True
 if testing:
-    print 'This script is currently optioned for testing..'
-    print "Try changing the testing variable to False for more iterations."
+    print('This script is currently optioned for testing..')
+    print("Try changing the testing variable to False for more iterations.")
     xwidth=40.
     ywidth=40.
     depth=20.

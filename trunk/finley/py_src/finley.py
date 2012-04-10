@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escript
 import esys.pasowrap	#if you don't import this, you won't be able to see methods not in AbstractSystemmatrix
 #from esys.escript import *
-from finleycpp import *
+from .finleycpp import *
 from .factorywrappers import *
 from .readers import *
 

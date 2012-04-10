@@ -1,3 +1,6 @@
+
+from __future__ import print_function
+
 ########################################################
 #
 # Copyright (c) 2003-2010 by University of Queensland
@@ -54,7 +57,7 @@ T=T_D
 N=0; t=0
 # stop when t_end is reached:
 while t<t_end:
-    print N,"-th time step t=",t
+    print(N,"-th time step t=",t)
     # update PDE coefficient:
     mypde.setValue(Y=dt*rhocp*T+dt*Q)
     # new temperature:

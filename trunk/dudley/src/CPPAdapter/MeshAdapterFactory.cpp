@@ -458,7 +458,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr brick(int n0,int n1,int n2,int order,
+  Domain_ptr brick(double n0, double n1,double n2,int order,
                    double l0,double l1,double l2,
                    int periodic0,int periodic1,
                    int periodic2,
@@ -468,7 +468,7 @@ namespace dudley {
                    int useFullElementOrder,
                    int optimize)
   {
-    int numElements[]={n0,n1,n2};
+    int numElements[]={static_cast<int>(n0),static_cast<int>(n1),static_cast<int>(n2)};
     double length[]={l0,l1,l2};
 
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
@@ -502,7 +502,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr rectangle(int n0,int n1,int order,
+  Domain_ptr rectangle(double n0, double n1, int order,
                        double l0, double l1,
                        int periodic0,int periodic1,
                        int integrationOrder,
@@ -511,7 +511,7 @@ namespace dudley {
                        int useFullElementOrder,
                        int optimize)
   {
-    int numElements[]={n0,n1};
+    int numElements[]={static_cast<int>(n0), static_cast<int>(n1)};
     double length[]={l0,l1};
 
     if (periodic0 || periodic1) // we don't support periodic boundary conditions
