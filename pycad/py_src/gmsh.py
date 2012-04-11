@@ -214,7 +214,7 @@ class Design(design.Design):
            p=prim.getUnderlyingPrimitive()
            if isinstance(p, Point):
                c=p.getCoordinates()
-               out+="Point(%s) = {%s , %s, %s , %s };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
+               out+="Point(%s) = {%f , %f, %f , %f };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
 
            elif isinstance(p, Spline):
                out+="Spline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))+self.__mkTransfiniteLine(p)
@@ -314,7 +314,7 @@ class Design(design.Design):
              else:
                 out+="Transfinite Surface{%s} = {%s} %s;\n"%(p.getID(),out2,s[1])
          if not o == None:
-           out+="Recombine Surface {%s} = %s;\n"%(p.getID(),o/DEG)
+           out+="Recombine Surface {%s} = %f;\n"%(p.getID(),o/DEG)
          return out
     def __mkTransfiniteVolume(self,p):
          out=""

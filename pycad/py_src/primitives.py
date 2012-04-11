@@ -81,6 +81,7 @@ class PrimitiveBase(object):
        """
        pass
 
+    # for python2   
     def __cmp__(self,other):
        """
        Compares object with other by comparing the absolute value of the ID.
@@ -90,6 +91,21 @@ class PrimitiveBase(object):
        else:
            return -1
 
+    def __lt__(self,other):
+       if isinstance(other, PrimitiveBase):
+           return self.getID()<other.getID()
+       else:
+           return False
+           
+    def __eq__(self,other):
+       if isinstance(other, PrimitiveBase):
+           return self.getID()==other.getID()
+       else:
+           return False
+       
+    def __hash__(self):
+       return self.getID()
+       
     def getConstructionPoints(self):
         """
         Returns the points used to construct the primitive.
