@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 ########################################################
 #
 # Copyright (c) 2009-2010 by University of Queensland
@@ -100,7 +101,7 @@ u_m1=u
 cut_loc=[] #where the cross section of the source along x will be
 src_cut=[] #where the cross section of the source will be
 # create locations for source cross section
-for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
+for i in range(ndx//2-ndx//10,ndx//2+ndx//10):
     cut_loc.append(xstep*i)
     src_cut.append([xstep*i,xc[1]])
 # locate the nearest nodes to the points in src_cut
