@@ -475,16 +475,15 @@ if not conf.CheckFunc('Py_Exit'):
     Exit(1)
 
 ## reuse conf to check for numpy header (optional)
-#if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-#    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
-#    conf.env['numpy_h']=True
-#else:
-#    conf.env['numpy_h']=False
-
-
-# This is until we can work out how to make the checks in python 3
-conf.env['numpy_h']=False
-
+if env['usepython3']:
+    # FIXME: This is until we can work out how to make the checks in python 3
+    conf.env['numpy_h']=False
+else:
+    if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+        conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+        conf.env['numpy_h']=True
+    else:
+        conf.env['numpy_h']=False
 
 # Commit changes to environment
 env = conf.Finish()
