@@ -46,6 +46,15 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   BUCKLEY_DLL_API 
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
+  BUCKLEY_DLL_API 
+  bool isValidTagName(const std::string& name) const; 
+
+  BUCKLEY_DLL_API
+  virtual int getTag(const std::string& name) const;
+
+  
+
+
   /**
      \brief
      Return a description for this domain
@@ -312,6 +321,13 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   const int* borrowSampleReferenceIDs(int functionSpaceType) const;
   
   BUCKLEY_DLL_API
+  int getNumberOfTagsInUse(int functionSpaceCode) const;
+  
+  BUCKLEY_DLL_API
+  const int* borrowListOfTagsInUse(int fsType) const;
+  
+  
+  BUCKLEY_DLL_API
   void refinePoint(double x, double y, double z, unsigned int desdepth);
   
   BUCKLEY_DLL_API
@@ -356,7 +372,7 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     unsigned m_generation;
     
     // may need to switch this to something NUMA friendly?
-    mutable std::vector<const OctCell*> face_cells[6];
+    mutable std::vector<const OctCell*> face_cells[6];	  // left, right, front, back, bottom, top 
     Esys_MPIInfo *m_mpiInfo;
 
     

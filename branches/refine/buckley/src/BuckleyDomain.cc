@@ -96,6 +96,25 @@ bool BuckleyDomain::isValidFunctionSpaceType(int functionSpaceType) const
     return (functionSpaceType==ctsfn || functionSpaceType==discfn || functionSpaceType==disc_faces);
 }
 
+bool BuckleyDomain::isValidTagName(const std::string& name) const
+{
+    return (name=="top") || (name=="bottom") || (name=="left") || (name=="right") || (name=="front") || (name=="back");
+}
+
+int BuckleyDomain::getTag(const std::string& name) const
+{
+    if (name=="top") return 200;
+    if (name=="bottom") return 100;
+    if (name=="left") return 1;
+    if (name=="right") return 2;
+    if (name=="front") return 10;
+    return 20;
+  
+  
+}
+
+
+
 escript::Data BuckleyDomain::getX() const
 {
    if (modified)	// is the cached data we have about this domain stale?
@@ -192,7 +211,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
    {
       processMods();
    }
-   
+   arg.requireWrite();
    if (arg.getFunctionSpace().getTypeCode()==getContinuousFunctionCode())	// values on nodes
    {
       escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));     
@@ -289,8 +308,8 @@ void BuckleyDomain::setToX(escript::Data& arg) const
       // This is actually simpler because there is no overlap between different leaves
       escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));
       
-      int numfaces=face_cells[0].size()+face_cells[1].size()+face_cells[2].size()+face_cells[3].size()
-		  +face_cells[4].size()+face_cells[5].size();
+//       int numfaces=face_cells[0].size()+face_cells[1].size()+face_cells[2].size()+face_cells[3].size()
+// 		  +face_cells[4].size()+face_cells[5].size();
       
       int partials[6];
       partials[0]=0;
@@ -493,12 +512,34 @@ void BuckleyDomain::setToIntegrals(std::vector<double>& integrals,const escript:
 
 bool BuckleyDomain::canTag(int functionspacecode) const
 {
-    return false;  
+    switch(functionspacecode) {
+        case ctsfn:
+        case discfn:
+        case red_discfn:
+        case disc_faces:
+        case red_disc_faces:
+            return true;
+	default:
+	    return false;
+    }
 }
 
 int BuckleyDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
-    throw BuckleyException("Not implemented ::getTagFromSampleNo");
+    if ((functionSpaceType==disc_faces) || (functionSpaceType==red_disc_faces))
+    {
+        // now we check which of the faces that sample lies on  
+	// left, right, front, back, bottom, top
+	if (sampleNo<0) return 0;
+	if (sampleNo<face_cells[0].size()) return 1;
+	if (sampleNo<face_cells[1].size()) return 2;
+	if (sampleNo<face_cells[2].size()) return 10;
+	if (sampleNo<face_cells[3].size()) return 20;
+	if (sampleNo<face_cells[4].size()) return 100;
+	if (sampleNo<face_cells[5].size()) return 200;
+	return 0;
+    }
+    throw BuckleyException("FunctionSpace Not supported::getTagFromSampleNo");
 }
 
 
@@ -1279,6 +1320,8 @@ void BuckleyDomain::interpolateElementFromCtsToDisc(const LeafInfo* li, size_t p
 
 
 
+#if 0
+
 #define GETHANGSAMPLE(LEAF, KID, VNAME) const register double* VNAME; if (li->pmap[KID]<2) {\
 VNAME=buffer+buffcounter;\
 if (whichchild<0) {whichchild=LEAF->whichChild();\
@@ -1290,6 +1333,10 @@ for (int k=0;k<numComp;++k)\
 }\
 } else {VNAME=in.getSampleDataRO(li->pmap[KID]-2);}
 
+#endif
+
+
+#if 0
 // Code from Lutz' magic generator
 void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) const
 {
@@ -2184,6 +2231,7 @@ void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& cIn) 
 
 	    
 #undef GETHANGSAMPLE
+#endif
 
 
 
@@ -2320,3 +2368,687 @@ void BuckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg)
 }
 
 #endif
+
+
+
+
+// ------------------------------------------------------------------------------------------------------------
+// Functions copied/adapted from Cihan's Ripley::Brick
+// -------------------------------------------------------------------------------------------------------------
+
+
+#define GETHANGSAMPLE(LEAF, KID, VNAME) const register double* VNAME; if (li->pmap[KID]<2) {\
+VNAME=buffer+buffcounter;\
+if (whichchild<0) {whichchild=LEAF.whichChild();\
+src1=const_cast<escript::Data&>(in).getSampleDataRO(li->pmap[whichchild]-2);}\
+const double* src2=const_cast<escript::Data&>(in).getSampleDataRO(LEAF.parent->kids[KID]->leafinfo->pmap[KID]-2);\
+for (int k=0;k<numComp;++k)\
+{\
+    buffer[buffcounter++]=(src1[k]+src2[k])/2;\
+}\
+} else {VNAME=const_cast<escript::Data&>(in).getSampleDataRO(li->pmap[KID]-2);}
+
+
+//protected
+void BuckleyDomain::setToGradient(escript::Data& out, const escript::Data& in) const
+{
+  
+    // need a whole bunch of sanity checks about stale functionspaces etc
+  
+  
+    const dim_t numComp = in.getDataPointSize();
+
+    const double C0 = .044658198738520451079;
+    const double C1 = .16666666666666666667;
+    const double C2 = .21132486540518711775;
+    const double C3 = .25;
+    const double C4 = .5;
+    const double C5 = .62200846792814621559;
+    const double C6 = .78867513459481288225;
+
+    double* buffer=new double[numComp*8];	// we will never have 8 hanging nodes    
+    out.requireWrite();
+    if (out.getFunctionSpace().getTypeCode() == discfn)
+    {
+      
+      // now we need to walk
+      
+      
+      
+//      escript::DataTypes::ValueType::ValueType vec=(&in.getDataPointRO(0, 0));       
+      int k;	// one day OMP-3 will be default
+// Why isn't this parallelised??
+// well it isn't threadsafe the way it is written
+// up to 8 cells could touch a point and try to write its coords
+// This can be fixed but I haven't done it yet
+//       #pragma omp parallel for private(i) schedule(static)
+
+
+      // this should be inside the omp parallel region
+      double* buffer=new double[numComp*8];	// we will never have 8 hanging nodes   
+      index_t limit=ot.leafCount();
+      for (k=0;k<limit;++k)
+      {
+	  const OctCell& oc=*leaves[k];
+	  const LeafInfo* li=oc.leafinfo;
+	  const double h0 = oc.sides[0];
+	  const double h1 = oc.sides[1];
+	  const double h2 = oc.sides[2];
+	  
+          int buffcounter=0;
+	  const double* src1=0;
+	  int whichchild=-1;	    	  
+
+	  // This mapping links f_xyz to the vertex with those coords on a 1x1x1 cube
+	  GETHANGSAMPLE(oc, 0, f_000)
+	  GETHANGSAMPLE(oc, 4, f_001)
+	  GETHANGSAMPLE(oc, 5, f_101)
+	  GETHANGSAMPLE(oc, 6, f_111)
+	  GETHANGSAMPLE(oc, 2, f_110)
+	  GETHANGSAMPLE(oc, 7, f_011)
+	  GETHANGSAMPLE(oc, 3, f_010)
+	  GETHANGSAMPLE(oc, 1, f_100)
+/*	  
+cout << "f_000: " << f_000[0] << ',' << f_000[1] << f_000[2] << endl;	  
+cout << "f_001: " << f_001[0] << ',' << f_001[1] << f_001[2] << endl;
+cout << "f_010: " << f_010[0] << ',' << f_010[1] << f_010[2] << endl;
+cout << "f_011: " << f_011[0] << ',' << f_011[1] << f_011[2] << endl;
+cout << "f_100: " << f_100[0] << ',' << f_100[1] << f_100[2] << endl;
+cout << "f_101: " << f_101[0] << ',' << f_101[1] << f_101[2] << endl;
+cout << "f_110: " << f_110[0] << ',' << f_110[1] << f_110[2] << endl;
+cout << "f_111: " << f_111[0] << ',' << f_111[1] << f_111[2] << endl;*/
+	  
+	  double* o=out.getSampleDataRW(k);	// a single datapoint to represent the whole cell
+	  
+	  for (index_t i=0; i < numComp; ++i) {
+	      const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+	      const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+	      const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+	      const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+	      const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+	      const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+	      const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+	      const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+	      const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+	      const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+	      const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+	      const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+	      o[INDEX3(i,0,0,numComp,3)] = V0;
+	      o[INDEX3(i,1,0,numComp,3)] = V4;
+	      o[INDEX3(i,2,0,numComp,3)] = V8;
+	      o[INDEX3(i,0,1,numComp,3)] = V0;
+	      o[INDEX3(i,1,1,numComp,3)] = V5;
+	      o[INDEX3(i,2,1,numComp,3)] = V9;
+	      o[INDEX3(i,0,2,numComp,3)] = V1;
+	      o[INDEX3(i,1,2,numComp,3)] = V4;
+	      o[INDEX3(i,2,2,numComp,3)] = V10;
+	      o[INDEX3(i,0,3,numComp,3)] = V1;
+	      o[INDEX3(i,1,3,numComp,3)] = V5;
+	      o[INDEX3(i,2,3,numComp,3)] = V11;
+	      o[INDEX3(i,0,4,numComp,3)] = V2;
+	      o[INDEX3(i,1,4,numComp,3)] = V6;
+	      o[INDEX3(i,2,4,numComp,3)] = V8;
+	      o[INDEX3(i,0,5,numComp,3)] = V2;
+	      o[INDEX3(i,1,5,numComp,3)] = V7;
+	      o[INDEX3(i,2,5,numComp,3)] = V9;
+	      o[INDEX3(i,0,6,numComp,3)] = V3;
+	      o[INDEX3(i,1,6,numComp,3)] = V6;
+	      o[INDEX3(i,2,6,numComp,3)] = V10;
+	      o[INDEX3(i,0,7,numComp,3)] = V3;
+	      o[INDEX3(i,1,7,numComp,3)] = V7;
+	      o[INDEX3(i,2,7,numComp,3)] = V11;
+	  } // end of component loop i	  
+	  
+      }      
+
+    } else if (out.getFunctionSpace().getTypeCode() == red_discfn) {
+      throw BuckleyException("We don't support gradient on that functionspace.");
+      int k;
+// #pragma omp parallel for
+      for (k=0;k<ot.leafCount();++k)
+      {
+
+	  const OctCell& oc=*leaves[k];
+	  const LeafInfo* li=oc.leafinfo;
+	  const double h0 = oc.sides[0]/2;
+	  const double h1 = oc.sides[1]/2;
+	  const double h2 = oc.sides[2]/2;
+	  
+          int buffcounter=0;
+	  const double* src1=0;
+	  int whichchild=-1;	    	  
+	  
+	  GETHANGSAMPLE(oc, 0, f_000)
+	  GETHANGSAMPLE(oc, 4, f_001)
+	  GETHANGSAMPLE(oc, 5, f_101)
+	  GETHANGSAMPLE(oc, 7, f_111)
+	  GETHANGSAMPLE(oc, 3, f_110)
+	  GETHANGSAMPLE(oc, 6, f_011)
+	  GETHANGSAMPLE(oc, 2, f_010)
+	  GETHANGSAMPLE(oc, 1, f_100)
+	  double* o=out.getSampleDataRW(k);	// a single datapoint to represent the whole cell
+	  for (index_t i=0; i < numComp; ++i) {
+	      o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+	      o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+	      o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+	  } // end of component loop i
+      }
+    } else if (out.getFunctionSpace().getTypeCode() == disc_faces) {
+// #pragma omp parallel
+        {
+	  
+	  
+	  
+	    int partials[6];
+	    partials[0]=0;
+	    for (int j=1;j<6;++j)
+	    {
+		partials[j]=partials[j-1]+face_cells[j].size();
+	    }
+	  
+            if (!face_cells[0].empty()) {
+	        index_t limit=face_cells[0].size();
+// #pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[0][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // This order is the same as specified in the original code
+		    // I don't know if my ordering is the same as the one Lutz used to
+		    // generate this
+		    
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 6, f_111)
+		    GETHANGSAMPLE(oc, 2, f_110)
+		    GETHANGSAMPLE(oc, 7, f_011)
+		    GETHANGSAMPLE(oc, 3, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)		    
+		    
+	  
+cout << "f_000: " << f_000[0] << ',' << f_000[1] << f_000[2] << endl;	  
+cout << "f_001: " << f_001[0] << ',' << f_001[1] << f_001[2] << endl;
+cout << "f_010: " << f_010[0] << ',' << f_010[1] << f_010[2] << endl;
+cout << "f_011: " << f_011[0] << ',' << f_011[1] << f_011[2] << endl;
+cout << "f_100: " << f_100[0] << ',' << f_100[1] << f_100[2] << endl;
+cout << "f_101: " << f_101[0] << ',' << f_101[1] << f_101[2] << endl;
+cout << "f_110: " << f_110[0] << ',' << f_110[1] << f_110[2] << endl;
+cout << "f_111: " << f_111[0] << ',' << f_111[1] << f_111[2] << endl;		    
+		    
+		    
+		    
+		    
+		    double* o=out.getSampleDataRW(partials[0]+k);
+		    for (index_t i=0; i < numComp; ++i) {
+			const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / h1;
+			const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / h1;
+			const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / h2;
+			const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / h2;
+			o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+			o[INDEX3(i,1,0,numComp,3)] = V0;
+			o[INDEX3(i,2,0,numComp,3)] = V2;
+			o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+			o[INDEX3(i,1,1,numComp,3)] = V0;
+			o[INDEX3(i,2,1,numComp,3)] = V3;
+			o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+			o[INDEX3(i,1,2,numComp,3)] = V1;
+			o[INDEX3(i,2,2,numComp,3)] = V2;
+			o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+			o[INDEX3(i,1,3,numComp,3)] = V1;
+			o[INDEX3(i,2,3,numComp,3)] = V3;
+		    } // end of component loop i
+                } // end of k loop
+            } // end of face 0
+            if (!face_cells[1].empty()) {
+		// This is the bottom face
+	        index_t limit=face_cells[1].size();		
+#pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[1][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // The following node ordering does not take into account the face we are looking at
+		    // and so is wrong
+		    // I'm just doing this so I can get the code to the point of testing
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 7, f_111)
+		    GETHANGSAMPLE(oc, 3, f_110)
+		    GETHANGSAMPLE(oc, 6, f_011)
+		    GETHANGSAMPLE(oc, 2, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)			    
+		    
+
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
+		    double* o=out.getSampleDataRW(partials[1]+k);
+// 		    double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+		    for (index_t i=0; i < numComp; ++i) {
+			const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
+			const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
+			const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
+			const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
+			o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+			o[INDEX3(i,1,0,numComp,3)] = V0;
+			o[INDEX3(i,2,0,numComp,3)] = V2;
+			o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+			o[INDEX3(i,1,1,numComp,3)] = V0;
+			o[INDEX3(i,2,1,numComp,3)] = V3;
+			o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+			o[INDEX3(i,1,2,numComp,3)] = V1;
+			o[INDEX3(i,2,2,numComp,3)] = V2;
+			o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+			o[INDEX3(i,1,3,numComp,3)] = V1;
+			o[INDEX3(i,2,3,numComp,3)] = V3;
+		    } // end of component loop i
+		}
+            } // end of face 1
+            if (!face_cells[2].empty()) {
+	        index_t limit=face_cells[2].size();	      
+#pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[2][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // The following node ordering does not take into account the face we are looking at
+		    // and so is wrong
+		    // I'm just doing this so I can get the code to the point of testing
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 7, f_111)
+		    GETHANGSAMPLE(oc, 3, f_110)
+		    GETHANGSAMPLE(oc, 6, f_011)
+		    GETHANGSAMPLE(oc, 2, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)
+		    double* o=out.getSampleDataRW(partials[2]+k);
+
+/*                        const double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
+                        const double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
+                        const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
+                        const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
+                        const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
+                        const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
+                        const double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
+                        const double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));*/
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / h0;
+                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / h2;
+                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = V1;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,1,numComp,3)] = V2;
+                            o[INDEX3(i,0,2,numComp,3)] = V0;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,2,numComp,3)] = V1;
+                            o[INDEX3(i,0,3,numComp,3)] = V0;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,3,numComp,3)] = V2;
+                        } // end of component loop i
+                    } // end of k0 loop
+            } // end of face 2
+            if (!face_cells[3].empty()) {
+	      	index_t limit=face_cells[3].size();	      
+#pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[3][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // The following node ordering does not take into account the face we are looking at
+		    // and so is wrong
+		    // I'm just doing this so I can get the code to the point of testing
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 7, f_111)
+		    GETHANGSAMPLE(oc, 3, f_110)
+		    GETHANGSAMPLE(oc, 6, f_011)
+		    GETHANGSAMPLE(oc, 2, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)
+		    double* o=out.getSampleDataRW(partials[3]+k);
+
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
+                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
+                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
+                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,0,numComp,3)] = V2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,1,numComp,3)] = V3;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,2,2,numComp,3)] = V2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,2,3,numComp,3)] = V3;
+                        } // end of component loop i
+		}
+            } // end of face 3
+            if (!face_cells[4].empty()) {
+	      	index_t limit=face_cells[4].size();	      
+#pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[4][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // The following node ordering does not take into account the face we are looking at
+		    // and so is wrong
+		    // I'm just doing this so I can get the code to the point of testing
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 7, f_111)
+		    GETHANGSAMPLE(oc, 3, f_110)
+		    GETHANGSAMPLE(oc, 6, f_011)
+		    GETHANGSAMPLE(oc, 2, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)
+		    double* o=out.getSampleDataRW(partials[4]+k);	      
+
+/*                        const double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
+                        const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
+                        const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
+                        const double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
+                        const double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
+                        const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
+                        const double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
+                        const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));*/
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / h0;
+                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / h0;
+                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / h1;
+                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / h1;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = V2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = V3;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = V2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = V3;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        } // end of component loop i
+		}
+            } // end of face 4
+            if (!face_cells[5].empty()) {
+	      	index_t limit=face_cells[5].size();	      
+#pragma omp for nowait
+		for (index_t k=0; k<limit;++k) {
+		    const OctCell& oc=*(face_cells[5][k]);
+		    const LeafInfo* li=oc.leafinfo;
+		    const double h0 = oc.sides[0];
+		    const double h1 = oc.sides[1];
+		    const double h2 = oc.sides[2];
+		    
+		    int buffcounter=0;
+		    const double* src1=0;
+		    int whichchild=-1;	    			    
+		    
+		    // The following node ordering does not take into account the face we are looking at
+		    // and so is wrong
+		    // I'm just doing this so I can get the code to the point of testing
+		    GETHANGSAMPLE(oc, 0, f_000)
+		    GETHANGSAMPLE(oc, 4, f_001)
+		    GETHANGSAMPLE(oc, 5, f_101)
+		    GETHANGSAMPLE(oc, 7, f_111)
+		    GETHANGSAMPLE(oc, 3, f_110)
+		    GETHANGSAMPLE(oc, 6, f_011)
+		    GETHANGSAMPLE(oc, 2, f_010)
+		    GETHANGSAMPLE(oc, 1, f_100)
+		    double* o=out.getSampleDataRW(partials[5]+k);	      
+
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+                        for (index_t i=0; i < numComp; ++i) {
+                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
+                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
+                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
+                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
+                            o[INDEX3(i,0,0,numComp,3)] = V0;
+                            o[INDEX3(i,1,0,numComp,3)] = V2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,0,1,numComp,3)] = V0;
+                            o[INDEX3(i,1,1,numComp,3)] = V3;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,2,numComp,3)] = V1;
+                            o[INDEX3(i,1,2,numComp,3)] = V2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,0,3,numComp,3)] = V1;
+                            o[INDEX3(i,1,3,numComp,3)] = V3;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                        } // end of component loop i
+		}
+            } // end of face 5
+        } // end of parallel section
+    } else if (out.getFunctionSpace().getTypeCode() == red_disc_faces) {
+throw BuckleyException("Reduced face elements are not supported");
+// // #pragma omp parallel
+//          {
+//             if (!face_cells[0].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k2=0; k2 < m_NE2; ++k2) {
+//                     for (index_t k1=0; k1 < m_NE1; ++k1) {
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(0,k1,k2, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(0,k1,k2+1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(1,k1,k2+1, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(1,k1,k2, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(1,k1+1,k2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(0,k1+1,k2, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE1));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / h2;
+//                         } // end of component loop i
+//                     } // end of k1 loop
+//                 } // end of k2 loop
+//             } // end of face 0
+//             if (!face_cells[1].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k2=0; k2 < m_NE2; ++k2) {
+//                     for (index_t k1=0; k1 < m_NE1; ++k1) {
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(m_N0-2,k1,k2+1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2+1, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2+1, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(m_N0-1,k1,k2, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(m_N0-2,k1+1,k2, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(m_N0-1,k1+1,k2+1, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE1));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / h2;
+//                         } // end of component loop i
+//                     } // end of k1 loop
+//                 } // end of k2 loop
+//             } // end of face 1
+//             if (!face_cells[2].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k2=0; k2 < m_NE2; ++k2) {
+//                     for (index_t k0=0; k0 < m_NE0; ++k0) {
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,0,k2, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,0,k2+1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,0,k2, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,1,k2+1, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,1,k2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,1,k2, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE0));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / h2;
+//                         } // end of component loop i
+//                     } // end of k0 loop
+//                 } // end of k2 loop
+//             } // end of face 2
+//             if (!face_cells[3].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k2=0; k2 < m_NE2; ++k2) {
+//                     for (index_t k0=0; k0 < m_NE0; ++k0) {
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2+1, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,m_N1-1,k2, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,m_N1-1,k2+1, m_N0,m_N1));
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2+1, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,m_N1-2,k2+1, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,m_N1-2,k2, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE0));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / h2;
+//                         } // end of component loop i
+//                     } // end of k0 loop
+//                 } // end of k2 loop
+//             } // end of face 3
+//             if (!face_cells[4].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k1=0; k1 < m_NE1; ++k1) {
+//                     for (index_t k0=0; k0 < m_NE0; ++k0) {
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,0, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,0, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,0, m_N0,m_N1));
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,1, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,1, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE0));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / h2;
+//                         } // end of component loop i
+//                     } // end of k0 loop
+//                 } // end of k1 loop
+//             } // end of face 4
+//             if (!face_cells[5].empty()) {
+// #pragma omp for nowait
+//                 for (index_t k1=0; k1 < m_NE1; ++k1) {
+//                     for (index_t k0=0; k0 < m_NE0; ++k0) {
+//                         const double* f_001 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-1, m_N0,m_N1));
+//                         const double* f_101 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-1, m_N0,m_N1));
+//                         const double* f_011 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-1, m_N0,m_N1));
+//                         const double* f_111 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-1, m_N0,m_N1));
+//                         const double* f_000 = in.getSampleDataRO(INDEX3(k0,k1,m_N2-2, m_N0,m_N1));
+//                         const double* f_100 = in.getSampleDataRO(INDEX3(k0+1,k1,m_N2-2, m_N0,m_N1));
+//                         const double* f_110 = in.getSampleDataRO(INDEX3(k0+1,k1+1,m_N2-2, m_N0,m_N1));
+//                         const double* f_010 = in.getSampleDataRO(INDEX3(k0,k1+1,m_N2-2, m_N0,m_N1));
+//                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE0));
+//                         for (index_t i=0; i < numComp; ++i) {
+//                             o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / h0;
+//                             o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / h1;
+//                             o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+//                         } // end of component loop i
+//                     } // end of k0 loop
+//                 } // end of k1 loop
+//             } // end of face 5
+//         } // end of parallel section
+    }
+}
+
+const int* BuckleyDomain::borrowListOfTagsInUse(int fsType) const
+{
+    static int bricktags[6]={1, 2, 10, 20, 100, 200};    //  left,right,front, back, bottom,top
+    switch(fsType)
+    {
+        case disc_faces:  
+	case red_disc_faces:  return bricktags;
+	default: 
+	{
+            stringstream msg;
+            msg << "borrowListOfTagsInUse: invalid function space type "
+                << fsType;
+            throw BuckleyException(msg.str());
+	}
+    }
+}
+
+int BuckleyDomain::getNumberOfTagsInUse(int functionSpaceCode) const
+{
+    switch(functionSpaceCode)
+    {
+        case disc_faces:  
+	case red_disc_faces:  return 6;
+	default: 
+	    return 0;
+    }
+}
+
+
