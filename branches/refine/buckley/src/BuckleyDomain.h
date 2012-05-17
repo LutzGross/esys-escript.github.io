@@ -158,8 +158,10 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
   virtual escript::Data getX() const;
   
   BUCKLEY_DLL_API
-  virtual void setToX(escript::Data& arg) const  ;
+  virtual void setToX(escript::Data& arg) const;
   
+  BUCKLEY_DLL_API
+  void setToNormal(escript::Data& out) const;
   
   BUCKLEY_DLL_API
   virtual int getDim() const
@@ -372,7 +374,7 @@ class BuckleyDomain : public escript::AbstractContinuousDomain
     unsigned m_generation;
     
     // may need to switch this to something NUMA friendly?
-    mutable std::vector<const OctCell*> face_cells[6];	  // left, right, front, back, bottom, top 
+    mutable std::vector<const OctCell*> face_cells[6];	  // right, left, front, back, top, bottom 
     Esys_MPIInfo *m_mpiInfo;
 
     

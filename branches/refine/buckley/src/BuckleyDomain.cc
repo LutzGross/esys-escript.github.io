@@ -308,9 +308,6 @@ void BuckleyDomain::setToX(escript::Data& arg) const
       // This is actually simpler because there is no overlap between different leaves
       escript::DataTypes::ValueType::ValueType vec=(&arg.getDataPointRW(0, 0));
       
-//       int numfaces=face_cells[0].size()+face_cells[1].size()+face_cells[2].size()+face_cells[3].size()
-// 		  +face_cells[4].size()+face_cells[5].size();
-      
       int partials[6];
       partials[0]=0;
       for (int i=1;i<6;++i)
@@ -320,11 +317,9 @@ void BuckleyDomain::setToX(escript::Data& arg) const
       
       double bb[6];
       ot.getBB(bb);
-      
       int f, i;	// one day OMP-3 will be default
-      for (f=0;f<6;++f)
+      for (f=0;f<6;++f)			// 
       {
-
 	  int c_tosnap;
 	  double snapvalue;
 	  int fps[4];
@@ -345,33 +340,34 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 		     fps[3]=7;		     
 		     break;
 	    case 2:  c_tosnap=1;
+		     snapvalue=bb[4];
+		     fps[0]=0;
+		     fps[1]=1;
+		     fps[2]=5;
+		     fps[3]=4;		     
+		     break;		     
+	    case 3:  c_tosnap=1;
 		     snapvalue=bb[1];
 		     fps[0]=2;
 		     fps[1]=3;
 		     fps[2]=7;
 		     fps[3]=6;		     
 		     break;
-	    case 3:  c_tosnap=1;
-		     snapvalue=bb[4];
-		     fps[0]=0;
-		     fps[1]=1;
-		     fps[2]=5;
-		     fps[3]=4;		     
-		     break;
 	    case 4:  c_tosnap=2;
-		     snapvalue=bb[2];
-		     fps[0]=4;
-		     fps[1]=5;
-		     fps[2]=6;
-		     fps[3]=7;		     
-		     break;
-	    case 5:  c_tosnap=2;
 		     snapvalue=bb[5];
 		     fps[0]=3;
 		     fps[1]=2;
 		     fps[2]=1;
 		     fps[3]=0;		     
 		     break;
+	    case 5:  c_tosnap=2;
+		     snapvalue=bb[2];
+		     fps[0]=4;
+		     fps[1]=5;
+		     fps[2]=6;
+		     fps[3]=7;		     
+		     break;
+		     
 	  }	  
           #pragma omp parallel for private(i) schedule(static)
 	  for (i=0;i<face_cells[f].size();++i)
@@ -381,6 +377,7 @@ void BuckleyDomain::setToX(escript::Data& arg) const
 	      for (unsigned int j=0;j<4;++j)
 	      {
 		  oc.quadCoords(fps[j], coords[0], coords[1], coords[2]);
+		  
 		  coords[c_tosnap]=snapvalue;
 		  vec[(i+partials[f])*NUM_FACEQUAD*3+3*j]=coords[0];
 	          vec[(i+partials[f])*NUM_FACEQUAD*3+3*j+1]=coords[1];
@@ -532,20 +529,20 @@ int BuckleyDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
     if ((functionSpaceType==disc_faces) || (functionSpaceType==red_disc_faces))
     {
         // now we check which of the faces that sample lies on  
-	// left, right, front, back, bottom, top
+        // the wacky order here is to match the standard tags
 	if (sampleNo<0) return 0;
 	int bound=face_cells[0].size();
-	if (sampleNo<bound) return 2;
+	if (sampleNo<bound) return 2;	// right
 	bound+=face_cells[1].size();
-	if (sampleNo<bound) return 1;
+	if (sampleNo<bound) return 1;	//left
 	bound+=face_cells[2].size();
-	if (sampleNo<bound) return 20;
+	if (sampleNo<bound) return 10;  // front
 	bound+=face_cells[3].size();
-	if (sampleNo<bound) return 10;
+	if (sampleNo<bound) return 20;  // back
 	bound+=face_cells[4].size();
-	if (sampleNo<bound) return 100;
+	if (sampleNo<bound) return 200; // bottom
 	bound+=face_cells[5].size();
-	if (sampleNo<bound) return 200;
+	if (sampleNo<bound) return 100; // top
 	return 0;
     }
     throw BuckleyException("FunctionSpace Not supported::getTagFromSampleNo");
@@ -3060,4 +3057,92 @@ int BuckleyDomain::getNumberOfTagsInUse(int functionSpaceCode) const
     }
 }
 
+void BuckleyDomain::setToNormal(escript::Data& out) const
+{
+    if (out.getFunctionSpace().getTypeCode() == disc_faces) {
+        out.requireWrite();
+	
+      // This is actually simpler because there is no overlap between different leaves
+      escript::DataTypes::ValueType::ValueType vec=(&out.getDataPointRW(0, 0));
+      
+      int partials[6];
+      partials[0]=0;
+      for (int i=1;i<6;++i)
+      {
+	  partials[i]=partials[i-1]+face_cells[i].size();
+      }	
+	
+	
+	
+#pragma omp parallel
+        {
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[0].size();++i)	// right
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {
+		vec[(i*NUM_FACEQUAD+j)*3]=1;
+		vec[(i*NUM_FACEQUAD+j)*3+1]=0;
+		vec[(i*NUM_FACEQUAD+j)*3+2]=0;
+	      }
+	    }	        
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[1].size();++i)	// left
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {
+		vec[((i+partials[1])*NUM_FACEQUAD+j)*3]=-1;
+		vec[((i+partials[1])*NUM_FACEQUAD+j)*3+1]=0;
+		vec[((i+partials[1])*NUM_FACEQUAD+j)*3+2]=0;
+	      }
+	    }	 	        
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[2].size();++i)	// front
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {
+		vec[((i+partials[2])*NUM_FACEQUAD+j)*3]=0;
+		vec[((i+partials[2])*NUM_FACEQUAD+j)*3+1]=1;
+		vec[((i+partials[2])*NUM_FACEQUAD+j)*3+2]=0;
+	      }
+	    }	 	        
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[3].size();++i)	// back
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {	      
+		vec[((i+partials[3])*NUM_FACEQUAD+j)*3]=0;
+		vec[((i+partials[3])*NUM_FACEQUAD+j)*3+1]=-1;
+		vec[((i+partials[3])*NUM_FACEQUAD+j)*3+2]=0;
+	      }
+	    }	 	        
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[4].size();++i)	// top
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {
+		vec[((i+partials[4])*NUM_FACEQUAD+j)*3]=0;
+		vec[((i+partials[4])*NUM_FACEQUAD+j)*3+1]=0;
+		vec[((i+partials[4])*NUM_FACEQUAD+j)*3+2]=1;
+	      }
+	    }		        
+#pragma omp for nowait	  
+	    for (index_t i=0;i<face_cells[5].size();++i)	// bottom
+	    {
+	      for (int j=0;j<NUM_FACEQUAD;++j)
+	      {
+              vec[((i+partials[5])*NUM_FACEQUAD+j)*3]=0;
+	      vec[((i+partials[5])*NUM_FACEQUAD+j)*3+1]=0;
+	      vec[((i+partials[5])*NUM_FACEQUAD+j)*3+2]=-1;
+	      }
+	    }		   	        
+
+        } // end of parallel section
+    } else {
+        stringstream msg;
+        msg << "setToNormal: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
+        throw BuckleyException(msg.str());
+    }
+}
 
