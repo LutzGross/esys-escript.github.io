@@ -524,6 +524,9 @@ bool BuckleyDomain::canTag(int functionspacecode) const
     }
 }
 
+// Note that Buckley uses the order +x, -x, +y, -y, +z, -z
+// for everything whereas the standard tags(in numeric order) are 
+// left, right, front, back ,bottom, top  === -x, +x, +y, -y, -z, +z
 int BuckleyDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
     if ((functionSpaceType==disc_faces) || (functionSpaceType==red_disc_faces))
@@ -531,12 +534,18 @@ int BuckleyDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
         // now we check which of the faces that sample lies on  
 	// left, right, front, back, bottom, top
 	if (sampleNo<0) return 0;
-	if (sampleNo<face_cells[0].size()) return 1;
-	if (sampleNo<face_cells[1].size()) return 2;
-	if (sampleNo<face_cells[2].size()) return 10;
-	if (sampleNo<face_cells[3].size()) return 20;
-	if (sampleNo<face_cells[4].size()) return 100;
-	if (sampleNo<face_cells[5].size()) return 200;
+	int bound=face_cells[0].size();
+	if (sampleNo<bound) return 2;
+	bound+=face_cells[1].size();
+	if (sampleNo<bound) return 1;
+	bound+=face_cells[2].size();
+	if (sampleNo<bound) return 20;
+	bound+=face_cells[3].size();
+	if (sampleNo<bound) return 10;
+	bound+=face_cells[4].size();
+	if (sampleNo<bound) return 100;
+	bound+=face_cells[5].size();
+	if (sampleNo<bound) return 200;
 	return 0;
     }
     throw BuckleyException("FunctionSpace Not supported::getTagFromSampleNo");
