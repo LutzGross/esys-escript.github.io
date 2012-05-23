@@ -25,7 +25,7 @@ from esys.finley import Rectangle
 from esys.weipa import saveVTK
 from esys.escript.models import StokesProblemCartesian
 NE=25
-dom = Rectangle(NE,NE,order=-1)  # use macro elements for pressure
+dom = Rectangle(NE,NE,order=-1, useElementsOnFace=0)  # use macro elements for pressure
 x = dom.getX()
 sc=StokesProblemCartesian(dom)
 mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1] 

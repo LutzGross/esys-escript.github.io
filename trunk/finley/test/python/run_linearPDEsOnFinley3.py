@@ -58,14 +58,14 @@ class Test_LameOnFinley(Test_LameEquation):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0, useFullElementOrder=True)
    def tearDown(self):
         del self.domain
 class Test_PoissonOnFinley(Test_Poisson):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0,useFullElementOrder=True)
    def tearDown(self):
         del self.domain
 
@@ -73,7 +73,7 @@ class Test_HelmholtzOnFinley(Test_Helmholtz):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,2,useFullElementOrder=True)
+        self.domain = Rectangle(NE,NE,2,useElementsOnFace=0,useFullElementOrder=True)
    def tearDown(self):
         del self.domain
 
