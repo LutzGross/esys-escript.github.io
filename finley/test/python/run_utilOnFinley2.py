@@ -98,7 +98,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_no
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Rectangle(n0=NE,n1=NE,order=1)
+        self.domain = Rectangle(n0=NE,n1=NE,order=1,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -106,7 +106,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
-        self.domain = Rectangle(n0=NE,n1=NE,order=2)
+        self.domain = Rectangle(n0=NE,n1=NE,order=2,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -114,7 +114,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Rectangle(n0=NE,n1=NE,order=-1)
+        self.domain = Rectangle(n0=NE,n1=NE,order=-1,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -122,7 +122,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_no
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=1)
+        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=1,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -130,7 +130,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=2)
+        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=2,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -138,7 +138,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_n
 class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=-1)
+        self.domain = Brick(n0=NE,n1=NE,n2=NE,order=-1,useElementsOnFace=0)
     def tearDown(self):
         del self.order
         del self.domain
@@ -146,8 +146,8 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_no
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
-        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1)
+        d1 = Rectangle(n0=NE/2+1,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
@@ -157,8 +157,8 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_Spatial
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
-        d1 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
-        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2)
+        d1 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d2 = Rectangle(n0=NE/2,n1=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
@@ -168,8 +168,8 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_Spatial
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1)
+        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
+        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=1,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):
@@ -179,8 +179,8 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_Spatial
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
-        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2)
-        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2)
+        d1 = Brick(n0=NE/2+1,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
+        d2 = Brick(n0=NE/2,n1=NE,n2=NE,l0=0.5,order=2,useElementsOnFace=0)
         d2.setX(d2.getX()+[0.5,0.,0.])
         self.domain = JoinFaces([d1,d2],optimize=False)
     def tearDown(self):

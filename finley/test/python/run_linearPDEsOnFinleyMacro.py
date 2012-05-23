@@ -58,7 +58,7 @@ class Test_LinearPDEOnFinleyHex2DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Rectangle(NE,NE,-1)
+        self.domain = Rectangle(NE,NE,-1,useElementsOnFace=0)
         self.order = 1
    def tearDown(self):
         del self.domain
@@ -67,7 +67,7 @@ class Test_LinearPDEOnFinleyHex3DMacro(Test_LinearPDE,Test_pdetools,Test_assembl
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
    def setUp(self):
-        self.domain = Brick(NE,NE,NE,-1)
+        self.domain = Brick(NE,NE,NE,-1,useElementsOnFace=0)
         self.order = 1
    def tearDown(self):
         del self.domain

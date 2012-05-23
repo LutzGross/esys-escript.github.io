@@ -24,7 +24,7 @@ from .finleycpp import __Brick_driver, __Rectangle_driver
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1, 
-      reducedIntegrationOrder=-1, useElementsOnFace=0, useFullElementOrder=0, optimize=0, **kwargs):
+      reducedIntegrationOrder=-1, useElementsOnFace=1, useFullElementOrder=0, optimize=0, **kwargs):
     points=[]
     tags=[]
     if 'diracPoints' in kwargs:
@@ -35,7 +35,7 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
       reducedIntegrationOrder, useElementsOnFace, useFullElementOrder, optimize, points, tags])
 
 def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, periodic1=0, periodic2=0,
-    integrationOrder=-1, reducedIntegrationOrder=-1, useElementsOnFace=0, useFullElementOrder=0,
+    integrationOrder=-1, reducedIntegrationOrder=-1, useElementsOnFace=1, useFullElementOrder=0,
     optimize=0, **kwargs):
     points=[]
     tags=[]
