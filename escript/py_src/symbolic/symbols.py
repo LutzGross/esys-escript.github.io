@@ -197,8 +197,11 @@ class Symbol(object):
     def __iter__(self):
         return self._arr.__iter__
 
-    def __array__(self):
-        return self._arr
+    def __array__(self, t=None):
+        if t:
+            return self._arr.astype(t)
+        else:
+            return self._arr
 
     def _sympy_(self):
         """
