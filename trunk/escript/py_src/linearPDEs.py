@@ -497,6 +497,8 @@ class SolverOptions(object):
                                     SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU, SolverOptions.BOOMERAMG,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError("unknown preconditioner %s"%preconditioner)
+	if preconditioner==SolverOptions.AMG and escript.getEscriptParamInt('DISABLE_AMG',0):
+	     raise ValueError("AMG preconditioner is not supported in MPI builds")
         self.__preconditioner=preconditioner    
     def getPreconditioner(self):
         """
