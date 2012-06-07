@@ -28,7 +28,7 @@ Test suite for linearPDEs class
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt
 from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
 import unittest
@@ -838,8 +838,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(so.getPreconditioner() == 9, "ILUT is not set.")
         so.setPreconditioner(so.JACOBI)
         self.assertTrue(so.getPreconditioner() == 10, "JACOBI is not set.")
-        so.setPreconditioner(so.AMG)
-        self.assertTrue(so.getPreconditioner() == 22, "AMG is not set.")
+        if getEscriptParamInt('DISABLE_AMG', 0):
+	    print("AMG test disabled on MPI build")
+	else:
+            so.setPreconditioner(so.AMG)
+            self.assertTrue(so.getPreconditioner() == 22, "AMG is not set.")
         so.setPreconditioner(so.REC_ILU)
         self.assertTrue(so.getPreconditioner() == 23, "REC_ILU is not set.")
         so.setPreconditioner(so.GAUSS_SEIDEL)
@@ -1623,6 +1626,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
@@ -1679,6 +1685,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1728,6 +1737,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG',0):
+                print("AMG test disabled on MPI build")
+                return                
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1777,6 +1789,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
             mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
@@ -1826,6 +1841,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
@@ -1877,6 +1895,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -1930,6 +1951,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -1983,6 +2007,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             mypde=LinearPDE(self.domain,debug=self.DEBUG)
             mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
             mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
@@ -2084,6 +2111,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2159,6 +2189,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2220,6 +2253,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2283,6 +2319,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG',0):
+                print("AMG test disabled on MPI build")
+                return   	  
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2346,6 +2385,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
@@ -2411,6 +2453,9 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_AMG_System(self):
         if self.order!=2:
+            if getEscriptParamInt('DISABLE_AMG', 0):
+                print("AMG test disabled on MPI build")
+                return 	  
             A=Tensor4(0.,Function(self.domain))
             D=Tensor(1.,Function(self.domain))
             Y=Vector(self.domain.getDim(),Function(self.domain))
