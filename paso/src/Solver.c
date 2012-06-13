@@ -198,6 +198,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
 
                     /*     Set initial residual. */
 		    if (totIter>1) Paso_SystemMatrix_applyBalance(A, r, b, TRUE); /* in the first iteration r = balance * b already */
+
 		    
                     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
                     

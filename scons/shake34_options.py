@@ -77,7 +77,7 @@ escript_opts_version = 201
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = True
+#debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False

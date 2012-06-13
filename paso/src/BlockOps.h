@@ -93,7 +93,7 @@ register double A33=*(MAT+8);\
 #endif
 
 #ifdef USE_LAPACK
-      #define Paso_BlockOps_MV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, 1., _MAT_, _N_, _V_, 1, (0.), _R_, 1)  
+     #define Paso_BlockOps_MV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, 1., _MAT_, _N_, _V_, 1, (0.), _R_, 1)  
    #else
       #define Paso_BlockOps_MV_N(N, R, MAT, V)   PASO_MISSING_CLAPACK 
 #endif
