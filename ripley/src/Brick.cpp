@@ -1765,7 +1765,7 @@ void Brick::createPattern()
                         offsetInShared.push_back(offsetInShared.back()+nDOF0);
                         const int firstDOF=(i1+1)/2*nDOF0*(nDOF1-1)
                                            +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int firstNode=(i1+1)/2*m_N0*(m_N1-1)
+                        const int firstNode=left+(i1+1)/2*m_N0*(m_N1-1)
                                             +(i2+1)/2*m_N0*m_N1*(m_N2-1);
                         for (dim_t i=0; i<nDOF0; i++, numShared++) {
                             sendShared.push_back(firstDOF+i);
@@ -1782,7 +1782,8 @@ void Brick::createPattern()
                         offsetInShared.push_back(offsetInShared.back()+nDOF1);
                         const int firstDOF=(i0+1)/2*(nDOF0-1)
                                            +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int firstNode=(i0+1)/2*(m_N0-1)
+                        const int firstNode=bottom*m_N0
+                                            +(i0+1)/2*(m_N0-1)
                                             +(i2+1)/2*m_N0*m_N1*(m_N2-1);
                         for (dim_t i=0; i<nDOF1; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0);
@@ -1799,7 +1800,8 @@ void Brick::createPattern()
                         offsetInShared.push_back(offsetInShared.back()+nDOF2);
                         const int firstDOF=(i0+1)/2*(nDOF0-1)
                                            +(i1+1)/2*nDOF0*(nDOF1-1);
-                        const int firstNode=(i0+1)/2*(m_N0-1)
+                        const int firstNode=front*m_N0*m_N1
+                                            +(i0+1)/2*(m_N0-1)
                                             +(i1+1)/2*m_N0*(m_N1-1);
                         for (dim_t i=0; i<nDOF2; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
