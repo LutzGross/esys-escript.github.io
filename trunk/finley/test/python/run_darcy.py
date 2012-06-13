@@ -356,7 +356,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Darcy3D_SMOOTH))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_POST))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_EVAL))
-   #suite.addTest(Test_Darcy2D_SMOOTH("testConstF_FreeBottom_largeK"))
+   #suite.addTest(Test_Darcy2D_POST("testConstF_FixedBottom_largeK"))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
