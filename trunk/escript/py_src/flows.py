@@ -149,7 +149,8 @@ class DarcyFlow(object):
            self.__pde_p.setValue(q=self.location_of_fixed_pressure)
       if location_of_fixed_flux!=None: 
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
-          if not self.__pde_v == None: self.__pde_v.setValue(q=self.location_of_fixed_flux)
+          if not self.__pde_v == None: 
+              self.__pde_v.setValue(q=self.location_of_fixed_flux)
 			
       if permeability!=None:
 	
@@ -192,7 +193,7 @@ class DarcyFlow(object):
         else:
              if not g.getShape()==(self.domain.getDim(),): raise ValueError("illegal shape of g")
         self.__g=g 
-        self.__permeability_invXg=util.tensor_mult(self.__permeability_inv,self.__g * (1./self.perm_scale ))
+        self.__permeability_invXg=util.tensor_mult(self.__permeability_inv,self.__g * (1./self.perm_scale )) 
         self.__permeability_invXg_ref=util.integrate(self.__permeability_invXg)/util.vol(self.domain) 
       if f !=None:
          f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
@@ -303,12 +304,13 @@ class DarcyFlow(object):
            u = self.__g - util.tensor_mult(self.__permeability, self.perm_scale * (util.grad(pp) + self.__permeability_invXg_ref))
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
             self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
+            print 
             if u0 == None:
                self.__pde_v.setValue(r=escript.Data())
             else:
                if not isinstance(u0, escript.Data) : u0 = escript.Vector(u0, escript.Solution(self.domain))
                self.__pde_v.setValue(r=1./self.perm_scale * u0)
-               u= self.__pde_v.getSolution() * self.perm_scale
+            u= self.__pde_v.getSolution() * self.perm_scale
         return u
 	  
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):
