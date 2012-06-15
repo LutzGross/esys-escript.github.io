@@ -34,7 +34,7 @@ Test suite for input and output of meshes and data objects
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh
+from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -160,6 +160,14 @@ class InputOutput(unittest.TestCase):
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
           self.domainsEqual(mydomain1, mydomain2)
+          
+     def test_GetMeshFromFile(self):
+        if getMPISizeWorld() <2:
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3)
+           del m
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH, 'tet10.fly'))
+           # now we try some params
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3, integrationOrder=2)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

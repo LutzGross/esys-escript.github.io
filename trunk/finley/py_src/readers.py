@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 ########################################################
 #
@@ -32,7 +33,7 @@ some mesh handling
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.pycad.gmsh import Design as GMSHDesign
-from .finleycpp import ReadGmsh
+from .finleycpp import ReadGmsh, ReadMesh, LoadMesh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """
@@ -71,3 +72,34 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     design.getTagMap().passToDomain(dom)
     return dom
 
+def GetMeshFromFile(filename, **kwargs):
+    """
+    Reads a mesh from a file, determines the reader to use based on the file
+    extension. All cases require a filename and gmsh files require a number
+    of dimensions (it doesn't hurt to pass this in all the time). Other
+    keyword args come from the underlying reader functions.
+    """
+    spl=filename.split('.')
+    ext=spl[len(spl)-1]
+    # extract possible params
+    integrationOrder=-1
+    if kwargs.has_key("integrationOrder"):
+        integrationOrder=kwargs["integrationOrder"]
+    reducedIntegrationOrder=-1
+    if kwargs.has_key("reducedIntegrationOrder"):
+        integrationOrder=kwargs["reducedIntegrationOrder"]
+    optimize=True  
+    if kwargs.has_key("optimize"):
+        integrationOrder=kwargs["optimize"]
+    useMacroElements=False
+    if kwargs.has_key("useMacroElements"):
+        integrationOrder=kwargs["useMacroElements"]
+    if ext=="fly":
+        return ReadMesh(filename, integrationOrder, reducedIntegrationOrder, optimize)
+    elif ext=="msh":
+        if not kwargs.has_key("numDim"):
+	    raise ValueError("The numDim argument is required in order to read .msh files.")
+        return ReadGmsh(filename, kwargs['numDim'], integrationOrder, reducedIntegrationOrder, optimize, useMacroElements)
+    else:
+#        return LoadMesh(filename)
+        raise ValueError("Unsupported extension .%s"%ext)
