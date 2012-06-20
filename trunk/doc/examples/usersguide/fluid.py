@@ -76,7 +76,8 @@ while t <= t_end:
   #displace the mesh
   displacement = velocity * dt
   coordinates = mesh.getX()
-  mesh.setX(coordinates + displacement)  
+  newx=interpolate(coordinates + displacement, ContinuousFunction(mesh))
+  mesh.setX(newx)  
   
   time += dt
   
