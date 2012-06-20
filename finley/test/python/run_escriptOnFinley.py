@@ -53,6 +53,16 @@ class Test_DomainOnFinley(Test_Domain):
    def tearDown(self):
        del self.domain
        del self.boundary_tag_list 
+       
+       
+   def test_setXError(self):
+       domain=Rectangle(NE,NE)
+       x=domain.getX()       
+       z=interpolate(x, Function(domain))
+       self.assertRaises(RuntimeError, domain.setX, z)
+       del x
+       del z
+       del domain
 
    def test_tagsContinuousFunction(self):
        ref_tags=[0]

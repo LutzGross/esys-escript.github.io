@@ -68,7 +68,7 @@ mkDir(save_path)
 domain = Brick(l0=mx,l1=my,n0=ndx, n1=ndy,l2=mz,n2=ndz)
 x=Solution(domain).getX()
 x=x-[mx/2,my/2,mz/2]
-domain.setX(x)
+domain.setX(interpolate(x, ContinuousFunction(domain)))
 mask=wherePositive(100-length(x-rholoc))
 rho=rho*mask
 kro=kronecker(domain)

@@ -1512,9 +1512,10 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
        tmp = new_x.getDataC();
        Finley_Mesh_setCoordinates(mesh,&tmp);
    } else {
-       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
+       throw FinleyAdapterException("As of version escript3.3 - SetNewX only accepts ContinuousFunction arguments please interpolate.");     
+/*       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
        tmp = new_x_inter.getDataC();
-       Finley_Mesh_setCoordinates(mesh,&tmp);
+       Finley_Mesh_setCoordinates(mesh,&tmp);*/
    }
    checkFinleyError();
 }
