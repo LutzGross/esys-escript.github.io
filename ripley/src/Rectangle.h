@@ -24,7 +24,7 @@ namespace ripley {
    \brief
    Rectangle is the 2-dimensional implementation of a RipleyDomain.
 */
-class Rectangle: public RipleyDomain
+class RIPLEY_DLL_API Rectangle: public RipleyDomain
 {
 public:
 
@@ -35,27 +35,23 @@ public:
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
-    RIPLEY_DLL_API
     Rectangle(int n0, int n1, double x0, double y0, double x1, double y1, int d0, int d1);
 
     /**
        \brief
        Destructor.
     */
-    RIPLEY_DLL_API
     ~Rectangle();
 
     /**
        \brief
        returns a description for this domain
     */
-    RIPLEY_DLL_API
     virtual std::string getDescription() const;
 
     /**
        \brief equality operator
     */
-    RIPLEY_DLL_API
     virtual bool operator==(const escript::AbstractDomain& other) const;
 
     /**
@@ -63,7 +59,6 @@ public:
        dumps the mesh to a file with the given name
        \param filename The name of the output file
     */
-    RIPLEY_DLL_API
     void dump(const std::string& filename) const;
 
     /**
@@ -71,14 +66,12 @@ public:
        returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
-    RIPLEY_DLL_API
     const int* borrowSampleReferenceIDs(int fsType) const;
 
     /**
        \brief
        returns true if this rank owns the sample id.
     */
-    RIPLEY_DLL_API
     virtual bool ownSample(int fs_code, index_t id) const;
 
     /**
@@ -87,7 +80,6 @@ public:
        space to be considered is defined by out. out has to be defined on this
        domain.
     */
-    RIPLEY_DLL_API
     virtual void setToNormal(escript::Data& out) const;
 
     /**
@@ -95,14 +87,12 @@ public:
        copies the size of samples into out. The actual function space to be
        considered is defined by out. out has to be defined on this domain.
     */
-    RIPLEY_DLL_API
     virtual void setToSize(escript::Data& out) const;
 
     /**
        \brief
        returns the number of data points summed across all MPI processes
     */
-    RIPLEY_DLL_API
     virtual int getNumDataPointsGlobal() const { return (m_gNE0+1)*(m_gNE1+1); }
 
     /**
@@ -110,21 +100,18 @@ public:
        writes information about the mesh to standard output
        \param full whether to print additional data
     */
-    RIPLEY_DLL_API
     virtual void Print_Mesh_Info(const bool full=false) const;
 
     /**
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    RIPLEY_DLL_API
     virtual IndexVector getNumNodesPerDim() const;
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    RIPLEY_DLL_API
     virtual IndexVector getNumElementsPerDim() const;
 
     /**
@@ -132,21 +119,18 @@ public:
        returns the number of face elements in the order
        (left,right,bottom,top,[front,back]) on current MPI rank
     */
-    RIPLEY_DLL_API
     virtual IndexVector getNumFacesPerBoundary() const;
 
     /**
        \brief
        returns the node distribution vector
     */
-    RIPLEY_DLL_API
     virtual IndexVector getNodeDistribution() const { return m_nodeDistribution; }
 
     /**
        \brief
        returns the number of spatial subdivisions in each dimension
     */
-    RIPLEY_DLL_API
     virtual IndexVector getNumSubdivisionsPerDim() const;
 
     /**
@@ -154,7 +138,6 @@ public:
        returns the first coordinate value and the node spacing along given
        dimension as a pair
     */
-    RIPLEY_DLL_API
     virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
 
 protected:

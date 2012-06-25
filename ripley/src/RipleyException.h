@@ -23,7 +23,7 @@ namespace ripley {
    \brief
    RipleyException exception class.
 */
-class RipleyException : public esysUtils::EsysException
+class RIPLEY_DLL_API RipleyException : public esysUtils::EsysException
 {
 protected:
     typedef EsysException Parent;
@@ -33,42 +33,36 @@ public:
        \brief
        Default constructor for the exception.
     */
-    RIPLEY_DLL_API
     RipleyException() : Parent() { updateMessage(); }
 
     /**
        \brief
        Constructor with message.
     */
-    RIPLEY_DLL_API
     RipleyException(const char *cstr) : Parent(cstr) { updateMessage(); }
 
     /**
        \brief
        Constructor with message.
     */
-    RIPLEY_DLL_API
     RipleyException(const std::string &str) : Parent(str) { updateMessage(); }
 
     /**
        \brief
        Copy Constructor.
     */
-    RIPLEY_DLL_API
     RipleyException(const RipleyException &other) : Parent(other)
     {
         updateMessage();
     }
 
     /// Destructor
-    RIPLEY_DLL_API
     virtual ~RipleyException() THROW(NO_ARG) {}
 
     /**
        \brief
        Assignment operator.
     */
-    RIPLEY_DLL_API
     inline RipleyException& operator=(const RipleyException &other ) THROW(NO_ARG)
     {
         Parent::operator=(other);
@@ -80,7 +74,6 @@ public:
        \brief
        Returns the name of the exception.
     */
-    RIPLEY_DLL_API
     virtual const std::string& exceptionName() const;
 
 private:
