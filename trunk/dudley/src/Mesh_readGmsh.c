@@ -360,7 +360,24 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		TMPMEMFREE(tag);
 		TMPMEMFREE(element_type);
 		TMPMEMFREE(vertices);
-	    }
+	    }      
+	    /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
+	    else if (!strncmp(&line[1], "PhysicalNames", 13)) {
+	        char name[LenString_MAX+1];
+	        index_t tag_key;
+		scan_ret = fscanf(fileHandle_p, "%d", &numTags);
+		FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
+		if (! Finley_noError()) break;
+		for (i0 = 0; i0 < numTags; i0++) {
+		    scan_ret = fscanf(fileHandle_p, "%d %d %s\n", &itmp, &tag_key, name);
+		    FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
+		    if (! (itmp == 2)) Finley_setError(IO_ERROR,"Dudley_Mesh_readGmsh: expecting two entries per physical name.");
+		    if ( strlen(name) < 3 ) Finley_setError(IO_ERROR,"Dudley_Mesh_readGmsh: illegal tagname (\" missing?)");
+		    if (! Finley_noError()) break;
+		    name[strlen(name)-1]='\0';
+		    Dudley_Mesh_addTagMap(mesh_p,&name[1],tag_key);
+		}
+	      }
 	    /* serach for end of data block */
 	    do
 	    {
