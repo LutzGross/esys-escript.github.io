@@ -80,7 +80,7 @@ ESCRIPT_DLL_API
 AbstractDomain::getMPIComm() const
 {
   throwStandardException("AbstractDomain::getMPIComm");
-  return false;
+  return 0;
 }
 
 
