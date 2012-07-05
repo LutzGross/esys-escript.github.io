@@ -252,11 +252,12 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   //
   // Interface for TestDomain
   //
-  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", "Test Class for domains with no structure. May be removed from future releases without notice.", init<int,int>());
+  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", 
+	"Test Class for domains with no structure. May be removed from future releases without notice.", no_init);
 
   // This is the only python visible way to get a TestDomain
-  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, args("dpps", 
- "samples"),
+  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, (arg("dpps"), 
+ arg("samples"), arg("size")=1),
 "For testing only. May be removed without notice.");
 
   //
