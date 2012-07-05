@@ -1213,7 +1213,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
 
   roffset=m_samplesize*tid;
   unsigned int ndpps=getNumDPPSample();
-  unsigned int psize=DataTypes::noValues(getShape());
+  unsigned int psize=DataTypes::noValues(m_left->getShape());
   double* result=&(m_samples[roffset]);
   switch (m_op)
   {
