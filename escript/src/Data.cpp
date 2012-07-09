@@ -1251,7 +1251,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
 	{
 	    error=1;
 #ifdef ESYS_MPI	
-            int e2
+            int e2;
             MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );	    
 #endif	    
 	    // participate in gather
