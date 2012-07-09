@@ -110,7 +110,6 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  BoolVariable('pyvisi', 'Enable pyvisi (deprecated, requires VTK module)', False),
   BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
@@ -530,16 +529,6 @@ try:
 except:
     env['cppunit']=False
 
-######## VTK (optional)
-
-if env['pyvisi']:
-    try:
-        import vtk
-        env['pyvisi'] = True
-    except ImportError:
-        print("Cannot import vtk, disabling pyvisi.")
-        env['pyvisi'] = False
-
 ######## netCDF (optional)
 
 netcdf_inc_path=''
@@ -798,10 +787,8 @@ env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysU
 env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
-env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
@@ -850,7 +837,6 @@ buildvars.write("mpi=%s\n"%env['mpi'])
 buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
-buildvars.write("pyvisi=%d\n"%env['pyvisi'])
 buildvars.write("vsl_random=%d\n"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
@@ -886,8 +872,6 @@ env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudl
 env.Alias('build_finley', ['install_finley_headers', 'build_finley_lib', 'build_finleycpp_lib'])
 env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finleycpp_lib', 'install_finley_py'])
 
-env.Alias('build_ripley', ['install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
-env.Alias('install_ripley', ['build_ripley', 'install_ripley_lib', 'install_ripleycpp_lib', 'install_ripley_py'])
 
 env.Alias('build_weipa', ['install_weipa_headers', 'build_weipa_lib', 'build_weipacpp_lib'])
 env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacpp_lib', 'install_weipa_py'])
@@ -903,7 +887,6 @@ build_all_list += ['build_escript']
 build_all_list += ['build_pasowrap']
 build_all_list += ['build_dudley']
 build_all_list += ['build_finley']
-build_all_list += ['build_ripley']
 build_all_list += ['build_weipa']
 if not IS_WINDOWS: build_all_list += ['build_escriptreader']
 if env['usempi']:   build_all_list += ['build_pythonMPI']
@@ -918,10 +901,8 @@ install_all_list += ['install_escript']
 install_all_list += ['install_pasowrap']
 install_all_list += ['install_dudley']
 install_all_list += ['install_finley']
-install_all_list += ['install_ripley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
-#install_all_list += ['install_pyvisi_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
@@ -933,8 +914,8 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
 if not env['cppunit']:
+    test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
     env.Alias('run_tests', test_msg)
 env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
