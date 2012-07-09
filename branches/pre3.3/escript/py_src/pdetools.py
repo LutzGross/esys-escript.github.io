@@ -435,8 +435,10 @@ class Locator:
       """
       Sets the value of the ``data`` at the Locator.
       """
-      data.expand()	
       if isinstance(data, escript.Data):
+         if data.getFunctionSpace()!=self.getFunctionSpace():
+           raise TypeError, "setValue: FunctionSpace of Locator and Data object must match."
+         data.expand()	
          id=self.getId()
          if isinstance(id, list):
           for i in id:
