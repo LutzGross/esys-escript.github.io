@@ -1232,18 +1232,42 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
 void
 Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
 {
+    int error=0;
     if( get_MPIRank()==proc )
     {
-        boost::python::extract<double> dex(v);
-        if (dex.check())
+        try
         {
-	  setValueOfDataPoint(id, dex());
-        }
-        else
+	    boost::python::extract<double> dex(v);
+	    if (dex.check())
+	    {
+	      setValueOfDataPoint(id, dex());
+	    }
+	    else
+	    {
+	      setValueOfDataPointToArray(id, v);	  
+	    }
+	} 
+	catch (...)
 	{
-	  setValueOfDataPointToArray(id, v);	  
+	    error=1;
+#ifdef ESYS_MPI	
+            int e2
+            MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );	    
+#endif	    
+	    // participate in gather
+	    throw;
 	}
-    }  
+    }
+#ifdef ESYS_MPI
+    int e2;
+    // If we get here, then either we succeeded or it was on another rank
+    MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );	     
+    // participate in gather
+    if (e2)
+    {
+        throw DataException("Error in another rank performing setTupleForGlobalDataPoint");      
+    }
+#endif    
 }
 
 
