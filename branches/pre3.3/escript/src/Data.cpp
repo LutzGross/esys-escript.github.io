@@ -1232,7 +1232,9 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
 void
 Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
 {
+#ifdef ESYS_MPI	
     int error=0;
+#endif
     if( get_MPIRank()==proc )
     {
         try
@@ -1249,8 +1251,8 @@ Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
 	} 
 	catch (...)
 	{
-	    error=1;
 #ifdef ESYS_MPI	
+	    error=1;
             int e2;
             MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );	    
 #endif	    
