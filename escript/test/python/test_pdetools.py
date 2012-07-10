@@ -151,7 +151,7 @@ class Test_pdetools_noLumping(unittest.TestCase):
            self.assertTrue(abs(xx[i]-(l(x2[0])[i]+l(x2[1])[i]))<self.RES_TOL,"value wrong scalar")
            
         l=Locator(self.domain,numpy.ones((self.domain.getDim(),)))
-        d=Data(0, ContinousFunction(self.domain))
+        d=Data(0, ContinuousFunction(self.domain))
         l.setValue(d, 7)
         self.assertTrue(sup(d)>6, "value not set")     # guarantees we have set something
         self.assertTrue(Lsup(l.getValue(d)-7)<self.RES_TOL, "value not set in the correct place")
