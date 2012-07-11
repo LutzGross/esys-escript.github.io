@@ -130,6 +130,8 @@ vars.AddVariables(
   ('pythoncmd', 'which python to compile with','python'),
   ('usepython3', 'Is this a python3 build? (experimental)', False),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
+  ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
+  ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
 )
 
 ##################### Create environment and help text #######################
@@ -401,7 +403,11 @@ if conf.CheckFunc('gethostname'):
 
 ######## Python headers & library (required)
 
-# Use the python scons is running
+#First we check to see if the config file has specified
+##Where to find the filae. Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
+  # Use the python scons is running
 if env['pythoncmd']=='python':
     python_inc_path=sysconfig.get_python_inc()
     if IS_WINDOWS:
@@ -455,6 +461,17 @@ else:
         python_lib_path=python_lib_path.decode()
     p.wait()
     python_lib_path=python_lib_path.strip()
+
+#Check for an override from the config file.
+#Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
+if env['pythonlibpath']!='':
+    python_lib_path=env['pythonlibpath']
+
+if env['pythonincpath']!='':
+    python_inc_path=env['pythonincpath']
+
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
