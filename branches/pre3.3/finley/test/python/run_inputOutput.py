@@ -34,7 +34,7 @@ Test suite for input and output of meshes and data objects
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile
+from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile, ReadGmsh
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -140,6 +140,11 @@ class InputOutput(unittest.TestCase):
           mydomain1.dump(dumpfile)
           mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
+
+     def test_gmshTags(self):
+        tags=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "tagtest.fly"),2).showTagNames()
+        self.assertEqual(tags,'tag1, tag2, tag3','error with tags')
+
 
      def test_mesh_dump_to_NetCDF_brick(self):
         if loadIsConfigured():
