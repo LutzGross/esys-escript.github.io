@@ -181,8 +181,10 @@ directories underneath \file{./debugbuild}.
 
 To run the unit test suite that comes with the source code issue
 \begin{shellCode}
-scons all_tests
+scons py_tests
 \end{shellCode}
+(If you have cppunit installed you can run additional tests using \texttt{scons all_tests}.
+
 Grab a coffee or two while the tests compile and run.
 An alternative method is available for running tests on \openmp and \mpi builds.
 
@@ -204,7 +206,7 @@ omp_ldflags = '-fopenmp'
 You can test your \openmp-enabled build, e.g. using 4 threads by issuing
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
-scons all_tests
+scons py_tests
 \end{shellCode}
 
 \subsection{Compilation with \mpi}
@@ -238,19 +240,19 @@ installation:
 To test your build using 6 processes enter:
 \begin{shellCode}
 export ESCRIPT_NUM_PROCS=6
-scons all_tests
+scons py_tests
 \end{shellCode}
 and on $2$ processes with $4$ threads each (provided \openmp is enabled)\footnote{Unless your system has $8$ cores expect this to be slow}:
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_NUM_PROCS=2
-scons all_tests
+scons py_tests
 \end{shellCode}
 Alternatively, you can give a hostfile
 \begin{shellCode}
 export ESCRIPT_NUM_THREADS=4
 export ESCRIPT_HOSTFILE=myhostfile
-scons all_tests
+scons py_tests
 \end{shellCode}
 Note that depending on your \mpi flavour it may be required to start a daemon
 before running the tests under \mpi.
