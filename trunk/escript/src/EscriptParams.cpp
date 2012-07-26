@@ -114,6 +114,14 @@ EscriptParams::getInt(const char* name, int sentinel) const
    {
 	return amg_disabled;
    }
+   if (!strcmp(name, "MPIBUILD"))
+   {
+#ifdef ESYS_MPI	   
+	return 1;
+#else
+	return 0;
+#endif
+   }
    return sentinel;
 }
   
