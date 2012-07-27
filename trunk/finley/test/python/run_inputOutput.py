@@ -142,9 +142,11 @@ class InputOutput(unittest.TestCase):
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_gmshTags(self):
+       if getEscriptParamInt('MPIBUILD',0)==0:
         tags=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "tagtest.fly"),2).showTagNames()
         self.assertEqual(tags,'tag1, tag2, tag3','error with tags')
-
+       else:
+        print "Test supressed due to MPI build"
 
      def test_mesh_dump_to_NetCDF_brick(self):
         if loadIsConfigured():
