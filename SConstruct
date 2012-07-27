@@ -110,7 +110,6 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  BoolVariable('pyvisi', 'Enable pyvisi (deprecated, requires VTK module)', False),
   BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
@@ -131,6 +130,8 @@ vars.AddVariables(
   ('pythoncmd', 'which python to compile with','python'),
   ('usepython3', 'Is this a python3 build? (experimental)', False),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
+  ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
+  ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
 )
 
 ##################### Create environment and help text #######################
@@ -402,6 +403,10 @@ if conf.CheckFunc('gethostname'):
 
 ######## Python headers & library (required)
 
+#First we check to see if the config file has specified
+##Where to find the filae. Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
 # Use the python scons is running
 if env['pythoncmd']=='python':
     python_inc_path=sysconfig.get_python_inc()
@@ -456,6 +461,17 @@ else:
         python_lib_path=python_lib_path.decode()
     p.wait()
     python_lib_path=python_lib_path.strip()
+
+#Check for an override from the config file.
+#Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
+if env['pythonlibpath']!='':
+    python_lib_path=env['pythonlibpath']
+
+if env['pythonincpath']!='':
+    python_inc_path=env['pythonincpath']
+
 
 if sysheaderopt == '':
     conf.env.AppendUnique(CPPPATH = [python_inc_path])
@@ -529,16 +545,6 @@ try:
     env['cppunit']=True
 except:
     env['cppunit']=False
-
-######## VTK (optional)
-
-if env['pyvisi']:
-    try:
-        import vtk
-        env['pyvisi'] = True
-    except ImportError:
-        print("Cannot import vtk, disabling pyvisi.")
-        env['pyvisi'] = False
 
 ######## netCDF (optional)
 
@@ -801,7 +807,6 @@ env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley',
 env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
@@ -850,7 +855,6 @@ buildvars.write("mpi=%s\n"%env['mpi'])
 buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
-buildvars.write("pyvisi=%d\n"%env['pyvisi'])
 buildvars.write("vsl_random=%d\n"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
@@ -921,7 +925,6 @@ install_all_list += ['install_finley']
 install_all_list += ['install_ripley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
-#install_all_list += ['install_pyvisi_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
@@ -933,8 +936,8 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
 if not env['cppunit']:
+    test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
     env.Alias('run_tests', test_msg)
 env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])

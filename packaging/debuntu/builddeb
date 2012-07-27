@@ -128,7 +128,7 @@ gzip $OUTPUTROOT/usr/share/man/man1/$WRAPPERNAME.1
 #copy the documentation
 cp $SRCDIR/release/doc/escript_examples.tar.gz $OUTPUTROOT/usr/share/doc/escript/
 cp $SRCDIR/release/doc/install/install.pdf $OUTPUTROOT/usr/share/doc/escript
-cp $SRCDIR/release/doc/user/guide.pdf $OUTPUTROOT/usr/share/doc/escript
+cp $SRCDIR/release/doc/user/user.pdf $OUTPUTROOT/usr/share/doc/escript
 cp $SRCDIR/release/doc/cookbook/cookbook.pdf $OUTPUTROOT/usr/share/doc/escript
 cp -r $SRCDIR/release/doc/epydoc $OUTPUTROOT/usr/share/doc/escript/python_html
 
@@ -206,5 +206,6 @@ mkdir -p $SRCDIR/release/pkg
 cp $pkgname-$VERSION-$distro\_$ARCH.deb $SRCDIR/release/pkg
 
 
-echo "Control file is:"
+echo "Control file contains:"
+
 cat $OUTPUTROOT/DEBIAN/control
