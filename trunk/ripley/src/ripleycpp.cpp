@@ -126,7 +126,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     register_exception_translator<ripley::RipleyException>(&(esysUtils::esysExceptionTranslator));
 
-    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=1,arg("d1")=1,arg("d2")=1),
+    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -138,7 +138,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=1,arg("d1")=1),
+    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1),
 "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"

@@ -35,7 +35,8 @@ public:
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
-    Rectangle(int n0, int n1, double x0, double y0, double x1, double y1, int d0, int d1);
+    Rectangle(int n0, int n1, double x0, double y0, double x1, double y1,
+              int d0=-1, int d1=-1);
 
     /**
        \brief
