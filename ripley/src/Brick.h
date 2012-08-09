@@ -36,7 +36,7 @@ public:
        \param d0,d1,d2 number of subdivisions in each dimension
     */
     Brick(int n0, int n1, int n2, double x0, double y0, double z0, double x1,
-          double y1, double z1, int d0, int d1, int d2);
+          double y1, double z1, int d0=-1, int d1=-1, int d2=-1);
 
     /**
        \brief

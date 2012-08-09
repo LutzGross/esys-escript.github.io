@@ -32,26 +32,137 @@ namespace ripley {
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2) :
     RipleyDomain(3),
-    m_gNE0(n0),
-    m_gNE1(n1),
-    m_gNE2(n2),
     m_x0(x0),
     m_y0(y0),
     m_z0(z0),
     m_l0(x1-x0),
     m_l1(y1-y0),
-    m_l2(z1-z0),
-    m_NX(d0),
-    m_NY(d1),
-    m_NZ(d2)
+    m_l2(z1-z0)
 {
+    // ignore subdivision parameters for serial run
+    if (m_mpiInfo->size == 1) {
+        d0=1;
+        d1=1;
+        d2=1;
+    }
+
+    bool warn=false;
+    // if number of subdivisions is non-positive, try to subdivide by the same
+    // ratio as the number of elements
+    if (d0<=0 && d1<=0 && d2<=0) {
+        warn=true;
+        d0=(int)(pow(m_mpiInfo->size*(n0+1)*(n0+1)/((float)(n1+1)*(n2+1)), 1./3));
+        d1=(int)(d0*n1/(float)n0);
+        d2=m_mpiInfo->size/(d0*d1);
+        if (d0*d1*d2 != m_mpiInfo->size) {
+            // ratios not the same so leave "smallest" side undivided and try
+            // dividing 2 sides only
+            if (n0>=n1) {
+                if (n1>=n2) {
+                    d0=d1=0;
+                    d2=1;
+                } else {
+                    d0=d2=0;
+                    d1=1;
+                }
+            } else {
+                if (n0>=n2) {
+                    d0=d1=0;
+                    d2=1;
+                } else {
+                    d0=1;
+                    d1=d2=0;
+                }
+            }
+        }
+    }
+    if (d0<=0 && d1<=0) {
+        warn=true;
+        d0=int(sqrt(m_mpiInfo->size*(n0+1)/(float)(n1+1)));
+        d1=m_mpiInfo->size/d0;
+        if (d0*d1*d2 != m_mpiInfo->size) {
+            // ratios not the same so subdivide side with more elements only
+            if (n0>n1) {
+                d1=1;
+            } else {
+                d0=1;
+            }
+        }
+    } else if (d0<=0 && d2<=0) {
+        warn=true;
+        d0=int(sqrt(m_mpiInfo->size*(n0+1)/(float)(n2+1)));
+        d2=m_mpiInfo->size/d0;
+        if (d0*d1*d2 != m_mpiInfo->size) {
+            // ratios not the same so subdivide side with more elements only
+            if (n0>n2) {
+                d2=1;
+            } else {
+                d0=1;
+            }
+        }
+    } else if (d1<=0 && d2<=0) {
+        warn=true;
+        d1=int(sqrt(m_mpiInfo->size*(n1+1)/(float)(n2+1)));
+        d2=m_mpiInfo->size/d1;
+        if (d0*d1*d2 != m_mpiInfo->size) {
+            // ratios not the same so subdivide side with more elements only
+            if (n1>n2) {
+                d2=1;
+            } else {
+                d1=1;
+            }
+        }
+    }
+    if (d0<=0) {
+        // d1,d2 are preset, determine d0
+        d0=m_mpiInfo->size/(d1*d2);
+    } else if (d1<=0) {
+        // d0,d2 are preset, determine d1
+        d1=m_mpiInfo->size/(d0*d2);
+    } else if (d2<=0) {
+        // d0,d1 are preset, determine d2
+        d2=m_mpiInfo->size/(d0*d1);
+    }
+
+    m_NX=d0;
+    m_NY=d1;
+    m_NZ=d2;
+
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
     if (m_NX*m_NY*m_NZ != m_mpiInfo->size)
         throw RipleyException("Invalid number of spatial subdivisions");
 
-    if ((n0+1)%m_NX > 0 || (n1+1)%m_NY > 0 || (n2+1)%m_NZ > 0)
-        throw RipleyException("Number of elements+1 must be separable into number of ranks in each dimension");
+    if (warn) {
+        cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
+            << d1 << ", d2=" << d2 << "). This may not be optimal!" << endl;
+    }
+
+    if ((n0+1)%m_NX > 0) {
+        double Dx=m_l0/n0;
+        n0=(int)round((float)(n0+1)/d0+0.5)*d0-1;
+        m_l0=Dx*n0;
+        cout << "Warning: Adjusted number of elements and length. N0="
+            << n0 << ", l0=" << m_l0 << endl;
+    }
+    if ((n1+1)%m_NY > 0) {
+        double Dy=m_l1/n1;
+        n1=(int)round((float)(n1+1)/d1+0.5)*d1-1;
+        m_l1=Dy*n1;
+        cout << "Warning: Adjusted number of elements and length. N1="
+            << n1 << ", l1=" << m_l1 << endl;
+    }
+    if ((n2+1)%m_NZ > 0) {
+        double Dz=m_l2/n2;
+        n2=(int)round((float)(n2+1)/d2+0.5)*d2-1;
+        m_l2=Dz*n2;
+        cout << "Warning: Adjusted number of elements and length. N2="
+            << n2 << ", l2=" << m_l2 << endl;
+    }
+
+    m_gNE0=n0;
+    m_gNE1=n1;
+    m_gNE2=n2;
 
     if ((m_NX > 1 && (n0+1)/m_NX<2) || (m_NY > 1 && (n1+1)/m_NY<2) || (m_NZ > 1 && (n2+1)/m_NZ<2))
         throw RipleyException("Too few elements for the number of ranks");
