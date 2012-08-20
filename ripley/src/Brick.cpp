@@ -83,9 +83,11 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         if (d0*d1*d2 != m_mpiInfo->size) {
             // ratios not the same so subdivide side with more elements only
             if (n0>n1) {
+                d0=0;
                 d1=1;
             } else {
                 d0=1;
+                d1=0;
             }
         }
     } else if (d0<=0 && d2<=0) {
@@ -95,9 +97,11 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         if (d0*d1*d2 != m_mpiInfo->size) {
             // ratios not the same so subdivide side with more elements only
             if (n0>n2) {
+                d0=0;
                 d2=1;
             } else {
                 d0=1;
+                d2=0;
             }
         }
     } else if (d1<=0 && d2<=0) {
@@ -107,9 +111,11 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         if (d0*d1*d2 != m_mpiInfo->size) {
             // ratios not the same so subdivide side with more elements only
             if (n1>n2) {
+                d1=0;
                 d2=1;
             } else {
                 d1=1;
+                d2=0;
             }
         }
     }
