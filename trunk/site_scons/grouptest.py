@@ -42,6 +42,7 @@ class GroupTest:
 	res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
 	res=res+"if [ $# -ne 2 ]\nthen\n echo Usage: $0 build_dir wrapper_options\necho Runs all unit tests. Options must be a single string.\nexit 2\nfi\n"
 	res=res+'CMDSTR="getopt -uq -o p:n: -- $2"\nSTR=`$CMDSTR`\nNUMPROCS=1\n'
+	res=res+'MPITYPE=`run-escript -c | grep mpi=`\n'
 	res=res+'NUMNODES=1\n#This little complication is required because set --\n'
 	res=res+'#does not seem to like -n as the first positional parameter\n'
 	res=res+'STATE=0\nfor name in $STR\ndo \n'
@@ -69,7 +70,8 @@ class GroupTest:
     def makeString(self):
 	res=""
         if self.single_processor_only:
-            res+="if [ $MPIPROD -le 1 ]; then\n"
+            res+="#if [ $MPIPROD -le 1 ]; then\n"
+	    res+='if [$MPITYPE" == "mpi=none" ]; then\n'
             tt="\t"
         else:
             tt=""
