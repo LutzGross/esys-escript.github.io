@@ -19,12 +19,19 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__all__ = ['DataSource','UBCDataSource','SyntheticDataSource','SmoothAnomaly']
+
 import logging
 import numpy as np
 from esys.escript import *
 from esys.escript.linearPDEs import *
 import esys.escript.unitsSI as U
-from scipy.io.netcdf import netcdf_file
+try:
+    from scipy.io.netcdf import netcdf_file
+    __all__ += ['NetCDFDataSource']
+except:
+    pass
+
 
 class DataSource(object):
     """

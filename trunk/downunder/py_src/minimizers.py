@@ -19,6 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__all__ = ['AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerBFGS', 'MinimizerNLCG']
+
 import logging
 import numpy as np
 try:
@@ -27,7 +29,6 @@ except:
     Lsup=lambda x: np.amax(abs(x))
     sqrt=np.sqrt
     EPSILON=1e-18
-
 
 lslogger=logging.getLogger('inv.minimizer.linesearch')
 zoomlogger=logging.getLogger('inv.minimizer.linesearch.zoom')
@@ -429,7 +430,7 @@ class MinimizerNLCG(AbstractMinimizer):
 if __name__=="__main__":
     # Example usage with function 'rosen' (minimum=[1,1,...1]):
     from scipy.optimize import rosen, rosen_der
-    from costfunctions import CostFunction
+    from esys.downunder.costfunctions import CostFunction
     import sys
     N=100
     x0=np.array([4.]*N) # initial guess

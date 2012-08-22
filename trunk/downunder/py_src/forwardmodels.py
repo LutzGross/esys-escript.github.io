@@ -19,11 +19,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__all__ = ['ForwardModel','GravityModel']
+
 from esys.escript import unitsSI as U
 from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE
 
-PI=3.14159265358979323846
+PI = 3.14159265358979323846
 G = 6.6742e-11*U.m**3/(U.kg*U.sec**2)
 
 class ForwardModel(object):
