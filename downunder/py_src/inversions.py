@@ -186,6 +186,7 @@ if __name__=="__main__":
     source.setPadding(p['PADDING_L'], p['PADDING_H'])
     inv=GravityInversion()
     inv.setDataSource(source)
+    inv.setOutputDirectory(p['OUTPUT_DIR'])
     inv.setSolverTolerance(p['TOLERANCE'])
     inv.setSolverMaxIterations(p['MAX_ITER'])
     inv.setSolverOptions(**p['SOLVER_OPTS'])

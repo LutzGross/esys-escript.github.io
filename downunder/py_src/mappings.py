@@ -19,6 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__all__ = ['Mapping', 'BoundedRangeMapping', 'ScalingMapping']
+
 from esys.escript import inf, sup, log, tanh
 
 class Mapping(object):

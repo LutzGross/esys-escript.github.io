@@ -19,6 +19,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+__all__ = ['Regularization']
+
 import numpy as np
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript import Data, grad, inner, integrate, kronecker, vol
