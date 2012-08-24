@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 import logging
 
 from esys.escript import *
-from esys.weipa import createDataset, saveSilo
+from esys.weipa import createDataset
 
 from costfunctions import SimpleCostFunction
 from forwardmodels import GravityModel
@@ -36,37 +36,77 @@ class InversionBase(object):
     """
     def __init__(self):
         self.logger=logging.getLogger('inv.%s'%self.__class__.__name__)
+        self._solver_callback = None
         self._solver_opts = {}
         self._solver_tol = 1e-9
         self._solver_maxiter = 200
-        self._output_dir = '.'
         # use identity mapping by default
         self.mapping=ScalingMapping(1)
         self.source=None
         self.solverclass=MinimizerLBFGS
 
-    def setOutputDirectory(self, outdir):
-        self._output_dir = outdir
+    def setSolverCallback(self, callback):
+        """
+        Sets the callback function which is called after every solver iteration
+        """
+        self._solver_callback=callback
 
     def setSolverMaxIterations(self, maxiter):
+        """
+        Sets the maximum number of solver iterations to run
+        """
         self._solver_maxiter=maxiter
 
     def setSolverOptions(self, **opts):
+        """
+        Sets additional solver options. The valid options depend on the solver
+        being used.
+        """
         self._solver_opts.update(**opts)
 
     def setSolverTolerance(self, tol):
+        """
+        Sets the error tolerance for the solver. An acceptable solution is
+        considered to be found once the tolerance is reached.
+        """
         self._solver_tol=tol
 
     def setSolverClass(self, solverclass):
+        """
+        The solver to be used in the inversion process. See the minimizers
+        module for available solvers. By default, the L-BFGS minimizer is used.
+        """
         self.solverclass=solverclass
 
     def setDataSource(self, source):
+        """
+        Sets the data source which is used to get the survey data to be
+        inverted.
+        """
         self.source=source
 
     def setMapping(self, mapping):
+        """
+        Sets the mapping class to map between model parameters and the data.
+        If no mapping is provided, an identity mapping is used (ScalingMapping
+        with constant 1).
+        """
         self.mapping=mapping
 
-    def run(self):
+    def setup(self):
+        """
+        This method must be overwritten to perform any setup needed by the
+        solver to run. The relevant objects for the inversion (e.g. forward
+        model, regularization etc.) should be created and ready to use.
+        """
+        raise NotImplementedError
+
+    def run(self, *args):
+        """
+        This method starts the inversion process and must be overwritten.
+        Preferably, users should be able to set a starting point so
+        inversions can be continued after stopping.
+        """
         raise NotImplementedError
 
 
@@ -75,21 +115,22 @@ class GravityInversion(InversionBase):
     """
     def __init__(self):
         super(GravityInversion,self).__init__()
+        self.__is_setup=False
         self.setWeights()
 
-    def setWeights(self, mu_reg=1., mu_model=1.):
+    def setWeights(self, mu_reg=None, mu_model=1.):
         self._mu_reg=mu_reg
         self._mu_model=mu_model
 
-    def solverCallback(self, k, x, fx, gfx):
-        fn=os.path.join(self._output_dir, 'inv.%d'%k)
+    def siloWriterCallback(self, k, x, fx, gfx):
+        fn='inv.%d'%k
         ds=createDataset(rho=self.mapping.getValue(x))
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
         self.logger.debug("Jreg(m) = %e"%self.regularization.getValue(x))
         self.logger.debug("f(m) = %e"%fx)
 
-    def run(self):
+    def setup(self):
         if self.source is None:
             raise ValueError("No data source set!")
 
@@ -111,22 +152,38 @@ class GravityInversion(InversionBase):
         self.regularization=Regularization(domain, m_ref=m_ref, w0=0, w=[1]*DIM, location_of_set_m=rho_mask)
         self.forwardmodel=GravityModel(domain, chi, g)
         self.f=SimpleCostFunction(self.regularization, self.mapping, self.forwardmodel)
+        if self._mu_reg is None:
+            x=domain.getX()
+            l=0
+            for i in range(DIM-1):
+                l=max(l, sup(x[i])-inf(x[i]))
+            G=6.6742e-11
+            self._mu_reg=0.5*(l*l*G)**2
+        self.logger.debug("mu_reg = %s"%self._mu_reg)
+        self.logger.debug("mu_model = %s"%self._mu_model)
         self.f.setWeights(mu_reg=self._mu_reg, mu_model=self._mu_model)
+        self.__is_setup=True
+
+    def run(self, rho_init=0.):
+        if not self.__is_setup:
+            self.setup()
         solver=self.solverclass(self.f)
-        solver.setTolerance(self._solver_tol)
+        solver.setCallback(self._solver_callback)
         solver.setMaxIterations(self._solver_maxiter)
         solver.setOptions(**self._solver_opts)
-        self.logger.info("Starting solver...")
-        rho_init=Scalar(0, ContinuousFunction(domain))
+        solver.setTolerance(self._solver_tol)
+        if not isinstance(rho_init, Data):
+            rho_init=Scalar(rho_init, ContinuousFunction(self.source.getDomain()))
         m_init=self.mapping.getInverse(rho_init)
 
-        solver.setCallback(self.solverCallback)
-        args={'rho_mask':rho_mask,'g':g[DIM-1],'chi':chi[DIM-1],'sigma':sigma}
-        try:
-            args['rho_ref']=self.source.getReferenceDensity()
-        except:
-            pass
-        saveSilo(os.path.join(self._output_dir, 'ref'), **args)
+        #args={'rho_mask':rho_mask,'g':g[DIM-1],'chi':chi[DIM-1],'sigma':sigma}
+        #try:
+        #    args['rho_ref']=self.source.getReferenceDensity()
+        #except:
+        #    pass
+        #saveSilo('ref', **args)
+
+        self.logger.info("Starting solver...")
         solver.run(m_init)
         m_star=solver.getResult()
         self.logger.info("m* = %s"%m_star)
@@ -134,76 +191,4 @@ class GravityInversion(InversionBase):
         self.logger.info("rho* = %s"%rho_star)
         solver.logSummary()
         return rho_star
-
-
-if __name__=="__main__":
-    from esys.escript import unitsSI as U
-    from datasources import *
-
-    p={
-        'PADDING_L' : 5,
-        'PADDING_H' : 0.2,
-        'TOLERANCE' : 1e-9,
-        'MAX_ITER'  : 200,
-        'VERBOSITY' : 5,
-        'OUTPUT_DIR': '.',
-        'LOGFILE'   : '',
-        'SOURCE'    : SyntheticDataSource,
-        'SOLVER_OPTS': {\
-            'initialHessian' : 100
-        },
-        'ARGS'      : {\
-            'DIM'     : 2,
-            'NE'      : 40,
-            'l'       : 500*U.km,
-            'h'       : 60*U.km,
-            'features': [\
-                SmoothAnomaly(lx=50*U.km, ly=20*U.km, lz=40*U.km, x=100*U.km, y=3*U.km, depth=25*U.km, rho_inner=200., rho_outer=1e-6),
-                SmoothAnomaly(lx=50*U.km, ly=20*U.km, lz=40*U.km, x=400*U.km, y=1*U.km, depth=40*U.km, rho_inner=-200, rho_outer=1e-6)
-            ]
-        }
-    }
-
-    # 1..5 -> 50..10
-    loglevel=60-10*max(1, min(5, p['VERBOSITY']))
-    formatter=logging.Formatter('[%(name)s] \033[1;30m%(message)s\033[0m')
-    logger=logging.getLogger('inv')
-    logger.setLevel(loglevel)
-    handler=logging.StreamHandler()
-    handler.setFormatter(formatter)
-    handler.setLevel(loglevel)
-    logger.addHandler(handler)
-    if len(p['LOGFILE'].strip())>0:
-        handler=logging.FileHandler(os.path.join(p['OUTPUT_DIR'],p['LOGFILE']))
-        formatter=logging.Formatter('%(asctime)s - [%(name)s] %(message)s')
-        handler.setFormatter(formatter)
-        handler.setLevel(loglevel)
-        logger.addHandler(handler)
-
-    if logger.isEnabledFor(logging.DEBUG):
-        for k in sorted(p): logger.debug("%s = %s"%(k,p[k]))
-    source=p['SOURCE'](**p['ARGS'])
-    source.setPadding(p['PADDING_L'], p['PADDING_H'])
-    inv=GravityInversion()
-    inv.setDataSource(source)
-    inv.setOutputDirectory(p['OUTPUT_DIR'])
-    inv.setSolverTolerance(p['TOLERANCE'])
-    inv.setSolverMaxIterations(p['MAX_ITER'])
-    inv.setSolverOptions(**p['SOLVER_OPTS'])
-    if p.has_key('MU'):
-        mu=p['MU']
-    else:
-        logger.info('Generating domain...')
-        x=source.getDomain().getX()
-        l0=sup(x[0])-inf(x[0])
-        l1=sup(x[1])-inf(x[1])
-        l=max(l0,l1)
-        G=6.6742e-11
-        mu=0.5*(l**2*G)**2
-        logger.debug("MU = %s"%mu)
-
-    inv.setWeights(mu_reg=mu)
-    #mapping=BoundedRangeMapping(-200, 200)
-    #inv.setMapping(mapping)
-    rho_new=inv.run()
 
