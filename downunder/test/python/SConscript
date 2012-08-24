@@ -17,18 +17,12 @@ Import('*')
 local_env = env.Clone()
 
 # files defining test runs (passing in a release)
-testruns = ['run_gravity.py']
-
-# files defining tests run locally (not as part of a release)
-localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
+testruns = ['run_gravity.py',\
+            'run_mappings.py'
+            ]
 
 # all tests
-alltestruns = testruns + localtestruns
-
-# test files are just compiled - none of those in downunder yet
-#sources = Glob('test_*.py')
-#test_pyc = env.PyCompile(sources)
-#env.Alias('build_py_tests', test_pyc)
+alltestruns = testruns
 
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
