@@ -149,7 +149,7 @@ class GravityInversion(InversionBase):
         self.logger.debug("chi = %s"%chi)
         chi=chi*kronecker(DIM)[DIM-1]
         m_ref=self.mapping.getInverse(0.)
-        self.regularization=Regularization(domain, m_ref=m_ref, w0=0, w=[1]*DIM, location_of_set_m=rho_mask)
+        self.regularization=Regularization(domain, m_ref=m_ref, w0=None, w=[1]*DIM, location_of_set_m=rho_mask)
         self.forwardmodel=GravityModel(domain, chi, g)
         self.f=SimpleCostFunction(self.regularization, self.mapping, self.forwardmodel)
         if self._mu_reg is None:
