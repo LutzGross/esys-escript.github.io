@@ -172,7 +172,7 @@ class AbstractMinimizer(object):
         k is the current iteration, x is the current estimate, fx=f(x) and
         gfx=grad f(x).
         """
-        if not callable(callback):
+        if callback is not None and not callable(callback):
             raise TypeError("Callback function not callable.")
         self._callback = callback
 
@@ -257,7 +257,8 @@ class MinimizerLBFGS(AbstractMinimizer):
         self._doCallback(k, x, fx, gf)
 
         while error > self._tol and k < self._imax:
-            self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
+            #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
+            self.logger.info("iteration %d, error=%e"%(k,error))
             # determine search direction
             p = -self._twoLoop(H, gf, s_and_y)
 
