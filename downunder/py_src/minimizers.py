@@ -277,7 +277,10 @@ class MinimizerLBFGS(AbstractMinimizer):
             delta_x=x_new-x
             delta_g=gf_new-gf
             s_and_y.append((delta_x,delta_g))
-            error=abs(fx_new-fx)/abs(fx_new)
+            if fx_new==0.:
+                error=fx
+            else:
+                error=abs(fx_new-fx)/abs(fx_new)
             x=x_new
             gf=gf_new
             fx=fx_new
@@ -333,22 +336,44 @@ class MinimizerBFGS(AbstractMinimizer):
     Minimizer that uses the Broyden-Fletcher-Goldfarb-Shanno method.
     """
 
+    # Initial Hessian multiplier
+    _initial_H = 1
+
+    def getOptions(self):
+        return {'initialHessian':self._initial_H}
+
+    def setOptions(self, **opts):
+        for o in opts:
+            if o=='initialHessian':
+                self._initial_H=opts[o]
+            else:
+                raise KeyError("Invalid option '%s'"%o)
+
     def run(self, x):
-        gf=self._f.getGradient(x)
-        fx=None
+        args=self._f.getArguments(x)
+        gf=self._f.getGradient(x, *args)
+        fx=self._f(x, *args)
         k=0
         try:
             n=len(x)
         except:
             n=x.getNumberOfDataPoints()
         I=np.eye(n)
-        H=I
+        H=self._initial_H*I
         gnorm=Lsup(gf)
+        self._doCallback(k, x, fx, gf)
+
         while gnorm > self._tol and k < self._imax:
             self.logger.info("iteration %d, gnorm=%e"%(k,gnorm))
 
             # determine search direction
             d=-self._f.getInner(H, gf)
+
+            self.logger.debug("H = %s"%H)
+            self.logger.debug("grad f(x) = %s"%gf)
+            self.logger.debug("d = %s"%d)
+            self.logger.debug("x = %s"%x)
+
             # determine step length
             alpha, fx, gf_new = line_search(self._f, x, d, gf, fx)
             self.logger.debug("alpha=%e"%alpha)
@@ -361,14 +386,19 @@ class MinimizerBFGS(AbstractMinimizer):
             delta_g=gf_new-gf
             gf=gf_new
             k+=1
+            self._doCallback(k, x, fx, gf)
             gnorm=Lsup(gf)
             if (gnorm<=self._tol): break
 
             # update Hessian
-            rho=1./(self._f.getInner(delta_x, delta_g))
+            denom=self._f.getInner(delta_x, delta_g)
+            if denom < EPSILON * gnorm:
+                denom=1e-5
+                self.logger.debug("Break down in H update. Resetting.")
+            rho=1./denom
             self.logger.debug("rho=%e"%rho)
-            A=-rho*delta_x[:,None]*delta_g[None,:]
-            AT=-rho*delta_g[:,None]*delta_x[None,:]
+            A=I-rho*delta_x[:,None]*delta_g[None,:]
+            AT=I-rho*delta_g[:,None]*delta_x[None,:]
             H=self._f.getInner(A, self._f.getInner(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
@@ -384,22 +414,27 @@ class MinimizerBFGS(AbstractMinimizer):
 class MinimizerNLCG(AbstractMinimizer):
     """
     Minimizer that uses the nonlinear conjugate gradient method
+    (Fletcher-Reeves variant).
     """
 
     def run(self, x):
         i=0
         k=0
-        r=-self._f.getGradient(x)
-        fx=None
+        args=self._f.getArguments(x)
+        r=-self._f.getGradient(x, *args)
+        fx=self._f(x, *args)
         d=r
         delta=self._f.getInner(r,r)
         delta0=delta
-        while i<self._imax and delta>self._tol*self._tol*delta0:
-            self.logger.info("iteration %d, delta=%e"%(i,delta))
-            delta_d=self._f.getInner(d,d)
-            # this line search is not appropriate since alpha0 may not be
-            # a good search direction
-            alpha, fx, gf_new = line_search(self._f, x, d, -r, fx)
+        self._doCallback(i, x, fx, -r)
+
+        while i<self._imax and Lsup(r)>self._tol:
+            self.logger.info("iteration %d"%i)
+            self.logger.debug("grad f(x) = %s"%(-r))
+            self.logger.debug("d = %s"%d)
+            self.logger.debug("x = %s"%x)
+
+            alpha, fx, gf_new = line_search(self._f, x, d, -r, fx, c2=0.4)
             self.logger.debug("alpha=%e"%(alpha))
             x=x+alpha*d
             r=-self._f.getGradient(x) if gf_new is None else -gf_new
@@ -416,6 +451,7 @@ class MinimizerNLCG(AbstractMinimizer):
                 d=r
                 k=0
             i+=1
+            self._doCallback(i, x, fx, gf_new)
 
         if i >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
@@ -458,9 +494,9 @@ if __name__=="__main__":
         m=MinimizerLBFGS(f)
         #m.setOptions(historySize=10000)
 
-    logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
+    logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.INFO)
     m.setTolerance(1e-5)
-    m.setMaxIterations(10000)
+    m.setMaxIterations(600)
     m.run(x0)
     m.logSummary()
     print("\tLsup(result)=%.8f"%np.amax(abs(m.getResult())))
