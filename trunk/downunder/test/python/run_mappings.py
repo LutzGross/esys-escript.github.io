@@ -29,8 +29,7 @@ class TestScalingMapping(unittest.TestCase):
         self.mapping=ScalingMapping(self.alpha)
 
     def test_invalid_alpha(self):
-        with self.assertRaises(ValueError):
-            m=ScalingMapping(0)
+        self.assertRaises(ValueError, ScalingMapping, 0)
 
     def test_value(self):
         v=self.mapping.getValue(1.23)
@@ -53,8 +52,7 @@ class TestBoundedRangeMapping(unittest.TestCase):
         self.mapping=BoundedRangeMapping(1.5, 3.5)
 
     def test_invalid_range(self):
-        with self.assertRaises(ValueError):
-            m=BoundedRangeMapping(1, 0)
+        self.assertRaises(ValueError, BoundedRangeMapping, 1, 0)
 
     def test_min_value(self):
         v=self.mapping.getValue(-10000)
@@ -87,12 +85,10 @@ class TestBoundedRangeMapping(unittest.TestCase):
         self.assertAlmostEqual(v, ref)
 
     def test_inverse_toolow(self):
-        with self.assertRaises(ValueError):
-            v=self.mapping.getInverse(1.5)
+        self.assertRaises(ValueError, self.mapping.getInverse, 1.5)
 
     def test_inverse_toohigh(self):
-        with self.assertRaises(ValueError):
-            v=self.mapping.getInverse(3.5)
+        self.assertRaises(ValueError, self.mapping.getInverse, 3.5)
 
     def test_inverse(self):
         v=self.mapping.getInverse(2.5)
