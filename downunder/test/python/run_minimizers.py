@@ -135,11 +135,11 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.assertEqual(reason, MinimizerNLCG.MAX_ITERATIONS_REACHED)
 
     def test_solution(self):
-        self.minimizer.setTolerance(1e-3)
-        self.minimizer.setMaxIterations(300)
+        self.minimizer.setTolerance(1e-4)
+        self.minimizer.setMaxIterations(400)
         reason=self.minimizer.run(self.x0)
         x=self.minimizer.getResult()
-        # We should be able to get a solution in under 300 iterations
+        # We should be able to get a solution to set tolerance in #iterations
         self.assertEqual(reason, MinimizerNLCG.TOLERANCE_REACHED)
         self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0., places=3)
 
