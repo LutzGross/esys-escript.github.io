@@ -1704,7 +1704,7 @@ if __name__ == '__main__':
       s = nose.run(suite, argv=[__file__, "--with-xunit"])
       if not s: sys.exit(1)
       
-   except ImportError:
+   except:
       s=unittest.TextTestRunner(verbosity=2).run(suite)
       if not s.wasSuccessful(): sys.exit(1)
 
