@@ -23,7 +23,6 @@ __all__ = ['DataSource','UBCDataSource','SyntheticDataSource','SmoothAnomaly']
 
 import logging
 import numpy as np
-import pyproj
 from esys.escript import *
 from esys.escript.linearPDEs import *
 import esys.escript.unitsSI as U
@@ -33,7 +32,24 @@ try:
 except:
     pass
 
-def LatLonToUTM(lon, lat, wkt_string):
+def LatLonToUTM(lon, lat, wkt_string=None):
+    """
+    Converts one or more longitude,latitude pairs to the corresponding x,y
+    coordinates in the Universal Transverse Mercator projection.
+    If wkt_string is not given or invalid or the gdal module is not available
+    to convert the string, then the input values are assumed to be given in the
+    Clarke 1866 projection.
+    """
+
+    # not really optimal: if pyproj is not installed we return the input
+    # values without modification.
+    try:
+        import pyproj
+    except:
+        print("Warning, pyproj not available. Domain extents will be wrong")
+        return lon,lat
+
+    # determine UTM zone from the input data
     zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
     try:
         import osgeo.osr
