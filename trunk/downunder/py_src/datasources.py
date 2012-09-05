@@ -23,6 +23,7 @@ __all__ = ['DataSource','UBCDataSource','SyntheticDataSource','SmoothAnomaly']
 
 import logging
 import numpy as np
+import pyproj
 from esys.escript import *
 from esys.escript.linearPDEs import *
 import esys.escript.unitsSI as U
@@ -32,6 +33,18 @@ try:
 except:
     pass
 
+def LatLonToUTM(lon, lat, wkt_string):
+    zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
+    try:
+        import osgeo.osr
+        srs = osgeo.osr.SpatialReference()
+        srs.ImportFromWkt(wkt_string)
+        p_src = pyproj.Proj(srs.ExportToProj4())
+    except:
+        p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
+    p_dest = pyproj.Proj(proj='utm', zone=zone) # ellps?
+    x,y=pyproj.transform(p_src, p_dest, lon, lat)
+    return x,y
 
 class DataSource(object):
     """
@@ -234,7 +247,7 @@ class UBCDataSource(DataSource):
 
 ##############################################################################
 class NetCDFDataSource(DataSource):
-    def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
+    def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=1.):
         """
         vertical_extents - (alt_min, alt_max, num_elements)
         alt_of_data - altitude of measurements
@@ -278,61 +291,68 @@ class NetCDFDataSource(DataSource):
             raise RuntimeError("Could not determine extents of data")
 
         # find longitude and latitude variables
-        variables=f.variables
         lon_name=None
         for n in ['lon','longitude']:
-            if n in variables:
+            if n in f.variables:
                 lon_name=n
-                variables.pop(n)
+                longitude=f.variables.pop(n)
                 break
         if lon_name is None:
             raise RuntimeError("Could not determine longitude variable")
         lat_name=None
         for n in ['lat','latitude']:
-            if n in variables:
+            if n in f.variables:
                 lat_name=n
-                variables.pop(n)
+                latitude=f.variables.pop(n)
                 break
         if lat_name is None:
             raise RuntimeError("Could not determine latitude variable")
 
         # try to figure out gravity variable name
         grav_name=None
-        if len(variables)==1:
-            grav_name=variables.keys()[0]
+        if len(f.variables)==1:
+            grav_name=f.variables.keys()[0]
         else:
-            for n in variables.keys():
-                dims=variables[n].dimensions
+            for n in f.variables.keys():
+                dims=f.variables[n].dimensions
                 if (lat_name in dims) and (lon_name in dims):
                     grav_name=n
                     break
         if grav_name is None:
             raise RuntimeError("Could not determine gravity variable")
 
-        origin=[0.,0.,ve[0]]
-        lengths=[1.,1.,ve[1]-ve[0]]
+        # see if there is a wkt string to convert coordinates
         try:
-            lon_range=f.variables[lon_name].actual_range
-            lat_range=f.variables[lat_name].actual_range
-            #origin[:2]=[lon_range[0],lat_range[0]]
+            wkt_string=f.variables[grav_name].esri_pe_string
+        except:
+            wkt_string=None
+
+        origin=[0.,0.,ve[0]]
+        lengths=[100000.,100000.,ve[1]-ve[0]]
+
+        try:
+            lon_range=longitude.actual_range
+            lat_range=latitude.actual_range
+            lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+            origin[:2]=lon_range[0],lat_range[0]
             lengths[:2]=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         except:
             try:
-                #origin[:2]=[f.geospatial_lon_min, f.geospatial_lat_min]
-                lengths[:2]=[f.geospatial_lon_max-origin[0], f.geospatial_lat_max-origin[1]]
+                lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
+                lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
+                lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+                origin[:2]=lon_range[0],lat_range[0]
+                lengths[:2]=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
             except:
                 pass
 
-        # hack
-        # grid spacing ~800m
-        SPACING_X=SPACING_Y=800.
-        lengths[0]=(NX-1)*SPACING_X
-        lengths[1]=(NY-1)*SPACING_Y
         f.close()
+
         self._numDataPoints=[NX, NY, ve[2]]
         self._origin=origin
-        self._meshlen=lengths
-        self._spacing=[lengths[i]/(self._numDataPoints[i]-1) for i in xrange(3)]
+        self._spacing=[np.round(lengths[i]/(self._numDataPoints[i]-1)) for i in xrange(3)]
+        self._meshlen=[self._numDataPoints[i]*self._spacing[i] for i in xrange(3)]
+        self._wkt_string=wkt_string
         self._lon=lon_name
         self._lat=lat_name
         self._grv=grav_name
@@ -352,7 +372,7 @@ class NetCDFDataSource(DataSource):
             dom=self._domainclass(*self.NE, l0=lo[0], l1=lo[1], l2=lo[2])
             # ripley may adjust NE and length
             self._meshlen=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in xrange(3)]
-            self.NE=[self._meshlen[i]/(self._spacing[i]) for i in xrange(3)]
+            self.NE=[self._meshlen[i]/self._spacing[i] for i in xrange(3)]
             x=dom.getX()-[self._origin[i]+NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
             mask=wherePositive(dom.getX()[2])
 
@@ -404,22 +424,23 @@ class NetCDFDataSource(DataSource):
 
     def _readGravity(self):
         f=netcdf_file(self._gravfile, 'r')
-        #lon=f.variables[self._lon][:]
-        #lat=f.variables[self._lat][:]
+        lon=f.variables[self._lon][:]
+        lat=f.variables[self._lat][:]
+        lon,lat=np.meshgrid(lon,lat)
+        lon,lat=LatLonToUTM(lon, lat, self._wkt_string)
         grav=f.variables[self._grv][:]
         f.close()
-        lon=np.linspace(0, (grav.shape[1]-1)*self._spacing[0], num=grav.shape[1])
-        lat=np.linspace(0, (grav.shape[0]-1)*self._spacing[1], num=grav.shape[0])
-        lon,lat=np.meshgrid(lon,lat)
         lon=lon.flatten()
         lat=lat.flatten()
         grav=grav.flatten()
         alt=self._altOfData*np.ones(grav.shape)
+        # error value is an assumption
         try:
             missing=grav.missing_value
-            err=np.where(grav==missing, 1.0, 0.0)
+            err=np.where(grav==missing, 20.0, 0.0)
         except:
-            err=np.ones(lon.shape)
+            err=20.0*np.ones(lon.shape)
+        # convert units
         err=1e-6*err
         grav=1e-6*grav
         gravdata=np.column_stack((lon,lat,alt,grav,err))
