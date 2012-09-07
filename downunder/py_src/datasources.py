@@ -19,10 +19,11 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['DataSource','UBCDataSource','SyntheticDataSource','SmoothAnomaly']
+__all__ = ['DataSource','UBCDataSource','ERSDataSource','SyntheticDataSource','SmoothAnomaly']
 
 import logging
 import numpy as np
+import struct
 from esys.escript import *
 from esys.escript.linearPDEs import *
 import esys.escript.unitsSI as U
@@ -71,6 +72,7 @@ class DataSource(object):
     def __init__(self):
         """
         """
+        self._constrainBottom=False
         self._domain=None
         self._pad_l=0.1
         self._pad_h=0.1
@@ -111,16 +113,16 @@ class DataSource(object):
         arrays=np.zeros(((len(data[0])-dim),)+tuple(shape))
         for entry in data:
             index=()
-            for i in range(dim):
+            for i in xrange(dim):
                 index=((entry[i]-origin[i])/spacing[i],)+index
-            for i in range(arrays.shape[0]):
+            for i in xrange(arrays.shape[0]):
                 arrays[i][index]=entry[dim+i]
         dom=self.getDomain()
         x=dom.getX()
         delta=[length[i]/(shape[dim-i-1]-1) for i in xrange(dim)]
         realorigin=[inf(x[i]) for i in xrange(dim)]
         res=[]
-        for i in range(arrays.shape[0]):
+        for i in xrange(arrays.shape[0]):
             res.append(interpolateTable(arrays[i], x[:dim], realorigin, delta, 1e9))
         return res
 
@@ -132,6 +134,14 @@ class DataSource(object):
         """
         self._pad_l=pad_l
         self._pad_h=pad_h
+
+    def setConstrainBottom(self, constrain):
+        """
+        If `constrain` is True, then the density mask will be set to 1 in the
+        padding area at the bottom of the domain. By default this area is
+        unconstrained.
+        """
+        self._constrainBottom=constrain
 
     def getDomain(self):
         """
@@ -217,8 +227,10 @@ class UBCDataSource(DataSource):
             x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
             mask=wherePositive(x[2]+self._origin[2])
 
-        M=2 # do not constrain bottom
-        #M=3 # constrain bottom
+        if self._constrainBottom:
+            M=3 # constrain bottom
+        else:
+            M=2 # do not constrain bottom
         for i in xrange(M):
             mask=mask + whereNegative(x[i]) + \
                     wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
@@ -263,7 +275,7 @@ class UBCDataSource(DataSource):
 
 ##############################################################################
 class NetCDFDataSource(DataSource):
-    def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=1.):
+    def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
         """
         vertical_extents - (alt_min, alt_max, num_elements)
         alt_of_data - altitude of measurements
@@ -343,31 +355,26 @@ class NetCDFDataSource(DataSource):
         except:
             wkt_string=None
 
-        origin=[0.,0.,ve[0]]
-        lengths=[100000.,100000.,ve[1]-ve[0]]
-
-        try:
-            lon_range=longitude.actual_range
-            lat_range=latitude.actual_range
-            lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
-            origin[:2]=lon_range[0],lat_range[0]
-            lengths[:2]=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
-        except:
-            try:
-                lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
-                lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
-                lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
-                origin[:2]=lon_range[0],lat_range[0]
-                lengths[:2]=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
-            except:
-                pass
+        # we don't trust actual_range & geospatial_lon_min/max since subset
+        # data does not seem to have these fields updated it seems.
+        # Getting min/max from the arrays is obviously not very efficient...
+        #lon_range=longitude.actual_range
+        #lat_range=latitude.actual_range
+        #lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
+        #lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
+        lon_range=longitude.data.min(),longitude.data.max()
+        lat_range=latitude.data.min(),latitude.data.max()
+        lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+        origin=[lon_range[0],lat_range[0],ve[0]]
+        lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0],ve[1]-ve[0]]
 
         f.close()
 
         self._numDataPoints=[NX, NY, ve[2]]
         self._origin=origin
+        # we are rounding to avoid interpolateOnDomain issues
         self._spacing=[np.round(lengths[i]/(self._numDataPoints[i]-1)) for i in xrange(3)]
-        self._meshlen=[self._numDataPoints[i]*self._spacing[i] for i in xrange(3)]
+        self._meshlen=[(self._numDataPoints[i]-1)*self._spacing[i] for i in xrange(3)]
         self._wkt_string=wkt_string
         self._lon=lon_name
         self._lat=lat_name
@@ -381,6 +388,7 @@ class NetCDFDataSource(DataSource):
 
         self._meshlen=l_new
         self.NE=NE_new
+        self._dataorigin=self._origin
         self._origin=origin_new
         lo=[(self._origin[i], self._origin[i]+l_new[i]) for i in xrange(3)]
         NEdiff=[NE_new[i]-NE[i] for i in xrange(3)]
@@ -397,8 +405,10 @@ class NetCDFDataSource(DataSource):
             x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
             mask=wherePositive(x[2]+self._origin[2])
 
-        M=2 # do not constrain bottom
-        #M=3 # constrain bottom
+        if self._constrainBottom:
+            M=3 # constrain bottom
+        else:
+            M=2 # do not constrain bottom
         for i in xrange(M):
             mask=mask + whereNegative(x[i]) + \
                     wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
@@ -440,10 +450,12 @@ class NetCDFDataSource(DataSource):
 
     def _readGravity(self):
         f=netcdf_file(self._gravfile, 'r')
-        lon=f.variables[self._lon][:]
-        lat=f.variables[self._lat][:]
+        #lon=f.variables[self._lon][:]
+        #lat=f.variables[self._lat][:]
+        NE=[self._numDataPoints[i]-1 for i in xrange(2)]
+        lon=np.linspace(self._dataorigin[0], self._dataorigin[0]+NE[0]*self._spacing[0], NE[0]+1)
+        lat=np.linspace(self._dataorigin[1], self._dataorigin[1]+NE[1]*self._spacing[1], NE[1]+1)
         lon,lat=np.meshgrid(lon,lat)
-        lon,lat=LatLonToUTM(lon, lat, self._wkt_string)
         grav=f.variables[self._grv][:]
         f.close()
         lon=lon.flatten()
@@ -452,8 +464,8 @@ class NetCDFDataSource(DataSource):
         alt=self._altOfData*np.ones(grav.shape)
         # error value is an assumption
         try:
-            missing=grav.missing_value
-            err=np.where(grav==missing, 20.0, 0.0)
+            missing=f.variables[self._grv].missing_value
+            err=np.where(grav==missing, 0.0, 20.0)
         except:
             err=20.0*np.ones(lon.shape)
         # convert units
@@ -462,7 +474,189 @@ class NetCDFDataSource(DataSource):
         gravdata=np.column_stack((lon,lat,alt,grav,err))
         return gravdata
 
-class SmoothAnomaly(object):
+##############################################################################
+class ERSDataSource(DataSource):
+    """
+    Data Source for ER Mapper raster data.
+    Note that this class only accepts a very specific type of ER Mapper data
+    input and will raise an exception if other data is found.
+    """
+    def __init__(self, domainclass, headerfile, datafile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
+        """
+        headerfile - usually ends in .ers
+        datafile - usually has the same name as the headerfile without '.ers'
+        """
+        super(ERSDataSource,self).__init__()
+        self._headerfile=headerfile
+        if datafile is None:
+            self._datafile=headerfile[:-4]
+        else:
+            self._datafile=datafile
+        self._domainclass=domainclass
+        self._readHeader(vertical_extents)
+        self._altOfData=alt_of_data
+
+    def _readHeader(self, ve):
+        metadata=open(self._headerfile, 'r').readlines()
+        # parse metadata
+        start=-1
+        for i in xrange(len(metadata)):
+            if metadata[i].strip() == 'DatasetHeader Begin':
+                start=i+1
+        if start==-1:
+            raise RuntimeError('Invalid ERS file (DatasetHeader not found)')
+
+        md_dict={}
+        section=[]
+        for i in xrange(start, len(metadata)):
+            line=metadata[i]
+            if line[-6:].strip() == 'Begin':
+                section.append(line[:-6].strip())
+            elif line[-4:].strip() == 'End':
+                if len(section)>0:
+                    section.pop()
+            else:
+                vals=line.split('=')
+                if len(vals)==2:
+                    key = vals[0].strip()
+                    value = vals[1].strip()
+                    fullkey='.'.join(section+[key])
+                    md_dict[fullkey]=value
+
+        try:
+            if md_dict['RasterInfo.CellType'] != 'IEEE4ByteReal':
+                raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
+        except KeyError:
+            self.logger.warn("Cell type not specified. Assuming IEEE4ByteReal.")
+
+        try:
+            NX = int(md_dict['RasterInfo.NrOfCellsPerLine'])
+            NY = int(md_dict['RasterInfo.NrOfLines'])
+        except:
+            raise RuntimeError("Could not determine extents of data")
+
+        try:
+            maskval = float(md_dict['RasterInfo.NullCellValue'])
+        except:
+            raise RuntimeError("Could not determine NullCellValue")
+
+        try:
+            spacingX = float(md_dict['RasterInfo.CellInfo.Xdimension'])
+            spacingY = float(md_dict['RasterInfo.CellInfo.Ydimension'])
+        except:
+            raise RuntimeError("Could not determine cell dimensions")
+
+        try:
+            originX = float(md_dict['RasterInfo.RegistrationCoord.Eastings'])
+            originY = float(md_dict['RasterInfo.RegistrationCoord.Northings'])
+        except:
+            self.logger.warn("Could not determine coordinate origin")
+            originX,originY = 0.0, 0.0
+
+        # test data sets have origin in top-left corner so y runs top-down
+        self._dataorigin=[originX, originY]
+        originY-=(NY-1)*spacingY
+        self._maskval=maskval
+        self._spacing=[spacingX, spacingY, (ve[1]-ve[0])/(ve[2]-1)]
+        self._numDataPoints = [NX, NY, ve[2]]
+        self._origin = [originX, originY, ve[0]]
+        self._meshlen=[self._numDataPoints[i]*self._spacing[i] for i in xrange(3)]
+
+    def getDensityMask(self):
+        return self._mask
+
+    def getGravityAndStdDev(self):
+        gravlist=self._readGravity() # x,y,z,g,s
+        shape=[self.NE[2]+1, self.NE[1]+1, self.NE[0]+1]
+        g_and_sigma=self._interpolateOnDomain(gravlist, shape, self._origin, self._spacing, self._meshlen)
+        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
+
+    def _createDomain(self, padding_l, padding_h):
+        NE=[self._numDataPoints[i]-1 for i in xrange(3)]
+        l=[NE[i]*self._spacing[i] for i in xrange(3)]
+        NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
+                NE, l, self._origin)
+
+        self._meshlen=l_new
+        self.NE=NE_new
+        self._origin=origin_new
+        lo=[(self._origin[i], self._origin[i]+l_new[i]) for i in xrange(3)]
+        NEdiff=[NE_new[i]-NE[i] for i in xrange(3)]
+        try:
+            dom=self._domainclass(*self.NE, l0=lo[0], l1=lo[1], l2=lo[2])
+            x=dom.getX()-[self._origin[i]+NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
+            mask=wherePositive(dom.getX()[2])
+
+        except TypeError:
+            dom=self._domainclass(*self.NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
+            x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
+            mask=wherePositive(x[2]+self._origin[2])
+
+        if self._constrainBottom:
+            M=3 # constrain bottom
+        else:
+            M=2 # do not constrain bottom
+        for i in xrange(M):
+            mask=mask + whereNegative(x[i]) + \
+                    wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
+        self._mask=wherePositive(mask)
+
+        self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
+        self.logger.debug("     length: %g x %g x %g"%(l_new[0],l_new[1],l_new[2]))
+        self.logger.debug("     origin: %g x %g x %g"%(origin_new[0],origin_new[1],origin_new[2]))
+
+        return dom
+
+    def _readGravity(self):
+        f=open(self._datafile, 'r')
+        n=self._numDataPoints[0]*self._numDataPoints[1]
+        grav=[]
+        err=[]
+        for i in xrange(n):
+            v=struct.unpack('f',f.read(4))[0]
+            grav.append(v)
+            if abs((self._maskval-v)/v) < 1e-6:
+                err.append(0.)
+            else:
+                err.append(1.)
+        f.close()
+
+        NE=[self._numDataPoints[i] for i in xrange(2)]
+        x=self._dataorigin[0]+np.arange(start=0, stop=NE[0]*self._spacing[0], step=self._spacing[0])
+        # test data sets have origin in top-left corner so y runs top-down
+        y=self._dataorigin[1]-np.arange(start=0, stop=NE[1]*self._spacing[1], step=self._spacing[1])
+        x,y=np.meshgrid(x,y)
+        x,y=x.flatten(),y.flatten()
+        alt=self._altOfData*np.ones((n,))
+
+        # convert units
+        err=2e-5*np.array(err)
+        grav=1e-5*np.array(grav)
+        gravdata=np.column_stack((x,y,alt,grav,err))
+        return gravdata
+
+##############################################################################
+class SourceFeature(object):
+    """
+    A feature adds a density distribution to (parts of) a domain of a synthetic
+    data source, for example a layer of a specific rock type or a simulated
+    ore body.
+    """
+    def getDensity(self):
+        """
+        Returns the density for the area covered by mask. It can be constant
+        or a data object with spatial dependency.
+        """
+        raise NotImplementedError
+    def getMask(self, x):
+        """
+        Returns the mask of the area of interest for this feature. That is,
+        mask is non-zero where the density returned by getDensity() should be
+        applied, zero elsewhere.
+        """
+        raise NotImplementedError
+
+class SmoothAnomaly(SourceFeature):
     def __init__(self, lx, ly, lz, x, y, depth, rho_inner, rho_outer):
         self.x=x
         self.y=y
@@ -473,6 +667,10 @@ class SmoothAnomaly(object):
         self.rho_inner=rho_inner
         self.rho_outer=rho_outer
         self.rho=None
+    
+    def getDensity(self):
+        return self.rho
+
     def getMask(self, x):
         DIM=x.getDomain().getDim()
         m=whereNonNegative(x[DIM-1]-(sup(x[DIM-1])-self.depth-self.lz/2)) * whereNonPositive(x[DIM-1]-(sup(x[DIM-1])-self.depth+self.lz/2)) \
@@ -487,6 +685,7 @@ class SmoothAnomaly(object):
             if self.rho_inner<0: self.rho=-self.rho
         return m	 
 
+##############################################################################
 class SyntheticDataSource(DataSource):
     def __init__(self, DIM, NE, l, h, features):
         super(SyntheticDataSource,self).__init__()
@@ -539,7 +738,7 @@ class SyntheticDataSource(DataSource):
         rho_ref=0.
         for f in self._features:
             m=f.getMask(self._x)
-            rho_ref = rho_ref * (1-m) + f.rho * m
+            rho_ref = rho_ref * (1-m) + f.getDensity() * m
         self._rho=rho_ref
 
         return dom
