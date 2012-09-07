@@ -163,6 +163,13 @@ class GravityInversion(InversionBase):
         self.logger.debug("mu_model = %s"%self._mu_model)
         self.f.setWeights(mu_reg=self._mu_reg, mu_model=self._mu_model)
         self.__is_setup=True
+        #args={'rho_mask':rho_mask,'g':g[DIM-1],'chi':chi[DIM-1],'sigma':sigma}
+        #try:
+        #    args['rho_ref']=self.source.getReferenceDensity()
+        #except:
+        #    pass
+        #saveSilo('init', **args)
+
 
     def run(self, rho_init=0.):
         if not self.__is_setup:
@@ -175,13 +182,6 @@ class GravityInversion(InversionBase):
         if not isinstance(rho_init, Data):
             rho_init=Scalar(rho_init, ContinuousFunction(self.source.getDomain()))
         m_init=self.mapping.getInverse(rho_init)
-
-        #args={'rho_mask':rho_mask,'g':g[DIM-1],'chi':chi[DIM-1],'sigma':sigma}
-        #try:
-        #    args['rho_ref']=self.source.getReferenceDensity()
-        #except:
-        #    pass
-        #saveSilo('ref', **args)
 
         self.logger.info("Starting solver...")
         solver.run(m_init)
