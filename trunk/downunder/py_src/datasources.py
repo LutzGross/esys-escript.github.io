@@ -59,7 +59,8 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         p_src = pyproj.Proj(srs.ExportToProj4())
     except:
         p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
-    p_dest = pyproj.Proj(proj='utm', zone=zone) # ellps?
+    # we assume southern hemisphere here
+    p_dest = pyproj.Proj('+proj=utm +zone=%d +south +units=m'%zone)
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y
 
@@ -114,7 +115,7 @@ class DataSource(object):
         for entry in data:
             index=()
             for i in xrange(dim):
-                index=((entry[i]-origin[i])/spacing[i],)+index
+                index=(int((entry[i]-origin[i])/spacing[i]),)+index
             for i in xrange(arrays.shape[0]):
                 arrays[i][index]=entry[dim+i]
         dom=self.getDomain()
@@ -547,13 +548,37 @@ class ERSDataSource(DataSource):
             raise RuntimeError("Could not determine cell dimensions")
 
         try:
-            originX = float(md_dict['RasterInfo.RegistrationCoord.Eastings'])
-            originY = float(md_dict['RasterInfo.RegistrationCoord.Northings'])
+            if md_dict['CoordinateSpace.CoordinateType']=='EN':
+                originX = float(md_dict['RasterInfo.RegistrationCoord.Eastings'])
+                originY = float(md_dict['RasterInfo.RegistrationCoord.Northings'])
+            elif md_dict['CoordinateSpace.CoordinateType']=='LL':
+                originX = float(md_dict['RasterInfo.RegistrationCoord.Longitude'])
+                originY = float(md_dict['RasterInfo.RegistrationCoord.Latitude'])
+            else:
+                raise RuntimeError("Unknown CoordinateType")
         except:
-            self.logger.warn("Could not determine coordinate origin")
+            self.logger.warn("Could not determine coordinate origin. Setting to (0.0, 0.0)")
             originX,originY = 0.0, 0.0
 
-        # test data sets have origin in top-left corner so y runs top-down
+        if 'GEODETIC' in md_dict['CoordinateSpace.Projection']:
+            # it appears we have lat/lon coordinates so need to convert
+            # origin and spacing. Try using gdal to get the wkt if available:
+            try:
+                from osgeo import gdal
+                ds=gdal.Open(self._headerfile)
+                wkt=ds.GetProjection()
+            except:
+                wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
+                self.logger.warn('GDAL not available, assuming GDA94 data')
+            originX_UTM,originY_UTM=LatLonToUTM(originX, originY, wkt)
+            op1X,op1Y=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+            # we are rounding to avoid interpolateOnDomain issues
+            spacingX=np.round(op1X-originX_UTM)
+            spacingY=np.round(op1Y-originY_UTM)
+            originX=np.round(1000*originX_UTM)/1000.
+            originY=np.round(1000*originY_UTM)/1000.
+
+        # data sets have origin in top-left corner so y runs top-down
         self._dataorigin=[originX, originY]
         originY-=(NY-1)*spacingY
         self._maskval=maskval
@@ -623,7 +648,7 @@ class ERSDataSource(DataSource):
 
         NE=[self._numDataPoints[i] for i in xrange(2)]
         x=self._dataorigin[0]+np.arange(start=0, stop=NE[0]*self._spacing[0], step=self._spacing[0])
-        # test data sets have origin in top-left corner so y runs top-down
+        # data sets have origin in top-left corner so y runs top-down
         y=self._dataorigin[1]-np.arange(start=0, stop=NE[1]*self._spacing[1], step=self._spacing[1])
         x,y=np.meshgrid(x,y)
         x,y=x.flatten(),y.flatten()
