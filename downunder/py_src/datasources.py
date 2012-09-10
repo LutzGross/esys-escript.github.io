@@ -237,6 +237,7 @@ class UBCDataSource(DataSource):
                     wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
         self._mask=wherePositive(mask)
 
+        self.logger.debug("Data Source: %s (mesh file: %s)"%(self._gravfile, self._meshfile))
         self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
         self.logger.debug("     length: %g x %g x %g"%(l_new[0],l_new[1],l_new[2]))
         self.logger.debug("     origin: %g x %g x %g"%(origin_new[0],origin_new[1],origin_new[2]))
@@ -415,6 +416,7 @@ class NetCDFDataSource(DataSource):
                     wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
         self._mask=wherePositive(mask)
 
+        self.logger.debug("Data Source: %s"%self._gravfile)
         self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
         self.logger.debug("     length: %s x %s x %s"%(self._meshlen[0],self._meshlen[1],self._meshlen[2]))
         self.logger.debug("     origin: %s x %s x %s"%(self._origin[0],self._origin[1],self._origin[2]))
@@ -626,6 +628,7 @@ class ERSDataSource(DataSource):
                     wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
         self._mask=wherePositive(mask)
 
+        self.logger.debug("Data Source: %s (header: %s)"%(self._datafile, self._headerfile))
         self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
         self.logger.debug("     length: %g x %g x %g"%(l_new[0],l_new[1],l_new[2]))
         self.logger.debug("     origin: %g x %g x %g"%(origin_new[0],origin_new[1],origin_new[2]))
@@ -733,6 +736,7 @@ class SyntheticDataSource(DataSource):
         self.l=l_new[0]
         self.h=l_new[self.DIM-1]
 
+        self.logger.debug("Data Source: synthetic with %d features"%len(self._features))
         if self.DIM==2:
             from esys.finley import Rectangle
             dom = Rectangle(n0=NE_new[0], n1=NE_new[1], l0=l_new[0], l1=l_new[1])

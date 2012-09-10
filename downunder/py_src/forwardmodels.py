@@ -88,6 +88,18 @@ class GravityModel(ForwardModel):
             constraint=constraint+whereZero(x[i]-BX[i][1])+whereZero(x[i]-BX[i][0])
         self.__pde.setValue(A=kronecker(DIM), q=constraint)
 
+    def getSurvey(self, index=None):
+        """
+        Returns the pair (g_index, chi_index), where g_i is the gravity
+        anomaly of survey i, chi_i is the weighting factor for survey i.
+        If index is None, all surveys will be returned in a pair of lists.
+        """
+        if index is None:
+            return self.__g, self.__chi
+        if index>=len(self.__g):
+            raise IndexError("Forward model only has %d surveys"%len(self.__g))
+        return self.__g[index], self.__chi[index]
+
     def getArguments(self, rho):
         """
         Returns precomputed values shared by getValue() and getGradient().

@@ -93,6 +93,27 @@ class InversionBase(object):
         """
         self.mapping=mapping
 
+    def getRegularization(self):
+        """
+        Returns the regularization object used in this inversion.
+        The regularization is only valid once setup() has been called.
+        """
+        raise NotImplementedError
+
+    def getForwardModel(self):
+        """
+        Returns the forward model object used in this inversion.
+        The forward model is only valid once setup() has been called.
+        """
+        raise NotImplementedError
+
+    def getCostFunction(self):
+        """
+        Returns the cost function object used in this inversion.
+        The cost function is only valid once setup() has been called.
+        """
+        raise NotImplementedError
+
     def setup(self):
         """
         This method must be overwritten to perform any setup needed by the
@@ -129,6 +150,21 @@ class GravityInversion(InversionBase):
         ds.saveSilo(fn)
         self.logger.debug("Jreg(m) = %e"%self.regularization.getValue(x))
         self.logger.debug("f(m) = %e"%fx)
+
+    def getRegularization(self):
+        if self.__is_setup:
+            return self.regularization
+        return None
+
+    def getForwardModel(self):
+        if self.__is_setup:
+            return self.forwardmodel
+        return None
+
+    def getCostFunction(self):
+        if self.__is_setup:
+            return self.f
+        return None
 
     def setup(self):
         if self.source is None:
