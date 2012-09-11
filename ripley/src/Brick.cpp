@@ -51,7 +51,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     // ratio as the number of elements
     if (d0<=0 && d1<=0 && d2<=0) {
         warn=true;
-        d0=(int)(pow(m_mpiInfo->size*(n0+1)*(n0+1)/((float)(n1+1)*(n2+1)), 1./3));
+        d0=(int)(pow(m_mpiInfo->size*(n0+1)*(n0+1)/((float)(n1+1)*(n2+1)), 1.f/3));
         d1=(int)(d0*n1/(float)n0);
         d2=m_mpiInfo->size/(d0*d1);
         if (d0*d1*d2 != m_mpiInfo->size) {
