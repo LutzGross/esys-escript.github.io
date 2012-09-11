@@ -132,6 +132,7 @@ vars.AddVariables(
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
+  BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
 )
 
 ##################### Create environment and help text #######################
@@ -249,6 +250,8 @@ if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cc_extra']  != '': env.Append(CFLAGS = env['cc_extra'])
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
+
+if env['BADPYTHONMACROS']: env.Append(CXXFLAGS = ' -DBADPYTHONMACROS')
 
 if env['usepython3']:
     env.Append(CPPDEFINES=['ESPYTHON3'])
