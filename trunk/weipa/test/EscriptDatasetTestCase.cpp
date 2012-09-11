@@ -12,8 +12,8 @@
 *******************************************************/
 
 
-#include "EscriptDatasetTestCase.h"
 #include "escript/DataFactory.h"
+#include "EscriptDatasetTestCase.h"
 #include "finley/CppAdapter/MeshAdapterFactory.h"
 #include "weipa/EscriptDataset.h"
 

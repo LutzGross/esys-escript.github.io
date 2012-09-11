@@ -114,7 +114,7 @@ boost_prefix = '/usr/local'
 boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-#cppunit_prefix = '/usr/local'
+cppunit_prefix = '/usr/local'
 
 # CppUnit library/libraries to link against
 #cppunit_libs = ['cppunit']
