@@ -90,14 +90,15 @@ class DataSource(object):
         # amount of padding per dimension
         if pad_l>0 and pad_l<1:
             for i in xrange(DIM-1):
-                frac[i]=2*pad_l
+                frac[i]=2.*pad_l
         elif pad_l>=1:
             for i in xrange(DIM-1):
-                frac[i]=2*pad_l/float(NE[i])
+                frac[i]=2.*pad_l/float(NE[i])
         if pad_h>0 and pad_h<1:
-            frac[DIM-1]=2*pad_h
+            frac[DIM-1]=2.*pad_h
         elif pad_h>=1:
-            frac[DIM-1]=2*pad_h/(float(NE[DIM-1]))
+            frac[DIM-1]=2.*pad_h/(float(NE[DIM-1]))
+
         # calculate new number of elements
         NE_new=[int(NE[i]*(1+frac[i])) for i in xrange(DIM)]
         NEdiff=[NE_new[i]-NE[i] for i in xrange(DIM)]
@@ -106,24 +107,30 @@ class DataSource(object):
         origin_new=[origin[i]-NEdiff[i]/2.*spacing[i] for i in xrange(DIM)]
         return NE_new, l_new, origin_new
 
-    def _interpolateOnDomain(self, data, shape, origin, spacing, length):
+    def _interpolateOnDomain(self, data):
         """
         Helper method that interpolates data arrays onto the domain.
         """
-        dim=len(shape)
-        arrays=np.zeros(((len(data[0])-dim),)+tuple(shape))
+        dom=self.getDomain()
+        dim=dom.getDim()
+        # shape = number of data points/nodes in each dimension
+        shape=()
+        for i in xrange(dim):
+            shape=(self._dom_NE[i]+1,)+shape
+        # separate data arrays and coordinates
+        arrays=np.zeros(((len(data[0])-dim),)+shape)
+        num_arrays=arrays.shape[0]
         for entry in data:
             index=()
             for i in xrange(dim):
-                index=(int((entry[i]-origin[i])/spacing[i]),)+index
-            for i in xrange(arrays.shape[0]):
+                index=(int((entry[i]-self._dom_origin[i])/self._spacing[i]),)+index
+            for i in xrange(num_arrays):
                 arrays[i][index]=entry[dim+i]
-        dom=self.getDomain()
         x=dom.getX()
-        delta=[length[i]/(shape[dim-i-1]-1) for i in xrange(dim)]
+        delta=[self._dom_len[i]/(shape[dim-i-1]-1) for i in xrange(dim)]
         realorigin=[inf(x[i]) for i in xrange(dim)]
         res=[]
-        for i in xrange(arrays.shape[0]):
+        for i in xrange(num_arrays):
             res.append(interpolateTable(arrays[i], x[:dim], realorigin, delta, 1e9))
         return res
 
@@ -157,7 +164,7 @@ class DataSource(object):
         Returns the density mask data object, where mask has value 1 on the
         padding area, 0 elsewhere.
         """
-        raise NotImplementedError
+        return self._mask
 
     def getGravityAndStdDev(self):
         """
@@ -166,108 +173,161 @@ class DataSource(object):
         """
         raise NotImplementedError
 
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) ), where
+            x0, y0 = coordinates of data origin
+            nx, ny = number of data points in x and y
+            dx, dy = spacing of data points in x and y
+        """
+        raise NotImplementedError
+
+    def getVerticalExtents(self):
+        """
+        returns (z0, nz, dz), where
+            z0 = minimum z coordinate (origin)
+            nz = number of nodes in z direction
+            dz = spacing of nodes (= cell size in z)
+        """
+        raise NotImplementedError
+
+    def getDomainClass(self):
+        """
+        returns the domain generator class (e.g. esys.ripley.Brick)
+        """
+        raise NotImplementedError
+
     def _createDomain(self, padding_l, padding_h):
         """
         creates and returns an escript domain that spans the entire area of
         available data plus a buffer zone.
         """
-        raise NotImplementedError
+        X0, NX, DX = self.getDataExtents()
+        z0, nz, dz = self.getVerticalExtents()
 
+        # number of elements (without padding)
+        NE = [NX[0]-1, NX[1]-1, nz-1]
 
-##############################################################################
-class UBCDataSource(DataSource):
-    def __init__(self, domainclass, meshfile, gravfile, topofile=None):
-        super(UBCDataSource,self).__init__()
-        self._meshfile=meshfile
-        self._gravfile=gravfile
-        self._topofile=topofile
-        self._domainclass=domainclass
-        self._readMesh()
+        # origin of domain (without padding)
+        origin = [X0[0], X0[1], z0]
+        origin = [np.round(oi) for oi in origin]
 
-    def getDensityMask(self):
-        #topodata=self._readTopography()
-        #shape=[self.NE[1]+1, self.NE[0]+1]
-        #mask=self._interpolateOnDomain(topodata, shape, self._origin, self._spacing, self._meshlen)
-        #mask=wherePositive(self.getDomain().getX()[2]-mask[0])
-        return self._mask
+        # cell size / point spacing
+        self._spacing = DX+[dz]
+        self._spacing = [np.round(si) for si in self._spacing]
 
-    def getGravityAndStdDev(self):
-        gravlist=self._readGravity() # x,y,z,g,s
-        shape=[self.NE[2]+1, self.NE[1]+1, self.NE[0]+1]
-        g_and_sigma=self._interpolateOnDomain(gravlist, shape, self._origin, self._spacing, self._meshlen)
-        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
+        # length of domain (without padding)
+        l = [NE[i]*self._spacing[i] for i in xrange(len(NE))]
 
-    def _readMesh(self):
-        meshdata=open(self._meshfile).readlines()
-        numDataPoints=meshdata[0].split()
-        origin=meshdata[1].split()
-        self._numDataPoints=[int(x) for x in numDataPoints]
-        self._origin=[float(x) for x in origin]
-        self._spacing=[float(X.split('*')[1]) for X in meshdata[2:]]
-        # vertical data is upside down
-        self._origin[2]-=(self._numDataPoints[2]-1)*self._spacing[2]
-
-    def _createDomain(self, padding_l, padding_h):
-        NE=[self._numDataPoints[i]-1 for i in xrange(3)]
-        l=[NE[i]*self._spacing[i] for i in xrange(3)]
+        # now add padding to the values
         NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
-                NE, l, self._origin)
+                NE, l, origin)
 
-        self._meshlen=l_new
-        self.NE=NE_new
-        self._origin=origin_new
-        lo=[(self._origin[i], self._origin[i]+l_new[i]) for i in xrange(3)]
-        NEdiff=[NE_new[i]-NE[i] for i in xrange(3)]
+        # number of padding elements per side
+        NE_pad=[(NE_new[i]-NE[i])/2 for i in xrange(3)]
+
+        self._dom_len = l_new
+        self._dom_NE = NE_new
+        self._dom_origin = origin_new
+        lo=[(origin_new[i], origin_new[i]+l_new[i]) for i in xrange(3)]
         try:
-            dom=self._domainclass(*self.NE, l0=lo[0], l1=lo[1], l2=lo[2])
-            x=dom.getX()-[self._origin[i]+NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
+            dom=self.getDomainClass()(*self._dom_NE, l0=lo[0], l1=lo[1], l2=lo[2])
+            # ripley may internally adjust NE and length, so recompute
+            self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in xrange(3)]
+            self._dom_NE=[self._dom_len[i]/self._spacing[i] for i in xrange(3)]
+            x=dom.getX()-[self._dom_origin[i]+NE_pad[i]*self._spacing[i] for i in xrange(3)]
             mask=wherePositive(dom.getX()[2])
 
         except TypeError:
-            dom=self._domainclass(*self.NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
-            x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(x[2]+self._origin[2])
+            dom=self.getDomainClass()(*self._dom_NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
+            x=dom.getX()-[NE_pad[i]*self._spacing[i] for i in xrange(3)]
+            mask=wherePositive(x[2]+self._dom_origin[2])
 
+        # prepare density mask (=1 at padding area, 0 else)
         if self._constrainBottom:
             M=3 # constrain bottom
         else:
             M=2 # do not constrain bottom
         for i in xrange(M):
             mask=mask + whereNegative(x[i]) + \
-                    wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
+                    wherePositive(x[i]-l_new[i]+2*NE_pad[i]*self._spacing[i])
         self._mask=wherePositive(mask)
 
-        self.logger.debug("Data Source: %s (mesh file: %s)"%(self._gravfile, self._meshfile))
-        self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
-        self.logger.debug("     length: %g x %g x %g"%(l_new[0],l_new[1],l_new[2]))
+        self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
+        self.logger.debug("     length: %g x %g x %g"%(self._dom_len[0],self._dom_len[1],self._dom_len[2]))
         self.logger.debug("     origin: %g x %g x %g"%(origin_new[0],origin_new[1],origin_new[2]))
 
         return dom
 
-    def _readTopography(self):
-        f=open(self._topofile)
+
+##############################################################################
+class UBCDataSource(DataSource):
+    def __init__(self, domainclass, meshfile, gravfile, topofile=None):
+        super(UBCDataSource,self).__init__()
+        self.__meshfile=meshfile
+        self.__gravfile=gravfile
+        self.__topofile=topofile
+        self.__domainclass=domainclass
+        self.__readMesh()
+
+    def __readMesh(self):
+        meshdata=open(self.__meshfile).readlines()
+        numDataPoints=meshdata[0].split()
+        origin=meshdata[1].split()
+        self.__nPts=map(int, numDataPoints)
+        self.__origin=map(float, origin)
+        self.__delta=[float(X.split('*')[1]) for X in meshdata[2:]]
+        # vertical data is upside down
+        self.__origin[2]-=(self.__nPts[2]-1)*self.__delta[2]
+        self.logger.debug("Data Source: %s (mesh file: %s)"%(self.__gravfile, self.__meshfile))
+
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) )
+        """
+        return (self.__origin[:2], self.__nPts[:2], self.__delta[:2])
+
+    def getVerticalExtents(self):
+        """
+        returns (z0, nz, dz)
+        """
+        return (self.__origin[2], self.__nPts[2], self.__delta[2])
+
+    def getDomainClass(self):
+        """
+        returns the domain generator class (e.g. esys.ripley.Brick)
+        """
+        return self.__domainclass
+
+    #def getDensityMask(self):
+    #    topodata=self.__readTopography()
+    #    mask=self._interpolateOnDomain(topodata)
+    #    mask=wherePositive(self.getDomain().getX()[2]-mask[0])
+    #    return mask
+
+    def getGravityAndStdDev(self):
+        gravlist=self._readGravity() # x,y,z,g,s
+        g_and_sigma=self._interpolateOnDomain(gravlist)
+        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
+
+    def __readTopography(self):
+        f=open(self.__topofile)
         n=int(f.readline())
         topodata=np.zeros((n,3))
         for i in xrange(n):
             x=f.readline().split()
-            x[0]=float(x[0])
-            x[1]=float(x[1])
-            x[2]=float(x[2])
+            x=map(float, x)
             topodata[i]=x
         f.close()
         return topodata
 
-    def _readGravity(self):
-        f=open(self._gravfile)
+    def __readGravity(self):
+        f=open(self.__gravfile)
         n=int(f.readline())
         gravdata=np.zeros((n,5))
         for i in xrange(n):
             x=f.readline().split()
-            x[0]=float(x[0]) # x
-            x[1]=float(x[1]) # y
-            x[2]=float(x[2]) # z
-            x[3]=float(x[3]) # gravity anomaly in mGal
-            x[4]=float(x[4]) # stddev
+            x=map(float, x) # x, y, z, anomaly in mGal, stddev
             # convert gravity anomaly units to m/s^2 and rescale error
             x[3]*=-1e-5
             x[4]*=1e-5
@@ -279,32 +339,19 @@ class UBCDataSource(DataSource):
 class NetCDFDataSource(DataSource):
     def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
         """
-        vertical_extents - (alt_min, alt_max, num_elements)
+        vertical_extents - (alt_min, alt_max, num_points)
         alt_of_data - altitude of measurements
         """
         super(NetCDFDataSource,self).__init__()
-        self._topofile=topofile
-        self._gravfile=gravfile
-        self._domainclass=domainclass
-        self._determineExtents(vertical_extents)
-        self._altOfData=alt_of_data
+        self.__topofile=topofile
+        self.__gravfile=gravfile
+        self.__domainclass=domainclass
+        self.__determineExtents(vertical_extents)
+        self.__altOfData=alt_of_data
 
-    def getDensityMask(self):
-        #topodata=self._readTopography()
-        #shape=self._numDataPoints[1::-1]
-        #mask=self._interpolateOnDomain(topodata, shape, self._origin, self._spacing, self._meshlen)
-        #mask=wherePositive(self.getDomain().getX()[2]-mask[0])
-        #rho=fill*(1.-mask) + RHO_AIR*mask
-        return self._mask
-
-    def getGravityAndStdDev(self):
-        gravlist=self._readGravity() # x,y,z,g,s
-        shape=[self.NE[2]+1, self.NE[1]+1, self.NE[0]+1]
-        g_and_sigma=self._interpolateOnDomain(gravlist, shape, self._origin, self._spacing, self._meshlen)
-        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
-
-    def _determineExtents(self, ve):
-        f=netcdf_file(self._gravfile, 'r')
+    def __determineExtents(self, ve):
+        self.logger.debug("Data Source: %s"%self.__gravfile)
+        f=netcdf_file(self.__gravfile, 'r')
         NX=0
         for n in ['lon','longitude','x']:
             if n in f.dimensions:
@@ -372,59 +419,40 @@ class NetCDFDataSource(DataSource):
 
         f.close()
 
-        self._numDataPoints=[NX, NY, ve[2]]
-        self._origin=origin
+        self.__nPts=[NX, NY, ve[2]]
+        self.__origin=origin
         # we are rounding to avoid interpolateOnDomain issues
-        self._spacing=[np.round(lengths[i]/(self._numDataPoints[i]-1)) for i in xrange(3)]
-        self._meshlen=[(self._numDataPoints[i]-1)*self._spacing[i] for i in xrange(3)]
-        self._wkt_string=wkt_string
-        self._lon=lon_name
-        self._lat=lat_name
-        self._grv=grav_name
+        self.__delta=[np.round(lengths[i]/(self.__nPts[i]-1)) for i in xrange(3)]
+        self.__wkt_string=wkt_string
+        self.__lon=lon_name
+        self.__lat=lat_name
+        self.__grv=grav_name
 
-    def _createDomain(self, padding_l, padding_h):
-        NE=[self._numDataPoints[i]-1 for i in xrange(3)]
-        l=self._meshlen
-        NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
-                NE, l, self._origin)
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) )
+        """
+        return (self.__origin[:2], self.__nPts[:2], self.__delta[:2])
 
-        self._meshlen=l_new
-        self.NE=NE_new
-        self._dataorigin=self._origin
-        self._origin=origin_new
-        lo=[(self._origin[i], self._origin[i]+l_new[i]) for i in xrange(3)]
-        NEdiff=[NE_new[i]-NE[i] for i in xrange(3)]
-        try:
-            dom=self._domainclass(*self.NE, l0=lo[0], l1=lo[1], l2=lo[2])
-            # ripley may adjust NE and length
-            self._meshlen=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in xrange(3)]
-            self.NE=[self._meshlen[i]/self._spacing[i] for i in xrange(3)]
-            x=dom.getX()-[self._origin[i]+NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(dom.getX()[2])
+    def getVerticalExtents(self):
+        """
+        returns (z0, nz, dz)
+        """
+        return (self.__origin[2], self.__nPts[2], self.__delta[2])
 
-        except TypeError:
-            dom=self._domainclass(*self.NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
-            x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(x[2]+self._origin[2])
+    def getDomainClass(self):
+        """
+        returns the domain generator class (e.g. esys.ripley.Brick)
+        """
+        return self.__domainclass
 
-        if self._constrainBottom:
-            M=3 # constrain bottom
-        else:
-            M=2 # do not constrain bottom
-        for i in xrange(M):
-            mask=mask + whereNegative(x[i]) + \
-                    wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
-        self._mask=wherePositive(mask)
-
-        self.logger.debug("Data Source: %s"%self._gravfile)
-        self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
-        self.logger.debug("     length: %s x %s x %s"%(self._meshlen[0],self._meshlen[1],self._meshlen[2]))
-        self.logger.debug("     origin: %s x %s x %s"%(self._origin[0],self._origin[1],self._origin[2]))
-
-        return dom
+    def getGravityAndStdDev(self):
+        gravlist=self._readGravity() # x,y,z,g,s
+        g_and_sigma=self._interpolateOnDomain(gravlist)
+        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
 
     def _readTopography(self):
-        f=netcdf_file(self._topofile, 'r')
+        f=netcdf_file(self.__topofile, 'r')
         lon=None
         for n in ['lon','longitude']:
             if n in f.variables:
@@ -452,22 +480,22 @@ class NetCDFDataSource(DataSource):
         return topodata
 
     def _readGravity(self):
-        f=netcdf_file(self._gravfile, 'r')
-        #lon=f.variables[self._lon][:]
-        #lat=f.variables[self._lat][:]
-        NE=[self._numDataPoints[i]-1 for i in xrange(2)]
-        lon=np.linspace(self._dataorigin[0], self._dataorigin[0]+NE[0]*self._spacing[0], NE[0]+1)
-        lat=np.linspace(self._dataorigin[1], self._dataorigin[1]+NE[1]*self._spacing[1], NE[1]+1)
+        f=netcdf_file(self.__gravfile, 'r')
+        #lon=f.variables[self.__lon][:]
+        #lat=f.variables[self.__lat][:]
+        NE=[self.__nPts[i]-1 for i in xrange(2)]
+        lon=np.linspace(self.__origin[0], self.__origin[0]+NE[0]*self.__delta[0], NE[0]+1)
+        lat=np.linspace(self.__origin[1], self.__origin[1]+NE[1]*self.__delta[1], NE[1]+1)
         lon,lat=np.meshgrid(lon,lat)
-        grav=f.variables[self._grv][:]
+        grav=f.variables[self.__grv][:]
         f.close()
         lon=lon.flatten()
         lat=lat.flatten()
         grav=grav.flatten()
-        alt=self._altOfData*np.ones(grav.shape)
+        alt=self.__altOfData*np.ones(grav.shape)
         # error value is an assumption
         try:
-            missing=f.variables[self._grv].missing_value
+            missing=f.variables[self.__grv].missing_value
             err=np.where(grav==missing, 0.0, 20.0)
         except:
             err=20.0*np.ones(lon.shape)
@@ -490,17 +518,18 @@ class ERSDataSource(DataSource):
         datafile - usually has the same name as the headerfile without '.ers'
         """
         super(ERSDataSource,self).__init__()
-        self._headerfile=headerfile
+        self.__headerfile=headerfile
         if datafile is None:
-            self._datafile=headerfile[:-4]
+            self.__datafile=headerfile[:-4]
         else:
-            self._datafile=datafile
-        self._domainclass=domainclass
-        self._readHeader(vertical_extents)
-        self._altOfData=alt_of_data
+            self.__datafile=datafile
+        self.__domainclass=domainclass
+        self.__readHeader(vertical_extents)
+        self.__altOfData=alt_of_data
 
-    def _readHeader(self, ve):
-        metadata=open(self._headerfile, 'r').readlines()
+    def __readHeader(self, ve):
+        self.logger.debug("Data Source: %s (header: %s)"%(self.__datafile, self.__headerfile))
+        metadata=open(self.__headerfile, 'r').readlines()
         # parse metadata
         start=-1
         for i in xrange(len(metadata)):
@@ -567,7 +596,7 @@ class ERSDataSource(DataSource):
             # origin and spacing. Try using gdal to get the wkt if available:
             try:
                 from osgeo import gdal
-                ds=gdal.Open(self._headerfile)
+                ds=gdal.Open(self.__headerfile)
                 wkt=ds.GetProjection()
             except:
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
@@ -577,85 +606,62 @@ class ERSDataSource(DataSource):
             # we are rounding to avoid interpolateOnDomain issues
             spacingX=np.round(op1X-originX_UTM)
             spacingY=np.round(op1Y-originY_UTM)
-            originX=np.round(1000*originX_UTM)/1000.
-            originY=np.round(1000*originY_UTM)/1000.
+            originX=np.round(originX_UTM)
+            originY=np.round(originY_UTM)
 
         # data sets have origin in top-left corner so y runs top-down
-        self._dataorigin=[originX, originY]
+        self.__dataorigin=[originX, originY]
         originY-=(NY-1)*spacingY
-        self._maskval=maskval
-        self._spacing=[spacingX, spacingY, (ve[1]-ve[0])/(ve[2]-1)]
-        self._numDataPoints = [NX, NY, ve[2]]
-        self._origin = [originX, originY, ve[0]]
-        self._meshlen=[self._numDataPoints[i]*self._spacing[i] for i in xrange(3)]
+        self.__maskval=maskval
+        spacingZ=np.round(float(ve[1]-ve[0])/(ve[2]-1))
+        self.__delta = [spacingX, spacingY, spacingZ]
+        self.__nPts = [NX, NY, ve[2]]
+        self.__origin = [originX, originY, ve[0]]
 
-    def getDensityMask(self):
-        return self._mask
+    def getDataExtents(self):
+        """
+        returns ( (x0, y0), (nx, ny), (dx, dy) )
+        """
+        return (self.__origin[:2], self.__nPts[:2], self.__delta[:2])
+
+    def getVerticalExtents(self):
+        """
+        returns (z0, nz, dz)
+        """
+        return (self.__origin[2], self.__nPts[2], self.__delta[2])
+
+    def getDomainClass(self):
+        """
+        returns the domain generator class (e.g. esys.ripley.Brick)
+        """
+        return self.__domainclass
 
     def getGravityAndStdDev(self):
         gravlist=self._readGravity() # x,y,z,g,s
-        shape=[self.NE[2]+1, self.NE[1]+1, self.NE[0]+1]
-        g_and_sigma=self._interpolateOnDomain(gravlist, shape, self._origin, self._spacing, self._meshlen)
+        g_and_sigma=self._interpolateOnDomain(gravlist)
         return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
 
-    def _createDomain(self, padding_l, padding_h):
-        NE=[self._numDataPoints[i]-1 for i in xrange(3)]
-        l=[NE[i]*self._spacing[i] for i in xrange(3)]
-        NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
-                NE, l, self._origin)
-
-        self._meshlen=l_new
-        self.NE=NE_new
-        self._origin=origin_new
-        lo=[(self._origin[i], self._origin[i]+l_new[i]) for i in xrange(3)]
-        NEdiff=[NE_new[i]-NE[i] for i in xrange(3)]
-        try:
-            dom=self._domainclass(*self.NE, l0=lo[0], l1=lo[1], l2=lo[2])
-            x=dom.getX()-[self._origin[i]+NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(dom.getX()[2])
-
-        except TypeError:
-            dom=self._domainclass(*self.NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
-            x=dom.getX()-[NEdiff[i]/2.*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(x[2]+self._origin[2])
-
-        if self._constrainBottom:
-            M=3 # constrain bottom
-        else:
-            M=2 # do not constrain bottom
-        for i in xrange(M):
-            mask=mask + whereNegative(x[i]) + \
-                    wherePositive(x[i]-l_new[i]+NEdiff[i]*self._spacing[i])
-        self._mask=wherePositive(mask)
-
-        self.logger.debug("Data Source: %s (header: %s)"%(self._datafile, self._headerfile))
-        self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
-        self.logger.debug("     length: %g x %g x %g"%(l_new[0],l_new[1],l_new[2]))
-        self.logger.debug("     origin: %g x %g x %g"%(origin_new[0],origin_new[1],origin_new[2]))
-
-        return dom
-
     def _readGravity(self):
-        f=open(self._datafile, 'r')
-        n=self._numDataPoints[0]*self._numDataPoints[1]
+        f=open(self.__datafile, 'r')
+        n=self.__nPts[0]*self.__nPts[1]
         grav=[]
         err=[]
         for i in xrange(n):
             v=struct.unpack('f',f.read(4))[0]
             grav.append(v)
-            if abs((self._maskval-v)/v) < 1e-6:
+            if abs((self.__maskval-v)/v) < 1e-6:
                 err.append(0.)
             else:
                 err.append(1.)
         f.close()
 
-        NE=[self._numDataPoints[i] for i in xrange(2)]
-        x=self._dataorigin[0]+np.arange(start=0, stop=NE[0]*self._spacing[0], step=self._spacing[0])
+        NE=[self.__nPts[i] for i in xrange(2)]
+        x=self.__dataorigin[0]+np.arange(start=0, stop=NE[0]*self.__delta[0], step=self.__delta[0])
         # data sets have origin in top-left corner so y runs top-down
-        y=self._dataorigin[1]-np.arange(start=0, stop=NE[1]*self._spacing[1], step=self._spacing[1])
+        y=self.__dataorigin[1]-np.arange(start=0, stop=NE[1]*self.__delta[1], step=self.__delta[1])
         x,y=np.meshgrid(x,y)
         x,y=x.flatten(),y.flatten()
-        alt=self._altOfData*np.ones((n,))
+        alt=self.__altOfData*np.ones((n,))
 
         # convert units
         err=2e-5*np.array(err)
@@ -782,7 +788,7 @@ class SyntheticDataSource(DataSource):
         pde=LinearSinglePDE(self.getDomain())
         G=6.6742e-11*U.m**3/(U.kg*U.sec**2)
         m_psi_ref=0.
-        for i in range(self.DIM):
+        for i in xrange(self.DIM):
             m_psi_ref=m_psi_ref + whereZero(self._x[i]-inf(self._x[i])) \
                     + whereZero(self._x[i]-sup(self._x[i]))
 
