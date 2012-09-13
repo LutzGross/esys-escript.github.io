@@ -874,8 +874,9 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-#pragma omp for schedule(static) nowait
-            for (size_t i = 0; i < tags->size(); i++) {
+	    long i;	// should be size_t but omp mutter mutter
+#pragma omp for schedule(static) private(i) nowait
+            for (i = 0; i < tags->size(); i++) {
                 const index_t v = (*tags)[i];
                 if ((v > lastFoundValue) && (v < local_minFoundValue))
                     local_minFoundValue = v;
