@@ -178,8 +178,6 @@ class GravityInversion(InversionBase):
         self.logger.info("Retrieving gravity and standard deviation data...")
         g, sigma=self.source.getGravityAndStdDev()
         chi=safeDiv(1., sigma*sigma)
-        chi=interpolate(chi, Function(domain))
-        g=interpolate(g, Function(domain))
         self.logger.debug("g = %s"%g)
         self.logger.debug("sigma = %s"%sigma)
         self.logger.debug("chi = %s"%chi)
