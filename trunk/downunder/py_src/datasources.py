@@ -110,6 +110,41 @@ class DataSource(object):
     def _interpolateOnDomain(self, data):
         """
         Helper method that interpolates data arrays onto the domain.
+        Currently this works like a nearest neighbour mapping, i.e. values
+        are directly inserted into data objects at closest location.
+        """
+        dom=self.getDomain()
+        dim=dom.getDim()
+        # determine number of values required per element
+        DPP=Scalar(0., Function(dom)).getNumberOfDataPoints()
+        for i in xrange(dim):
+            DPP=DPP/self._dom_NE[i]
+        DPP=int(DPP)
+
+        # idx_mult.dot([x,y,z]) = flat index into data object
+        idx_mult=np.array([DPP]+self._dom_NE[:dim-1]).cumprod()
+
+        # separate data arrays and coordinates
+        num_arrays=len(data[0])-dim
+        arrays=[]
+        for i in xrange(num_arrays):
+            d=Scalar(0., Function(dom))
+            d.expand()
+            arrays.append(d)
+
+        for entry in data:
+            index=[int((entry[i]-self._dom_origin[i])/self._spacing[i]) for i in xrange(dim)]
+            index=int(idx_mult.dot(index))
+            for i in xrange(num_arrays):
+                for p in xrange(DPP):
+                    arrays[i].setValueOfDataPoint(index+p, entry[dim+i])
+
+        return arrays
+
+    def _interpolateOnDomain_old(self, data):
+        """
+        Old interpolation method. Works only on ContinuousFunction and thus
+        produces wrong values once interpolated on Function.
         """
         dom=self.getDomain()
         dim=dom.getDim()
@@ -206,7 +241,7 @@ class DataSource(object):
         z0, nz, dz = self.getVerticalExtents()
 
         # number of elements (without padding)
-        NE = [NX[0]-1, NX[1]-1, nz-1]
+        NE = [NX[0], NX[1], nz]
 
         # origin of domain (without padding)
         origin = [X0[0], X0[1], z0]
