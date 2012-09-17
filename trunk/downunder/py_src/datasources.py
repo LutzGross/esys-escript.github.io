@@ -341,7 +341,7 @@ class UBCDataSource(DataSource):
     #    return mask
 
     def getGravityAndStdDev(self):
-        gravlist=self._readGravity() # x,y,z,g,s
+        gravlist=self.__readGravity() # x,y,z,g,s
         g_and_sigma=self._interpolateOnDomain(gravlist)
         return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
 
@@ -672,11 +672,11 @@ class ERSDataSource(DataSource):
         return self.__domainclass
 
     def getGravityAndStdDev(self):
-        gravlist=self._readGravity() # x,y,z,g,s
+        gravlist=self.__readGravity() # x,y,z,g,s
         g_and_sigma=self._interpolateOnDomain(gravlist)
         return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
 
-    def _readGravity(self):
+    def __readGravity(self):
         f=open(self.__datafile, 'r')
         n=self.__nPts[0]*self.__nPts[1]
         grav=[]
@@ -699,8 +699,8 @@ class ERSDataSource(DataSource):
         alt=self.__altOfData*np.ones((n,))
 
         # convert units
-        err=2e-5*np.array(err)
-        grav=1e-5*np.array(grav)
+        err=2e-6*np.array(err)
+        grav=1e-6*np.array(grav)
         gravdata=np.column_stack((x,y,alt,grav,err))
         return gravdata
 
