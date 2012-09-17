@@ -144,7 +144,19 @@ vars.AddVariables(
 # in default locations.
 env = Environment(tools = ['default'], options = vars,
                   ENV = {'PATH': os.environ['PATH']})
+                  
+
+#set the vars for clang
+def mkclang(env):
+  env['CC']='clang'
+  env['CXX']='clang++'
+                  
+                  
 if env['tools_names'] != 'default':
+    zz=env['tools_names']
+    if 'clang' in zz:
+        zz.remove('clang')
+        zz.insert(0, mkclang)
     env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
 
