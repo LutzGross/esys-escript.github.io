@@ -1698,13 +1698,6 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Finley_SaveVTK))
    suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
-
-   try:
-      import nose
-      s = nose.run(suite, argv=[__file__, "--with-xunit"])
-      if not s: sys.exit(1)
-      
-   except:
-      s=unittest.TextTestRunner(verbosity=2).run(suite)
-      if not s.wasSuccessful(): sys.exit(1)
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
 
