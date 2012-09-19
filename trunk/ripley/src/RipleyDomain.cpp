@@ -1211,6 +1211,12 @@ void RipleyDomain::dump(const string& filename) const
     throw RipleyException("dump() not implemented");
 }
 
+void RipleyDomain::readBinaryGrid(escript::Data& out, string filename,
+            const vector<int>& first, const vector<int>& numValues) const
+{
+    throw RipleyException("readBinaryGrid() not implemented");
+}
+
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
 {
     throw RipleyException("borrowSampleReferenceIDs() not implemented");

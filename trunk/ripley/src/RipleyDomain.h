@@ -308,6 +308,12 @@ public:
     virtual void setToGradient(escript::Data& out, const escript::Data& in) const;
 
     /**
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+            const std::vector<int>& first,
+            const std::vector<int>& numValues) const;
+
+    /**
        \brief
        returns true if this rank owns the sample id on given function space
     */
