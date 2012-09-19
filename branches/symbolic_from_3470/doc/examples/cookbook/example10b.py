@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -42,7 +42,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
-    print "This example will not run in an MPI world."
+    print("This example will not run in an MPI world.")
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -68,7 +68,7 @@ mkDir(save_path)
 domain = Brick(l0=mx,l1=my,n0=ndx, n1=ndy,l2=mz,n2=ndz)
 x=Solution(domain).getX()
 x=x-[mx/2,my/2,mz/2]
-domain.setX(x)
+domain.setX(interpolate(x, ContinuousFunction(domain)))
 mask=wherePositive(100-length(x-rholoc))
 rho=rho*mask
 kro=kronecker(domain)

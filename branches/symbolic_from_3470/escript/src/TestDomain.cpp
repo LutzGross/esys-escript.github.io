@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -26,8 +26,8 @@ const int TestDomainFS=1;		// Null domains only support 1 functionspace type.
 }
 
 
-TestDomain::TestDomain(int pointspersample, int numsamples)
-	: m_samples(numsamples), m_dpps(pointspersample)
+TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
+	: m_samples(numsamples), m_dpps(pointspersample), m_dpsize(dpsize)
 {
 #ifdef ESYS_MPI
     int world=getMPISizeWorld();
@@ -216,6 +216,8 @@ const int* TestDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 
 escript::Data TestDomain::getX() const
 {
+  if (m_dpsize<2)
+  {  
   Data res(0,DataTypes::scalarShape,FunctionSpace( getPtr(), getDefaultCode()),true);
   DataTypes::ValueType& vec=res.getReady()->getVectorRW();
   for (int i=0;i<m_samples;++i)
@@ -226,12 +228,32 @@ escript::Data TestDomain::getX() const
     }
   }
   return res;
+  }
+  DataTypes::ShapeType p;
+  p.push_back(m_dpsize);
+  Data res(0,p,FunctionSpace( getPtr(), getDefaultCode()),true);
+  DataTypes::ValueType& vec=res.getReady()->getVectorRW();
+  double majorstep=double(1)/m_dpps;
+  double minorstep=majorstep*0.9/m_dpsize;
+  for (int i=0;i<m_samples;++i)
+  {
+    for (int j=0;j<m_dpps;++j)
+    {
+        for (int k=0;k<m_dpsize;++k)
+	{
+	    vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=i+j*majorstep+k*minorstep;
+	}
+    }
+  }
+  return res;
+  
+  
 }
 
 FunctionSpace
-getTestDomainFunctionSpace(int dpps, int samples)
+getTestDomainFunctionSpace(int dpps, int samples, int dpsize)
 {
-    TestDomain* td=new TestDomain(dpps, samples);
+    TestDomain* td=new TestDomain(dpps, samples, dpsize);
     Domain_ptr p=Domain_ptr(td);
     return FunctionSpace(p, td->getDefaultCode());
 }

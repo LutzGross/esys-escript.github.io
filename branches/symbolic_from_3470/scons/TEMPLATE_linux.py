@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -112,6 +112,17 @@ escript_opts_version = 201
 
 # boost-python library/libraries to link against
 #boost_libs = ['boost_python-mt']
+
+#if this is not 'python' the command will be used instead of the python
+#version scons is running on
+#pythoncmd='python'
+
+#Set to true to build with python3 [You will need to set pythoncmd as well]
+#usepython3=False
+
+#name of the python library to link against.  For Python2 you should not need
+#to set this
+#pythonlibname=''
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'

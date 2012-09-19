@@ -1,6 +1,6 @@
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -109,7 +109,6 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  BoolVariable('pyvisi', 'Enable pyvisi (deprecated, requires VTK module)', False),
   BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
@@ -128,6 +127,11 @@ vars.AddVariables(
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with','python'),
+  ('usepython3', 'Is this a python3 build? (experimental)', False),
+  ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
+  ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
+  ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
+  BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
 )
 
 ##################### Create environment and help text #######################
@@ -139,7 +143,19 @@ vars.AddVariables(
 # in default locations.
 env = Environment(tools = ['default'], options = vars,
                   ENV = {'PATH': os.environ['PATH']})
+                  
+
+#set the vars for clang
+def mkclang(env):
+  env['CC']='clang'
+  env['CXX']='clang++'
+                  
+                  
 if env['tools_names'] != 'default':
+    zz=env['tools_names']
+    if 'clang' in zz:
+        zz.remove('clang')
+        zz.insert(0, mkclang)
     env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
 
@@ -245,6 +261,11 @@ if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cc_extra']  != '': env.Append(CFLAGS = env['cc_extra'])
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
+
+if env['BADPYTHONMACROS']: env.Append(CXXFLAGS = ' -DBADPYTHONMACROS')
+
+if env['usepython3']:
+    env.Append(CPPDEFINES=['ESPYTHON3'])
 
 # set up the autolazy values
 if env['forcelazy'] == 'on':
@@ -357,7 +378,7 @@ except KeyError:
 if env['pythoncmd']=='python':
     py_builder = Builder(action = build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
 else:
-    py_builder = Builder(action = "scripts/testcomp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
+    py_builder = Builder(action = env['pythoncmd']+" scripts/py_comp.py $SOURCE $TARGET", suffix = '.pyc', src_suffix = '.py', single_source=True)
 env.Append(BUILDERS = {'PyCompile' : py_builder});
 
 runUnitTest_builder = Builder(action = runUnitTest, suffix = '.passed', src_suffix=env['PROGSUFFIX'], single_source=True)
@@ -396,56 +417,74 @@ if conf.CheckFunc('gethostname'):
 
 ######## Python headers & library (required)
 
-python_inc_path=sysconfig.get_python_inc()
-if IS_WINDOWS:
-    python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
-elif env['PLATFORM']=='darwin':
-    python_lib_path=sysconfig.get_config_var('LIBPL')
-else:
-    python_lib_path=sysconfig.get_config_var('LIBDIR')
-#python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
-if IS_WINDOWS:
-    python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
-else:
-    python_libs=['python'+sysconfig.get_python_version()]
+#First we check to see if the config file has specified
+##Where to find the filae. Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
+# Use the python scons is running
+if env['pythoncmd']=='python':
+    python_inc_path=sysconfig.get_python_inc()
+    if IS_WINDOWS:
+        python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+    elif env['PLATFORM']=='darwin':
+        python_lib_path=sysconfig.get_config_var('LIBPL')
+    else:
+        python_lib_path=sysconfig.get_config_var('LIBDIR')
+
+    #python_libs=[sysconfig.get_config_var('LDLIBRARY')] # only on linux
+    if IS_WINDOWS:
+        python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+    else:
+        python_libs=['python'+sysconfig.get_python_version()]
 
 #if we want to use a python other than the one scons is running
-if env['pythoncmd']!='python':
-   py3scons=False	# Is scons running on python3?
-   initstring='from __future__ import print_function;from distutils import sysconfig;'
-   if IS_WINDOWS:
-      cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
-   else:
-      cmd='print("python"+sysconfig.get_python_version())'
-   p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
-   python_libs=p.stdout.readline()
-   if type(python_libs)!=str():
-      py3scons=True
-      python_libs=python_libs.encode()
-   p.wait()
-   python_libs=python_libs.strip()
-   # Now we know whether we are using python3 or not
-   p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
-   python_inc_path=p.stdout.readline()
-   if py3scons:
+else:
+    initstring='from __future__ import print_function;from distutils import sysconfig;'
+    if env['pythonlibname']!='':
+        python_libs=env['pythonlibname']
+    else:	# work it out by calling python    
+        if IS_WINDOWS:
+            cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
+        else:
+            cmd='print("python"+sysconfig.get_python_version())'
+        p=Popen([env['pythoncmd'], '-c', initstring+cmd], stdout=PIPE)
+        python_libs=p.stdout.readline()
+        if env['usepython3']:		# This is to convert unicode str into py2 string
+            python_libs=python_libs.encode() # If scons runs on py3 then this must be rethought
+        p.wait()
+        python_libs=python_libs.strip()
+
+   
+    # Now we know whether we are using python3 or not
+    p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
+    python_inc_path=p.stdout.readline()
+    if env['usepython3']:
          python_inc_path=python_inc_path.encode()
-   p.wait()   
-   python_inc_path=python_inc_path.strip()
-   if IS_WINDOWS:
+    p.wait()   
+    python_inc_path=python_inc_path.strip()
+    if IS_WINDOWS:
         cmd="os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
-   elif env['PLATFORM']=='darwin':
+    elif env['PLATFORM']=='darwin':
         cmd="sysconfig.get_config_var(\"LIBPL\")"
-   else:
+    else:
         cmd="sysconfig.get_config_var(\"LIBDIR\")"
 
-   p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
-   python_lib_path=p.stdout.readline()
-   if py3scons:
-      python_lib_path=python_lib_path.decode()
-   p.wait()
-   python_lib_path=python_lib_path.strip()
+    p=Popen([env['pythoncmd'], '-c', initstring+'print('+cmd+')'], stdout=PIPE)
+    python_lib_path=p.stdout.readline()
+    if env['usepython3']:
+        python_lib_path=python_lib_path.decode()
+    p.wait()
+    python_lib_path=python_lib_path.strip()
 
+#Check for an override from the config file.
+#Ideally, this should be automatic
+#But we need to deal with the case where python is not in its INSTALL
+#Directory
+if env['pythonlibpath']!='':
+    python_lib_path=env['pythonlibpath']
 
+if env['pythonincpath']!='':
+    python_inc_path=env['pythonincpath']
 
 
 if sysheaderopt == '':
@@ -465,12 +504,16 @@ if not conf.CheckFunc('Py_Exit'):
     print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
     Exit(1)
 
-# reuse conf to check for numpy header (optional)
-if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-    conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
-    conf.env['numpy_h']=True
-else:
+## reuse conf to check for numpy header (optional)
+if env['usepython3']:
+    # FIXME: This is until we can work out how to make the checks in python 3
     conf.env['numpy_h']=False
+else:
+    if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+        conf.env.Append(CPPDEFINES = ['HAVE_NUMPY_H'])
+        conf.env['numpy_h']=True
+    else:
+        conf.env['numpy_h']=False
 
 # Commit changes to environment
 env = conf.Finish()
@@ -508,12 +551,6 @@ try:
     env['cppunit']=True
 except:
     env['cppunit']=False
-
-######## VTK (optional)
-
-if env['pyvisi'] and not detectModule(env, 'pyvisi'):
-    print("Cannot import vtk, disabling pyvisi.")
-    env['pyvisi'] = False
 
 ######## sympy (optional)
 
@@ -781,12 +818,13 @@ env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowr
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
+env.SConscript(dirs = ['downunder/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/downunder', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
-env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
-env.SConscript(dirs = ['pyvisi/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pyvisi', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
 env.SConscript(dirs = ['pythonMPI/src'], variant_dir='$BUILD_DIR/$PLATFORM/pythonMPI', duplicate=0)
+env.SConscript(dirs = ['doc'], variant_dir='$BUILD_DIR/$PLATFORM/doc', duplicate=0)
 env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso/profiling', duplicate=0)
+
 
 ######################## Populate the buildvars file #########################
 
@@ -807,6 +845,7 @@ except StopIteration:
     pass
 boosthpp.close()
 
+
 buildvars=open(os.path.join(env['libinstall'], 'buildvars'), 'w')
 buildvars.write("svn_revision="+str(global_revision)+"\n")
 buildvars.write("prefix="+prefix+"\n")
@@ -817,10 +856,10 @@ if env['pythoncmd']=='python':
     buildvars.write("python_version="+str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])+"\n")
 else:
     buildvars.write("python="+env['pythoncmd']+"\n")
-    p=Popen([env['pythoncmd'], '-c', 'from __future__import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2])'], stdout=PIPE)
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1])+"."+str(sys.version_info[2]))'], stdout=PIPE)
     verstring=p.stdout.readline().strip()
     p.wait()
-    buildvars.write("python version="+verstring+"\n")
+    buildvars.write("python_version="+verstring+"\n")
 buildvars.write("boost_inc_path="+boost_inc_path+"\n")
 buildvars.write("boost_lib_path="+boost_lib_path+"\n")
 buildvars.write("boost_version="+boostversion+"\n")
@@ -830,7 +869,6 @@ buildvars.write("mpi=%s\n"%env['mpi'])
 buildvars.write("mpi_inc_path=%s\n"%mpi_inc_path)
 buildvars.write("mpi_lib_path=%s\n"%mpi_lib_path)
 buildvars.write("lapack=%s\n"%env['lapack'])
-buildvars.write("pyvisi=%d\n"%env['pyvisi'])
 buildvars.write("vsl_random=%d\n"%int(env['vsl_random']))
 for i in 'netcdf','parmetis','papi','mkl','umfpack','boomeramg','silo','visit':
     buildvars.write("%s=%d\n"%(i, int(env[i])))
@@ -859,7 +897,6 @@ env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_e
 
 env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
 env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
-
 
 env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
 env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
@@ -902,7 +939,7 @@ install_all_list += ['install_finley']
 install_all_list += ['install_ripley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
-#install_all_list += ['install_pyvisi_py']
+install_all_list += ['install_downunder_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
@@ -914,8 +951,8 @@ env.Default('install_all')
 
 ################## Targets to build and run the test suite ###################
 
-test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
 if not env['cppunit']:
+    test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
     env.Alias('run_tests', test_msg)
 env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])

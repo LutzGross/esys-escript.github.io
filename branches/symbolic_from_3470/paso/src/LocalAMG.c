@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -182,9 +182,6 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	       out=MEMALLOC(1,Paso_Preconditioner_LocalAMG);
 	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
-		  out->n = n;
-		  out->n_F = n_F;
-		  out->n_block = n_block;
 		  out->A_C = NULL; 
 		  out->P = NULL;  
 		  out->R = NULL; 	       
@@ -325,7 +322,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 
 
 void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b) {
-     const dim_t n = amg->n * amg->n_block;
+     const dim_t n = A->numRows * A->row_block_size;
      double time0=0;
      const dim_t post_sweeps=amg->post_sweeps;
      const dim_t pre_sweeps=amg->pre_sweeps;
@@ -337,14 +334,13 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
      if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
 	
-     if (amg->n_F < amg->n) { /* is there work on the coarse level? */
-         time0=Esys_timer();
-	 Paso_Copy(n, amg->r, b);                            /*  r <- b */
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
-         time0=Esys_timer()-time0;
-	 /* coarse level solve */
-	 if ( amg->AMG_C == NULL) {
+     time0=Esys_timer();
+     Paso_Copy(n, amg->r, b);                            /*  r <- b */
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+     time0=Esys_timer()-time0;
+     /* coarse level solve */
+     if ( amg->AMG_C == NULL) {
 	    time0=Esys_timer();
 	    /*  A_C is the coarsest level */
 	    switch (amg->A_C->solver_package) {
@@ -359,22 +355,20 @@ void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditione
 		  break;
 	    }
 	    if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
-	 } else {
+     } else {
 	    Paso_Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
-	 }  
-  	 time0=time0+Esys_timer();
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
+     }  
+     time0=time0+Esys_timer();
+     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
 	
-         /*postsmoothing*/
-      
-        /*solve Ax=b with initial guess x */
-        time0=Esys_timer();
-        Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
-        time0=Esys_timer()-time0;
-        if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
-        /*end of postsmoothing*/
-     
-     }
+     /*postsmoothing*/
+    
+     /*solve Ax=b with initial guess x */
+     time0=Esys_timer();
+     Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
+     time0=Esys_timer()-time0;
+     if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
+     /*end of postsmoothing*/
      return;
 }
 

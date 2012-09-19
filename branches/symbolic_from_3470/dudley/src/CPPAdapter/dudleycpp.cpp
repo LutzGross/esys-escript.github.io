@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -116,6 +116,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
 ,"Creates a tetrahedral mesh by subdividing n0 x n1 x n2 rectangular elements over the brick [0,l0] x [0,l1] x [0,l2]."
+"We accept floating point values for n0, n1 only to ease transition of scripts to python3 when the time comes."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n:param l2:\n"
@@ -138,6 +139,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
 ,"Creates a triangular mesh by subdividing n0 x n1 rectangular elements over the brick [0,l0] x [0,l1]."
+"We accept floating point values for n0, n1 only to ease transition of scripts to python3 when the time comes."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n:param l1:\n"

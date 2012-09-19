@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -61,7 +61,7 @@ tend=0.5    #end time
 #calculating )the timestep
 h=(1./5.)*sqrt(rho/(lam+2*mu))*(mx/ndx)
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 #uncomment the following lines to give the user a chance to stop
 #proceeder = raw_input("Is this ok?(y/n)")
@@ -168,8 +168,8 @@ abc=abcleft*abcright*abcbottom*abctop
 
 # ... open new PDE ...
 mypde=LinearPDE(domain)
-print mypde.isUsingLumping()
-print mypde.getSolverOptions()
+print(mypde.isUsingLumping())
+print(mypde.getSolverOptions())
 #mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
 mypde.setSymmetryOn()
 kmat = kronecker(domain)
@@ -178,7 +178,7 @@ mypde.setValue(D=kmat*rho)
 # define small radius around point xc
 # Lsup(x) returns the maximum value of the argument x
 src_radius = 50#2*Lsup(domain.getSize())
-print "src_radius = ",src_radius
+print("src_radius = ",src_radius)
 
 dunit=numpy.array([0.,1.]) # defines direction of point source
 #~ dunit=(x-xc)
@@ -194,7 +194,7 @@ u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radi
 
 maxi=0.02
 
-print u
+print(u)
 u_m1=u
 t=0
 
@@ -230,7 +230,7 @@ while t<tend:
     #stress = 
     t+=h
     n+=1
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)
     #~ u_pot = cbphones(domain,u,[[300.,200.],[500.,200.],[750.,200.]],2)
     #~ 
     #~ #     print "u at point charge=",u_pc

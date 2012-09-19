@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -49,7 +49,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
     import sys
-    print "This example will not run in an MPI world."
+    print("This example will not run in an MPI world.")
     sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -101,7 +101,7 @@ pl.contourf(xi,yi,zi,10)
 pl.xlabel("Horizontal Displacement (m)")
 pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"Ucontour.png"))
-print "Solution has been plotted  ..."
+print("Solution has been plotted  ...")
 
 cut=int(len(xi)/2)
 

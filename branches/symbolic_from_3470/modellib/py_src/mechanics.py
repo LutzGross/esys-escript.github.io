@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -153,7 +153,7 @@ class Mechanics(Model):
       def terminateIteration(self):
           """iteration is terminateIterationd if relative pressure change is less then rel_tol"""
           if self.__iter>self.max_iter:
-              raise IterationDivergenceError,"Maximum number of iterations steps reached"
+              raise IterationDivergenceError("Maximum number of iterations steps reached")
           if self.__iter==0:
              self.__diff=self.UNDEF_DT
           else:
@@ -161,7 +161,7 @@ class Mechanics(Model):
              s_sup=Lsup(self.stress)
              self.trace("stress max and increment :%e, %e"%(s_sup,self.__diff))
              if self.__iter>2 and diff_safe<self.__diff:
-                 raise IterationDivergenceError,"no improvement in stress iteration"
+                 raise IterationDivergenceError("no improvement in stress iteration")
              return self.__diff<=self.rel_tol*self.SAFTY_FACTOR_ITERATION*s_sup+self.abs_tol
 
       def doStepPostprocessing(self,dt):

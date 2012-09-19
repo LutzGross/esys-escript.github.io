@@ -187,14 +187,14 @@ def generate(DIM, filename):
    #insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
 
    #generate PDEBoundary assemblage
-   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
-   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
-   CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
-   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
-   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
-   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
-   CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=False)
-   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE_REDUCED", CODE))
+   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
+   #CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
+   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
+   #CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=False)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE_REDUCED", CODE))
 
 def makePDEBC(S, x, Q, W, DIM, system=True):
    GLOBAL_TMP={}
@@ -413,7 +413,7 @@ def optimizeEvaluate(F, x, Q):
              for k, v in c0.items():
                 if s[a] == v: k0=k
              if k0==None:
-                 k0=Symbol("tmp0_%s"%cc)
+                 k0=Symbol("c%s"%cc)
                  c0[k0]=s[a]
                  cc+=1
              if not s1.has_key(k0): s1[k0]=0
@@ -514,12 +514,15 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
 
    #for i in xrange(DIM-1,-1,-1):
    #       if loopindex[i] <= -1: TXT+="const index_t k%i = 0;\n"%i
-   for a,v in  consts.items():
+   for a,v in sorted(consts.items()):
       TXT+="const double %s = %s;\n"%(ccode(a), ccode(v.evalf(n=DIGITS)))
-   TXT+="#pragma omp parallel for"
+   TXT+="#pragma omp parallel\n{"
+   for s in sorted(args):
+       TXT+="\nvector<double> %s(numComp);"%s.name
+   TXT+="\n#pragma omp for"
    for i in xrange(DIM-1,-1,-1):
           if loopindex[i] > -1: TXT+="\nfor (index_t k%i=0; k%i < m_NE%i; ++k%i) {"%(loopindex[i],loopindex[i],loopindex[i],loopindex[i])
-   for s in args:
+   for s in sorted(args):
         k1=""
         for i in xrange(DIM):
           if s.name[2+i]=="0":
@@ -536,7 +539,7 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                  k1+=",1"
               elif  loopindex[i] == -2:
                  k1+=",m_N%s-1"%i
-        TXT+="\nconst double* %s = in.getSampleDataRO(INDEX%s(%s, %s));"%(s.name,DIM,k1[1:],M1)
+        TXT+="\nmemcpy(&%s[0], in.getSampleDataRO(INDEX%s(%s, %s)), numComp*sizeof(double));"%(s.name,DIM,k1[1:],M1)
    if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
 #        for i in xrange(DIM):
 #             if loopindex[i]>-1: IDX2=gridoffset+"+k%s"%i
@@ -551,6 +554,7 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
    TXT+="} /* end of component loop i */\n"
    for i in xrange(DIM):
            if loopindex[i]>-1 : TXT+="} /* end of k%i loop */\n"%loopindex[i]
+   TXT+="} /* end of parallel section */\n"
    return TXT
 
 def createIntegrationCode(Q, W, gridoffset="", loopindex=(0,1,2)):
@@ -1030,7 +1034,7 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
    return CODE, PRECODE
 
 #filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
-filenames={3:"Brick.cpp"}
+filenames={2:"Rectangle.cpp"}
 for d in filenames.keys():
      generate(d, filenames[d])
 

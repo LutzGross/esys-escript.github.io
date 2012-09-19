@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -51,7 +51,7 @@ T=Tref
 while t<tend:
       i+=1
       t+=h
-      print "time step :",t
+      print("time step :",t)
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       saveVTK("T.%d.vtu"%i,temp=T)

@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -154,7 +154,7 @@ class ShadePlot(Movie):
             # look for a vtk xml file of the right name and plot it
             dataFname = "data.s.%d.xml" % n
             if not os.path.exists(dataFname):
-                print "Data file doesn't exist!  Skipping frame generation."
+                print("Data file doesn't exist!  Skipping frame generation.")
 
             else:
                 import pyvisi
@@ -193,7 +193,7 @@ class ArrowPlot(Movie):
             # look for a vtk xml file of the right name and plot it
             dataFname = "data.v.%d.xml" % n
             if not os.path.exists(dataFname):
-                print "Data file doesn't exist!  Skipping frame generation."
+                print("Data file doesn't exist!  Skipping frame generation.")
 
             else:
                 import pyvisi

@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -18,6 +18,7 @@
 #include "SystemMatrix.h"
 #include "performance.h"
 #include "BOOMERAMG.h"
+#include "MergedSolver.h"
 
 #define PRECONDITIONER_NO_ERROR 0
 #define PRECONDITIONER_MAXITER_REACHED 1
@@ -66,9 +67,6 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A, Paso_
 /* Local preconditioner */
 struct Paso_Preconditioner_AMG {
    dim_t level;
-   dim_t n;
-   dim_t n_F;
-   dim_t n_block;
    Paso_SystemMatrix * A_C;  /* coarse level matrix */
    Paso_SystemMatrix * P;   /* prolongation n x n_C*/ 
    Paso_SystemMatrix * R;   /* restriction  n_C x n */
@@ -83,6 +81,7 @@ struct Paso_Preconditioner_AMG {
    double* r;         /* buffer for residual */
    double* x_C;       /* solution of coarse level system */
    double* b_C;       /* right hand side of coarse level system */
+   Paso_MergedSolver* merged_solver; /* used on the coarsest level */
    struct Paso_Preconditioner_AMG * AMG_C;
 };
 typedef struct Paso_Preconditioner_AMG Paso_Preconditioner_AMG;
@@ -114,10 +113,6 @@ void Paso_Preconditioner_AMG_mergeSolve(Paso_Preconditioner_AMG* amg);
 /* Local AMG preconditioner */
 struct Paso_Preconditioner_LocalAMG {
    dim_t level;
-   dim_t n;
-   dim_t n_F;
-   dim_t n_block;
-   
    Paso_SparseMatrix * A_C;  /* coarse level matrix */
    Paso_SparseMatrix * P;   /* prolongation n x n_C*/ 
    Paso_SparseMatrix * R;   /* restriction  n_C x n */

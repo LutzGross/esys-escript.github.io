@@ -1,6 +1,8 @@
+
+from __future__ import print_function
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -10,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -29,10 +31,10 @@ T_bot=100
 # generate n0 x n1 elements over [0,l0] x [0,l1]
 mydomain=Rectangle(l0=L0,l1=L1,n0=20,n1=20)
 # print spatial dimension:
-print "dimension = ",mydomain.getDim()
+print("dimension = ",mydomain.getDim())
 # get coordinates of points in domain:
 x=mydomain.getX()
-print x  
+print(x) 
 # set a function 
 T_D=T_bot/L1*(L1-x[1])
 # save T_D for visualisation

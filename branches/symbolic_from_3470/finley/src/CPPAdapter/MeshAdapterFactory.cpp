@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -10,7 +10,6 @@
 * http://www.opensource.org/licenses/osl-3.0.php
 *
 *******************************************************/
-
 
 #include "MeshAdapterFactory.h"
 #include "FinleyError.h"
@@ -30,8 +29,6 @@ extern "C" {
 
 using namespace std;
 using namespace escript;
-
-
 
 namespace finley {
 
@@ -657,8 +654,8 @@ namespace finley {
         
       }
       
-      Domain_ptr res=brick(extract<int>(args[0]), extract<int>(args[1]),
-                           extract<int>(args[2]), extract<int>(args[3]),
+      Domain_ptr res=brick(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
+                           static_cast<int>(extract<float>(args[2])), extract<int>(args[3]),
                            extract<double>(args[4]), extract<double>(args[5]),
                            extract<double>(args[6]), extract<int>(args[7]),
                            extract<int>(args[8]), extract<int>(args[9]),
@@ -797,7 +794,7 @@ namespace finley {
           }
       }
       
-      return rectangle(extract<int>(args[0]), extract<int>(args[1]),
+      return rectangle(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),

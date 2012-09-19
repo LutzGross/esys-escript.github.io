@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -38,7 +38,7 @@ mypde.setValue(A=kappa*kronecker(mydomain),D=omega,Y=omega*x[0], \
                d=eta,y=kappa*n[0]+eta*x[0])
 #... calculate error of the PDE solution ...
 u=mypde.getSolution()
-print "error is ",Lsup(u-x[0])
+print("error is ",Lsup(u-x[0]))
 # output should be similar to "error is 1.e-7"
 saveVTK("x0.vtu",sol=u)
  

@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -40,7 +40,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 # make sure path exists 
@@ -51,8 +51,8 @@ mkDir(save_path)
 # Time related variables.
 testing=True
 if testing:
-    print 'This script is currently optioned for testing..'
-    print "Try changing the testing variable to False for more iterations."
+    print('This script is currently optioned for testing..')
+    print("Try changing the testing variable to False for more iterations.")
     xwidth=40.
     ywidth=40.
     depth=20.

@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -431,20 +431,22 @@ class Locator:
         else:
            return data
            
-#     def setValue(self, data, v):
-#       """
-#       Sets the value of the ``data`` at the Locator.
-#       """
-#       data.expand()	# Need to ensure that this is done globally
-#       if isinstance(data, escript.Data):
-#	 id=self.getId()
-#	 if isinstance(id, list):
-#	   for i in id:
-#	      data._setTupleForGlobalDataPoint(i[1], i[0], v)
-#	 else:
-#	   data._setTupleForGlobalDataPoint(id[1], id[0], v)
-#       else:
-#	 raise TypeError, "setValue: Invalid argument type."
+     def setValue(self, data, v):
+      """
+      Sets the value of the ``data`` at the Locator.
+      """
+      if isinstance(data, escript.Data):
+         if data.getFunctionSpace()!=self.getFunctionSpace():
+           raise TypeError, "setValue: FunctionSpace of Locator and Data object must match."
+         data.expand()	
+         id=self.getId()
+         if isinstance(id, list):
+          for i in id:
+           data._setTupleForGlobalDataPoint(i[1], i[0], v)
+         else:
+           data._setTupleForGlobalDataPoint(id[1], id[0], v)
+      else:
+           raise TypeError, "setValue: Invalid argument type."
 
 
 def getInfLocator(arg):

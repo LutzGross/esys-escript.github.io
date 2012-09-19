@@ -2,7 +2,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -56,6 +56,15 @@ EscriptParams::EscriptParams()
    resolve_collective=0;
 #endif
 
+
+#ifdef ESYS_MPI
+	amg_disabled=true;
+#else
+	amg_disabled=false;
+#endif
+
+
+
 }
 
 int 
@@ -100,6 +109,18 @@ EscriptParams::getInt(const char* name, int sentinel) const
    if (!strcmp(name,"LAZY_VERBOSE"))
    {
 	return lazy_verbose;
+   }
+   if (!strcmp(name, "DISABLE_AMG"))
+   {
+	return amg_disabled;
+   }
+   if (!strcmp(name, "MPIBUILD"))
+   {
+#ifdef ESYS_MPI	   
+	return 1;
+#else
+	return 0;
+#endif
    }
    return sentinel;
 }
@@ -163,6 +184,7 @@ EscriptParams::listEscriptParams()
 //    l.append(make_tuple("TOO_MANY_NODES", too_many_nodes, "(TESTING ONLY) maximum number of nodes in a expression."));
    l.append(make_tuple("LAZY_STR_FMT", lazy_str_fmt, "{0,1,2}(TESTING ONLY) change output format for lazy expressions."));
    l.append(make_tuple("LAZY_VERBOSE", lazy_verbose, "{0,1} Print a warning when expressions are resolved because they are too large."));
+   l.append(make_tuple("DISABLE_AMG", amg_disabled, "{0,1} AMG is disabled."));
    return l;
 }
 

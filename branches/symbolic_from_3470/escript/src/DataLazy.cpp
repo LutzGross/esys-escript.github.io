@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -1213,7 +1213,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
 
   roffset=m_samplesize*tid;
   unsigned int ndpps=getNumDPPSample();
-  unsigned int psize=DataTypes::noValues(getShape());
+  unsigned int psize=DataTypes::noValues(m_left->getShape());
   double* result=&(m_samples[roffset]);
   switch (m_op)
   {

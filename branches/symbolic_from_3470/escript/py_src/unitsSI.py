@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -204,7 +204,11 @@ class Unit(object):
        else:
           return self(other)
 
-   def __div__(self,other):
+   #Need this for python2       
+   def __div__(self, other):
+       return self.__truediv__(other)
+
+   def __truediv__(self,other):
        """
        Performs self*other operation for two `Unit` objects
 
@@ -222,7 +226,12 @@ class Unit(object):
               return _DivUnit(self.getName()+"/"+other.getName(),self.getLongName()+"/"+other.getLongName(),0 , self(1.)/other(1.))
        else:
           return NotImplemented
-   def __rdiv__(self,other):
+
+   #Need this for python2       
+   def __rdiv__(self, other):
+       return self.__rtruediv__(other)          
+          
+   def __rtruediv__(self,other):
        """
        Performs other/self operation
 

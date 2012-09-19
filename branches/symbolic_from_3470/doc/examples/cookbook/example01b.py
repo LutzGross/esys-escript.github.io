@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -63,7 +63,7 @@ tend=50 * yr # - time to end simulation
 outputs = 200 # number of time steps required.
 h=(tend-t)/outputs #size of time step
 #user warning statement
-print "Expected Number of time outputs is: ", (tend-t)/h
+print("Expected Number of time outputs is: ", (tend-t)/h)
 i=0 #loop counter
 #the folder to put our outputs in, leave blank "" for script path 
 save_path= os.path.join("data","example01")
@@ -94,7 +94,7 @@ while t<tend:
       mypde.setValue(Y=qH+rhocp/h*T)
       T=mypde.getSolution()
       totE=integrate(rhocp*T)
-      print "time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE)
+      print("time step %s at t=%e days completed. total energy = %e."%(i,t/day,totE))
       t_list.append(t)
       E_list.append(totE)
 

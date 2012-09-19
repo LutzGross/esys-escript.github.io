@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -157,8 +157,12 @@ template <class BinaryFunction>
 inline void binaryOp(DataConstant& left, const DataConstant& right, 
 		     BinaryFunction operation)
 {
-
-  DataMaths::binaryOp(left.getVectorRW(), left.getShape(),0, right.getVectorRO(),right.getShape(),0,operation);
+  if (right.getRank()==0) {
+    double r=right.getVectorRO()[0];
+    DataMaths::binaryOp(left.getVectorRW(), left.getShape(),0, r,operation);
+  } else {
+    DataMaths::binaryOp(left.getVectorRW(), left.getShape(),0, right.getVectorRO(),right.getShape(),0,operation);
+  }
 
 }
 

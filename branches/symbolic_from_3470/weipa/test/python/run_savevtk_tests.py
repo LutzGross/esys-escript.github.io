@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -1698,13 +1698,6 @@ if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Finley_SaveVTK))
    suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
-
-   try:
-      import nose
-      s = nose.run(suite, argv=[__file__, "--with-xunit"])
-      if not s: sys.exit(1)
-      
-   except ImportError:
-      s=unittest.TextTestRunner(verbosity=2).run(suite)
-      if not s.wasSuccessful(): sys.exit(1)
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
 

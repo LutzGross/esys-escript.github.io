@@ -1,7 +1,8 @@
 
+from __future__ import print_function
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -44,7 +45,7 @@ from esys.escript.linearPDEs import LinearPDE
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -64,8 +65,8 @@ csq=c*c #square of c
 # Time related variables.
 testing=True
 if testing:
-	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-	print "Try changing testing to False for more iterations."
+	print('The testing end time is currently selected. This severely limits the number of time iterations.')
+	print("Try changing testing to False for more iterations.")
 	tend=0.004
 else:
 	tend=1.0    # end time
@@ -75,7 +76,7 @@ h=0.0005     # time step
 rtime=0.0 # first time to record
 rtime_inc=tend/20.0 # time increment to record
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 U0=0.005 # amplitude of point source
 # want a spherical source in the middle of area
@@ -95,7 +96,7 @@ mypde.setValue(D=1.) # set the value of D in the general form to 1.
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
 src_radius = 25.
-print "src_radius = ",src_radius
+print("src_radius = ",src_radius)
 # set initial values for first two time steps with source terms
 u=U0*(cos(length(x-xc)*3.1415/src_radius)+1)*whereNegative(length(x-xc)-src_radius)
 u_m1=u
@@ -103,7 +104,7 @@ u_m1=u
 cut_loc=[] #where the cross section of the source along x will be
 src_cut=[] #where the cross section of the source will be
 # create locations for source cross section
-for i in range(ndx/2-ndx/10,ndx/2+ndx/10):
+for i in range(ndx//2-ndx//10,ndx//2+ndx//10):
     cut_loc.append(xstep*i)
     src_cut.append([xstep*i,xc[1]])
 # locate the nearest nodes to the points in src_cut
@@ -137,7 +138,7 @@ while t<tend:
     u_rec0.append(rec.getValue(u)) #location specific recording
     # increment loop values
     t=t+h; n=n+1
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)
 
 # save location specific recording to file
 pl.savetxt(os.path.join(savepath,'u_rec.asc'),u_rec0)

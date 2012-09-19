@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -52,7 +52,7 @@ class TestDomain : public AbstractDomain {
 
   */
   ESCRIPT_DLL_API
-  TestDomain(int pointspersample, int numsamples);
+  TestDomain(int pointspersample, int numsamples, int dpsize=1);
 
   ESCRIPT_DLL_API
   ~TestDomain();
@@ -244,12 +244,13 @@ class TestDomain : public AbstractDomain {
  private:
   int m_samples;	// number of samples
   int m_dpps;		// data points per sample
+  int m_dpsize;		// how big are the datapoints?
   int* m_samplerefids;	// sample reference ids
 };
 
 ESCRIPT_DLL_API
 FunctionSpace
-getTestDomainFunctionSpace(int dpps, int samples);
+getTestDomainFunctionSpace(int dpps, int samples, int dpsize);
 
 } // end of namespace
 
