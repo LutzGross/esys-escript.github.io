@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -69,7 +69,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
    L=Locator(domain,xc)
    # find potential at point source
    u_pc=L.getValue(u)
-   print "u at point charge=",u_pc
+   print("u at point charge = %s"%u_pc)
    ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
  
    while t<tend:
@@ -87,9 +87,9 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
      u_last=u
      u=u_new
      n+=1
-     print n,"-th time step t ",t
+     print("time step %d, t = %s"%(n,t))
      u_pc=L.getValue(u)
-     print "u at point charge=",u_pc
+     print("u at point charge = %s"%u_pc)
      ts.append(t); u_pc0.append(u_pc[0]), u_pc1.append(u_pc[1]), u_pc2.append(u_pc[2])
  
      # ... save current acceleration in units of gravity and displacements 
@@ -105,14 +105,14 @@ mydomain=Brick(ne,ne,10,l0=width,l1=width,l2=10.*width/ne)
 #  sety time step size:
 #
 h=inf(1./5.)*inf(sqrt(rho/(lam+2*mu))*mydomain.getSize())
-print "time step size = ",h
+print("time step size = %s"%h)
 #
 #  spherical source at middle of bottom face
 #
 xc=[width/2.,width/2.,0.]
 # define small radius around point xc
 src_radius = 0.03*width
-print "src_radius = ",src_radius
+print("src_radius = %s"%src_radius)
 #
 # run it
 #
@@ -131,7 +131,7 @@ if getMPIRankWorld() == 0:
     plt.savefig('u_pc.png', format='png')
 # or save displacement
 u_pc_data=FileWriter('./data/U_pc.out')
-for i in xrange(len(ts)) :
+for i in range(len(ts)) :
     u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
 u_pc_data.close()
 

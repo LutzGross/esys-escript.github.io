@@ -1,6 +1,8 @@
+
+from __future__ import print_function
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -10,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -43,7 +45,7 @@ Q=Qc*whereNegative(length(x-xc)-r)
 # time step size:
 dt=0.01
 # or use adaptive choice dt=0.05*inf(rhocp*mydomain.getSize()**2/k)
-print "time step size = ",dt
+print("time step size = %s"%dt)
 # generate domain:
 mypde=LinearPDE(mydomain)
 mypde.setSymmetryOn()
@@ -56,7 +58,7 @@ T=T_D
 N=0; t=0
 # stop when t_end is reached:
 while t<t_end:
-    print N,"-th time step t=",t," T_max=", Lsup(T)
+    print("time step %d, t=%s, T_max=%s"%(N, t, Lsup(T)))
     # update PDE coefficient:
     mypde.setValue(Y=rhocp*T+dt*Q, X=-k*dt*grad(T))
     # new temperature:
@@ -65,3 +67,4 @@ while t<t_end:
     # saveVTK("u.%s.vtu"%N,T=T)
     # increase counter and marker:
     N+=1; t+=dt
+

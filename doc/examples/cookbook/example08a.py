@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -39,7 +39,7 @@ from esys.escript.linearPDEs import LinearPDE
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -59,8 +59,8 @@ rho=1154.   #density
 # Time related variables.
 testing=True
 if testing:
-	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-	print "Try changing testing to False for more iterations."
+	print('The testing end time is currently selected. This severely limits the number of time iterations.')
+	print("Try changing testing to False for more iterations.")
 	tend=0.001
 else:
 	tend=0.5    # end time
@@ -70,7 +70,7 @@ h=0.0005     # time step
 rtime=0.0 # first time to record
 rtime_inc=tend/20.0 # time increment to record
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 U0=0.01 # amplitude of point source
 # will introduce a spherical source at middle left of bottom face
@@ -90,7 +90,7 @@ mypde.setValue(D=kmat*rho) #set the general form value D
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_length = 20; print "src_length = ",src_length
+src_length = 20; print("src_length = ",src_length)
 # set initial values for first two time steps with source terms
 y=U0*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
 src_dir=numpy.array([0.,-1.]) # defines direction of point source as down
@@ -119,4 +119,4 @@ while t<tend:
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)

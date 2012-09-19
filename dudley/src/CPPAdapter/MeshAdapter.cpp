@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -1328,9 +1328,10 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
        tmp = new_x.getDataC();
        Dudley_Mesh_setCoordinates(mesh,&tmp);
    } else {
-       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
+       throw DudleyAdapterException("As of version escript3.3 - SetNewX only accepts ContinuousFunction arguments please interpolate.");      
+/*       escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
        tmp = new_x_inter.getDataC();
-       Dudley_Mesh_setCoordinates(mesh,&tmp);
+       Dudley_Mesh_setCoordinates(mesh,&tmp);*/
    }
    checkDudleyError();
 }

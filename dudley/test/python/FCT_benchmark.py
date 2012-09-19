@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -33,7 +33,7 @@ __url__="https://launchpad.net/escript-finley"
 #
 #  the solution is given as   u(x,t)=U0*s^dim/(s**2+E*t)^{dim/2} * exp ( - |x-x_0(t)|^2/(4*(s**2+E*t)) ) 
 #
-#  			      with x_0(t) = X0 + (v+w)*t 
+#                             with x_0(t) = X0 + (v+w)*t 
 #
 #
 #    the region |x-x_0(t)|^2/(4*(s**2+E*t)) < - log(TAU)  is within the domain for all time 
@@ -41,8 +41,8 @@ __url__="https://launchpad.net/escript-finley"
 #
 #    this holds if
 #
-#    	|x_i-X0_i-(v_i+w_i)*tend | < sqrt(- log(TAU) * 4*(s**2+E*tend))=b0  and
-#    	|x_i-X0_i | < sqrt(- log(TAU)) * 2*s = b1 implies 0<=x_i<=l_i
+#       |x_i-X0_i-(v_i+w_i)*tend | < sqrt(- log(TAU) * 4*(s**2+E*tend))=b0  and
+#       |x_i-X0_i | < sqrt(- log(TAU)) * 2*s = b1 implies 0<=x_i<=l_i
 #
 from math import pi, ceil
 from time import time as clock
@@ -149,7 +149,7 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
     if dim == 2:
         if VERBOSITY: print("%d x %d grid over %e  x %e with element size %e."%(NE_0,NE_1,l_0,l_1,h))
         if NE_0*NE_1 > NE_MAX:
-	   raise ValueError("too many elements %s."%(NE_0*NE_1,))
+           raise ValueError("too many elements %s."%(NE_0*NE_1,))
         dom=Rectangle(n0=NE_0,n1=NE_1,l0=l_0,l1=l_1)
         x0=[X0_0, X0_1]
     else:
@@ -158,7 +158,7 @@ def XXX(dim,tend,dt, s, h,b,c,d,c_dir="x", d_dir="x", a=1., CN=True):
        NE_2=max(int(l_2/h+0.5),1)
        if VERBOSITY: print("%d x %d x %d grid over %e  x %e x %e with element size %e."%(NE_0,NE_1,NE_2,l_0,l_1,l_2,h))
        if NE_0*NE_1*NE_2 > NE_MAX:
-	  raise ValueError("too many elements %s."%(NE_0*NE_1*NE_2,))
+          raise ValueError("too many elements %s."%(NE_0*NE_1*NE_2,))
        dom=Brick(n0=NE_0,n1=NE_1, ne2=NE_2, l0=l_0,l1=l_1, l2=l_2)
        x0=[X0_0, X0_1, X0_2]
     if VERBOSITY: 

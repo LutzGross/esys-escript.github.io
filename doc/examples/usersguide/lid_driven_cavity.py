@@ -1,6 +1,6 @@
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -10,7 +10,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -25,7 +25,7 @@ from esys.finley import Rectangle
 from esys.weipa import saveVTK
 from esys.escript.models import StokesProblemCartesian
 NE=25
-dom = Rectangle(NE,NE,order=-1)  # use macro elements for pressure
+dom = Rectangle(NE,NE,order=-1, useElementsOnFace=0)  # use macro elements for pressure
 x = dom.getX()
 sc=StokesProblemCartesian(dom)
 mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1] 

@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -57,8 +57,10 @@ def Test_domain(dommodule, f):
     del bdomm
 
 
-if getMPISizeWorld() > 1: 
-    print "Warning: modellib/test/python/run_domainreaders.py has not been executed as number of MPI ranks is greater than 1."
+if esys.escript.getEscriptParamInt("MPIBUILD",0)>0:
+    print "Warning: modellib/test/python/run_domainreaders.py has not been executed as this is an MPI build"
+#if getMPISizeWorld() > 1: 
+#    print "Warning: modellib/test/python/run_domainreaders.py has not been executed as number of MPI ranks is greater than 1."
 else:
 
    des=Design()

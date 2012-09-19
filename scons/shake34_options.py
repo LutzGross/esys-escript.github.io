@@ -1,6 +1,6 @@
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -77,7 +77,7 @@ escript_opts_version = 201
 
 # Whether to build a debug version
 # DEFAULT: False
-debug = True
+#debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False

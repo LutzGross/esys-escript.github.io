@@ -194,15 +194,15 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 int id=0;
                 for (int i=0; i<numElements; i++) {
-                    nodes.push_back(id+NN[0]*NN[1]);
                     nodes.push_back(id);
-                    nodes.push_back(id+1);
+                    nodes.push_back(id+NN[0]*NN[1]);
                     nodes.push_back(id+NN[0]*NN[1]+1);
+                    nodes.push_back(id+1);
 
-                    nodes.push_back(id+NN[0]*(NN[1]+1));
                     nodes.push_back(id+NN[0]);
-                    nodes.push_back(id+1+NN[0]);
+                    nodes.push_back(id+NN[0]*(NN[1]+1));
                     nodes.push_back(id+NN[0]*(NN[1]+1)+1);
+                    nodes.push_back(id+1+NN[0]);
                     id++;
                     if ((i+1)%NperDim[0]==0)
                         id++;

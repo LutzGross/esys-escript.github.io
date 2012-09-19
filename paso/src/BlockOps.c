@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -24,7 +24,7 @@
 void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
      dim_t i;
      int failed=0;
-     const dim_t block_size=n_block*n_block+17;
+     const dim_t block_size=n_block*n_block;
      (void)block_size;	/* silence warning from var being unused by macros */
      
      if (n_block==1) {

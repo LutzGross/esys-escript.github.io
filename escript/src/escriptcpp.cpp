@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -252,11 +252,12 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   //
   // Interface for TestDomain
   //
-  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", "Test Class for domains with no structure. May be removed from future releases without notice.", init<int,int>());
+  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", 
+	"Test Class for domains with no structure. May be removed from future releases without notice.", no_init);
 
   // This is the only python visible way to get a TestDomain
-  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, args("dpps", 
- "samples"),
+  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, (arg("dpps"), 
+ arg("samples"), arg("size")=1),
 "For testing only. May be removed without notice.");
 
   //
@@ -330,7 +331,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("delay",&escript::Data::delay,"Convert this object into lazy representation")
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToPyObject,args("dataPointNo","value"))
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPointToArray)
-//    .def("_setTupleForGlobalDataPoint", &escript::Data::setTupleForGlobalDataPoint)
+    .def("_setTupleForGlobalDataPoint", &escript::Data::setTupleForGlobalDataPoint)
     .def("setValueOfDataPoint",&escript::Data::setValueOfDataPoint,"\nModify the value of a single datapoint.\n\n:param dataPointNo:\n"
 ":type dataPointNo: int\n:param value: \n:type value: ``float`` or an object which acts like an array, ``tuple`` or ``list``\n:warning: Use of this operation is discouraged. It prevents some optimisations from operating.")
     .def("getTupleForDataPoint",&escript::Data::getValueOfDataPointAsTuple,args("dataPointNo"),

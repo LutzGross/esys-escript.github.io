@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Copyright (c) 2003-2010 by University of Queensland
+% Copyright (c) 2003-2012 by University of Queensland
 % Earth Systems Science Computational Center (ESSCC)
 % http://www.uq.edu.au/esscc
 %
@@ -36,11 +36,12 @@ development files, make sure to get the development packages):
  \item \file{libpng}
 \end{itemize}
 
-\noindent In order to test the installation using the unit tests you also
+\noindent In order to fully test the installation using the unit tests you also
 need\footnote{On Debian and Ubuntu this is packaged as \file{libcppunit-dev}}:
 \begin{itemize}
  \item \file{cppunit}
 \end{itemize}
+However, a large number of tests will work without it.
 
 \subsection{Preliminaries}
 \label{sec:prelim}
@@ -391,8 +392,9 @@ scons
 If you wish to test your build, then you can do the following. 
 Note this may take a while if you have a slow processor and/or less than 1GB of RAM.
 \begin{shellCode}
-scons all_tests
+scons py_tests
 \end{shellCode}
+(If you have cppunit installed you can run additional tests using \texttt{scons all_tests}.
 
 \subsection{Cleaning up}
 Once you are satisfied, the \file{escript.d/build} and \file{stand/build} directories can be removed.

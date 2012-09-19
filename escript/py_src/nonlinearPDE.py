@@ -372,7 +372,6 @@ class NonlinearPDE(object):
             omega=min(2*omega, 1.) # raise omega
             defect_reduced=False
             ui_old=ui
-            print defect_norm
             while not defect_reduced:
                 ui=ui_old-delta_u * omega
                 if simple_u:
@@ -385,7 +384,6 @@ class NonlinearPDE(object):
                 defect_reduced=False
                 for i in xrange(len( new_defect_norm)):
 		     if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
-                print new_defect_norm
 		    
                 #print new_defect_norm
                 #q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
@@ -653,7 +651,6 @@ class NonlinearPDE(object):
                     raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
                 B,A=getTotalDifferential(val, u, 1)
-                print A
                 if name=='X_reduced':
                     self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['A_reduced']=A

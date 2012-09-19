@@ -1,7 +1,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Copyright (c) 2009-2010 by University of Queensland
+% Copyright (c) 2009-2012 by University of Queensland
 % Earth Systems Science Computational Center (ESSCC)
 % http://www.uq.edu.au/esscc
 %
@@ -13,6 +13,17 @@
 
 \chapter{Changes from previous releases}
 \label{app:changes}
+
+\subsection*{3.2.1 to 3.3}
+\begin{itemize}
+ \item Experimental support for \pythonthree.
+ \item Parameter order for the table interpolation methods has changed to be consistant. 
+ Please test your scripts if you use these functions.
+ \item setX on \finley and \dudley domains will now only accept coordinates from ContinuousFunction spaces.
+ This is to avoid some potentially nasty behaviour when use periodic boundary conditions.
+ You can still use setX, just make sure that you interpolate first.
+\end{itemize}
+
 
 \subsection*{3.1 to 3.2}
 \begin{itemize}

@@ -2,7 +2,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -12,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -307,7 +307,7 @@ class Test_Darcy2D(Test_Darcy):
     SOLVER=DarcyFlow.POST
     def setUp(self):
         NE=40  # wrning smaller NE may case a failure for VarioF tests due to discretization errors.
-	self.dom = Rectangle(NE,NE)
+        self.dom = Rectangle(NE,NE)
         self.rescaleDomain()
     def tearDown(self):
         del self.dom
@@ -356,7 +356,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_Darcy3D_SMOOTH))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_POST))
    suite.addTest(unittest.makeSuite(Test_Darcy3D_EVAL))
-   #suite.addTest(Test_Darcy2D_SMOOTH("testConstF_FreeBottom_largeK"))
+   #suite.addTest(Test_Darcy2D_POST("testConstF_FixedBottom_largeK"))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

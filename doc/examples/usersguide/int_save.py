@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -65,5 +65,6 @@ st=numpy.array(sine_table)
 table=[st, 0.5*st, 0*st ]   #Note that this table is 2D
 
 #The y dimension should be the outer the dimension of the table
+#Note that the order of tuples for the 2nd and 3rd param is (x,y)
 result2=interpolateTable(table, x, (minval,0), (0.55, step), toobig)
 saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)

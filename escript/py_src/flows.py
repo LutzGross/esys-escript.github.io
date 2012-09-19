@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -96,7 +96,9 @@ class DarcyFlow(object):
          self.__pde_v.setSymmetryOn()
          if self.useReduced: self.__pde_v.setReducedOrderOn()
          self.w=w
-         self.l=util.vol(self.domain)**(1./self.domain.getDim()) # length scale
+         x=self.domain.getX()
+         self.l=min( [util.sup(x[i])-util.inf(x[i]) for i in xrange(self.domain.getDim()) ] )
+         #self.l=util.vol(self.domain)**(1./self.domain.getDim()) # length scale
 
       elif self.solver  == self.SMOOTH:
          self.__pde_v=LinearPDESystem(domain)
@@ -107,6 +109,10 @@ class DarcyFlow(object):
 
       self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
       self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.__permeability_invXg=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.__permeability_invXg_ref=util.numpy.zeros((self.domain.getDim()),util.numpy.float64)
+      self.ref_point_id=None
+      self.ref_point=util.numpy.zeros((self.domain.getDim()),util.numpy.float64)
       self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
       self.location_of_fixed_flux = escript.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
       self.perm_scale=1.
@@ -135,11 +141,16 @@ class DarcyFlow(object):
 
       """
       if location_of_fixed_pressure!=None: 
-           self.location_of_fixed_pressure=util.wherePositive(location_of_fixed_pressure)
+           self.location_of_fixed_pressure=util.wherePositive(util.interpolate(location_of_fixed_pressure, self.__pde_p.getFunctionSpaceForCoefficient("q")))
+           self.ref_point_id=self.location_of_fixed_pressure.maxGlobalDataPoint()
+           if not self.location_of_fixed_pressure.getTupleForGlobalDataPoint(*self.ref_point_id)[0] > 0: raise ValueError("pressure needs to be fixed at least one point.")
+           self.ref_point=self.__pde_p.getFunctionSpaceForCoefficient("q").getX().getTupleForGlobalDataPoint(*self.ref_point_id)
+           if self.verbose: print(("DarcyFlow: reference point at %s."%(self.ref_point,)))
            self.__pde_p.setValue(q=self.location_of_fixed_pressure)
       if location_of_fixed_flux!=None: 
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
-          if not self.__pde_v == None: self.__pde_v.setValue(q=self.location_of_fixed_flux)
+          if not self.__pde_v == None: 
+              self.__pde_v.setValue(q=self.location_of_fixed_flux)
 			
       if permeability!=None:
 	
@@ -170,7 +181,8 @@ class DarcyFlow(object):
          elif self.solver  == self.POST:
               k=util.kronecker(self.domain.getDim())
               self.omega = self.w*util.length(perm_inv)*self.l*self.domain.getSize()
-              self.__pde_v.setValue(D=self.__permeability_inv, A=self.omega*util.outer(k,k))
+              #self.__pde_v.setValue(D=self.__permeability_inv, A=self.omega*util.outer(k,k))
+              self.__pde_v.setValue(D=self.__permeability_inv, A_reduced=self.omega*util.outer(k,k))
          elif self.solver  == self.SMOOTH:
             self.__pde_v.setValue(D=self.__permeability_inv)
 
@@ -181,6 +193,8 @@ class DarcyFlow(object):
         else:
              if not g.getShape()==(self.domain.getDim(),): raise ValueError("illegal shape of g")
         self.__g=g 
+        self.__permeability_invXg=util.tensor_mult(self.__permeability_inv,self.__g * (1./self.perm_scale )) 
+        self.__permeability_invXg_ref=util.integrate(self.__permeability_invXg)/util.vol(self.domain) 
       if f !=None:
          f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
          if f.isEmpty():	   
@@ -237,13 +251,20 @@ class DarcyFlow(object):
       :rtype: ``tuple`` of `escript.Data`.
 
       """
-      self.__pde_p.setValue(X=self.__g * 1./self.perm_scale, 
+      p0=util.interpolate(p0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+      if self.ref_point_id == None:
+          p_ref=0
+      else:
+          p_ref=p0.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
+      p0_hydrostatic=p_ref+util.inner(self.__permeability_invXg_ref, self.__pde_p.getFunctionSpaceForCoefficient("q").getX() - self.ref_point)
+      g_2=self.__g - util.tensor_mult(self.__permeability, self.__permeability_invXg_ref * self.perm_scale)
+      self.__pde_p.setValue(X=g_2 * 1./self.perm_scale, 
                             Y=self.__f * 1./self.perm_scale,
                             y= - util.inner(self.domain.getNormal(),u0 * self.location_of_fixed_flux * 1./self.perm_scale ), 
-                            r=p0)
-      p=self.__pde_p.getSolution()
-      u = self.getFlux(p, u0)
-      return u,p
+                            r=p0 - p0_hydrostatic)
+      pp=self.__pde_p.getSolution()
+      u = self._getFlux(pp, u0)
+      return u,pp + p0_hydrostatic
       
    def getFlux(self,p, u0=None):
         """
@@ -258,16 +279,38 @@ class DarcyFlow(object):
         :return: flux
         :rtype: `escript.Data`
         """
+        p=util.interpolate(p, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+        if self.ref_point_id == None:
+            p_ref=0
+        else:
+            p_ref=p.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
+        p_hydrostatic=p_ref+util.inner(self.__permeability_invXg_ref, self.__pde_p.getFunctionSpaceForCoefficient("q").getX() - self.ref_point)
+        return self._getFlux(p-p_hydrostatic, u0)
+
+   def _getFlux(self,pp, u0=None):
+        """
+        returns the flux for a given pressure ``p`` where the flux is equal to ``u0``
+        on locations where ``location_of_fixed_flux`` is positive (see `setValue`).
+        Notice that ``g`` is used, see `setValue`.
+
+        :param p: pressure.
+        :type p: scalar value on the domain (e.g. `escript.Data`).
+        :param u0: flux on the locations of the domain marked be ``location_of_fixed_flux``.
+        :type u0: vector values on the domain (e.g. `escript.Data`) or ``None``
+        :return: flux
+        :rtype: `escript.Data`
+        """
         if self.solver  == self.EVAL:
-           u = self.__g-self.perm_scale * util.tensor_mult(self.__permeability,util.grad(p))
+           u = self.__g - util.tensor_mult(self.__permeability, self.perm_scale * (util.grad(pp) + self.__permeability_invXg_ref))
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
-            self.__pde_v.setValue(Y=util.tensor_mult(self.__permeability_inv,self.__g * 1./self.perm_scale)-util.grad(p))
+            self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
+            print 
             if u0 == None:
                self.__pde_v.setValue(r=escript.Data())
             else:
                if not isinstance(u0, escript.Data) : u0 = escript.Vector(u0, escript.Solution(self.domain))
                self.__pde_v.setValue(r=1./self.perm_scale * u0)
-               u= self.__pde_v.getSolution() * self.perm_scale
+            u= self.__pde_v.getSolution() * self.perm_scale
         return u
 	  
 class StokesProblemCartesian(HomogeneousSaddlePointProblem):

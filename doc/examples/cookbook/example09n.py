@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -39,7 +39,7 @@ import math
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 # make sure path exists 

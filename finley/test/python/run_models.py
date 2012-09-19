@@ -2,7 +2,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -12,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -47,7 +47,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-3
-       self.domain=Rectangle(NE,NE,order=-1)
+       self.domain=Rectangle(NE,NE,order=-1,useElementsOnFace=0)
    def tearDown(self):
        del self.domain
    def test_PCG_P_0(self):
@@ -211,7 +211,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
    def setUp(self):
        NE=6
        self.TOL=1e-4
-       self.domain=Brick(NE,NE,NE,order=-1)
+       self.domain=Brick(NE,NE,NE,order=-1,useElementsOnFace=0)
    def tearDown(self):
        del self.domain
    def test_PCG_P_0(self):

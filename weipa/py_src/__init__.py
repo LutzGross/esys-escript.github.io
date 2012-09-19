@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -19,7 +19,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from weipacpp import visitInitialize, visitPublishData
+from .weipacpp import visitInitialize, visitPublishData
 
 def interpolateEscriptData(domain, data):
     """
@@ -51,7 +51,7 @@ def createDataset(domain=None, **data):
     Creates and returns an esys.weipa dataset consisting of a Domain and Data
     objects. The returned object provides methods to access and export data.
     """
-    from weipacpp import EscriptDataset
+    from .weipacpp import EscriptDataset
     dataset=EscriptDataset()
     domain,new_data=interpolateEscriptData(domain, data)
     dataset.setDomain(domain)

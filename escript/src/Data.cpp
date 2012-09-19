@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -1232,18 +1232,44 @@ Data::setValueOfDataPointToPyObject(int dataPointNo, const boost::python::object
 void
 Data::setTupleForGlobalDataPoint(int id, int proc, boost::python::object v)
 {
+#ifdef ESYS_MPI	
+    int error=0;
+#endif
     if( get_MPIRank()==proc )
     {
-        boost::python::extract<double> dex(v);
-        if (dex.check())
+        try
         {
-	  setValueOfDataPoint(id, dex());
-        }
-        else
+	    boost::python::extract<double> dex(v);
+	    if (dex.check())
+	    {
+	      setValueOfDataPoint(id, dex());
+	    }
+	    else
+	    {
+	      setValueOfDataPointToArray(id, v);	  
+	    }
+	} 
+	catch (...)
 	{
-	  setValueOfDataPointToArray(id, v);	  
+#ifdef ESYS_MPI	
+	    error=1;
+            int e2;
+            MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );	    
+#endif	    
+	    // participate in gather
+	    throw;
 	}
-    }  
+    }
+#ifdef ESYS_MPI
+    int e2;
+    // If we get here, then either we succeeded or it was on another rank
+    MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );	     
+    // participate in gather
+    if (e2)
+    {
+        throw DataException("Error in another rank performing setTupleForGlobalDataPoint");      
+    }
+#endif    
 }
 
 

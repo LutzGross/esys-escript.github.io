@@ -1,7 +1,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Copyright (c) 2003-2010 by University of Queensland
+% Copyright (c) 2003-2012 by University of Queensland
 % Earth Systems Science Computational Center (ESSCC)
 % http://www.uq.edu.au/esscc
 %
@@ -465,7 +465,7 @@ recovers a \Domain object from a dump file \var{fileName} created by the
 \end{funcdesc}
 
 \begin{funcdesc}{Rectangle}{n0,n1,order=1,l0=1.,l1=1., integrationOrder=-1, \\
-  periodic0=\False, periodic1=\False, useElementsOnFace=\False, useMacroElements=\False,\\ optimize=\False}
+  periodic0=\False, periodic1=\False, useElementsOnFace=\False, optimize=\False}
 generates a \Domain object representing a two-dimensional rectangle between
 $(0,0)$ and $(l0,l1)$ with orthogonal edges.
 The rectangle is filled with \var{n0} elements along the $x_0$-axis and
@@ -496,7 +496,7 @@ running on multiple CPUs with \MPI.
 \end{funcdesc}
 
 \begin{funcdesc}{Brick}{n0,n1,n2,order=1,l0=1.,l1=1.,l2=1., integrationOrder=-1,
-  periodic0=\False, periodic1=\False, \\ periodic2=\False, useElementsOnFace=\False, useMacroElements=\False, optimize=\False}
+  periodic0=\False, periodic1=\False, \\ periodic2=\False, useElementsOnFace=\False, optimize=\False}
 generates a \Domain object representing a three-dimensional brick between
 $(0,0,0)$ and $(l0,l1,l2)$ with orthogonal faces. The brick is filled with
 \var{n0} elements along the $x_0$-axis,

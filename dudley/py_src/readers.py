@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -32,7 +32,7 @@ some mesh handling
 __author__="Lutz Gross, l.gross@uq.edu.au, Joel Fenwick"
 
 from esys.pycad.gmsh import Design as GMSHDesign
-from dudleycpp import ReadGmsh
+from .dudleycpp import ReadGmsh
 
 def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLabeling=True, useMacroElements=False):
     """
@@ -54,7 +54,7 @@ def MakeDomain(design,integrationOrder=-1, reducedIntegrationOrder=-1, optimizeL
     :rtype: `Domain`
     """
     if useMacroElements:
-	raise TypeError("Dudley does not support macro elements")
+        raise TypeError("Dudley does not support macro elements")
     if isinstance(design, GMSHDesign):
         design.setElementOrder(1)
         ff=design.getFileFormat()

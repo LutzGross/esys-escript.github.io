@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -45,7 +45,8 @@ np=int(local_env['ENV']['ESCRIPT_NUM_NODES'])
 programs=[]
 copies=[]
 for i in example_files:
-    if i.endswith('.py') and (np==1 or not i in example_files_no_mpi):
+#    if i.endswith('.py') and (np==1 or not i in example_files_no_mpi):
+    if i.endswith('.py') and (local_env['mpi']=='none' or not i in example_files_no_mpi):
         f_in=File(os.path.join(src_dir,i))
         f_out=File(i, test_dir)
         c=Command(f_out, f_in, Copy("$TARGET", "$SOURCE"))

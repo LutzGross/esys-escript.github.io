@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -22,6 +22,8 @@ testruns += ['run_xml.py']
 testruns += ['run_units.py']
 testruns += ['run_data_access.py']
 testruns += ['run_symbolic.py']
+testruns += ['run_testdomain.py']
+
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]

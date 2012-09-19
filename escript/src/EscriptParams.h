@@ -1,7 +1,7 @@
 
 /*******************************************************
 *
-* Copyright (c) 2003-2010 by University of Queensland
+* Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au/esscc
 *
@@ -49,6 +49,7 @@ private:
 	int lazy_str_fmt;
 	int lapack_support;
 	int lazy_verbose;
+	int amg_disabled;
 
 protected: 
   // This is to provide fast access for methods in Data.

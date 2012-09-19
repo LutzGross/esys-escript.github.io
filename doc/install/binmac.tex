@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Copyright (c) 2003-2010 by University of Queensland
+% Copyright (c) 2003-2012 by University of Queensland
 % Earth Systems Science Computational Center (ESSCC)
 % http://www.uq.edu.au/esscc
 %
@@ -13,27 +13,38 @@
 \section{\macosx binary installation}
 \label{sec:binmac}
 
-\esfinley can be installed as a stand-alone bundle, containing all the required tools.
+The standalone release for OSX has been tested on \macosx 10.5 (``Leopard'')\footnote{It \emph{should} work on 
+``Snow Leopard'' but has not been tested.} and 10.7 (``Lion'').
 
-For more information on using the \file{run-escript} command please see the User Guide.
-
-\subsection{Stand-alone bundle \macosx 10.5 (``Leopard'')}
-
-You will need to download both escript (\file{escript_3.2_osx.dmg}) and the support files (\file{escript-support_3.0_osx.dmg}).
+You will need to download both escript (\file{escript_3.4_osx.dmg}) and the support files (\file{escript-support_3.0_osx.dmg}).
 This point release uses the same support bundle as previous releases so if you already have it you don't need a new version.
+You will also need to download the sympy source code from \url{sympy.org} (You are looking for a \texttt{.tar.gz} file).
+
 \begin{itemize}
 \item Create a folder to hold escript (no spaces in the name please).
 \item Open the \file{.dmg} files and copy the contents to the folder you just created.
+\item Copy the sympy file into the same directory.
 \end{itemize}
 
 To use escript, open a terminal\footnote{If you do not know how to open a terminal on Mac, then just type \texttt{terminal} in the spotlight (search tool on the top of the right corner) and once found, just click on it.} and type
 \begin{shellCode}
-x/escript.d/bin/run-escript
+eval `x/escript.d/bin/run-escript -e`
 \end{shellCode}
 where \textit{x} is the absolute path to your install.
 
+\noindent Now we need to install sympy (substitue the version number of sympy you have):
+\begin{shellCode}
+tar -xzf sympy-0.7.1.tar.gz
+cd sympy-0.7.1
+python setup.py install --prefix ../stand/pkg
+\end{shellCode}
+
+You cay test your install with:
+\begin{shellCode}
+run-escript
+\end{shellCode}
+
+You may now remove the sympy files from the starting directory and ``eject'' the \texttt{.dmg} files.
+
 If you wish to save on typing you can add \file{x/escript.d/bin} to your PATH variable (where \textit{x} is the absolute path to your install). 
-
-
-The previous point release (3.1) installed sucessfully on \macosx 10.6.2 (``Snow Leopard'') but we have not tested this one. 
 

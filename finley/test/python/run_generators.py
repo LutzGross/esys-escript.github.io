@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -57,14 +57,14 @@ class Test_Generators(unittest.TestCase):
       ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
       self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-	 line=dom_string[l].strip()
-	 if os.name == "nt":
-	       line=line.replace("e+00","e+0").replace("e-00","e-0")
+         line=dom_string[l].strip()
+         if os.name == "nt":
+               line=line.replace("e+00","e+0").replace("e-00","e-0")
          self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_hex_2D_order1(self):
       file="hex_2D_order1.msh"
-      my_dom=Rectangle(1,1,1)
+      my_dom=Rectangle(1,1,1,useElementsOnFace=0)
       self.checker(my_dom,file)
 
    def test_hex_2D_order1_onFace(self):
@@ -74,12 +74,12 @@ class Test_Generators(unittest.TestCase):
 
    def test_hex_2D_order2(self):
       file="hex_2D_order2.msh"
-      my_dom=Rectangle(1,1,2)
+      my_dom=Rectangle(1,1,2, useElementsOnFace=0)
       self.checker(my_dom,file)
 
    def test_hex_2D_order1_macro(self):
       file="hex_2D_order1_macro.msh"
-      my_dom=Rectangle(1,1,-1)
+      my_dom=Rectangle(1,1,-1,useElementsOnFace=0)
       self.checker(my_dom,file)
 
    def test_hex_2D_order2_onFace(self):
@@ -89,7 +89,7 @@ class Test_Generators(unittest.TestCase):
 
    def test_hex_3D_order1(self):
       file="hex_3D_order1.msh"
-      my_dom=Brick(1,1,1,1)
+      my_dom=Brick(1,1,1,1, useElementsOnFace=0)
       self.checker(my_dom,file)
 
    def test_hex_3D_order1_onFace(self):
@@ -104,7 +104,7 @@ class Test_Generators(unittest.TestCase):
 
    def test_hex_3D_order2(self):
       file="hex_3D_order1_macro.msh"
-      my_dom=Brick(1,1,1,-1)
+      my_dom=Brick(1,1,1,-1, useElementsOnFace=0)
       self.checker(my_dom,file)
 
    def test_hex_3D_order2_onFace(self):
@@ -182,9 +182,9 @@ class Test_GMSHReader(unittest.TestCase):
       ref_string=open(reference_file).read().splitlines()
       self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
-	 line=dom_string[l].strip()
-	 if os.name == "nt":
-	       line=line.replace("e+00","e+0").replace("e-00","e-0")
+         line=dom_string[l].strip()
+         if os.name == "nt":
+               line=line.replace("e+00","e+0").replace("e-00","e-0")
          self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):
@@ -445,43 +445,43 @@ class Test_Integration(unittest.TestCase):
    #===================================================================================================
    def test_hex2D_macro_integorder1(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=1)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=1)
       self.__test_2DQ(my_dom,1)
    def test_hex2D_macro_integmacro(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=2)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=2)
       self.__test_2DQ(my_dom,2)
    def test_hex2D_macro_integorder3(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=3)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=3)
       self.__test_2DQ(my_dom,3)
    def test_hex2D_macro_integorder4(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=4)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=4)
       self.__test_2DQ(my_dom,4)
    def test_hex2D_macro_integorder5(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=5)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=5)
       self.__test_2DQ(my_dom,5)
    def test_hex2D_macro_integorder6(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=6)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=6)
       self.__test_2DQ(my_dom,6)
    def test_hex2D_macro_integorder7(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=7)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=7)
       self.__test_2DQ(my_dom,7)
    def test_hex2D_macro_integorder8(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=8)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=8)
       self.__test_2DQ(my_dom,8)
    def test_hex2D_macro_integorder9(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=9)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=9)
       self.__test_2DQ(my_dom,9)
    def test_hex2D_macro_integorder10(self):
       NE=getMPIRankWorld()
-      my_dom=Rectangle(NE,NE,order=-1,integrationOrder=10)
+      my_dom=Rectangle(NE,NE,order=-1,useElementsOnFace=0,integrationOrder=10)
       self.__test_2DQ(my_dom,10)
    #===================================================================================================
    def test_Tet2D_order1_integorder1(self):
@@ -661,43 +661,43 @@ class Test_Integration(unittest.TestCase):
    #===================================================================================================
    def test_hex3D_macro_integmacro(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=1)
+      my_dom=Brick(NE,NE,NE,useElementsOnFace=0,order=-1,integrationOrder=1)
       self.__test_3DQ(my_dom,1)
    def test_hex3D_macro_integmacro(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=2)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=2)
       self.__test_3DQ(my_dom,2)
    def test_hex3D_macro_integorder3(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=3)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=3)
       self.__test_3DQ(my_dom,3)
    def test_hex3D_macro_integorder4(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=4)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=4)
       self.__test_3DQ(my_dom,4)
    def test_hex3D_macro_integorder5(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=5)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=5)
       self.__test_3DQ(my_dom,5)
    def test_hex3D_macro_integorder6(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=6)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=6)
       self.__test_3DQ(my_dom,6)
    def test_hex3D_macro_integorder7(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=7)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=7)
       self.__test_3DQ(my_dom,7)
    def test_hex3D_macro_integorder8(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=8)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=8)
       self.__test_3DQ(my_dom,8)
    def test_hex3D_macro_integorder9(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=9)
+      my_dom=Brick(NE,NE,NE,order=-1, useElementsOnFace=0,integrationOrder=9)
       self.__test_3DQ(my_dom,9)
    def test_hex3D_macro_integorder10(self):
       NE=getMPIRankWorld()
-      my_dom=Brick(NE,NE,NE,order=-1,integrationOrder=10)
+      my_dom=Brick(NE,NE,NE,order=-1,useElementsOnFace=0,integrationOrder=10)
       self.__test_3DQ(my_dom,10)
    #==========================================================================================
    def test_Tet3D_order1_integorder1(self):

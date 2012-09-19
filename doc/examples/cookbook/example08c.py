@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2009-2010 by University of Queensland
+# Copyright (c) 2009-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2009-2010 by University of Queensland
+__copyright__="""Copyright (c) 2009-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -51,7 +51,7 @@ import numpy as np
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
 	import sys
-	print "This example will not run in an MPI world."
+	print("This example will not run in an MPI world.")
 	sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
@@ -87,8 +87,8 @@ lam2=mu2*6.; lam1=mu1*6. #lames constant
 # Time related variables.
 testing=True
 if testing:
-	print 'The testing end time is currently selected. This severely limits the number of time iterations.'
-	print "Try changing testing to False for more iterations."
+	print('The testing end time is currently selected. This severely limits the number of time iterations.')
+	print("Try changing testing to False for more iterations.")
 	tend=0.001
 else:
 	tend=0.5    # end time
@@ -100,7 +100,7 @@ rtime_inc=tend/50.0 # time increment to record
 # will introduce a spherical source at middle left of bottom face
 xc=[width/2,0]
 #Check to make sure number of time steps is not too large.
-print "Time step size= ",h, "Expected number of outputs= ",tend/h
+print("Time step size= ",h, "Expected number of outputs= ",tend/h)
 
 U0=0.1 # amplitude of point source
 ls=500   # length of the source
@@ -115,7 +115,7 @@ a = 2.0 * (np.pi * dfeq)**2.0
 t0 = 5.0 / (2.0 * np.pi * dfeq)
 srclength = 5. * t0
 ls = int(srclength/h)
-print 'source length',ls
+print('source length',ls)
 source=np.zeros(ls,'float') # source array
 ampmax=0
 for it in range(0,ls):
@@ -181,7 +181,7 @@ d.setScriptFileName(os.path.join(save_path,"example08c.geo"))
 d.setMeshFileName(os.path.join(save_path,"example08c.msh"))
 domain=MakeDomain(d, optimizeLabeling=True)
 x=domain.getX()
-print "Domain has been generated ..."
+print("Domain has been generated ...")
 
 lam=Scalar(0,Function(domain))
 lam.setTaggedValue("top",lam1)
@@ -219,7 +219,7 @@ gleft  = calc_gamma(tgamma,bleft)
 gright = calc_gamma(tgamma,bleft)
 gbottom= calc_gamma(tgamma,ystep*bn)
 
-print 'gamma', gleft,gright,gbottom
+print('gamma', gleft,gright,gbottom)
 
 # calculate decay functions
 def abc_bfunc(gamma,loc,x,G):
@@ -242,7 +242,7 @@ abc=abcleft*abcright*abcbottom
 
 ############################################FIRST TIME STEPS AND SOURCE
 # define small radius around point xc
-src_length = 40; print "src_length = ",src_length
+src_length = 40; print("src_length = ",src_length)
 # set initial values for first two time steps with source terms
 xb=FunctionOnBoundary(domain).getX()
 y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(xb-src_length))
@@ -278,4 +278,4 @@ while t<tend:
     if (n < ls):
         y=source[n]*(cos(length(x-xc)*3.1415/src_length)+1)*whereNegative(length(x-xc)-src_length)
         y=y*src_dir; mypde.setValue(y=y) #set the source as a function on the boundary
-    print n,"-th time step t ",t
+    print(n,"-th time step t ",t)

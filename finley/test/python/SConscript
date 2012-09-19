@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -29,6 +29,8 @@ testruns += ['run_models.py']
 testruns += ['run_darcy.py']
 testruns += ['run_simplesolve.py']
 testruns += ['run_utilOnFinley.py']
+testruns += ['run_utilOnFinley2.py']
+testruns += ['run_utilOnFinley3.py']
 # testruns += ['run_visualization_interface.py']
 testruns += ['run_amg.py'] 
 

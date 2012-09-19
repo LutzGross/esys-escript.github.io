@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -14,20 +14,34 @@
 import os
 Import('*')
 
+from subprocess import PIPE, Popen
+
 haveMPL=False   # do we have matplotlib?
 haveGD=False    # does matplotlib have griddata?
 
 mplmagicversion='0.98.5'
 
 # check for matplotlib
-try:
+if env['pythoncmd']=='python':
+  try:
     import matplotlib
     haveMPL=True
     mplversion=matplotlib.__version__
     from matplotlib.mlab import griddata
     haveGD=True
-except ImportError:
+  except ImportError:
     pass
+else:
+  # we need to fire up the external command
+    p=Popen([env['pythoncmd'], '-c', 'from __future__ import print_function;import matplotlib;print(matplotlib.__version__);from matplotlib.mlab import griddata;print("1")'], stdout=PIPE)
+    try:
+        mplversion=p.stdout.readline().strip()
+        haveMPL=True
+        hgd=p.stdout.readline().strip()
+        haveGD=True
+    except IOError:
+        pass
+    p.wait()
 
 if not haveMPL:
     print("matplotlib not found, skipping some tests")
@@ -74,7 +88,7 @@ sortOutExample('usersguide/darcy.py')
 sortOutExample('usersguide/slip.py')
 sortOutExample('usersguide/int_save.py')
 sortOutExample('usersguide/wave.py', needsMPL=True)
-sortOutExample('usersguide/trapezoid.py', needsGMSH=True)
+sortOutExample('usersguide/trapezoid.py', needsGMSH=True, allowsMPI=False)
 sortOutExample('usersguide/quad.py', needsGMSH=True)
 sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
@@ -116,7 +130,7 @@ sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
 
 if len(skipped_tests)>0:
-    print("gmsh not available. Skipping tests %s."%' '.join(skipped_tests))
+    print("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 

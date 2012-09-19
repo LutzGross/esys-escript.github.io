@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -34,7 +34,7 @@ Test suite for input and output of meshes and data objects
 import unittest, sys
 
 from esys.escript import *
-from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh
+from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile, ReadGmsh
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -80,86 +80,101 @@ class InputOutput(unittest.TestCase):
 
      # Does optimize=True change Rectangle for order=1?
      def test_Rectangle_optimize_order1(self):
-	mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-	mydomain2 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=True)
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False,useElementsOnFace=0)
+        mydomain2 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Rectangle for order=2?
      def test_Rectangle_optimize_order2(self):
-	mydomain1 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=False)
-	mydomain2 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=True)
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=False,useElementsOnFace=0)
+        mydomain2 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Rectangle for order=-1?
      def test_Rectangle_optimize_macro(self):
-	mydomain1 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=False)
-	mydomain2 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=True)
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=False, useElementsOnFace=0)
+        mydomain2 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Brick for order=1?
      def test_Brick_optimize_order1(self):
-	mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
-	mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=True)
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False,useElementsOnFace=0)
+        mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
      # Does optimize=True change Brick for order=2?
      def test_Brick_optimize_order2(self):
-	mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-	mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=True)
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False,useElementsOnFace=0)
+        mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
      # Does optimize=True change Brick for order=-1?
      def test_Brick_optimize_macro(self):
-	mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=False)
-	mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=True)
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=False,useElementsOnFace=0)
+        mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
      def test_data_dump_to_NetCDF_rectangle(self):
-	if loadIsConfigured():
-	  mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-	  d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-	  d1.expand()
-	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
-	  d1.dump(dumpfile)
-	  d2=load(dumpfile, mydomain1)
+        if loadIsConfigured():
+          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False,useElementsOnFace=0)
+          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+          d1.expand()
+          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
+          d1.dump(dumpfile)
+          d2=load(dumpfile, mydomain1)
           self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_data_dump_to_NetCDF_brick(self):
-	if loadIsConfigured():
-	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-	  d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-	  d1.expand()
-	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
-	  d1.dump(dumpfile)
-	  d2=load(dumpfile, mydomain1)
+        if loadIsConfigured():
+          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+          d1.expand()
+          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
+          d1.dump(dumpfile)
+          d2=load(dumpfile, mydomain1)
           self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
      def test_mesh_dump_to_NetCDF_rectangle(self):
-	if loadIsConfigured():
-	  mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
-	  mydomain1.dump(dumpfile)
-	  mydomain2=LoadMesh(dumpfile)
+        if loadIsConfigured():
+          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
+          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
+          mydomain1.dump(dumpfile)
+          mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
+     def test_gmshTags(self):
+       if getEscriptParamInt('MPIBUILD',0)==0:
+        tags=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "tagtest.fly"),2).showTagNames()
+        self.assertEqual(tags,'tag1, tag2, tag3','error with tags')
+       else:
+        print "Test supressed due to MPI build"
+
      def test_mesh_dump_to_NetCDF_brick(self):
-	if loadIsConfigured():
-	  mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-	  dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
-	  mydomain1.dump(dumpfile)
-	  mydomain2=LoadMesh(dumpfile)
+        if loadIsConfigured():
+          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
+          mydomain1.dump(dumpfile)
+          mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_read_rectangle_from_finley_file(self):
-	if getMPISizeWorld() < 16:
-	  mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
+        if getMPISizeWorld() < 16:
+          mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
           self.domainsEqual(mydomain1, mydomain2)
 
      def test_mesh_read_brick_from_finley_file(self):
-	if getMPISizeWorld() < 16:
+        if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
           self.domainsEqual(mydomain1, mydomain2)
+          
+     def test_GetMeshFromFile(self):
+        if getMPISizeWorld() <2:
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3)
+           del m
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH, 'tet10.fly'))
+           # now we try some params
+           m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3, integrationOrder=2)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

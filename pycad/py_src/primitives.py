@@ -2,7 +2,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -12,7 +12,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -81,6 +81,7 @@ class PrimitiveBase(object):
        """
        pass
 
+    # for python2   
     def __cmp__(self,other):
        """
        Compares object with other by comparing the absolute value of the ID.
@@ -90,6 +91,21 @@ class PrimitiveBase(object):
        else:
            return -1
 
+    def __lt__(self,other):
+       if isinstance(other, PrimitiveBase):
+           return self.getID()<other.getID()
+       else:
+           return False
+           
+    def __eq__(self,other):
+       if isinstance(other, PrimitiveBase):
+           return self.getID()==other.getID()
+       else:
+           return False
+       
+    def __hash__(self):
+       return self.getID()
+       
     def getConstructionPoints(self):
         """
         Returns the points used to construct the primitive.
@@ -1087,20 +1103,20 @@ class CurveLoop(Primitive, PrimitiveBase):
        restart=True
        while restart:
           restart=False
-	  for k in curves:
-	      if not k in found:
-		  if k.getStartPoint() == s[-1]:
+          for k in curves:
+              if not k in found:
+                  if k.getStartPoint() == s[-1]:
                       found.append(k)
                       if hasattr(k,"getControlPoints"): s+=k.getControlPoints()[1:-1]
                       if k.getEndPoint() == s[0]: 
                            if len(found) == len(curves):
                              return s
                            else:
-			     raise ValueError("loop %s is not closed."%self.getID())
-		      s.append(k.getEndPoint())
-		      restart=True
-		      break
-	  if not restart:
+                             raise ValueError("loop %s is not closed."%self.getID())
+                      s.append(k.getEndPoint())
+                      restart=True
+                      break
+          if not restart:
                raise ValueError("loop %s is not closed."%self.getID())           
 
 class ReverseCurveLoop(ReversePrimitive, PrimitiveBase):

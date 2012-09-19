@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2010 by University of Queensland
+# Copyright (c) 2003-2012 by University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au/esscc
 #
@@ -11,7 +11,7 @@
 #
 ########################################################
 
-__copyright__="""Copyright (c) 2003-2010 by University of Queensland
+__copyright__="""Copyright (c) 2003-2012 by University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au/esscc
 Primary Business: Queensland, Australia"""
@@ -85,7 +85,7 @@ class TemperatureAdvection(Model):
            perform taylor galerkin step
            """
            T=self.temperature
-	   self.__rhocp=self.heat_capacity*self.density
+           self.__rhocp=self.heat_capacity*self.density
            self.__fixed_T=self.fixed_temperature
            self.temperature=dt*self.G(dt/2*self.G(T,1./dt)+T,1./dt)+T
            self.trace("Temperature range is %e %e"%(inf(self.temperature),sup(self.temperature)))

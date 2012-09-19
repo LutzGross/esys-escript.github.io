@@ -874,8 +874,9 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-#pragma omp for schedule(static) nowait
-            for (size_t i = 0; i < tags->size(); i++) {
+	    long i;	// should be size_t but omp mutter mutter
+#pragma omp for schedule(static) private(i) nowait
+            for (i = 0; i < tags->size(); i++) {
                 const index_t v = (*tags)[i];
                 if ((v > lastFoundValue) && (v < local_minFoundValue))
                     local_minFoundValue = v;
@@ -1208,6 +1209,12 @@ void RipleyDomain::write(const string& filename) const
 void RipleyDomain::dump(const string& filename) const
 {
     throw RipleyException("dump() not implemented");
+}
+
+void RipleyDomain::readBinaryGrid(escript::Data& out, string filename,
+            const vector<int>& first, const vector<int>& numValues) const
+{
+    throw RipleyException("readBinaryGrid() not implemented");
 }
 
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
