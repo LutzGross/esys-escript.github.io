@@ -20,37 +20,50 @@ from launchpad.
 \esfinley is primarily developed on Linux desktop, SGI ICE and \macosx systems.
 It is distributed in two forms:
 \begin{enumerate}
-    \item Binary bundles -- these are great for first time users or for those who want to start using \esfinley immediately
-    \item Source bundles -- these require compilation and should be used if the binary bundles don't work on the target machine or if extra functionality is required such as \mpi parallelisation.
+  \item Binary bundles -- these are great for first time users or for those who want to start using 
+    \esfinley immediately.
+      Bundles are available for:
+      \begin{itemize}
+	  \item Debian and Ubuntu Linux distributions ($32$/$64$-bit i686) (.deb package)
+	  \item Linux desktop systems with gcc (stand-alone bundle)
+	  \item \macosx Leopard systems (also tested on Lion) with gcc (stand-alone bundle)
+	  \item $32$bit Windows (requires some other packages to be installed).
+      \end{itemize}    
+    Please see Chapter~\ref{chap:bin} for instructions on how to install the binary bundles \esfinley.
+  \item Source bundles -- these require compilation and should be used if the binary bundles 
+    don't work on the target machine or if extra functionality is required such as \mpi parallelisation.
+    See Chapter~\ref{chap:compiler} for detailed instructions.
 \end{enumerate}
 
-The binary bundles are currently available for the following platforms:
-\begin{itemize}
-    \item Debian and Ubuntu Linux distributions ($32$/$64$-bit i686) (.deb package)
-    \item Linux desktop systems with gcc (stand-alone bundle)
-    \item \macosx Leopard systems (also tested on Lion) with gcc (stand-alone bundle)
-    \item $32$bit Windows (requires some other packages to be installed).
-\end{itemize}
-
-See Chapter~\ref{chap:bin} for instructions on how to install the binary bundles \esfinley.
-
-If you choose to compile from source your options are to
-\begin{itemize}
-    \item install dependencies (e.g. using your package manager) and only compile \esfinley, OR
-    \item compile everything from source.
-\end{itemize}
-Either way, please see Chapter~\ref{chap:compiler} for a discussion of compiler features.
-Compiling \esfinley when its dependencies are already installed is discussed in Chapter~\ref{chap:essrc}.
-To compile \esfinley and all dependencies from source please see Chapter~\ref{chap:allsrc}.
-The latter option takes a significant amount of time and is only required if the versions of the dependent libraries available on your system do not work with \esfinley.
-
-Once everything is installed you can test your installation using the Python scripts in \file{examples.zip} or \file{examples.tar.gz}\footnote{These should either be in \file{escript.d/release/doc} or in the case of Debian, in \file{/usr/share/doc/escript}.}.
-Unpack the examples and try to run the following from a terminal:
-\begin{shellCode}
- run-escript poission.py
-\end{shellCode}
-If this produces a VTK file called \file{u.vtu} then you are likely to have a functional \esfinley installation.
-You can try and visualize the VTK data or delete the file.
-For visualization we suggest using \file{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \file{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
-
 See the site \url{https://answers.launchpad.net/escript-finley} for online help.
+
+\section{Significant changes since version 3.3}
+\begin{itemize}
+ \item \texttt{SymPy} is now required to compile or run \escript. 
+    This means you will need to download sympy in addition to the support bundle from previous releases.
+ \item The minimum Python version is now $2.6$.
+\end{itemize}
+
+% \noindent If you choose to compile from source your options are to
+% \begin{itemize}
+%     \item install dependencies (e.g. using your package manager) and only compile \esfinley, OR
+%     \item compile everything from source.
+% \end{itemize}
+% Either way, please see Chapter~\ref{chap:compiler} for a discussion of compiler features.
+% Compiling \esfinley when its dependencies are already installed is discussed in Chapter~\ref{chap:essrc}.
+% To compile \esfinley and all dependencies from source please see Chapter~\ref{chap:allsrc}.
+% The latter option takes a significant amount of time and is only required if the versions of the dependent libraries available on your system do not work with \esfinley.
+% 
+% Once everything is installed you can test your installation using the Python scripts in \file{examples.zip} or \file{examples.tar.gz}\footnote{These should either be in \file{escript.d/release/doc} or in the case of Debian, in \file{/usr/share/doc/escript}.}.
+% Unpack the examples and try to run the following from a terminal:
+% \begin{shellCode}
+%  run-escript poission.py
+% \end{shellCode}
+% If this produces a VTK file called \file{u.vtu} then you are likely to have a functional \esfinley installation.
+% You can try and visualize the VTK data or delete the file.
+% For visualization we suggest using \file{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \file{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
+
+
+
+
+
