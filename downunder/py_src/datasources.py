@@ -76,6 +76,7 @@ class DataSource(object):
         """
         """
         self._constrainBottom=False
+        self._constrainSides=True
         self._domain=None
         self._pad_l=0.1
         self._pad_h=0.1
@@ -180,13 +181,15 @@ class DataSource(object):
         self._pad_l=pad_l
         self._pad_h=pad_h
 
-    def setConstrainBottom(self, constrain):
+    def setConstraints(self, bottom=False, sides=True):
         """
-        If `constrain` is True, then the density mask will be set to 1 in the
+        If `bottom` is True, then the density mask will be set to 1 in the
         padding area at the bottom of the domain. By default this area is
-        unconstrained.
+        unconstrained. Similarly, if `sides` is True (default) then the
+        horizontal padding area is constrained, otherwise not.
         """
-        self._constrainBottom=constrain
+        self._constrainBottom=bottom
+        self._constrainSides=sides
 
     def getDomain(self):
         """
@@ -282,13 +285,13 @@ class DataSource(object):
             mask=wherePositive(x[2]+self._dom_origin[2])
 
         # prepare density mask (=1 at padding area, 0 else)
+        if self._constrainSides:
+            for i in xrange(2):
+                mask=mask + whereNegative(x[i]) + \
+                        wherePositive(x[i]-l_new[i]+2*NE_pad[i]*self._spacing[i])
+
         if self._constrainBottom:
-            M=3 # constrain bottom
-        else:
-            M=2 # do not constrain bottom
-        for i in xrange(M):
-            mask=mask + whereNegative(x[i]) + \
-                    wherePositive(x[i]-l_new[i]+2*NE_pad[i]*self._spacing[i])
+            mask = mask + whereNegative(x[2])
         self._mask=wherePositive(mask)
 
         self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
