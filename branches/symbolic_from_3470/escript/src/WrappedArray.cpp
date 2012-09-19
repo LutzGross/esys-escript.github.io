@@ -125,7 +125,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 		{
 			PyObject* cobj=(PyObject*)o.ptr();
 			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
-			if (arr->two==2 && arr->flags&NPY_IN_ARRAY)
+			if (arr->two==2 && arr->flags&NPY_IN_ARRAY && arr->flags&NPY_NOTSWAPPED)
 			{
 				std::vector<int> strides;
 				// convert #bytes to #elements
