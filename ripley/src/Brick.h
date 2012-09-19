@@ -63,6 +63,12 @@ public:
     void dump(const std::string& filename) const;
 
     /**
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+                                const std::vector<int>& first,
+                                const std::vector<int>& numValues) const;
+
+    /**
        \brief
        returns the reference number of the given sample number
        \param fsType The function space type

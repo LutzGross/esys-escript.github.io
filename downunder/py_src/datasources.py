@@ -27,6 +27,8 @@ import struct
 from esys.escript import *
 from esys.escript.linearPDEs import *
 import esys.escript.unitsSI as U
+from esys.ripley import *
+
 try:
     from scipy.io.netcdf import netcdf_file
     __all__ += ['NetCDFDataSource']
@@ -261,6 +263,7 @@ class DataSource(object):
         # number of padding elements per side
         NE_pad=[(NE_new[i]-NE[i])/2 for i in xrange(3)]
 
+        self._dom_NE_pad = NE_pad
         self._dom_len = l_new
         self._dom_NE = NE_new
         self._dom_origin = origin_new
@@ -547,7 +550,7 @@ class ERSDataSource(DataSource):
     Note that this class only accepts a very specific type of ER Mapper data
     input and will raise an exception if other data is found.
     """
-    def __init__(self, domainclass, headerfile, datafile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
+    def __init__(self, headerfile, datafile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
         """
         headerfile - usually ends in .ers
         datafile - usually has the same name as the headerfile without '.ers'
@@ -558,7 +561,6 @@ class ERSDataSource(DataSource):
             self.__datafile=headerfile[:-4]
         else:
             self.__datafile=datafile
-        self.__domainclass=domainclass
         self.__readHeader(vertical_extents)
         self.__altOfData=alt_of_data
 
@@ -669,40 +671,18 @@ class ERSDataSource(DataSource):
         """
         returns the domain generator class (e.g. esys.ripley.Brick)
         """
-        return self.__domainclass
+        return Brick
 
     def getGravityAndStdDev(self):
-        gravlist=self.__readGravity() # x,y,z,g,s
-        g_and_sigma=self._interpolateOnDomain(gravlist)
-        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
+        nValues=self.__nPts[:2]+[1]
+        first=self._dom_NE_pad[:2]+[self._dom_NE_pad[2]+int((self.__altOfData-self.__origin[2])/self.__delta[2])]
+        g=ripleycpp._readBinaryGrid(self.__datafile, Function(self.getDomain()),
+                first, nValues, (), -1e8)
+        sigma=whereNonNegative(g+1e7)
+        g=g*1e-6
+        sigma=sigma*2e-6
+        return g*[0,0,1], sigma
 
-    def __readGravity(self):
-        f=open(self.__datafile, 'r')
-        n=self.__nPts[0]*self.__nPts[1]
-        grav=[]
-        err=[]
-        for i in xrange(n):
-            v=struct.unpack('f',f.read(4))[0]
-            grav.append(v)
-            if abs((self.__maskval-v)/v) < 1e-6:
-                err.append(0.)
-            else:
-                err.append(1.)
-        f.close()
-
-        NE=[self.__nPts[i] for i in xrange(2)]
-        x=self.__dataorigin[0]+np.arange(start=0, stop=NE[0]*self.__delta[0], step=self.__delta[0])
-        # data sets have origin in top-left corner so y runs top-down
-        y=self.__dataorigin[1]-np.arange(start=0, stop=NE[1]*self.__delta[1], step=self.__delta[1])
-        x,y=np.meshgrid(x,y)
-        x,y=x.flatten(),y.flatten()
-        alt=self.__altOfData*np.ones((n,))
-
-        # convert units
-        err=2e-6*np.array(err)
-        grav=1e-6*np.array(grav)
-        gravdata=np.column_stack((x,y,alt,grav,err))
-        return gravdata
 
 ##############################################################################
 class SourceFeature(object):

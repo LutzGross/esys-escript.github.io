@@ -238,6 +238,84 @@ bool Brick::operator==(const AbstractDomain& other) const
     return false;
 }
 
+void Brick::readBinaryGrid(escript::Data& out, string filename,
+                           const vector<int>& first,
+                           const vector<int>& numValues) const
+{
+    // check destination function space
+    int myN0, myN1, myN2;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_N0;
+        myN1 = m_N1;
+        myN2 = m_N2;
+    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
+                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE0;
+        myN1 = m_NE1;
+        myN2 = m_NE2;
+    } else
+        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+
+    // check file existence and size
+    ifstream f(filename.c_str(), ifstream::binary);
+    if (f.fail()) {
+        throw RipleyException("readBinaryGrid(): cannot open file");
+    }
+    f.seekg(0, ios::end);
+    const int numComp = out.getDataPointSize();
+    const int filesize = f.tellg();
+    const int reqsize = numValues[0]*numValues[1]*numValues[2]*numComp*sizeof(float);
+    if (filesize < reqsize) {
+        f.close();
+        throw RipleyException("readBinaryGrid(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0] <= m_offset0 ||
+            first[1] >= m_offset1+myN1 || first[1]+numValues[1] <= m_offset1 ||
+            first[2] >= m_offset2+myN2 || first[2]+numValues[2] <= m_offset2) {
+        f.close();
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const int first0 = max(0, first[0]-m_offset0);
+    const int first1 = max(0, first[1]-m_offset1);
+    const int first2 = max(0, first[2]-m_offset2);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset0-first[0]);
+    const int idx1 = max(0, m_offset1-first[1]);
+    const int idx2 = max(0, m_offset2-first[2]);
+    // number of values to write
+    const int num0 = min(numValues[0]-idx0, myN0-first0);
+    const int num1 = min(numValues[1]-idx1, myN1-first1);
+    const int num2 = min(numValues[2]-idx2, myN2-first2);
+
+    out.requireWrite();
+    vector<float> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (index_t z=0; z<num2; z++) {
+        for (index_t y=0; y<num1; y++) {
+            const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]+(idx2+z)*numValues[0]*numValues[1]);
+            f.seekg(fileofs*sizeof(float));
+            f.read((char*)&values[0], num0*numComp*sizeof(float));
+            for (index_t x=0; x<num0; x++) {
+                double* dest = out.getSampleDataRW(first0+x+(first1+y)*myN0+(first2+z)*myN0*myN1);
+                for (index_t c=0; c<numComp; c++) {
+                    for (index_t q=0; q<dpp; q++) {
+                        *dest++ = static_cast<double>(values[x*numComp+c]);
+                    }
+                }
+            }
+        }
+    }
+
+    f.close();
+}
+
 void Brick::dump(const string& fileName) const
 {
 #if USE_SILO

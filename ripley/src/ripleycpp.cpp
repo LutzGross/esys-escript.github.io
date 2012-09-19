@@ -25,11 +25,56 @@ using namespace boost::python;
 
 namespace ripley {
 
+escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
+        const object& pyFirst, const object& pyNum, const object& pyShape,
+        double fill=0.)
+{
+    int dim=fs.getDim();
+    std::vector<int> first(dim), numValues(dim), shape;
+
+    if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
+        if (len(pyFirst)==dim) {
+            for (int i=0; i<dim; i++) {
+                first[i]=extract<int>(pyFirst[i]);
+            }
+        } else
+            throw RipleyException("Argument 'first' has wrong length");
+    } else
+        throw RipleyException("Argument 'first' must be a tuple or list");
+
+    if (extract<tuple>(pyNum).check() || extract<list>(pyNum).check()) {
+        if (len(pyNum)==dim) {
+            for (int i=0; i<dim; i++) {
+                numValues[i]=extract<int>(pyNum[i]);
+            }
+        } else
+            throw RipleyException("Argument 'numValues' has wrong length");
+    } else
+        throw RipleyException("Argument 'numValues' must be a tuple or list");
+
+    if (extract<tuple>(pyShape).check() || extract<list>(pyShape).check()) {
+        for (int i=0; i<len(pyShape); i++) {
+            shape.push_back(extract<int>(pyShape[i]));
+        }
+    } else
+        throw RipleyException("Argument 'shape' must be a tuple or list");
+
+    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw RipleyException("Function space must be on a ripley domain");
+
+
+    escript::Data res(fill, shape, fs, true);
+
+    dom->readBinaryGrid(res, filename, first, numValues);
+    return res;
+}
+
 // These wrappers are required to make the shared pointers work through the
 // Python wrapper
 
 // The double for n? is just to keep python happy when people need to deal with
-// trudiv
+// truediv
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2)
 {
@@ -108,7 +153,7 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
 }
 std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
-}
+} // end of namespace
 
 /**
     \page ripley Ripley
@@ -146,13 +191,15 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
-    def("_theculprit_", ripley::_who),
+    def("_theculprit_", ripley::_who);
     def("LoadMesh", ripley::RipleyDomain::loadMesh, (arg("filename")),
            "Loads a ripley domain from a dump file" ":rtype: `Domain`");
 
     def("ReadMesh", ripley::RipleyDomain::readMesh, (arg("filename")),
             "Reads a ripley domain from a file created by write().\n\n"
             ":rtype: `RipleyDomain`\n:param filename:\n:type filename: ``string``\n");
+
+    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain> >
         ("RipleyDomain", "", no_init)
