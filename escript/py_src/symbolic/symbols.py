@@ -30,8 +30,9 @@ __author__="Cihan Altinay"
 """
 
 import numpy
-import sympy
-from esys.escript import Data, FunctionSpace
+from esys.escript import Data, FunctionSpace, HAVE_SYMBOLS
+if HAVE_SYMBOLS:
+    import sympy
 
    
 class Symbol(object):
@@ -82,6 +83,9 @@ class Symbol(object):
         :keyword dim: dimensionality of the new Symbol (default: 2)
         :type dim: ``int``
         """
+        if not HAVE_SYMBOLS:
+            raise RuntimeError("Trying to instantiate a Symbol but sympy not available")
+
         if 'dim' in kwargs:
             self._dim=kwargs.pop('dim')
         else:

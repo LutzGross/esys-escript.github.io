@@ -21,8 +21,9 @@ testruns = []
 testruns += ['run_xml.py']
 testruns += ['run_units.py']
 testruns += ['run_data_access.py']
-testruns += ['run_symbolic.py']
 testruns += ['run_testdomain.py']
+if env['sympy']:
+    testruns += ['run_symbolic.py']
 
 
 # files defining tests run locally (not as part of a release)
