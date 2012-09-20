@@ -75,7 +75,10 @@ class Evaluator:
 
         if isinstance(expression, escript.Symbol):
             subs=expression.getDataSubstitutions()
-            self.subs(**{s.name:subs[s] for s in subs.keys()})
+            subs_dict={}
+            for s in subs.keys():
+                subs_dict[s.name] = subs[s]
+            self.subs(**subs_dict)
             self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), ["escript","numpy"]))
         else:
             self.lambdas.append(sympy.lambdify(sym, expression, ["escript","numpy"]))
