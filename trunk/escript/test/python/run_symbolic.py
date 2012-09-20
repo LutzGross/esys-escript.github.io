@@ -67,13 +67,13 @@ class SymbolicTestCase(unittest.TestCase):
         self.assertEqual(e.evaluate(), (4,8,16,32), "wrong result after subs()")
         self.assertEqual(e(x=3), (9,27,81,243), "wrong result after __call__")
 
-        xx=RandomData((), FunctionSpace())
-        ref=[d.toListOfTuples() for d in (xx**2, xx**3, xx**4, xx**5)]
+        VALUE=2.718942
+        xx=Data(VALUE, FunctionSpace())
+        ref=[VALUE**2, VALUE**3, VALUE**4, VALUE**5]
         res=e(x=xx)
-        for d in res:
-            self.assertTrue(isinstance(d, Data), "substituted expression not a Data object")
-        res=[x.toListOfTuples() for x in res]
-        self.assertEqual(res, ref, "wrong result after substitution with Data object")
+        for i in xrange(len(ref)):
+            self.assertTrue(isinstance(res[i], Data), "substituted expression not a Data object")
+            self.assertAlmostEqual(Lsup(res[i]-ref[i]), 0.0, self.TOL_DIGITS, "wrong result after substitution with Data object")
 
         x=Symbol('x', (3, 2))
         e=Evaluator(x**2, x**3, x**4, x**5)
