@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 import unittest
 from test_util import Test_util as Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
-from test_symbols import Test_symbols
+from test_symfuncs import Test_symfuncs
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick,JoinFaces,ReadMesh
@@ -39,7 +39,7 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnFinley(Test_util,Test_symbols):
+class Test_UtilOnFinley(Test_util,Test_symfuncs):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain

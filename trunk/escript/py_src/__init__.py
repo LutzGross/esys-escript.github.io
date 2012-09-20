@@ -28,6 +28,7 @@ except:
 
 from .escript import *
 from .util import *
+from .nonlinearPDE import NonlinearPDE
 from .datamanager import DataManager
 
 # To have this function called automatically

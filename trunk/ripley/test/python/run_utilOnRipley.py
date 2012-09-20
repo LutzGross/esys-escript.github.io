@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 import unittest
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
-from test_symbols import Test_symbols
+from test_symfuncs import Test_symfuncs
 
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
@@ -50,7 +50,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-class Test_UtilOnRipley(Test_util,Test_symbols):
+class Test_UtilOnRipley(Test_util,Test_symfuncs):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
