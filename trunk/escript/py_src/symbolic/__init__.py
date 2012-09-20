@@ -21,22 +21,26 @@ __url__="https://launchpad.net/escript-finley"
 
 from symbols import *
 from evaluator import *
-from utils import *
-from pretty import pretty_print, pprint
-import functions as symfn
 
-# prefer escript's implementation of functions such as 'sign' etc.
-from sympy.utilities.lambdify import MODULES
-ESCRIPT_NAMESPACE = {}
-ESCRIPT_DEFAULT = {}
-ESCRIPT_TRANSLATIONS = {
-    #"ln":"log",
-}
+from esys.escript import HAVE_SYMBOLS
+if HAVE_SYMBOLS:
+    import functions as symfn
+    from pretty import pretty_print, pprint
+    from utils import *
 
-if len(MODULES['math'])==3:
-    MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
-else:
-    MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_DEFAULT, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+    # prefer escript's implementation of functions such as 'sign' etc.
+    from sympy.utilities.lambdify import MODULES
+    ESCRIPT_NAMESPACE = {}
+    ESCRIPT_DEFAULT = {}
+    ESCRIPT_TRANSLATIONS = {
+        #"ln":"log",
+    }
+
+    if len(MODULES['math'])==3:
+        MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+    else:
+        MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_DEFAULT, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+
 
 #
 # vim: expandtab shiftwidth=4:

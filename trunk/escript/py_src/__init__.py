@@ -26,6 +26,12 @@ try:
 except:
     pass
 
+try:
+    import sympy
+    HAVE_SYMBOLS=True
+except ImportError:
+    HAVE_SYMBOLS=False
+
 from .escript import *
 from .util import *
 from .nonlinearPDE import NonlinearPDE

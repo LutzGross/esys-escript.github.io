@@ -22,12 +22,18 @@ __url__="https://launchpad.net/escript-finley"
 import unittest
 from test_util import Test_util as Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
-from test_symfuncs import Test_symfuncs
 
 from esys.escript import *
 from esys.dudley import Rectangle,Brick,ReadMesh
 import sys
 import os
+
+if HAVE_SYMBOLS:
+    from test_symfuncs import Test_symfuncs
+else:
+    print("Skipping symbolic tests since sympy is not available")
+    class Test_symfuncs:
+        pass
 
 try:
      DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']

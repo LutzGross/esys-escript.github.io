@@ -30,11 +30,13 @@ __url__="https://launchpad.net/escript-finley"
 """
 
 import numpy
-import sympy
 from time import time
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
-from esys.escript import util, Data, Symbol, Evaluator, getTotalDifferential, \
-        isSymbol
+from esys.escript import util, Data, HAVE_SYMBOLS
+
+if HAVE_SYMBOLS:
+    import sympy
+    from esys.escript import getTotalDifferential, isSymbol, Symbol, Evaluator
 
 __author__="Cihan Altinay, Lutz Gross"
 
@@ -168,6 +170,9 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: level of debug information to be printed
         """
+        if not HAVE_SYMBOLS:
+            raise RuntimeError("Trying to instantiate a NonlinearPDE but sympy not available")
+
         self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac"]
 
         self._r=Data()

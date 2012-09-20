@@ -29,6 +29,13 @@ from esys.ripley import Rectangle, Brick
 import sys
 import os
 
+if HAVE_SYMBOLS:
+    from test_symfuncs import Test_symfuncs
+else:
+    print("Skipping symbolic tests since sympy is not available")
+    class Test_symfuncs:
+        pass
+
 try:
      RIPLEY_TEST_DATA=os.environ['RIPLEY_TEST_DATA']
 except KeyError:
