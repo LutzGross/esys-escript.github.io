@@ -45,6 +45,7 @@ from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
 from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
+from esys.escript.symbolic import *
 
 #=========================================================
 #   some helpers:
@@ -129,7 +130,7 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
     if dim==2:
         d1=dat[1]
         return firstdim.interpolateTable(tab, start[0], step[0], d1, start[1], step[1], undef, check_boundaries)
-#	return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
+#   return d1.interpolateTable(tab, start[1], step[1], firstdim, start[0], step[0], undef, check_boundaries)
     else:
         return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
@@ -178,7 +179,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     new_data={}
     for n,d in list(data.items()):
         if isinstance(d, Data):
-     	    new_data[n]=d
+            new_data[n]=d
         else:
             try:
                new_data[n]=Data(d,fs)
@@ -456,7 +457,7 @@ def unitVector(i=0,d=3):
    return kronecker(d)[i]
 
 #=========================================================================
-#   global reduction operations (these functions have no symbolic version)
+#   global reduction operations
 #=========================================================================
 def Lsup(arg):
     """
@@ -479,7 +480,7 @@ def Lsup(arg):
     elif isinstance(arg,int):
         return abs(float(arg))
     else:
-      raise TypeError("Lsup: Unknown argument type.")
+        raise TypeError("Lsup: Unknown argument type.")
 
 def sup(arg):
     """
@@ -500,7 +501,7 @@ def sup(arg):
     elif isinstance(arg,int):
         return float(arg)
     else:
-      raise TypeError("sup: Unknown argument type.")
+        raise TypeError("sup: Unknown argument type.")
 
 def inf(arg):
     """
@@ -591,8 +592,6 @@ def pokeDim(arg):
 
     if isinstance(arg,escript.Data):
         return arg.getFunctionSpace().getDim()
-    elif isinstance(arg,Symbol):
-        return arg.getDim()
     else:
         return None
 
@@ -663,26 +662,21 @@ def testForZero(arg):
        return not Lsup(arg)>0.
     elif isinstance(arg,int):
        return not Lsup(arg)>0.
-    elif isinstance(arg,Symbol):
-       return False
     else:
        return False
 
 def matchType(arg0=0.,arg1=0.):
     """
     Converts ``arg0`` and ``arg1`` both to the same type ``numpy.ndarray`` or
-    `escript.Data` or, if one of ``arg0`` or ``arg1`` is of type `Symbol`, the
-    other one to be of type ``numpy.ndarray`` or `escript.Data`.
+    `escript.Data`
 
     :param arg0: first argument
     :type arg0: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, ``Symbol``
     :param arg1: second argument
     :type arg1: ``numpy.ndarray``,`escript.Data`,``float``, ``int``, ``Symbol``
     :return: a tuple representing ``arg0`` and ``arg1`` with the same type or
-             with one of them being a `Symbol`
-    :rtype: ``tuple`` of two ``numpy.ndarray``, two `escript.Data`,
-            a ``Symbol`` and one of the types ``numpy.ndarray`` or
-            `escript.Data`
+             with at least one of them being a `Symbol`
+    :rtype: ``tuple`` of two ``numpy.ndarray`` or two `escript.Data`
     :raise TypeError: if type of ``arg0`` or ``arg1`` cannot be processed
     """
     if isinstance(arg0,numpy.ndarray):
@@ -717,9 +711,9 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,escript.Data):
           pass
        elif isinstance(arg1,float):
-          arg1=numpy.array(arg1,dtype=numpy.float64)
+          pass
        elif isinstance(arg1,int):
-          arg1=numpy.array(float(arg1),dtype=numpy.float64)
+          pass
        elif isinstance(arg1,Symbol):
           pass
        else:
@@ -736,7 +730,7 @@ def matchType(arg0=0.,arg1=0.):
           arg0=numpy.array(arg0,dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
        elif isinstance(arg1,Symbol):
-          arg0=numpy.array(arg0,dtype=numpy.float64)
+          pass
        else:
           raise TypeError("function: Unknown type of second argument.")
     elif isinstance(arg0,int):
@@ -751,7 +745,7 @@ def matchType(arg0=0.,arg1=0.):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
        elif isinstance(arg1,Symbol):
-          arg0=numpy.array(float(arg0),dtype=numpy.float64)
+          pass
        else:
           raise TypeError("function: Unknown type of second argument.")
     else:
@@ -781,571 +775,6 @@ def matchShape(arg0,arg1):
     else:
        return arg0,arg1
 
-#=========================================================
-#   symbolic tool box starts here:
-#=========================================================
-class Symbol(object):
-   """
-   Symbol class objects provide the same functionality as ``numpy.ndarray``
-   and `escript.Data` objects but they do not have a value and therefore
-   cannot be plotted or visualized. The main purpose is the possibility to
-   calculate derivatives with respect to other Symbols used to define a Symbol.
-
-   """
-   def __init__(self,shape=(),args=[],dim=None):
-       """
-       Creates an instance of a symbol of a given shape. The symbol may depend
-       on a list of arguments ``args`` which may be symbols or any other object.
-
-       :param args: the arguments of the symbol
-       :type args: ``list``
-       :param shape: the shape of the symbol
-       :type shape: ``tuple`` of ``int``
-       :param dim: spatial dimension of the symbol. If dim=``None`` the spatial
-                   dimension is undefined.
-       :type dim: ``None`` or ``int``
-
-       """
-       if len(shape)>4:
-           raise ValueError("Symbol only supports tensors up to order 4")
-       self.__args=args
-       self.__shape=shape
-       self.__dim=dim
-
-   def getArgument(self,i=None):
-       """
-       Returns the i-th argument of the symbol.
-
-       :param i: index of the argument requested
-       :type i: ``int`` or ``None``
-       :raise IndexError: if the requested index does not exist
-       :return: the value of the i-th argument or if i is not specified the
-                list of all arguments
-       :rtype: a single object or a list of objects
-       """
-       if i==None:
-          return self.__args
-       else:
-          if i<0 or i>=len(self.__args):
-             raise IndexError("there are only %s arguments"%len(self.__args))
-          return self.__args[i]
-
-   def getRank(self):
-       """
-       Returns the rank of the symbol.
-
-       :return: the rank of the symbol. This is length of the shape.
-       :rtype: ``int``
-       """
-       return len(self.getShape())
-
-   def getShape(self):
-       """
-       Returns the shape of the symbol.
-
-       :return: the shape of the symbol
-       :rtype: ``tuple`` of ``int``
-       """
-       return self.__shape
-
-   def getDim(self):
-       """
-       Returns the spatial dimension.
-
-       :return: the symbol's spatial dimension
-       :rtype: ``int`` if the dimension is defined, ``None`` otherwise
-       """
-       return self.__dim
-
-   def __str__(self):
-       """
-       Returns a string representation of the symbol.
-
-       :return: a string representation of the object
-       :rtype: ``str``
-       """
-       args=[]
-       for arg in self.getArgument():
-          args.append(str(arg))
-       try:
-           out=self.getMyCode(args,format="str")
-       except NotImplementedError:
-           out="<Symbol %s>"%id(self)
-       return out
-
-   def getSubstitutedArguments(self,argvals):
-       """
-       Substitutes symbols in the arguments of this object and returns the
-       result as a list.
-
-       :param argvals: `Symbol` and their substitutes. The `Symbol` u in the
-                       expression defining this object is replaced by
-                       argvals[u].
-       :type argvals: ``dict`` with keywords of type `Symbol`
-       :rtype: ``list`` of objects
-       :return: list of the object assigned to the arguments through
-                substitution or for the arguments which are not `Symbol` s the
-                value assigned to the argument at instantiation.
-       """
-       out=[]
-       for a in self.getArgument():
-          if isinstance(a,Symbol):
-             out.append(a.substitute(argvals))
-          else:
-             out.append(a)
-       return out
-
-   def getDifferentiatedArguments(self,arg):
-       """
-       Applies differentials to the arguments of this object and returns the
-       result as a list.
-
-       :param arg: the derivative is calculated with respect to ``arg``
-       :type arg: typically `escript.Symbol` but can also be ``float``,
-                  `escript.Data`, ``numpy.ndarray`` depending on the
-                  involved functions and data
-       :rtype: ``list`` of objects
-       :return: list of object obtained by calculating the derivatives of the
-                arguments with respect to ``arg``
-       """
-       out=[]
-       for a in self.getArgument():
-          if isinstance(a,Symbol):
-             out.append(a.substitute(argvals))
-          else:
-              s=getShape(s)+arg.getShape()
-              if len(s)>0:
-                 out.append(numpy.zeros(s),numpy.float64)
-              else:
-                 out.append(a)
-       return out
-
-   def isAppropriateValue(self,arg):
-      """
-      Checks if the given argument ``arg`` can be used as a substitution for
-      this object. The method checks the shape of ``arg`` and, if the spatial
-      dimension is defined, the spatial dimension of ``arg``.
-
-      :param arg: object to be checked
-      :type arg: ``numpy.ndarray``, `escript.Data`, ``float``, ``int``,
-                 ``Symbol``
-      :return: True if ``arg`` is a suitable object to be used for substitution,
-               False otherwise
-      :rtype: ``bool``
-      """
-      if isinstance(arg,numpy.ndarray):
-          return arg.shape==self.getShape()
-      elif isinstance(arg,escript.Data):
-          if self.getDim()==None:
-              return arg.getShape()==self.getShape()
-          elif self.getDim()==arg.getFunctionSpace().getDim():
-              return arg.getShape()==self.getShape()
-          else:
-              return False
-      elif isinstance(arg,Symbol):
-          if self.getDim()==None:
-              return arg.getShape()==self.getShape()
-          elif self.getDim()==arg.getDim():
-              return arg.getShape()==self.getShape()
-          else:
-              return False
-      elif isinstance(arg,float):
-          return ()==self.getShape()
-      elif isinstance(arg,int):
-          return ()==self.getShape()
-      else:
-         return False
-
-   def getMyCode(self,argstrs,format="escript"):
-       """
-       Returns program code that can be used to evaluate the symbol.
-
-       :param argstrs: a string for each argument representing the argument
-                       for the evaluation
-       :type argstrs: ``list`` of ``str``
-       :param format: specifies the format to be used. At the moment only
-                      "escript", "str" and "text" are supported.
-       :type format: ``str``
-       :return: a piece of program code which can be used to evaluate the
-                expression assuming the values for the arguments are available
-       :rtype: ``str``
-       :raise NotImplementedError: if no implementation for the given format
-                                   is available
-       :note: This method has to be overwritten by subclasses.
-       """
-       raise NotImplementedError("no code for %s representation available"%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :note: this method has to be overwritten by a particular `Symbol`
-      :raise NotImplementedError: if no implementation for the given format is
-                                  available
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("Symbol: new value is not appropriate.")
-      else:
-         raise NotImplementedError("no substitution in %s avialable"%str(self))
-
-   def diff(self,arg):
-       """
-       Returns the derivative of the symbol with respect to `Symbol` ``arg``.
-
-       :param arg: the derivative is calculated with respect to ``arg``
-       :type arg: typically `escript.Symbol` but can also be ``float``,
-                  `escript.Data`, ``numpy.ndarray`` depending on the
-                  involved functions and data
-       :return: derivative with respect to ``arg``
-       :rtype: typically `escript.Symbol` but other types such as ``float``,
-               `escript.Data`, ``numpy.ndarray`` are possible
-       :note: this method is overwritten by a particular `Symbol`.
-       """
-       if arg==self:
-          return identity(self.getShape())
-       else:
-          s=self.getShape()+arg.getShape()
-          if len(s)>0:
-             return numpy.zeros(s,numpy.float64)
-          else:
-             return 0.
-
-   def __neg__(self):
-       """
-       Returns -self.
-
-       :return: a `Symbol` representing the negative of the object
-       :rtype: `DependendSymbol`
-       """
-       return self*(-1.)
-
-   def __pos__(self):
-       """
-       Returns +self.
-
-       :return: a `Symbol` representing the positive of the object
-       :rtype: `DependendSymbol`
-       """
-       return self*(1.)
-
-   def __abs__(self):
-       """
-       Returns a `Symbol` representing the absolute value of the object.
-       """
-       return Abs_Symbol(self)
-
-   def __add__(self,other):
-       """
-       Adds another object to this object.
-
-       :param other: object to be added to this object
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``.
-       :return: a `Symbol` representing the sum of this object and ``other``
-       :rtype: `DependendSymbol`
-       """
-       return add(self,other)
-
-   def __radd__(self,other):
-       """
-       Adds this object to another object.
-
-       :param other: object to add this object to
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the sum of ``other`` and this object
-       :rtype: `DependendSymbol`
-       """
-       return add(other,self)
-
-   def __sub__(self,other):
-       """
-       Subtracts another object from this object.
-
-       :param other: object to be subtracted from this object
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the difference of ``other`` and this
-                object
-       :rtype: `DependendSymbol`
-       """
-       return add(self,-other)
-
-   def __rsub__(self,other):
-       """
-       Subtracts this object from another object.
-
-       :param other: object this object is to be subtracted from
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the difference of this object and
-                ``other``.
-       :rtype: `DependendSymbol`
-       """
-       return add(-self,other)
-
-   def __mul__(self,other):
-       """
-       Multiplies this object with another object.
-
-       :param other: object to be mutiplied by this object
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the product of the object and ``other``
-       :rtype: `DependendSymbol` or 0 if other is identical to zero.
-       """
-       return mult(self,other)
-
-   def __rmul__(self,other):
-       """
-       Multiplies another object by this object.
-
-       :param other: object this object is multiplied with
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the product of ``other`` and the object
-       :rtype: `DependendSymbol` or 0 if other is identical to zero
-       """
-       return mult(other,self)
-
-   def __div__(self,other):
-       """
-       Divides this object by another object.
-
-       :param other: object dividing this object
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the quotient of this object and
-                ``other``
-       :rtype: `DependendSymbol`
-       """
-       return quotient(self,other)
-
-   def __truediv__(self,other):
-	   return self.__div__(other)
-
-   def __rdiv__(self,other):
-       """
-       Divides another object by this object.
-
-       :param other: object to be divided by this object
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the quotient of ``other`` and this
-                object
-       :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
-       """
-       return quotient(other,self)
-
-   def __rtruediv__(self,other):
-       return self.__rdiv__(other)
-
-   def __pow__(self,other):
-       """
-       Raises this object to the power of ``other``.
-
-       :param other: exponent
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the power of this object to ``other``
-       :rtype: `DependendSymbol` or 1 if ``other`` is identical to zero
-       """
-       return power(self,other)
-
-   def __rpow__(self,other):
-       """
-       Raises an object to the power of this object.
-
-       :param other: basis
-       :type other: `escript.Symbol`, ``float``, `escript.Data`,
-                    ``numpy.ndarray``
-       :return: a `Symbol` representing the power of ``other`` to this object
-       :rtype: `DependendSymbol` or 0 if ``other`` is identical to zero
-       """
-       return power(other,self)
-
-   def __getitem__(self,index):
-       """
-       Returns the slice defined by ``index``.
-
-       :param index: the slice index
-       :type index: ``slice`` or ``int`` or a ``tuple`` of them
-       :return: a `Symbol` representing the slice defined by index
-       :rtype: `DependendSymbol`
-       """
-       return GetSlice_Symbol(self,index)
-
-class DependendSymbol(Symbol):
-   """
-   DependendSymbol extents `Symbol` by modifying the == operator to allow two
-   instances to be equal. Two ``DependendSymbol`` s are equal if they have the
-   same shape, the same arguments and one of them has an unspecified spatial
-   dimension or the spatial dimension is identical.
-
-   Example::
-
-     u1=Symbol(shape=(3,4),dim=2,args=[4.])
-     u2=Symbol(shape=(3,4),dim=2,args=[4.])
-     print u1==u2
-     False
-
-   but::
-
-     u1=DependendSymbol(shape=(3,4),dim=2,args=[4.])
-     u2=DependendSymbol(shape=(3,4),dim=2,args=[4.])
-     u3=DependendSymbol(shape=(2,),dim=2,args=[4.])
-     print u1==u2, u1==u3
-     True False
-
-   :note: DependendSymbol should be used as return value of functions with
-          `Symbol` arguments. This will allow the optimizer to remove
-          redundant function calls.
-   """
-
-   def __hash__(self):
-	   return hash(self.getShape()) ^ hash(self.getDim()) ^ len(self.getArgument())
-
-   def __eq__(self,other):
-      """
-      Checks if ``other`` equals self.
-
-      :param other: any object
-      :return: True if other has the same class as self and the shape, the
-               spatial dimension and the arguments are equal, False otherwise
-      :rtype: ``bool``
-      """
-      if isinstance(other,DependendSymbol):
-         if self.__class__==other.__class__:
-            if self.getShape()==other.getShape():
-               if self.getArgument()==other.getArgument():
-                  if self.getDim()==None or other.getDim()==None or self.getDim()==other.getDim():
-                     return True
-      return False
-
-   def __ne__(self,other):
-      """
-      Checks if ``other`` is not equal to self.
-
-      :param other: any object
-      :return: False if other has the same class as self and the shape, the
-               spatial dimension and the arguments are equal, True otherwise
-      :rtype: ``bool``
-      """
-      return not self==other
-#=========================================================
-#  Unary operations preserving the shape
-#========================================================
-class GetSlice_Symbol(DependendSymbol):
-   """
-   `Symbol` representing getting a slice for a `Symbol`.
-   """
-   def __init__(self,arg,index):
-      """
-      Initialization of the `Symbol` with argument ``arg``.
-
-      :param arg: argument
-      :type arg: `Symbol`
-      :param index: defines index
-      :type index: ``slice`` or ``int`` or a ``tuple`` of them
-      :raise IndexError: if length of index is larger than rank of arg or
-                          index start or stop is out of range
-      :raise ValueError: if a step is given
-      """
-      if not isinstance(index,tuple): index=(index,)
-      if len(index)>arg.getRank():
-           raise IndexError("GetSlice_Symbol: index out of range.")
-      sh=()
-      index2=()
-      for i in range(len(index)):
-         ix=index[i]
-         if isinstance(ix,int):
-            if ix<0 or ix>=arg.getShape()[i]:
-               raise IndexError("GetSlice_Symbol: index out of range.")
-            index2=index2+(ix,)
-         else:
-           if not ix.step==None:
-             raise ValueError("GetSlice_Symbol: stepping is not supported.")
-           if ix.start==None:
-              s=0
-           else:
-              s=ix.start
-           if ix.stop==None:
-              e=arg.getShape()[i]
-           else:
-              e=ix.stop
-              if e>arg.getShape()[i]:
-                 raise IndexError("GetSlice_Symbol: index out of range.")
-           index2=index2+(slice(s,e),)
-           if e>s:
-               sh=sh+(e-s,)
-           elif s>e:
-               raise IndexError("GetSlice_Symbol: slice start must be less or equal slice end")
-      for i in range(len(index),arg.getRank()):
-          index2=index2+(slice(0,arg.getShape()[i]),)
-          sh=sh+(arg.getShape()[i],)
-      super(GetSlice_Symbol, self).__init__(args=[arg,index2],shape=sh,dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "%s.__getitem__(%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("GetItem_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         arg=args[0]
-         index=args[1]
-         return arg.__getitem__(index)
-
 def log10(arg):
    """
    Returns base-10 logarithm of argument ``arg``.
@@ -1365,7 +794,7 @@ def log10(arg):
    elif isinstance(arg,int):
       return math.log10(float(arg))
    elif isinstance(arg,Symbol):
-      return log(arg)/log(10.)
+      return arg.applyfunc(symfn.log10)
    else:
       raise TypeError("log10: Unknown argument type.")
 
@@ -1396,69 +825,9 @@ def wherePositive(arg):
       else:
         return 0.
    elif isinstance(arg,Symbol):
-      return WherePositive_Symbol(arg)
+      return arg.applyfunc(symfn.wherePositive)
    else:
       raise TypeError("wherePositive: Unknown argument type.")
-
-class WherePositive_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the mask of positive values function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of wherePositive `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "wherePositive(%s)"%argstrs
-      else:
-         raise NotImplementedError("WherePositive_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return wherePositive(arg)
 
 def whereNegative(arg):
    """
@@ -1487,69 +856,9 @@ def whereNegative(arg):
       else:
         return 0.
    elif isinstance(arg,Symbol):
-      return WhereNegative_Symbol(arg)
+      return arg.applyfunc(symfn.whereNegative)
    else:
       raise TypeError("whereNegative: Unknown argument type.")
-
-class WhereNegative_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the mask of negative values function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of whereNegative `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "whereNegative(%s)"%argstrs
-      else:
-         raise NotImplementedError("WhereNegative_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return whereNegative(arg)
 
 def whereNonNegative(arg):
    """
@@ -1578,7 +887,7 @@ def whereNonNegative(arg):
       else:
         return 1.
    elif isinstance(arg,Symbol):
-      return 1.-whereNegative(arg)
+      return arg.applyfunc(symfn.whereNonNegative)
    else:
       raise TypeError("whereNonNegative: Unknown argument type.")
 
@@ -1609,7 +918,7 @@ def whereNonPositive(arg):
       else:
         return 1.
    elif isinstance(arg,Symbol):
-      return 1.-wherePositive(arg)
+      return arg.applyfunc(symfn.whereNonPositive)
    else:
       raise TypeError("whereNonPositive: Unknown argument type.")
 
@@ -1618,23 +927,20 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    Returns mask of zero entries of argument ``arg``.
 
    :param arg: argument
-   :type arg: ``float``, `escript.Data` , `Symbol` , ``numpy.ndarray``
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``
    :param tol: absolute tolerance. Values with absolute value less than tol are accepted
                as zero. If ``tol`` is not present ``rtol``*```Lsup` (arg)`` is used. 
    :type tol: ``float``
    :param rtol: relative tolerance used to define the absolute tolerance if ``tol`` is not present.
    :type rtol: non-negative ``float``
-   :rtype: ``float``, `escript.Data` , `Symbol` , ``numpy.ndarray`` depending
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
            on the type of ``arg``
    :raise ValueError: if ``rtol`` is non-negative.
    :raise TypeError: if the type of the argument is not expected
    """
-   if tol == None:
-      if not isinstance(arg,Symbol):
-         if rtol<0: raise ValueError("rtol must be non-negative.")
-         tol = Lsup(arg)*rtol
-      else:
-         tol=0.
+   if tol is None and not isinstance(arg, Symbol):
+      if rtol<0: raise ValueError("rtol must be non-negative.")
+      tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
       out=numpy.less_equal(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
@@ -1652,67 +958,9 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
       else:
         return 0.
    elif isinstance(arg,Symbol):
-      return WhereZero_Symbol(arg,tol)
+      return arg.applyfunc(symfn.whereZero)
    else:
       raise TypeError("whereZero: Unknown argument type.")
-
-class WhereZero_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the mask of zero entries function.
-   """
-   def __init__(self,arg,tol=0.):
-      """
-      Initialization of whereZero `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg,tol],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "whereZero(%s,tol=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("WhereZero_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return whereZero(arg[0],arg[1])
 
 def whereNonZero(arg,tol=0.):
    """
@@ -1729,11 +977,8 @@ def whereNonZero(arg,tol=0.):
    :raise TypeError: if the type of the argument is not expected
    """
    if tol == None:
-      if not isinstance(arg,Symbol):
-         if rtol<=0: raise ValueError("rtol must be non-negative.")
-         tol = Lsup(arg)*rtol
-      else:
-         tol=0.
+      if rtol<=0: raise ValueError("rtol must be non-negative.")
+      tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
       out=numpy.greater(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
@@ -1751,9 +996,24 @@ def whereNonZero(arg,tol=0.):
       else:
         return 0.
    elif isinstance(arg,Symbol):
-      return 1.-whereZero(arg,tol)
+      return arg.applyfunc(symfn.whereNonZero)
    else:
       raise TypeError("whereNonZero: Unknown argument type.")
+
+def Abs(arg):
+   """
+   Returns the absolute value of argument ``arg``.
+
+   :param arg: argument
+   :type arg: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray``.
+   :rtype: ``float``, `escript.Data`, `Symbol`, ``numpy.ndarray`` depending
+           on the type of ``arg``
+   :raise TypeError: if the type of the argument is not expected
+   """
+   if isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.abs)
+   else:
+      return abs(arg)
 
 def erf(arg):
    """
@@ -1767,6 +1027,8 @@ def erf(arg):
    """
    if isinstance(arg,escript.Data):
       return arg._erf()
+   elif isinstance(arg,Symbol):
+      return arg.applyfunc(symfn.erf)
    else:
       raise TypeError("erf: Unknown argument type.")
 
@@ -1789,86 +1051,9 @@ def sin(arg):
    elif isinstance(arg,int):
       return math.sin(arg)
    elif isinstance(arg,Symbol):
-      return Sin_Symbol(arg)
+      return arg.applyfunc(symfn.sin)
    else:
       raise TypeError("sin: Unknown argument type.")
-
-class Sin_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the sine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of sin `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "sin(%s)"%argstrs
-      else:
-         raise NotImplementedError("Sin_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return sin(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(cos(myarg),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def cos(arg):
    """
@@ -1889,86 +1074,9 @@ def cos(arg):
    elif isinstance(arg,int):
       return math.cos(arg)
    elif isinstance(arg,Symbol):
-      return Cos_Symbol(arg)
+      return arg.applyfunc(symfn.cos)
    else:
       raise TypeError("cos: Unknown argument type.")
-
-class Cos_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the cosine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of cos `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "cos(%s)"%argstrs
-      else:
-         raise NotImplementedError("Cos_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return cos(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(-sin(myarg),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def tan(arg):
    """
@@ -1989,86 +1097,9 @@ def tan(arg):
    elif isinstance(arg,int):
       return math.tan(arg)
    elif isinstance(arg,Symbol):
-      return Tan_Symbol(arg)
+      return arg.applyfunc(symfn.tan)
    else:
       raise TypeError("tan: Unknown argument type.")
-
-class Tan_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the tangent function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of tan `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "tan(%s)"%argstrs
-      else:
-         raise NotImplementedError("Tan_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return tan(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./cos(myarg)**2,self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def asin(arg):
    """
@@ -2089,86 +1120,9 @@ def asin(arg):
    elif isinstance(arg,int):
       return math.asin(arg)
    elif isinstance(arg,Symbol):
-      return Asin_Symbol(arg)
+      return arg.applyfunc(symfn.asin)
    else:
       raise TypeError("asin: Unknown argument type.")
-
-class Asin_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse sine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of asin `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "asin(%s)"%argstrs
-      else:
-         raise NotImplementedError("Asin_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return asin(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./sqrt(1.-myarg**2),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def acos(arg):
    """
@@ -2189,86 +1143,9 @@ def acos(arg):
    elif isinstance(arg,int):
       return math.acos(arg)
    elif isinstance(arg,Symbol):
-      return Acos_Symbol(arg)
+      return arg.applyfunc(symfn.acos)
    else:
       raise TypeError("acos: Unknown argument type.")
-
-class Acos_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse cosine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of acos `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "acos(%s)"%argstrs
-      else:
-         raise NotImplementedError("Acos_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return acos(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(-1./sqrt(1.-myarg**2),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def atan(arg):
    """
@@ -2289,86 +1166,9 @@ def atan(arg):
    elif isinstance(arg,int):
       return math.atan(arg)
    elif isinstance(arg,Symbol):
-      return Atan_Symbol(arg)
+      return arg.applyfunc(symfn.atan)
    else:
       raise TypeError("atan: Unknown argument type.")
-
-class Atan_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse tangent function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of atan `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "atan(%s)"%argstrs
-      else:
-         raise NotImplementedError("Atan_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return atan(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./(1+myarg**2),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def sinh(arg):
    """
@@ -2389,86 +1189,9 @@ def sinh(arg):
    elif isinstance(arg,int):
       return math.sinh(arg)
    elif isinstance(arg,Symbol):
-      return Sinh_Symbol(arg)
+      return arg.applyfunc(symfn.sinh)
    else:
       raise TypeError("sinh: Unknown argument type.")
-
-class Sinh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the hyperbolic sine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of sinh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "sinh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Sinh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return sinh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(cosh(myarg),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def cosh(arg):
    """
@@ -2489,86 +1212,9 @@ def cosh(arg):
    elif isinstance(arg,int):
       return math.cosh(arg)
    elif isinstance(arg,Symbol):
-      return Cosh_Symbol(arg)
+      return arg.applyfunc(symfn.cosh)
    else:
       raise TypeError("cosh: Unknown argument type.")
-
-class Cosh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the hyperbolic cosine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of cosh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "cosh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Cosh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return cosh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(sinh(myarg),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def tanh(arg):
    """
@@ -2589,86 +1235,9 @@ def tanh(arg):
    elif isinstance(arg,int):
       return math.tanh(arg)
    elif isinstance(arg,Symbol):
-      return Tanh_Symbol(arg)
+      return arg.applyfunc(symfn.tanh)
    else:
       raise TypeError("tanh: Unknown argument type.")
-
-class Tanh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the hyperbolic tangent function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of tanh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "tanh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Tanh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return tanh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./cosh(myarg)**2,self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def asinh(arg):
    """
@@ -2689,86 +1258,9 @@ def asinh(arg):
    elif isinstance(arg,int):
       return numpy.arcsinh(float(arg))
    elif isinstance(arg,Symbol):
-      return Asinh_Symbol(arg)
+      return arg.applyfunc(symfn.asinh)
    else:
       raise TypeError("asinh: Unknown argument type.")
-
-class Asinh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse hyperbolic sine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of asinh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "asinh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Asinh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return asinh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./sqrt(myarg**2+1),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def acosh(arg):
    """
@@ -2789,86 +1281,9 @@ def acosh(arg):
    elif isinstance(arg,int):
       return numpy.arccosh(float(arg))
    elif isinstance(arg,Symbol):
-      return Acosh_Symbol(arg)
+      return arg.applyfunc(symfn.acosh)
    else:
       raise TypeError("acosh: Unknown argument type.")
-
-class Acosh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse hyperbolic cosine function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of acosh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "acosh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Acosh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return acosh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./sqrt(myarg**2-1),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def atanh(arg):
    """
@@ -2889,86 +1304,9 @@ def atanh(arg):
    elif isinstance(arg,int):
       return numpy.arctanh(float(arg))
    elif isinstance(arg,Symbol):
-      return Atanh_Symbol(arg)
+      return arg.applyfunc(symfn.atanh)
    else:
       raise TypeError("atanh: Unknown argument type.")
-
-class Atanh_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse hyperbolic tangent function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of atanh `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "atanh(%s)"%argstrs
-      else:
-         raise NotImplementedError("Atanh_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return atanh(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./(1.-myarg**2),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def exp(arg):
    """
@@ -2989,86 +1327,9 @@ def exp(arg):
    elif isinstance(arg,int):
       return math.exp(arg)
    elif isinstance(arg,Symbol):
-      return Exp_Symbol(arg)
+      return arg.applyfunc(symfn.exp)
    else:
       raise TypeError("exp: Unknown argument type.")
-
-class Exp_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the exponential function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of exp `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "exp(%s)"%argstrs
-      else:
-         raise NotImplementedError("Exp_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return exp(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(self,self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def sqrt(arg):
    """
@@ -3089,86 +1350,9 @@ def sqrt(arg):
    elif isinstance(arg,int):
       return math.sqrt(arg)
    elif isinstance(arg,Symbol):
-      return Sqrt_Symbol(arg)
+      return arg.applyfunc(symfn.sqrt)
    else:
       raise TypeError("sqrt: Unknown argument type.")
-
-class Sqrt_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the square root function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of sqrt `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "sqrt(%s)"%argstrs
-      else:
-         raise NotImplementedError("Sqrt_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return sqrt(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(0.5/self,self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def log(arg):
    """
@@ -3189,86 +1373,9 @@ def log(arg):
    elif isinstance(arg,int):
       return math.log(arg)
    elif isinstance(arg,Symbol):
-      return Log_Symbol(arg)
+      return arg.applyfunc(symfn.log)
    else:
       raise TypeError("log: Unknown argument type.")
-
-class Log_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the natural logarithm function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of log `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "log(%s)"%argstrs
-      else:
-         raise NotImplementedError("Log_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return log(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(1./arg,self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def sign(arg):
    """
@@ -3299,86 +1406,9 @@ def sign(arg):
       else:
         return 0.
    elif isinstance(arg,Symbol):
-      return wherePositive(arg)-whereNegative(arg)
+      return arg.applyfunc(symfn.sign)
    else:
       raise TypeError("sign: Unknown argument type.")
-
-class Abs_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the absolute value function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of abs `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "abs(%s)"%argstrs
-      else:
-         raise NotImplementedError("Abs_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return abs(arg)
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myarg=self.getArgument()[0]
-         val=matchShape(sign(myarg),self.getDifferentiatedArguments(arg)[0])
-         return val[0]*val[1]
 
 def minval(arg):
    """
@@ -3401,69 +1431,9 @@ def minval(arg):
    elif isinstance(arg,int):
       return float(arg)
    elif isinstance(arg,Symbol):
-      return Minval_Symbol(arg)
+      return symfn.minval(arg)
    else:
       raise TypeError("minval: Unknown argument type.")
-
-class Minval_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the minimum value function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of minimum value `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "minval(%s)"%argstrs
-      else:
-         raise NotImplementedError("Minval_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return minval(arg)
 
 def maxval(arg):
    """
@@ -3486,69 +1456,9 @@ def maxval(arg):
    elif isinstance(arg,int):
       return float(arg)
    elif isinstance(arg,Symbol):
-      return Maxval_Symbol(arg)
+      return symfn.maxval(arg)
    else:
       raise TypeError("maxval: Unknown argument type.")
-
-class Maxval_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the maximum value function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of maximum value `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: typically `Symbol`
-      """
-      DependendSymbol.__init__(self,args=[arg],shape=(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if isinstance(argstrs,list):
-          argstrs=argstrs[0]
-      if format=="escript" or format=="str"  or format=="text":
-         return "maxval(%s)"%argstrs
-      else:
-         raise NotImplementedError("Maxval_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)[0]
-         return maxval(arg)
 
 def length(arg):
    """
@@ -3573,8 +1483,8 @@ def trace(arg,axis_offset=0):
    :type axis_offset: ``int``
    :return: trace of arg. The rank of the returned object is rank of ``arg``
             minus 2.
-   :rtype: `escript.Data`, `Symbol`, ``numpy.ndarray`` depending on the
-           type of ``arg``
+   :rtype: `escript.Data`, `Symbol` or ``numpy.ndarray`` depending on the type
+           of ``arg``
    """
    if isinstance(arg,numpy.ndarray):
       sh=arg.shape
@@ -3604,31 +1514,7 @@ def trace(arg,axis_offset=0):
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg._trace(axis_offset)
-   elif isinstance(arg,float):
-      raise TypeError("illegal argument type float.")
-   elif isinstance(arg,int):
-      raise TypeError("illegal argument type int.")
    elif isinstance(arg,Symbol):
-      return Trace_Symbol(arg,axis_offset)
-   else:
-      raise TypeError("Unknown argument type.")
-
-class Trace_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the trace function.
-   """
-   def __init__(self,arg,axis_offset=0):
-      """
-      Initialization of trace `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: `Symbol`
-      :param axis_offset: ``axis_offset`` to components to sum over.
-                          ``axis_offset`` must be non-negative and less than the
-                          rank of ``arg`` +1. The dimensions on component
-                          ``axis_offset`` and axis_offset+1 must be equal.
-      :type axis_offset: ``int``
-      """
       if arg.getRank()<2:
         raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
@@ -3636,72 +1522,18 @@ class Trace_Symbol(DependendSymbol):
       s=list(arg.getShape())
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
-      super(Trace_Symbol,self).__init__(args=[arg,axis_offset],shape=tuple(s[0:axis_offset]+s[axis_offset+2:]),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "trace(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("Trace_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return trace(arg[0],axis_offset=arg[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return trace(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
+      return arg.trace(axis_offset)
+   elif isinstance(arg,float):
+      raise TypeError("illegal argument type float.")
+   elif isinstance(arg,int):
+      raise TypeError("illegal argument type int.")
+   else:
+      raise TypeError("Unknown argument type.")
 
 def transpose(arg,axis_offset=None):
    """
-   Returns the transpose of ``arg`` by swapping the first ``axis_offset`` and the
-   last ``rank-axis_offset`` components.
+   Returns the transpose of ``arg`` by swapping the first ``axis_offset`` and
+   the last ``rank-axis_offset`` components.
 
    :param arg: argument
    :type arg: `escript.Data`, `Symbol`, ``numpy.ndarray``, ``float``, ``int``
@@ -3733,93 +1565,13 @@ def transpose(arg,axis_offset=None):
         raise ValueError("axis_offset must be 0 for int argument")
       return float(arg)
    elif isinstance(arg,Symbol):
-      if axis_offset==None: axis_offset=int(arg.getRank()/2)
-      return Transpose_Symbol(arg,axis_offset)
+      r=arg.getRank()
+      if axis_offset==None: axis_offset=int(r/2)
+      if axis_offset<0 or axis_offset>r:
+        raise ValueError,"axis_offset must be between 0 and %s"%r
+      return arg.transpose(axis_offset)
    else:
       raise TypeError("Unknown argument type.")
-
-class Transpose_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the transpose function.
-   """
-   def __init__(self,arg,axis_offset=None):
-      """
-      Initialization of transpose `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: `Symbol`
-      :param axis_offset: the first ``axis_offset`` components are swapped with
-                          the rest. ``axis_offset`` must be non-negative and
-                          less than or equal to the rank of ``arg``. If
-                          ``axis_offset`` is not present ``int(r/2)`` where r is
-                          the rank of ``arg`` is used.
-      :type axis_offset: ``int``
-      """
-      if axis_offset==None: axis_offset=int(arg.getRank()/2)
-      if axis_offset<0 or axis_offset>arg.getRank():
-        raise ValueError("axis_offset must be between 0 and %s"%arg.getRank())
-      s=arg.getShape()
-      super(Transpose_Symbol,self).__init__(args=[arg,axis_offset],shape=s[axis_offset:]+s[:axis_offset],dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "transpose(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("Transpose_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return transpose(arg[0],axis_offset=arg[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return transpose(self.getDifferentiatedArguments(arg)[0],axis_offset=self.getArgument()[1])
 
 def swap_axes(arg,axis0=0,axis1=1):
    """
@@ -3834,8 +1586,8 @@ def swap_axes(arg,axis0=0,axis1=1):
                  rank of ``arg``.
    :type axis1: ``int``
    :return: ``arg`` with swapped components
-   :rtype: `escript.Data`, `Symbol`, ``numpy.ndarray`` depending on the
-           type of ``arg``
+   :rtype: `escript.Data`, `Symbol` or ``numpy.ndarray`` depending on the type
+           of ``arg``
    """
    if axis0 > axis1:
       axis0,axis1=axis1,axis0
@@ -3843,112 +1595,14 @@ def swap_axes(arg,axis0=0,axis1=1):
       return numpy.swapaxes(arg,axis0,axis1)
    elif isinstance(arg,escript.Data):
       return arg._swap_axes(axis0,axis1)
+   elif isinstance(arg,Symbol):
+      return arg.swap_axes(axis0,axis1)
    elif isinstance(arg,float):
       raise TypeError("float argument is not supported.")
    elif isinstance(arg,int):
       raise TypeError("int argument is not supported.")
-   elif isinstance(arg,Symbol):
-      return SwapAxes_Symbol(arg,axis0,axis1)
    else:
       raise TypeError("Unknown argument type.")
-
-class SwapAxes_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the swap function.
-   """
-   def __init__(self,arg,axis0=0,axis1=1):
-      """
-      Initialization of swap `Symbol` with argument ``arg``.
-
-      :param arg: argument
-      :type arg: `Symbol`
-      :param axis0: first axis. ``axis0`` must be non-negative and less than the
-                    rank of ``arg``.
-      :type axis0: ``int``
-      :param axis1: second axis. ``axis1`` must be non-negative and less than
-                    the rank of ``arg``.
-      :type axis1: ``int``
-      """
-      if arg.getRank()<2:
-         raise ValueError("argument must have at least rank 2.")
-      if axis0<0 or axis0>arg.getRank()-1:
-         raise ValueError("axis0 must be between 0 and %s"%arg.getRank()-1)
-      if axis1<0 or axis1>arg.getRank()-1:
-         raise ValueError("axis1 must be between 0 and %s"%arg.getRank()-1)
-      if axis0 == axis1:
-         raise ValueError("axis indices must be different.")
-      if axis0 > axis1:
-         axis0,axis1=axis1,axis0
-      s=arg.getShape()
-      s_out=[]
-      for i in range(len(s)):
-         if i == axis0:
-            s_out.append(s[axis1])
-         elif i == axis1:
-            s_out.append(s[axis0])
-         else:
-            s_out.append(s[i])
-      super(SwapAxes_Symbol,self).__init__(args=[arg,axis0,axis1],shape=tuple(s_out),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "swap(%s,axis_offset=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("SwapAxes_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return swap_axes(arg[0],axis0=arg[1],axis1=arg[2])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return swap_axes(self.getDifferentiatedArguments(arg)[0],axis0=self.getArgument()[1],axis1=self.getArgument()[2])
 
 def symmetric(arg):
     """
@@ -3958,8 +1612,7 @@ def symmetric(arg):
     :param arg: input matrix. Must have rank 2 or 4 and be square.
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: symmetric part of ``arg``
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
@@ -3982,20 +1635,20 @@ def symmetric(arg):
         return arg._symmetric()
       else:
         raise ValueError("rank 2 or 4 is required.")
+    elif isinstance(arg, Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError("symmetric: argument must be square.")
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError("symmetric: argument must be square.")
+        else:
+            raise ValueError("symmetric: rank 2 or 4 is required.")
+        return (arg+transpose(arg))/2
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
       return float(arg)
-    elif isinstance(arg,Symbol):
-      if arg.getRank()==2:
-        if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError("argument must be square.")
-      elif arg.getRank()==4:
-        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError("argument must be square.")
-      else:
-        raise ValueError("rank 2 or 4 is required.")
-      return (arg+transpose(arg))/2
     else:
       raise TypeError("symmetric: Unknown argument type.")
 
@@ -4007,8 +1660,7 @@ def nonsymmetric(arg):
     :param arg: input matrix. Must have rank 2 or 4 and be square.
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: non-symmetric part of ``arg``
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg,numpy.ndarray):
       if arg.ndim==2:
@@ -4031,22 +1683,22 @@ def nonsymmetric(arg):
         return arg._nonsymmetric()
       else:
         raise ValueError("rank 2 or 4 is required.")
+    elif isinstance(arg, Symbol):
+        if arg.getRank()==2:
+            if arg.getShape()[0]!=arg.getShape()[1]:
+                raise ValueError("nonsymmetric: argument must be square.")
+        elif arg.getRank()==4:
+            if arg.getShape()[0]!=arg.getShape()[2] or arg.getShape()[1]!=arg.getShape()[3]:
+                raise ValueError("nonsymmetric: argument must be square.")
+        else:
+            raise ValueError("nonsymmetric: rank 2 or 4 is required.")
+        return (arg-transpose(arg))/2
     elif isinstance(arg,float):
-      return arg
+        return arg
     elif isinstance(arg,int):
-      return float(arg)
-    elif isinstance(arg,Symbol):
-      if arg.getRank()==2:
-        if not (arg.getShape()[0]==arg.getShape()[1]):
-           raise ValueError("nonsymmetric: argument must be square.")
-      elif arg.getRank()==4:
-        if not (arg.getShape()[0]==arg.getShape()[2] and arg.getShape()[1]==arg.getShape()[3]):
-           raise ValueError("nonsymmetric: argument must be square.")
-      else:
-        raise ValueError("nonsymmetric: rank 2 or 4 is required.")
-      return (arg-transpose(arg))/2
+        return float(arg)
     else:
-      raise TypeError("nonsymmetric: Unknown argument type.")
+        raise TypeError("nonsymmetric: Unknown argument type.")
 
 def inverse(arg):
     """
@@ -4057,8 +1709,7 @@ def inverse(arg):
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: inverse of the argument. ``matrix_mult(inverse(arg),arg)`` will be
              almost equal to ``kronecker(arg.getShape()[0])``
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :note: for `escript.Data` objects the dimension is restricted to 3.
     """
     import numpy.linalg
@@ -4071,12 +1722,12 @@ def inverse(arg):
     elif isinstance(arg,int):
       return 1./float(arg)
     elif isinstance(arg,Symbol):
-      return Inverse_Symbol(arg)
+      return arg.inverse()
     else:
       raise TypeError("inverse: Unknown argument type.")
 
 def escript_inverse(arg): # this should be escript._inverse and use LAPACK
-      "arg is a Data object!!!"
+      "arg is a Data object!"
       return arg._inverse()
 
       #if not arg.getRank()==2:
@@ -4129,84 +1780,6 @@ def escript_inverse(arg): # this should be escript._inverse and use LAPACK
          #raise TypeError,"escript_inverse: only matrix dimensions 1,2,3 are supported right now."
       #return out
 
-class Inverse_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the inverse function.
-   """
-   def __init__(self,arg):
-      """
-      Initialization of inverse `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: `Symbol`
-      """
-      if not arg.getRank()==2:
-        raise ValueError("Inverse_Symbol:: argument must have rank 2")
-      s=arg.getShape()
-      if not s[0] == s[1]:
-        raise ValueError("Inverse_Symbol:: argument must be a square matrix.")
-      super(Inverse_Symbol,self).__init__(args=[arg],shape=s,dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 1 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "inverse(%s)"%argstrs[0]
-      else:
-         raise NotImplementedError("Inverse_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return inverse(arg[0])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return -matrix_mult(matrix_mult(self,self.getDifferentiatedArguments(arg)[0]),self)
-
 def eigenvalues(arg):
     """
     Returns the eigenvalues of the square matrix ``arg``.
@@ -4216,8 +1789,7 @@ def eigenvalues(arg):
                 ``transpose(arg)==arg`` (this is not checked).
     :type arg: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the eigenvalues in increasing order
-    :rtype: ``numpy.ndarray``,`escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :note: for `escript.Data` and `Symbol` objects the dimension is
            restricted to 3.
     """
@@ -4227,54 +1799,12 @@ def eigenvalues(arg):
       return out
     elif isinstance(arg,escript.Data):
       return arg._eigenvalues()
-    elif isinstance(arg,Symbol):
-      if not arg.getRank()==2:
-        raise ValueError("eigenvalues: argument must have rank 2")
-      s=arg.getShape()
-      if not s[0] == s[1]:
-        raise ValueError("eigenvalues: argument must be a square matrix.")
-      if s[0]==1:
-          return arg[0]
-      elif s[0]==2:
-          arg1=symmetric(arg)
-          A11=arg1[0,0]
-          A12=arg1[0,1]
-          A22=arg1[1,1]
-          trA=(A11+A22)/2.
-          A11-=trA
-          A22-=trA
-          s=sqrt(A12**2-A11*A22)
-          return trA+s*numpy.array([-1.,1.],dtype=numpy.float64)
-      elif s[0]==3:
-          arg1=symmetric(arg)
-          A11=arg1[0,0]
-          A12=arg1[0,1]
-          A22=arg1[1,1]
-          A13=arg1[0,2]
-          A23=arg1[1,2]
-          A33=arg1[2,2]
-          trA=(A11+A22+A33)/3.
-          A11-=trA
-          A22-=trA
-          A33-=trA
-          A13_2=A13**2
-          A23_2=A23**2
-          A12_2=A12**2
-          p=A13_2+A23_2+A12_2+(A11**2+A22**2+A33**2)/2.
-          q=A13_2*A22+A23_2*A11+A12_2*A33-A11*A22*A33-2*A12*A23*A13
-          sq_p=sqrt(p/3.)
-          alpha_3=acos(clip(-q*(sq_p+whereZero(p,0.)*1.e-15)**(-3.)/2.,-1.,1.))/3.  # whereZero is protection against divison by zero
-          sq_p*=2.
-          f=cos(alpha_3)               *numpy.array([0.,0.,1.],dtype=numpy.float64) \
-           -cos(alpha_3+numpy.pi/3.)*numpy.array([0.,1.,0.],dtype=numpy.float64) \
-           -cos(alpha_3-numpy.pi/3.)*numpy.array([1.,0.,0.],dtype=numpy.float64)
-          return trA+sq_p*f
-      else:
-         raise TypeError("eigenvalues: only matrix dimensions 1,2,3 are supported right now.")
     elif isinstance(arg,float):
       return arg
     elif isinstance(arg,int):
       return float(arg)
+    elif isinstance(arg,Symbol):
+      return symfn.eigenvalues(arg)
     else:
       raise TypeError("eigenvalues: Unknown argument type.")
 
@@ -4297,146 +1827,27 @@ def eigenvalues_and_eigenvectors(arg):
       raise TypeError("eigenvalues_and_eigenvectors does not support numpy.ndarray arguments")
     elif isinstance(arg,escript.Data):
       return arg._eigenvalues_and_eigenvectors()
-    elif isinstance(arg,Symbol):
-      raise TypeError("eigenvalues_and_eigenvectors does not support Symbol arguments")
     elif isinstance(arg,float):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
+    elif isinstance(arg,Symbol):
+      return symfn.eigenvalues_and_eigenvectors(arg)
     else:
       raise TypeError("eigenvalues: Unknown argument type.")
-
-#=======================================================
-#  Binary operations:
-#=======================================================
-def add(arg0,arg1):
-       """
-       Adds ``arg0`` and ``arg1`` together.
-
-       :param arg0: first term
-       :type arg0: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second term
-       :type arg1: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :return: the sum of ``arg0`` and ``arg1``
-       :rtype: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-               ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`.
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return args[1]
-       elif testForZero(args[1]):
-          return args[0]
-       else:
-          if isinstance(args[0],Symbol) or isinstance(args[1],Symbol) :
-              return Add_Symbol(args[0],args[1])
-          elif isinstance(args[0],numpy.ndarray):
-              return args[1]+args[0]
-          else:
-              return args[0]+args[1]
-
-class Add_Symbol(DependendSymbol):
-   """
-   Symbol representing the sum of two arguments.
-   """
-   def __init__(self,arg0,arg1):
-       """
-       Initialization of the `Symbol` representing the sum of two arguments.
-
-       :param arg0: first term in the sum
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second term in the sum
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: if both arguments do not have the same shape
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh0=getShape(arg0)
-       sh1=getShape(arg1)
-       if not sh0==sh1:
-          raise ValueError("Add_Symbol: shape of arguments must match")
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="str" or format=="text":
-         return "(%s)+(%s)"%(argstrs[0],argstrs[1])
-      elif format=="escript":
-         return "add(%s,%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         out=add(args[0],args[1])
-         return out
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         dargs=self.getDifferentiatedArguments(arg)
-         return add(dargs[0],dargs[1])
 
 def mult(arg0,arg1):
        """
        Product of ``arg0`` and ``arg1``.
 
        :param arg0: first term
-       :type arg0: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
+       :type arg0: `Symbol`, ``float``, ``int``, `escript.Data` or
                    ``numpy.ndarray``
        :param arg1: second term
-       :type arg1: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
+       :type arg1: `Symbol`, ``float``, ``int``, `escript.Data` or
                    ``numpy.ndarray``
        :return: the product of ``arg0`` and ``arg1``
-       :rtype: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
+       :rtype: `Symbol`, ``float``, ``int``, `escript.Data` or
                ``numpy.ndarray``
        :note: The shape of both arguments is matched according to the rules
               used in `matchShape`.
@@ -4445,338 +1856,10 @@ def mult(arg0,arg1):
        if testForZero(args[0]) or testForZero(args[1]):
           return numpy.zeros(getShape(args[0]),numpy.float64)
        else:
-          if isinstance(args[0],Symbol) or isinstance(args[1],Symbol) :
-              return Mult_Symbol(args[0],args[1])
-          elif isinstance(args[0],numpy.ndarray):
+          if isinstance(args[0],numpy.ndarray):
               return args[1]*args[0]
           else:
               return args[0]*args[1]
-
-class Mult_Symbol(DependendSymbol):
-   """
-   Symbol representing the product of two arguments.
-   """
-   def __init__(self,arg0,arg1):
-       """
-       Initialization of the `Symbol` representing the product of two
-       arguments.
-
-       :param arg0: first factor
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second factor
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: if both arguments do not have the same shape
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh0=getShape(arg0)
-       sh1=getShape(arg1)
-       if not sh0==sh1:
-          raise ValueError("Mult_Symbol: shape of arguments must match")
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="str" or format=="text":
-         return "(%s)*(%s)"%(argstrs[0],argstrs[1])
-      elif format=="escript":
-         return "mult(%s,%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`.
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return mult(args[0],args[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myargs=self.getArgument()
-         dargs=self.getDifferentiatedArguments(arg)
-         return add(mult(myargs[0],dargs[1]),mult(myargs[1],dargs[0]))
-
-def quotient(arg0,arg1):
-       """
-       Quotient of ``arg0`` and ``arg1``.
-
-       :param arg0: numerator
-       :type arg0: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: denominator
-       :type arg1: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :return: the quotient of ``arg0`` and ``arg1``
-       :rtype: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-               ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`.
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
-       elif isinstance(args[0],Symbol):
-          if isinstance(args[1],Symbol):
-             return Quotient_Symbol(args[0],args[1])
-          else:
-             return mult(args[0],1./args[1])
-       else:
-          if isinstance(args[1],Symbol):
-             return Quotient_Symbol(args[0],args[1])
-          elif isinstance(args[0],numpy.ndarray) and not isinstance(args[1],numpy.ndarray):
-             return 1./args[1]*args[0]
-          else:
-             return args[0]/args[1]
-
-class Quotient_Symbol(DependendSymbol):
-   """
-   Symbol representing the quotient of two arguments.
-   """
-   def __init__(self,arg0,arg1):
-       """
-       Initialization of `Symbol` representing the quotient of two arguments.
-
-       :param arg0: numerator
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: denominator
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: if both arguments do not have the same shape
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh0=getShape(arg0)
-       sh1=getShape(arg1)
-       if not sh0==sh1:
-          raise ValueError("Quotient_Symbol: shape of arguments must match")
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="str" or format=="text":
-         return "(%s)/(%s)"%(argstrs[0],argstrs[1])
-      if format=="escript":
-         return "quotient(%s,%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return quotient(args[0],args[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myargs=self.getArgument()
-         dargs=self.getDifferentiatedArguments(arg)
-         return quotient(add(mult(myargs[1],dargs[0]),mult(-myargs[0],dargs[1])),myargs[1]*myargs[1])
-
-
-def power(arg0,arg1):
-       """
-       Raises ``arg0`` to the power of ``arg1``.
-
-       :param arg0: basis
-       :type arg0: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: exponent
-       :type arg1: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-                   ``numpy.ndarray``
-       :return: ``arg0`` to the power of ``arg1``
-       :rtype: `escript.Symbol`, ``float``, ``int``, `escript.Data`,
-               ``numpy.ndarray``
-       :note: The shape of both arguments is matched according to the rules
-              used in `matchShape`
-       """
-       args=matchShape(arg0,arg1)
-       if testForZero(args[0]):
-          return numpy.zeros(getShape(args[0]),numpy.float64)
-       elif testForZero(args[1]):
-          return numpy.ones(getShape(args[1]),numpy.float64)
-       elif isinstance(args[0],Symbol) or isinstance(args[1],Symbol):
-          return Power_Symbol(args[0],args[1])
-       elif isinstance(args[0],numpy.ndarray) and not isinstance(args[1],numpy.ndarray):
-          return exp(args[1]*log(args[0]))
-       else:
-           return args[0]**args[1]
-
-class Power_Symbol(DependendSymbol):
-   """
-   Symbol representing the first argument to the power of the second argument.
-   """
-   def __init__(self,arg0,arg1):
-       """
-       Initialization of the `Symbol` representing raising the first argument
-       to the power of the second.
-
-       :param arg0: basis
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: exponent
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: if both arguments do not have the same shape
-       :note: if both arguments have a spatial dimension, they must be equal
-       """
-       sh0=getShape(arg0)
-       sh1=getShape(arg1)
-       if not sh0==sh1:
-          raise ValueError("Power_Symbol: shape of arguments must match")
-       d0=pokeDim(arg0)
-       d1=pokeDim(arg1)
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0,args=[arg0,arg1])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str" or format=="text":
-         return "(%s)**(%s)"%(argstrs[0],argstrs[1])
-      elif format=="escript":
-         return "power(%s,%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return power(args[0],args[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         myargs=self.getArgument()
-         dargs=self.getDifferentiatedArguments(arg)
-         return mult(self,add(mult(log(myargs[0]),dargs[1]),mult(quotient(myargs[1],myargs[0]),dargs[0])))
 
 def maximum(*args):
     """
@@ -4790,6 +1873,8 @@ def maximum(*args):
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
             ``float`` depending on the input
     """
+    if max([isinstance(v,Symbol) for v in args]):
+        return symfn.maximum(*args)
     out=None
     for a in args:
        if out==None:
@@ -4797,21 +1882,24 @@ def maximum(*args):
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
              if out.getRank()==0 and a.getRank()>0:
-		#We need to consider the case where we have scalars and higher 
-		#ranked objects mixed. If the scalar was first it will get
-		#picked as the initial out and we have a problem,
-		#so we swap the objects
-                res=a.copy()	#Deep copy of a
+                # We need to consider the case where we have scalars and
+                # higher ranked objects mixed. If the scalar was first it will
+                # get picked as the initial out and we have a problem, so we
+                # swap the objects
+                res=a.copy() #Deep copy of a
                 res.copyWithMask(out,wherePositive(out-a))
                 out=res
              else:
-             	out.copyWithMask(a,wherePositive(a-out))
+                out.copyWithMask(a,wherePositive(a-out))
           else:
-             diff=add(a,-out)
-             temp=add(mult(out, whereNonPositive(diff)), mult(a, wherePositive(diff)))
+             if isinstance(a, numpy.ndarray): 
+                diff=-out+a
+             else:
+                diff=a-out
+             temp=mult(whereNonPositive(diff),out)+mult(wherePositive(diff),a)
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
-	       # we need to convert the result to an array 
-               temp=numpy.array(temp)             
+                # we need to convert the result to an array 
+                temp=numpy.array(temp)             
              out=temp
     return out
 
@@ -4827,33 +1915,37 @@ def minimum(*args):
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
             ``float`` depending on the input
     """
+    if max([isinstance(v,Symbol) for v in args]):
+        return symfn.minimum(*args)
     out=None
     for a in args:
        if out==None:
-          #out=a*1
-          if isinstance(a, numpy.ndarray):	#Coz rank0 array * a scalar = scalar not array
+          if isinstance(a, numpy.ndarray):
               out=a.copy()
           else:
-              out=a*1
+              out=a*1.
        else:
           if isinstance(out,escript.Data) and isinstance(a,escript.Data):
              if out.getRank()==0 and a.getRank()>0:
-        	#We need to consider the case where we have scalars and higher 
-		#ranked objects mixed. If the scalar was first it will get
-		#picked as the initial out and we have a problem,
-		#so we swap the objects
-                res=a.copy()	#Deep copy of a
+                # We need to consider the case where we have scalars and
+                # higher ranked objects mixed. If the scalar was first it will
+                # get picked as the initial out and we have a problem, so we
+                # swap the objects
+                res=a.copy() # Deep copy of a
                 res.copyWithMask(out,whereNegative(out-a))
                 out=res
              else:
                 out.copyWithMask(a,whereNegative(a-out))
           else:
-             diff=add(a,-out)
+             if isinstance(a, numpy.ndarray): 
+                diff=-out+a
+             else:
+                diff=a-out
              #out=add(out,mult(whereNegative(diff),diff))
-             temp=add(mult(out, whereNonNegative(diff)), mult(a, whereNegative(diff)))
+             temp=mult(whereNonNegative(diff),out)+mult(whereNegative(diff),a)
              if isinstance(out,numpy.ndarray) and isinstance(a,numpy.ndarray):
-	       # we need to convert the result to an array 
-               temp=numpy.array(temp)
+                # we need to convert the result to an array 
+                temp=numpy.array(temp)
              out=temp
     return out
 
@@ -4874,6 +1966,9 @@ def clip(arg,minval=None,maxval=None):
             ``float`` depending on the input
     :raise ValueError: if ``minval>maxval``
     """
+    if isinstance(arg, Symbol):
+        clip_item=lambda item: symfn.clip(item, minval, maxval)
+        return arg.applyfunc(clip_item)
     if not minval==None and not maxval==None:
        if minval>maxval:
           raise ValueError("minval = %s must be less than maxval %s"%(minval,maxval))
@@ -4886,7 +1981,6 @@ def clip(arg,minval=None,maxval=None):
     else:
         return minimum(tmp,maxval)
 
-
 def inner(arg0,arg1):
     """
     Inner product of the two arguments. The inner product is defined as:
@@ -4898,11 +1992,9 @@ def inner(arg0,arg1):
     ``arg0`` and ``arg1`` must have the same shape.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the inner product of ``arg0`` and ``arg1`` at each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``
             depending on the input
@@ -4925,14 +2017,11 @@ def outer(arg0,arg1):
         - t runs through ``arg1.Shape``
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the outer product of ``arg0`` and ``arg1`` at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     return generalTensorProduct(arg0,arg1,axis_offset=0)
 
@@ -4961,8 +2050,7 @@ def matrix_mult(arg0,arg1):
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the matrix-matrix or matrix-vector product of ``arg0`` and ``arg1``
              at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -5013,15 +2101,14 @@ def tensor_mult(arg0,arg1):
                  rank of ``arg0``
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of ``arg0`` and ``arg1`` at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
-       return generalTensorProduct(arg0,arg1,axis_offset=1)
+        return generalTensorProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
-       return generalTensorProduct(arg0,arg1,axis_offset=2)
+        return generalTensorProduct(arg0,arg1,axis_offset=2)
     else:
         raise ValueError("tensor_mult: first argument must have rank 2 or 4")
 
@@ -5037,121 +2124,51 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
         - t runs through ``arg1.Shape[axis_offset:]``
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``arg0`` and ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data or
-    # Symbols
-    if isinstance(arg0,numpy.ndarray):
-       if isinstance(arg1,Symbol):
-           return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
-               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-           arg0_c=arg0.copy()
-           arg1_c=arg1.copy()
-           sh0,sh1=arg0.shape,arg1.shape
-           d0,d1,d01=1,1,1
-           for i in sh0[:arg0.ndim-axis_offset]: d0*=i
-           for i in sh1[axis_offset:]: d1*=i
-           for i in sh1[:axis_offset]: d01*=i
-           arg0_c.resize((d0,d01))
-           arg1_c.resize((d01,d1))
-           out=numpy.zeros((d0,d1),numpy.float64)
-           for i0 in range(d0):
-                    for i1 in range(d1):
-                         out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
-           out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
-           return out
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       if not sh0[arg0.getRank()-axis_offset:]==sh1[:axis_offset]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.tensorProduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
+       if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       arg0_c=arg0.copy()
+       arg1_c=arg1.copy()
+       sh0,sh1=arg0.shape,arg1.shape
+       d0,d1,d01=1,1,1
+       for i in sh0[:arg0.ndim-axis_offset]: d0*=i
+       for i in sh1[axis_offset:]: d1*=i
+       for i in sh1[:axis_offset]: d01*=i
+       arg0_c.resize((d0,d01))
+       arg1_c.resize((d01,d1))
+       out=numpy.zeros((d0,d1),numpy.float64)
+       for i0 in range(d0):
+          for i1 in range(d1):
+             out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
+       out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
+       return out
     elif isinstance(arg0,escript.Data):
-       if isinstance(arg1,Symbol):
-           return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           return escript_generalTensorProduct(arg0,arg1,axis_offset) # this calls has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
-    else:
-       return GeneralTensorProduct_Symbol(arg0,arg1,axis_offset)
-
-class GeneralTensorProduct_Symbol(DependendSymbol):
-   """
-   Symbol representing the general tensor product of two arguments.
-   """
-   def __init__(self,arg0,arg1,axis_offset=0):
-       """
-       Initialization of `Symbol` representing the general tensor product of
-       two arguments.
-
-       :param arg0: first argument
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second argument
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: illegal dimension
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh_arg0=getShape(arg0)
-       sh_arg1=getShape(arg1)
-       sh0=sh_arg0[:len(sh_arg0)-axis_offset]
-       sh01=sh_arg0[len(sh_arg0)-axis_offset:]
-       sh10=sh_arg1[:axis_offset]
-       sh1=sh_arg1[axis_offset:]
-       if not sh01==sh10:
-           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str" or format=="text":
-         return "generalTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return generalTensorProduct(args[0],args[1],args[2])
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
+       return escript_generalTensorProduct(arg0,arg1,axis_offset) # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+    raise TypeError("generalTensorProduct: Unsupported argument type")
 
 def escript_generalTensorProduct(arg0,arg1,axis_offset,transpose=0):
     "arg0 and arg1 are both Data objects but not necessarily on the same function space. They could be identical!!!"
@@ -5179,8 +2196,7 @@ def transposed_matrix_mult(arg0,arg1):
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the product of the transpose of ``arg0`` and ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -5228,8 +2244,7 @@ def transposed_tensor_mult(arg0,arg1):
                  rank of ``arg0``
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of transpose of arg0 and arg1 at each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
@@ -5256,123 +2271,51 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     ``generalTensorProduct(transpose(arg0,arg0.ndim-axis_offset),arg1,axis_offset)``.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``transpose(arg0)`` and ``arg1`` at
              each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data or
-    # Symbols
-    if isinstance(arg0,numpy.ndarray):
-       if isinstance(arg1,Symbol):
-           return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
-               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-           arg0_c=arg0.copy()
-           arg1_c=arg1.copy()
-           sh0,sh1=arg0.shape,arg1.shape
-           d0,d1,d01=1,1,1
-           for i in sh0[axis_offset:]: d0*=i
-           for i in sh1[axis_offset:]: d1*=i
-           for i in sh0[:axis_offset]: d01*=i
-           arg0_c.resize((d01,d0))
-           arg1_c.resize((d01,d1))
-           out=numpy.zeros((d0,d1),numpy.float64)
-           for i0 in range(d0):
-                    for i1 in range(d1):
-                         out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
-           out.resize(sh0[axis_offset:]+sh1[axis_offset:])
-           return out
-    elif isinstance(arg0,escript.Data):
-       if isinstance(arg1,Symbol):
-           return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
-           return escript_generalTransposedTensorProduct(arg0,arg1,axis_offset)
-    else:
-       return GeneralTransposedTensorProduct_Symbol(arg0,arg1,axis_offset)
-
-class GeneralTransposedTensorProduct_Symbol(DependendSymbol):
-   """
-   Symbol representing the general tensor product of the transpose of ``arg0``
-   and ``arg1``
-   """
-   def __init__(self,arg0,arg1,axis_offset=0):
-       """
-       Initialization of `Symbol` representing tensor product of the
-       transpose of ``arg0`` and ``arg1``.
-
-       :param arg0: first argument
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second argument
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: inconsistent dimensions of arguments
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh_arg0=getShape(arg0)
-       sh_arg1=getShape(arg1)
-       sh01=sh_arg0[:axis_offset]
-       sh10=sh_arg1[:axis_offset]
-       sh0=sh_arg0[axis_offset:]
-       sh1=sh_arg1[axis_offset:]
-       if not sh01==sh10:
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       if not sh0[:axis_offset]==sh1[:axis_offset]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.transposedTensorProduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
+       if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
            raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str" or format=="text":
-         return "generalTransposedTensorProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return generalTransposedTensorProduct(args[0],args[1],args[2])
+       arg0_c=arg0.copy()
+       arg1_c=arg1.copy()
+       sh0,sh1=arg0.shape,arg1.shape
+       d0,d1,d01=1,1,1
+       for i in sh0[axis_offset:]: d0*=i
+       for i in sh1[axis_offset:]: d1*=i
+       for i in sh0[:axis_offset]: d01*=i
+       arg0_c.resize((d01,d0))
+       arg1_c.resize((d01,d1))
+       out=numpy.zeros((d0,d1),numpy.float64)
+       for i0 in range(d0):
+                for i1 in range(d1):
+                     out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
+       out.resize(sh0[axis_offset:]+sh1[axis_offset:])
+       return out
+    elif isinstance(arg0,escript.Data):
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
+       # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+       return escript_generalTransposedTensorProduct(arg0,arg1,axis_offset)
 
 # this should be escript._generalTransposedTensorProduct
 def escript_generalTransposedTensorProduct(arg0,arg1,axis_offset):
@@ -5396,8 +2339,7 @@ def matrix_transposed_mult(arg0,arg1):
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the product of ``arg0`` and the transposed of ``arg1`` at each data
              point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     :raise ValueError: if the shapes of the arguments are not appropriate
     """
     sh0=getShape(arg0)
@@ -5438,8 +2380,7 @@ def tensor_transposed_mult(arg0,arg1):
     :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`
     :return: the tensor product of the transposed of ``arg0`` and ``arg1`` at
              each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     sh0=getShape(arg0)
     sh1=getShape(arg1)
@@ -5466,123 +2407,52 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     ``generalTensorProduct(arg0,transpose(arg1,arg1.ndim-axis_offset),axis_offset)``.
 
     :param arg0: first argument
-    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :param arg1: second argument
-    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``,
-                ``int``
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``float``, ``int``
     :return: the general tensor product of ``arg0`` and ``transpose(arg1)`` at
              each data point
-    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the
-            input
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
     if isinstance(arg0,float) and isinstance(arg1,float): return arg1*arg0
     arg0,arg1=matchType(arg0,arg1)
-    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data or
-    # Symbols
-    if isinstance(arg0,numpy.ndarray):
-       if isinstance(arg1,Symbol):
-           return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
-               raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
-           arg0_c=arg0.copy()
-           arg1_c=arg1.copy()
-           sh0,sh1=arg0.shape,arg1.shape
-           d0,d1,d01=1,1,1
-           for i in sh0[:arg0.ndim-axis_offset]: d0*=i
-           for i in sh1[:arg1.ndim-axis_offset]: d1*=i
-           for i in sh1[arg1.ndim-axis_offset:]: d01*=i
-           arg0_c.resize((d0,d01))
-           arg1_c.resize((d1,d01))
-           out=numpy.zeros((d0,d1),numpy.float64)
-           for i0 in range(d0):
-                    for i1 in range(d1):
-                         out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
-           out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
-           return out
+    # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
+    # or one is a Symbol and the other either of the allowed types
+    if isinstance(arg0,Symbol):
+       sh0=arg0.getShape()
+       sh1=getShape(arg1)
+       r1=getRank(arg1)
+       if not sh0[arg0.getRank()-axis_offset:]==sh1[r1-axis_offset:]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       if isinstance(arg1,float):
+          return arg0*arg1
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+          return arg0.tensorTransposedProduct(arg1, axis_offset)
+       elif isinstance(arg1, escript.Data):
+          raise TypeError("tensor product of Symbol and Data not supported yet")
+    elif isinstance(arg0,numpy.ndarray):
+       if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
+          raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
+       arg0_c=arg0.copy()
+       arg1_c=arg1.copy()
+       sh0,sh1=arg0.shape,arg1.shape
+       d0,d1,d01=1,1,1
+       for i in sh0[:arg0.ndim-axis_offset]: d0*=i
+       for i in sh1[:arg1.ndim-axis_offset]: d1*=i
+       for i in sh1[arg1.ndim-axis_offset:]: d01*=i
+       arg0_c.resize((d0,d01))
+       arg1_c.resize((d1,d01))
+       out=numpy.zeros((d0,d1),numpy.float64)
+       for i0 in range(d0):
+          for i1 in range(d1):
+             out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
+       out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
+       return out
     elif isinstance(arg0,escript.Data):
-       if isinstance(arg1,Symbol):
-           return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
-       else:
-           # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
-           return escript_generalTensorTransposedProduct(arg0,arg1,axis_offset)
-    else:
-       return GeneralTensorTransposedProduct_Symbol(arg0,arg1,axis_offset)
-
-class GeneralTensorTransposedProduct_Symbol(DependendSymbol):
-   """
-   Symbol representing the general tensor product of ``arg0`` and the transpose
-   of ``arg1``.
-   """
-   def __init__(self,arg0,arg1,axis_offset=0):
-       """
-       Initialization of `Symbol` representing the general tensor product of
-       ``arg0`` and the transpose of ``arg1``.
-
-       :param arg0: first argument
-       :type arg0: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :param arg1: second argument
-       :type arg1: `escript.Symbol`, ``float``, `escript.Data`,
-                   ``numpy.ndarray``
-       :raise ValueError: inconsistent dimensions of arguments
-       :note: if both arguments have a spatial dimension, they must be equal.
-       """
-       sh_arg0=getShape(arg0)
-       sh_arg1=getShape(arg1)
-       sh0=sh_arg0[:len(sh_arg0)-axis_offset]
-       sh01=sh_arg0[len(sh_arg0)-axis_offset:]
-       sh10=sh_arg1[len(sh_arg1)-axis_offset:]
-       sh1=sh_arg1[:len(sh_arg1)-axis_offset]
-       if not sh01==sh10:
-           raise ValueError("dimensions of last %s components in left argument don't match the last %s components in the right argument."%(axis_offset,axis_offset))
-       DependendSymbol.__init__(self,dim=commonDim(arg0,arg1),shape=sh0+sh1,args=[arg0,arg1,axis_offset])
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str" or format=="text":
-         return "generalTensorTransposedProduct(%s,%s,axis_offset=%s)"%(argstrs[0],argstrs[1],argstrs[2])
-      else:
-         raise NotImplementedError("%s does not provide program code for format %s."%(str(self),format))
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         args=self.getSubstitutedArguments(argvals)
-         return generalTensorTransposedProduct(args[0],args[1],args[2])
+       if isinstance(arg1, Symbol):
+          raise TypeError("tensor product of Data and Symbol not supported yet")
+       # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
+       return escript_generalTensorTransposedProduct(arg0,arg1,axis_offset)
 
 # this should be escript._generalTensorTransposedProduct
 def escript_generalTensorTransposedProduct(arg0,arg1,axis_offset):
@@ -5617,7 +2487,10 @@ def grad(arg,where=None):
     :rtype: `escript.Data` or `Symbol`
     """
     if isinstance(arg,Symbol):
-       return Grad_Symbol(arg,where)
+       if where is None:
+           return arg.grad()
+       else:
+           return arg.grad(where)
     elif isinstance(arg,escript.Data):
        if where==None:
           return arg._grad()
@@ -5626,84 +2499,8 @@ def grad(arg,where=None):
     else:
        raise TypeError("grad: Unknown argument type.")
 
-class Grad_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the gradient operator.
-   """
-   def __init__(self,arg,where=None):
-      """
-      Initialization of gradient `Symbol` with argument ``arg``.
-
-      :param arg: argument of function
-      :type arg: `Symbol`
-      :param where: FunctionSpace in which the gradient will be calculated.
-                    If not present or ``None`` an appropriate default is used.
-      :type where: ``None`` or `escript.FunctionSpace`
-      """
-      d=arg.getDim()
-      if d==None:
-         raise ValueError("argument must have a spatial dimension")
-      super(Grad_Symbol,self).__init__(args=[arg,where],shape=arg.getShape()+(d,),dim=d)
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "grad(%s,where=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("Grad_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return grad(arg[0],where=arg[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to arg
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return grad(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
+def grad_n(arg, n, where=None):
+    return grad(arg, where)[n]
 
 def integrate(arg,where=None):
     """
@@ -5718,97 +2515,20 @@ def integrate(arg,where=None):
     :return: integral of ``arg``
     :rtype: ``float``, ``numpy.ndarray`` or `Symbol`
     """
-    if isinstance(arg,Symbol):
-       return Integrate_Symbol(arg,where)
-    elif isinstance(arg,escript.Data):
+    if isinstance(arg,escript.Data):
        if not where==None: arg=escript.Data(arg,where)
        if arg.getRank()==0:
           return arg._integrateToTuple()[0]
        else:
           return numpy.array(arg._integrateToTuple())
+    elif isinstance(arg,Symbol):
+       return symfn.integrate(arg, where)
     else:
        arg2=escript.Data(arg,where)
        if arg2.getRank()==0:
           return arg2._integrateToTuple()[0]
        else:
           return numpy.array(arg2._integrateToTuple())
-
-class Integrate_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the spatial integration operator.
-   """
-   def __init__(self,arg,where=None):
-      """
-      Initialization of integration `Symbol` with argument ``arg``.
-
-      :param arg: argument of the integration
-      :type arg: `Symbol`
-      :param where: FunctionSpace in which the integration will be performed.
-                    If not present or ``None`` an appropriate default is used.
-      :type where: ``None`` or `escript.FunctionSpace`
-      """
-      super(Integrate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "integrate(%s,where=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("Integrate_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return integrate(arg[0],where=arg[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: typically `Symbol` but other types such as ``float``,
-              `escript.Data`, ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return integrate(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
-
 
 def interpolate(arg,where):
     """
@@ -5823,93 +2543,17 @@ def interpolate(arg,where):
     :return: interpolated argument
     :rtype: ``escript.Data`` or `Symbol`
     """
-    if isinstance(arg,Symbol):
-       return Interpolate_Symbol(arg,where)
-    elif isinstance(arg,escript.Data):
+    if isinstance(arg,escript.Data):
        if arg.isEmpty():
           return arg
        elif where == arg.getFunctionSpace():
           return arg
        else:
           return escript.Data(arg,where)
+    elif isinstance(arg,Symbol):
+       return symfn.interpolate(arg, where)
     else:
        return escript.Data(arg,where)
-
-class Interpolate_Symbol(DependendSymbol):
-   """
-   `Symbol` representing the result of the interpolation operator.
-   """
-   def __init__(self,arg,where):
-      """
-      Initialization of interpolation `Symbol` with argument ``arg``.
-
-      :param arg: argument of the interpolation
-      :type arg: `Symbol`
-      :param where: `FunctionSpace` into which the argument is interpolated
-      :type where: `escript.FunctionSpace`
-      """
-      super(Interpolate_Symbol,self).__init__(args=[arg,where],shape=arg.getShape(),dim=arg.getDim())
-
-   def getMyCode(self,argstrs,format="escript"):
-      """
-      Returns program code that can be used to evaluate the symbol.
-
-      :param argstrs: a string for each argument representing the argument
-                      for the evaluation
-      :type argstrs: ``str`` or a ``list`` of length 2 of ``str``
-      :param format: specifies the format to be used. At the moment only
-                     "escript", "str" and "text" are supported.
-      :type format: ``str``
-      :return: a piece of program code which can be used to evaluate the
-               expression assuming the values for the arguments are available
-      :rtype: ``str``
-      :raise NotImplementedError: if no implementation for the given format
-                                  is available
-      """
-      if format=="escript" or format=="str"  or format=="text":
-         return "interpolate(%s,where=%s)"%(argstrs[0],argstrs[1])
-      else:
-         raise NotImplementedError("Interpolate_Symbol does not provide program code for format %s."%format)
-
-   def substitute(self,argvals):
-      """
-      Assigns new values to symbols in the definition of the symbol.
-      The method replaces the `Symbol` u by argvals[u] in the expression
-      defining this object.
-
-      :param argvals: new values assigned to symbols
-      :type argvals: ``dict`` with keywords of type `Symbol`
-      :return: result of the substitution process. Operations are executed as
-               much as possible.
-      :rtype: `escript.Symbol`, ``float``, `escript.Data`, ``numpy.ndarray``
-              depending on the degree of substitution
-      :raise TypeError: if a value for a `Symbol` cannot be substituted
-      """
-      if self in argvals:
-         arg=argvals[self]
-         if self.isAppropriateValue(arg):
-            return arg
-         else:
-            raise TypeError("%s: new value is not appropriate."%str(self))
-      else:
-         arg=self.getSubstitutedArguments(argvals)
-         return interpolate(arg[0],where=arg[1])
-
-   def diff(self,arg):
-      """
-      Differential of this object.
-
-      :param arg: the derivative is calculated with respect to ``arg``
-      :type arg: `escript.Symbol`
-      :return: derivative with respect to ``arg``
-      :rtype: `Symbol` but other types such as `escript.Data`,
-              ``numpy.ndarray`` are possible
-      """
-      if arg==self:
-         return identity(self.getShape())
-      else:
-         return interpolate(self.getDifferentiatedArguments(arg)[0],where=self.getArgument()[1])
-
 
 def div(arg,where=None):
     """
@@ -5924,14 +2568,12 @@ def div(arg,where=None):
     :return: divergence of ``arg``
     :rtype: `escript.Data` or `Symbol`
     """
-    if isinstance(arg,Symbol):
-        dim=arg.getDim()
-    elif isinstance(arg,escript.Data):
+    if isinstance(arg,escript.Data):
         dim=arg.getDomain().getDim()
-    else:
+        if not arg.getShape()==(dim,):
+            raise ValueError("div: expected shape is (%s,)"%dim)
+    elif not isinstance(arg, Symbol):
         raise TypeError("div: argument type not supported")
-    if not arg.getShape()==(dim,):
-      raise ValueError("div: expected shape is (%s,)"%dim)
     return trace(grad(arg,where))
 
 def jump(arg,domain=None):
@@ -5942,7 +2584,6 @@ def jump(arg,domain=None):
     :type arg: `escript.Data` or `Symbol`
     :param domain: the domain where the discontinuity is located. If domain is
                    not present or equal to ``None`` the domain of ``arg`` is used.
-                   If ``arg`` is a `Symbol` the domain must be present.
     :type domain: ``None`` or `escript.Domain`
     :return: jump of ``arg``
     :rtype: `escript.Data` or `Symbol`
@@ -5960,6 +2601,8 @@ def L2(arg):
     :rtype: `float` or `Symbol`
     :note: L2(arg) is equivalent to ``sqrt(integrate(inner(arg,arg)))``
     """
+    if isinstance(arg,Symbol):
+        return symfn.L2(arg)
     return sqrt(integrate(inner(arg,arg)))
 
 def getClosestValue(arg,origin=0):
@@ -5967,11 +2610,11 @@ def getClosestValue(arg,origin=0):
     Returns the value in ``arg`` which is closest to origin.
 
     :param arg: function
-    :type arg: `escript.Data` or `Symbol`
+    :type arg: `escript.Data`
     :param origin: reference value
     :type origin: ``float`` or `escript.Data`
     :return: value in ``arg`` closest to origin
-    :rtype: ``numpy.ndarray`` or `Symbol`
+    :rtype: ``numpy.ndarray``
     """
     return arg.getValueOfGlobalDataPoint(*(length(arg-origin).minGlobalDataPoint()))
 
@@ -6229,7 +2872,6 @@ class FileWriter(object):
         except Exception as e:
            errno=1
         self.__handelerror(errno,e,"writing strings")
-
 
 def reorderComponents(arg,index):
     """

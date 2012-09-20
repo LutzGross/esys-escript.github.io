@@ -306,7 +306,7 @@ class NoPDE:
             if self.__Y==None:
                self.__u=escript.Data(0.,D.getShape(),self.__function_space)
             else:
-               self.__u=util.quotient(self.__Y,D)
+               self.__u=1./D*self.__Y
             if not self.__q==None:
                 q=util.wherePositive(escript.Data(self.__q,self.__function_space))
                 self.__u*=(1.-q)
