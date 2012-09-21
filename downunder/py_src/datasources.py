@@ -680,7 +680,8 @@ class ERSDataSource(DataSource):
     def getGravityAndStdDev(self):
         nValues=self.__nPts[:2]+[1]
         first=self._dom_NE_pad[:2]+[self._dom_NE_pad[2]+int((self.__altOfData-self.__origin[2])/self.__delta[2])]
-        g=ripleycpp._readBinaryGrid(self.__datafile, Function(self.getDomain()),
+        g=ripleycpp._readBinaryGrid(self.__datafile,
+                ReducedFunction(self.getDomain()),
                 first, nValues, (), self.__maskval)
         sigma=whereNonZero(g-self.__maskval)
         g=g*1e-6
