@@ -1,20 +1,22 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 #ifndef INC_DUDLEY_MESH
 #define INC_DUDLEY_MESH
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Dudley: Mesh */
 
@@ -53,7 +55,7 @@
    Dudley_Mesh_getDim. Notice that the element type also determines
    the type of surface elements to be used. */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Dudley.h"
 #include "NodeFile.h"
@@ -67,7 +69,7 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  this struct holds a mesh: */
 
@@ -103,7 +105,7 @@ struct Dudley_Mesh_findMatchingFaces_center {
 };
 typedef struct Dudley_Mesh_findMatchingFaces_center Dudley_Mesh_findMatchingFaces_center;
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  interfaces: */
 Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info);

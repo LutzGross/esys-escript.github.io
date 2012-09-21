@@ -1,22 +1,24 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Some utility routines: */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Finley.h"
 #include "Util.h"
@@ -30,7 +32,7 @@
 #include <string.h>   /* for memcpy */
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   returns true if any of the values in the short array values is not equal to Zero */
 
@@ -39,7 +41,7 @@ bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
    for (q=0;q<N;++q) if (ABS(values[q])>0) return TRUE;
    return FALSE;
 }
-/**************************************************************/
+/************************************************************************************/
 
 /*   gathers double values out from in by index: */
 
@@ -54,7 +56,7 @@ void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 
 /*   gathers integer values out from in by index: */
@@ -70,7 +72,7 @@ void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in,
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   adds a vector in into out using an index. */
 
@@ -385,7 +387,7 @@ void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
 }
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* calculates the minimum value from a dim X N integer array */
 
@@ -430,7 +432,7 @@ index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
    }
    return out;
 }
-/**************************************************************/
+/************************************************************************************/
 
 /* calculates the minimum value from a dim X N integer array */
 

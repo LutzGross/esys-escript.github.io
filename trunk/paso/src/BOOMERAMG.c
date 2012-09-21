@@ -1,29 +1,31 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: SystemMatrix: interface to HYPRE, a software library of
    high performance preconditioners and solvers. We use the 
    BoomerAMG provided in this library */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Copyrights by ACcESS Australia 2011 */
 /* Author: Lin Gao, l.gao@uq.edu.au */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "BOOMERAMG.h"
@@ -33,7 +35,7 @@
 #include <omp.h>
 #endif
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  free any extra stuff possibly used by the BoomerAMG library */
 void Paso_Preconditioner_BoomerAMG_free(Paso_Preconditioner_BoomerAMG * in) {

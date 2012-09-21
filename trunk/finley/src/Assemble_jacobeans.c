@@ -1,15 +1,17 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
 #include "Assemble.h"
@@ -42,7 +44,7 @@ double* volume[numQuad*numElements]
 
 #define SCALING(_nsub_,_dim_) pow(1./(double)(_nsub_),1./(double)(_dim_))
 
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 1D                                               */
 /*                                                            */
@@ -81,7 +83,7 @@ void Finley_Assemble_jacobeans_1D(double* coordinates, dim_t numQuad, double* Qu
      #undef LOCDIM 
 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 2D with area element                             */
 /*                                                            */
@@ -138,7 +140,7 @@ void Finley_Assemble_jacobeans_2D(double* coordinates, dim_t numQuad,double* Qua
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements                */
 /*                                                            */
@@ -186,7 +188,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E1D(double* coordinates, dim_t numQuad,dou
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 1D elements with contact   */
 /*                                                            */
@@ -247,7 +249,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,d
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 2D elements                */
 /*                                                            */
@@ -303,7 +305,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E2D(double* coordinates, dim_t numQuad,dou
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 1D manifold in 2D and 2D elements with contact   */
 /*                                                            */
@@ -380,7 +382,7 @@ void Finley_Assemble_jacobeans_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,d
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 3D                                               */
 /*                                                            */
@@ -454,7 +456,7 @@ void Finley_Assemble_jacobeans_3D(double* coordinates, dim_t numQuad,double* Qua
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 2D manifold in 3D with 3D elements               */
 /*                                                            */
@@ -533,7 +535,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E3D(double* coordinates, dim_t numQuad,dou
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 2D manifold in 3D with 3D elements on contact    */
 /*                                                            */
@@ -656,7 +658,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,d
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 2D manifold in 3D with 2D elements               */
 /*                                                            */
@@ -722,7 +724,7 @@ void Finley_Assemble_jacobeans_3D_M2D_E2D(double* coordinates, dim_t numQuad,dou
      #undef DIM 
      #undef LOCDIM 
 }
-/**************************************************************/
+/************************************************************************************/
 /*                                                            */
 /*  Jacobean 2D manifold in 3D with 2D elements with contact  */
 /*                                                            */

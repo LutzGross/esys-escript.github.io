@@ -1,25 +1,27 @@
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Mesh */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Mesh.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected independently. */
@@ -108,7 +110,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
   }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  returns the spatial dimension of the mesh: */
 

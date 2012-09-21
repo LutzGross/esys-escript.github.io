@@ -1,18 +1,20 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: AML preconditioner:
 
@@ -20,11 +22,11 @@ This is just a collection of older code. This does not compile.
 
 */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: artak@uq.edu.au                                */
 
-/**************************************************************/
+/************************************************************************************/
    
 #include "Paso.h"
 #include "Preconditioner.h"
@@ -83,7 +85,7 @@ void Paso_Coarsening_Local_Write(char *fileName,dim_t n,index_t* marker_F);
 #endif
 
 
-/*************************************************************,amli->b_F*/
+/***********************************************************************************,amli->b_F*/
 
 /* free all memory used by AMLI                                */
 
@@ -135,7 +137,7 @@ void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in) {
      }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   constructs the block-block factorization of 
 
@@ -418,7 +420,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
   }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /* apply AMLI precondition b-> x                               
 
@@ -559,20 +561,22 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      return;
 }
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/*************************************************************
+/***********************************************************************************
 
 Paso: Coarsening strategies (no MPI)   
 
@@ -602,11 +606,11 @@ Remark:
 - a strong connection in YAIR_SHAPIRA is a strong connection in Aggregation
 
 */
-/**************************************************************
+/************************************************************************************
 
 Author: artak@uq.edu.au, l.gross@uq.edu.au                   
 
-**************************************************************/
+************************************************************************************/
 
 #include "Coarsening.h"
 #include "PasoUtil.h"

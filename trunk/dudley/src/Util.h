@@ -1,28 +1,30 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Some utility routines: */
 
-/**************************************************************/
+/************************************************************************************/
 
 #ifndef INC_DUDLEY_UTIL
 #define INC_DUDLEY_UTIL
 
 #include "Dudley.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 void Dudley_Util_Gather_double(dim_t len, index_t * index, dim_t numData, double *in, double *out);
 void Dudley_Util_Gather_int(dim_t len, index_t * index, dim_t numData, index_t * in, index_t * out);

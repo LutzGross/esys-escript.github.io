@@ -1,33 +1,35 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: preconditioner  set up                               */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/***********************************************************************************/
+/*********************************************************************************************************/
 
 /*  free space */
 
@@ -100,7 +102,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	      prec->type=PASO_AMG;
 	      break;
 	      
-	   /***************************************************************************************/   
+	   /*************************************************************************************************************/   
            case PASO_ILU0:
 	      if (options->verbose) printf("Paso_Preconditioner: ILU preconditioner is used.\n");
               prec->ilu=Paso_Solver_getILU(A->mainBlock,options->verbose);

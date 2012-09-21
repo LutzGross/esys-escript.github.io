@@ -1,15 +1,17 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
 /*
@@ -283,9 +285,9 @@ int mm_write_mtx_array_size(FILE *f, int M, int N)
 
 /*-------------------------------------------------------------------------*/
 
-/******************************************************************/
+/****************************************************************************************/
 /* use when Ip[], Jp[], and val[] are already allocated           */
-/******************************************************************/
+/****************************************************************************************/
 
 int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int Ip[], int Jp[],
         double val[], MM_typecode matcode)
@@ -347,13 +349,13 @@ int mm_read_mtx_crd_entry(FILE *f, int *Ip, int *Jp,
 }
 
 
-/************************************************************************
+/**********************************************************************************************
     mm_read_mtx_crd()  fills M, N, nz, array of values, and return
                         type code, e.g. 'MCRS'
 
                         if matrix is complex, values[] is of size 2*nz,
                             (nz pairs of real/imaginary values)
-************************************************************************/
+**********************************************************************************************/
 
 int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **Ip, int **Jp,
         double **val, MM_typecode *matcode)

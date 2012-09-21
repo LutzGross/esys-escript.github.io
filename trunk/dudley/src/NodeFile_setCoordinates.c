@@ -1,28 +1,30 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Dudley: Mesh: NodeFile */
 
 /* copies the array newX into self->coordinates */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "NodeFile.h"
 #include "Util.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 void Dudley_NodeFile_setCoordinates(Dudley_NodeFile * self, escriptDataC * newX)
 {

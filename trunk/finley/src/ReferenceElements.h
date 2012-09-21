@@ -1,34 +1,36 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Reference elements */
 
-/**************************************************************/
+/************************************************************************************/
 
 #ifndef INC_FINLEY_REFERENCEELEMENTS
 #define INC_FINLEY_REFERENCEELEMENTS
 
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Finley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 /*     The ids of the allowed reference elements: */
 
@@ -116,7 +118,7 @@ typedef enum {
   Finley_NoRef   /* marks end of list */
 } Finley_ElementTypeId;
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  this struct holds the definition of the reference element: */
 
@@ -142,7 +144,7 @@ typedef struct Finley_ReferenceElementInfo {
 
   index_t subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];         /* gives the list of nodes defining the subelements:
 																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
-/*********************************************************************************************************************************** */  
+/********************************************************************************************************************************************************* */  
   dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
                                                 typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 
 						this is the number of nodes on the particular face. */
@@ -158,7 +160,7 @@ typedef struct Finley_ReferenceElementInfo {
 }  Finley_ReferenceElementInfo;
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  this struct holds the realization of a reference element */
 
@@ -178,7 +180,7 @@ typedef struct Finley_ReferenceElement {
 
 }  Finley_ReferenceElement;
 
-/**************************************************************/
+/************************************************************************************/
 
 /*    interfaces: */
 

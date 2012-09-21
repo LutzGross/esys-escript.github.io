@@ -1,22 +1,24 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: quadrature schemes */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Quadrature.h"
 #include "esysUtils/index.h"
@@ -26,7 +28,7 @@
 #define QUADNODES(_K_,_I_) quadNodes[INDEX2(_K_,_I_,DIM)]
 #define QUADWEIGHTS(_I_) quadWeights[_I_]
 
-/**************************************************************/
+/************************************************************************************/
 
 Finley_QuadInfo Finley_QuadInfoList[]={
 	{PointQuad, "Point", 0,  1, 	Finley_Quad_getNodesPoint,		Finley_Quad_getNumNodesPoint, 	Finley_Quad_MacroPoint} ,
@@ -52,7 +54,7 @@ Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id)
     return out;
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the tri  */
 /*   as a squeezed scheme on a quad [0,1]^2 */
@@ -366,7 +368,7 @@ void Finley_Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeig
 
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the tet */
 /*   as a squeezed scheme on a hex [0,1]^3 */
@@ -995,7 +997,7 @@ void Finley_Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeig
   #undef DIM
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the quad [0.1]^2 */
 /*   as a X-product of a 1D scheme. */
@@ -1046,7 +1048,7 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
    #undef DIM
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for the hex [0.1]^3 */
 /*   as a X-product of a 1D scheme. */
@@ -1100,7 +1102,7 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
   #undef DIM
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes for a point. As there */
 /*   in no quadrature scheme for a point any value for numQuadNodes other than 0 throws */
@@ -1114,7 +1116,7 @@ void Finley_Quad_getNodesPoint(int numQuadNodes,double* quadNodes,double* quadWe
   }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with numQuadNodes quadrature nodes on the line [0,1]: */
 /*   The nodes and weights are set from a table. */
@@ -1268,7 +1270,7 @@ void Finley_Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWei
 }
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*    The following functions Finley_Quad_getNumNodes* return the number of quadrature points needed to */
 /*    achieve a certain accuracy. Notice that for Tet and Tri the order is increased */

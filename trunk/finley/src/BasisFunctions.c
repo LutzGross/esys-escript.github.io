@@ -1,26 +1,28 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Reference elements */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "ReferenceElements.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 Finley_ReferenceElementInfo Finley_ReferenceElement_InfoList[]={
   {Point1,     "Point1", 0,     0,  1,  1, 1, 1, 
@@ -417,7 +419,7 @@ Finley_ReferenceElementInfo Finley_ReferenceElement_InfoList[]={
   {NoType, "noElement", 0, 0,  0,  0, 0, 0, NoType, {999}, Finley_Shape_Point1, Finley_Quad_getNodesPoint, Finley_Quad_getNumNodesPoint,0,{999},-1,{999},{999},{999}}  /* marks end of list */
 };
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   get a quadrature scheme with NumQuadNodes quadrature nodes for the tri  */
 /*   as a squeezed scheme on a quad [0,1]^2 */
@@ -474,7 +476,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id,int numQ
   return out;
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 void Finley_ReferenceElement_dealloc(Finley_ReferenceElement* in) {
   if (in!=NULL) {
@@ -489,7 +491,7 @@ void Finley_ReferenceElement_dealloc(Finley_ReferenceElement* in) {
   }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 ElementTypeId Finley_ReferenceElement_getTypeId(char* element_type) {
     int ptr=0;

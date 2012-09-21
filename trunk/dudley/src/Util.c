@@ -1,21 +1,23 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Some utility routines: */
 
-/**************************************************************/
+/************************************************************************************/
 #include "esysUtils/maths.h"
 #include "Util.h"
 
@@ -28,7 +30,7 @@
 #include <limits.h>
 #include "string.h"  /* for memcpy*/
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   returns true if any of the values in the short array values is not equalt to Zero */
 
@@ -41,7 +43,7 @@ bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double *values)
     return FALSE;
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   gathers double values out from in by index: */
 
@@ -59,7 +61,7 @@ void Dudley_Util_Gather_double(dim_t len, index_t * index, dim_t numData, double
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   gathers maybelong values out from in by index: */
 
@@ -77,7 +79,7 @@ void Dudley_Util_Gather_int(dim_t len, index_t * index, dim_t numData, index_t *
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   adds a vector in into out using and index. */
 
@@ -458,7 +460,7 @@ void Dudley_Util_sortValueAndIndex(dim_t n, Dudley_Util_ValueAndIndex * array)
     qsort(array, n, sizeof(Dudley_Util_ValueAndIndex), Dudley_Util_ValueAndIndex_compar);
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /* calculates the minimum value from a dim X N integer array */
 
@@ -515,7 +517,7 @@ index_t Dudley_Util_getMaxInt(dim_t dim, dim_t N, index_t * values)
     return out;
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /* calculates the minimum value from a dim X N integer array */
 

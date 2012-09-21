@@ -1,27 +1,29 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: GS preconditioner with reordering                    */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003-2010 */
 /* Author: l.gao@uq.edu.au                                    */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
@@ -30,7 +32,7 @@
 
 #include <stdio.h>
 
-/**************************************************************/
+/************************************************************************************/
 
 /* free all memory used by GS                                */
 
@@ -46,7 +48,7 @@ void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
 }
 
 ==========================================================================
-/**************************************************************/
+/************************************************************************************/
 
 /*   gs->diag saves the matrix of D{-1}
      This is different from Paso_Solver_getGS(), in which, gs->diag
@@ -198,7 +200,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
 
 void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b);
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Applies MPI versioned GS
 

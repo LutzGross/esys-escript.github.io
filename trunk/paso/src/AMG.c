@@ -1,26 +1,28 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: AMG preconditioner  (local version)                  */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: artak@uq.edu.au, l.gross@uq.edu.au                 */
 
-/**************************************************************/
+/************************************************************************************/
 
 #define SHOW_TIMING FALSE
 #define MY_DEBUG 0
@@ -35,7 +37,7 @@
 #include<stdio.h>
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* free all memory used by AMG                                */
 
@@ -84,11 +86,11 @@ dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG
  	 return Paso_Preconditioner_AMG_getNumCoarseUnknwons(in->AMG_C);
    }
 }
-/*****************************************************************
+/***************************************************************************************
 
    constructs AMG
    
-******************************************************************/
+****************************************************************************************/
 Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,dim_t level,Paso_Options* options) {
 
   Paso_Preconditioner_AMG* out=NULL;

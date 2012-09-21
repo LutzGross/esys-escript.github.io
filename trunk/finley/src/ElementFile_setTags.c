@@ -1,30 +1,32 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*	 Finley: Mesh: ElementFile */
 
 /*	set tags to newTag where mask>0 */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "ElementFile.h"
 #include "Util.h"
 #include "Assemble.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 
 void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escriptDataC* mask) {

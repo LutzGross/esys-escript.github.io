@@ -1,20 +1,22 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
-/***************************************************************************/
+/*************************************************************************************************/
 /*   Writes data and mesh in VTK XML format to a VTU file.                 */
 /*   Nodal data needs to be given on DUDLEY_NODES or DUDLEY_REDUCED_NODES  */
-/***************************************************************************/
+/*************************************************************************************************/
 
 #include "Mesh.h"
 #include "Assemble.h"
@@ -149,7 +151,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     my_mpi_rank = mesh_p->Nodes->MPIInfo->rank;
     mpi_size = mesh_p->Nodes->MPIInfo->size;
 
-    /************************************************************************
+    /**********************************************************************************************
      * open the file and check handle *
      */
     if (mpi_size > 1)
@@ -190,7 +192,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
      * called and subsequent steps are skipped until the end of this function
      * where allocated memory is freed and the file is closed. */
 
-    /************************************************************************/
+    /**********************************************************************************************/
     /* find the mesh type to be written */
 
     isCellCentered = TMPMEMALLOC(num_data, bool_t);
@@ -282,7 +284,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
 	}
     }
 
-    /************************************************************************/
+    /**********************************************************************************************/
     /* select number of points and the mesh component */
 
     if (Dudley_noError())
@@ -396,7 +398,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     /* sets error if memory allocation failed */
     Dudley_checkPtr(txtBuffer);
 
-    /************************************************************************/
+    /**********************************************************************************************/
     /* write number of points and the mesh component */
 
     if (Dudley_noError())
@@ -621,7 +623,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     }
 
     /* Dudley_noError */
- /************************************************************************/
+ /**********************************************************************************************/
     /* write cell data */
     if (writeCellData && Dudley_noError())
     {
@@ -847,7 +849,7 @@ void Dudley_Mesh_saveVTK(const char *filename_p,
     }
 
     /* if noError && writeCellData */
- /************************************************************************/
+ /**********************************************************************************************/
     /* write point data */
     if (writePointData && Dudley_noError())
     {

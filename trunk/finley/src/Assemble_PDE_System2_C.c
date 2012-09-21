@@ -1,18 +1,20 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*    assembles the system of numEq PDEs into the stiffness matrix S and right hand side F  */
 
@@ -27,12 +29,12 @@
 /*      Y = p.numEqu   */
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  Author: Lutz Gross, l.gross@uq.edu.au */
 /*  Version: $Id:$ */
 
-/**************************************************************/
+/************************************************************************************/
 
 
 #include "Assemble.h"
@@ -42,7 +44,7 @@
 #endif
 
 
-/**************************************************************/
+/************************************************************************************/
 
 void  Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters p,
                                     Finley_ElementFile* elements,
@@ -85,9 +87,9 @@ void  Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters p,
                       add_EM_F=FALSE;
                       add_EM_S=FALSE;
                       
-		      /*************************************************************/
+		      /***********************************************************************************/
                       /* process D */
-                      /**************************************************************/
+                      /************************************************************************************/
 		      if (NULL!=D_p) {
                         add_EM_S=TRUE;
                         if (extendedD) {
@@ -126,9 +128,9 @@ void  Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters p,
                             }
                         }
                       }
-                     /**************************************************************/
+                     /************************************************************************************/
                      /*   process Y: */
-                     /**************************************************************/
+                     /************************************************************************************/
                       if (NULL!=Y_p) {
                         add_EM_F=TRUE;
                         if (extendedY) {
@@ -153,9 +155,9 @@ void  Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters p,
                            }
                          }
                        }
-                       /***********************************************************************************************/
+                       /*********************************************************************************************************************/
                        /* add the element matrices onto the matrix and right hand side                                */
-                       /***********************************************************************************************/
+                       /*********************************************************************************************************************/
                        for (q=0;q<p.row_numShapesTotal;q++) row_index[q]=p.row_DOF[ elements->Nodes[ INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)] ];
 		       
                        if (add_EM_F) Finley_Util_AddScatter(p.row_numShapesTotal,row_index,p.numEqu,EM_F,F_p, p.row_DOF_UpperBound);

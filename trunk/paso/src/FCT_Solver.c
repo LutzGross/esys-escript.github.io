@@ -1,18 +1,20 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: Transport solver with flux correction (L is row sum zero) 
  *
@@ -21,11 +23,11 @@
  *  to return v(dt)
  *
 */
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: l.gross@uq.edu.au */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "FCT_Solver.h"
 #include "Preconditioner.h"
@@ -319,7 +321,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
     }        
     Paso_FCT_FluxLimiter_setU_tilda(flux_limiter, b); /* u_tilda = m^{-1} b */
     /* u_tilda_connector is completed */
-    /**********************************************************************************************************************/   
+    /********************************************************************************************************************************************/   
     /* calculate stopping criterium */
     norm_u_tilde=Paso_lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     ATOL= rtol * norm_u_tilde + atol ;
@@ -591,7 +593,7 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
 
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Creates the low order transport matrix and stores its negative values 
  * into the iteration_matrix except for the main diagonal which is stored
@@ -729,7 +731,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
   }
 }
 
-/* *************************************************************************************************************************** */
+/* ************************************************************************************************************************************************* */
 
 
 

@@ -1,31 +1,33 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Shape functions header file */
 
-/**************************************************************/
+/************************************************************************************/
 
 #ifndef INC_FINLEY_SHAPEFUNCTIONS
 #define INC_FINLEY_SHAPEFUNCTIONS
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Finley.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 #define S_INDEX(_J_,_I_,_NUMNODES_)                INDEX2(_J_,_I_,_NUMNODES_)
 #define DSDV_INDEX(_J_,_K_,_I_,_NUMNODES_,_DIM_)   INDEX3(_J_,_K_,_I_,_NUMNODES_,_DIM_)
@@ -55,7 +57,7 @@ typedef enum {
   NoShape   /* marks end of list */
 } Finley_ShapeFunctionTypeId;
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  this struct holds the definition of the shape functions on an element: */
 
@@ -73,7 +75,7 @@ typedef struct Finley_ShapeFunctionInfo {
 }  Finley_ShapeFunctionInfo;
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*  this struct holds the evaluation of a shape function on a quadrature scheme: */
 
@@ -87,7 +89,7 @@ typedef struct Finley_ShapeFunction {
   index_t reference_counter;	   /* reference counter */
 }  Finley_ShapeFunction;
 
-/**************************************************************/
+/************************************************************************************/
 /*   Interfaces: */
 
 Finley_ShapeFunction_Evaluation Finley_Shape_Point1;

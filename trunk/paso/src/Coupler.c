@@ -1,25 +1,27 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
 #include "Coupler.h"
 #include "esysUtils/error.h"
 
-/*************************************************************
+/***********************************************************************************
  *
  * allocates a Connector
  *
- **************************************************************/
+ ************************************************************************************/
 
 Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
                                      Paso_SharedComponents* recv)
@@ -125,11 +127,11 @@ Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
           return NULL;
      } 
 }
-/*************************************************************
+/***********************************************************************************
  *
  * allocates a Connector
  *
- **************************************************************/
+ ************************************************************************************/
 
 Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
 {
