@@ -1,29 +1,31 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: ElementFile: this will redistribute the Elements including overlap by rank */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "ElementFile.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-/**************************************************************/
+/************************************************************************************/
 
 void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI_rank* mpiRankOfDOF, index_t* Id) {
      size_t size_size;

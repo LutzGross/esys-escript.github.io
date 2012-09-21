@@ -1,29 +1,29 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 * 
 *****************************************************
-**************************************************************
+************************************************************************************
 
  Paso: SystemMatrix: debugging tools
 
-**************************************************************
+************************************************************************************
 
 Author: Lutz Gross, l.gross@uq.edu.au 
 
-**************************************************************/
+************************************************************************************/
 
 #include "SystemMatrix.h"
 #include "esysUtils/error.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 /* fills the matrix with values i+f1*j where i and j are the global row
  * and column indices of the matrix entry */

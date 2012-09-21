@@ -1,15 +1,17 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 #include "ElementFile.h"
 #include "Assemble.h"
@@ -19,7 +21,7 @@
 
 #include "ShapeTable.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_Jacobeans_alloc(void)
 {
@@ -41,7 +43,7 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_Jacobeans_alloc(void)
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans * in)
 {
@@ -53,7 +55,7 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans * in)
     }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile * self, Dudley_NodeFile * nodes,
 								 bool_t reducedIntegrationOrder)

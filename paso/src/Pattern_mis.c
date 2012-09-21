@@ -1,18 +1,20 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**********************************************************************/
+/********************************************************************************************/
 
 /* Paso: Pattern: Paso_Pattern_mis 
 
@@ -21,12 +23,12 @@
    Nodes to be considered are marked by -1 on the input in mis_marker.
 
 */
-/**********************************************************************/
+/********************************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003,2004,2005                      */
 /* Author: Lutz Gross, l.gross@uq.edu.au                              */
 
-/**************************************************************/
+/************************************************************************************/
 
 
 #include "Paso.h"
@@ -39,7 +41,7 @@
 static double Paso_Pattern_mis_seed=.4142135623730951;
 
 
-/***************************************************************/
+/*************************************************************************************/
  
 #define IS_AVAILABLE -1
 #define IS_IN_MIS_NOW -2

@@ -1,14 +1,16 @@
-########################################################
+##############################################################################
 #
 # Copyright (c) 2003-2012 by University of Queensland
-# Earth Systems Science Computational Center (ESSCC)
-# http://www.uq.edu.au/esscc
+# http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
 # Licensed under the Open Software License version 3.0
 # http://www.opensource.org/licenses/osl-3.0.php
 #
-########################################################
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development since 2012 by School of Earth Sciences
+#
+##############################################################################
 """
 this is a localization a simulation over domain [0,L] X [0,L] x [0,H]
 with a plastic layer above a viscous layer of thickness H_VISC.
@@ -16,8 +18,7 @@ The yield condition is perturbed along a line at the boundary between
 viscous and plastic layer to trigger localization.
 """
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
-Earth Systems Science Computational Center (ESSCC)
-http://www.uq.edu.au/esscc
+http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""

@@ -1,24 +1,26 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Mesh: optimizes the distribution of DOFs across processors */
 /*   using ParMETIS. On return a new distribution is given and the globalDOF */
 /*   are relabeled accordingly but the mesh is not redistributed yet. */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Mesh.h"
 #include "IndexList.h"
@@ -29,13 +31,13 @@
 #include "parmetis.h"
 #endif
 
-/**************************************************************
+/************************************************************************************
    Check whether there is any node which has no vertex. In case 
    such a node exists, we don't use parmetis since parmetis requires
    that every node has at least 1 vertex (at line 129 of file
    "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
    any node has no vertex).
- **************************************************************/
+ ************************************************************************************/
 #ifdef USE_PARMETIS
 int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t *distribution, MPI_Comm *comm)
 {
@@ -60,7 +62,7 @@ int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t *distribution, MP
 
 
 
-/**************************************************************/
+/************************************************************************************/
 
 void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 

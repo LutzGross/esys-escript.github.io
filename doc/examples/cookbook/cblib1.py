@@ -1,18 +1,19 @@
-########################################################
+##############################################################################
 #
 # Copyright (c) 2009-2012 by University of Queensland
-# Earth Systems Science Computational Center (ESSCC)
-# http://www.uq.edu.au/esscc
+# http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
 # Licensed under the Open Software License version 3.0
 # http://www.opensource.org/licenses/osl-3.0.php
 #
-########################################################
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development since 2012 by School of Earth Sciences
+#
+##############################################################################
 
 __copyright__="""Copyright (c) 2009-2012 by University of Queensland
-Earth Systems Science Computational Center (ESSCC)
-http://www.uq.edu.au/esscc
+http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
@@ -49,7 +50,7 @@ def getLoopCoords(loop):
     return coords
     
 
-########################################################
+##############################################################################
 # subroutine: cbphones
 # Allows us to record the values of a PDE at various 
 # specified locations in the model.
@@ -59,7 +60,7 @@ def getLoopCoords(loop):
 #   phones  : Geophone Locations
 #   dim     : model dimesions
 #   savepath: where to output the data files local is default
-########################################################
+##############################################################################
 def cbphones(domain,U,phones,dim,savepath=""):
    #find the number of geophones
    nphones = len(phones)
@@ -76,7 +77,7 @@ def cbphones(domain,U,phones,dim,savepath=""):
    # open file to save displacement at point source
    return u_pot
 
-########################################################
+##############################################################################
 # subroutine: wavesolver2d
 # Can solve a generic 2D wave propagation problem with a
 # point source in a homogeneous medium.
@@ -89,7 +90,7 @@ def cbphones(domain,U,phones,dim,savepath=""):
 #   U0  : magnitude of source
 #   xc  : source location in domain (Vector)
 #   savepath: where to output the data files
-########################################################
+##############################################################################
 def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
    from esys.escript.linearPDEs import LinearPDE
    x=domain.getX()
@@ -197,7 +198,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
    u_pc_data.close()
    
 
-########################################################
+##############################################################################
 # subroutine: wavesolver2d
 # Can solve a generic 2D wave propagation problem with a
 # point source in a homogeneous medium with friction.
@@ -210,7 +211,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
 #   U0  : magnitude of source
 #   xc  : source location in domain (Vector)
 #   savepath: where to output the data files
-########################################################
+##############################################################################
 def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    x=domain.getX()
    # ... open new PDE ...

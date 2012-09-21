@@ -1,22 +1,24 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: read mesh from file */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include <ctype.h>
 #include "Mesh.h"
@@ -173,7 +175,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		TMPMEMFREE(tempCoords);
 	}
 
-	/* ***********************************  read elements ******************************************************************/
+	/* ***********************************  read elements ****************************************************************************************/
 	if (Finley_noError()) {
 
 		/* Read the element typeID */
@@ -209,7 +211,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
 	}
 
-    /* *************************** Read the element data *******************************************************************/
+    /* *************************** Read the element data *****************************************************************************************/
     if (Finley_noError()) {
 
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
@@ -280,7 +282,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 	} 
 	/* ******************** end of Read the element data ******************************************************/
 
-    /* ********************* read face elements ***************************************************************/
+    /* ********************* read face elements *************************************************************************************/
     if (Finley_noError()) {
 		/* Read the element typeID */
 
@@ -312,7 +314,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
 	}
 
-    /* ********************** Read the face element data ********************************************************* */
+    /* ********************** Read the face element data ******************************************************************************* */
 
 	if (Finley_noError()) {
 		int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
@@ -575,7 +577,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}
 
 		TMPMEMFREE(tempInts);
-	} /* ******************************** end of Read the nodal element data ************************************************************* */
+	} /* ******************************** end of Read the nodal element data *********************************************************************************** */
 
 	
 	/******************  get the name tags *****************************************/

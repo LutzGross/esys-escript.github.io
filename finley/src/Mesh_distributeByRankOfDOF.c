@@ -1,27 +1,29 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: Mesh: this will redistribute the Nodes and Elements including overlap */
 /*   according to the dof_distribution. It will create an element coloring but will not create any mappings. */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Mesh.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribution) {
 

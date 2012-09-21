@@ -1,26 +1,28 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: Gauss-Seidel                                         */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: artak@uq.edu.au                                    */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "Preconditioner.h"
@@ -30,7 +32,7 @@
 #include <stdio.h>
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* free all memory used by Smoother                           */
 
@@ -48,7 +50,7 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
       MEMFREE(in);
    }
 }
-/**************************************************************/
+/************************************************************************************/
 
 /*   constructs the symmetric Gauss-Seidel preconditioner     */
 

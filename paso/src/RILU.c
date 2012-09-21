@@ -1,33 +1,35 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: RILU preconditioner with reordering                 */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 #include "BlockOps.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 /* free all memory used by RILU                               */
 
@@ -50,7 +52,7 @@ void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
      }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   constructs the block-block factorization of 
 
@@ -292,7 +294,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   }
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 /* apply RILU precondition b-> x                               
 

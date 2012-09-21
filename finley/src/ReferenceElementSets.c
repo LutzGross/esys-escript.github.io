@@ -1,29 +1,31 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/***************************************************************************************************************
+/*************************************************************************************************************************************
 
     Finley: Reference elements set managing the reference elements for the full and reduced integration order
 
-**************************************************************************************************************/
+************************************************************************************************************************************/
 
 #include "ReferenceElementSets.h"
 #include "esysUtils/mem.h"
 
 #define MAX(X,Y) ((X)>(Y)?(X):(Y))
 
-/**************************************************************/
+/************************************************************************************/
 
 
 Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeId id, index_t order, index_t reduced_order) {
@@ -65,7 +67,7 @@ Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeI
 	}
 }
 
-/**************************************************************/
+/************************************************************************************/
 
 void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in) {
 	if (in!=NULL) {

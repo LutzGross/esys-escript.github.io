@@ -1,31 +1,33 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /*   Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, Point */
 
-/**************************************************************/
+/************************************************************************************/
 
 #ifndef INC_FINLEY_QUADRATURE
 #define INC_FINLEY_QUADRATURE
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Finley.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 #define MAX_numQuadNodesLine 10
 
@@ -56,7 +58,7 @@ typedef struct Finley_QuadInfo {
   Finley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
 }  Finley_QuadInfo;
 
-/**************************************************************/
+/************************************************************************************/
 
 /*     Interfaces: */
 

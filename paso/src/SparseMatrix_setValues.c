@@ -1,32 +1,34 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: SparseMatrix :                             */
 /*  sets the values of the sparse matrix to a value */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 void  Paso_SparseMatrix_setValues(Paso_SparseMatrix* in,double value) {
   index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);

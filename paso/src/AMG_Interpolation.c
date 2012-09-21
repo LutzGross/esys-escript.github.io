@@ -1,32 +1,34 @@
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: defines AMG Interpolation                            */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Author: l.gao@uq.edu.au                                    */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/**************************************************************
+/************************************************************************************
 
     Methods nessecary for AMG preconditioner
 
@@ -35,7 +37,7 @@
 
     The coarsening operator A_C is defined by RAP where R=P^T.
 
-***************************************************************/
+*************************************************************************************/
 
 /* Extend system matrix B with extra two sparse matrixes: 
 	B_ext_main and B_ext_couple

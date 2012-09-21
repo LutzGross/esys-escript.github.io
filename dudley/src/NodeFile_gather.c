@@ -1,28 +1,30 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
-/**************************************************************
+/************************************************************************************
  *
  *   Dudley: Mesh: NodeFile                                   
  *   gathers the NodeFile out from the NodeFile in using the entries 
  *   in index[0:out->numNodes-1] which are between min_index and max_index (exclusive) 
  *   the node index[i]
  *
- **************************************************************/
+ ************************************************************************************/
 
 #include "NodeFile.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 void Dudley_NodeFile_gatherEntries(dim_t n, index_t * index, index_t min_index, index_t max_index,
 				   index_t * Id_out, index_t * Id_in,

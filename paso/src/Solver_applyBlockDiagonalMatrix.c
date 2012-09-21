@@ -1,18 +1,20 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: apply block diagonal matrix D: x=D*b                 */
 
@@ -20,16 +22,16 @@
 /* barrier synchronization should be performed to make sure   */
 /* that the input vector available                            */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003, 2004, 2005            */
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 
 void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b) {

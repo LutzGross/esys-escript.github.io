@@ -1,32 +1,34 @@
 
-/*******************************************************
+/*****************************************************************************
 *
 * Copyright (c) 2003-2012 by University of Queensland
-* Earth Systems Science Computational Center (ESSCC)
-* http://www.uq.edu.au/esscc
+* http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-*******************************************************/
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development since 2012 by School of Earth Sciences
+*
+*****************************************************************************/
 
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Paso: returns the solver to be used                        */
 
-/**************************************************************/
+/************************************************************************************/
 
 /* Copyrights by ACcESS Australia 2004,2005 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/**************************************************************/
+/************************************************************************************/
 
 #include "Paso.h"
 #include "Options.h"
 
-/**************************************************************/
+/************************************************************************************/
 
 index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info) {
   index_t out=PASO_DEFAULT;
