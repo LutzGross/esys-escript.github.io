@@ -19,7 +19,9 @@ Import('*')
 local_env = env.Clone()
 
 # files defining test runs (passing in a release)
-testruns = ['run_gravity.py',\
+testruns = [ \
+            'run_datasources.py',\
+            'run_gravity.py',\
             'run_mappings.py',\
             'run_minimizers.py'
             ]
@@ -30,7 +32,7 @@ alltestruns = testruns
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
-local_env['ENV']['DOWNUNDER_TEST_DATA_ROOT']=Dir('.').srcnode().abspath
+local_env['ENV']['DOWNUNDER_TEST_DATA_ROOT']=Dir('ref_data').srcnode().abspath
 local_env['ENV']['DOWNUNDER_WORKDIR']=Dir('.').abspath
 env.Alias('local_py_tests',[splitext(x)[0]+'.passed' for x in alltestruns])
 env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
@@ -41,7 +43,7 @@ Depends(program, 'build_py_tests')
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("DOWNUNDER_TEST_DATA_ROOT","$BATCH_ROOT/downunder/test/python"),('DOWNUNDER_WORKDIR','$BUILD_DIR/downunder/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/downunder/test/python","$BATCH_ROOT/downunder/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("DOWNUNDER_TEST_DATA_ROOT","$BATCH_ROOT/downunder/test/python/ref_data"),('DOWNUNDER_WORKDIR','$BUILD_DIR/downunder/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/downunder/test/python","$BATCH_ROOT/downunder/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/downunder/test")
 tgroup.makeDir("$BUILD_DIR/downunder/test/python")
 TestGroups.append(tgroup)
