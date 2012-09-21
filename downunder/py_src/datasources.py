@@ -610,7 +610,7 @@ class ERSDataSource(DataSource):
         try:
             maskval = float(md_dict['RasterInfo.NullCellValue'])
         except:
-            raise RuntimeError("Could not determine NullCellValue")
+            maskval = 99999
 
         try:
             spacingX = float(md_dict['RasterInfo.CellInfo.Xdimension'])
@@ -640,7 +640,7 @@ class ERSDataSource(DataSource):
                 wkt=ds.GetProjection()
             except:
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
-                self.logger.warn('GDAL not available, assuming GDA94 data')
+                self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
             originX_UTM,originY_UTM=LatLonToUTM(originX, originY, wkt)
             op1X,op1Y=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
             # we are rounding to avoid interpolateOnDomain issues
@@ -680,8 +680,8 @@ class ERSDataSource(DataSource):
         nValues=self.__nPts[:2]+[1]
         first=self._dom_NE_pad[:2]+[self._dom_NE_pad[2]+int((self.__altOfData-self.__origin[2])/self.__delta[2])]
         g=ripleycpp._readBinaryGrid(self.__datafile, Function(self.getDomain()),
-                first, nValues, (), -1e8)
-        sigma=whereNonNegative(g+1e7)
+                first, nValues, (), self.__maskval)
+        sigma=whereNonZero(g-self.__maskval)
         g=g*1e-6
         sigma=sigma*2e-6
         return g*[0,0,1], sigma
