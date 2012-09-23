@@ -88,6 +88,8 @@ class TestERSDataSource(unittest.TestCase):
         s_ref=ref[:,1].reshape(NP)
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        # recompute nz since ripley might have adjusted number of elements
+        nz=len(out)/(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 
