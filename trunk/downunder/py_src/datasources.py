@@ -255,7 +255,7 @@ class DataSource(object):
 
         # cell size / point spacing
         self._spacing = DX+[dz]
-        self._spacing = [np.round(si) for si in self._spacing]
+        self._spacing = [float(np.round(si)) for si in self._spacing]
 
         # length of domain (without padding)
         l = [NE[i]*self._spacing[i] for i in xrange(len(NE))]
@@ -276,7 +276,7 @@ class DataSource(object):
             dom=self.getDomainClass()(*self._dom_NE, l0=lo[0], l1=lo[1], l2=lo[2])
             # ripley may internally adjust NE and length, so recompute
             self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in xrange(3)]
-            self._dom_NE=[self._dom_len[i]/self._spacing[i] for i in xrange(3)]
+            self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in xrange(3)]
             x=dom.getX()-[self._dom_origin[i]+NE_pad[i]*self._spacing[i] for i in xrange(3)]
             mask=wherePositive(dom.getX()[2])
 
