@@ -51,7 +51,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         import pyproj
     except:
         print("Warning, pyproj not available. Domain extents will be wrong")
-        return lon,lat
+        return lon*1000., lat*1000.
 
     # determine UTM zone from the input data
     zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
