@@ -78,7 +78,7 @@ class FaultSystem:
   def getStart(self,tag=None):
      """
      returns the starting point of fault ``tag``
-     :rtype: `numpy.ndarray`.
+     :rtype: ``numpy.array``.
      """
      return self.getTopPolyline(tag)[0]
 
@@ -101,7 +101,7 @@ class FaultSystem:
       
      :param tag: the tag of the fault
      :type tag: ``float`` or ``str``
-     :return: the list of vertices defining the top of the fault.  The coordinates are `numpy.ndarray`.
+     :return: the list of vertices defining the top of the fault.  The coordinates are ``numpy.array``.
      """
      if tag==None: tag=self.NOTAG
      return self.__top[tag]
@@ -115,7 +115,7 @@ class FaultSystem:
   def getStrikeVectors(self, tag=None):
      """
      :return: the strike vectors of fault ``tag``
-     :rtype: ``list`` of `numpy.ndarray`.
+     :rtype: ``list`` of ``numpy.array``.
      """
      if tag==None: tag=self.NOTAG
      return self.__strike_vectors[tag]
@@ -236,7 +236,7 @@ class FaultSystem:
   def getCenterOnSurface(self):
       """
       returns the center point of the fault system at the surface 
-      :rtype: `numpy.ndarray`
+      :rtype: ``numpy.array``
       """
       if self.__center == None:
         self.__center=numpy.zeros((3,),numpy.float)
@@ -279,7 +279,7 @@ class FaultSystem:
      :param rot: rotation angle in RAD
      :type rot: ``float``
      :param shift: shift vector to be applied before rotation
-     :type shift: `numpy.ndarray` of size 2 or 3
+     :type shift: ``numpy.array`` of size 2 or 3
      """
      if self.getDim() == 2:
         mat=numpy.array([[cos(rot), -sin(rot)], [sin(rot), cos(rot)] ])
@@ -338,7 +338,7 @@ class FaultSystem:
      :param ls: list of fault lengths. In the case of a 3D fault a segment may have length 0. 
      :type ls: ``list`` of ``float``
      :param V0: start point of the fault
-     :type V0: ``list`` or `numpy.ndarray' with 2 or 3 components. ``V0[2]`` must be zero.
+     :type V0: ``list`` or ``numpy.array`` with 2 or 3 components. ``V0[2]`` must be zero.
      :param tag: the tag of the fault. If fault ``tag`` already exists it is overwritten.
      :type tag: ``float`` or ``str``
      :param dips: list of dip angles. Right hand rule around strike direction applies.
@@ -548,14 +548,14 @@ class FaultSystem:
     to create a file with the coordinates of the points in ``x`` which are on the fault (as ``mask=m``) together with their location ``p`` in the fault coordinate system.
 
     :param x: location(s)
-    :type x: `escript.Data` object or `numpy.ndarray`
+    :type x: `escript.Data` object or ``numpy.array``
     :param tag: the tag of the fault
     :param tol: relative tolerance to check if location is on fault.
     :type tol: ``float``
     :param outsider: value used for parametrization values outside the fault. If not present an appropriate value is choosen.
     :type outsider: ``float``
     :return: the coordinates ``x`` in the coordinate system of the fault and a mask indicating coordinates in the fault by 1 (0 elsewhere)
-    :rtype: `escript.Data` object or `numpy.ndarray`
+    :rtype: `escript.Data` object or ``numpy.array``
     """
     offsets=self.getW0Offsets(tag)
     w1_range=self.getW1Range(tag)
@@ -614,7 +614,7 @@ class FaultSystem:
     returns the side and the distance at ``x`` from the fault ``tag``. 
 
     :param x: location(s)
-    :type x: `escript.Data` object or `numpy.ndarray`
+    :type x: `escript.Data` object or ``numpy.array``
     :param tag: the tag of the fault
     :return: the side of ``x`` (positive means to the right of the fault, negative to the left) and the distance to the fault. Note that a value zero for the side means that that the side is undefined.
     """

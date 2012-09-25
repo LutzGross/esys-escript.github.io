@@ -192,13 +192,13 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
 ":param y_dirac:\n:type y_dirac: `Data`\n"
 )
       .def("addPDEToRHS",&escript::AbstractContinuousDomain::addPDEToRHS, 
-args("rhs", "X", "Y", "y", "y_contact", "d_dirac"),
+args("rhs", "X", "Y", "y", "y_contact", "y_dirac"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
 ":param rhs:\n:type rhs: `Data`\n"
 ":param X:\n:type X: `Data`\n"
 ":param Y:\n:type Y: `Data`\n"
 ":param y:\n:type y: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`"
+":param y_contact:\n:type y_contact: `Data`\n"
 ":param y_dirac:\n:type y_dirac: `Data`"
 )
       .def("addPDEToTransportProblem",&escript::AbstractContinuousDomain::addPDEToTransportProblem,

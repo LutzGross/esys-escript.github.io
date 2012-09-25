@@ -32,7 +32,7 @@ __author__="Cihan Altinay"
 
 import numpy
 import sympy
-from symbols import Symbol
+from symbol import Symbol
 
 def symbols(*names, **kwargs):
     """

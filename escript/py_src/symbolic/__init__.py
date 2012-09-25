@@ -20,7 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from symbols import *
+from symbol import *
 from evaluator import *
 
 from esys.escript import HAVE_SYMBOLS

@@ -488,9 +488,11 @@ class SolverOptions(object):
         Sets the preconditioner to be used. 
 
         :param preconditioner: key of the preconditioner to be used.
-        :type preconditioner: in `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, 
-                                    `SolverOptions.AMG`, `SolverOptions.AMLI`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`, `SolverOptions.BOOMERAMG`,
-                                    `SolverOptions.NO_PRECONDITIONER`
+        :type preconditioner: in `SolverOptions.ILU0`, `SolverOptions.ILUT`,
+            `SolverOptions.JACOBI`, `SolverOptions.AMG`, `SolverOptions.AMLI`,
+            `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`,
+            `SolverOptions.RILU`, `SolverOptions.BOOMERAMG`,
+            `SolverOptions.NO_PRECONDITIONER`
         :note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown preconditioner. 
         """
         if preconditioner==None: preconditioner=10
@@ -501,15 +503,19 @@ class SolverOptions(object):
 	if preconditioner==SolverOptions.AMG and escript.getEscriptParamInt('DISABLE_AMG',0):
 	     raise ValueError("AMG preconditioner is not supported in MPI builds")
         self.__preconditioner=preconditioner    
+
     def getPreconditioner(self):
         """
-        Returns key of the preconditioner to be used. 
+        Returns the key of the preconditioner to be used. 
 
-        :rtype: in the list `SolverOptions.ILU0`, `SolverOptions.ILUT`, `SolverOptions.JACOBI`, SolverOptions.AMLI,
-                                    `SolverOptions.AMG`, `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`, `SolverOptions.RILU`, `Solveroptions.BOOMERAMG`,
-                                    `SolverOptions.NO_PRECONDITIONER`
+        :rtype: in the list `SolverOptions.ILU0`, `SolverOptions.ILUT`,
+            `SolverOptions.JACOBI`, `SolverOptions.AMLI`, `SolverOptions.AMG`,
+            `SolverOptions.REC_ILU`, `SolverOptions.GAUSS_SEIDEL`,
+            `SolverOptions.RILU`, `SolverOptions.BOOMERAMG`,
+            `SolverOptions.NO_PRECONDITIONER`
         """
         return self.__preconditioner
+
     def setSmoother(self, smoother=None):
         """
         Sets the smoother to be used. 
@@ -521,7 +527,8 @@ class SolverOptions(object):
         if smoother==None: smoother=28
         if not smoother in [ SolverOptions.JACOBI, SolverOptions.GAUSS_SEIDEL ] :
              raise ValueError("unknown smoother %s"%smoother)
-        self.__smoother=smoother    
+        self.__smoother=smoother
+
     def getSmoother(self):
         """
         Returns key of the smoother to be used. 
@@ -592,18 +599,23 @@ class SolverOptions(object):
         if not ordering in [self.NO_REORDERING, self.MINIMUM_FILL_IN, self.NESTED_DISSECTION, self.DEFAULT_REORDERING]:
              raise ValueError("unknown reordering strategy %s"%ordering)
         self.__reordering=ordering
+
     def getReordering(self):
         """
         Returns the key of the reordering method to be applied if supported by the solver.
 
-        :rtype: ordering in 'SolverOptions.NO_REORDERING', 'SolverOptions.MINIMUM_FILL_IN', 'SolverOptions.NESTED_DISSECTION', 'SolverOptions.DEFAULT_REORDERING'
+        :rtype: in `SolverOptions.NO_REORDERING`,
+            `SolverOptions.MINIMUM_FILL_IN`, `SolverOptions.NESTED_DISSECTION`,
+            `SolverOptions.DEFAULT_REORDERING`
         """
         return self.__reordering
+
     def setRestart(self,restart=None):
         """
-        Sets the number of iterations steps after which GMRES is performing a restart.
+        Sets the number of iterations steps after which GMRES perfors a restart.
 
-        :param restart: number of iteration steps after which to perform a restart. If equal to ``None`` no restart is performed.
+        :param restart: number of iteration steps after which to perform a
+            restart. If ``None`` no restart is performed.
         :type restart: ``int`` or ``None``
         """
         if restart == None:
@@ -1195,7 +1207,7 @@ class SolverOptions(object):
         Set the interpolation method for the AMG preconditioner. 
 
         :param method: key of the interpolation method to be used.
-        :type method: in `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
+        :type method: in `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION`, `SolverOptions.DIRECT_INTERPOLATION`
         """
         if method==None: method=self.DIRECT_INTERPOLATION
         if not method in [ SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING, SolverOptions.CLASSIC_INTERPOLATION, SolverOptions.DIRECT_INTERPOLATION ]:
@@ -1206,28 +1218,28 @@ class SolverOptions(object):
         """
         Returns key of the interpolation method for the AMG preconditioner
 
-        :rtype: in the list `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION', `SolverOptions.DIRECT_INTERPOLATION`
+        :rtype: in the list `SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `SolverOptions.CLASSIC_INTERPOLATION`, `SolverOptions.DIRECT_INTERPOLATION`
         """
         return self.__amg_interpolation_method
     
     def setODESolver(self, method=None):
         """
-        Set the solver method for ODEs . 
+        Set the solver method for ODEs. 
 
         :param method: key of the ODE solver method to be used.
-        :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
+        :type method: in `SolverOptions.CRANK_NICOLSON`, `SolverOptions.BACKWARD_EULER`, `SolverOptions.LINEAR_CRANK_NICOLSON`
         """
-        if method==None: method=self.LINEAR_CRANK_NICOLSON
+        if method is None: method=self.LINEAR_CRANK_NICOLSON
         if not method in [ SolverOptions.CRANK_NICOLSON, SolverOptions.BACKWARD_EULER, SolverOptions.LINEAR_CRANK_NICOLSON ]:
              raise ValueError("unknown ODE solver method %s"%method)
         self.__ode_solver=method
 
     def getODESolver(self, method=None):
         """
-         Returns key of the solver method for ODEs . 
+        Returns key of the solver method for ODEs. 
 
         :param method: key of the ODE solver method to be used.
-        :type method: in `SolverOptions.CRANK_NICOLSON, `SolverOptions.BACKWARD_EULER', `SolverOptions.LINEAR_CRANK_NICOLSON
+        :type method: in `SolverOptions.CRANK_NICOLSON`, `SolverOptions.BACKWARD_EULER`, `SolverOptions.LINEAR_CRANK_NICOLSON`
         """
         return self.__ode_solver
         

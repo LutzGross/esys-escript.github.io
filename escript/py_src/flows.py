@@ -58,13 +58,14 @@ class DarcyFlow(object):
    SMOOTH="SMOOTH"
    def __init__(self, domain, useReduced=False, solver="POST", verbose=False, w=1.):
       """
-      initializes the Darcy flux problem
+      initializes the Darcy flux problem.
+
       :param domain: domain of the problem
       :type domain: `Domain`
       :param useReduced: uses reduced oreder on flux and pressure
       :type useReduced: ``bool``
       :param solver: solver method 
-      :type solver: in [`DarcyFlow.EVAL`, `DarcyFlow.POST',  `DarcyFlow.SMOOTH' ] 
+      :type solver: in [`DarcyFlow.EVAL`, `DarcyFlow.POST`, `DarcyFlow.SMOOTH` ]
       :param verbose: if ``True`` some information on the iteration progress are printed.
       :type verbose: ``bool``
       :param w: weighting factor for `DarcyFlow.POST` solver
@@ -288,16 +289,16 @@ class DarcyFlow(object):
         p_hydrostatic=p_ref+util.inner(self.__permeability_invXg_ref, self.__pde_p.getFunctionSpaceForCoefficient("q").getX() - self.ref_point)
         return self._getFlux(p-p_hydrostatic, u0)
 
-   def _getFlux(self,pp, u0=None):
+   def _getFlux(self, pp, u0=None):
         """
-        returns the flux for a given pressure ``p`` where the flux is equal to ``u0``
-        on locations where ``location_of_fixed_flux`` is positive (see `setValue`).
-        Notice that ``g`` is used, see `setValue`.
+        returns the flux for a given pressure ``pp`` where the flux is equal to
+        ``u0`` on locations where ``location_of_fixed_flux`` is positive (see
+        `setValue`). Notice that ``g`` is used, see `setValue`.
 
-        :param p: pressure.
-        :type p: scalar value on the domain (e.g. `escript.Data`).
-        :param u0: flux on the locations of the domain marked be ``location_of_fixed_flux``.
-        :type u0: vector values on the domain (e.g. `escript.Data`) or ``None``
+        :param pp: pressure.
+        :type pp: scalar value on the domain (i.e. `escript.Data`).
+        :param u0: flux on the locations of the domain marked in ``location_of_fixed_flux``.
+        :type u0: vector values on the domain (i.e. `escript.Data`) or ``None``
         :return: flux
         :rtype: `escript.Data`
         """
@@ -552,7 +553,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
      def solve_prec(self,Bv, tol):
          """
          applies preconditioner for for *BA^{-1}B^** to *Bv*
-         with accuracy `self.getSubProblemTolerance()` 
+         with accuracy ``self.getSubProblemTolerance()``
 
          :param Bv: velocity increment
          :return: *p=P(Bv)* where *P^{-1}* is an approximation of *BA^{-1}B^ * )*
