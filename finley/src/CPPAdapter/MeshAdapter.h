@@ -91,13 +91,8 @@ struct null_deleter
 
 
 /**
-   \brief
-   MeshAdapter implements the AbstractContinuousDomain
-   interface for the Finley library.
-
-   Description:
-   MeshAdapter implements the AbstractContinuousDomain
-   interface for the Finley library.
+   \brief implements the AbstractContinuousDomain interface for the Finley
+          library.
 */
 
 class MeshAdapter : public escript::AbstractContinuousDomain {

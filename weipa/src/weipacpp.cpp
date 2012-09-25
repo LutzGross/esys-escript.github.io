@@ -27,26 +27,6 @@
 
 using namespace boost::python;
 
-/*! \page weipa Weipa
- * Weipa is the python module that contains the interfaces
- * to the C++ side of the escript data exporter.
- *
- * 
- *
- * \section class_desc Class Description:
- * None
- *
- * \section class_limits Class Limitations:
- * None
- *
- * \section class_conds Class Conditions of Use:
- * None
- *
- * \section class_throws Throws:
- * None
- *
- */
-
 BOOST_PYTHON_MODULE(weipacpp)
 {
 #if BOOST_VERSION >= 103500

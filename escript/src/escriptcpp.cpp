@@ -48,35 +48,23 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 3.0.0
+ * \version 3.3.0
+ *
+ * Main modules/namespaces:
  *
  * - \ref escript
  *
- * - \ref esys_exception "Esys Exception"
+ * - \ref paso
+ *
+ * - \ref finley
  *
  * - \ref dudley
  *
+ * - \ref ripley
+ *
+ * - \ref weipa
+ *
  * - <a href="../../epydoc/index.html">Python module documentation (epydoc generated)</a>
- *
- */
-
-/*! \page escript Escript
- * Escript is the python module that contains the interfaces
- * to the C++ side of escript.
- *
- * 
- *
- * \section class_desc Class Description:
- * Data
- *
- * \section class_limits Class Limitations:
- * None
- *
- * \section class_conds Class Conditions of Use:
- * None
- *
- * \section class_throws Throws:
- * None
  *
  */
 

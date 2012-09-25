@@ -44,27 +44,6 @@ extern "C" {
 
 using namespace boost::python;
 
-/**
-   \page finley Finley
-   Finley is the python module name that contains the interfaces
-   to the C++ wrapper to finley.
-
-   \version 1.0.0 
-
-   \section class_desc Class Description:
-   Data
-
-   \section class_limits Class Limitations:
-   None
-
-   \section class_conds Class Conditions of Use:
-   None
-
-   \section throws Throws:
-   None
-
-*/
-
 //
 // The BOOST_PYTHON_FUNCTION_OVERLOADS macro generates function overloads for optional
 // arguments to the respective finley functions.

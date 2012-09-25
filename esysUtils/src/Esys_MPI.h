@@ -35,6 +35,8 @@ typedef int Esys_MPI_rank;
 #define ESYS_MPI_TODO 	{ fprintf( stdout, "\nTODO : %s:%d\n", __FILE__, __LINE__);	MPI_Finalize(); exit(1); }
 
 /* Datatypes */
+
+/** \brief Struct that holds MPI communicator, rank, size and a tag counter */
 struct Esys_MPIInfo {
   dim_t reference_counter;
   int size;
