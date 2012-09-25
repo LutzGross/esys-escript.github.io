@@ -250,20 +250,27 @@ class NonlinearPDE(object):
     def setOptions(self, **opts):
         """
         Allows setting options for the nonlinear PDE.
+
         The supported options are:
-          'tolerance' - error tolerance for the Newton method
-          'iteration_steps_max' - maximum number of Newton iterations
-          'omega_min' - minimum relaxation factor
-          'atol' - solution norms less than 'atol' are assumed to be 'atol'.
-                   This can be useful if one of your solutions is expected to
-                   be zero.
-          'quadratic_convergence_limit' - if the norm of the Newton-Raphson
-                    correction is reduced by less than 'quadratic_convergence_limit'
-                    between two iteration steps quadratic convergence is assumed
-          'simplified_newton_limit' - if the norm of the defect is reduced by
-                    less than 'simplified_newton_limit' between two iteration
-                    steps and quadratic convergence is detected the iteration
-                    swiches to the simplified Newton-Raphson scheme
+          ``tolerance``
+                error tolerance for the Newton method
+          ``iteration_steps_max``
+                maximum number of Newton iterations
+          ``omega_min``
+                minimum relaxation factor
+          ``atol``
+                solution norms less than ``atol`` are assumed to be ``atol``.
+                This can be useful if one of your solutions is expected to
+                be zero.
+          ``quadratic_convergence_limit``
+                if the norm of the Newton-Raphson correction is reduced by
+                less than ``quadratic_convergence_limit`` between two iteration
+                steps quadratic convergence is assumed.
+          ``simplified_newton_limit``
+                if the norm of the defect is reduced by less than
+                ``simplified_newton_limit`` between two iteration steps and
+                quadratic convergence is detected the iteration swiches to the
+                simplified Newton-Raphson scheme.
         """
         for key in opts:
             if key=='tolerance':
@@ -284,6 +291,7 @@ class NonlinearPDE(object):
     def getSolution(self, **subs):
         """
         Returns the solution of the PDE.
+
         :param subs: Substitutions for all symbols used in the coefficients
                      including the initial value for the unknown *u*.
         :return: the solution
@@ -452,7 +460,7 @@ class NonlinearPDE(object):
         :param f: defect vector
         :type f: `Data` of rank 0 or 1.
         :return: component-by-component norm of ``f``
-        :rtype: `numpy.array` of rank 1
+        :rtype: ``numpy.array`` of rank 1
         :raise ValueError: if shape if ``f`` is incorrect.
 
         """
@@ -473,10 +481,10 @@ class NonlinearPDE(object):
         calculates the norm of the solution ``u``
 
         :param u: solution vector
-        :type f: `Data` of rank 0 or 1.
+        :type u: `Data` of rank 0 or 1.
         :return: component-by-component norm of ``u``
-        :rtype: `numpy.array` of rank 1
-        :raise ValueError: if shape if ``u`` is incorrect.
+        :rtype: ``numpy.array`` of rank 1
+        :raise ValueError: if shape of ``u`` is incorrect.
 
         """
         out=[]
@@ -501,10 +509,10 @@ class NonlinearPDE(object):
 
         :param a: numerator
         :param b: denominator
-        :type a: `numpy.array` of rank 1 with non-negative entries.
-        :type b: `numpy.array` of rank 1 with non-negative entries.
+        :type a: ``numpy.array`` of rank 1 with non-negative entries.
+        :type b: ``numpy.array`` of rank 1 with non-negative entries.
         :return: ratio of ``a`` and ``b``
-        :rtype: `numpy.array`
+        :rtype: ``numpy.array``
         """
         out=0.
         if a.shape !=b.shape:
@@ -707,7 +715,7 @@ class NonlinearPDE(object):
         :param g: the direction(s) of change.
                   If not present, it is *g=eye(n)* where ``n`` is the number of
                   components of ``f``.
-        :type g: ``list`` or single of ``float``, `ndarray` or `Data`.
+        :type g: ``list`` or single of ``float``, ``numpy.array`` or `Data`.
         :param subs: Substitutions for all symbols used in the coefficients
                      including unknown *u* and the input factor ``f`` to be
                      investigated
@@ -1304,13 +1312,13 @@ class VariationalProblem(object):
         :type H: `Symbol`
         :keyword h: value for coefficient ``h``
         :type h: `Symbol`
-        :keyword h_contact: value for coefficient `h_contact``
+        :keyword h_contact: value for coefficient ``h_contact``
         :type h_contact: `Symbol`
         :keyword h_dirac: value for coefficient ``y_dirac``
         :type h_dirac: `Symbol`
         :keyword X: value for coefficient ``X``
         :type X: `Symbol` or any type that can be cast to a `Data` object
-        :keyword Y: value for coefficient ``Y``=r
+        :keyword Y: value for coefficient ``Y`` = r
         :type Y: `Symbol` or any type that can be cast to a `Data` object
         :keyword y: value for coefficient ``y``
         :type y: `Symbol` or any type that can be cast to a `Data` object
@@ -1493,6 +1501,7 @@ class VariationalProblem(object):
     def getSolution(self, **subs):
         """
         Returns the solution of the variational problem.
+
         :param subs: Substitutions for all symbols used in the coefficients
                      including the initial value for solution *u* and for the
                      parameter *p* (if present)

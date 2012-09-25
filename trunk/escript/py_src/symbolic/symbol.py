@@ -41,13 +41,13 @@ class Symbol(object):
     `Symbol` objects are placeholders for a single mathematical symbol, such as
     'x', or for arbitrarily complex mathematical expressions such as
     'c*x**4+alpha*exp(x)-2*sin(beta*x)', where 'alpha', 'beta', 'c', and 'x'
-    are also `Symbol`s (the symbolic 'atoms' of the expression).
+    are also Symbols (the symbolic 'atoms' of the expression).
 
     With the help of the 'Evaluator' class these symbols and expressions can
     be resolved by substituting numeric values and/or escript `Data` objects
     for the atoms. To facilitate the use of `Data` objects a `Symbol` has a
     shape (and thus a rank) as well as a dimension (see constructor).
-    `Symbol`s are useful to perform mathematical simplifications, compute
+    Symbols are useful to perform mathematical simplifications, compute
     derivatives and as coefficients for nonlinear PDEs which can be solved by
     the `NonlinearPDE` class.
     """
@@ -76,7 +76,7 @@ class Symbol(object):
         explicitly specified by numeric values and other symbols/expressions
         within a list or numpy array.
 
-        The dimensionality of the symbol can be specified through the `dim`
+        The dimensionality of the symbol can be specified through the ``dim``
         keyword. All other keywords are passed to the underlying symbolic
         library (currently sympy).
 

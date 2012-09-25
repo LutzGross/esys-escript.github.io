@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 import numpy
 import sympy
 from sympy.printing.pretty.pretty import PrettyPrinter,prettyForm,pretty_symbol
-from symbols import Symbol
+from symbol import Symbol
 
 __author__="Cihan Altinay"
 
@@ -86,13 +86,17 @@ def pretty(expr, profile=None, **kargs):
     """
     Returns a string containing the prettified form of expr.
 
-    Arguments
-    ---------
-    expr: the expression to print
-    wrap_line: line wrapping enabled/disabled, should be a boolean value (default to True)
-    use_unicode: use unicode characters, such as the Greek letter pi instead of
-        the string pi. Values should be boolean or None
-    full_prec: use full precision. Default to "auto"
+    Supported arguments:
+        ``expr``
+            the expression to print
+        ``wrap_line``
+            line wrapping enabled/disabled, should be a boolean value
+            (default to True)
+        ``use_unicode``
+            use unicode characters, such as the Greek letter pi instead of
+            the string pi. Values should be boolean or None
+        ``full_prec``
+            use full precision. Default to "auto"
     """
     from sympy.printing.pretty.pretty import pretty_use_unicode
     if profile is not None:

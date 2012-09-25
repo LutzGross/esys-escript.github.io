@@ -28,24 +28,29 @@ except:
 
 class CostFunction(object):
     """
-    A function f(x) that can be minimized (base class).
+    A function *f(x)* that can be minimized (base class).
 
-    Example of usage:
-        cf=CostFunction()
-        ... calculate x ...
+    Example of usage::
+
+        cf=DerivedCostFunction()
+        # ... calculate x ...
         args=cf.getArguments(x) # this could be potentially expensive!
         f=cf.getValue(x, *args)
-        ... it could be required to update x without using the gradient...
-        ... but then ...
+        # ... it could be required to update x without using the gradient...
+        # ... but then ...
         gf=cf.getGradient(x, *args)
 
     The function calls update statistical information.
     The actual work is done by the methods with corresponding name and a
     leading underscore. These functions need to be overwritten for a particular
-    cost function.
+    cost function implementation.
     """
 
     def __init__(self):
+        """
+        the base constructor initializes the counters so subclasses should
+        ensure the super class constructor is called.
+        """
         self.resetCounters()
 
     def resetCounters(self):
@@ -60,34 +65,35 @@ class CostFunction(object):
 
     def getInner(self, f0, f1):
         """
-        returns the inner product of two gradients.
+        returns the inner product of ``f0`` and ``f1``
         """
         self.Inner_calls+=1
         return self._getInner(f0, f1)
 
     def getValue(self, x, *args):
         """
-        returns the value f(x) using the precalculated values for x.
+        returns the value *f(x)* using the precalculated values for *x*.
         """
         self.Value_calls+=1
         return self._getValue(x, *args)
 
     def __call__(self, x, *args):
         """
-        short for getValue(x, *args).
+        short for ``getValue(x, *args)``.
         """
         return self.getValue(x, *args)
 
     def getGradient(self, x, *args):
         """
-        returns the gradient of f at x using the precalculated values for x.
+        returns the gradient of *f* at *x* using the precalculated values for
+        *x*.
         """
         self.Gradient_calls+=1
         return self._getGradient(x, *args)
 
     def getDirectionalDerivative(self, x, d, *args):
         """
-        returns inner(grad f(x), d) using the precalculated values for x.
+        returns ``inner(grad f(x), d)`` using the precalculated values for *x*.
         """
         self.DirectionalDerivative_calls+=1
         return self._getDirectionalDerivative(x, d, *args)
@@ -95,49 +101,44 @@ class CostFunction(object):
     def getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
-        f(x) and grad f(x).
+        *f(x)* and *grad f(x)*.
         """
         self.Arguments_calls+=1
         return self._getArguments(x)
 
     def _getInner(self, f0, f1):
         """
-        Empty implementation of getInner().
-
-        Needs to be overwritten.
+        Worker for ``getInner()``, needs to be overwritten.
         """
         raise NotImplementedError
 
     def _getValue(self, x, *args):
         """
-        Empty implementation of getValue().
-
-        Needs to be overwritten.
+        Worker for ``getValue()``, needs to be overwritten.
         """
         raise NotImplementedError
 
     def _getGradient(self, x, *args):
         """
-        Empty implementation of getGradient().
-
-        Needs to be overwritten.
+        Worker for ``getGradient()``, needs to be overwritten.
         """
         raise NotImplementedError
 
     def _getDirectionalDerivative(self, x, d, *args):
         """
-        returns getInner(grad f(x), d) using the precalculated values for x.
+        returns ``getInner(grad f(x), d)`` using the precalculated values for x.
 
         This function may be overwritten as there might be more efficient ways
-        of calculating the return value rather than using a self.getGradient()
-        call.
+        of calculating the return value rather than using a
+        ``self.getGradient()`` call.
         """
         return self.getInner(self.getGradient(x, *args), d)
 
     def _getArguments(self, x):
         """
-        returns precalculated values that are shared in the calculation of f(x)
-        and grad f(x).
+        can be overwritten to return precalculated values that are shared in
+        the calculation of *f(x)* and *grad f(x)*. By default returns an empty
+        tuple.
         """
         return ()
 
@@ -167,7 +168,7 @@ class SimpleCostFunction(CostFunction):
  
     def _getInner(self, f0, f1):
         """
-        returns regularization.getInner(f0,f1)
+        returns ``regularization.getInner(f0,f1)``
         """
         # if there is more than one regularization involved their contributions
         # need to be added up.
@@ -175,8 +176,10 @@ class SimpleCostFunction(CostFunction):
 
     def _getArguments(self, m):
         """
-        returns precalculated values that are shared in the calculation of f(x)
-        and grad f(x).
+        returns precalculated values that are shared in the calculation of
+        *f(x)* and *grad f(x)*. In this implementation returns a tuple with the
+        mapped value of ``m``, the arguments from the forward model and the
+        arguments from the regularization.
         """
         rho=self.mapping(m)
         return rho, self.forwardmodel.getArguments(rho), self.regularization.getArguments(m)
@@ -188,7 +191,8 @@ class SimpleCostFunction(CostFunction):
 
         """
         # if there is more than one forward_model and/or regularization their
-        # contributions need to be added up.
+        # contributions need to be added up. But this implementation allows
+        # only one of each...
         if len(args)==0:
             args=self.getArguments(m)
         return self.mu_model * self.forwardmodel.getValue(args[0],*args[1]) \
@@ -196,7 +200,7 @@ class SimpleCostFunction(CostFunction):
 
     def _getGradient(self, m, *args):
         """
-        returns the gradient of f at m.
+        returns the gradient of *f* at *m*.
         If the precalculated values are not supplied getArguments() is called.
         """
         drhodm = self.mapping.getDerivative(m)
@@ -208,7 +212,7 @@ class SimpleCostFunction(CostFunction):
 
     def _getDirectionalDerivative(self, m, d, *args):
         """
-        returns the directional derivative at m in direction d.
+        returns the directional derivative at *m* in direction *d*.
         """
         drhodm = self.mapping.getDerivative(m)
         Y0 = self.forwardmodel.getGradient(args[0],*args[1])

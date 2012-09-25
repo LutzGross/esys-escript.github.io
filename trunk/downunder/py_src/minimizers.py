@@ -202,9 +202,10 @@ class AbstractMinimizer(object):
 
     def run(self, x0):
         """
-        Executes the minimization algorithm for `f` starting with the initial
-        guess `x0`.
-        :return: TOLERANCE_REACHED or MAX_ITERATIONS_REACHED
+        Executes the minimization algorithm for *f* starting with the initial
+        guess ``x0``.
+
+        :return: `TOLERANCE_REACHED` or `MAX_ITERATIONS_REACHED`
         """
         raise NotImplementedError
 
