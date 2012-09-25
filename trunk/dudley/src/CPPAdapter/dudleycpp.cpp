@@ -41,27 +41,6 @@ extern "C" {
 
 using namespace boost::python;
 
-/**
-   \page dudley Dudley
-   Dudley is the python module name that contains the interfaces
-   to the C++ wrapper to dudley.
-
-   \version 1.0.0 
-
-   \section class_desc Class Description:
-   Data
-
-   \section class_limits Class Limitations:
-   None
-
-   \section class_conds Class Conditions of Use:
-   None
-
-   \section throws Throws:
-   None
-
-*/
-
 BOOST_PYTHON_MODULE(dudleycpp)
 {
 // This feature was added in boost v1.34

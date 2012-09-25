@@ -157,11 +157,6 @@ std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
 } // end of namespace
 
-/**
-    \page ripley Ripley
-    ripleycpp is the python module name that contains the interfaces
-    to the C++ wrapper to ripley.
-*/
 
 BOOST_PYTHON_MODULE(ripleycpp)
 {

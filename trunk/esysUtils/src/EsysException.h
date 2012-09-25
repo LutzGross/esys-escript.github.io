@@ -25,23 +25,7 @@
 namespace esysUtils
 {
   /**
-  \page esys_exception Esys Exceptions
-  A base class for exception classes used within Esys system.
-
-  \version 1.0.0 
-
-  \section class_desc Class Description:
-  A base class for exception classes used within Esys system.
-
-  \section class_limits Class Limitations:
-  None
-
-  \section class_conds Class Conditions of Use:
-  None
-
-  \section throws Throws:
-  None
-
+  \brief A base class for exception classes used within Esys system.
   */
   class EsysException : public std::exception
   {
