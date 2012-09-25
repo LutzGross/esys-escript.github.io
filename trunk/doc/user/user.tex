@@ -1,16 +1,16 @@
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2003-2012 by University of Queensland
-% Earth Systems Science Computational Center (ESSCC)
-% http://www.uq.edu.au/esscc
+% http://www.uq.edu.au
 %
 % Primary Business: Queensland, Australia
 % Licensed under the Open Software License version 3.0
 % http://www.opensource.org/licenses/osl-3.0.php
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass{esysdoc}
 \usepackage{makeidx}    %already in the esysdoc class but putting it here prompts kile to run makeidx
@@ -57,12 +57,11 @@ Email: \email{esys@esscc.uq.edu.au}
 
 
 
-It consists of four major components
+It consists of three major components
 \begin{itemize}
 \item \escript core library
 \item finite element solver \finley (which uses fast vendor-supplied solvers or our paso linear solver library)
 \item the meshing interface \pycad
-% \item VTK visualization interface \pyvisi
 \item a model library.
 \end{itemize}
 The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory.
@@ -92,7 +91,6 @@ For Python3 support, see Appendix~\ref{app:py3}.
 
 %\input{modelframe}
 \include{appendix}
-%\include{pyvisi}
 
 \cleardoublepage
 \phantomsection
