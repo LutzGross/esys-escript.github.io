@@ -1569,8 +1569,6 @@ void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) 
       TMPMEMFREE(names[i]);
    }
    TMPMEMFREE(names);
-
-   return;
 }
 
 //
@@ -1585,28 +1583,34 @@ void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
+    if (getMPISize() > 1) {
 #ifdef ESYS_MPI
-    index_t myFirstNode=0, myLastNode=0, k=0;
-    index_t* globalNodeIndex=0;
-    Finley_Mesh* mesh_p=m_finleyMesh.get();
-    if (fs_code == FINLEY_REDUCED_NODES) 
-    {
-	myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
-	myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
-	globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
-    }
-    else
-    {
-	myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
-	myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
-	globalNodeIndex = Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
-    }
-    k=globalNodeIndex[id];
-    return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
+        index_t myFirstNode=0, myLastNode=0, k=0;
+        index_t* globalNodeIndex=0;
+        Finley_Mesh* mesh_p=m_finleyMesh.get();
+        if (fs_code == FINLEY_REDUCED_NODES) 
+        {
+            myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
+            myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
+            globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
+        }
+        else if (fs_code == FINLEY_NODES)
+        {
+            myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
+            myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
+            globalNodeIndex = Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
+        }
+        else
+        {
+            throw FinleyAdapterException("Unsupported function space type for ownSample()");
+        }
+
+        k=globalNodeIndex[id];
+        return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
 #endif
+    }
     return true;
 }
-
 
 
 //

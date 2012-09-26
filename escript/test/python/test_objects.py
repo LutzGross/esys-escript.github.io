@@ -21,18 +21,18 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for data objects. at the moment for dump and load only.
+Test suite for data objects.
 
-The tests must be linked with some function space class object in the setUp method:
-to run the use:
+The tests must be linked with some function space class object in the setUp
+method to run:
 
    from esys.dudley import Brick
    class Test_DumpOnDudley(Test_Dump):
        def setUp(self):
-          self.domain =Rectangle(NE,NE+1,2)
-          self.domain_with_different_number_of_samples =Rectangle(2*NE,NE+1,2)
-          self.domain_with_different_number_of_data_points_per_sample =Rectangle(2*NE,NE+1,2,integrationOrder=2)
-          self.domain_with_different_sample_ordering =Rectangle(1,(NE+1)*NE,2)
+          self.domain=Rectangle(NE,NE+1,2)
+          self.domain_with_different_number_of_samples=Rectangle(2*NE,NE+1,2)
+          self.domain_with_different_number_of_data_points_per_sample=Rectangle(2*NE,NE+1,2,integrationOrder=2)
+          self.domain_with_different_sample_ordering=Rectangle(1,(NE+1)*NE,2)
           self.filename_base="."
 
    suite = unittest.TestSuite()
@@ -60,9 +60,8 @@ except KeyError:
      ESCRIPT_WORKDIR='.'
 
 class Test_TableInterpolation(unittest.TestCase):
-    RES_TOL=1.e-7 # RES_TOLerance to compare results    
-        
-        
+    RES_TOL=1.e-7 # RES_TOLerance to compare results
+
     def test_NullFunctionSpace(self):
         arL=[[0, -1, -2, -3, -4], [1, 1, -2, -3, -4], [2, 2, 2, -3, -4], [3, 3, 3, 3, -4], [4, 4, 4, 4, 4]]
         arn=numpy.array(arL)
@@ -90,7 +89,7 @@ class Test_TableInterpolation(unittest.TestCase):
             d4.interpolateTable( arL,0, 0.5, d1, 0, 1, 100, check_boundaries=False  )
             dm05.interpolateTable( arL,0,1, d1 , 0,1, 100, check_boundaries=False  )
             d1.interpolateTable( arL,0,1, dm05 , 0,1, 100,check_boundaries=False  )
-               
+
                # interpolated value too large
             self.assertRaises(RuntimeError, d2.interpolateTable, arL, 0, 1, d2, 0, 1, 1 )
 
@@ -112,7 +111,7 @@ class Test_TableInterpolation(unittest.TestCase):
                 zmin=inf(z)
                 xwidth=(xmax-xmin)/(self.xn-1)
                 ywidth=(ymax-ymin)/(self.yn-1)
-                zwidth=(zmax-zmin)/(self.zn-1)          
+                zwidth=(zmax-zmin)/(self.zn-1)
                 table=[]
                 for k in range(self.zn):
                     face=[]
@@ -154,7 +153,7 @@ class Test_TableInterpolation(unittest.TestCase):
                       for i in range(self.xn):
                         row.append(v0+v1*xwidth*i+v2*ywidth*j+v3*i*j*xwidth*ywidth)
                       table.append(row)
-                ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin) 
+                ref=v0+v1*(x-xmin)+v2*(y-ymin)+v3*(x-xmin)*(y-ymin)
                 lsupref=Lsup(ref)
                 if lsupref!=0 and xwidth>0:             #This will happen in cases where there are no samples on this rank
                     res=x.interpolateTable(table,xmin,xwidth,y, ymin, ywidth,500)
@@ -162,8 +161,8 @@ class Test_TableInterpolation(unittest.TestCase):
                     #Now we try for the new interface
                     res=interpolateTable(table,points[0:2], (xmin, ymin), (xwidth, ywidth),500)
                     self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s under unified call."%str(fs))
-                    
-            
+
+
 
     def test_FunctionSpace1D(self):
         vs=[(1,3), (-1,1), (0.5, 17)]     #There is no particular significance to these numbers
@@ -191,58 +190,83 @@ class Test_TableInterpolation(unittest.TestCase):
 
 class Test_saveCSV(unittest.TestCase):
 
-   def test_save1(self):
+   def test_csv_header_separator_and_append(self):
         X=self.domain.getX()
         X0=X[0]
         fname=os.path.join(ESCRIPT_WORKDIR, "test_save1.csv")
-        saveDataCSV(fname,C=X, D=X0)
+        saveDataCSV(fname, C=X, D=X0)
+        self.assertTrue(os.path.exists(fname), "test file not created")
         saveDataCSV(fname,append=True, J=X0, H=X)
         self.assertTrue(os.path.exists(fname), "test file not created")
-        f=open(fname,'r')
-        line=f.readline()
-        self.assertEquals(line,"C_0, C_1, D\n")    #This tests both separator strings
-        #Now we find out how many rows it has
-        linecount=0
-        while line != '':
-                linecount+=1
-                line=f.readline()
-        self.assertEquals(linecount,self.linecount1*2)
-        f.close()
-        #Now to other output
+        line=open(fname, 'r').readline()
+        # Test both separator strings for vector, scalar
+        self.assertEquals(line, "C_0, C_1, D\n")
+
+        # Test Tensor header
         T2=Tensor(7,X.getFunctionSpace())
         T3=Tensor3(8,X.getFunctionSpace())
         T4=Tensor4(9,X.getFunctionSpace())
         saveDataCSV(fname,A=T2,B=T3,C=T4)
-        f=open(fname,'r')
-        line=f.readline()
+        line=open(fname,'r').readline()
         self.assertEquals(line, 'A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
-        line=f.readline()
-        line_expected=[7.]*4+[8.]*8+[9.]*16
-        line_got=[float(elt) for elt in line.split(',')]
-        self.assertEquals(line_got,line_expected)
-        linecount=1
-        while line != '':
-                linecount+=1
-                line=f.readline()
-        self.assertEquals(linecount, self.linecount1)
-        f.close()       
-        #Now to test separators and mask
-        saveDataCSV(fname, sep="|",csep="/", U=X, V=X0, mask=X0)
-        f=open(fname,'r')
-        line=f.readline()
+
+        # test different separator
+        saveDataCSV(fname, sep="|",csep="/", U=X, V=X0)
+        line=open(fname,'r').readline()
         self.assertEquals(line, 'U/0|U/1|V\n')
-        line=f.readline()
-        line_got=[float(elt) for elt in line.split('|')]
-        self.assertEquals(len(self.line_expected),len(line_got))
-        for i in range(len(self.line_expected)):
-                self.assertAlmostEquals(self.line_expected[i],line_got[i])
-        linecount=1
-        while line!='':
+
+   def test_saveCSV_functionspaces(self):
+        for i in xrange(len(self.functionspaces)):
+            FS=self.functionspaces[i]
+            X=FS(self.domain).getX()
+            X0=X[0]
+            fname=os.path.join(ESCRIPT_WORKDIR, "test_save2.csv")
+            saveDataCSV(fname,C=X, D=X0)
+            f=open(fname,'r')
+            # test number of rows written
+            linecount=0
+            line=f.readline() # skip header
+            while line != '':
                 linecount+=1
                 line=f.readline()
-        self.assertEquals(linecount,self.linecount2)
-        
-        
+            self.assertEquals(linecount, self.linecounts[i])
+            f.close()
+
+            # Now check data content
+            T2=Tensor(7, X.getFunctionSpace())
+            T3=Tensor3(8, X.getFunctionSpace())
+            T4=Tensor4(9, X.getFunctionSpace())
+            expected=[7.]*4+[8.]*8+[9.]*16
+            saveDataCSV(fname, A=T2, B=T3, C=T4)
+            f=open(fname, 'r')
+            f.readline() # skip header
+            line=f.readline()
+            linecount=1
+            while line != '':
+                line_got=[float(elt) for elt in line.split(',')]
+                self.assertEquals(line_got, expected)
+                linecount+=1
+                line=f.readline()
+            self.assertEquals(linecount, self.linecounts[i])
+            f.close()
+
+            # As above but with mask
+            saveDataCSV(fname, U=X, V=X0, mask=X0)
+            f=open(fname, 'r')
+            f.readline() # skip header
+            line=f.readline()
+            line_got=[float(elt) for elt in line.split(',')]
+            self.assertEquals(len(self.firstline[i]),len(line_got))
+            for j in xrange(len(self.firstline[i])):
+                self.assertAlmostEquals(self.firstline[i][j],line_got[j])
+            linecount=1
+            while line!='':
+                linecount+=1
+                line=f.readline()
+            self.assertEquals(linecount, self.linecounts_masked[i])
+            f.close()
+
+
 class Test_Domain(unittest.TestCase):
 
    def test_getListOfTags(self): # requires self.boundary_tag_list
@@ -461,11 +485,11 @@ class Test_GlobalMinMax(unittest.TestCase):
         self.assertTrue(n==0,"Incorrect position for min")
         if d.getNumberOfDataPoints()>0:
                 d.setValueOfDataPoint(0,myrank+0.001)
-        p,n=d.maxGlobalDataPoint()      
+        p,n=d.maxGlobalDataPoint()
         self.assertTrue(p==maxproc,"Incorrect process indentified as holding min")
         self.assertTrue(n==0,"Incorrect position for min")
 
-        
+
 
 class Test_SetDataPointValue(unittest.TestCase):
    arg0=9.81
@@ -1254,7 +1278,7 @@ class Test_Dump(unittest.TestCase):
    #===========================================================================
    ## This functionspace does not currently support tags.
    ## Instead, we test that the canTag() function throws in test_canTag_Failures.
-   
+
    #def test_DumpAndLoad_Tagged_Solution_Rank0(self):
        #if loadIsConfigured():
           #filemame=os.path.join(self.filename_base,"tagged_solution_rank0.nc")
@@ -1302,7 +1326,7 @@ class Test_Dump(unittest.TestCase):
    ##===========================================================================
    ## This functionspace does not currently support tags.
    ## Instead, we test that the canTag() function throws in test_canTag_Failures.
-   
+
    #def test_DumpAndLoad_Tagged_ReducedSolution_Rank0(self):
        #if loadIsConfigured():
           #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank0.nc")
@@ -1591,7 +1615,7 @@ class Test_Lazy(unittest.TestCase):
         t=delay(t)
         t=t*2
         return r1,r2,r3,f,t
-  
+
   def test_GroupRes(self):
         rr1,rr2,rr3,rf,rt=self.makeLazyObj()
         rr1=resolve(rr1)
@@ -1610,5 +1634,5 @@ class Test_Lazy(unittest.TestCase):
         r1,r2,r3,f,t=self.makeLazyObj()
         err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
         self.assertTrue(err<0.001, "Same functionspace group resolve with mixed functionspaces")
-        
-        
+
+
