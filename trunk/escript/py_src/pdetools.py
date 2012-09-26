@@ -40,7 +40,9 @@ Currently includes:
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-from . import escript
+#from . import escript
+from . import escriptcpp
+escore=escriptcpp
 from . import linearPDEs
 import numpy
 from . import util
@@ -168,8 +170,8 @@ class Projector:
 
     :param input_data: the data to be projected
     """
-    out=escript.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
-    self.__pde.setValue(Y = escript.Data(), Y_reduced = escript.Data())
+    out=escore.Data(0.,input_data.getShape(),self.__pde.getFunctionSpaceForSolution())
+    self.__pde.setValue(Y = escore.Data(), Y_reduced = escore.Data())
     if input_data.getRank()==0:
         self.__pde.setValue(Y = input_data)
         out=self.__pde.getSolution()
@@ -248,20 +250,20 @@ class NoPDE:
          self.__q=q
          self.__r=r
          self.__u=None
-         self.__function_space=escript.Solution(self.__domain)
+         self.__function_space=escore.Solution(self.__domain)
 
      def setReducedOn(self):
          """
          Sets the `FunctionSpace` of the solution to `ReducedSolution`.
          """
-         self.__function_space=escript.ReducedSolution(self.__domain)
+         self.__function_space=escore.ReducedSolution(self.__domain)
          self.__u=None
 
      def setReducedOff(self):
          """
          Sets the `FunctionSpace` of the solution to `Solution`.
          """
-         self.__function_space=escript.Solution(self.__domain)
+         self.__function_space=escore.Solution(self.__domain)
          self.__u=None
 
      def setValue(self,D=None,Y=None,q=None,r=None):
@@ -301,15 +303,15 @@ class NoPDE:
          if self.__u==None:
             if self.__D==None:
                raise ValueError("coefficient D is undefined")
-            D=escript.Data(self.__D,self.__function_space)
+            D=escore.Data(self.__D,self.__function_space)
             if D.getRank()>1:
                raise ValueError("coefficient D must have rank 0 or 1")
             if self.__Y==None:
-               self.__u=escript.Data(0.,D.getShape(),self.__function_space)
+               self.__u=escore.Data(0.,D.getShape(),self.__function_space)
             else:
                self.__u=1./D*self.__Y
             if not self.__q==None:
-                q=util.wherePositive(escript.Data(self.__q,self.__function_space))
+                q=util.wherePositive(escore.Data(self.__q,self.__function_space))
                 self.__u*=(1.-q)
                 if not self.__r==None: self.__u+=q*self.__r
          return self.__u
@@ -334,10 +336,10 @@ class Locator:
        :param x: location(s) of the Locator
        :type x: ``numpy.ndarray`` or ``list`` of ``numpy.ndarray``
        """
-       if isinstance(where,escript.FunctionSpace):
+       if isinstance(where,escore.FunctionSpace):
           self.__function_space=where
        else:
-          self.__function_space=escript.ContinuousFunction(where)
+          self.__function_space=escore.ContinuousFunction(where)
        iterative=False
        if isinstance(x, list):
            if len(x)==0: 
@@ -410,7 +412,7 @@ class Locator:
         Returns the value of ``data`` at the Locator if ``data`` is a `Data`
         object otherwise the object is returned.
         """
-        if isinstance(data,escript.Data):
+        if isinstance(data,escore.Data):
            dat=util.interpolate(data,self.getFunctionSpace())
            id=self.getId()
            r=data.getRank()
@@ -436,7 +438,7 @@ class Locator:
       """
       Sets the value of the ``data`` at the Locator.
       """
-      if isinstance(data, escript.Data):
+      if isinstance(data, escore.Data):
          if data.getFunctionSpace()!=self.getFunctionSpace():
            raise TypeError, "setValue: FunctionSpace of Locator and Data object must match."
          data.expand()	
@@ -454,7 +456,7 @@ def getInfLocator(arg):
     """
     Return a Locator for a point with the inf value over all arg.
     """
-    if not isinstance(arg, escript.Data):
+    if not isinstance(arg, escore.Data):
        raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.inf(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
@@ -466,7 +468,7 @@ def getSupLocator(arg):
     """
     Return a Locator for a point with the sup value over all arg.
     """
-    if not isinstance(arg, escript.Data):
+    if not isinstance(arg, escore.Data):
        raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.sup(arg)
     loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
@@ -1894,7 +1896,7 @@ def MaskFromBoundaryTag(domain,*tags):
    :rtype: `escript.Data` of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   d=escript.Scalar(0.,escript.FunctionOnBoundary(domain))
+   d=escore.Scalar(0.,escore.FunctionOnBoundary(domain))
    for t in tags: d.setTaggedValue(t,1.)
    pde.setValue(y=d)
    return util.whereNonZero(pde.getRightHandSide())
@@ -1915,7 +1917,7 @@ def MaskFromTag(domain,*tags):
    :rtype: `escript.Data` of rank 0
    """
    pde=linearPDEs.LinearPDE(domain,numEquations=1, numSolutions=1)
-   d=escript.Scalar(0.,escript.Function(domain))
+   d=escore.Scalar(0.,escore.Function(domain))
    for t in tags: d.setTaggedValue(t,1.)
    pde.setValue(Y=d)
    return util.whereNonZero(pde.getRightHandSide())

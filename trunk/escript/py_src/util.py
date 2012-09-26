@@ -39,24 +39,27 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import math
 import numpy
-from . import escript
+#from . import escript
+from . import escriptcpp
+escore=escriptcpp
+#import esys.escript.escriptcpp as escore
 import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
-from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval
+#from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval, Scalar, Vector
 from esys.escript.symbolic import *
 
 #=========================================================
 #   some helpers:
 #=========================================================
 def getEpsilon():
-     return escript.getMachinePrecision()
+     return escore.getMachinePrecision()
 EPSILON=getEpsilon()
 
 def getMaxFloat():
-     return escript.getMaxFloat()
+     return escore.getMaxFloat()
 DBLE_MAX=getMaxFloat()
 
 def getTagNames(domain):
@@ -186,7 +189,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
                new_data[n]=Data(d,fs)
             except:
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
-    _saveDataCSV(filename, new_data,sep, csep, append)
+    escore._saveDataCSV(filename, new_data,sep, csep, append)
 
 def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     """
@@ -232,12 +235,12 @@ def saveDX(filename,domain=None,**data):
           if not d.isEmpty():
             fs=d.getFunctionSpace()
             domain2=fs.getDomain()
-            if fs == escript.Solution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            elif fs == escript.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
-            elif fs == escript.ContinuousFunction(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            if fs == escore.Solution(domain2):
+               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
+            elif fs == escore.ReducedSolution(domain2):
+               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
+            elif fs == escore.ContinuousFunction(domain2):
+               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
             else:
                new_data[n]=d
             if domain==None: domain=domain2
@@ -302,10 +305,10 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
           if not d.isEmpty(): 
             fs = d.getFunctionSpace() 
             domain2 = fs.getDomain()
-            if fs == escript.Solution(domain2):
-               new_data[n]=interpolate(d,escript.ContinuousFunction(domain2))
-            elif fs == escript.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escript.ReducedContinuousFunction(domain2))
+            if fs == escore.Solution(domain2):
+               new_data[n]=interpolate(d,escore.ContinuousFunction(domain2))
+            elif fs == escore.ReducedSolution(domain2):
+               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
             else:
                new_data[n]=d
             if domain==None: domain=domain2
@@ -417,9 +420,9 @@ def identityTensor(d=3):
             otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 2
    """
-   if isinstance(d,escript.FunctionSpace):
-       return escript.Data(identity((d.getDim(),)),d)
-   elif isinstance(d,escript.Domain):
+   if isinstance(d,escore.FunctionSpace):
+       return escore.Data(identity((d.getDim(),)),d)
+   elif isinstance(d,escore.Domain):
        return identity((d.getDim(),))
    else:
        return identity((d,))
@@ -435,9 +438,9 @@ def identityTensor4(d=3):
             *u[i,j,k,l]=0* otherwise
    :rtype: ``numpy.ndarray`` or `escript.Data` of rank 4
    """
-   if isinstance(d,escript.FunctionSpace):
-       return escript.Data(identity((d.getDim(),d.getDim())),d)
-   elif isinstance(d,escript.Domain):
+   if isinstance(d,escore.FunctionSpace):
+       return escore.Data(identity((d.getDim(),d.getDim())),d)
+   elif isinstance(d,escore.Domain):
        return identity((d.getDim(),d.getDim()))
    else:
        return identity((d,d))
@@ -474,7 +477,7 @@ def Lsup(arg):
     """
     if isinstance(arg,numpy.ndarray):
         return sup(abs(arg))
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
         return arg._Lsup()
     elif isinstance(arg,float):
         return abs(arg)
@@ -495,7 +498,7 @@ def sup(arg):
     """
     if isinstance(arg,numpy.ndarray):
         return arg.max()
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
         return arg._sup()
     elif isinstance(arg,float):
         return arg
@@ -516,7 +519,7 @@ def inf(arg):
     """
     if isinstance(arg,numpy.ndarray):
         return arg.min()
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
         return arg._inf()
     elif isinstance(arg,float):
         return arg
@@ -543,7 +546,7 @@ def getRank(arg):
 
     if isinstance(arg,numpy.ndarray):
         return arg.ndim
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
         return arg.getRank()
     elif isinstance(arg,float):
         return 0
@@ -570,7 +573,7 @@ def getShape(arg):
         return arg.shape
     elif isinstance(arg,list):
         return numpy.array(arg).shape
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
         return arg.getShape()
     elif isinstance(arg,float):
         return ()
@@ -591,7 +594,7 @@ def pokeDim(arg):
     :rtype: ``int`` or ``None``
     """
 
-    if isinstance(arg,escript.Data):
+    if isinstance(arg,escore.Data):
         return arg.getFunctionSpace().getDim()
     else:
         return None
@@ -657,7 +660,7 @@ def testForZero(arg):
     """
     if isinstance(arg,numpy.ndarray):
        return not Lsup(arg)>0.
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
        return False
     elif isinstance(arg,float):
        return not Lsup(arg)>0.
@@ -683,8 +686,8 @@ def matchType(arg0=0.,arg1=0.):
     if isinstance(arg0,numpy.ndarray):
        if isinstance(arg1,numpy.ndarray):
           pass
-       elif isinstance(arg1,escript.Data):
-          arg0=escript.Data(arg0,arg1.getFunctionSpace())
+       elif isinstance(arg1,escore.Data):
+          arg0=escore.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
           arg1=numpy.array(arg1,dtype=numpy.float64)
        elif isinstance(arg1,int):
@@ -693,15 +696,15 @@ def matchType(arg0=0.,arg1=0.):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
-    elif isinstance(arg0,escript.Data):
+    elif isinstance(arg0,escore.Data):
        if isinstance(arg1,numpy.ndarray):
-          arg1=escript.Data(arg1,arg0.getFunctionSpace())
-       elif isinstance(arg1,escript.Data):
+          arg1=escore.Data(arg1,arg0.getFunctionSpace())
+       elif isinstance(arg1,escore.Data):
           pass
        elif isinstance(arg1,float):
-          arg1=escript.Data(arg1,(),arg0.getFunctionSpace())
+          arg1=escore.Data(arg1,(),arg0.getFunctionSpace())
        elif isinstance(arg1,int):
-          arg1=escript.Data(float(arg1),(),arg0.getFunctionSpace())
+          arg1=escore.Data(float(arg1),(),arg0.getFunctionSpace())
        elif isinstance(arg1,Symbol):
           pass
        else:
@@ -709,7 +712,7 @@ def matchType(arg0=0.,arg1=0.):
     elif isinstance(arg0,Symbol):
        if isinstance(arg1,numpy.ndarray):
           pass
-       elif isinstance(arg1,escript.Data):
+       elif isinstance(arg1,escore.Data):
           pass
        elif isinstance(arg1,float):
           pass
@@ -722,8 +725,8 @@ def matchType(arg0=0.,arg1=0.):
     elif isinstance(arg0,float):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(arg0,dtype=numpy.float64)
-       elif isinstance(arg1,escript.Data):
-          arg0=escript.Data(arg0,arg1.getFunctionSpace())
+       elif isinstance(arg1,escore.Data):
+          arg0=escore.Data(arg0,arg1.getFunctionSpace())
        elif isinstance(arg1,float):
           arg0=numpy.array(arg0,dtype=numpy.float64)
           arg1=numpy.array(arg1,dtype=numpy.float64)
@@ -737,8 +740,8 @@ def matchType(arg0=0.,arg1=0.):
     elif isinstance(arg0,int):
        if isinstance(arg1,numpy.ndarray):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
-       elif isinstance(arg1,escript.Data):
-          arg0=escript.Data(float(arg0),arg1.getFunctionSpace())
+       elif isinstance(arg1,escore.Data):
+          arg0=escore.Data(float(arg0),arg1.getFunctionSpace())
        elif isinstance(arg1,float):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(arg1,dtype=numpy.float64)
@@ -788,7 +791,7 @@ def log10(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.log10(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._log10()
    elif isinstance(arg,float):
       return math.log10(arg)
@@ -813,7 +816,7 @@ def wherePositive(arg):
       out=numpy.greater(arg,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._wherePositive()
    elif isinstance(arg,float):
       if arg>0:
@@ -844,7 +847,7 @@ def whereNegative(arg):
       out=numpy.less(arg,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._whereNegative()
    elif isinstance(arg,float):
       if arg<0:
@@ -875,7 +878,7 @@ def whereNonNegative(arg):
       out=numpy.greater_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._whereNonNegative()
    elif isinstance(arg,float):
       if arg<0:
@@ -906,7 +909,7 @@ def whereNonPositive(arg):
       out=numpy.less_equal(arg,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._whereNonPositive()
    elif isinstance(arg,float):
       if arg>0:
@@ -946,7 +949,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
       out=numpy.less_equal(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._whereZero(tol)
    elif isinstance(arg,float):
       if abs(arg)<=tol:
@@ -984,7 +987,7 @@ def whereNonZero(arg,tol=0.):
       out=numpy.greater(abs(arg)-tol,numpy.zeros(arg.shape,numpy.float64))*1.
       if isinstance(out,float): out=numpy.array(out,dtype=numpy.float64)
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._whereNonZero(tol)
    elif isinstance(arg,float):
       if abs(arg)>tol:
@@ -1026,7 +1029,7 @@ def erf(arg):
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
-   if isinstance(arg,escript.Data):
+   if isinstance(arg,escore.Data):
       return arg._erf()
    elif isinstance(arg,Symbol):
       return arg.applyfunc(symfn.erf)
@@ -1045,7 +1048,7 @@ def sin(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.sin(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._sin()
    elif isinstance(arg,float):
       return math.sin(arg)
@@ -1068,7 +1071,7 @@ def cos(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.cos(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._cos()
    elif isinstance(arg,float):
       return math.cos(arg)
@@ -1091,7 +1094,7 @@ def tan(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.tan(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._tan()
    elif isinstance(arg,float):
       return math.tan(arg)
@@ -1114,7 +1117,7 @@ def asin(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arcsin(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._asin()
    elif isinstance(arg,float):
       return math.asin(arg)
@@ -1137,7 +1140,7 @@ def acos(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arccos(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._acos()
    elif isinstance(arg,float):
       return math.acos(arg)
@@ -1160,7 +1163,7 @@ def atan(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arctan(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._atan()
    elif isinstance(arg,float):
       return math.atan(arg)
@@ -1183,7 +1186,7 @@ def sinh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.sinh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._sinh()
    elif isinstance(arg,float):
       return math.sinh(arg)
@@ -1206,7 +1209,7 @@ def cosh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.cosh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._cosh()
    elif isinstance(arg,float):
       return math.cosh(arg)
@@ -1229,7 +1232,7 @@ def tanh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.tanh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._tanh()
    elif isinstance(arg,float):
       return math.tanh(arg)
@@ -1252,7 +1255,7 @@ def asinh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arcsinh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._asinh()
    elif isinstance(arg,float):
       return numpy.arcsinh(arg)
@@ -1275,7 +1278,7 @@ def acosh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arccosh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._acosh()
    elif isinstance(arg,float):
       return numpy.arccosh(arg)
@@ -1298,7 +1301,7 @@ def atanh(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.arctanh(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._atanh()
    elif isinstance(arg,float):
       return numpy.arctanh(arg)
@@ -1321,7 +1324,7 @@ def exp(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.exp(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._exp()
    elif isinstance(arg,float):
       return math.exp(arg)
@@ -1344,7 +1347,7 @@ def sqrt(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.sqrt(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._sqrt()
    elif isinstance(arg,float):
       return math.sqrt(arg)
@@ -1367,7 +1370,7 @@ def log(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return numpy.log(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._log()
    elif isinstance(arg,float):
       return math.log(arg)
@@ -1390,7 +1393,7 @@ def sign(arg):
    """
    if isinstance(arg,numpy.ndarray):
       return wherePositive(arg)-whereNegative(arg)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._sign()
    elif isinstance(arg,float):
       if arg>0:
@@ -1425,7 +1428,7 @@ def minval(arg):
          return float(arg)
       else:
          return arg.min()
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._minval()
    elif isinstance(arg,float):
       return arg
@@ -1450,7 +1453,7 @@ def maxval(arg):
          return float(arg)
       else:
          return arg.max()
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._maxval()
    elif isinstance(arg,float):
       return arg
@@ -1506,7 +1509,7 @@ def trace(arg,axis_offset=0):
             for j in range(sh[axis_offset]): out[i1,i2]+=arg_reshaped[i1,j,j,i2]
       out.resize(sh[:axis_offset]+sh[axis_offset+2:])
       return out
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       if arg.getRank()<2:
         raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
@@ -1551,7 +1554,7 @@ def transpose(arg,axis_offset=None):
    if isinstance(arg,numpy.ndarray):
       if axis_offset==None: axis_offset=int(arg.ndim/2)
       return numpy.transpose(arg,axes=list(range(axis_offset,arg.ndim))+list(range(0,axis_offset)))
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       r=arg.getRank()
       if axis_offset==None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
@@ -1594,7 +1597,7 @@ def swap_axes(arg,axis0=0,axis1=1):
       axis0,axis1=axis1,axis0
    if isinstance(arg,numpy.ndarray):
       return numpy.swapaxes(arg,axis0,axis1)
-   elif isinstance(arg,escript.Data):
+   elif isinstance(arg,escore.Data):
       return arg._swap_axes(axis0,axis1)
    elif isinstance(arg,Symbol):
       return arg.swap_axes(axis0,axis1)
@@ -1625,7 +1628,7 @@ def symmetric(arg):
       else:
         raise ValueError("rank 2 or 4 is required.")
       return (arg+transpose(arg))/2
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
            raise ValueError("argument must be square.")
@@ -1673,7 +1676,7 @@ def nonsymmetric(arg):
       else:
         raise ValueError("nonsymmetric: rank 2 or 4 is required.")
       return (arg-transpose(arg))/2
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
       if arg.getRank()==2:
         if not (arg.getShape()[0]==arg.getShape()[1]):
            raise ValueError("argument must be square.")
@@ -1716,7 +1719,7 @@ def inverse(arg):
     import numpy.linalg
     if isinstance(arg,numpy.ndarray):
       return numpy.linalg.tensorinv(arg,ind=1)
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
       return escript_inverse(arg)
     elif isinstance(arg,float):
       return 1./arg
@@ -1736,7 +1739,7 @@ def escript_inverse(arg): # this should be escript._inverse and use LAPACK
       #s=arg.getShape()
       #if not s[0] == s[1]:
         #raise ValueError,"escript_inverse: argument must be a square matrix."
-      #out=escript.Data(0.,s,arg.getFunctionSpace())
+      #out=escore.Data(0.,s,arg.getFunctionSpace())
       #if s[0]==1:
           #if inf(abs(arg[0,0]))==0: # in c this should be done point wise as abs(arg[0,0](i))<=0.
               #raise ZeroDivisionError,"escript_inverse: argument not invertible"
@@ -1798,7 +1801,7 @@ def eigenvalues(arg):
       out=numpy.linalg.eigvals((arg+numpy.transpose(arg))/2.)
       out.sort()
       return out
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
       return arg._eigenvalues()
     elif isinstance(arg,float):
       return arg
@@ -1826,7 +1829,7 @@ def eigenvalues_and_eigenvectors(arg):
     """
     if isinstance(arg,numpy.ndarray):
       raise TypeError("eigenvalues_and_eigenvectors does not support numpy.ndarray arguments")
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
       return arg._eigenvalues_and_eigenvectors()
     elif isinstance(arg,float):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
@@ -1881,7 +1884,7 @@ def maximum(*args):
        if out==None:
           out=a*1.
        else:
-          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+          if isinstance(out,escore.Data) and isinstance(a,escore.Data):
              if out.getRank()==0 and a.getRank()>0:
                 # We need to consider the case where we have scalars and
                 # higher ranked objects mixed. If the scalar was first it will
@@ -1926,7 +1929,7 @@ def minimum(*args):
           else:
               out=a*1.
        else:
-          if isinstance(out,escript.Data) and isinstance(a,escript.Data):
+          if isinstance(out,escore.Data) and isinstance(a,escore.Data):
              if out.getRank()==0 and a.getRank()>0:
                 # We need to consider the case where we have scalars and
                 # higher ranked objects mixed. If the scalar was first it will
@@ -2145,7 +2148,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
           return arg0*arg1
        elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
           return arg0.tensorProduct(arg1, axis_offset)
-       elif isinstance(arg1, escript.Data):
+       elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[:axis_offset]:
@@ -2165,7 +2168,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
        return out
-    elif isinstance(arg0,escript.Data):
+    elif isinstance(arg0,escore.Data):
        if isinstance(arg1, Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        return escript_generalTensorProduct(arg0,arg1,axis_offset) # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
@@ -2292,7 +2295,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
           return arg0*arg1
        elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
           return arg0.transposedTensorProduct(arg1, axis_offset)
-       elif isinstance(arg1, escript.Data):
+       elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[:axis_offset]==arg1.shape[:axis_offset]:
@@ -2312,7 +2315,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
                      out[i0,i1]=numpy.sum(arg0_c[:,i0]*arg1_c[:,i1])
        out.resize(sh0[axis_offset:]+sh1[axis_offset:])
        return out
-    elif isinstance(arg0,escript.Data):
+    elif isinstance(arg0,escore.Data):
        if isinstance(arg1, Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
@@ -2429,7 +2432,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
           return arg0*arg1
        elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
           return arg0.tensorTransposedProduct(arg1, axis_offset)
-       elif isinstance(arg1, escript.Data):
+       elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
        if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
@@ -2449,7 +2452,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
        return out
-    elif isinstance(arg0,escript.Data):
+    elif isinstance(arg0,escore.Data):
        if isinstance(arg1, Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
@@ -2492,7 +2495,7 @@ def grad(arg,where=None):
            return arg.grad()
        else:
            return arg.grad(where)
-    elif isinstance(arg,escript.Data):
+    elif isinstance(arg,escore.Data):
        if where==None:
           return arg._grad()
        else:
@@ -2516,8 +2519,8 @@ def integrate(arg,where=None):
     :return: integral of ``arg``
     :rtype: ``float``, ``numpy.ndarray`` or `Symbol`
     """
-    if isinstance(arg,escript.Data):
-       if not where==None: arg=escript.Data(arg,where)
+    if isinstance(arg,escore.Data):
+       if not where==None: arg=escore.Data(arg,where)
        if arg.getRank()==0:
           return arg._integrateToTuple()[0]
        else:
@@ -2525,7 +2528,7 @@ def integrate(arg,where=None):
     elif isinstance(arg,Symbol):
        return symfn.integrate(arg, where)
     else:
-       arg2=escript.Data(arg,where)
+       arg2=escore.Data(arg,where)
        if arg2.getRank()==0:
           return arg2._integrateToTuple()[0]
        else:
@@ -2544,17 +2547,17 @@ def interpolate(arg,where):
     :return: interpolated argument
     :rtype: ``escript.Data`` or `Symbol`
     """
-    if isinstance(arg,escript.Data):
+    if isinstance(arg,escore.Data):
        if arg.isEmpty():
           return arg
        elif where == arg.getFunctionSpace():
           return arg
        else:
-          return escript.Data(arg,where)
+          return escore.Data(arg,where)
     elif isinstance(arg,Symbol):
        return symfn.interpolate(arg, where)
     else:
-       return escript.Data(arg,where)
+       return escore.Data(arg,where)
 
 def div(arg,where=None):
     """
@@ -2569,7 +2572,7 @@ def div(arg,where=None):
     :return: divergence of ``arg``
     :rtype: `escript.Data` or `Symbol`
     """
-    if isinstance(arg,escript.Data):
+    if isinstance(arg,escore.Data):
         dim=arg.getDomain().getDim()
         if not arg.getShape()==(dim,):
             raise ValueError("div: expected shape is (%s,)"%dim)
@@ -2590,7 +2593,7 @@ def jump(arg,domain=None):
     :rtype: `escript.Data` or `Symbol`
     """
     if domain==None: domain=arg.getDomain()
-    return interpolate(arg,escript.FunctionOnContactOne(domain))-interpolate(arg,escript.FunctionOnContactZero(domain))
+    return interpolate(arg,escore.FunctionOnContactOne(domain))-interpolate(arg,escore.FunctionOnContactZero(domain))
 
 def L2(arg):
     """
@@ -2649,8 +2652,8 @@ def vol(arg):
     :type arg: `escript.FunctionSpace` or `escript.Domain`
     :rtype: ``float``
     """
-    if isinstance(arg,escript.Domain): arg=escript.Function(arg)
-    return integrate(escript.Scalar(1.,arg))
+    if isinstance(arg,escore.Domain): arg=escore.Function(arg)
+    return integrate(escore.Scalar(1.,arg))
 
 def meanValue(arg):
     """
@@ -2663,10 +2666,10 @@ def meanValue(arg):
     """
     fs=arg.getFunctionSpace()
     d=fs.getDomain()
-    if fs == escript.Solution(d) or fs == escript.ContinuousFunction(d):
-       fs=escript.Function(d)
-    if fs == escript.ReducedSolution(d) or fs == escript.ReducedContinuousFunction(d):
-       fs=escript.ReducedFunction(d)
+    if fs == escore.Solution(d) or fs == escore.ContinuousFunction(d):
+       fs=escore.Function(d)
+    if fs == escore.ReducedSolution(d) or fs == escore.ReducedContinuousFunction(d):
+       fs=escore.ReducedFunction(d)
     a=vol(fs)
     if a == 0:
         raise ValueError("FunctionSpace %s with zero volume."%str(fs))
@@ -2939,8 +2942,8 @@ def condEval(f, tval, fval):
     if not isinstance(tval,Data) and not isinstance(fval,Data):
         raise TypeError("At least one of the alternatives must be a Data object.")
     if isinstance(tval,Data) and isinstance(fval, Data):
-        return _condEval(f,tval,fval)
+        return escore._condEval(f,tval,fval)
     if not isinstance(fval, Data):
-        return _condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
-    return _condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
+        return escore._condEval(f, tval, Data(fval, tval.getShape(), tval.getFunctionSpace()))
+    return escore._condEval(f, Data(fval, fval.getShape(), fval.getFunctionSpace()), fval )
 
