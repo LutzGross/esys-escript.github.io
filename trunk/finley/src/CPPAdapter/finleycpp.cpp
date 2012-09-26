@@ -69,6 +69,9 @@ BOOST_PYTHON_MODULE(finleycpp)
   docstring_options docopt(true, true, false);
 #endif
 
+  scope().attr("__doc__") = "To use this module, please import esys.finley";    
+  
+  
   //
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.

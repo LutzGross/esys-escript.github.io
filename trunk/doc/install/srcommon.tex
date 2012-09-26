@@ -39,36 +39,26 @@ The advantage of using existing packages is that they are more likely to work to
 You must take greater care if downloading sources separately.
 
 \begin{itemize}
- \item python-2.5.1 (\url{http://python.org}) \\-
+ \item python $\geq 2.6$ (\url{http://python.org}) \\-
         Python interpreter (you must compile with shared libraries.)
- \item numpy 1.1.0 (\url{http://numpy.scipy.org}) \\-
+ \item numpy $\geq 1.1.0$ (\url{http://numpy.scipy.org}) \\-
         Arrays for Python
- \item boost-1.35 (\url{http://www.boost.org}) \\-
+ \item boost $\geq 1.35$ (\url{http://www.boost.org}) \\-
         Interface between C++ and Python
- \item scons-0.989.5 (\url{http://www.scons.org/}) \\-
+ \item scons $\geq 0.989.5$ (\url{http://www.scons.org/}) \\-
         Python-based alternative to \texttt{make}.
 \end{itemize}
 
 The version numbers given here are not strict requirements, more recent (and in some cases older) versions are very likely to work.
-The following packages should be sufficient (but not necessarily minimal) for Debian 5.0 (``Lenny''):
-python-dev, libboost-python1.35-dev, scons, python-numpy, g++.
+The following packages should be sufficient (but not necessarily minimal) for Debian 6.0 (``Squeeze''):
+\texttt{libboost-python-dev, scons, python-numpy, python-sympy, g++}.
 
 These packages may be required for some of the optional capabilities of the system:
 
 \begin{itemize}
- \item netcdf-3.6.2 (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
+ \item netcdf $\geq 3.6.2$ (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
         Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC)
-%  \item vtk-5.0.4 (\url{http://www.vtk.org}) \\-
-%         Used to save VTK files for visualization
-%   \begin{itemize}
-%    \item cmake-2.4.6 (\url{http://www.cmake.org}) \\-
-%         Required to build VTK
-%    \item mesa-7.0.3 (\url{http://www.mesa3d.org})\\-
-%         Free OpenGL replacement used by VTK
-%   \end{itemize}
- \item netpbm (\url{http://netpbm.sourceforge.com}) \\-
-        Tools for producing movies from images
- \item parmetis-3.1 (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
+ \item parmetis $\geq 3.1$ (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
         Optimization of the stiffness matrix
  \item MKL \\(\url{http://www.intel.com/cd/software/products/asmo-na/eng/307757.htm}) \\-
         Intel's Math Kernel Library for use with their C compiler.
@@ -78,30 +68,24 @@ Currently only used to invert dense square matrices larger than 3x3.
 
 The following packages might be useful for mesh generation:
 \begin{itemize}
- \item gmsh-2.2.0 (\url{http://www.geuz.org/gmsh}) \\-
+ \item gmsh $\geq 2.2.0$ (\url{http://www.geuz.org/gmsh}) \\-
         Mesh generation and viewing
-  \begin{itemize}
-   \item fltk-1.1.9 (\url{http://www.fltk.org}) \\-
-        Required to build gmsh 
-   \item gsl-1.10 (\url{http://www.gnu.org/software/gsl}) \\-
-        Required to build gmsh 
-  \end{itemize}
- \item triangle-1.6 (\url{http://www.cs.cmu.edu/~quake/triangle.html}) \\-
+ \item triangle $\geq 1.6$ (\url{http://www.cs.cmu.edu/~quake/triangle.html}) \\-
         Two-dimensional mesh generator and Delaunay triangulator.
 \end{itemize}
 
 Packages for visualization:
 \begin{itemize}
- \item mayavi-1.5 (\url{http://mayavi.sourceforge.net}) \\-
+ \item mayavi $\geq 1.5$ (\url{http://mayavi.sourceforge.net}) \\-
         MayaVi is referenced in our User's Guide for viewing VTK files
- \item visit-1.11.2 (\url{https://wci.llnl.gov/codes/visit/}) \\-
+ \item visit $\geq 1.11.2$ (\url{https://wci.llnl.gov/codes/visit/}) \\-
         A featureful visualization system with movie-making capabilities.
 \end{itemize}
 
 The source code comes with an extensive set of unit tests. If you would like to
 build those to verify your installation you need:
 \begin{itemize}
- \item cppunit-1.12.1 (\url{http://cppunit.sourceforge.net})
+ \item cppunit $\geq 1.12.1$ (\url{http://cppunit.sourceforge.net})
 \end{itemize}
 
 \section{Compilation}\label{sec:compilesrc}

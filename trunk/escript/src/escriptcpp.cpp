@@ -76,6 +76,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   docstring_options docopt(true,true,false);
   #endif
 
+  scope().attr("__doc__") = "To use this module, please import esys.escript";      
+  
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
 " available to OpenMP.");

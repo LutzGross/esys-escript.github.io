@@ -168,6 +168,9 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     register_exception_translator<ripley::RipleyException>(&(esysUtils::esysExceptionTranslator));
 
+    scope().attr("__doc__") = "To use this module, please import esys.ripley";        
+    
+    
     def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"

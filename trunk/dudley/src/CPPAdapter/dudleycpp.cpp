@@ -49,6 +49,9 @@ BOOST_PYTHON_MODULE(dudleycpp)
   docstring_options docopt(true, true, false);
 #endif
 
+  scope().attr("__doc__") = "To use this module, please import esys.dudley";  
+  
+  
   //
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
