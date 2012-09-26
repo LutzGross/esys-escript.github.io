@@ -15,7 +15,7 @@
 
 
 /**
-\file posowrap/src/system_dep.h
+\file pasowrap/src/system_dep.h
 \ingroup Other
  */
 /*
