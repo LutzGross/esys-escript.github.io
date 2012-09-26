@@ -33,7 +33,8 @@ try:
 except ImportError:
     HAVE_SYMBOLS=False
 
-from .escript import *
+#from .escript import *
+from .escriptcpp import *
 from .util import *
 from .nonlinearPDE import NonlinearPDE
 from .datamanager import DataManager
