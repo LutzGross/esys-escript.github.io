@@ -20,13 +20,12 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+import os
+import sys
 import unittest
-import tempfile
 
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
-import sys
-import os
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
 from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
 
@@ -131,25 +130,29 @@ class Test_TableInterpolationOnRipley(Test_TableInterpolation):
 class Test_CSVOnRipley(Test_saveCSV):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        self.linecount1=(NE*NX)*(NE*NY)+1  #see test_save1 for the meaning of these params
-        self.linecount2=(NE*NX-1)*(NE*NY)+1
-        self.line_expected=[1./(NE*NX-1), 0., 1./(NE*NX-1)]
+        self.functionspaces=[ContinuousFunction, Function, ReducedFunction,
+                             FunctionOnBoundary, ReducedFunctionOnBoundary]
+
+        NE0=NE*NX-1
+        NE1=NE*NY-1
+
+        # number of total data points for each function space
+        self.linecounts=[ (NE0+1)*(NE1+1)+1, 4*NE0*NE1+1, NE0*NE1+1,
+                4*NE0+4*NE1+1, 2*NE0+2*NE1+1 ]
+        # number of masked points, i.e. where X[0] is non-zero
+        self.linecounts_masked=[ NE0*(NE1+1)+1, 4*NE0*NE1+1, NE0*NE1+1,
+                2*NE0+4*NE1+1, NE0+2*NE1+1 ]
+        # expected values in first line of masked data = [ X[:], X[0] ]
+        self.firstline=[ [1./NE0, 0., 1./NE0],
+                         [0.07044162180172903, 0.07044162180172903, 0.07044162180172903],
+                         [0.1666666666666667, 0.1666666666666667, 0.1666666666666667],
+                         [1., 0.07044162180172903, 1.],
+                         [1., 0.1666666666666667, 1.] ]
 
     def tearDown(self):
         del self.domain
 
-    #This test checks to see that all FunctionSpaces can be saved
-    def test_singleFS(self):
-        fname=os.path.join(RIPLEY_WORKDIR, "test_singlefs.csv")
-        fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-        FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain),
-        DiracDeltaFunctions(self.domain)]
-        for f in fss:
-            d=Data(7,f)
-            print("Testing "+str(f)+"\n")
-            saveDataCSV(fname, D=d)
-
-    def test_multiFS(self):
+    def test_csv_multiFS(self):
         fname=os.path.join(RIPLEY_WORKDIR, "test_multifs.csv")
         sol=Data(8,Solution(self.domain))
         ctsfn=Data(9,ContinuousFunction(self.domain))

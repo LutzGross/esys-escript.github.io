@@ -1391,25 +1391,31 @@ void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) 
 
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
+    if (getMPISize()>1) {
 #ifdef ESYS_MPI
-    index_t myFirstNode=0, myLastNode=0, k=0;
-    index_t* globalNodeIndex=0;
-    Dudley_Mesh* mesh_p=m_dudleyMesh.get();
-    if (fs_code == DUDLEY_REDUCED_NODES) 
-    {
-	myFirstNode = Dudley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
-	myLastNode = Dudley_NodeFile_getLastReducedNode(mesh_p->Nodes);
-	globalNodeIndex = Dudley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
-    }
-    else
-    {
-	myFirstNode = Dudley_NodeFile_getFirstNode(mesh_p->Nodes);
-	myLastNode = Dudley_NodeFile_getLastNode(mesh_p->Nodes);
-	globalNodeIndex = Dudley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
-    }
-    k=globalNodeIndex[id];
-    return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
+        index_t myFirstNode=0, myLastNode=0, k=0;
+        index_t* globalNodeIndex=0;
+        Dudley_Mesh* mesh_p=m_dudleyMesh.get();
+        if (fs_code == DUDLEY_REDUCED_NODES) 
+        {
+            myFirstNode = Dudley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
+            myLastNode = Dudley_NodeFile_getLastReducedNode(mesh_p->Nodes);
+            globalNodeIndex = Dudley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
+        }
+        else if (fs_code == DUDLEY_NODES)
+        {
+            myFirstNode = Dudley_NodeFile_getFirstNode(mesh_p->Nodes);
+            myLastNode = Dudley_NodeFile_getLastNode(mesh_p->Nodes);
+            globalNodeIndex = Dudley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
+        }
+        else
+        {
+            throw DudleyAdapterException("unsupported function space type for ownSample()");
+        }
+        k=globalNodeIndex[id];
+        return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
 #endif
+    }
     return true;
 }
 

@@ -20,16 +20,14 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+import os
+import sys
 import unittest
-import tempfile
 
 from esys.escript import *
 from esys.finley import Rectangle, Brick
-import sys
-import os
-from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
-
+from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
+        Test_TableInterpolation, Test_Domain, Test_GlobalMinMax, Test_Lazy
 from test_shared import Test_Shared
 
 try:
@@ -53,12 +51,11 @@ class Test_DomainOnFinley(Test_Domain):
        self.domain =Rectangle(NE,NE+1,2)
    def tearDown(self):
        del self.domain
-       del self.boundary_tag_list 
-       
-       
+       del self.boundary_tag_list
+
    def test_setXError(self):
        domain=Rectangle(NE,NE)
-       x=domain.getX()       
+       x=domain.getX()
        z=interpolate(x, Function(domain))
        self.assertRaises(RuntimeError, domain.setX, z)
        del x
@@ -131,14 +128,13 @@ class Test_DataOpsOnFinley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax,
        del self.domain_with_different_sample_ordering
        del self.mainfs
        del self.otherfs
-       
 
 
 class Test_TableInterpolationOnFinley(Test_TableInterpolation):
     def setUp(self):
         self.domain=Brick(4,4,4)
         self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain),
             FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
             ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain)]
             #We aren't testing DiracDeltaFunctions
@@ -150,56 +146,50 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
         del self.domain
         del self.functionspaces
 
-        
-                
-                
+
 class Test_CSVOnFinley(Test_saveCSV):
-   def setUp(self):
-       self.domain =Rectangle(NE,NE+1,2)
-       self.linecount1=80               #see test_save1 for the meaning of these params
-       self.linecount2=69
-       self.line_expected=[0.125, 0., 0.125]
-       
-   def tearDown(self):
-       del self.domain
-       
-   #This test checks to see that all FunctionSpaces can be saved
-   def test_singleFS(self):
-        fname=os.path.join(FINLEY_WORKDIR, "test_singlefs.csv")
-        fss=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-        FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain), 
-        FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
-        ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain),
-        DiracDeltaFunctions(self.domain)]
-        for f in fss:
-                d=Data(7,f)
-                print("Testing "+str(f)+"\n")
-                saveDataCSV(fname, D=d)
+    def setUp(self):
+        NE0=NE
+        NE1=NE+1
+        self.domain=Rectangle(NE0, NE1, order=2)
+        self.functionspaces=[ContinuousFunction, ReducedContinuousFunction]
+        # number of total data points for each function space
+        self.linecounts=[ (2*NE0+1)*(2*NE1+1)-NE0*NE1+1, 31 ]
+        # number of masked points, i.e. where X[0] is non-zero
+        self.linecounts_masked=[ (2*NE0+1)*(2*NE1+1)-(2+NE0)*NE1, 25 ]
+        # expected values in first line of masked data = [ X[:], X[0] ]
+        self.firstline=[ [1./(2*NE0), 0., 1./(2*NE0)], [.25, 0., .25] ]
 
-   def test_multiFS(self):
-        fname=os.path.join(FINLEY_WORKDIR, "test_multifs.csv")
-        sol=Data(8,Solution(self.domain))
-        ctsfn=Data(9,ContinuousFunction(self.domain))
-        #test line 0
-        dirac=Data(-1,DiracDeltaFunctions(self.domain))
-        saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
-        #test line 1
-        fun=Data(5,Function(self.domain))
-        rfun=Data(3,ReducedFunction(self.domain))
-        saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
-        #test line 2
-        bound=Data(1,FunctionOnBoundary(self.domain))
-        rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
-        saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
-        #test line 3
-        conzz=Data(7,FunctionOnContactZero(self.domain))
-        rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
-        saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
-        #check for cross line exceptions
-        self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
-        self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
+    def tearDown(self):
+        del self.domain
 
-        
+    def test_csv_multiFS(self):
+        if getMPISizeWorld() == 1:
+            fname=os.path.join(FINLEY_WORKDIR, "test_multifs.csv")
+            sol=Data(8,Solution(self.domain))
+            ctsfn=Data(9,ContinuousFunction(self.domain))
+            #test line 0
+            dirac=Data(-1,DiracDeltaFunctions(self.domain))
+            saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
+            #test line 1
+            fun=Data(5,Function(self.domain))
+            rfun=Data(3,ReducedFunction(self.domain))
+            saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
+            #test line 2
+            bound=Data(1,FunctionOnBoundary(self.domain))
+            rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
+            saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+            #test line 3
+            conzz=Data(7,FunctionOnContactZero(self.domain))
+            rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
+            saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
+            #check for cross line exceptions
+            self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
+            self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
+        else:
+            print("Skipping CSV multiFS tests on finley since MPI size > 1")
+
+
 if __name__ == '__main__':
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_SharedOnFinley))
