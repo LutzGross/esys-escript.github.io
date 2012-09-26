@@ -33,7 +33,7 @@ namespace DataTypes {
 */
   //
   // Some basic types which define the data values and view shapes.
-  typedef DataVector                        ValueType;//!< Vector to store underlying data.
+  typedef escript::DataVector               ValueType;//!< Vector to store underlying data.
   typedef std::vector<int>                  ShapeType;//!< The shape of a single datapoint.
   typedef std::vector<std::pair<int, int> > RegionType;
   typedef std::vector<std::pair<int, int> > RegionLoopRangeType;
@@ -43,8 +43,6 @@ namespace DataTypes {
   /**
      \brief
      Calculate the number of values in a datapoint with the given shape.
-
-     \param shape
   */
   ESCRIPT_DLL_API
   int
@@ -53,8 +51,6 @@ namespace DataTypes {
   /** 
      \brief
      Calculate the number of values for the given region.
-
-    \param region
   */
   ESCRIPT_DLL_API
   int
@@ -74,8 +70,7 @@ namespace DataTypes {
      \brief
      Determine the shape of the specified slice region.
 
-     \param region - Input -
-                       Slice region.
+     \param region - Input - Slice region
   */
   ESCRIPT_DLL_API
   DataTypes::ShapeType

@@ -167,7 +167,7 @@ class Data {
      \brief
      Constructor which copies data from a wrapped array.
 
-     \param value - Input - Input data.
+     \param w - Input - Input data.
      \param what - Input - A description of what this data represents.
      \param expanded - Input - Flag, if true fill the entire container with
                        the value. Otherwise a more efficient storage

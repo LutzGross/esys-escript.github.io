@@ -41,19 +41,20 @@ ESCRIPT_DLL_API int getFunctionSpaceType(escriptDataC* data);
 
 /**
    \brief
-   sets the int variable _fs_ the function space type of _data_ if the data are not empty.
-   \param _fs_ Input/Output - variable to be updated.
-   \param _data_ Input - C wrapper for Data.
+   sets the int variable _FS to the function space type of _DATA if the data
+   object is not empty.
+   \param _FS Input/Output - variable to be updated.
+   \param _DATA Input - C wrapper for Data.
 */
-#define updateFunctionSpaceType(_fs_,_data_) _fs_=(isEmpty(_data_) ? _fs_ : getFunctionSpaceType(_data_))
+#define updateFunctionSpaceType(_FS,_DATA) _FS=(isEmpty(_DATA) ? _FS : getFunctionSpaceType(_DATA))
                                                                                      
 /**
    \brief
-   is true if the function space type of _data_ is equal to _fs_ or is empty
-   \param _fs_ Input - function space type to checked against
-   \param _data_ Input - C wrapper for Data.
+   returns true if the function space type of _DATA is equal to _FS or is empty
+   \param _FS Input - function space type to checked against
+   \param _DATA Input - C wrapper for Data.
 */
-#define functionSpaceTypeEqual(_fs_,_data_) ( (isEmpty(_data_) || _fs_==getFunctionSpaceType(_data_)) ) ? 1 : 0
+#define functionSpaceTypeEqual(_FS,_DATA) ( (isEmpty(_DATA) || _FS==getFunctionSpaceType(_DATA)) ) ? 1 : 0
 
 /**
    \brief
