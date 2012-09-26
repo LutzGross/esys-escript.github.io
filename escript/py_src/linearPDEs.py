@@ -39,7 +39,8 @@ by its advective terms.
 """
 
 import math
-from . import escript
+from . import escriptcpp
+escore=escriptcpp
 from . import util
 import numpy
 
@@ -500,7 +501,7 @@ class SolverOptions(object):
                                     SolverOptions.AMG, SolverOptions.AMLI, SolverOptions.REC_ILU, SolverOptions.GAUSS_SEIDEL, SolverOptions.RILU, SolverOptions.BOOMERAMG,
                                     SolverOptions.NO_PRECONDITIONER] :
              raise ValueError("unknown preconditioner %s"%preconditioner)
-	if preconditioner==SolverOptions.AMG and escript.getEscriptParamInt('DISABLE_AMG',0):
+	if preconditioner==SolverOptions.AMG and escore.getEscriptParamInt('DISABLE_AMG',0):
 	     raise ValueError("AMG preconditioner is not supported in MPI builds")
         self.__preconditioner=preconditioner    
 
@@ -1357,7 +1358,7 @@ class PDECoef(object):
        """
        Resets the coefficient value to the default.
        """
-       self.value=escript.Data()
+       self.value=escore.Data()
 
     def getFunctionSpace(self,domain,reducedEquationOrder=False,reducedSolutionOrder=False):
        """
@@ -1375,26 +1376,26 @@ class PDECoef(object):
        :rtype: `FunctionSpace`
        """
        if self.what==self.INTERIOR:
-            return escript.Function(domain)
+            return escore.Function(domain)
        elif self.what==self.INTERIOR_REDUCED:
-            return escript.ReducedFunction(domain)
+            return escore.ReducedFunction(domain)
        elif self.what==self.BOUNDARY:
-            return escript.FunctionOnBoundary(domain)
+            return escore.FunctionOnBoundary(domain)
        elif self.what==self.BOUNDARY_REDUCED:
-            return escript.ReducedFunctionOnBoundary(domain)
+            return escore.ReducedFunctionOnBoundary(domain)
        elif self.what==self.CONTACT:
-            return escript.FunctionOnContactZero(domain)
+            return escore.FunctionOnContactZero(domain)
        elif self.what==self.CONTACT_REDUCED:
-            return escript.ReducedFunctionOnContactZero(domain)
+            return escore.ReducedFunctionOnContactZero(domain)
        elif self.what==self.DIRACDELTA:
-            return escript.DiracDeltaFunctions(domain)
+            return escore.DiracDeltaFunctions(domain)
        elif self.what==self.SOLUTION:
             if reducedEquationOrder and reducedSolutionOrder:
-                return escript.ReducedSolution(domain)
+                return escore.ReducedSolution(domain)
             else:
-                return escript.Solution(domain)
+                return escore.Solution(domain)
        elif self.what==self.REDUCED:
-            return escript.ReducedSolution(domain)
+            return escore.ReducedSolution(domain)
 
     def getValue(self):
        """
@@ -1431,16 +1432,16 @@ class PDECoef(object):
                                                to appropriate function space
        """
        if newValue==None:
-           newValue=escript.Data()
-       elif isinstance(newValue,escript.Data):
+           newValue=escore.Data()
+       elif isinstance(newValue,escore.Data):
            if not newValue.isEmpty():
               if not newValue.getFunctionSpace() == self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder):
                 try:
-                  newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+                  newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
                 except:
                   raise IllegalCoefficientFunctionSpace("Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain))
        else:
-           newValue=escript.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+           newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
        if not newValue.isEmpty():
            if not self.getShape(domain,numEquations,numSolutions)==newValue.getShape():
                raise IllegalCoefficientValue("Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape()))
@@ -1800,9 +1801,9 @@ class LinearProblem(object):
      :rtype: `FunctionSpace`
      """
      if self.reduceEquationOrder():
-         return escript.ReducedSolution(self.getDomain())
+         return escore.ReducedSolution(self.getDomain())
      else:
-         return escript.Solution(self.getDomain())
+         return escore.Solution(self.getDomain())
 
    def getFunctionSpaceForSolution(self):
      """
@@ -1813,9 +1814,9 @@ class LinearProblem(object):
      :rtype: `FunctionSpace`
      """
      if self.reduceSolutionOrder():
-         return escript.ReducedSolution(self.getDomain())
+         return escore.ReducedSolution(self.getDomain())
      else:
-         return escript.Solution(self.getDomain())
+         return escore.Solution(self.getDomain())
 
    # ==========================================================================
    #   solver settings:
@@ -2167,7 +2168,7 @@ class LinearProblem(object):
      :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
      """
      if self.hasCoefficient(name):
-        return escript.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
+        return escore.Data(0.,self.getShapeOfCoefficient(name),self.getFunctionSpaceForCoefficient(name))
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
@@ -2314,9 +2315,9 @@ class LinearProblem(object):
        self.trace("New System has been created.")
        self.__operator_type=None
        self.setSystemStatus()
-       self.__operator=escript.Operator()
-       self.__righthandside=escript.Data()
-       self.__solution=escript.Data()
+       self.__operator=escore.Operator()
+       self.__righthandside=escore.Data()
+       self.__solution=escore.Data()
        self.invalidateSystem()
 
    def getOperator(self):
@@ -2342,9 +2343,9 @@ class LinearProblem(object):
        """
        self.trace("New right hand side is allocated.")
        if self.getNumEquations()>1:
-           return escript.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
+           return escore.Data(0.,(self.getNumEquations(),),self.getFunctionSpaceForEquation(),True)
        else:
-           return escript.Data(0.,(),self.getFunctionSpaceForEquation(),True)
+           return escore.Data(0.,(),self.getFunctionSpaceForEquation(),True)
 
    def createSolution(self):
        """
@@ -2352,9 +2353,9 @@ class LinearProblem(object):
        """
        self.trace("New solution is allocated.")
        if self.getNumSolutions()>1:
-           return escript.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
+           return escore.Data(0.,(self.getNumSolutions(),),self.getFunctionSpaceForSolution(),True)
        else:
-           return escript.Data(0.,(),self.getFunctionSpaceForSolution(),True)
+           return escore.Data(0.,(),self.getFunctionSpaceForSolution(),True)
 
    def resetSolution(self):
        """
@@ -2503,7 +2504,7 @@ class LinearProblem(object):
        :note: This method is overwritten when implementing a particular
               linear problem.
        """
-       return escript.Operator()
+       return escore.Operator()
 
    def checkSymmetry(self,verbose=True):
       """
@@ -2839,14 +2840,14 @@ class LinearPDE(LinearProblem):
                      else:
                         D_times_e=D
                  else:
-                    D_times_e=escript.Data()
+                    D_times_e=escore.Data()
                  if not d.isEmpty():
                      if self.getNumSolutions()>1:
                         d_times_e=util.matrix_mult(d,numpy.ones((self.getNumSolutions(),)))
                      else:
                         d_times_e=d
                  else:
-                    d_times_e=escript.Data()
+                    d_times_e=escore.Data()
 
                  if not D_reduced.isEmpty():
                      if self.getNumSolutions()>1:
@@ -2854,7 +2855,7 @@ class LinearPDE(LinearProblem):
                      else:
                         D_reduced_times_e=D_reduced
                  else:
-                    D_reduced_times_e=escript.Data()
+                    D_reduced_times_e=escore.Data()
                     
                  if not d_reduced.isEmpty():
                      if self.getNumSolutions()>1:
@@ -2862,7 +2863,7 @@ class LinearPDE(LinearProblem):
                      else:
                         d_reduced_times_e=d_reduced
                  else:
-                    d_reduced_times_e=escript.Data()
+                    d_reduced_times_e=escore.Data()
                     
                  if not d_dirac.isEmpty():
                      if self.getNumSolutions()>1:
@@ -2870,27 +2871,27 @@ class LinearPDE(LinearProblem):
                      else:
                         d_reduced_dirac_e=d_dirac
                  else:
-                    d_dirac_times_e=escript.Data()
+                    d_dirac_times_e=escore.Data()
 
                  self.resetOperator()
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
                     self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escript.Data(), hrz_lumping)
+                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
                  else:
                     self.getDomain().addPDEToRHS(operator, \
-                                                 escript.Data(), \
+                                                 escore.Data(), \
                                                  D_times_e, \
                                                  d_times_e,\
-                                                 escript.Data(),\
+                                                 escore.Data(),\
                                                  d_dirac_times_e)
                     self.getDomain().addPDEToRHS(operator, \
-                                                 escript.Data(), \
+                                                 escore.Data(), \
                                                  D_reduced_times_e, \
                                                  d_reduced_times_e,\
-                                                 escript.Data(), \
-                                                 escript.Data())
+                                                 escore.Data(), \
+                                                 escore.Data())
                  self.trace("New lumped operator has been built.")
               if not self.isRightHandSideValid():
                  self.resetRightHandSide()
@@ -2906,7 +2907,7 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
                                self.getCoefficient("y_contact_reduced"), \
-                               escript.Data())
+                               escore.Data())
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
               self.insertConstraint(rhs_only=False)
@@ -2941,8 +2942,8 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("y_reduced"), \
                                self.getCoefficient("d_contact_reduced"), \
                                self.getCoefficient("y_contact_reduced"), \
-                               escript.Data(), \
-                               escript.Data())
+                               escore.Data(), \
+                               escore.Data())
                  self.insertConstraint(rhs_only=False)
                  self.trace("New system has been built.")
                  self.validOperator()
@@ -2961,39 +2962,39 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
                                self.getCoefficient("y_contact_reduced"), \
-                               escript.Data())
+                               escore.Data())
                  self.insertConstraint(rhs_only=True)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
              elif not self.isOperatorValid():
                  self.resetOperator()
                  operator=self.getCurrentOperator()
-                 self.getDomain().addPDEToSystem(operator,escript.Data(), \
+                 self.getDomain().addPDEToSystem(operator,escore.Data(), \
                             self.getCoefficient("A"), \
                             self.getCoefficient("B"), \
                             self.getCoefficient("C"), \
                             self.getCoefficient("D"), \
-                            escript.Data(), \
-                            escript.Data(), \
+                            escore.Data(), \
+                            escore.Data(), \
                             self.getCoefficient("d"), \
-                            escript.Data(),\
+                            escore.Data(),\
                             self.getCoefficient("d_contact"), \
-                            escript.Data(),                   \
+                            escore.Data(),                   \
                             self.getCoefficient("d_dirac"),   \
-                            escript.Data())
-                 self.getDomain().addPDEToSystem(operator,escript.Data(), \
+                            escore.Data())
+                 self.getDomain().addPDEToSystem(operator,escore.Data(), \
                             self.getCoefficient("A_reduced"), \
                             self.getCoefficient("B_reduced"), \
                             self.getCoefficient("C_reduced"), \
                             self.getCoefficient("D_reduced"), \
-                            escript.Data(), \
-                            escript.Data(), \
+                            escore.Data(), \
+                            escore.Data(), \
                             self.getCoefficient("d_reduced"), \
-                            escript.Data(),\
+                            escore.Data(),\
                             self.getCoefficient("d_contact_reduced"), \
-                            escript.Data(),  \
-                            escript.Data(),  \
-                            escript.Data())
+                            escore.Data(),  \
+                            escore.Data(),  \
+                            escore.Data())
                  self.insertConstraint(rhs_only=False)
                  self.trace("New operator has been built.")
                  self.validOperator()
@@ -3021,10 +3022,10 @@ class LinearPDE(LinearProblem):
             r_s=r
          if not rhs_only and not operator.isEmpty():
              if self.isUsingLumping():
-                 operator.copyWithMask(escript.Data(1.,q.getShape(),q.getFunctionSpace()),q)
+                 operator.copyWithMask(escore.Data(1.,q.getShape(),q.getFunctionSpace()),q)
              else:
-                 row_q=escript.Data(q,self.getFunctionSpaceForEquation())
-                 col_q=escript.Data(q,self.getFunctionSpaceForSolution())
+                 row_q=escore.Data(q,self.getFunctionSpaceForEquation())
+                 col_q=escore.Data(q,self.getFunctionSpaceForSolution())
                  u=self.createSolution()
                  u.copyWithMask(r_s,col_q)
                  righthandside-=operator*u
@@ -3138,7 +3139,7 @@ class LinearPDE(LinearProblem):
      if u==None:
         return self.getOperator()*self.getSolution()-self.getRightHandSide()
      else:
-        return self.getOperator()*escript.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
+        return self.getOperator()*escore.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
 
    def getFlux(self,u=None):
      """
@@ -3158,9 +3159,9 @@ class LinearPDE(LinearProblem):
      """
      if u==None: u=self.getSolution()
      if self.getNumEquations()>1:
-       out = escript.Data(0.,(self.getNumEquations(),self.getDim()),self.getFunctionSpaceForCoefficient("X"))
+       out = escore.Data(0.,(self.getNumEquations(),self.getDim()),self.getFunctionSpaceForCoefficient("X"))
      else:
-       out = escript.Data(0.,(self.getDim(), ),self.getFunctionSpaceForCoefficient("X"))
+       out = escore.Data(0.,(self.getDim(), ),self.getFunctionSpaceForCoefficient("X"))
 
      A=self.getCoefficient("A")
      if not A.isEmpty():
@@ -3256,7 +3257,7 @@ class Poisson(LinearPDE):
             equation onto the general PDE.
      """
      if name == "A" :
-         return escript.Data(util.kronecker(self.getDim()),escript.Function(self.getDomain()))
+         return escore.Data(util.kronecker(self.getDim()),escore.Function(self.getDomain()))
      elif name == "Y" :
          return self.getCoefficient("f")
      elif name == "Y_reduced" :
@@ -3347,9 +3348,9 @@ class Helmholtz(LinearPDE):
      """
      if name == "A" :
          if self.getCoefficient("k").isEmpty():
-              return escript.Data(numpy.identity(self.getDim()),escript.Function(self.getDomain()))
+              return escore.Data(numpy.identity(self.getDim()),escore.Function(self.getDomain()))
          else:
-              return escript.Data(numpy.identity(self.getDim()),escript.Function(self.getDomain()))*self.getCoefficient("k")
+              return escore.Data(numpy.identity(self.getDim()),escore.Function(self.getDomain()))*self.getCoefficient("k")
      elif name == "D" :
          return self.getCoefficient("omega")
      elif name == "Y" :
@@ -3958,8 +3959,8 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y_reduced"),
                             self.getCoefficient("d_contact_reduced"),
                             self.getCoefficient("y_contact_reduced"),
-                            escript.Data(),
-                            escript.Data() )
+                            escore.Data(),
+                            escore.Data() )
           operator.insertConstraint(righthandside,self.getCoefficient("q"),self.getCoefficient("r"))
           self.trace("New system has been built.")
           self.validOperator()

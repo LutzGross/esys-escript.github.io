@@ -33,7 +33,9 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from . import escript
+from . import escriptcpp
+escore=escriptcpp
+#from . import escript
 from . import util
 from .linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
 from .pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
@@ -109,14 +111,14 @@ class DarcyFlow(object):
          if self.verbose: print("DarcyFlow: flux smoothing is used.")
          self.w=0
 
-      self.__f=escript.Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
-      self.__g=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
-      self.__permeability_invXg=escript.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.__f=escore.Data(0,self.__pde_p.getFunctionSpaceForCoefficient("X"))
+      self.__g=escore.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
+      self.__permeability_invXg=escore.Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
       self.__permeability_invXg_ref=util.numpy.zeros((self.domain.getDim()),util.numpy.float64)
       self.ref_point_id=None
       self.ref_point=util.numpy.zeros((self.domain.getDim()),util.numpy.float64)
-      self.location_of_fixed_pressure = escript.Scalar(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-      self.location_of_fixed_flux = escript.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+      self.location_of_fixed_pressure = escore.Data(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
+      self.location_of_fixed_flux = escore.Vector(0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
       self.perm_scale=1.
      
         
@@ -308,9 +310,9 @@ class DarcyFlow(object):
             self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
             print 
             if u0 == None:
-               self.__pde_v.setValue(r=escript.Data())
+               self.__pde_v.setValue(r=escore.Data())
             else:
-               if not isinstance(u0, escript.Data) : u0 = escript.Vector(u0, escript.Solution(self.domain))
+               if not isinstance(u0, escore.Data) : u0 = escore.Vector(u0, escore.Solution(self.domain))
                self.__pde_v.setValue(r=1./self.perm_scale * u0)
             u= self.__pde_v.getSolution() * self.perm_scale
         return u
@@ -432,7 +434,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         if eta !=None:
             k=util.kronecker(self.domain.getDim())
             kk=util.outer(k,k)
-            self.eta=util.interpolate(eta, escript.Function(self.domain))
+            self.eta=util.interpolate(eta, escore.Function(self.domain))
             self.__pde_prec.setValue(D=1/self.eta)
             self.__pde_v.setValue(A=self.eta*(util.swap_axes(kk,0,3)+util.swap_axes(kk,1,3)))
         if restoration_factor!=None:
@@ -444,7 +446,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         if surface_stress!=None: self.__surface_stress=surface_stress
         if stress!=None: self.__stress=stress
 
-     def initialize(self,f=escript.Data(),fixed_u_mask=escript.Data(),eta=1,surface_stress=escript.Data(),stress=escript.Data(), restoration_factor=0):
+     def initialize(self,f=escore.Data(),fixed_u_mask=escore.Data(),eta=1,surface_stress=escore.Data(),stress=escore.Data(), restoration_factor=0):
         """
         assigns values to the model parameters
 
@@ -484,7 +486,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of element p and Bv=-div(v)
          :rtype: ``float``
          """
-         return util.integrate(util.interpolate(p,escript.Function(self.domain))*util.interpolate(Bv, escript.Function(self.domain)))
+         return util.integrate(util.interpolate(p,escore.Function(self.domain))*util.interpolate(Bv, escore.Function(self.domain)))
 
      def inner_p(self,p0,p1):
          """
@@ -495,8 +497,8 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: inner product of p0 and p1
          :rtype: ``float``
          """
-         s0=util.interpolate(p0, escript.Function(self.domain))
-         s1=util.interpolate(p1, escript.Function(self.domain))
+         s0=util.interpolate(p0, escore.Function(self.domain))
+         s1=util.interpolate(p1, escore.Function(self.domain))
          return util.integrate(s0*s1)
 
      def norm_v(self,v):
@@ -536,7 +538,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
         :rtype: equal to the type of p
         :note: boundary conditions on p should be zero!
         """
-        return util.sqrt(util.integrate(util.interpolate(Bv, escript.Function(self.domain))**2))
+        return util.sqrt(util.integrate(util.interpolate(Bv, escore.Function(self.domain))**2))
 
      def solve_AinvBt(self,p, tol):
          """
@@ -546,7 +548,7 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :return: the solution of *Av=B^*p*
          :note: boundary conditions on v should be zero!
          """
-         self.__pde_v.setValue(Y=escript.Data(), y=escript.Data(), X=-p*util.kronecker(self.domain))
+         self.__pde_v.setValue(Y=escore.Data(), y=escore.Data(), X=-p*util.kronecker(self.domain))
          out=self.__pde_v.getSolution()
          return  out
 
