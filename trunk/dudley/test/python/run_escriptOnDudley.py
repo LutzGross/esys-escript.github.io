@@ -140,6 +140,20 @@ class Test_CSVOnDudley(Test_saveCSV):
         # expected values in first line of masked data = [ X[:], X[0] ]
         self.firstline=[ [1./NE0, 0., 1./NE0], [1./NE0, 0., 1./NE0] ]
 
+        if getMPISizeWorld() == 1:
+            self.functionspaces += [ Function, ReducedFunction,
+                    FunctionOnBoundary, ReducedFunctionOnBoundary ]
+            self.linecounts += [ 121, 41, 37, 19 ]
+            self.linecounts_masked += [ 116, 41, 27, 14 ]
+            self.firstline += [ 
+                    [.125, 0., .125],
+                    [.16666666666666667, .0666666666666667, .166666666666667],
+                    [.05283121635129676, 0., .05283121635129676],
+                    [.125, 0., .125]
+                    ]
+        else:
+            print("Skipping some CSV tests on dudley since MPI size > 1")
+
     def tearDown(self):
         del self.domain
 

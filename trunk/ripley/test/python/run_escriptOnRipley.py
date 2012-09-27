@@ -141,13 +141,13 @@ class Test_CSVOnRipley(Test_saveCSV):
                 4*NE0+4*NE1+1, 2*NE0+2*NE1+1 ]
         # number of masked points, i.e. where X[0] is non-zero
         self.linecounts_masked=[ NE0*(NE1+1)+1, 4*NE0*NE1+1, NE0*NE1+1,
-                2*NE0+4*NE1+1, NE0+2*NE1+1 ]
+                4*NE0+2*NE1+1, 2*NE0+NE1+1 ]
         # expected values in first line of masked data = [ X[:], X[0] ]
         self.firstline=[ [1./NE0, 0., 1./NE0],
-                         [0.07044162180172903, 0.07044162180172903, 0.07044162180172903],
-                         [0.1666666666666667, 0.1666666666666667, 0.1666666666666667],
-                         [1., 0.07044162180172903, 1.],
-                         [1., 0.1666666666666667, 1.] ]
+                         [None, None, None],
+                         [None, None, None],
+                         [None, None, None],
+                         [None, None, None] ]
 
     def tearDown(self):
         del self.domain
