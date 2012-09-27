@@ -337,9 +337,9 @@ class Rheology(object):
          #
          if stress == None: stress=Tensor(0.,escore.Function(self.__domain))
          if v == None: v=Vector(0.,escore.Solution(self.__domain))
-         if p == None: p=Vector(0.,Reducedescript.Solution(self.__domain))
+         if p == None: p=Vector(0.,escore.ReducedSolution(self.__domain))
          self.setStatus(t, v, p, stress)
-         self.setExternals(F=escript.Data(), f=escript.Data(), fixed_v_mask=escore.Data(), v_boundary=escore.Data(), restoration_factor=0)
+         self.setExternals(F=escore.Data(), f=escore.Data(), fixed_v_mask=escore.Data(), v_boundary=escore.Data(), restoration_factor=0)
          
       def getDomain(self):
           """
