@@ -1552,6 +1552,9 @@ e/0/0 e/1/0 e/0/1 e/1/1
 
 Note that while the order in which rows are output can vary, all the elements
 in a given row always correspond to the same input.
+When run on more than one \MPI rank, \function{saveDataCSV} is currently
+limited to certain domain and function space combinations throwing an exception
+in other cases. Writing data on \ContinuousFunction is always supported.
 
 \subsection{The \Operator Class}
 The \Operator class provides an abstract access to operators built
