@@ -1588,13 +1588,18 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
         index_t myFirstNode=0, myLastNode=0, k=0;
         index_t* globalNodeIndex=0;
         Finley_Mesh* mesh_p=m_finleyMesh.get();
+        /*
+         * this method is only used by saveDataCSV which would use the returned
+         * values for reduced nodes wrongly so this case is disabled for now
         if (fs_code == FINLEY_REDUCED_NODES) 
         {
             myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
             myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
             globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
         }
-        else if (fs_code == FINLEY_NODES)
+        else
+        */
+        if (fs_code == FINLEY_NODES)
         {
             myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
             myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
