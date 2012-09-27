@@ -141,9 +141,11 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
 
 def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     """
-    Writes `Data` objects to a csv file.
-    These objects must have compatible FunctionSpaces. ie it must be possible to
-    interpolate all data to one `FunctionSpace`. 
+    Writes `Data` objects to a CSV file.
+    These objects must have compatible FunctionSpaces, i.e. it must be possible
+    to interpolate all data to one `FunctionSpace`. Note, that with more than
+    one MPI rank this function  will fail for some function spaces on some
+    domains.
 
     :param filename: file to save data to.
     :type filename: ``string``
@@ -151,7 +153,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     :type append: ``bool``
     :param sep: separator between fields
     :type sep: ``string``
-    :param csep: separator for components of rank2 and above eg ('_' -> c0_1)
+    :param csep: separator for components of rank 2 and above (e.g. '_' -> c0_1)
 
     The keyword args are Data objects to save.
     If a scalar `Data` object is passed with the name ``mask``, then only
@@ -162,13 +164,13 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
         v=Vector(..)
         t=Tensor(..)
         f=float()
-        saveDataCSV("f.csv",a=s, b=v, c=t, d=f)
+        saveDataCSV("f.csv", a=s, b=v, c=t, d=f)
     
     Will result in a file
     
-    a, b0, b1, c0_0, c0_1, .., c1_0    d
-    1.0, 1.5, 2.7, 3.1, 3.4, .., 0.89  0.0
-    0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21  0.0
+    a, b0, b1, c0_0, c0_1, .., c1_1, d
+    1.0, 1.5, 2.7, 3.1, 3.4, .., 0.89,  0.0
+    0.9, 8.7, 1.9, 3.4, 7.8, .., 1.21,  0.0
     
     The first line is a header, the remaining lines give the values.
 
