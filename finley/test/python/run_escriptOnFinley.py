@@ -151,14 +151,28 @@ class Test_CSVOnFinley(Test_saveCSV):
     def setUp(self):
         NE0=NE
         NE1=NE+1
-        self.domain=Rectangle(NE0, NE1, order=2)
-        self.functionspaces=[ContinuousFunction, ReducedContinuousFunction]
+        self.domain = Rectangle(NE0, NE1, order=2)
+        self.functionspaces = [ ContinuousFunction ]
         # number of total data points for each function space
-        self.linecounts=[ (2*NE0+1)*(2*NE1+1)-NE0*NE1+1, 31 ]
+        self.linecounts=[ (2*NE0+1)*(2*NE1+1)-NE0*NE1+1 ]
         # number of masked points, i.e. where X[0] is non-zero
-        self.linecounts_masked=[ (2*NE0+1)*(2*NE1+1)-(2+NE0)*NE1, 25 ]
+        self.linecounts_masked=[ (2*NE0+1)*(2*NE1+1)-(2+NE0)*NE1 ]
         # expected values in first line of masked data = [ X[:], X[0] ]
-        self.firstline=[ [1./(2*NE0), 0., 1./(2*NE0)], [.25, 0., .25] ]
+        self.firstline=[ [1./(2*NE0), 0., 1./(2*NE0)] ]
+
+        if getMPISizeWorld() == 1:
+            self.functionspaces += [ ReducedContinuousFunction, Function,
+                ReducedFunction, FunctionOnBoundary, ReducedFunctionOnBoundary ]
+            self.linecounts += [ 31, 181, 81, 55, 37 ]
+            self.linecounts_masked += [ 25, 181, 81, 40, 27 ]
+            self.firstline += [ [.25, 0., .25],
+                    [.02817541634481463,.02254033307585171,.02817541634481463],
+                    [.05283121635129676,.04226497308103741,.05283121635129676],
+                    [.02817541634481463,0.,.02817541634481463],
+                    [.05283121635129676,0.,.05283121635129676]
+                    ]
+        else:
+            print("Skipping some CSV tests on finley since MPI size > 1")
 
     def tearDown(self):
         del self.domain

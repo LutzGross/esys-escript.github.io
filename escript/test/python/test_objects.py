@@ -250,7 +250,7 @@ class Test_saveCSV(unittest.TestCase):
             self.assertEquals(linecount, self.linecounts[i])
             f.close()
 
-            # As above but with mask
+            # As above but with mask and variable data
             saveDataCSV(fname, U=X, V=X0, mask=X0)
             f=open(fname, 'r')
             f.readline() # skip header
@@ -258,7 +258,8 @@ class Test_saveCSV(unittest.TestCase):
             line_got=[float(elt) for elt in line.split(',')]
             self.assertEquals(len(self.firstline[i]),len(line_got))
             for j in xrange(len(self.firstline[i])):
-                self.assertAlmostEquals(self.firstline[i][j],line_got[j])
+                if self.firstline[i][j] is not None:
+                    self.assertAlmostEquals(self.firstline[i][j],line_got[j])
             linecount=1
             while line!='':
                 linecount+=1
