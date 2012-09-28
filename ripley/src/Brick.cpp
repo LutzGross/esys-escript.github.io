@@ -1767,6 +1767,7 @@ void Brick::dofToNodes(escript::Data& out, escript::Data& in) const
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
+    Paso_Coupler_free(coupler);
 }
 
 //private
