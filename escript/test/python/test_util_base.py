@@ -39,6 +39,7 @@ import unittest
 import numpy
 import os
 from esys.escript import *
+from esys import escript
 
 try:
      ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
