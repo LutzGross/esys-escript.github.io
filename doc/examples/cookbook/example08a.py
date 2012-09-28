@@ -120,4 +120,4 @@ while t<tend:
         rtime=rtime+rtime_inc #increment data save time
     # increment loop values
     t=t+h; n=n+1
-    print(n,"-th time step t ",t)
+    print("time step %d, t=%s"%(n,t))

@@ -56,13 +56,13 @@ VMIN=-10000.
 VMAX=10000
 NE_V=15
 ALT=0.
-PAD_XY=7
-PAD_Z=3
+PAD_X=7
+PAD_Y=7
 
 class TestERSDataSource(unittest.TestCase):
     def test_ers_with_padding(self):
         source = ERSDataSource(headerfile=ERS_DATA, vertical_extents=(VMIN,VMAX,NE_V), alt_of_data=ALT)
-        source.setPadding(PAD_XY,PAD_Z)
+        source.setPadding(PAD_X,PAD_Y)
         dom=source.getDomain()
         g,s=source.getGravityAndStdDev()
 
@@ -78,10 +78,10 @@ class TestERSDataSource(unittest.TestCase):
         #self.assertAlmostEqual(X0, ERS_ORIGIN, msg="Data origin wrong")
 
         # check data
-        nx=NP[0]+2*PAD_XY
-        ny=NP[1]+2*PAD_XY
-        nz=NE_V+2*PAD_Z
-        z_data=int(np.round((ALT-V0)/DV)-1+PAD_Z)
+        nx=NP[0]+2*PAD_X
+        ny=NP[1]+2*PAD_Y
+        nz=NE_V
+        z_data=int(np.round((ALT-V0)/DV)-1)
 
         ref=np.genfromtxt(ERS_REF, delimiter=',', dtype=float)
         g_ref=ref[:,0].reshape(NP)
@@ -94,11 +94,11 @@ class TestERSDataSource(unittest.TestCase):
         s_out=out[:,1].reshape(nz,ny,nx)
 
         self.assertAlmostEqual(np.abs(
-            g_out[z_data,PAD_XY:PAD_XY+NP[1],PAD_XY:PAD_XY+NP[0]]-g_ref).max(),
+            g_out[z_data,PAD_Y:PAD_Y+NP[1],PAD_X:PAD_X+NP[0]]-g_ref).max(),
             0., msg="Difference in data area")
 
         # overwrite data -> should only be padding value left
-        g_out[z_data, PAD_XY:PAD_XY+NP[0], PAD_XY:PAD_XY+NP[0]]=ERS_NULL
+        g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=ERS_NULL
         self.assertAlmostEqual(np.abs(g_out-ERS_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
