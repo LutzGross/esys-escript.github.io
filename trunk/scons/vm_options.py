@@ -53,7 +53,7 @@ prefix = '/opt/escript'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-#cxx_extra = '-Wextra -Wno-unused-parameter'
+cxx_extra = '-I/usr/lib64/python2.6/site-packages/numpy/core/include -DNO_IMPORT_ARRAY'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
