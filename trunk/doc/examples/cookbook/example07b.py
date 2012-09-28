@@ -139,7 +139,7 @@ while t<tend:
     u_rec0.append(rec.getValue(u)) #location specific recording
     # increment loop values
     t=t+h; n=n+1
-    print(n,"-th time step t ",t)
+    print("time step %d, t=%s"%(n,t))
 
 # save location specific recording to file
 pl.savetxt(os.path.join(savepath,'u_rec.asc'),u_rec0)

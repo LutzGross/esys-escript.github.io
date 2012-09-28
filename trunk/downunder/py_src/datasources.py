@@ -24,11 +24,10 @@ __all__ = ['DataSource','UBCDataSource','ERSDataSource','SyntheticDataSource','S
 
 import logging
 import numpy as np
-import struct
 from esys.escript import *
-from esys.escript.linearPDEs import *
+from esys.escript.linearPDEs import LinearSinglePDE
 import esys.escript.unitsSI as U
-from esys.ripley import *
+from esys.ripley import Brick, Rectangle, ripleycpp
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -40,13 +39,13 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     """
     Converts one or more longitude,latitude pairs to the corresponding x,y
     coordinates in the Universal Transverse Mercator projection.
-    If wkt_string is not given or invalid or the gdal module is not available
-    to convert the string, then the input values are assumed to be given in the
-    Clarke 1866 projection.
+    If `wkt_string` is not given or invalid or the ``gdal`` module is not
+    available to convert the string, then the input values are assumed to be
+    given in the Clarke 1866 projection.
     """
 
     # not really optimal: if pyproj is not installed we return the input
-    # values without modification.
+    # values scaled by a constant.
     try:
         import pyproj
     except:
@@ -70,38 +69,150 @@ def LatLonToUTM(lon, lat, wkt_string=None):
 class DataSource(object):
     """
     A class that provides survey data for the inversion process.
+    This is an abstract base class that implements common functionality.
+    Methods to be overwritten by subclasses are marked as such.
     """
     # this is currently specific to gravity inversion and should be generalised
 
     def __init__(self):
         """
+        Constructor. Sets some defaults and initializes logger.
         """
         self._constrainBottom=False
         self._constrainSides=True
         self._domain=None
-        self._pad_l=0.1
-        self._pad_h=0.1
+        self.setPadding()
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
 
-    def _addPadding(self, pad_l, pad_h, NE, l, origin):
+    def setPadding(self, pad_x=10, pad_y=10):
+        """
+        Sets the amount of padding around the dataset. If `pad_x`/`pad_y`
+        is >=1 the value is treated as number of elements to be added to the
+        domain (per side).
+        If ``0 < pad_x,pad_y < 1``, the padding amount is relative to the
+        dataset size. For example, calling ``setPadding(3, 0.1)`` to a data
+        source with size 10x20 will result in the padded data set size
+        16x24 (10+2*3, 20*(1+2*0.1))
+
+        :param pad_x: Padding per side in x direction (default: 10 elements)
+        :type pad_x: ``int`` or ``float``
+        :param pad_y: Padding per side in y direction (default: 10 elements).
+                      This value is only used for 3-dimensional datasets
+        :type pad_y: ``int`` or ``float``
+        """
+        self._pad_x=pad_x
+        self._pad_y=pad_y
+
+    def setConstraints(self, bottom=False, sides=True):
+        """
+        If `bottom` is True, then the density mask will be set to 1 in the
+        padding area at the bottom of the domain. By default this area is
+        unconstrained. Similarly, if `sides` is True (default) then the
+        horizontal padding area is constrained, otherwise not.
+
+        :param bottom: Whether to constrain the density at the bottom of the
+                       domain
+        :type bottom: ``bool``
+        :param sides: Whether to constrain the density in the padding area
+                      surrounding the data
+        :type sides: ``bool``
+        """
+        self._constrainBottom=bottom
+        self._constrainSides=sides
+
+    def getDomain(self):
+        """
+        Returns a domain that spans the data area plus padding.
+        The domain is created the first time this method is called, subsequent
+        calls return the same domain so anything that affects the domain
+        (such as padding) needs to be set beforehand.
+
+        :return: The escript domain for this data source.
+        :rtype: `esys.escript.Domain`
+        """
+        if self._domain is None:
+            self._domain=self._createDomain(self._pad_x, self._pad_y)
+        return self._domain
+
+    def getDensityMask(self):
+        """
+        Returns the density mask data object, where mask has value 1 in the
+        padding area, 0 elsewhere.
+
+        :return: The mask for the density.
+        :rtype: `esys.escript.Data`
+        """
+        return self._mask
+
+    def getGravityAndStdDev(self):
+        """
+        Returns the gravity anomaly and standard deviation data objects as a
+        tuple. This method must be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getDataExtents(self):
+        """
+        returns a tuple of tuples ``( (x0, y0), (nx, ny), (dx, dy) )``, where
+
+        - ``x0``, ``y0`` = coordinates of data origin
+        - ``nx``, ``ny`` = number of data points in x and y
+        - ``dx``, ``dy`` = spacing of data points in x and y
+
+        This method must be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getVerticalExtents(self):
+        """
+        returns a tuple ``(z0, nz, dz)``, where
+
+        - ``z0`` = minimum z coordinate (origin)
+        - ``nz`` = number of nodes in z direction
+        - ``dz`` = spacing of nodes (= cell size in z)
+
+        This method must be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def getDomainClass(self):
+        """
+        returns the domain generator class (e.g. esys.ripley.Brick).
+        Must be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def _addPadding(self, pad_x, pad_y, NE, l, origin):
         """
         Helper method that computes new number of elements, length and origin
         after adding padding to the input values.
+
+        :param pad_x: Number of elements or fraction of padding in x direction
+        :type pad_x: ``int`` or ``float``
+        :param pad_y: Number of elements or fraction of padding in y direction
+        :type pad_y: ``int`` or ``float``
+        :param NE: Initial number of elements
+        :type NE: ``tuple`` or ``list``
+        :param l: Initial side lengths
+        :type l: ``tuple`` or ``list``
+        :param origin: Initial origin
+        :type origin: ``tuple`` or ``list``
+        :return: tuple with three elements ``(NE_padded, l_padded, origin_padded)``,
+                 which are lists of the updated input parameters
         """
         DIM=len(NE)
-        frac=[0.]*DIM
+        frac=[0.]*(DIM-1)+[0]
         # padding is applied to each side so multiply by 2 to get the total
         # amount of padding per dimension
-        if pad_l>0 and pad_l<1:
-            for i in xrange(DIM-1):
-                frac[i]=2.*pad_l
-        elif pad_l>=1:
-            for i in xrange(DIM-1):
-                frac[i]=2.*pad_l/float(NE[i])
-        if pad_h>0 and pad_h<1:
-            frac[DIM-1]=2.*pad_h
-        elif pad_h>=1:
-            frac[DIM-1]=2.*pad_h/(float(NE[DIM-1]))
+        if pad_x>0 and pad_y<1:
+            frac[0]=2.*pad_x
+        elif pad_x>=1:
+            frac[0]=2.*pad_x/float(NE[0])
+        if DIM>2:
+            if pad_y>0 and pad_y<1:
+                frac[1]=2.*pad_y
+            elif pad_y>=1:
+                frac[1]=2.*pad_y/(float(NE[1]))
 
         # calculate new number of elements
         NE_new=[int(NE[i]*(1+frac[i])) for i in xrange(DIM)]
@@ -145,103 +256,15 @@ class DataSource(object):
 
         return arrays
 
-    def _interpolateOnDomain_old(self, data):
-        """
-        Old interpolation method. Works only on ContinuousFunction and thus
-        produces wrong values once interpolated on Function.
-        """
-        dom=self.getDomain()
-        dim=dom.getDim()
-        # shape = number of data points/nodes in each dimension
-        shape=()
-        for i in xrange(dim):
-            shape=(self._dom_NE[i]+1,)+shape
-        # separate data arrays and coordinates
-        arrays=np.zeros(((len(data[0])-dim),)+shape)
-        num_arrays=arrays.shape[0]
-        for entry in data:
-            index=()
-            for i in xrange(dim):
-                index=(int((entry[i]-self._dom_origin[i])/self._spacing[i]),)+index
-            for i in xrange(num_arrays):
-                arrays[i][index]=entry[dim+i]
-        x=dom.getX()
-        delta=[self._dom_len[i]/(shape[dim-i-1]-1) for i in xrange(dim)]
-        realorigin=[inf(x[i]) for i in xrange(dim)]
-        res=[]
-        for i in xrange(num_arrays):
-            res.append(interpolateTable(arrays[i], x[:dim], realorigin, delta, 1e9))
-        return res
-
-    def setPadding(self, pad_l=0.1, pad_h=0.1):
-        """
-        Sets the amount of padding around the dataset. If pad_l/pad_h is >=1
-        they are treated as number of elements to be added to the domain.
-        If 0 < pad_l;pad_h < 1, the padding amount is relative.
-        """
-        self._pad_l=pad_l
-        self._pad_h=pad_h
-
-    def setConstraints(self, bottom=False, sides=True):
-        """
-        If `bottom` is True, then the density mask will be set to 1 in the
-        padding area at the bottom of the domain. By default this area is
-        unconstrained. Similarly, if `sides` is True (default) then the
-        horizontal padding area is constrained, otherwise not.
-        """
-        self._constrainBottom=bottom
-        self._constrainSides=sides
-
-    def getDomain(self):
-        """
-        Returns a domain that spans the data area plus padding.
-        """
-        if self._domain is None:
-            self._domain=self._createDomain(self._pad_l, self._pad_h)
-        return self._domain
-
-    def getDensityMask(self):
-        """
-        Returns the density mask data object, where mask has value 1 on the
-        padding area, 0 elsewhere.
-        """
-        return self._mask
-
-    def getGravityAndStdDev(self):
-        """
-        Returns the gravity anomaly and standard deviation data objects as a
-        tuple.
-        """
-        raise NotImplementedError
-
-    def getDataExtents(self):
-        """
-        returns ( (x0, y0), (nx, ny), (dx, dy) ), where
-            x0, y0 = coordinates of data origin
-            nx, ny = number of data points in x and y
-            dx, dy = spacing of data points in x and y
-        """
-        raise NotImplementedError
-
-    def getVerticalExtents(self):
-        """
-        returns (z0, nz, dz), where
-            z0 = minimum z coordinate (origin)
-            nz = number of nodes in z direction
-            dz = spacing of nodes (= cell size in z)
-        """
-        raise NotImplementedError
-
-    def getDomainClass(self):
-        """
-        returns the domain generator class (e.g. esys.ripley.Brick)
-        """
-        raise NotImplementedError
-
     def _createDomain(self, padding_l, padding_h):
         """
-        creates and returns an escript domain that spans the entire area of
-        available data plus a buffer zone.
+        Creates and returns an escript domain that spans the entire area of
+        available data plus a buffer zone. This method is called only once
+        the first time `getDomain()` is invoked and may be overwritten if
+        required.
+
+        :return: The escript domain for this data source.
+        :rtype: `esys.escript.Domain`
         """
         X0, NX, DX = self.getDataExtents()
         z0, nz, dz = self.getVerticalExtents()

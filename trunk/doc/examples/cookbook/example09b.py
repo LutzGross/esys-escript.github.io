@@ -178,4 +178,4 @@ while t<tend:
     t=t+h; n=n+1
     if (n < ls):
         mypde.setValue(y=source[n]*yx*src_dir*stop) #set the source as a function on the boundary
-    print(n,"-th time step t ",t)
+    print("time step %d, t=%s"%(n,t))

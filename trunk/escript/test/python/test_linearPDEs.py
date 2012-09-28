@@ -2694,13 +2694,11 @@ class Test_TransportPDE(Test_linearPDEs):
 
     def test_setCoefficient_WithWrongName(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
-        self.assertRaises(IllegalCoefficient)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))
+        self.assertRaises(IllegalCoefficient, mypde.setValue, ROMA=Vector(0.,FunctionOnBoundary(self.domain)))
 
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
-        self.assertRaises(IllegalCoefficientFunctionSpace)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
+        self.assertRaises(IllegalCoefficientFunctionSpace, mypde.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
         
     def test_resetCoefficient_WithWrongShape(self):
         mypde=TransportPDE(self.domain,numEquations=2,debug=self.DEBUG)
