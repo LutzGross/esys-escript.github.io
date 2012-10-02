@@ -30,6 +30,8 @@ class Regularization(object):
     """
     """
     def __init__(self, domain, m_ref=0, w0=None, w=None, location_of_set_m=Data(), tol=1e-8):
+        """
+        """
         self.__domain=domain
         self.__m_ref=m_ref
         self.location_of_set_m=location_of_set_m
@@ -54,10 +56,14 @@ class Regularization(object):
         return integrate(inner(grad(f0),grad(f1)))
 
     def project(self, Y=Data(), X=Data()):
+        """
+        """
         self.__projector.setValue(Y=Y, X=X)
         return  self.__projector.getSolution()
 
     def getValue(self, m):
+        """
+        """
         A=0
         if self._w0 is not None:
             A=(m-self.__m_ref)**2 * self._w0
@@ -66,6 +72,8 @@ class Regularization(object):
         return integrate(A)
 
     def getGradient(self, m):
+        """
+        """
         if not self._w0 == None:
             Y=2. * (m-self.__m_ref) * self._w0
         else:
@@ -78,5 +86,7 @@ class Regularization(object):
         return Y, X
 
     def getArguments(self, m):
+        """
+        """
         return ()
 

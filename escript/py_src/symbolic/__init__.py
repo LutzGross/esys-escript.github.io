@@ -25,9 +25,9 @@ from evaluator import *
 
 from esys.escript import HAVE_SYMBOLS
 if HAVE_SYMBOLS:
-    import functions as symfn
-    from pretty import pretty_print, pprint
-    from utils import *
+    from . import functions as symfn
+    from .pretty import pretty_print, pprint
+    from .utils import *
 
     # prefer escript's implementation of functions such as 'sign' etc.
     from sympy.utilities.lambdify import MODULES
@@ -41,6 +41,11 @@ if HAVE_SYMBOLS:
         MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
     else:
         MODULES['escript']=(ESCRIPT_NAMESPACE, ESCRIPT_DEFAULT, ESCRIPT_TRANSLATIONS,('from esys.escript import *',))
+
+    del ESCRIPT_NAMESPACE
+    del ESCRIPT_DEFAULT
+    del ESCRIPT_TRANSLATIONS
+    del MODULES
 
 
 #

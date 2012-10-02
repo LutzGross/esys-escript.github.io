@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+"""Data readers/providers for inversions"""
+
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -24,8 +26,8 @@ __all__ = ['DataSource','UBCDataSource','ERSDataSource','SyntheticDataSource','S
 
 import logging
 import numpy as np
-from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.util import *
 import esys.escript.unitsSI as U
 from esys.ripley import Brick, Rectangle, ripleycpp
 
@@ -39,9 +41,12 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     """
     Converts one or more longitude,latitude pairs to the corresponding x,y
     coordinates in the Universal Transverse Mercator projection.
-    If `wkt_string` is not given or invalid or the ``gdal`` module is not
-    available to convert the string, then the input values are assumed to be
-    given in the Clarke 1866 projection.
+
+    :note: If the ``pyproj`` module is not installed a warning if printed and
+           the input values are scaled by a constant and returned.
+    :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
+           not available to convert the string, then the input values are
+           assumed to be given in the Clarke 1866 projection.
     """
 
     # not really optimal: if pyproj is not installed we return the input
@@ -256,7 +261,7 @@ class DataSource(object):
 
         return arrays
 
-    def _createDomain(self, padding_l, padding_h):
+    def _createDomain(self, padding_x, padding_y):
         """
         Creates and returns an escript domain that spans the entire area of
         available data plus a buffer zone. This method is called only once
@@ -284,7 +289,7 @@ class DataSource(object):
         l = [NE[i]*self._spacing[i] for i in xrange(len(NE))]
 
         # now add padding to the values
-        NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
+        NE_new, l_new, origin_new = self._addPadding(padding_x, padding_y, \
                 NE, l, origin)
 
         # number of padding elements per side
@@ -772,13 +777,13 @@ class SyntheticDataSource(DataSource):
         self.l=l
         self.h=h
 
-    def _createDomain(self, padding_l, padding_h):
+    def _createDomain(self, padding_x, padding_y):
         NE_H=self.NE
         NE_L=int((self.l/self.h)*NE_H+0.5)
         l=[self.l]*(self.DIM-1)+[self.h]
         NE=[NE_L]*(self.DIM-1)+[NE_H]
         origin=[0.]*self.DIM
-        NE_new, l_new, origin_new = self._addPadding(padding_l, padding_h, \
+        NE_new, l_new, origin_new = self._addPadding(padding_x, padding_y, \
                 NE, l, origin)
 
         self.NE=NE_new
