@@ -39,16 +39,13 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import math
 import numpy
-#from . import escript
+import os
 from . import escriptcpp
 escore=escriptcpp
-#import esys.escript.escriptcpp as escore
-import os
 from esys.escript import C_GeneralTensorProduct
 from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
 from esys.escript import printParallelThreadCounts
 from esys.escript import listEscriptParams
-#from esys.escript.escriptcpp import Data, _saveDataCSV, _condEval, Scalar, Vector
 from esys.escript.symbolic import *
 
 #=========================================================

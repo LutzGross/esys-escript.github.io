@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+"""Higher-level classes that allow running inversions with minimal set up"""
+
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

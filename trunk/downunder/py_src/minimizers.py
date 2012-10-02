@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+"""Generic minimization algorithms"""
+
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""

@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""A domain meshed with rectangles or quadrilaterals
+"""A domain meshed with uniform rectangles or quadrilaterals
 """
 
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland

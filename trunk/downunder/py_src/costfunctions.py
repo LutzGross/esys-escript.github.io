@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+"""Collection of cost functions for minimization"""
+
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -108,19 +110,19 @@ class CostFunction(object):
 
     def _getInner(self, f0, f1):
         """
-        Worker for ``getInner()``, needs to be overwritten.
+        Worker for `getInner()`, needs to be overwritten.
         """
         raise NotImplementedError
 
     def _getValue(self, x, *args):
         """
-        Worker for ``getValue()``, needs to be overwritten.
+        Worker for `getValue()`, needs to be overwritten.
         """
         raise NotImplementedError
 
     def _getGradient(self, x, *args):
         """
-        Worker for ``getGradient()``, needs to be overwritten.
+        Worker for `getGradient()`, needs to be overwritten.
         """
         raise NotImplementedError
 
@@ -150,6 +152,14 @@ class SimpleCostFunction(CostFunction):
     regularization term. This cost function is used in the gravity inversion.
     """
     def __init__(self, regularization, mapping, forwardmodel):
+        """
+        constructor stores the supplied object references and sets default
+        weights.
+
+        :param regularization: The regularization part of the cost function
+        :param mapping: Parametrization object
+        :param forwardmodel: The forward model part of the cost function
+        """
         super(SimpleCostFunction, self).__init__()
         self.forwardmodel=forwardmodel
         self.regularization=regularization
@@ -160,6 +170,11 @@ class SimpleCostFunction(CostFunction):
         """
         sets the weighting factors for the forward model and regularization
         terms.
+        
+        :param mu_model: Weighting factor for the forward model (default=1.)
+        :type mu_model: non-negative `float`
+        :param mu_reg: Weighting factor for the regularization (default=1.)
+        :type mu_reg: non-negative `float`
         """
         if mu_model<0. or mu_reg<0.:
             raise ValueError("weighting factors must be non-negative.")
@@ -169,6 +184,8 @@ class SimpleCostFunction(CostFunction):
     def _getInner(self, f0, f1):
         """
         returns ``regularization.getInner(f0,f1)``
+
+        :rtype: `float`
         """
         # if there is more than one regularization involved their contributions
         # need to be added up.
@@ -180,6 +197,8 @@ class SimpleCostFunction(CostFunction):
         *f(x)* and *grad f(x)*. In this implementation returns a tuple with the
         mapped value of ``m``, the arguments from the forward model and the
         arguments from the regularization.
+
+        :rtype: `tuple`
         """
         rho=self.mapping(m)
         return rho, self.forwardmodel.getArguments(rho), self.regularization.getArguments(m)
@@ -187,8 +206,9 @@ class SimpleCostFunction(CostFunction):
     def _getValue(self, m, *args):
         """
         returns the function value at m.
-        If the precalculated values are not supplied getArguments() is called.
+        If the precalculated values are not supplied `getArguments()` is called.
 
+        :rtype: `float`
         """
         # if there is more than one forward_model and/or regularization their
         # contributions need to be added up. But this implementation allows
@@ -201,7 +221,9 @@ class SimpleCostFunction(CostFunction):
     def _getGradient(self, m, *args):
         """
         returns the gradient of *f* at *m*.
-        If the precalculated values are not supplied getArguments() is called.
+        If the precalculated values are not supplied `getArguments()` is called.
+
+        :rtype: `esys.escript.Data`
         """
         drhodm = self.mapping.getDerivative(m)
         if len(args)==0:
@@ -213,6 +235,8 @@ class SimpleCostFunction(CostFunction):
     def _getDirectionalDerivative(self, m, d, *args):
         """
         returns the directional derivative at *m* in direction *d*.
+
+        :rtype: `float`
         """
         drhodm = self.mapping.getDerivative(m)
         Y0 = self.forwardmodel.getGradient(args[0],*args[1])

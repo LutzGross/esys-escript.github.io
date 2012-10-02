@@ -13,6 +13,8 @@
 #
 ##############################################################################
 
+"""Collection of forward models that define the inversion problem"""
+
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -23,8 +25,9 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['ForwardModel','GravityModel']
 
 from esys.escript import unitsSI as U
-from esys.escript import *
 from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.util import *
+from esys.escript import Data
 
 PI = 3.14159265358979323846
 G = 6.6742e-11*U.m**3/(U.kg*U.sec**2)
@@ -32,7 +35,8 @@ G = 6.6742e-11*U.m**3/(U.kg*U.sec**2)
 class ForwardModel(object):
     """
     An abstract forward model that can be plugged into a cost function.
-    Subclasses should implement getValue() and getGradient().
+    Subclasses need to implement `getValue()`, `getGradient()`, and possibly
+    `getArguments()`.
     """
     def __init__(self):
         pass
