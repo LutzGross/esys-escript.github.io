@@ -215,7 +215,8 @@ class Design(design.Design):
            p=prim.getUnderlyingPrimitive()
            if isinstance(p, Point):
                c=p.getCoordinates()
-               out+="Point(%s) = {%f , %f, %f , %f };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
+               #out+="Point(%s) = {%f , %f, %f , %f };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
+               out+="Point(%s) = {%.14e , %.14e, %.14e , %.14e };\n"%(p.getID(),c[0],c[1],c[2], p.getLocalScale()*h)
 
            elif isinstance(p, Spline):
                out+="Spline(%s) = {%s};\n"%(p.getID(),self.__mkArgs(p.getControlPoints()))+self.__mkTransfiniteLine(p)
