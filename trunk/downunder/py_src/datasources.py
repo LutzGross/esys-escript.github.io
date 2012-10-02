@@ -26,6 +26,7 @@ __all__ = ['DataSource','UBCDataSource','ERSDataSource','SyntheticDataSource','S
 
 import logging
 import numpy as np
+from esys.escript import ReducedFunction
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 import esys.escript.unitsSI as U
@@ -47,6 +48,12 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
            not available to convert the string, then the input values are
            assumed to be given in the Clarke 1866 projection.
+
+    :param lon: longitude value(s)
+    :type lon: `float`, `list`, `tuple`, or ``numpy.array``
+    :param lat: latitude value(s)
+    :type lat: `float`, `list`, `tuple`, or ``numpy.array``
+    :rtype: ``numpy.array``
     """
 
     # not really optimal: if pyproj is not installed we return the input
@@ -55,7 +62,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         import pyproj
     except:
         print("Warning, pyproj not available. Domain extents will be wrong")
-        return lon*1000., lat*1000.
+        return np.array(lon)*1000., np.array(lat)*1000.
 
     # determine UTM zone from the input data
     zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
@@ -320,7 +327,7 @@ class DataSource(object):
                         wherePositive(x[i]-l_new[i]+2*NE_pad[i]*self._spacing[i])
 
         if self._constrainBottom:
-            mask = mask + whereNegative(x[2])
+            mask = mask + whereNonPositive(x[2])
         self._mask=wherePositive(mask)
 
         self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
@@ -582,7 +589,7 @@ class ERSDataSource(DataSource):
     Note that this class only accepts a very specific type of ER Mapper data
     input and will raise an exception if other data is found.
     """
-    def __init__(self, headerfile, datafile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
+    def __init__(self, headerfile, datafile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
         """
         headerfile - usually ends in .ers
         datafile - usually has the same name as the headerfile without '.ers'
@@ -672,7 +679,7 @@ class ERSDataSource(DataSource):
                 self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
             originX_UTM,originY_UTM=LatLonToUTM(originX, originY, wkt)
             op1X,op1Y=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
-            # we are rounding to avoid interpolateOnDomain issues
+            # we are rounding to avoid interpolation issues
             spacingX=np.round(op1X-originX_UTM)
             spacingY=np.round(op1Y-originY_UTM)
             originX=np.round(originX_UTM)
@@ -682,7 +689,7 @@ class ERSDataSource(DataSource):
         self.__dataorigin=[originX, originY]
         originY-=(NY-1)*spacingY
         self.__maskval=maskval
-        spacingZ=np.round(float(ve[1]-ve[0])/(ve[2]-1))
+        spacingZ=np.round(float(ve[1]-ve[0])/ve[2])
         self.__delta = [spacingX, spacingY, spacingZ]
         self.__nPts = [NX, NY, ve[2]]
         self.__origin = [originX, originY, ve[0]]

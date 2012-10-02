@@ -299,19 +299,12 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
     vector<float> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    // whether the y-coordinate runs top-down (invert=true) or bottom-up (false)
-    bool invertY=true;
-
     for (index_t z=0; z<num2; z++) {
         for (index_t y=0; y<num1; y++) {
             const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]+(idx2+z)*numValues[0]*numValues[1]);
             f.seekg(fileofs*sizeof(float));
             f.read((char*)&values[0], num0*numComp*sizeof(float));
-            int dataIndex;
-            if (invertY)
-                dataIndex = first0+(first1+num1-1-y)*myN0+(first2+z)*myN0*myN1;
-            else
-                dataIndex = first0+(first1+y)*myN0+(first2+z)*myN0*myN1;
+            const int dataIndex = first0+(first1+y)*myN0+(first2+z)*myN0*myN1;
 
             for (index_t x=0; x<num0; x++) {
                 double* dest = out.getSampleDataRW(dataIndex+x);
