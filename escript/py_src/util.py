@@ -2661,7 +2661,7 @@ def meanValue(arg):
     :param arg: function
     :type arg: `escript.Data`
     :return: mean value
-    :rtype: ``float`` or {numpy.ndarray}
+    :rtype: ``float`` or ``numpy.ndarray``
     """
     fs=arg.getFunctionSpace()
     d=fs.getDomain()
