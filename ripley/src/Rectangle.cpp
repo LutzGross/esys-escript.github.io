@@ -50,7 +50,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     // ratio as the number of elements
     if (d0<=0 && d1<=0) {
         warn=true;
-        d0=(int)(sqrt(m_mpiInfo->size*(n0+1)/(float)(n1+1)));
+        d0=max(1, (int)(sqrt(m_mpiInfo->size*(n0+1)/(float)(n1+1))));
         d1=m_mpiInfo->size/d0;
         if (d0*d1 != m_mpiInfo->size) {
             // ratios not the same so subdivide side with more elements only
