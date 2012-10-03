@@ -113,7 +113,7 @@ class GravityModel(ForwardModel):
         return phi, -grad(phi)
 
     def getPotential(self, rho):
-        self.__pde.setValue(Y=(-4*PI*self.__G) * rho, X=Data())
+        self.__pde.setValue(Y=(-4*PI*self.__G) * rho, X=Data(), X_reduced=Data())
         phi=self.__pde.getSolution()
         return phi
 
