@@ -71,6 +71,12 @@ public:
                                 const std::vector<int>& numValues) const;
 
     /**
+    */
+    virtual void readNcGrid(escript::Data& out, std::string filename,
+            std::string varname, const std::vector<int>& first,
+            const std::vector<int>& numValues) const;
+
+    /**
        \brief
        returns the array of reference numbers for a function space type
        \param fsType The function space type

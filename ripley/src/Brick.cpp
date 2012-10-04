@@ -18,6 +18,10 @@ extern "C" {
 #include <paso/SystemMatrix.h>
 }
 
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>
+#endif
+
 #if USE_SILO
 #include <silo.h>
 #ifdef ESYS_MPI
@@ -319,6 +323,111 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
     }
 
     f.close();
+}
+
+void Brick::readNcGrid(escript::Data& out, string filename, string varname,
+            const vector<int>& first, const vector<int>& numValues) const
+{
+#ifdef USE_NETCDF
+    // check destination function space
+    int myN0, myN1, myN2;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_N0;
+        myN1 = m_N1;
+        myN2 = m_N2;
+    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
+                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE0;
+        myN1 = m_NE1;
+        myN2 = m_NE2;
+    } else
+        throw RipleyException("readNcGrid(): invalid function space for output data object");
+
+    if (first.size() != 3)
+        throw RipleyException("readNcGrid(): argument 'first' must have 3 entries");
+
+    if (numValues.size() != 3)
+        throw RipleyException("readNcGrid(): argument 'numValues' must have 3 entries");
+
+    // check file existence and size
+    NcFile f(filename.c_str(), NcFile::ReadOnly);
+    if (!f.is_valid())
+        throw RipleyException("readNcGrid(): cannot open file");
+
+    NcVar* var = f.get_var(varname.c_str());
+    if (!var)
+        throw RipleyException("readNcGrid(): invalid variable name");
+
+    // TODO: rank>0 data support
+    const int numComp = out.getDataPointSize();
+    if (numComp > 1)
+        throw RipleyException("readNcGrid(): only scalar data supported");
+
+    const int dims = var->num_dims();
+    const long *edges = var->edges();
+
+    // is this a slice of the data object (dims!=3)?
+    // note the expected ordering of edges (as in numpy: z,y,x)
+    if ( (dims==3 && (numValues[2] > edges[0] || numValues[1] > edges[1]
+                      || numValues[0] > edges[2]))
+            || (dims==2 && numValues[2]>1)
+            || (dims==1 && (numValues[2]>1 || numValues[1]>1)) ) {
+        throw RipleyException("readNcGrid(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0] <= m_offset0 ||
+            first[1] >= m_offset1+myN1 || first[1]+numValues[1] <= m_offset1 ||
+            first[2] >= m_offset2+myN2 || first[2]+numValues[2] <= m_offset2) {
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const int first0 = max(0, first[0]-m_offset0);
+    const int first1 = max(0, first[1]-m_offset1);
+    const int first2 = max(0, first[2]-m_offset2);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset0-first[0]);
+    const int idx1 = max(0, m_offset1-first[1]);
+    const int idx2 = max(0, m_offset2-first[2]);
+    // number of values to write
+    const int num0 = min(numValues[0]-idx0, myN0-first0);
+    const int num1 = min(numValues[1]-idx1, myN1-first1);
+    const int num2 = min(numValues[2]-idx2, myN2-first2);
+
+    vector<double> values(num0*num1*num2);
+    if (dims==3) {
+        var->set_cur(idx2, idx1, idx0);
+        var->get(&values[0], num2, num1, num0);
+    } else if (dims==2) {
+        var->set_cur(idx1, idx0);
+        var->get(&values[0], num1, num0);
+    } else {
+        var->set_cur(idx0);
+        var->get(&values[0], num0);
+    }
+
+    const int dpp = out.getNumDataPointsPerSample();
+    out.requireWrite();
+
+    for (index_t z=0; z<num2; z++) {
+        for (index_t y=0; y<num1; y++) {
+#pragma omp parallel for
+            for (index_t x=0; x<num0; x++) {
+                const int dataIndex = first0+(first1+y)*myN0+(first2+z)*myN0*myN1+x;
+                const int srcIndex=z*num1*num0+y*num0+x;
+                double* dest = out.getSampleDataRW(dataIndex);
+                for (index_t q=0; q<dpp; q++) {
+                    *dest++ = values[srcIndex];
+                }
+            }
+        }
+    }
+#else
+    throw RipleyException("readNcGrid(): not compiled with netCDF support");
+#endif
 }
 
 void Brick::dump(const string& fileName) const

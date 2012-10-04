@@ -1219,6 +1219,13 @@ void RipleyDomain::readBinaryGrid(escript::Data& out, string filename,
     throw RipleyException("readBinaryGrid() not implemented");
 }
 
+void RipleyDomain::readNcGrid(escript::Data& out, string filename,
+            string varname, const vector<int>& first,
+            const vector<int>& numValues) const
+{
+    throw RipleyException("readNcGrid() not implemented");
+}
+
 const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
 {
     throw RipleyException("borrowSampleReferenceIDs() not implemented");
