@@ -26,7 +26,7 @@ __all__ = ['DataSource','UBCDataSource','ERSDataSource','SyntheticDataSource','S
 
 import logging
 import numpy as np
-from esys.escript import ReducedFunction
+from esys.escript import ReducedFunction, Scalar
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 import esys.escript.unitsSI as U
@@ -243,7 +243,7 @@ class DataSource(object):
         dom=self.getDomain()
         dim=dom.getDim()
         # determine number of values required per element
-        DPP=Scalar(0., Function(dom)).getNumberOfDataPoints()
+        DPP=Scalar(0., ReducedFunction(dom)).getNumberOfDataPoints()
         for i in xrange(dim):
             DPP=DPP/self._dom_NE[i]
         DPP=int(DPP)
@@ -255,7 +255,7 @@ class DataSource(object):
         num_arrays=len(data[0])-dim
         arrays=[]
         for i in xrange(num_arrays):
-            d=Scalar(0., Function(dom))
+            d=Scalar(0., ReducedFunction(dom))
             d.expand()
             arrays.append(d)
 
@@ -414,7 +414,7 @@ class UBCDataSource(DataSource):
 
 ##############################################################################
 class NetCDFDataSource(DataSource):
-    def __init__(self, domainclass, gravfile, topofile=None, vertical_extents=(-40000,10000,26), alt_of_data=0.):
+    def __init__(self, gravfile, topofile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
         """
         vertical_extents - (alt_min, alt_max, num_points)
         alt_of_data - altitude of measurements
@@ -422,7 +422,6 @@ class NetCDFDataSource(DataSource):
         super(NetCDFDataSource,self).__init__()
         self.__topofile=topofile
         self.__gravfile=gravfile
-        self.__domainclass=domainclass
         self.__determineExtents(vertical_extents)
         self.__altOfData=alt_of_data
 
@@ -475,6 +474,12 @@ class NetCDFDataSource(DataSource):
         if grav_name is None:
             raise RuntimeError("Could not determine gravity variable")
 
+        # try to determine value for unused data
+        try:
+            maskval = float(f.variables[grav_name].missing_value)
+        except:
+            maskval = 99999
+
         # see if there is a wkt string to convert coordinates
         try:
             wkt_string=f.variables[grav_name].esri_pe_string
@@ -482,8 +487,8 @@ class NetCDFDataSource(DataSource):
             wkt_string=None
 
         # we don't trust actual_range & geospatial_lon_min/max since subset
-        # data does not seem to have these fields updated it seems.
-        # Getting min/max from the arrays is obviously not very efficient...
+        # data does not seem to have these fields updated.
+        # Getting min/max from the arrays is obviously not very efficient but..
         #lon_range=longitude.actual_range
         #lat_range=latitude.actual_range
         #lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
@@ -498,12 +503,13 @@ class NetCDFDataSource(DataSource):
 
         self.__nPts=[NX, NY, ve[2]]
         self.__origin=origin
-        # we are rounding to avoid interpolateOnDomain issues
-        self.__delta=[np.round(lengths[i]/(self.__nPts[i]-1)) for i in xrange(3)]
+        # we are rounding to avoid interpolation issues
+        self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in xrange(3)]
         self.__wkt_string=wkt_string
         self.__lon=lon_name
         self.__lat=lat_name
         self.__grv=grav_name
+        self.__maskval=maskval
 
     def getDataExtents(self):
         """
@@ -521,12 +527,18 @@ class NetCDFDataSource(DataSource):
         """
         returns the domain generator class (e.g. esys.ripley.Brick)
         """
-        return self.__domainclass
+        return Brick
 
     def getGravityAndStdDev(self):
-        gravlist=self._readGravity() # x,y,z,g,s
-        g_and_sigma=self._interpolateOnDomain(gravlist)
-        return g_and_sigma[0]*[0,0,1], g_and_sigma[1]
+        nValues=self.__nPts[:2]+[1]
+        first=self._dom_NE_pad[:2]+[self._dom_NE_pad[2]+int((self.__altOfData-self.__origin[2])/self.__delta[2])]
+        g=ripleycpp._readNcGrid(self.__gravfile, self.__grv,
+                ReducedFunction(self.getDomain()),
+                first, nValues, (), self.__maskval)
+        sigma=whereNonZero(g-self.__maskval)
+        g=g*1e-6
+        sigma=sigma*2e-6
+        return g*[0,0,1], sigma
 
     def _readTopography(self):
         f=netcdf_file(self.__topofile, 'r')
@@ -555,32 +567,6 @@ class NetCDFDataSource(DataSource):
         topodata=np.column_stack((lon,lat,alt))
         f.close()
         return topodata
-
-    def _readGravity(self):
-        f=netcdf_file(self.__gravfile, 'r')
-        #lon=f.variables[self.__lon][:]
-        #lat=f.variables[self.__lat][:]
-        NE=[self.__nPts[i]-1 for i in xrange(2)]
-        lon=np.linspace(self.__origin[0], self.__origin[0]+NE[0]*self.__delta[0], NE[0]+1)
-        lat=np.linspace(self.__origin[1], self.__origin[1]+NE[1]*self.__delta[1], NE[1]+1)
-        lon,lat=np.meshgrid(lon,lat)
-        grav=f.variables[self.__grv][:]
-        f.close()
-        lon=lon.flatten()
-        lat=lat.flatten()
-        grav=grav.flatten()
-        alt=self.__altOfData*np.ones(grav.shape)
-        # error value is an assumption
-        try:
-            missing=f.variables[self.__grv].missing_value
-            err=np.where(grav==missing, 0.0, 20.0)
-        except:
-            err=20.0*np.ones(lon.shape)
-        # convert units
-        err=1e-6*err
-        grav=1e-6*grav
-        gravdata=np.column_stack((lon,lat,alt,grav,err))
-        return gravdata
 
 ##############################################################################
 class ERSDataSource(DataSource):

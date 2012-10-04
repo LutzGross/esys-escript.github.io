@@ -423,7 +423,7 @@ load(const std::string fileName,
    }
    return out;
    #else
-   throw DataException("Error - load:: is not compiled with netCFD. Please contact your insatllation manager.");
+   throw DataException("Error - load:: is not compiled with netCDF. Please contact your installation manager.");
    #endif
 }
 
