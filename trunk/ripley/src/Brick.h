@@ -71,6 +71,12 @@ public:
                                 const std::vector<int>& numValues) const;
 
     /**
+    */
+    virtual void readNcGrid(escript::Data& out, std::string filename,
+            std::string varname, const std::vector<int>& first,
+            const std::vector<int>& numValues) const;
+
+    /**
        \brief
        returns the reference number of the given sample number
        \param fsType The function space type
