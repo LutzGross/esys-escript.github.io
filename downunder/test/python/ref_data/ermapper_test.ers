@@ -18,8 +18,8 @@ DatasetHeader Begin
 			Xdimension	= 0.0054968863129241834
 			Ydimension	= 0.0044168776023883497
 		CellInfo End
-		NrOfLines	= 10
-		NrOfCellsPerLine	= 10
+		NrOfLines	= 15
+		NrOfCellsPerLine	= 20
 		RegistrationCoord Begin
 			Eastings	= 150.952243837
 			Northings	= -33.188010556
