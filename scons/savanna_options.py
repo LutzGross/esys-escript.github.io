@@ -57,7 +57,7 @@ cxx_extra = '-sox -I/sw/libs/numpy/x86_64/gcc-4.3.2/numpy-1.6.1/lib/python2.6/si
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/sw/libs/hdf/x86_64/gcc-4.3.2/hdf5-1.8.4-p1-intelmpi/lib' # fix warning about feupdate in icc v10
+ld_extra = '-shared-intel -L/sw/libs/hdf/x86_64/gcc-4.3.2/hdf5-1.8.4-p1-intelmpi/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -90,7 +90,7 @@ mpi = 'INTELMPI'
 #mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = ['/sw/sdev/intel/impi/4.0.0.027/include64', '/sw/sdev/intel/impi/4.0.0.027/lib64']
+mpi_prefix = '/sw/sdev/intel/impi/4.0.3.008/intel64'
 
 # MPI libraries to link against
 mpi_libs = ['mpi']
@@ -146,7 +146,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-12/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composerxe-2011.3.174/mkl/include', '/sw/sdev/intel/composerxe-2011.3.174/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2011_sp1.6.233/mkl/include', '/sw/sdev/intel/composer_xe_2011_sp1.6.233/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -211,7 +211,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.3.0/2.3.0/linux-x86_64/l
 
 # Build dynamic libraries only
 #DEFAULT: False
-build_shared = True
+#build_shared = True
 
 
 ### ADVANCED OPTIONS ###
@@ -227,7 +227,7 @@ build_shared = True
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composerxe-2011.3.174'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2011_sp1.6.233'})]
 
 #iknowwhatimdoing = False
 
