@@ -25,7 +25,7 @@ import numpy as np
 import os
 import sys
 import unittest
-from esys.escript import inf,sup,saveDataCSV
+from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 
 # this is mainly to avoid warning messages
@@ -38,7 +38,7 @@ logger.addHandler(handler)
 try:
     TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']
 except KeyError:
-    TEST_DATA_ROOT='.'
+    TEST_DATA_ROOT='ref_data'
 
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
@@ -55,13 +55,13 @@ NC_DATA = os.path.join(TEST_DATA_ROOT, 'netcdf_test.nc')
 NC_REF = os.path.join(TEST_DATA_ROOT, 'netcdf_test.csv')
 NC_NULL = 0.
 NC_SIZE = [20,15]
-NC_ORIGIN = [309097.0, 6319002.0]
+NC_ORIGIN = [403320.91466610413, 6414860.942530109]
 VMIN=-10000.
 VMAX=10000
 NE_V=15
 ALT=0.
-PAD_X=7
-PAD_Y=9
+PAD_X=3
+PAD_Y=2
 
 class TestERSDataSource(unittest.TestCase):
     def test_ers_with_padding(self):
@@ -130,7 +130,12 @@ class TestNetCDFDataSource(unittest.TestCase):
         # check metadata
         self.assertEqual(NP, NC_SIZE, msg="Wrong number of data points")
         # this only works if gdal is available
-        #self.assertAlmostEqual(X0, NC_ORIGIN, msg="Data origin wrong")
+        try:
+            import osgeo.osr
+            for i in xrange(len(NC_ORIGIN)):
+                self.assertAlmostEqual(X0[i], NC_ORIGIN[i], msg="Data origin wrong")
+        except ImportError:
+            print("Skipping test of data origin since gdal is not installed.")
 
         # check data
         nx=NP[0]+2*PAD_X
@@ -163,11 +168,14 @@ class TestNetCDFDataSource(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestERSDataSource))
-    if 'NetCDFDataSource' in dir():
-        suite.addTest(unittest.makeSuite(TestNetCDFDataSource))
+    if getMPISizeWorld()==1:
+        suite.addTest(unittest.makeSuite(TestERSDataSource))
+        if 'NetCDFDataSource' in dir():
+            suite.addTest(unittest.makeSuite(TestNetCDFDataSource))
+        else:
+            print("Skipping netCDF data source test since netCDF is not installed")
     else:
-        print("Skipping netCDF data source test since netCDF is not installed")
+        print("Skipping data source tests since MPI size > 1")
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 
