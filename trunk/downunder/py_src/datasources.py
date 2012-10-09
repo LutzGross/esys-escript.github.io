@@ -475,9 +475,12 @@ class NetCDFDataSource(DataSource):
             raise RuntimeError("Could not determine gravity variable")
 
         # try to determine value for unused data
-        try:
+        if hasattr(f.variables[grav_name], 'missing_value'):
             maskval = float(f.variables[grav_name].missing_value)
-        except:
+        elif hasattr(f.variables[grav_name], '_FillValue'):
+            maskval = float(f.variables[grav_name]._FillValue)
+        else:
+            self.logger.debug("missing_value attribute not found, using default.")
             maskval = 99999
 
         # see if there is a wkt string to convert coordinates

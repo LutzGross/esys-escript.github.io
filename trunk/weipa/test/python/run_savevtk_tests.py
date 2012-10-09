@@ -23,15 +23,12 @@ __url__="https://launchpad.net/escript-finley"
 import os, math
 import unittest
 from xml.dom import minidom
-from esys.escript import getMPISizeWorld, saveDX
-from esys.escript import ContinuousFunction
-from esys.escript import Function, ReducedFunction
-from esys.escript import FunctionOnBoundary, ReducedFunctionOnBoundary
-from esys.escript import FunctionOnContactZero, ReducedFunctionOnContactZero
-from esys.escript import FunctionOnContactOne, ReducedFunctionOnContactOne
-from esys.escript import Solution, ReducedSolution
-from esys import finley
-from esys import dudley
+from esys.escript import ContinuousFunction, Function, ReducedFunction,\
+            FunctionOnBoundary, ReducedFunctionOnBoundary,\
+            FunctionOnContactZero, ReducedFunctionOnContactZero,\
+            FunctionOnContactOne, ReducedFunctionOnContactOne,\
+            Solution, ReducedSolution
+from esys import dudley,finley
 from esys.weipa import saveVTK
 
 try:
