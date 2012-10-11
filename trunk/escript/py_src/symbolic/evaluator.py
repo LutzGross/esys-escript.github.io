@@ -106,7 +106,7 @@ class Evaluator:
         res=()
         for i in range(len(self.lambdas)):
             x=self.symbols[i]
-            subslist=[self._subsdict[a.name] for a in x if self._subsdict.has_key(a.name)]
+            subslist=[self._subsdict[a.name] for a in x if a.name in self._subsdict]
             if len(x)==len(subslist):
                 res+=self.lambdas[i](*subslist),
             else:

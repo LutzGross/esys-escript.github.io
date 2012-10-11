@@ -99,7 +99,7 @@ def GetMeshFromFile(filename, **kwargs):
         return ReadMesh(filename, integrationOrder, reducedIntegrationOrder, optimize)
     elif ext=="msh":
         if not kwargs.has_key("numDim"):
-	    raise ValueError("The numDim argument is required in order to read .msh files.")
+           raise ValueError("The numDim argument is required in order to read .msh files.")
         return ReadGmsh(filename, kwargs['numDim'], integrationOrder, reducedIntegrationOrder, optimize, useMacroElements)
     else:
 #        return LoadMesh(filename)

@@ -162,6 +162,9 @@ class Symbol(object):
         if self.getShape()!=other.getShape():
             return False
         return (self._arr==other._arr).all()
+        
+    def __hash__(self):
+        return id(self)
 
     def __getitem__(self, key):
         """
@@ -640,7 +643,7 @@ class Symbol(object):
         """
         if axis_offset is None:
             axis_offset=int(self._arr.ndim/2)
-        axes=range(axis_offset, self._arr.ndim)+range(0,axis_offset)
+        axes=list(range(axis_offset, self._arr.ndim))+list(range(0,axis_offset))
         return Symbol(numpy.transpose(self._arr, axes=axes), dim=self._dim, subs=self._subs)
 
     def applyfunc(self, f, on_type=None):
@@ -748,10 +751,10 @@ class Symbol(object):
 
     def __div__(self, other):
         return self.__binaryop('__div__', other)
-
+        
     def __rdiv__(self, other):
         return self.__binaryop('__rdiv__', other)
-
+        
     def __pow__(self, other):
         return self.__binaryop('__pow__', other)
 

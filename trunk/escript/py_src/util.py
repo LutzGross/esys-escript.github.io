@@ -1571,7 +1571,7 @@ def transpose(arg,axis_offset=None):
       r=arg.getRank()
       if axis_offset==None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
-        raise ValueError,"axis_offset must be between 0 and %s"%r
+        raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg.transpose(axis_offset)
    else:
       raise TypeError("Unknown argument type.")
