@@ -72,7 +72,7 @@ class SymbolicTestCase(unittest.TestCase):
         xx=Data(VALUE, FunctionSpace())
         ref=[VALUE**2, VALUE**3, VALUE**4, VALUE**5]
         res=e(x=xx)
-        for i in xrange(len(ref)):
+        for i in range(len(ref)):
             self.assertTrue(isinstance(res[i], Data), "substituted expression not a Data object")
             self.assertAlmostEqual(Lsup(res[i]-ref[i]), 0.0, self.TOL_DIGITS, "wrong result after substitution with Data object")
 

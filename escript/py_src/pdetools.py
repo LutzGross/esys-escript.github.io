@@ -440,7 +440,7 @@ class Locator:
       """
       if isinstance(data, escore.Data):
          if data.getFunctionSpace()!=self.getFunctionSpace():
-           raise TypeError, "setValue: FunctionSpace of Locator and Data object must match."
+           raise TypeError("setValue: FunctionSpace of Locator and Data object must match.")
          data.expand()	
          id=self.getId()
          if isinstance(id, list):
@@ -449,7 +449,7 @@ class Locator:
          else:
            data._setTupleForGlobalDataPoint(id[1], id[0], v)
       else:
-           raise TypeError, "setValue: Invalid argument type."
+           raise TypeError("setValue: Invalid argument type.")
 
 
 def getInfLocator(arg):

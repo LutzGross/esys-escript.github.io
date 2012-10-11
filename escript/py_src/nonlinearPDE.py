@@ -397,8 +397,8 @@ class NonlinearPDE(object):
                 new_defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
                 defect_reduced=False
                 for i in xrange(len( new_defect_norm)):
-		     if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
-		    
+                    if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
+                
                 #print new_defect_norm
                 #q_defect=max(self._getSafeRatio(new_defect_norm, defect_norm))
                 # if defect_norm==0 and new_defect_norm!=0

@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 import numpy
 import sympy
 from sympy.printing.pretty.pretty import PrettyPrinter,prettyForm,pretty_symbol
-from symbol import Symbol
+from .symbol import Symbol
 
 __author__="Cihan Altinay"
 
@@ -116,7 +116,7 @@ def pretty_print(expr, use_unicode=None):
 
     pprint is just a shortcut for this function
     """
-    print pretty(expr, use_unicode = use_unicode)
+    print(pretty(expr, use_unicode = use_unicode))
 
 pprint = pretty_print
 

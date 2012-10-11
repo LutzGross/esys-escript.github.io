@@ -35,9 +35,9 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
     faceon=useElementsOnFace
     if useElementsOnFace is None:	#We want to use 1 as the default, but only where it makes sense
         if useFullElementOrder or order==-1:
-	    faceon=0	#Don't use it
-	else:
-	    faceon=1
+            faceon=0	#Don't use it
+        else:
+            faceon=1
     return __Rectangle_driver([n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
       reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags])
 
@@ -53,9 +53,9 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
     faceon=useElementsOnFace
     if useElementsOnFace is None:	#We want to use 1 as the default, but only where it makes sense
         if useFullElementOrder or order==-1:
-	    faceon=0	#Don't use it
-	else:
-	    faceon=1        
+            faceon=0	#Don't use it
+        else:
+            faceon=1        
     return __Brick_driver([n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
     integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
     optimize, points, tags])

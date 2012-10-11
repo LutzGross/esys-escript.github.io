@@ -840,8 +840,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         so.setPreconditioner(so.JACOBI)
         self.assertTrue(so.getPreconditioner() == 10, "JACOBI is not set.")
         if getEscriptParamInt('DISABLE_AMG', 0):
-	    print("AMG test disabled on MPI build")
-	else:
+            print("AMG test disabled on MPI build")
+        else:
             so.setPreconditioner(so.AMG)
             self.assertTrue(so.getPreconditioner() == 22, "AMG is not set.")
         so.setPreconditioner(so.REC_ILU)
