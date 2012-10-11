@@ -81,7 +81,7 @@ class TestERSDataSource(unittest.TestCase):
         # this test only works if gdal is available
         try:
             import osgeo.osr
-            for i in xrange(len(ERS_ORIGIN)):
+            for i in range(len(ERS_ORIGIN)):
                 self.assertAlmostEqual(X0[i], ERS_ORIGIN[i], msg="Data origin wrong")
         except ImportError:
             print("Skipping test of data origin since gdal is not installed.")
@@ -132,7 +132,7 @@ class TestNetCDFDataSource(unittest.TestCase):
         # this only works if gdal is available
         try:
             import osgeo.osr
-            for i in xrange(len(NC_ORIGIN)):
+            for i in range(len(NC_ORIGIN)):
                 self.assertAlmostEqual(X0[i], NC_ORIGIN[i], msg="Data origin wrong")
         except ImportError:
             print("Skipping test of data origin since gdal is not installed.")

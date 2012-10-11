@@ -463,7 +463,7 @@ class Symbol(object):
             subs.update({fssym:where})
             where=name
 
-        from functions import grad_n
+        from .functions import grad_n
         out=self._arr.copy().reshape(self.getShape()+(1,)).repeat(self._dim,axis=self.getRank())
         for d in range(self._dim):
             for idx in numpy.ndindex(self.getShape()):
@@ -750,11 +750,17 @@ class Symbol(object):
         return self.__binaryop('__rmul__', other)
 
     def __div__(self, other):
+        print(type(self), type(other))
         return self.__binaryop('__div__', other)
-        
+
+    def __truediv__(self, other):
+        return self.__binaryop('__truediv__', other)
+            
     def __rdiv__(self, other):
         return self.__binaryop('__rdiv__', other)
-        
+    
+    def __rtruediv__(self, other):
+        return self.__binaryop('__rtruediv__', other)     
     def __pow__(self, other):
         return self.__binaryop('__pow__', other)
 

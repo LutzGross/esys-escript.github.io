@@ -216,7 +216,7 @@ class Test_saveCSV(unittest.TestCase):
         self.assertEquals(line, 'U/0|U/1|V\n')
 
    def test_saveCSV_functionspaces(self):
-        for i in xrange(len(self.functionspaces)):
+        for i in range(len(self.functionspaces)):
             FS=self.functionspaces[i]
             X=FS(self.domain).getX()
             X0=X[0]
@@ -257,7 +257,7 @@ class Test_saveCSV(unittest.TestCase):
             line=f.readline()
             line_got=[float(elt) for elt in line.split(',')]
             self.assertEquals(len(self.firstline[i]),len(line_got))
-            for j in xrange(len(self.firstline[i])):
+            for j in range(len(self.firstline[i])):
                 if self.firstline[i][j] is not None:
                     self.assertAlmostEquals(self.firstline[i][j],line_got[j])
             linecount=1
