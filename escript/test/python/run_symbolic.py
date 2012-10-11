@@ -79,12 +79,11 @@ class SymbolicTestCase(unittest.TestCase):
         x=Symbol('x', (3, 2))
         e=Evaluator(x**2, x**3, x**4, x**5)
         xx=numpy.array([[9.2518231214758302, -5.4150410540605654], [-1.5781869039394181, -0.36601352461017989], [6.5486813875509249, -8.6886755722383953]])
-        ref=[d.tolist() for d in (xx**2, xx**3, xx**4, xx**5)]
+        ref=[xx**2, xx**3, xx**4, xx**5]
         res=e(x=xx)
-        for d in res:
-            self.assertTrue(isinstance(d, numpy.ndarray), "substituted expression not a numpy array object")
-        res=[x.tolist() for x in res]
-        self.assertEqual(res, ref, "wrong result after substitution with Data object")
+        for i in xrange(len(ref)):
+            self.assertTrue(isinstance(res[i], numpy.ndarray), "substituted expression not a numpy array object")
+            self.assertAlmostEqual(Lsup(res[i]-ref[i]), 0.0, self.TOL_DIGITS, "wrong result after substitution with Data object")
 
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test_acos_Symbol_rank0(self):
